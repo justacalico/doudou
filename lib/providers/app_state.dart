@@ -1040,6 +1040,30 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Restore favorite status from downloaded tracks
+  void _restoreFavoriteStatusFromDownloads() {
+    final downloadedTracks = _downloadService.downloadedTracks;
+    for (int i = 0; i < _tracks.length; i++) {
+      final track = _tracks[i];
+      final downloadedTrack = downloadedTracks[track.id];
+      if (downloadedTrack != null && downloadedTrack.isFavorite != track.isFavorite) {
+        _tracks[i] = Track(
+          id: track.id,
+          name: track.name,
+          albumName: track.albumName,
+          artistName: track.artistName,
+          albumId: track.albumId,
+          playlistItemId: track.playlistItemId,
+          duration: track.duration,
+          trackNumber: track.trackNumber,
+          imageUrl: track.imageUrl,
+          isFavorite: downloadedTrack.isFavorite,
+          playCount: track.playCount,
+        );
+      }
+    }
+  }
+
   Future<void> loadLibraryData() async {
     if (!_isLoggedIn) {
       return;
@@ -1066,6 +1090,9 @@ class AppState extends ChangeNotifier {
         _artists = cachedArtists;
         _tracks = cachedTracks;
         _playlists = cachedPlaylists;
+
+        // Restore favorite status from downloaded tracks
+        _restoreFavoriteStatusFromDownloads();
 
         try {
           _audioHandler?.updateMediaLibrary(
@@ -1220,6 +1247,9 @@ class AppState extends ChangeNotifier {
       _artists = results[1] as List<Artist>;
       _tracks = results[2] as List<Track>;
       _playlists = results[3] as List<Playlist>;
+
+      // Restore favorite status from downloaded tracks
+      _restoreFavoriteStatusFromDownloads();
 
       try {
         _audioHandler?.updateMediaLibrary(
@@ -2606,6 +2636,9 @@ class AppState extends ChangeNotifier {
     _tracks = _tracks
         .where((track) => downloadedTrackIds.contains(track.id))
         .toList();
+
+    // Restore favorite status from downloaded tracks
+    _restoreFavoriteStatusFromDownloads();
 
     // Filter albums to only show those with downloaded tracks
     _albums = _albums

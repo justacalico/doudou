@@ -16,6 +16,7 @@ class DownloadTask {
   DateTime? startTime;
   DateTime? endTime;
   String? errorMessage;
+  final bool isFavorite;
 
   DownloadTask({
     required this.id,
@@ -33,6 +34,7 @@ class DownloadTask {
     this.startTime,
     this.endTime,
     this.errorMessage,
+    this.isFavorite = false,
   });
 
   DownloadTask copyWith({
@@ -51,6 +53,7 @@ class DownloadTask {
     DateTime? startTime,
     DateTime? endTime,
     String? errorMessage,
+    bool? isFavorite,
   }) {
     return DownloadTask(
       id: id ?? this.id,
@@ -68,6 +71,7 @@ class DownloadTask {
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
       errorMessage: errorMessage ?? this.errorMessage,
+      isFavorite: isFavorite ?? this.isFavorite,
     );
   }
 
@@ -88,6 +92,7 @@ class DownloadTask {
       'startTime': startTime?.toIso8601String(),
       'endTime': endTime?.toIso8601String(),
       'errorMessage': errorMessage,
+      'isFavorite': isFavorite,
     };
   }
 
@@ -113,6 +118,7 @@ class DownloadTask {
           : null,
       endTime: json['endTime'] != null ? DateTime.parse(json['endTime']) : null,
       errorMessage: json['errorMessage'],
+      isFavorite: json['isFavorite'] ?? false,
     );
   }
 }
@@ -123,6 +129,7 @@ class DownloadedTrack {
   final String? imagePath;
   final DateTime downloadedAt;
   final int fileSize;
+  final bool isFavorite;
 
   DownloadedTrack({
     required this.trackId,
@@ -130,6 +137,7 @@ class DownloadedTrack {
     this.imagePath,
     required this.downloadedAt,
     required this.fileSize,
+    this.isFavorite = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -139,6 +147,7 @@ class DownloadedTrack {
       'imagePath': imagePath,
       'downloadedAt': downloadedAt.toIso8601String(),
       'fileSize': fileSize,
+      'isFavorite': isFavorite,
     };
   }
 
@@ -149,6 +158,7 @@ class DownloadedTrack {
       imagePath: json['imagePath'],
       downloadedAt: DateTime.parse(json['downloadedAt']),
       fileSize: json['fileSize'],
+      isFavorite: json['isFavorite'] ?? false,
     );
   }
 }

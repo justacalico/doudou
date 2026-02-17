@@ -73,6 +73,11 @@ class DownloadService extends ChangeNotifier {
     return _downloadedTracks[trackId]?.filePath;
   }
 
+  // Get favorite status for a downloaded track
+  bool? getDownloadedTrackFavoriteStatus(String trackId) {
+    return _downloadedTracks[trackId]?.isFavorite;
+  }
+
   // Download a track
   Future<void> downloadTrack(Track track) async {
     if (isTrackDownloaded(track.id)) {
@@ -140,6 +145,7 @@ class DownloadService extends ChangeNotifier {
         filePath: filePath,
         status: DownloadStatus.downloading,
         startTime: DateTime.now(),
+        isFavorite: track.isFavorite,
       );
 
       _downloadTasks[track.id] = task;
@@ -262,6 +268,7 @@ class DownloadService extends ChangeNotifier {
                 filePath: task.filePath,
                 downloadedAt: DateTime.now(),
                 fileSize: fileSize,
+                isFavorite: task.isFavorite,
               );
 
               _downloadedTracks[task.trackId] = downloadedTrack;
@@ -368,6 +375,7 @@ class DownloadService extends ChangeNotifier {
             imagePath: imagePath,
             downloadedAt: downloadedTrack.downloadedAt,
             fileSize: downloadedTrack.fileSize,
+            isFavorite: downloadedTrack.isFavorite,
           );
         }
       }
