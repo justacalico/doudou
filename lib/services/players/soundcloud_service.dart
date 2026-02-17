@@ -14,6 +14,16 @@ import '../base_service.dart';
 class SoundCloudService implements BaseMediaService {
   static const String _apiBase = 'https://api.soundcloud.com';
 
+  /// Log so it always appears in terminal (print + kprint).
+  static void _log(String msg, {bool isError = false}) {
+    print('[SoundCloud] $msg');
+    if (isError) {
+      kprint.err(msg);
+    } else {
+      kprint.lg(msg, symbol: '🌐');
+    }
+  }
+
   late Dio _dio;
   String? _clientId;
   String? _clientSecret;
@@ -41,10 +51,10 @@ class SoundCloudService implements BaseMediaService {
     _clientId = identifier.trim();
     _clientSecret = credential.trim();
     if (_clientId!.isEmpty || _clientSecret!.isEmpty) {
-      kprint.err('[SoundCloud] login: missing Client ID or Client Secret');
+      _log('login: missing Client ID or Client Secret', isError: true);
       return false;
     }
-    kprint.lg('[SoundCloud] login: obtaining token (client_id=${_clientId!.length} chars)', symbol: '🌐');
+    _log('login: obtaining token (client_id=${_clientId!.length} chars)');
     return _obtainToken();
   }
 
@@ -55,14 +65,14 @@ class SoundCloudService implements BaseMediaService {
   Future<bool> _obtainToken() async {
     _lastError = null;
     final credentials = base64Encode(utf8.encode('$_clientId:$_clientSecret'));
-    kprint.lg('[SoundCloud] trying oauth2/token with redirect_uri=$_redirectUri', symbol: '🌐');
+    _log('trying oauth2/token with redirect_uri=$_redirectUri');
     final ok = await _requestToken(
       'https://secure.soundcloud.com/oauth2/token',
       credentials,
       {'grant_type': 'client_credentials', 'redirect_uri': _redirectUri},
     );
     if (ok) return true;
-    kprint.warn('[SoundCloud] oauth2/token failed, trying legacy oauth/token');
+    _log('oauth2/token failed, trying legacy oauth/token');
     _lastError = null;
     return _requestToken(
       'https://secure.soundcloud.com/oauth/token',
@@ -77,7 +87,7 @@ class SoundCloudService implements BaseMediaService {
     Map<String, String> body,
   ) async {
     try {
-      kprint.lg('[SoundCloud] POST $url', symbol: '🌐');
+      _log('POST $url');
       final response = await _dio.post<Map<String, dynamic>>(
         url,
         options: Options(
@@ -91,7 +101,7 @@ class SoundCloudService implements BaseMediaService {
       );
 
       if (response.data == null) {
-        kprint.err('[SoundCloud] token response has no body');
+        _log('token response has no body', isError: true);
         return false;
       }
 
@@ -100,12 +110,12 @@ class SoundCloudService implements BaseMediaService {
       _tokenExpiry = DateTime.now().add(Duration(seconds: expiresIn));
 
       if (_accessToken == null || _accessToken!.isEmpty) {
-        kprint.err('[SoundCloud] token response missing access_token');
+        _log('token response missing access_token', isError: true);
         return false;
       }
 
       _dio.options.headers['Authorization'] = 'OAuth $_accessToken';
-      kprint.lg('[SoundCloud] token obtained, expires_in=${expiresIn}s', symbol: '✅');
+      _log('token obtained, expires_in=${expiresIn}s');
       return true;
     } on DioException catch (e) {
       final status = e.response?.statusCode;
@@ -115,10 +125,11 @@ class SoundCloudService implements BaseMediaService {
         final desc = data['error_description'] as String?;
         if (desc != null) _lastError = '$_lastError: $desc';
       }
-      kprint.err('[SoundCloud] token request failed status=$status error=$_lastError body=${e.response?.data}');
+      _log('token request failed status=$status error=$_lastError body=${e.response?.data}', isError: true);
       return false;
     } catch (e, st) {
-      kprint.err('[SoundCloud] token request threw: $e');
+      _log('token request threw: $e', isError: true);
+      print('[SoundCloud] $st');
       kprint.err('[SoundCloud] $st');
       return false;
     }

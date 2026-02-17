@@ -789,6 +789,9 @@ class AppState extends ChangeNotifier {
         case 'subsonic':
           type = ServerType.subsonic;
           break;
+        case 'soundcloud':
+          type = ServerType.soundcloud;
+          break;
         case 'local':
           type = ServerType.local;
           break;
