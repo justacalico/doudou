@@ -497,14 +497,17 @@ class SoundCloudService implements BaseMediaService {
         }
         RegExp re = RegExp(r',client_id:\s*"([^"]+)"');
         var match = re.firstMatch(body);
-        if (match == null) match = RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(body);
-        if (match == null) match = RegExp(r"client_id:\s*'([a-zA-Z0-9_.-]+)'").firstMatch(body);
-        if (match == null) match = RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(body);
+        match ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(body);
+        match ??= RegExp(r"client_id:\s*'([a-zA-Z0-9_.-]+)'").firstMatch(body);
+        match ??= RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(body);
         if (match != null) return match.group(1);
+        if (kDebugMode) _log('playback: page body length ${body.length}, searching for script URLs');
         final List<RegExp> scriptUrlPatterns = [
           RegExp(r'https://a-v2\.sndcdn\.com/[^"]+\.js'),
+          RegExp(r'//a-v2\.sndcdn\.com/([^"]+\.js)'),
           RegExp(r'https://[a-z0-9.-]+\.sndcdn\.com/assets/[^"]+\.js'),
           RegExp(r'src="(https://[^"]*sndcdn[^"]+\.js)"'),
+          RegExp(r'src="(//[^"]*sndcdn[^"]+\.js)"'),
           RegExp(r'a-v2\.sndcdn\.com/([^"\s>]+\.js)'),
         ];
         bool anyScriptTried = false;
@@ -512,42 +515,50 @@ class SoundCloudService implements BaseMediaService {
           match = pattern.firstMatch(body);
           if (match != null) {
             String scriptUrl = match.group(1) ?? match.group(0)!;
-            if (!scriptUrl.startsWith('http')) scriptUrl = 'https://a-v2.sndcdn.com/$scriptUrl';
+            if (!scriptUrl.startsWith('http')) scriptUrl = scriptUrl.startsWith('//') ? 'https:$scriptUrl' : 'https://a-v2.sndcdn.com/$scriptUrl';
             anyScriptTried = true;
-            if (kDebugMode) _log('playback: fetching script ${scriptUrl.substring(0, scriptUrl.length > 80 ? 80 : scriptUrl.length)}...');
-            final scriptRes = await http.get(Uri.parse(scriptUrl), headers: headers);
-            if (scriptRes.statusCode == 200) {
-              final scriptBody = scriptRes.body;
-              final re2 = RegExp(r',client_id:\s*"([^"]+)"');
-              var m2 = re2.firstMatch(scriptBody);
-              if (m2 == null) m2 = RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(scriptBody);
-              if (m2 == null) m2 = RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(scriptBody);
-              if (m2 == null) m2 = RegExp(r'client_id:(\w+)').firstMatch(scriptBody);
-              if (m2 != null) return m2.group(1);
-              if (kDebugMode) {
-                final idx = scriptBody.indexOf('client_id');
-                if (idx >= 0) {
-                  final end = idx + 200 > scriptBody.length ? scriptBody.length : idx + 200;
-                  final ctx = scriptBody.substring(idx, end);
-                  _log('playback: script has client_id at $idx, context: $ctx');
-                } else {
-                  _log('playback: script length ${scriptBody.length}, no client_id');
+            if (kDebugMode) _log('playback: fetching script ${scriptUrl.length > 80 ? '${scriptUrl.substring(0, 80)}...' : scriptUrl}');
+            try {
+              final scriptRes = await http.get(Uri.parse(scriptUrl), headers: headers);
+              if (scriptRes.statusCode == 200) {
+                final scriptBody = scriptRes.body;
+                final re2 = RegExp(r',client_id:\s*"([^"]+)"');
+                var m2 = re2.firstMatch(scriptBody);
+                m2 ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(scriptBody);
+                m2 ??= RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(scriptBody);
+                m2 ??= RegExp(r'client_id:(\w+)').firstMatch(scriptBody);
+                if (m2 != null) return m2.group(1);
+                if (kDebugMode) {
+                  final idx = scriptBody.indexOf('client_id');
+                  if (idx >= 0) {
+                    final end = idx + 200 > scriptBody.length ? scriptBody.length : idx + 200;
+                    final ctx = scriptBody.substring(idx, end);
+                    _log('playback: script has client_id at $idx, context: $ctx');
+                  } else {
+                    _log('playback: script length ${scriptBody.length}, no client_id');
+                  }
                 }
+              } else if (kDebugMode) {
+                _log('playback: script URL status ${scriptRes.statusCode}');
               }
+            } catch (e) {
+              if (kDebugMode) _log('playback: script fetch error: $e');
             }
           }
         }
-        if (kDebugMode && !anyScriptTried && body.length > 100) {
+        if (kDebugMode && !anyScriptTried) {
           _log('playback: no script URL pattern matched in page body (length ${body.length})');
         }
-      } catch (_) {}
+      } catch (e) {
+        if (kDebugMode) _log('playback: tryPage error: $e');
+      }
       return null;
     }
 
     try {
       String? cid = await tryPage('https://soundcloud.com', logBody: true);
-      if (cid == null) cid = await tryPage('https://soundcloud.com/discover');
-      if (cid == null) cid = await tryPage('https://soundcloud.com/mt-marcy/cold-nights');
+      cid ??= await tryPage('https://soundcloud.com/discover');
+      cid ??= await tryPage('https://soundcloud.com/mt-marcy/cold-nights');
       if (cid != null && cid.isNotEmpty) {
         _embeddedClientId = cid;
         _embeddedClientIdFetched = DateTime.now();
