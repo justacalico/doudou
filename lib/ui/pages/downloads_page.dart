@@ -32,7 +32,8 @@ class _DownloadsPageState extends State<DownloadsPage> {
           appState.tracks
               .where((t) => downloadService.isTrackDownloaded(t.id)),
         );
-        final albums = downloadService.downloadedAlbums;
+        // Use the new method that groups tracks by album even without metadata
+        final albums = downloadService.getDownloadedAlbumsFromTracks(appState.tracks);
 
         return PageTemplate(
           title: l10n.downloads,
@@ -316,17 +317,46 @@ class _DownloadAlbumDetailPageState extends State<_DownloadAlbumDetailPage> {
   Future<void> _loadTracks() async {
     final appState = context.read<AppState>();
     try {
-      final list = await appState.getAlbumTracks(widget.metadata.albumId);
-      list.sort((a, b) {
-        final an = a.trackNumber ?? 999;
-        final bn = b.trackNumber ?? 999;
-        return an.compareTo(bn);
-      });
-      if (mounted) {
-        setState(() {
-          _tracks = list;
-          _loading = false;
+      // Check if this is a virtual album (created from tracks without stored metadata)
+      final isVirtualAlbum = widget.metadata.albumId.startsWith('virtual_');
+      
+      if (isVirtualAlbum) {
+        // For virtual albums, use the tracks from metadata directly
+        // Sort them by track number
+        final tracks = widget.metadata.tracks.map((min) {
+          try {
+            return appState.tracks.firstWhere((t) => t.id == min.id);
+          } catch (_) {
+            return null;
+          }
+        }).whereType<Track>().toList();
+        
+        tracks.sort((a, b) {
+          final an = a.trackNumber ?? 999;
+          final bn = b.trackNumber ?? 999;
+          return an.compareTo(bn);
         });
+        
+        if (mounted) {
+          setState(() {
+            _tracks = tracks;
+            _loading = false;
+          });
+        }
+      } else {
+        // For real albums, try to fetch from server
+        final list = await appState.getAlbumTracks(widget.metadata.albumId);
+        list.sort((a, b) {
+          final an = a.trackNumber ?? 999;
+          final bn = b.trackNumber ?? 999;
+          return an.compareTo(bn);
+        });
+        if (mounted) {
+          setState(() {
+            _tracks = list;
+            _loading = false;
+          });
+        }
       }
     } catch (_) {
       if (mounted) {

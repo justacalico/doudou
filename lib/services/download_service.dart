@@ -97,6 +97,71 @@ class DownloadService extends ChangeNotifier {
             album.tracks.any((t) => _downloadedTracks.containsKey(t.id)))
         .toList();
   }
+  
+  /// Get all albums that have downloaded tracks, including those without metadata.
+  /// Requires access to the full tracks list to get album information.
+  List<DownloadedAlbumMetadata> getDownloadedAlbumsFromTracks(List<Track> allTracks) {
+    // Group downloaded tracks by album
+    final albumMap = <String, DownloadedAlbumMetadata>{};
+    final tracksByAlbum = <String, List<Track>>{};
+    
+    // First, add albums with stored metadata that have downloaded tracks
+    for (final album in _downloadedAlbumMetadata.values) {
+      final hasDownloadedTracks = album.tracks.any((t) => _downloadedTracks.containsKey(t.id));
+      if (hasDownloadedTracks) {
+        albumMap[album.albumId] = album;
+      }
+    }
+    
+    // Then, group all downloaded tracks by albumId
+    for (final track in allTracks) {
+      if (!_downloadedTracks.containsKey(track.id)) continue;
+      
+      final albumId = track.albumId;
+      if (albumId == null || albumId.isEmpty) {
+        // Track without albumId - create a virtual album using albumName + artistName
+        // Use a consistent format for grouping
+        final albumName = track.albumName ?? 'Unknown Album';
+        final artistName = track.artistName ?? 'Unknown Artist';
+        final virtualAlbumId = 'virtual_${albumName}_$artistName';
+        tracksByAlbum.putIfAbsent(virtualAlbumId, () => []).add(track);
+      } else {
+        // Track with albumId - group by albumId
+        tracksByAlbum.putIfAbsent(albumId, () => []).add(track);
+      }
+    }
+    
+    // Create DownloadedAlbumMetadata for albums without stored metadata
+    for (final entry in tracksByAlbum.entries) {
+      final albumId = entry.key;
+      final tracks = entry.value;
+      
+      // Skip if we already have metadata for this album
+      if (albumMap.containsKey(albumId)) continue;
+      
+      if (tracks.isNotEmpty) {
+        final firstTrack = tracks.first;
+        final minimalTracks = tracks.map((t) => MinimalTrackInfo(
+          id: t.id,
+          name: t.name,
+          artistName: t.artistName,
+          albumName: t.albumName,
+          duration: t.duration,
+          trackNumber: t.trackNumber,
+        )).toList();
+        
+        albumMap[albumId] = DownloadedAlbumMetadata(
+          albumId: albumId,
+          name: firstTrack.albumName ?? 'Unknown Album',
+          artistName: firstTrack.artistName,
+          imageUrl: firstTrack.imageUrl,
+          tracks: minimalTracks,
+        );
+      }
+    }
+    
+    return albumMap.values.toList();
+  }
 
   DownloadedAlbumMetadata? getAlbumMetadata(String albumId) =>
       _downloadedAlbumMetadata[albumId];
