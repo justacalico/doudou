@@ -18,9 +18,20 @@ class DownloadService extends ChangeNotifier {
   bool _isDownloading = false;
   final int _maxConcurrentDownloads = 3;
   int _activeDownloads = 0;
+  
+  // Throttle progress updates to avoid excessive UI rebuilds
+  DateTime? _lastProgressNotification;
+  static const Duration _progressThrottleDuration = Duration(milliseconds: 200);
+  Timer? _progressThrottleTimer;
 
   DownloadService(this._mediaServiceManager) {
     _loadDownloadData();
+  }
+  
+  @override
+  void dispose() {
+    _progressThrottleTimer?.cancel();
+    super.dispose();
   }
 
   // Getters
@@ -121,8 +132,10 @@ class DownloadService extends ChangeNotifier {
       _downloadTasks.remove(track.id);
       _downloadQueue.remove(track.id);
 
-      // Save state after cleanup
-      await _saveDownloadData();
+      // Save state after cleanup (non-blocking)
+      _saveDownloadData().catchError((e) {
+        debugPrint('Error saving download data: $e');
+      });
       notifyListeners();
     }
 
@@ -169,7 +182,10 @@ class DownloadService extends ChangeNotifier {
       }
 
       notifyListeners();
-      await _saveDownloadData();
+      // Save asynchronously without blocking download start
+      _saveDownloadData().catchError((e) {
+        debugPrint('Error saving download data: $e');
+      });
 
       // Start downloading if not at max concurrent downloads
       _processDownloadQueue();
@@ -200,7 +216,10 @@ class DownloadService extends ChangeNotifier {
         imageUrl: track.imageUrl,
         tracks: minimal,
       );
-      await _saveDownloadData();
+      // Save asynchronously without blocking
+      _saveDownloadData().catchError((e) {
+        debugPrint('Error saving download data: $e');
+      });
     } catch (e) {
       debugPrint('Could not fetch album metadata for ${track.albumId}: $e');
     }
@@ -248,7 +267,10 @@ class DownloadService extends ChangeNotifier {
     }
 
     _activeDownloads--;
-    await _saveDownloadData();
+    // Save asynchronously without blocking queue processing
+    _saveDownloadData().catchError((e) {
+      debugPrint('Error saving download data: $e');
+    });
     notifyListeners();
 
     // Continue processing queue
@@ -293,13 +315,14 @@ class DownloadService extends ChangeNotifier {
                 ? downloadedBytes / totalBytes
                 : 0.0;
 
-            // Update progress
+            // Update progress (always update the task, but throttle UI notifications)
             _downloadTasks[task.trackId] = task.copyWith(
               progress: progress,
               downloadedBytes: downloadedBytes,
             );
 
-            notifyListeners();
+            // Throttle progress notifications to avoid excessive UI rebuilds
+            _throttledNotifyListeners();
           },
           onDone: () async {
             try {
@@ -332,7 +355,10 @@ class DownloadService extends ChangeNotifier {
               }
 
               notifyListeners();
-              await _saveDownloadData();
+              // Save asynchronously without blocking
+              _saveDownloadData().catchError((e) {
+                debugPrint('Error saving download data: $e');
+              });
 
               completer.complete();
             } catch (e) {
@@ -346,7 +372,10 @@ class DownloadService extends ChangeNotifier {
                 endTime: DateTime.now(),
               );
               notifyListeners();
-              await _saveDownloadData();
+              // Save asynchronously without blocking
+              _saveDownloadData().catchError((e) {
+                debugPrint('Error saving download data: $e');
+              });
               completer.completeError(e);
             }
           },
@@ -450,7 +479,10 @@ class DownloadService extends ChangeNotifier {
     }
 
     notifyListeners();
-    _saveDownloadData();
+    // Save asynchronously without blocking
+    _saveDownloadData().catchError((e) {
+      debugPrint('Error saving download data: $e');
+    });
   }
 
   // Delete a downloaded track
@@ -478,7 +510,10 @@ class DownloadService extends ChangeNotifier {
       _downloadTasks.remove(trackId);
 
       notifyListeners();
-      _saveDownloadData();
+      // Save asynchronously without blocking
+      _saveDownloadData().catchError((e) {
+        debugPrint('Error saving download data: $e');
+      });
     } catch (e) {
       debugPrint('Error deleting download for $trackId: $e');
     }
@@ -509,15 +544,33 @@ class DownloadService extends ChangeNotifier {
     }
   }
 
+  // Throttled notifyListeners for progress updates
+  void _throttledNotifyListeners() {
+    final now = DateTime.now();
+    if (_lastProgressNotification == null ||
+        now.difference(_lastProgressNotification!) >= _progressThrottleDuration) {
+      _lastProgressNotification = now;
+      notifyListeners();
+    } else {
+      // Schedule a delayed notification if one isn't already scheduled
+      _progressThrottleTimer?.cancel();
+      _progressThrottleTimer = Timer(_progressThrottleDuration, () {
+        _lastProgressNotification = DateTime.now();
+        notifyListeners();
+      });
+    }
+  }
+
   // Check if downloading is complete
   void _checkDownloadComplete() {
     if (_activeDownloads == 0 && _downloadQueue.isEmpty) {
       _isDownloading = false;
+      _progressThrottleTimer?.cancel();
       notifyListeners();
     }
   }
 
-  // Save download data to persistent storage
+  // Save download data to persistent storage (runs asynchronously, non-blocking)
   Future<void> _saveDownloadData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
