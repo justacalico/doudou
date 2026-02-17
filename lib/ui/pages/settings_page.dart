@@ -14,7 +14,7 @@ import 'package:doudou/services/update_service.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 
-/// Breakpoint: below this width use single-column layout (horizontal chips) instead of sidebar.
+/// Breakpoint: below this width use single-column layout (all sections stacked) instead of sidebar.
 const double _kSettingsBreakpoint = 768.0;
 
 /// Settings page: all sections ported from UI/desktop/pages/settings.dart.
@@ -55,19 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ],
                 );
               }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _MobileCategorySelector(
-                    selected: _category,
-                    onSelect: (v) => setState(() => _category = v),
-                    l10n: l10n,
-                    isLocalMusic: isLocal,
-                  ),
-                  const SizedBox(height: DesktopTheme.spacingMd),
-                  Expanded(child: _buildContent(appState)),
-                ],
-              );
+              return _buildAllSections(appState, l10n, isLocal);
             },
           ),
         );
@@ -113,6 +101,39 @@ class _SettingsPageState extends State<SettingsPage> {
           onLanguage: () => _showLanguageDialog(appState),
         );
     }
+  }
+
+  Widget _buildAllSections(AppState appState, AppLocalizations l10n, bool isLocal) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _GeneralSection(
+            appState: appState,
+            onTheme: _showThemeDialog,
+            onColor: _showColorDialog,
+            onLanguage: () => _showLanguageDialog(appState),
+          ),
+          _AudioSection(appState: appState),
+          _AppearanceSection(
+            appState: appState,
+            onTheme: _showThemeDialog,
+            onColor: _showColorDialog,
+            onLanguage: () => _showLanguageDialog(appState),
+          ),
+          _ServerSection(
+            appState: appState,
+            onAddDir: _addLocalDirectory,
+            onRemoveDir: _removeLocalDirectory,
+            onRescan: _rescanLocalLibrary,
+            onTestConnection: _testConnection,
+            onSignOut: _showSignOutDialog,
+            onClearCache: _showClearCacheDialog,
+          ),
+          _AboutSection(appState: appState),
+        ],
+      ),
+    );
   }
 
   void _showThemeDialog() {
@@ -517,128 +538,6 @@ class _Sidebar extends StatelessWidget {
             ),
           );
         }).toList(),
-      ),
-    );
-  }
-}
-
-// --- Mobile category selector (horizontal scrollable chips on small screens) ---
-class _MobileCategorySelector extends StatelessWidget {
-  final String selected;
-  final ValueChanged<String> onSelect;
-  final AppLocalizations l10n;
-  final bool isLocalMusic;
-
-  const _MobileCategorySelector({
-    required this.selected,
-    required this.onSelect,
-    required this.l10n,
-    required this.isLocalMusic,
-  });
-
-  List<Map<String, dynamic>> _categories(AppLocalizations l10n, bool isLocalMusic) {
-    final list = [
-      {'id': 'general', 'label': l10n.generalSettings, 'icon': Icons.settings_rounded},
-      {'id': 'audio', 'label': l10n.audioSettings, 'icon': Icons.volume_up_rounded},
-      {'id': 'appearance', 'label': l10n.appearanceSettings, 'icon': Icons.palette_rounded},
-      {'id': 'server', 'label': isLocalMusic ? 'Local' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
-      {'id': 'about', 'label': l10n.aboutDoudou, 'icon': Icons.info_rounded},
-    ];
-    if (isLocalMusic) return list.where((c) => c['id'] != 'server').toList();
-    return list;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final categories = _categories(l10n, isLocalMusic);
-    
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingMd),
-      child: Row(
-        children: categories.map((c) {
-          final id = c['id'] as String;
-          final isSelected = selected == id;
-          return Padding(
-            padding: const EdgeInsets.only(right: DesktopTheme.spacingSm),
-            child: _CategoryChip(
-              icon: c['icon'] as IconData,
-              label: c['label'] as String,
-              isSelected: isSelected,
-              onTap: () => onSelect(id),
-              theme: theme,
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
-class _CategoryChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final ThemeData theme;
-
-  const _CategoryChip({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    required this.theme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: isSelected
-          ? theme.colorScheme.primary.withOpacity(0.15)
-          : DesktopTheme.backgroundSecondary,
-      borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesktopTheme.spacingMd,
-            vertical: DesktopTheme.spacingSm + 2,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
-            border: Border.all(
-              color: isSelected
-                  ? theme.colorScheme.primary.withOpacity(0.3)
-                  : DesktopTheme.glassBorder,
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : DesktopTheme.textSecondary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected
-                      ? theme.colorScheme.primary
-                      : DesktopTheme.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
