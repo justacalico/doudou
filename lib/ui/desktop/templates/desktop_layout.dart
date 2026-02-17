@@ -13,6 +13,7 @@ import '../pages/details/media_details.dart';
 import '../pages/details/artist_details.dart';
 import '../widgets/universal_image.dart';
 import 'desktop_theme.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 
 /// Static helpers for detail overlay and dialogs (main shell is [AppShell]).
 class DesktopLayout {
@@ -2402,6 +2403,94 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
     return appState.getImageUrl(imageId);
   }
 
+  Future<void> _downloadAlbum(BuildContext context, AppState appState) async {
+    final l10n = AppLocalizations.of(context);
+    final downloadService = appState.downloadService;
+    
+    // Check how many tracks are already downloaded
+    final alreadyDownloaded = _tracks.where((track) => 
+      downloadService.isTrackDownloaded(track.id)
+    ).length;
+    
+    // Check how many are currently downloading
+    final downloading = _tracks.where((track) => 
+      downloadService.getDownloadStatus(track.id) == DownloadStatus.downloading
+    ).length;
+    
+    final toDownload = _tracks.length - alreadyDownloaded - downloading;
+    
+    if (toDownload == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('All tracks in this album are already downloaded or downloading'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.downloadAlbum),
+        content: Text(
+          'Download ${_tracks.length} tracks from this album?\n'
+          '$alreadyDownloaded already downloaded\n'
+          '$downloading currently downloading\n'
+          '$toDownload will be downloaded',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.download),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirmed != true) return;
+    
+    // Download all tracks that aren't already downloaded or downloading
+    int successCount = 0;
+    int errorCount = 0;
+    
+    for (final track in _tracks) {
+      final isDownloaded = downloadService.isTrackDownloaded(track.id);
+      final status = downloadService.getDownloadStatus(track.id);
+      final isDownloading = status == DownloadStatus.downloading;
+      
+      if (!isDownloaded && !isDownloading) {
+        try {
+          await downloadService.downloadTrack(track);
+          successCount++;
+        } catch (e) {
+          debugPrint('Failed to download ${track.name}: $e');
+          errorCount++;
+        }
+      }
+    }
+    
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            errorCount > 0
+                ? 'Downloaded $successCount tracks, $errorCount failed'
+                : 'Started downloading $successCount tracks',
+          ),
+          backgroundColor: errorCount > 0 ? Colors.orange : null,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -2427,6 +2516,7 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
                   final shuffled = List<Track>.from(_tracks)..shuffle();
                   appState.playPlaylist(shuffled, 0);
                 },
+                onDownload: _tracks.isNotEmpty ? () => _downloadAlbum(context, appState) : null,
               ),
               // Track list
               Expanded(
@@ -2680,6 +2770,7 @@ class _DetailHeader extends StatelessWidget {
   final bool isCircular;
   final VoidCallback? onPlay;
   final VoidCallback? onShuffle;
+  final VoidCallback? onDownload;
 
   const _DetailHeader({
     required this.onBack,
@@ -2691,6 +2782,7 @@ class _DetailHeader extends StatelessWidget {
     this.isCircular = false,
     this.onPlay,
     this.onShuffle,
+    this.onDownload,
   });
 
   @override
@@ -2812,6 +2904,20 @@ class _DetailHeader extends StatelessWidget {
                               ],
                             ),
                           ),
+                        if (onDownload != null) ...[
+                          const SizedBox(width: DesktopTheme.spacingMd),
+                          DesktopGlassButton(
+                            onPressed: onDownload!,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.download_rounded, size: 18),
+                                const SizedBox(width: 8),
+                                Text(l10n.download),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
