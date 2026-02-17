@@ -556,28 +556,29 @@ class _GeneralSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final isSmall = MediaQuery.sizeOf(context).width < _kSettingsBreakpoint;
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+        padding: EdgeInsets.all(isSmall ? DesktopTheme.spacingMd : DesktopTheme.spacingLg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(l10n.generalSettings, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
+            SizedBox(height: isSmall ? 12 : 24),
             Wrap(
-              spacing: 16,
-              runSpacing: 16,
+              spacing: isSmall ? 8 : 16,
+              runSpacing: isSmall ? 8 : 16,
               children: [
                 SizedBox(
-                  width: 520,
+                  width: isSmall ? double.infinity : 520,
                   child: Card(
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.all(isSmall ? 12 : 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Playback & visuals', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 12),
+                          SizedBox(height: isSmall ? 8 : 12),
                           SwitchListTile(
                             title: const Text('Show album art'),
                             subtitle: const Text('Display artwork in lists and now playing views'),
@@ -607,24 +608,25 @@ class _AudioSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isSmall = MediaQuery.sizeOf(context).width < _kSettingsBreakpoint;
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+        padding: EdgeInsets.all(isSmall ? DesktopTheme.spacingMd : DesktopTheme.spacingLg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Audio Settings', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
+            SizedBox(height: isSmall ? 12 : 24),
             SizedBox(
-              width: 520,
+              width: isSmall ? double.infinity : 520,
               child: Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(isSmall ? 12 : 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Playback', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 12),
+                      SizedBox(height: isSmall ? 8 : 12),
                       SwitchListTile(
                         title: const Text('Smart back button'),
                         subtitle: const Text('If past 20%: first back restarts, second back quickly goes to previous track'),
@@ -656,24 +658,25 @@ class _AppearanceSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final isSmall = MediaQuery.sizeOf(context).width < _kSettingsBreakpoint;
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+        padding: EdgeInsets.all(isSmall ? DesktopTheme.spacingMd : DesktopTheme.spacingLg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(l10n.appearanceSettings, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
+            SizedBox(height: isSmall ? 12 : 24),
             SizedBox(
-              width: 520,
+              width: isSmall ? double.infinity : 520,
               child: Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(isSmall ? 12 : 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Look & language', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 12),
+                      SizedBox(height: isSmall ? 8 : 12),
                       ListTile(
                         title: Text(l10n.appTheme),
                         subtitle: Text(_themeDisplayName(appState.themeMode)),
@@ -775,9 +778,10 @@ class _ServerSection extends StatelessWidget {
     final isLocal = appState.mediaServiceManager.currentServerType == ServerType.local;
     final localService = appState.mediaServiceManager.localMusicService;
 
+    final isSmall = MediaQuery.sizeOf(context).width < _kSettingsBreakpoint;
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+        padding: EdgeInsets.all(isSmall ? DesktopTheme.spacingMd : DesktopTheme.spacingLg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -785,10 +789,10 @@ class _ServerSection extends StatelessWidget {
               isLocal ? 'Local Music Settings' : l10n.serverSettings,
               style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: isSmall ? 12 : 24),
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(isSmall ? 12 : 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -809,7 +813,7 @@ class _ServerSection extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isSmall ? 12 : 16),
                     ListTile(
                       title: const Text('Refresh library'),
                       subtitle: const Text('Reload albums, artists, and tracks'),
@@ -885,15 +889,15 @@ class _ServerSection extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: isSmall ? 12 : 16),
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(isSmall ? 12 : 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Cache', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isSmall ? 12 : 16),
                     ListTile(
                       title: const Text('Clear image cache'),
                       subtitle: const Text('Free up storage space'),
@@ -938,23 +942,24 @@ class _AboutSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isSmall = MediaQuery.sizeOf(context).width < _kSettingsBreakpoint;
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+        padding: EdgeInsets.all(isSmall ? DesktopTheme.spacingMd : DesktopTheme.spacingLg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('About Doudou', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
+            SizedBox(height: isSmall ? 12 : 24),
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(32),
+                padding: EdgeInsets.all(isSmall ? 16 : 32),
                 child: Column(
                   children: [
                     Image.asset('assets/icons/icon.png', width: 80, height: 80, errorBuilder: (_, _, _) => const Icon(Icons.music_note, size: 80)),
-                    const SizedBox(height: 24),
+                    SizedBox(height: isSmall ? 12 : 24),
                     Text('Doudou', style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
-                    const SizedBox(height: 24),
+                    SizedBox(height: isSmall ? 12 : 24),
                     FutureBuilder<PackageInfo>(
                       future: PackageInfo.fromPlatform(),
                       builder: (_, snap) {
@@ -969,23 +974,23 @@ class _AboutSection extends StatelessWidget {
                         );
                       },
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isSmall ? 12 : 16),
                     const Text('A beautiful music player for anyone anywhere.', textAlign: TextAlign.center),
-                    const SizedBox(height: 24),
+                    SizedBox(height: isSmall ? 12 : 24),
                     _UpdateCheckButton(theme: theme),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: isSmall ? 12 : 16),
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(isSmall ? 12 : 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('System Information', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isSmall ? 12 : 16),
                     ListTile(title: const Text('Platform'), subtitle: Text(_getPlatformInfo()), leading: const Icon(Icons.computer)),
                     ListTile(title: const Text('Build Date'), subtitle: Text(_getBuildDate()), leading: const Icon(Icons.calendar_today)),
                     ListTile(title: const Text('Operating System'), subtitle: Text(_getOSVersion()), leading: const Icon(Icons.settings_system_daydream)),
