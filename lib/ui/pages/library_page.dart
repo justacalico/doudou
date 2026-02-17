@@ -5,12 +5,10 @@ import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/ui/desktop/services/navigation_service.dart';
 
+import 'package:doudou/ui/layout/breakpoint.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/templates/music_card.dart';
-
-/// Breakpoint: below this use 2-column responsive tiles on library overview.
-const double _kLibraryBreakpoint = 768.0;
 
 /// Library hub: quick links to Albums, Artists, Tracks, Playlists using shared templates.
 class LibraryPage extends StatefulWidget {
@@ -66,7 +64,7 @@ class _LibraryPageState extends State<LibraryPage> {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final isNarrow =
-                        constraints.maxWidth < _kLibraryBreakpoint;
+                        constraints.maxWidth < kLayoutBreakpoint;
                     final spacing = DesktopTheme.spacingMd;
                     final tileWidth = isNarrow
                         ? (constraints.maxWidth - spacing) / 2

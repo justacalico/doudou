@@ -14,8 +14,8 @@ import 'package:doudou/ui/desktop/templates/desktop_layout.dart'
     show DesktopLayout, DesktopPlayerBar;
 import 'package:doudou/ui/desktop/widgets/universal_image.dart'
     show buildSmartImage;
-import 'package:doudou/ui/mobile/playing/now_playing.dart'
-    show NowPlayingScreen;
+import 'package:doudou/ui/layout/breakpoint.dart';
+import 'package:doudou/ui/layout/responsive_now_playing.dart';
 
 import 'package:doudou/ui/pages/home_page.dart';
 import 'package:doudou/ui/pages/search_page.dart';
@@ -26,9 +26,6 @@ import 'package:doudou/ui/pages/tracks_page.dart';
 import 'package:doudou/ui/pages/playlists_page.dart';
 import 'package:doudou/ui/pages/downloads_page.dart';
 import 'package:doudou/ui/pages/settings_page.dart';
-
-/// Breakpoint: above = sidebar (desktop), below = bottom nav (mobile).
-const double kLayoutBreakpoint = 768.0;
 
 /// Single responsive shell: sidebar on desktop, bottom navbar on mobile.
 /// Uses one [selectedIndex] and one set of pages so resizing never reloads or loses state.
@@ -132,7 +129,22 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget? _buildDetailOverlay() {
-    return DesktopLayout.buildDetailOverlay(context, _nav);
+    final content = DesktopLayout.buildDetailOverlay(context, _nav);
+    if (content == null) return null;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < kLayoutBreakpoint;
+        if (isNarrow) {
+          return Material(
+            color: Colors.transparent,
+            child: SafeArea(
+              child: content,
+            ),
+          );
+        }
+        return content;
+      },
+    );
   }
 
   @override
@@ -149,6 +161,20 @@ class _AppShellState extends State<AppShell> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= kLayoutBreakpoint;
+        void openNowPlaying() {
+          Navigator.of(context).push(
+            PageRouteBuilder(
+              opaque: false,
+              barrierColor: Colors.black54,
+              pageBuilder: (context, animation, secondaryAnimation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: const ResponsiveNowPlaying(),
+                );
+              },
+            ),
+          );
+        }
         return KeyboardListener(
           focusNode: FocusNode(),
           autofocus: true,
@@ -184,8 +210,8 @@ class _AppShellState extends State<AppShell> {
                   ),
                 ),
                 isDesktop
-                    ? const DesktopPlayerBar()
-                    : const _MobilePlayerBar(),
+                    ? DesktopPlayerBar(onNowPlayingTap: openNowPlaying)
+                    : _MobilePlayerBar(onNowPlayingTap: openNowPlaying),
               ],
             ),
             bottomNavigationBar: isDesktop
@@ -617,12 +643,15 @@ class _MobileNavBar extends StatelessWidget {
 
 /// Mobile playbar: old mini-player style (rounded liquid glass, album art, play/next).
 class _MobilePlayerBar extends StatelessWidget {
-  const _MobilePlayerBar();
+  const _MobilePlayerBar({required this.onNowPlayingTap});
+
+  final VoidCallback onNowPlayingTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final onNowPlayingTap = this.onNowPlayingTap;
 
     return Consumer<AppState>(
       builder: (context, appState, _) {
@@ -638,31 +667,7 @@ class _MobilePlayerBar extends StatelessWidget {
               builder: (context, playSnap) {
                 final playing = playSnap.data?.playing ?? false;
                 return GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      PageRouteBuilder(
-                        pageBuilder: (_, __, ___) =>
-                            const NowPlayingScreen(),
-                        transitionDuration:
-                            const Duration(milliseconds: 300),
-                        reverseTransitionDuration:
-                            const Duration(milliseconds: 300),
-                        transitionsBuilder:
-                            (_, animation, __, child) {
-                          return SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, 1),
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(
-                              parent: animation,
-                              curve: Curves.easeInOut,
-                            )),
-                            child: child,
-                          );
-                        },
-                      ),
-                    );
-                  },
+                  onTap: onNowPlayingTap,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: ClipRRect(

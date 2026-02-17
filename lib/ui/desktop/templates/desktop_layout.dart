@@ -73,7 +73,10 @@ class DesktopLayout {
 
 /// Bottom player bar (public for use in new UI app shell).
 class DesktopPlayerBar extends StatelessWidget {
-  const DesktopPlayerBar({super.key});
+  const DesktopPlayerBar({super.key, this.onNowPlayingTap});
+
+  /// When set, used when queue/now-playing is opened (e.g. responsive layout).
+  final VoidCallback? onNowPlayingTap;
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +116,7 @@ class DesktopPlayerBar extends StatelessWidget {
                           duration: duration,
                           appState: appState,
                           audioHandler: audioHandler,
+                          onNowPlayingTap: onNowPlayingTap,
                         );
                       },
                     );
@@ -134,6 +138,7 @@ class _PlayerBarContent extends StatelessWidget {
   final Duration duration;
   final AppState appState;
   final dynamic audioHandler;
+  final VoidCallback? onNowPlayingTap;
 
   const _PlayerBarContent({
     required this.mediaItem,
@@ -142,6 +147,7 @@ class _PlayerBarContent extends StatelessWidget {
     required this.duration,
     required this.appState,
     required this.audioHandler,
+    this.onNowPlayingTap,
   });
 
   @override
@@ -214,7 +220,7 @@ class _PlayerBarContent extends StatelessWidget {
                     flex: 1,
                     child: _PlayerExtras(
                       audioHandler: audioHandler,
-                      onQueueTap: () => _showNowPlaying(context),
+                      onQueueTap: onNowPlayingTap ?? () => _showNowPlaying(context),
                     ),
                   ),
                 ],
