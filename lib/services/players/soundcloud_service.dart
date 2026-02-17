@@ -486,12 +486,12 @@ class SoundCloudService implements BaseMediaService {
       'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Accept': 'text/html,application/xhtml+xml',
     };
-    Future<String?> tryPage(String url) async {
+    Future<String?> tryPage(String url, {bool logBody = false}) async {
       try {
         final res = await http.get(Uri.parse(url), headers: headers);
         if (res.statusCode != 200) return null;
         final body = res.body;
-        if (kDebugMode && body.isNotEmpty) {
+        if (logBody && kDebugMode && body.isNotEmpty) {
           final snippet = body.length > 500 ? body.substring(0, 500) : body;
           _log('playback: page body (first ${snippet.length} chars): $snippet');
         }
@@ -501,24 +501,51 @@ class SoundCloudService implements BaseMediaService {
         if (match == null) match = RegExp(r"client_id:\s*'([a-zA-Z0-9_.-]+)'").firstMatch(body);
         if (match == null) match = RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(body);
         if (match != null) return match.group(1);
-        re = RegExp(r'https://[a-z0-9.-]+\.sndcdn\.com/assets/[^"]+\.js');
-        match = re.firstMatch(body);
-        if (match != null) {
-          final scriptRes = await http.get(Uri.parse(match.group(0)!), headers: headers);
-          if (scriptRes.statusCode == 200) {
-            final re2 = RegExp(r',client_id:\s*"([^"]+)"');
-            var m2 = re2.firstMatch(scriptRes.body);
-            if (m2 == null) m2 = RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(scriptRes.body);
-            if (m2 == null) m2 = RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(scriptRes.body);
-            if (m2 != null) return m2.group(1);
+        final List<RegExp> scriptUrlPatterns = [
+          RegExp(r'https://a-v2\.sndcdn\.com/[^"]+\.js'),
+          RegExp(r'https://[a-z0-9.-]+\.sndcdn\.com/assets/[^"]+\.js'),
+          RegExp(r'src="(https://[^"]*sndcdn[^"]+\.js)"'),
+          RegExp(r'a-v2\.sndcdn\.com/([^"\s>]+\.js)'),
+        ];
+        bool anyScriptTried = false;
+        for (final pattern in scriptUrlPatterns) {
+          match = pattern.firstMatch(body);
+          if (match != null) {
+            String scriptUrl = match.group(1) ?? match.group(0)!;
+            if (!scriptUrl.startsWith('http')) scriptUrl = 'https://a-v2.sndcdn.com/$scriptUrl';
+            anyScriptTried = true;
+            if (kDebugMode) _log('playback: fetching script ${scriptUrl.substring(0, scriptUrl.length > 80 ? 80 : scriptUrl.length)}...');
+            final scriptRes = await http.get(Uri.parse(scriptUrl), headers: headers);
+            if (scriptRes.statusCode == 200) {
+              final scriptBody = scriptRes.body;
+              final re2 = RegExp(r',client_id:\s*"([^"]+)"');
+              var m2 = re2.firstMatch(scriptBody);
+              if (m2 == null) m2 = RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(scriptBody);
+              if (m2 == null) m2 = RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(scriptBody);
+              if (m2 == null) m2 = RegExp(r'client_id:(\w+)').firstMatch(scriptBody);
+              if (m2 != null) return m2.group(1);
+              if (kDebugMode) {
+                final idx = scriptBody.indexOf('client_id');
+                if (idx >= 0) {
+                  final end = idx + 200 > scriptBody.length ? scriptBody.length : idx + 200;
+                  final ctx = scriptBody.substring(idx, end);
+                  _log('playback: script has client_id at $idx, context: $ctx');
+                } else {
+                  _log('playback: script length ${scriptBody.length}, no client_id');
+                }
+              }
+            }
           }
+        }
+        if (kDebugMode && !anyScriptTried && body.length > 100) {
+          _log('playback: no script URL pattern matched in page body (length ${body.length})');
         }
       } catch (_) {}
       return null;
     }
 
     try {
-      String? cid = await tryPage('https://soundcloud.com');
+      String? cid = await tryPage('https://soundcloud.com', logBody: true);
       if (cid == null) cid = await tryPage('https://soundcloud.com/discover');
       if (cid == null) cid = await tryPage('https://soundcloud.com/mt-marcy/cold-nights');
       if (cid != null && cid.isNotEmpty) {
