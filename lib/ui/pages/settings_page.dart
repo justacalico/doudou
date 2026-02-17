@@ -884,6 +884,18 @@ class _ServerSection extends StatelessWidget {
                           await localService.setFetchOnlineArtwork(v);
                         },
                       ),
+                    ] else if (appState.mediaServiceManager.currentServerType == ServerType.soundcloud) ...[
+                      ListTile(
+                        title: const Text('SoundCloud'),
+                        subtitle: const Text('Using your app credentials (Client ID / Client Secret)'),
+                        leading: const Icon(Icons.cloud),
+                      ),
+                      ListTile(
+                        title: const Text('Register your app'),
+                        subtitle: const Text('developers.soundcloud.com'),
+                        leading: const Icon(Icons.link),
+                        onTap: () => launchUrl(Uri.parse('https://developers.soundcloud.com')),
+                      ),
                     ] else ...[
                       FutureBuilder<Map<String, String?>>(
                         future: _getServerInfo(appState),

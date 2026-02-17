@@ -3,6 +3,7 @@ import 'base_service.dart';
 import 'players/jellyfin_service.dart';
 import 'players/plex_service.dart';
 import 'players/subsonic_service.dart';
+import 'players/soundcloud_service.dart';
 import 'players/local_music_service.dart';
 
 class MediaServiceManager {
@@ -41,6 +42,9 @@ class MediaServiceManager {
         break;
       case ServerType.subsonic:
         _currentService = SubsonicService();
+        break;
+      case ServerType.soundcloud:
+        _currentService = SoundCloudService();
         break;
       case ServerType.local:
         _sharedLocalMusicService ??= LocalMusicService();
@@ -376,6 +380,9 @@ class MediaServiceManager {
       case ServerType.plex:
         // Plex playlist creation not yet implemented
         break;
+      case ServerType.soundcloud:
+        // SoundCloud playlists not implemented
+        break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
           final localMusicService = _currentService as LocalMusicService;
@@ -406,6 +413,8 @@ class MediaServiceManager {
         break;
       case ServerType.plex:
         // Plex add to playlist not yet implemented
+        break;
+      case ServerType.soundcloud:
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -459,6 +468,8 @@ class MediaServiceManager {
       case ServerType.plex:
         // Plex remove track from playlist not yet implemented
         break;
+      case ServerType.soundcloud:
+        break;
     }
     return false;
   }
@@ -483,6 +494,8 @@ class MediaServiceManager {
         break;
       case ServerType.plex:
         // Plex rename playlist not yet implemented
+        break;
+      case ServerType.soundcloud:
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -511,6 +524,8 @@ class MediaServiceManager {
         break;
       case ServerType.plex:
         // Plex remove playlist not yet implemented
+        break;
+      case ServerType.soundcloud:
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {

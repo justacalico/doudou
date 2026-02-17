@@ -631,23 +631,39 @@ class _LoginScreenState extends State<LoginScreen>
 
               SizedBox(height: isDesktop ? 28 : 20),
 
-              // Server URL field
-              _buildModernTextField(
-                controller: _serverController,
-                label: 'Server URL',
-                icon: CupertinoIcons.globe,
-                placeholder: _getServerPlaceholder(),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter server URL';
-                  }
-                  return null;
-                },
-                keyboardType: TextInputType.url,
-                isDark: isDark,
-              ),
+              // Server URL field (hidden for SoundCloud – uses client credentials only)
+              if (_selectedServerType != 'soundcloud')
+                _buildModernTextField(
+                  controller: _serverController,
+                  label: 'Server URL',
+                  icon: CupertinoIcons.globe,
+                  placeholder: _getServerPlaceholder(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter server URL';
+                    }
+                    return null;
+                  },
+                  keyboardType: TextInputType.url,
+                  isDark: isDark,
+                ),
 
-              SizedBox(height: isDesktop ? 16 : 12),
+              if (_selectedServerType == 'soundcloud')
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Register an app at developers.soundcloud.com and paste your Client ID and Client Secret below.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark
+                          ? Colors.white.withOpacity(0.6)
+                          : Colors.black.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+
+              if (_selectedServerType != 'soundcloud')
+                SizedBox(height: isDesktop ? 16 : 12),
 
               // Account fields
               ..._buildAccountFieldsModern(context, isDesktop),
@@ -757,7 +773,15 @@ class _LoginScreenState extends State<LoginScreen>
                   AppleColors.systemBlue,
                   isDark,
                 ),
-
+                const SizedBox(width: 12),
+                _buildServerTypeCard(
+                  'soundcloud',
+                  'SoundCloud',
+                  null,
+                  const Color(0xFFFF5500),
+                  isDark,
+                  icon: CupertinoIcons.cloud_fill,
+                ),
                 const SizedBox(width: 12),
                 _buildServerTypeCard(
                   'local',
@@ -797,6 +821,15 @@ class _LoginScreenState extends State<LoginScreen>
                   'assets/icons/subsonic.svg',
                   AppleColors.systemBlue,
                   isDark,
+                ),
+                const SizedBox(width: 10),
+                _buildServerTypeChip(
+                  'soundcloud',
+                  'SoundCloud',
+                  null,
+                  const Color(0xFFFF5500),
+                  isDark,
+                  icon: CupertinoIcons.cloud_fill,
                 ),
                 const SizedBox(width: 10),
                 _buildServerTypeChip(
@@ -1121,7 +1154,48 @@ class _LoginScreenState extends State<LoginScreen>
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
 
-    if (_selectedServerType == 'plex') {
+    if (_selectedServerType == 'soundcloud') {
+      return [
+        _buildModernTextField(
+          controller: _usernameController,
+          label: 'Client ID',
+          icon: Icons.vpn_key,
+          placeholder: 'Your SoundCloud app Client ID',
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your Client ID';
+            }
+            return null;
+          },
+          isDark: isDark,
+        ),
+        SizedBox(height: isDesktop ? 16 : 12),
+        _buildModernTextField(
+          controller: _passwordController,
+          label: 'Client Secret',
+          icon: CupertinoIcons.lock,
+          placeholder: 'Your SoundCloud app Client Secret',
+          obscureText: !_isPasswordVisible,
+          isDark: isDark,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _isPasswordVisible
+                  ? CupertinoIcons.eye_slash
+                  : CupertinoIcons.eye,
+              size: 20,
+              color: isDark
+                  ? Colors.white.withOpacity(0.5)
+                  : Colors.black.withOpacity(0.4),
+            ),
+            onPressed: () {
+              setState(() {
+                _isPasswordVisible = !_isPasswordVisible;
+              });
+            },
+          ),
+        ),
+      ];
+    } else if (_selectedServerType == 'plex') {
       return [
         _buildModernTextField(
           controller: _plexTokenController,
@@ -1794,7 +1868,14 @@ class _LoginScreenState extends State<LoginScreen>
       final appState = context.read<AppState>();
       bool success;
 
-      if (_selectedServerType == 'plex') {
+      if (_selectedServerType == 'soundcloud') {
+        success = await appState.loginWithServerType(
+          _selectedServerType,
+          'https://api.soundcloud.com',
+          _usernameController.text.trim(),
+          _passwordController.text,
+        );
+      } else if (_selectedServerType == 'plex') {
         // Plex token auth
         success = await appState.loginWithServerType(
           _selectedServerType,
@@ -1881,8 +1962,9 @@ class _LoginScreenState extends State<LoginScreen>
         return 'http://your-plex-server:32400';
       case 'subsonic':
         return 'http://your-subsonic-server:4533';
+      case 'soundcloud':
       case 'local':
-        return ''; // Local doesn't need a server URL
+        return '';
       default:
         return 'http://your-server:port';
     }

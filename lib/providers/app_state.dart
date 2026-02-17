@@ -258,6 +258,9 @@ class AppState extends ChangeNotifier {
           case 'subsonic':
             type = ServerType.subsonic;
             break;
+          case 'soundcloud':
+            type = ServerType.soundcloud;
+            break;
           default:
             type = ServerType.jellyfin;
         }
@@ -798,12 +801,19 @@ class AppState extends ChangeNotifier {
       // Initialize the appropriate service
       _mediaServiceManager.initializeService(type);
 
-      // Ensure serverUrl has protocol for non-Plex and non-local services
+      // Ensure serverUrl has protocol for non-Plex, non-local, and non-SoundCloud services
       if (type != ServerType.plex &&
           type != ServerType.local &&
+          type != ServerType.soundcloud &&
           !serverUrl.startsWith('http://') &&
           !serverUrl.startsWith('https://')) {
         serverUrl = 'http://$serverUrl';
+      }
+
+      // SoundCloud uses client_id/secret; use fixed API base as serverUrl if empty
+      if (type == ServerType.soundcloud &&
+          (serverUrl.isEmpty || !serverUrl.startsWith('http'))) {
+        serverUrl = 'https://api.soundcloud.com';
       }
 
       final success = await _mediaServiceManager.authenticate(
@@ -939,6 +949,10 @@ class AppState extends ChangeNotifier {
     await prefs.remove('jellyfin_credentials');
     await prefs.remove('subsonic_credentials');
     await prefs.remove('plex_credentials');
+    await prefs.remove('server_type');
+    await prefs.remove('server_url');
+    await prefs.remove('server_identifier');
+    await prefs.remove('server_credential');
 
     // Clear saved server type
     await prefs.remove('saved_server_type');

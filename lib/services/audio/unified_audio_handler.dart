@@ -1110,7 +1110,18 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
 
     // Fallback to transcoded stream
-    return _mediaServiceManager.getStreamUrl(track.id);
+    final streamUrl = _mediaServiceManager.getStreamUrl(track.id);
+    if (streamUrl.isNotEmpty) {
+      return streamUrl;
+    }
+
+    // For providers that need async URL resolution (e.g. SoundCloud)
+    final asyncUrls = await _mediaServiceManager.getAlternativeStreamUrlsAsync(track.id);
+    if (asyncUrls.isNotEmpty) {
+      return asyncUrls.first;
+    }
+
+    return '';
   }
 
   // === Queue Management ===
