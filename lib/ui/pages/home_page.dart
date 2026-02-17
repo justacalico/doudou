@@ -207,6 +207,7 @@ class _HomePageState extends State<HomePage> {
               subtitle: l10n.artist,
               imageUrl: _imageUrl(appState, artist.imageUrl),
               size: 180,
+              placeholderIcon: Icons.person_rounded,
               onTap: () => NavigationService().navigateToArtist(artist),
             ),
           );
