@@ -83,6 +83,7 @@ class PageTemplate extends StatelessWidget {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: actions!.map((action) => Padding(
                           padding: const EdgeInsets.only(right: DesktopTheme.spacingSm),
                           child: action,
@@ -133,6 +134,7 @@ class PageTemplate extends StatelessWidget {
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: actions!.map((action) => Padding(
                             padding: const EdgeInsets.only(left: DesktopTheme.spacingSm),

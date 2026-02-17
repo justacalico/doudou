@@ -128,6 +128,12 @@ class TrackListTemplate extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, bool isDark) {
+    final width = MediaQuery.sizeOf(context).width;
+    final isNarrow = width < 400;
+    final padding = isNarrow
+        ? AppleDesignSystem.spacing24
+        : AppleDesignSystem.spacing48;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
       child: BackdropFilter(
@@ -136,6 +142,7 @@ class TrackListTemplate extends StatelessWidget {
           sigmaY: AppleDesignSystem.blurRegular,
         ),
         child: Container(
+          width: double.infinity,
           decoration: BoxDecoration(
             color: isDark
                 ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.7)
@@ -148,67 +155,72 @@ class TrackListTemplate extends StatelessWidget {
               width: 0.5,
             ),
           ),
-          padding: const EdgeInsets.all(AppleDesignSystem.spacing48),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      (isDark
-                              ? AppleColors.systemGray3Dark
-                              : AppleColors.systemGray3)
-                          .withValues(alpha: 0.5),
-                      (isDark
-                              ? AppleColors.systemGray4Dark
-                              : AppleColors.systemGray4)
-                          .withValues(alpha: 0.3),
-                    ],
+          padding: EdgeInsets.symmetric(
+            horizontal: padding,
+            vertical: AppleDesignSystem.spacing48,
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        (isDark
+                                ? AppleColors.systemGray3Dark
+                                : AppleColors.systemGray3)
+                            .withValues(alpha: 0.5),
+                        (isDark
+                                ? AppleColors.systemGray4Dark
+                                : AppleColors.systemGray4)
+                            .withValues(alpha: 0.3),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
                   ),
-                  shape: BoxShape.circle,
+                  child: Icon(
+                    Icons.music_note_rounded,
+                    size: 40,
+                    color: isDark
+                        ? AppleColors.labelSecondaryDark
+                        : AppleColors.labelSecondary,
+                  ),
                 ),
-                child: Icon(
-                  Icons.music_note_rounded,
-                  size: 40,
-                  color: isDark
-                      ? AppleColors.labelSecondaryDark
-                      : AppleColors.labelSecondary,
-                ),
-              ),
-              const SizedBox(height: AppleDesignSystem.spacing24),
-              Text(
-                emptyStateTitle,
-                style: TextStyle(
-                  fontFamily: AppleDesignSystem.fontFamily,
-                  fontSize: AppleDesignSystem.typeScaleTitle3,
-                  fontWeight: AppleDesignSystem.weightSemiBold,
-                  color: isDark
-                      ? AppleColors.labelPrimaryDark
-                      : AppleColors.labelPrimary,
-                ),
-              ),
-              const SizedBox(height: AppleDesignSystem.spacing8),
-              Text(
-                emptyStateMessage,
-                style: TextStyle(
-                  fontFamily: AppleDesignSystem.fontFamily,
-                  fontSize: AppleDesignSystem.typeScaleSubheadline,
-                  color: isDark
-                      ? AppleColors.labelSecondaryDark
-                      : AppleColors.labelSecondary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (emptyStateAction != null) ...[
                 const SizedBox(height: AppleDesignSystem.spacing24),
-                emptyStateAction!,
+                Text(
+                  emptyStateTitle,
+                  style: TextStyle(
+                    fontFamily: AppleDesignSystem.fontFamily,
+                    fontSize: AppleDesignSystem.typeScaleTitle3,
+                    fontWeight: AppleDesignSystem.weightSemiBold,
+                    color: isDark
+                        ? AppleColors.labelPrimaryDark
+                        : AppleColors.labelPrimary,
+                  ),
+                ),
+                const SizedBox(height: AppleDesignSystem.spacing8),
+                Text(
+                  emptyStateMessage,
+                  style: TextStyle(
+                    fontFamily: AppleDesignSystem.fontFamily,
+                    fontSize: AppleDesignSystem.typeScaleSubheadline,
+                    color: isDark
+                        ? AppleColors.labelSecondaryDark
+                        : AppleColors.labelSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (emptyStateAction != null) ...[
+                  const SizedBox(height: AppleDesignSystem.spacing24),
+                  emptyStateAction!,
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
