@@ -138,28 +138,38 @@ class _HomePageState extends State<HomePage> {
 
   Widget _quickAccess(
       BuildContext context, AppState appState, AppLocalizations l10n) {
+    const narrowBreakpoint = 500.0;
+    final isNarrow = MediaQuery.sizeOf(context).width < narrowBreakpoint;
+    final shuffleAll = QuickAccessCard(
+      title: 'Shuffle All',
+      subtitle: l10n.countSongs(appState.tracks.length),
+      icon: Icons.shuffle_rounded,
+      color: DesktopTheme.playButtonGreen,
+      onTap: () => appState.shuffleAllTracks(),
+    );
+    final shuffleFavorites = QuickAccessCard(
+      title: 'Shuffle Favorites',
+      subtitle: l10n.countSongs(
+          appState.tracks.where((t) => t.isFavorite).length),
+      icon: Icons.favorite_rounded,
+      color: DesktopTheme.heartRed,
+      onTap: () => appState.shuffleFavoriteTracks(),
+    );
+    if (isNarrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          shuffleAll,
+          const SizedBox(height: DesktopTheme.spacingMd),
+          shuffleFavorites,
+        ],
+      );
+    }
     return Row(
       children: [
-        Expanded(
-          child: QuickAccessCard(
-            title: 'Shuffle All',
-            subtitle: l10n.countSongs(appState.tracks.length),
-            icon: Icons.shuffle_rounded,
-            color: DesktopTheme.playButtonGreen,
-            onTap: () => appState.shuffleAllTracks(),
-          ),
-        ),
+        Expanded(child: shuffleAll),
         const SizedBox(width: DesktopTheme.spacingMd),
-        Expanded(
-          child: QuickAccessCard(
-            title: 'Shuffle Favorites',
-            subtitle: l10n.countSongs(
-                appState.tracks.where((t) => t.isFavorite).length),
-            icon: Icons.favorite_rounded,
-            color: DesktopTheme.heartRed,
-            onTap: () => appState.shuffleFavoriteTracks(),
-          ),
-        ),
+        Expanded(child: shuffleFavorites),
       ],
     );
   }
