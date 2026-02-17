@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:kib_debug_print/kib_debug_print.dart';
 import 'package:flutter/services.dart';
 // DO NOT REMOVE THIS IMPORT - needed for localization
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -25,6 +26,7 @@ void main() async {
 
 Future<void> _runApp() async {
   WidgetsFlutterBinding.ensureInitialized();
+  DebugPrintService.initialize();
   await JellyfinService.initializeVersion();
 
   try {
