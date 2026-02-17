@@ -17,6 +17,7 @@ import '../widgets/marquee_text.dart';
 import '../shared/detail_track_view.dart';
 import '../artists/details/artist_detail.dart';
 import '../../../services/lyrics_service.dart';
+import '../../../utils/display_utils.dart';
 
 class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({super.key});
@@ -749,8 +750,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                         const SizedBox(height: 8),
                                         Flexible(
                                           child: Text(
-                                            currentTrack.artistName ??
-                                                'Unknown Artist',
+                                            displayArtistName(
+                                              currentTrack.artistName,
+                                              defaultName: 'Unknown Artist',
+                                            ),
                                             style: const TextStyle(
                                               fontSize: 16,
                                               color: CupertinoColors.systemGrey,
@@ -1364,7 +1367,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     showSyncedLyricsOverlay(
       context,
       currentTrack.name,
-      currentTrack.artistName ?? 'Unknown Artist',
+      displayArtistName(
+        currentTrack.artistName,
+        defaultName: 'Unknown Artist',
+      ),
     );
   }
 
@@ -1541,7 +1547,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
   void _shareTrack(BuildContext context, dynamic currentTrack) {
     final trackInfo =
-        '${currentTrack.name} by ${currentTrack.artistName ?? 'Unknown Artist'}';
+        '${currentTrack.name} by ${displayArtistName(currentTrack.artistName, defaultName: 'Unknown Artist')}';
 
     // For now, just show the track info in a dialog
     // In a real app, you would use a share plugin like share_plus
@@ -1846,12 +1852,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
   String _buildArtistAlbumText(dynamic track) {
     final albumName = track.albumName;
-    final artistName = track.artistName;
+    final artistDisplay =
+        displayArtistName(track.artistName, defaultName: 'Unknown Artist');
 
-    if (albumName != null && artistName != null) {
-      return '$artistName - $albumName';
-    } else if (artistName != null) {
-      return artistName;
+    if (albumName != null && artistDisplay.isNotEmpty) {
+      return '$artistDisplay - $albumName';
+    } else if (artistDisplay.isNotEmpty) {
+      return artistDisplay;
     } else if (albumName != null) {
       return albumName;
     } else {

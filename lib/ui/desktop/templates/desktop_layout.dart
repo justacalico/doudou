@@ -12,6 +12,7 @@ import '../services/navigation_service.dart';
 import '../pages/details/media_details.dart';
 import '../pages/details/artist_details.dart';
 import '../widgets/universal_image.dart';
+import '../../../utils/display_utils.dart';
 import 'desktop_theme.dart';
 
 /// Static helpers for detail overlay and dialogs (main shell is [AppShell]).
@@ -391,7 +392,7 @@ class _TrackInfo extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                mediaItem!.artist ?? 'Unknown Artist',
+                displayArtistName(mediaItem!.artist, defaultName: 'Unknown Artist'),
                 style: TextStyle(
                   fontSize: 12,
                   color: DesktopTheme.textSecondary,
@@ -1378,7 +1379,7 @@ class _NowPlayingMain extends StatelessWidget {
                     ),
                     Flexible(
                       child: Text(
-                        mediaItem!.artist!,
+                        displayArtistName(mediaItem!.artist, defaultName: 'Unknown Artist'),
                         style: TextStyle(
                           fontSize: 14,
                           color: DesktopTheme.textSecondary,

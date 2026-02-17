@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'dart:ui';
 import '../../../../providers/app_state.dart';
 import '../../../../models/jellyfin_models.dart';
+import '../../../../utils/display_utils.dart';
 import '../../playing/now_playing.dart';
 import '../../widgets/cached_image_widget.dart';
 import '../../widgets/apple_design/apple_theme.dart';
@@ -223,7 +224,7 @@ class _MiniPlayerState extends State<MiniPlayer>
                             if (currentTrack.artistName != null) ...[
                               const SizedBox(height: 2),
                               Text(
-                                currentTrack.artistName!,
+                                displayArtistName(currentTrack.artistName),
                                 style: TextStyle(
                                   fontFamily: AppleDesignSystem.fontFamily,
                                   fontSize: 13,
@@ -345,7 +346,7 @@ class _MiniPlayerState extends State<MiniPlayer>
                           if (currentTrack.artistName != null) ...[
                             const SizedBox(height: 2),
                             Text(
-                              currentTrack.artistName!,
+                              displayArtistName(currentTrack.artistName),
                               style: AppleTextStyles.footnote(
                                 color: AppleColors.labelSecondaryDark,
                               ),
