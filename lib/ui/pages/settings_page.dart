@@ -910,6 +910,20 @@ class _ServerSection extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    ListTile(
+                      title: const Text('Refresh library'),
+                      subtitle: const Text('Reload albums, artists, and tracks'),
+                      leading: const Icon(Icons.refresh_rounded),
+                      onTap: () async {
+                        await appState.loadLibraryData();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Library refreshed')),
+                          );
+                        }
+                      },
+                    ),
+                    const Divider(),
                     if (isLocal && localService != null) ...[
                       ListTile(
                         title: const Text('Music Directories'),

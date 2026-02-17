@@ -43,19 +43,6 @@ class _HomePageState extends State<HomePage> {
           title: l10n.navHome,
           subtitle: _greeting(l10n),
           showGradientHeader: true,
-          actions: [
-            DesktopGlassButton(
-              onPressed: () => appState.loadLibraryData(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.refresh_rounded, size: 18),
-                  const SizedBox(width: DesktopTheme.spacingSm),
-                  Text(l10n.refresh),
-                ],
-              ),
-            ),
-          ],
           child: appState.isLoading
               ? _loading(Theme.of(context))
               : SingleChildScrollView(
