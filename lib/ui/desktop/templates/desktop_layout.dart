@@ -2443,6 +2443,7 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
                         tracks: _tracks,
                         appState: appState,
                         showTrackNumber: true,
+                        showAlbum: false,
                       ),
               ),
             ],
@@ -2904,11 +2905,13 @@ class _TrackListView extends StatelessWidget {
   final List<Track> tracks;
   final AppState appState;
   final bool showTrackNumber;
+  final bool showAlbum;
 
   const _TrackListView({
     required this.tracks,
     required this.appState,
     this.showTrackNumber = false,
+    this.showAlbum = true,
   });
 
   @override
@@ -2925,6 +2928,7 @@ class _TrackListView extends StatelessWidget {
           track: track,
           index: index,
           showTrackNumber: showTrackNumber,
+          showAlbum: showAlbum,
           onTap: () => appState.playPlaylist(tracks, index),
           onAddToQueue: () => appState.addToQueue(track),
         );
@@ -2938,6 +2942,7 @@ class _TrackRow extends StatefulWidget {
   final Track track;
   final int index;
   final bool showTrackNumber;
+  final bool showAlbum;
   final VoidCallback onTap;
   final VoidCallback onAddToQueue;
 
@@ -2945,6 +2950,7 @@ class _TrackRow extends StatefulWidget {
     required this.track,
     required this.index,
     required this.showTrackNumber,
+    this.showAlbum = true,
     required this.onTap,
     required this.onAddToQueue,
   });
@@ -3117,34 +3123,35 @@ class _TrackRowState extends State<_TrackRow> {
                         ),
                 ),
               ),
-              // Album art
-              Container(
-                width: 40,
-                height: 40,
-                margin: const EdgeInsets.only(right: DesktopTheme.spacingMd),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: DesktopTheme.backgroundElevated,
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: imageUrl != null
-                    ? buildSmartImage(
-                        imageUrl: imageUrl,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                        errorBuilder: () => Icon(
+              // Album art (only show if showAlbum is true)
+              if (widget.showAlbum)
+                Container(
+                  width: 40,
+                  height: 40,
+                  margin: const EdgeInsets.only(right: DesktopTheme.spacingMd),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    color: DesktopTheme.backgroundElevated,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: imageUrl != null
+                      ? buildSmartImage(
+                          imageUrl: imageUrl,
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                          errorBuilder: () => Icon(
+                            Icons.music_note_rounded,
+                            size: 20,
+                            color: DesktopTheme.textTertiary,
+                          ),
+                        )
+                      : Icon(
                           Icons.music_note_rounded,
                           size: 20,
                           color: DesktopTheme.textTertiary,
                         ),
-                      )
-                    : Icon(
-                        Icons.music_note_rounded,
-                        size: 20,
-                        color: DesktopTheme.textTertiary,
-                      ),
-              ),
+                ),
               // Track info
               Expanded(
                 child: Column(
@@ -3172,8 +3179,8 @@ class _TrackRowState extends State<_TrackRow> {
                   ],
                 ),
               ),
-              // Album name
-              if (widget.track.albumName != null)
+              // Album name (only show if showAlbum is true)
+              if (widget.showAlbum && widget.track.albumName != null)
                 Expanded(
                   child: Text(
                     widget.track.albumName!,
