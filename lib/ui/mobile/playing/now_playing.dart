@@ -7,6 +7,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:vibration/vibration.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
+import '../../../models/download_models.dart';
 import '../../../services/album_art_color_service.dart';
 import '../../../services/audio/unified_audio_handler.dart' show RepeatMode;
 import 'lyrics/lyrics_overlay.dart';
@@ -1367,6 +1368,57 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     );
   }
 
+  CupertinoActionSheetAction _buildDownloadAction(
+    BuildContext context,
+    dynamic currentTrack,
+    AppState appState,
+  ) {
+    final downloadService = appState.downloadService;
+    final isDownloaded = downloadService.isTrackDownloaded(currentTrack.id);
+    final status = downloadService.getDownloadStatus(currentTrack.id);
+    final isDownloading = status == DownloadStatus.downloading;
+
+    String label;
+    if (isDownloaded) {
+      label = 'Downloaded';
+    } else if (isDownloading) {
+      label = 'Downloading...';
+    } else {
+      label = 'Download';
+    }
+
+    return CupertinoActionSheetAction(
+      onPressed: isDownloaded || isDownloading
+          ? () => Navigator.pop(context)
+          : () {
+              Navigator.pop(context);
+              downloadService.downloadTrack(currentTrack as Track);
+            },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            isDownloaded
+                ? CupertinoIcons.checkmark_circle_fill
+                : CupertinoIcons.arrow_down_circle,
+            color: isDownloaded || isDownloading
+                ? CupertinoColors.inactiveGray
+                : CupertinoColors.activeBlue,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: isDownloaded || isDownloading
+                  ? CupertinoColors.inactiveGray
+                  : CupertinoColors.activeBlue,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showMoreOptions(
     BuildContext context,
     dynamic currentTrack,
@@ -1437,6 +1489,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
               ],
             ),
           ),
+          // Download
+          _buildDownloadAction(context, currentTrack, appState),
           // Share
           CupertinoActionSheetAction(
             onPressed: () {
