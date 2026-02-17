@@ -2759,7 +2759,7 @@ class _PlaylistDetailViewState extends State<_PlaylistDetailView> {
 }
 
 /// Shared detail header widget
-class _DetailHeader extends StatelessWidget {
+class _DetailHeader extends StatefulWidget {
   final VoidCallback onBack;
   final String title;
   final String? subtitle;
@@ -2785,9 +2785,55 @@ class _DetailHeader extends StatelessWidget {
   });
 
   @override
+  State<_DetailHeader> createState() => _DetailHeaderState();
+}
+
+class _DetailHeaderState extends State<_DetailHeader> {
+  List<Color>? _gradientColors;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGradientColors();
+  }
+
+  @override
+  void didUpdateWidget(_DetailHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageUrl != widget.imageUrl) {
+      _loadGradientColors();
+    }
+  }
+
+  Future<void> _loadGradientColors() async {
+    if (widget.imageUrl == null || widget.imageUrl!.isEmpty) {
+      setState(() => _gradientColors = null);
+      return;
+    }
+
+    final colors = await AlbumArtColorService.getGradientColors(widget.imageUrl!);
+    if (mounted) {
+      setState(() => _gradientColors = colors);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+
+    // Use extracted gradient colors if available, otherwise fall back to theme-based gradient
+    final gradientColors = _gradientColors != null && _gradientColors!.length >= 3
+        ? [
+            _gradientColors![0].withOpacity(0.6),
+            _gradientColors![1].withOpacity(0.3),
+            DesktopTheme.backgroundPrimary,
+          ]
+        : [
+            theme.colorScheme.primary.withOpacity(0.08),
+            theme.colorScheme.primary.withOpacity(0.03),
+            DesktopTheme.backgroundPrimary,
+          ];
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -2798,11 +2844,7 @@ class _DetailHeader extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            theme.colorScheme.primary.withOpacity(0.08),
-            theme.colorScheme.primary.withOpacity(0.03),
-            DesktopTheme.backgroundPrimary,
-          ],
+          colors: gradientColors,
           stops: const [0.0, 0.4, 1.0],
         ),
       ),
@@ -2811,7 +2853,7 @@ class _DetailHeader extends StatelessWidget {
         children: [
           DesktopIconButton(
             icon: Icons.arrow_back_rounded,
-            onPressed: onBack,
+            onPressed: widget.onBack,
             tooltip: l10n.back,
           ),
           const SizedBox(height: DesktopTheme.spacingLg),
@@ -2823,7 +2865,7 @@ class _DetailHeader extends StatelessWidget {
                 height: 192,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(
-                    isCircular ? 96 : DesktopTheme.radiusLg,
+                    widget.isCircular ? 96 : DesktopTheme.radiusLg,
                   ),
                   color: DesktopTheme.backgroundElevated,
                   boxShadow: [
@@ -2840,9 +2882,9 @@ class _DetailHeader extends StatelessWidget {
                   ],
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: imageUrl != null
+                child: widget.imageUrl != null
                     ? buildSmartImage(
-                        imageUrl: imageUrl!,
+                        imageUrl: widget.imageUrl!,
                         fit: BoxFit.cover,
                         errorBuilder: () => _buildPlaceholder(),
                       )
@@ -2855,7 +2897,7 @@ class _DetailHeader extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      title,
+                      widget.title,
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
@@ -2866,10 +2908,10 @@ class _DetailHeader extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (subtitle != null) ...[
+                    if (widget.subtitle != null) ...[
                       const SizedBox(height: DesktopTheme.spacingXs),
                       Text(
-                        subtitle!,
+                        widget.subtitle!,
                         style: TextStyle(
                           fontSize: 15,
                           color: DesktopTheme.textSecondary,
@@ -2877,12 +2919,12 @@ class _DetailHeader extends StatelessWidget {
                         ),
                       ),
                     ],
-                    if (year != null || trackCount != null) ...[
+                    if (widget.year != null || widget.trackCount != null) ...[
                       const SizedBox(height: DesktopTheme.spacingXs),
                       Text(
                         [
-                          if (year != null) year,
-                          if (trackCount != null) '$trackCount ${l10n.songs}',
+                          if (widget.year != null) widget.year,
+                          if (widget.trackCount != null) '${widget.trackCount} ${l10n.songs}',
                         ].join(' • '),
                         style: TextStyle(
                           fontSize: 13,
@@ -2897,15 +2939,15 @@ class _DetailHeader extends StatelessWidget {
                       runSpacing: DesktopTheme.spacingSm,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        if (onPlay != null)
+                        if (widget.onPlay != null)
                           DesktopPlayButton(
                             isPlaying: false,
-                            onPressed: onPlay!,
+                            onPressed: widget.onPlay!,
                             size: 52,
                           ),
-                        if (onShuffle != null)
+                        if (widget.onShuffle != null)
                           DesktopGlassButton(
-                            onPressed: onShuffle!,
+                            onPressed: widget.onShuffle!,
                             accentColor: DesktopTheme.shufflePurple,
                             padding: const EdgeInsets.symmetric(
                               horizontal: DesktopTheme.spacingMd + 4,
@@ -2921,9 +2963,9 @@ class _DetailHeader extends StatelessWidget {
                               ],
                             ),
                           ),
-                        if (onDownload != null)
+                        if (widget.onDownload != null)
                           DesktopGlassButton(
-                            onPressed: onDownload!,
+                            onPressed: widget.onDownload!,
                             padding: const EdgeInsets.symmetric(
                               horizontal: DesktopTheme.spacingMd + 4,
                               vertical: DesktopTheme.spacingMd,
@@ -2954,7 +2996,7 @@ class _DetailHeader extends StatelessWidget {
     return Container(
       color: DesktopTheme.backgroundTertiary,
       child: Icon(
-        isCircular ? Icons.person_rounded : Icons.album_rounded,
+        widget.isCircular ? Icons.person_rounded : Icons.album_rounded,
         size: 64,
         color: DesktopTheme.textTertiary,
       ),
