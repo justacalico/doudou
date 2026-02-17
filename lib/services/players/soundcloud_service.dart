@@ -198,7 +198,17 @@ class SoundCloudService implements BaseMediaService {
     int? limit,
     int? startIndex,
   }) async {
-    return [];
+    // SoundCloud has no albums; map playlists to albums so Library shows content
+    final playlists = await getPlaylists();
+    return playlists
+        .map((p) => Album(
+              id: p.id,
+              name: p.name,
+              artistName: null,
+              imageUrl: p.imageUrl,
+              isFavorite: false,
+            ))
+        .toList();
   }
 
   @override
@@ -216,12 +226,27 @@ class SoundCloudService implements BaseMediaService {
     int? limit,
     int? startIndex,
   }) async {
-    return [];
+    if (!await _ensureToken()) return [];
+    try {
+      final results = await search('', limit: (limit ?? 50).clamp(1, 200));
+      final seen = <String>{};
+      final artists = <Artist>[];
+      for (final t in results.tracks) {
+        final name = t.artistName ?? 'Unknown Artist';
+        final id = name.toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+        if (seen.contains(id)) continue;
+        seen.add(id);
+        artists.add(Artist(id: id, name: name, imageUrl: null));
+      }
+      return artists;
+    } catch (_) {
+      return [];
+    }
   }
 
   @override
   Future<List<Track>> getAllTracks({int? maxTracks}) async {
-    return getTracks(limit: maxTracks ?? 10000);
+    return getTracks(limit: maxTracks ?? 500);
   }
 
   @override
@@ -234,18 +259,96 @@ class SoundCloudService implements BaseMediaService {
     int? limit,
     int? startIndex,
   }) async {
-    final results = await search('music', limit: limit ?? 50);
+    if (parentId != null && parentId.isNotEmpty) {
+      return getPlaylistTracks(parentId);
+    }
+    final results = await search('', limit: limit ?? 100);
     return results.tracks;
   }
 
   @override
   Future<List<Playlist>> getPlaylists() async {
-    return [];
+    if (!await _ensureToken()) return [];
+    try {
+      final response = await _dio.get<dynamic>(
+        '/playlists',
+        queryParameters: {
+          'q': 'music',
+          'representation': 'compact',
+          'limit': 50,
+          'linked_partitioning': 'true',
+        },
+      );
+      final data = response.data;
+      if (data == null) return [];
+      final collection = data is List
+          ? data
+          : (data is Map && data['collection'] != null)
+              ? data['collection'] as List<dynamic>
+              : <dynamic>[];
+      final playlists = <Playlist>[];
+      for (final item in collection) {
+        final map = item as Map<String, dynamic>;
+        final id = map['id']?.toString();
+        if (id == null) continue;
+        final title = map['title'] as String? ?? 'Playlist';
+        final trackCount = (map['track_count'] as num?)?.toInt() ??
+            (map['tracks'] as List<dynamic>?)?.length ??
+            0;
+        final artwork = map['artwork_url'] as String?;
+        playlists.add(Playlist(
+          id: id,
+          name: title,
+          imageUrl: artwork,
+          trackCount: trackCount,
+        ));
+      }
+      return playlists;
+    } catch (e) {
+      _log('getPlaylists failed: $e', isError: true);
+      return [];
+    }
   }
 
   @override
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
-    return [];
+    if (!await _ensureToken()) return [];
+    try {
+      // Default representation returns full track objects
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/playlists/$playlistId',
+      );
+      final data = response.data;
+      if (data == null) return [];
+      final trackList = data['tracks'] as List<dynamic>? ?? [];
+      final tracks = <Track>[];
+      for (final t in trackList) {
+        if (t is! Map<String, dynamic>) continue;
+        final id = t['id']?.toString();
+        if (id == null) continue;
+        final title = t['title'] as String? ?? 'Unknown';
+        final user = t['user'] as Map<String, dynamic>?;
+        final artistName = user?['username'] as String? ?? 'Unknown Artist';
+        final durationMs = t['duration'] != null
+            ? (t['duration'] as num).toInt()
+            : null;
+        final artwork = t['artwork_url'] as String?;
+        tracks.add(Track(
+          id: id,
+          name: title,
+          artistName: artistName,
+          albumName: null,
+          albumId: playlistId,
+          duration: durationMs,
+          imageUrl: artwork,
+          isFavorite: false,
+        ));
+      }
+      return tracks;
+    } catch (e) {
+      _log('getPlaylistTracks failed: $e', isError: true);
+      return [];
+    }
   }
 
   @override
@@ -273,18 +376,19 @@ class SoundCloudService implements BaseMediaService {
 
   List<String> _collectStreamUrlsFromMap(Map<String, dynamic> data) {
     final urls = <String>[];
-    final hlsAac = data['hls_aac_160_url'] as String? ?? data['hls_aac_96_url'] as String?;
-    if (hlsAac != null && hlsAac.isNotEmpty) {
-      urls.add(_urlWithClientId(hlsAac) ?? hlsAac);
-    }
+    // Progressive URLs first for best compatibility (e.g. media_kit/libmpv)
     if (data['stream_url'] != null && _clientId != null) {
       final streamUrl = data['stream_url'] as String;
-      final withClientId = _urlWithClientId(streamUrl) ?? streamUrl;
-      if (!urls.contains(withClientId)) urls.add(withClientId);
+      urls.add(_urlWithClientId(streamUrl) ?? streamUrl);
     }
     final httpMp3 = data['http_mp3_128_url'] as String?;
     if (httpMp3 != null && httpMp3.isNotEmpty) {
       final u = _urlWithClientId(httpMp3) ?? httpMp3;
+      if (!urls.contains(u)) urls.add(u);
+    }
+    final hlsAac = data['hls_aac_160_url'] as String? ?? data['hls_aac_96_url'] as String?;
+    if (hlsAac != null && hlsAac.isNotEmpty) {
+      final u = _urlWithClientId(hlsAac) ?? hlsAac;
       if (!urls.contains(u)) urls.add(u);
     }
     final preview = data['preview_mp3_128_url'] as String?;
@@ -334,7 +438,11 @@ class SoundCloudService implements BaseMediaService {
     int? width,
     int? height,
   }) {
-    return itemId;
+    if (itemId.isEmpty) return '';
+    if (itemId.startsWith('http://') || itemId.startsWith('https://')) {
+      return itemId;
+    }
+    return '';
   }
 
   @override
