@@ -49,40 +49,53 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildNotificationBanner() {
     if (_notificationMessage == null) return const SizedBox.shrink();
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesktopTheme.spacingMd,
-        vertical: DesktopTheme.spacingSm,
-      ),
-      margin: const EdgeInsets.only(bottom: DesktopTheme.spacingMd),
-      decoration: BoxDecoration(
-        color: _notificationColor ?? Colors.green,
-        borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              _notificationMessage!,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.all(DesktopTheme.spacingMd),
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesktopTheme.spacingMd,
+                vertical: DesktopTheme.spacingSm,
+              ),
+              decoration: BoxDecoration(
+                color: _notificationColor ?? Colors.green,
+                borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _notificationMessage!,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                    onPressed: () {
+                      setState(() {
+                        _notificationMessage = null;
+                        _notificationColor = null;
+                      });
+                    },
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white, size: 20),
-            onPressed: () {
-              setState(() {
-                _notificationMessage = null;
-                _notificationColor = null;
-              });
-            },
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -100,33 +113,29 @@ class _SettingsPageState extends State<SettingsPage> {
             builder: (context, constraints) {
               final useSidebar = constraints.maxWidth >= _kSettingsBreakpoint;
               if (useSidebar) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                return Stack(
                   children: [
-                    _buildNotificationBanner(),
-                    Expanded(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _Sidebar(
-                            selected: _category,
-                            onSelect: (v) => setState(() => _category = v),
-                            l10n: l10n,
-                            isLocalMusic: isLocal,
-                          ),
-                          const SizedBox(width: DesktopTheme.spacingLg),
-                          Expanded(child: _buildContent(appState)),
-                        ],
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _Sidebar(
+                          selected: _category,
+                          onSelect: (v) => setState(() => _category = v),
+                          l10n: l10n,
+                          isLocalMusic: isLocal,
+                        ),
+                        const SizedBox(width: DesktopTheme.spacingLg),
+                        Expanded(child: _buildContent(appState)),
+                      ],
                     ),
+                    _buildNotificationBanner(),
                   ],
                 );
               }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              return Stack(
                 children: [
+                  _buildAllSections(appState, l10n, isLocal),
                   _buildNotificationBanner(),
-                  Expanded(child: _buildAllSections(appState, l10n, isLocal)),
                 ],
               );
             },
