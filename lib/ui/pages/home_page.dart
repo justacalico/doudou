@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:doudou/l10n/app_localizations.dart';
+import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/ui/desktop/services/navigation_service.dart';
 
@@ -62,7 +63,18 @@ class _HomePageState extends State<HomePage> {
                               NavigationService().selectPage(3),
                         ),
                         const SizedBox(height: DesktopTheme.spacingMd),
-                        _albumRow(context, appState, l10n),
+                        _recentlyAddedAlbumRow(context, appState, l10n),
+                        const SizedBox(height: DesktopTheme.spacingXl),
+                      ],
+                      if (appState.recentlyPlayedAlbums.isNotEmpty) ...[
+                        SectionHeader(
+                          title: l10n.continueListening,
+                          subtitle: l10n.recentlyPlayedSection,
+                          onSeeAllPressed: () =>
+                              NavigationService().selectPage(3),
+                        ),
+                        const SizedBox(height: DesktopTheme.spacingMd),
+                        _continueListeningRow(context, appState, l10n),
                         const SizedBox(height: DesktopTheme.spacingXl),
                       ],
                       if (appState.artists.isNotEmpty) ...[
@@ -161,9 +173,47 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _albumRow(
+  /// Recently added albums (sorted by date added, newest first).
+  Widget _recentlyAddedAlbumRow(
       BuildContext context, AppState appState, AppLocalizations l10n) {
-    final list = appState.albums.take(10).toList();
+    final sorted = List<Album>.from(appState.albums)
+      ..sort((a, b) {
+        final da = a.dateCreated;
+        final db = b.dateCreated;
+        if (da == null && db == null) return 0;
+        if (da == null) return 1;
+        if (db == null) return -1;
+        return db.compareTo(da);
+      });
+    final list = sorted.take(10).toList();
+    return SizedBox(
+      height: 230,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: list.length,
+        itemBuilder: (context, index) {
+          final album = list[index];
+          return Padding(
+            padding: EdgeInsets.only(
+                right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
+            child: MusicCard(
+              title: album.name,
+              subtitle: album.artistName ?? l10n.unknownArtist,
+              imageUrl: _imageUrl(appState, album.imageUrl),
+              size: 180,
+              onTap: () => NavigationService().navigateToAlbum(album),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Continue listening: albums from recent playback.
+  Widget _continueListeningRow(
+      BuildContext context, AppState appState, AppLocalizations l10n) {
+    final list = appState.recentlyPlayedAlbums.take(8).toList();
     return SizedBox(
       height: 230,
       child: ListView.builder(

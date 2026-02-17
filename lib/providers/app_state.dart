@@ -69,6 +69,23 @@ class AppState extends ChangeNotifier {
   List<Track> get tracks => _tracks;
   List<Playlist> get playlists => _playlists;
   List<Track> get recentTracks => _recentTracks;
+
+  /// Albums from recently played tracks (unique, order preserved), for "Continue listening".
+  List<Album> get recentlyPlayedAlbums {
+    final seen = <String>{};
+    final result = <Album>[];
+    for (final t in _recentTracks) {
+      final id = t.albumId;
+      if (id == null || id.isEmpty || seen.contains(id)) continue;
+      try {
+        final album = _albums.firstWhere((a) => a.id == id);
+        seen.add(id);
+        result.add(album);
+      } catch (_) {}
+    }
+    return result;
+  }
+
   JellyfinService get jellyfinService => _jellyfinService;
   MediaServiceManager get mediaServiceManager => _mediaServiceManager;
   DownloadService get downloadService => _downloadService;
