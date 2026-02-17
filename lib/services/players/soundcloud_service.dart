@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:kib_debug_print/kib_debug_print.dart';
 
 import '../../models/jellyfin_models.dart';
@@ -34,6 +35,11 @@ class SoundCloudService implements BaseMediaService {
   String? _clientSecret;
   String? _accessToken;
   DateTime? _tokenExpiry;
+
+  static const String _apiV2Base = 'https://api-v2.soundcloud.com';
+  String? _embeddedClientId;
+  DateTime? _embeddedClientIdFetched;
+  static const Duration _embeddedClientIdCache = Duration(hours: 1);
 
   @override
   ServerType get serverType => ServerType.soundcloud;
@@ -468,6 +474,114 @@ class SoundCloudService implements BaseMediaService {
     return urls;
   }
 
+  /// Fetch client_id embedded in SoundCloud's public pages (used by their web player).
+  /// Enables api-v2 streaming when the official API returns 401.
+  Future<String?> _getEmbeddedClientId() async {
+    if (_embeddedClientId != null &&
+        _embeddedClientIdFetched != null &&
+        DateTime.now().difference(_embeddedClientIdFetched!) < _embeddedClientIdCache) {
+      return _embeddedClientId;
+    }
+    try {
+      final pageRes = await http.get(
+        Uri.parse('https://soundcloud.com'),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+          'Accept': 'text/html',
+        },
+      );
+      if (pageRes.statusCode != 200) return null;
+      final body = pageRes.body;
+      RegExp re = RegExp(r',client_id:\s*"([^"]+)"');
+      var match = re.firstMatch(body);
+      if (match == null) match = RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(body);
+      if (match == null) match = RegExp(r"client_id:\s*'([a-zA-Z0-9_.-]+)'").firstMatch(body);
+      if (match != null) {
+        _embeddedClientId = match.group(1);
+        _embeddedClientIdFetched = DateTime.now();
+        _log('playback: embedded client_id obtained from page');
+        return _embeddedClientId;
+      }
+      re = RegExp(r'https://[a-z0-9.-]+\.sndcdn\.com/assets/[^"]+\.js');
+      match = re.firstMatch(body);
+      if (match != null) {
+        final scriptUrl = match.group(0)!;
+        final scriptRes = await http.get(Uri.parse(scriptUrl), headers: {'User-Agent': 'Mozilla/5.0'});
+        if (scriptRes.statusCode == 200) {
+          final re2 = RegExp(r',client_id:\s*"([^"]+)"');
+          var m2 = re2.firstMatch(scriptRes.body);
+          if (m2 == null) m2 = RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(scriptRes.body);
+          if (m2 == null) {
+            final m3 = RegExp(r"client_id:\s*'([a-zA-Z0-9_.-]+)'").firstMatch(scriptRes.body);
+            if (m3 != null) {
+              _embeddedClientId = m3.group(1);
+              _embeddedClientIdFetched = DateTime.now();
+              _log('playback: embedded client_id obtained from script');
+              return _embeddedClientId;
+            }
+          } else {
+            _embeddedClientId = m2.group(1);
+            _embeddedClientIdFetched = DateTime.now();
+            _log('playback: embedded client_id obtained from script');
+            return _embeddedClientId;
+          }
+        }
+      }
+    } catch (e) {
+      _log('getEmbeddedClientId failed: $e', isError: true);
+    }
+    return null;
+  }
+
+  /// Resolve stream via api-v2 with embedded client_id (bypasses official API 401).
+  Future<String?> _resolveStreamViaEmbeddedClientId(String trackId) async {
+    final clientId = await _getEmbeddedClientId();
+    if (clientId == null) return null;
+    try {
+      _log('playback: trying api-v2 with embedded client_id');
+      final trackUrl = '$_apiV2Base/tracks/$trackId?client_id=$clientId';
+      final trackRes = await http.get(Uri.parse(trackUrl));
+      if (trackRes.statusCode != 200) {
+        _log('playback: api-v2 track status ${trackRes.statusCode}', isError: true);
+        return null;
+      }
+      final trackData = jsonDecode(trackRes.body) as Map<String, dynamic>?;
+      if (trackData == null) return null;
+      final media = trackData['media'] as Map<String, dynamic>?;
+      final transcodings = media?['transcodings'] as List<dynamic>?;
+      if (transcodings == null || transcodings.isEmpty) return null;
+      String? transcodingUrl;
+      for (final t in transcodings) {
+        if (t is! Map<String, dynamic>) continue;
+        final format = t['format'] as Map<String, dynamic>?;
+        if (format?['protocol'] == 'progressive') {
+          transcodingUrl = t['url'] as String?;
+          break;
+        }
+      }
+      transcodingUrl ??= (transcodings.first as Map<String, dynamic>)['url'] as String?;
+      if (transcodingUrl == null || transcodingUrl.isEmpty) return null;
+      if (transcodingUrl.startsWith('/')) transcodingUrl = '$_apiV2Base$transcodingUrl';
+      final resolveUrl = transcodingUrl.contains('?')
+          ? '$transcodingUrl&client_id=$clientId'
+          : '$transcodingUrl?client_id=$clientId';
+      final resolveRes = await http.get(Uri.parse(resolveUrl));
+      if (resolveRes.statusCode != 200) {
+        _log('playback: api-v2 resolve status ${resolveRes.statusCode}', isError: true);
+        return null;
+      }
+      final resolveData = jsonDecode(resolveRes.body) as Map<String, dynamic>?;
+      final url = resolveData?['url'] as String?;
+      if (url != null && url.isNotEmpty && _isUsableStreamUrl(url)) {
+        _log('playback: resolved via api-v2 + embedded client_id');
+        return url;
+      }
+    } catch (e) {
+      _log('playback: api-v2 embedded resolve failed: $e', isError: true);
+    }
+    return null;
+  }
+
   /// Resolve transcoding URL to final CDN stream URL.
   /// Per SoundCloud issue #478: use Bearer token, follow 302 redirect to get CDN URL for player.
   Future<String?> _resolveTranscodingUrlToCdn(String transcodingUrl) async {
@@ -641,6 +755,8 @@ class SoundCloudService implements BaseMediaService {
           continue;
         }
       }
+      final embeddedUrl = await _resolveStreamViaEmbeddedClientId(numericId);
+      if (embeddedUrl != null && embeddedUrl.isNotEmpty) return [embeddedUrl];
       _log('playback: no usable stream URL for track $numericId', isError: true);
       return [];
     } catch (e) {
