@@ -27,7 +27,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String _category = 'general';
+  String _category = 'audio';
   String? _notificationMessage;
   Color? _notificationColor;
 
@@ -147,13 +147,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildContent(AppState appState) {
     switch (_category) {
-      case 'general':
-        return _GeneralSection(
-          appState: appState,
-          onTheme: _showThemeDialog,
-          onColor: _showColorDialog,
-          onLanguage: () => _showLanguageDialog(appState),
-        );
       case 'audio':
         return _AudioSection(appState: appState);
       case 'appearance':
@@ -177,12 +170,7 @@ class _SettingsPageState extends State<SettingsPage> {
       case 'about':
         return _AboutSection(appState: appState);
       default:
-        return _GeneralSection(
-          appState: appState,
-          onTheme: _showThemeDialog,
-          onColor: _showColorDialog,
-          onLanguage: () => _showLanguageDialog(appState),
-        );
+        return _AudioSection(appState: appState);
     }
   }
 
@@ -191,12 +179,6 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _GeneralSection(
-            appState: appState,
-            onTheme: _showThemeDialog,
-            onColor: _showColorDialog,
-            onLanguage: () => _showLanguageDialog(appState),
-          ),
           _AudioSection(appState: appState),
           _AppearanceSection(
             appState: appState,
@@ -566,7 +548,6 @@ class _Sidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final categories = [
-      {'id': 'general', 'label': l10n.generalSettings.split(' ').first, 'icon': Icons.settings_rounded},
       {'id': 'audio', 'label': l10n.audioSettings.split(' ').first, 'icon': Icons.volume_up_rounded},
       {'id': 'appearance', 'label': l10n.appearanceSettings.split(' ').first, 'icon': Icons.palette_rounded},
       {'id': 'server', 'label': isLocalMusic ? 'Local' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
@@ -614,36 +595,6 @@ class _Sidebar extends StatelessWidget {
             ),
           );
         }).toList(),
-      ),
-    );
-  }
-}
-
-// --- General ---
-class _GeneralSection extends StatelessWidget {
-  final AppState appState;
-  final VoidCallback onTheme;
-  final VoidCallback onColor;
-  final VoidCallback onLanguage;
-
-  const _GeneralSection({required this.appState, required this.onTheme, required this.onColor, required this.onLanguage});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
-    final isSmall = MediaQuery.sizeOf(context).width < _kSettingsBreakpoint;
-    return SingleChildScrollView(
-      child: Padding(
-        padding: EdgeInsets.all(isSmall ? DesktopTheme.spacingMd : DesktopTheme.spacingLg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.generalSettings, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            SizedBox(height: isSmall ? 12 : 24),
-            // Playback & visuals section removed - no options remaining
-          ],
-        ),
       ),
     );
   }
