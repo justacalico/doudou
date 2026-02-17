@@ -2440,6 +2440,15 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Run server-side search (e.g. SoundCloud, Jellyfin). Used by the Search page.
+  Future<SearchResults> searchMedia(String query, {int? limit}) async {
+    if (!_isLoggedIn) return SearchResults();
+    return await _mediaServiceManager.search(
+      query.trim(),
+      limit: limit ?? 50,
+    );
+  }
+
   /// Search for and play music by a specific artist
   Future<void> searchAndPlayArtist(String artistName) async {
     if (artistName.isEmpty) return;
