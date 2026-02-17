@@ -141,23 +141,74 @@ class _DownloadsPageState extends State<DownloadsPage> {
           final imageUrl = album.imageUrl != null
               ? appState.getImageUrl(album.imageUrl!)
               : null;
-          return MusicCard(
-            title: album.name,
-            subtitle: album.artistName ?? l10n.unknownArtist,
-            imageUrl: imageUrl,
-            size: 180,
-            placeholderIcon: Icons.album_rounded,
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (context) => _DownloadAlbumDetailPage(
-                    metadata: album,
-                    downloadService: downloadService,
+          
+          // Check if any tracks in this album are downloading
+          final downloadingTracks = album.tracks.where((t) {
+            final status = downloadService.getDownloadStatus(t.id);
+            return status == DownloadStatus.downloading;
+          }).toList();
+          
+          // Calculate average progress if downloading
+          double? albumProgress;
+          if (downloadingTracks.isNotEmpty) {
+            final totalProgress = downloadingTracks.fold<double>(
+              0.0,
+              (sum, track) => sum + downloadService.getDownloadProgress(track.id),
+            );
+            albumProgress = totalProgress / downloadingTracks.length;
+          }
+          
+          return Stack(
+            children: [
+              MusicCard(
+                title: album.name,
+                subtitle: album.artistName ?? l10n.unknownArtist,
+                imageUrl: imageUrl,
+                size: 180,
+                placeholderIcon: Icons.album_rounded,
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (context) => _DownloadAlbumDetailPage(
+                        metadata: album,
+                        downloadService: downloadService,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              // Progress overlay for downloading albums
+              if (albumProgress != null)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: DesktopTheme.backgroundDeep,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(DesktopTheme.radiusMd),
+                        bottomRight: Radius.circular(DesktopTheme.radiusMd),
+                      ),
+                    ),
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: albumProgress,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(DesktopTheme.radiusMd),
+                            bottomRight: Radius.circular(DesktopTheme.radiusMd),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              );
-            },
+            ],
           );
         },
       );
@@ -177,13 +228,51 @@ class _DownloadsPageState extends State<DownloadsPage> {
         final imageUrl = track.imageUrl != null
             ? appState.getImageUrl(track.imageUrl!)
             : null;
-        return MusicCard(
-          title: track.name,
-          subtitle: track.artistName ?? track.albumName ?? l10n.unknownArtist,
-          imageUrl: imageUrl,
-          size: 180,
-          placeholderIcon: Icons.music_note_rounded,
-          onTap: () => appState.playPlaylist(downloadedTracks, index),
+        final downloadStatus = downloadService.getDownloadStatus(track.id);
+        final progress = downloadService.getDownloadProgress(track.id);
+        final isDownloading = downloadStatus == DownloadStatus.downloading;
+        
+        return Stack(
+          children: [
+            MusicCard(
+              title: track.name,
+              subtitle: track.artistName ?? track.albumName ?? l10n.unknownArtist,
+              imageUrl: imageUrl,
+              size: 180,
+              placeholderIcon: Icons.music_note_rounded,
+              onTap: () => appState.playPlaylist(downloadedTracks, index),
+            ),
+            // Progress overlay for downloading tracks
+            if (isDownloading)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: DesktopTheme.backgroundDeep,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(DesktopTheme.radiusMd),
+                      bottomRight: Radius.circular(DesktopTheme.radiusMd),
+                    ),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: progress,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(DesktopTheme.radiusMd),
+                          bottomRight: Radius.circular(DesktopTheme.radiusMd),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
@@ -291,64 +380,97 @@ class _DownloadAlbumDetailPageState extends State<_DownloadAlbumDetailPage> {
       itemBuilder: (context, index) {
         final min = meta.tracks[index];
         final isDownloaded = downloadService.isTrackDownloaded(min.id);
+        final downloadStatus = downloadService.getDownloadStatus(min.id);
+        final progress = downloadService.getDownloadProgress(min.id);
+        final isDownloading = downloadStatus == DownloadStatus.downloading;
         Track? track;
         try {
           track = appState.tracks.firstWhere((t) => t.id == min.id);
         } catch (_) {
           track = null;
         }
-        return ListTile(
-          leading: Icon(
-            isDownloaded ? Icons.download_done_rounded : Icons.music_note_rounded,
-            color: isDownloaded
-                ? theme.colorScheme.primary
-                : theme.colorScheme.onSurface.withValues(alpha: 0.4),
-          ),
-          title: Text(
-            min.name,
-            style: TextStyle(
-              color: isDownloaded
-                  ? DesktopTheme.textPrimary
-                  : DesktopTheme.textPrimary.withValues(alpha: 0.5),
-              fontWeight: isDownloaded ? FontWeight.w500 : FontWeight.normal,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-          subtitle: min.artistName != null
-              ? Text(
-                  min.artistName!,
-                  style: TextStyle(
-                    color: isDownloaded
-                        ? DesktopTheme.textSecondary
-                        : DesktopTheme.textSecondary.withValues(alpha: 0.5),
-                    fontSize: 13,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                )
-              : null,
-          trailing: isDownloaded && track != null
-              ? IconButton(
-                  icon: const Icon(Icons.play_arrow_rounded),
-                  onPressed: () {
-                    final List<Track> playlist = [];
-                    for (final m in meta.tracks) {
-                      try {
-                        final t = appState.tracks.firstWhere((x) => x.id == m.id);
-                        playlist.add(t);
-                      } catch (_) {}
-                    }
-                    final idx = playlist.indexWhere((t) => t.id == track!.id);
-                    if (idx >= 0) appState.playPlaylist(playlist, idx);
-                  },
-                )
-              : (track != null
-                  ? IconButton(
-                      icon: const Icon(Icons.download_rounded),
-                      onPressed: () => downloadService.downloadTrack(track!),
+        return Column(
+          children: [
+            ListTile(
+              leading: isDownloading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          theme.colorScheme.primary,
+                        ),
+                        backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                      ),
                     )
-                  : null),
+                  : Icon(
+                      isDownloaded ? Icons.download_done_rounded : Icons.music_note_rounded,
+                      color: isDownloaded
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    ),
+              title: Text(
+                min.name,
+                style: TextStyle(
+                  color: isDownloaded
+                      ? DesktopTheme.textPrimary
+                      : DesktopTheme.textPrimary.withValues(alpha: 0.5),
+                  fontWeight: isDownloaded ? FontWeight.w500 : FontWeight.normal,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+              subtitle: min.artistName != null
+                  ? Text(
+                      min.artistName!,
+                      style: TextStyle(
+                        color: isDownloaded
+                            ? DesktopTheme.textSecondary
+                            : DesktopTheme.textSecondary.withValues(alpha: 0.5),
+                        fontSize: 13,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    )
+                  : null,
+              trailing: isDownloaded && track != null
+                  ? IconButton(
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      onPressed: () {
+                        final List<Track> playlist = [];
+                        for (final m in meta.tracks) {
+                          try {
+                            final t = appState.tracks.firstWhere((x) => x.id == m.id);
+                            playlist.add(t);
+                          } catch (_) {}
+                        }
+                        final idx = playlist.indexWhere((t) => t.id == track!.id);
+                        if (idx >= 0) appState.playPlaylist(playlist, idx);
+                      },
+                    )
+                  : (track != null && !isDownloading
+                      ? IconButton(
+                          icon: const Icon(Icons.download_rounded),
+                          onPressed: () => downloadService.downloadTrack(track!),
+                        )
+                      : null),
+            ),
+            // Progress bar for downloading tracks
+            if (isDownloading)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingLg),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    theme.colorScheme.primary,
+                  ),
+                  minHeight: 2,
+                ),
+              ),
+          ],
         );
       },
     );
@@ -374,48 +496,83 @@ class _DownloadAlbumDetailPageState extends State<_DownloadAlbumDetailPage> {
       itemBuilder: (context, index) {
         final track = tracks[index];
         final isDownloaded = downloadService.isTrackDownloaded(track.id);
-        return ListTile(
-          leading: Icon(
-            isDownloaded ? Icons.download_done_rounded : Icons.music_note_rounded,
-            color: isDownloaded
-                ? theme.colorScheme.primary
-                : theme.colorScheme.onSurface.withValues(alpha: 0.4),
-          ),
-          title: Text(
-            track.name,
-            style: TextStyle(
-              color: isDownloaded
-                  ? DesktopTheme.textPrimary
-                  : DesktopTheme.textPrimary.withValues(alpha: 0.5),
-              fontWeight: isDownloaded ? FontWeight.w500 : FontWeight.normal,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-          subtitle: Text(
-            track.artistName ?? l10n.unknownArtist,
-            style: TextStyle(
-              color: isDownloaded
-                  ? DesktopTheme.textSecondary
-                  : DesktopTheme.textSecondary.withValues(alpha: 0.5),
-              fontSize: 13,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-          trailing: isDownloaded
-              ? IconButton(
-                  icon: const Icon(Icons.play_arrow_rounded),
-                  onPressed: () {
-                    final idx = downloadedInAlbum
-                        .indexWhere((t) => t.id == track.id);
-                    if (idx >= 0) appState.playPlaylist(downloadedInAlbum, idx);
-                  },
-                )
-              : IconButton(
-                  icon: const Icon(Icons.download_rounded),
-                  onPressed: () => downloadService.downloadTrack(track),
+        final downloadStatus = downloadService.getDownloadStatus(track.id);
+        final progress = downloadService.getDownloadProgress(track.id);
+        final isDownloading = downloadStatus == DownloadStatus.downloading;
+        return Column(
+          children: [
+            ListTile(
+              leading: isDownloading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          theme.colorScheme.primary,
+                        ),
+                        backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                      ),
+                    )
+                  : Icon(
+                      isDownloaded ? Icons.download_done_rounded : Icons.music_note_rounded,
+                      color: isDownloaded
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    ),
+              title: Text(
+                track.name,
+                style: TextStyle(
+                  color: isDownloaded
+                      ? DesktopTheme.textPrimary
+                      : DesktopTheme.textPrimary.withValues(alpha: 0.5),
+                  fontWeight: isDownloaded ? FontWeight.w500 : FontWeight.normal,
                 ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+              subtitle: Text(
+                track.artistName ?? l10n.unknownArtist,
+                style: TextStyle(
+                  color: isDownloaded
+                      ? DesktopTheme.textSecondary
+                      : DesktopTheme.textSecondary.withValues(alpha: 0.5),
+                  fontSize: 13,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+              trailing: isDownloaded
+                  ? IconButton(
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      onPressed: () {
+                        final idx = downloadedInAlbum
+                            .indexWhere((t) => t.id == track.id);
+                        if (idx >= 0) appState.playPlaylist(downloadedInAlbum, idx);
+                      },
+                    )
+                  : (isDownloading
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.download_rounded),
+                          onPressed: () => downloadService.downloadTrack(track),
+                        )),
+            ),
+            // Progress bar for downloading tracks
+            if (isDownloading)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingLg),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    theme.colorScheme.primary,
+                  ),
+                  minHeight: 2,
+                ),
+              ),
+          ],
         );
       },
     );
