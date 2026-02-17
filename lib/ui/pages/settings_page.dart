@@ -1051,7 +1051,7 @@ class _AboutSection extends StatelessWidget {
                 padding: const EdgeInsets.all(32),
                 child: Column(
                   children: [
-                    Image.asset('assets/icons/icon.png', width: 80, height: 80, errorBuilder: (_, __, ___) => const Icon(Icons.music_note, size: 80)),
+                    Image.asset('assets/icons/icon.png', width: 80, height: 80, errorBuilder: (_, _, _) => const Icon(Icons.music_note, size: 80)),
                     const SizedBox(height: 24),
                     Text('Doudou', style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
                     const SizedBox(height: 24),
