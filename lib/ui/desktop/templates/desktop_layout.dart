@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import '../../../l10n/app_localizations.dart';
