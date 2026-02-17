@@ -1,4 +1,5 @@
 /// Display helpers for UI (e.g. deduplicating artist names).
+library;
 
 /// Returns a display string for artist name(s). When the same artist is
 /// repeated in a comma-separated list (e.g. "Nia Nicholls, Nia Nicholls, Nia Nicholls"),
