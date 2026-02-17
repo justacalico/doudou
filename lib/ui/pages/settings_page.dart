@@ -28,6 +28,64 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   String _category = 'general';
+  String? _notificationMessage;
+  Color? _notificationColor;
+
+  void _showNotification(String message, {Color? color}) {
+    setState(() {
+      _notificationMessage = message;
+      _notificationColor = color;
+    });
+    // Auto-hide after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _notificationMessage = null;
+          _notificationColor = null;
+        });
+      }
+    });
+  }
+
+  Widget _buildNotificationBanner() {
+    if (_notificationMessage == null) return const SizedBox.shrink();
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesktopTheme.spacingMd,
+        vertical: DesktopTheme.spacingSm,
+      ),
+      margin: const EdgeInsets.only(bottom: DesktopTheme.spacingMd),
+      decoration: BoxDecoration(
+        color: _notificationColor ?? Colors.green,
+        borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _notificationMessage!,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white, size: 20),
+            onPressed: () {
+              setState(() {
+                _notificationMessage = null;
+                _notificationColor = null;
+              });
+            },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,21 +100,35 @@ class _SettingsPageState extends State<SettingsPage> {
             builder: (context, constraints) {
               final useSidebar = constraints.maxWidth >= _kSettingsBreakpoint;
               if (useSidebar) {
-                return Row(
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _Sidebar(
-                      selected: _category,
-                      onSelect: (v) => setState(() => _category = v),
-                      l10n: l10n,
-                      isLocalMusic: isLocal,
+                    _buildNotificationBanner(),
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _Sidebar(
+                            selected: _category,
+                            onSelect: (v) => setState(() => _category = v),
+                            l10n: l10n,
+                            isLocalMusic: isLocal,
+                          ),
+                          const SizedBox(width: DesktopTheme.spacingLg),
+                          Expanded(child: _buildContent(appState)),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: DesktopTheme.spacingLg),
-                    Expanded(child: _buildContent(appState)),
                   ],
                 );
               }
-              return _buildAllSections(appState, l10n, isLocal);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildNotificationBanner(),
+                  Expanded(child: _buildAllSections(appState, l10n, isLocal)),
+                ],
+              );
             },
           ),
         );
@@ -91,6 +163,7 @@ class _SettingsPageState extends State<SettingsPage> {
           onTestConnection: _testConnection,
           onSignOut: _showSignOutDialog,
           onClearCache: _showClearCacheDialog,
+          onShowNotification: _showNotification,
         );
       case 'about':
         return _AboutSection(appState: appState);
@@ -130,6 +203,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onTestConnection: _testConnection,
             onSignOut: _showSignOutDialog,
             onClearCache: _showClearCacheDialog,
+            onShowNotification: _showNotification,
           ),
           _AboutSection(appState: appState),
         ],
@@ -337,16 +411,12 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       await appState.mediaServiceManager.addLocalMusicDirectory(result);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Added directory: ${result.split('/').last}')),
-        );
+        _showNotification('Added directory: ${result.split('/').last}');
         setState(() {});
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding directory: $e')),
-        );
+        _showNotification('Error adding directory: $e', color: Colors.red);
       }
     }
   }
@@ -366,7 +436,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (ok == true) {
       await appState.mediaServiceManager.localMusicService?.removeDirectory(directory);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Directory removed')));
+        _showNotification('Directory removed');
         setState(() {});
       }
     }
@@ -397,23 +467,21 @@ class _SettingsPageState extends State<SettingsPage> {
       await local.scanDirectories();
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Library scan complete')));
+        _showNotification('Library scan complete');
         await appState.loadLibraryData();
       }
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Scan error: $e')));
+        _showNotification('Scan error: $e', color: Colors.red);
       }
     }
   }
 
   void _testConnection(AppState appState) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(appState.isLoggedIn ? 'Connection successful!' : 'Connection failed. Please check your settings.'),
-        backgroundColor: appState.isLoggedIn ? Colors.green : Colors.red,
-      ),
+    _showNotification(
+      appState.isLoggedIn ? 'Connection successful!' : 'Connection failed. Please check your settings.',
+      color: appState.isLoggedIn ? Colors.green : Colors.red,
     );
   }
 
@@ -459,13 +527,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   await appState.clearImageCache();
                 }
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${cacheType == 'all' ? 'All' : 'Image'} cache cleared')),
-                  );
+                  _showNotification('${cacheType == 'all' ? 'All' : 'Image'} cache cleared');
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                  _showNotification('Failed: $e', color: Colors.red);
                 }
               }
             },
@@ -761,6 +827,7 @@ class _ServerSection extends StatelessWidget {
   final void Function(AppState) onTestConnection;
   final void Function(AppState) onSignOut;
   final void Function(String) onClearCache;
+  final void Function(String, {Color? color}) onShowNotification;
 
   const _ServerSection({
     required this.appState,
@@ -770,6 +837,7 @@ class _ServerSection extends StatelessWidget {
     required this.onTestConnection,
     required this.onSignOut,
     required this.onClearCache,
+    required this.onShowNotification,
   });
 
   /// Get server URL and username from current service or SharedPreferences fallback.
@@ -845,9 +913,7 @@ class _ServerSection extends StatelessWidget {
                       onTap: () async {
                         await appState.loadLibraryData();
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Library refreshed')),
-                          );
+                          onShowNotification('Library refreshed');
                         }
                       },
                     ),
@@ -947,7 +1013,7 @@ class _ServerSection extends StatelessWidget {
                         onTap: () async {
                           await localService.clearArtworkCache();
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Artwork cache cleared')));
+                            onShowNotification('Artwork cache cleared');
                           }
                         },
                       ),
