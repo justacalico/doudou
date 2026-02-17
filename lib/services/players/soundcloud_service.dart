@@ -68,19 +68,20 @@ class SoundCloudService implements BaseMediaService {
   Future<bool> _obtainToken() async {
     _lastError = null;
     final credentials = base64Encode(utf8.encode('$_clientId:$_clientSecret'));
-    _log('trying oauth2/token with redirect_uri=$_redirectUri');
+    // Try legacy endpoint first (oauth2/token returns 404 on SoundCloud)
+    _log('trying oauth/token');
     final ok = await _requestToken(
-      'https://secure.soundcloud.com/oauth2/token',
-      credentials,
-      {'grant_type': 'client_credentials', 'redirect_uri': _redirectUri},
-    );
-    if (ok) return true;
-    _log('oauth2/token failed, trying legacy oauth/token');
-    _lastError = null;
-    return _requestToken(
       'https://secure.soundcloud.com/oauth/token',
       credentials,
       {'grant_type': 'client_credentials'},
+    );
+    if (ok) return true;
+    _log('oauth/token failed, trying oauth2/token with redirect_uri');
+    _lastError = null;
+    return _requestToken(
+      'https://secure.soundcloud.com/oauth2/token',
+      credentials,
+      {'grant_type': 'client_credentials', 'redirect_uri': _redirectUri},
     );
   }
 
