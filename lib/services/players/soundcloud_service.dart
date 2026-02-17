@@ -371,11 +371,15 @@ class SoundCloudService implements BaseMediaService {
   /// Ensure URL has client_id for streaming (required by SoundCloud).
   String? _urlWithClientId(String? url) {
     if (url == null || url.isEmpty || _clientId == null) return url;
-    final uri = Uri.tryParse(url);
-    if (uri == null) return url;
-    if (uri.queryParameters.containsKey('client_id')) return url;
-    final sep = url.contains('?') ? '&' : '?';
-    return '$url${sep}client_id=$_clientId';
+    String abs = url;
+    if (url.startsWith('/')) {
+      abs = '$_apiBase$url';
+    }
+    final uri = Uri.tryParse(abs);
+    if (uri == null) return abs;
+    if (uri.queryParameters.containsKey('client_id')) return abs;
+    final sep = abs.contains('?') ? '&' : '?';
+    return '$abs${sep}client_id=$_clientId';
   }
 
   /// Only CDN URLs work for playback; api.soundcloud.com URLs require Authorization
@@ -386,6 +390,23 @@ class SoundCloudService implements BaseMediaService {
     if (!lower.startsWith('http://') && !lower.startsWith('https://')) return false;
     if (lower.contains('api.soundcloud.com')) return false;
     return true;
+  }
+
+  /// Some SoundCloud responses use transcodings array: [{ "url": "...", "protocol": "hls" }, ...].
+  List<String> _addUrlsFromTranscodings(Map<String, dynamic> data, List<String> urls) {
+    final list = data['transcodings'] as List<dynamic>?;
+    if (list == null) return urls;
+    for (final t in list) {
+      if (t is! Map<String, dynamic>) continue;
+      final url = t['url'] as String?;
+      if (url == null || url.isEmpty) continue;
+      final u = _urlWithClientId(url) ?? url;
+      if (_isUsableStreamUrl(u) && !urls.contains(u)) urls.add(u);
+      if (u.toLowerCase().contains('api.soundcloud.com')) {
+        // will be resolved later in caller
+      }
+    }
+    return urls;
   }
 
   List<String> _collectStreamUrlsFromMap(Map<String, dynamic> data) {
@@ -464,7 +485,10 @@ class SoundCloudService implements BaseMediaService {
       );
       final data = response.data;
       if (data != null) {
-        final urls = _collectStreamUrlsFromMap(data);
+        final keys = data.keys.toList();
+        _log('playback: /tracks response keys: $keys');
+        var urls = _collectStreamUrlsFromMap(data);
+        urls = _addUrlsFromTranscodings(data, urls);
         if (urls.isNotEmpty) {
           _log('playback: got ${urls.length} CDN URL(s) from /tracks');
           return urls;
@@ -480,6 +504,17 @@ class SoundCloudService implements BaseMediaService {
             if (u.isNotEmpty && u.toLowerCase().contains('api.soundcloud.com') && !apiUrls.contains(u)) apiUrls.add(u);
           }
         }
+        final transcodings = data['transcodings'] as List<dynamic>?;
+        if (transcodings != null) {
+          for (final t in transcodings) {
+            if (t is! Map<String, dynamic>) continue;
+            final url = t['url'] as String?;
+            if (url == null || url.isEmpty) continue;
+            final u = _urlWithClientId(url) ?? url;
+            if (u.toLowerCase().contains('api.soundcloud.com') && !apiUrls.contains(u)) apiUrls.add(u);
+          }
+        }
+        _log('playback: api URLs to resolve: ${apiUrls.length}');
         for (final apiUrl in apiUrls) {
           final cdn = await _resolveApiUrlToCdn(apiUrl);
           if (cdn != null && cdn.isNotEmpty) {
@@ -496,10 +531,13 @@ class SoundCloudService implements BaseMediaService {
           );
           final streamsData = streamsResponse.data;
           if (streamsData != null) {
-            final urls = _collectStreamUrlsFromMap(streamsData);
-            if (urls.isNotEmpty) {
-              _log('playback: got ${urls.length} CDN URL(s) from /streams');
-              return urls;
+            final sk = streamsData.keys.toList();
+            _log('playback: /streams response keys: $sk');
+            var surls = _collectStreamUrlsFromMap(streamsData);
+            surls = _addUrlsFromTranscodings(streamsData, surls);
+            if (surls.isNotEmpty) {
+              _log('playback: got ${surls.length} CDN URL(s) from /streams');
+              return surls;
             }
             final apiUrls = <String>[];
             for (final k in ['stream_url', 'http_mp3_128_url', 'hls_aac_160_url', 'hls_aac_96_url']) {
@@ -508,6 +546,17 @@ class SoundCloudService implements BaseMediaService {
                 if (u.isNotEmpty && u.toLowerCase().contains('api.soundcloud.com') && !apiUrls.contains(u)) apiUrls.add(u);
               }
             }
+            final st = streamsData['transcodings'] as List<dynamic>?;
+            if (st != null) {
+              for (final t in st) {
+                if (t is! Map<String, dynamic>) continue;
+                final url = t['url'] as String?;
+                if (url == null || url.isEmpty) continue;
+                final u = _urlWithClientId(url) ?? url;
+                if (u.toLowerCase().contains('api.soundcloud.com') && !apiUrls.contains(u)) apiUrls.add(u);
+              }
+            }
+            _log('playback: /streams api URLs to resolve: ${apiUrls.length}');
             for (final apiUrl in apiUrls) {
               final cdn = await _resolveApiUrlToCdn(apiUrl);
               if (cdn != null && cdn.isNotEmpty) {
