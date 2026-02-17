@@ -495,13 +495,18 @@ class SoundCloudService implements BaseMediaService {
           final snippet = body.length > 500 ? body.substring(0, 500) : body;
           _log('playback: page body (first ${snippet.length} chars): $snippet');
         }
+        if (kDebugMode) _log('playback: [embed] tryPage url=$url');
         RegExp re = RegExp(r',client_id:\s*"([^"]+)"');
         var match = re.firstMatch(body);
         match ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(body);
         match ??= RegExp(r"client_id:\s*'([a-zA-Z0-9_.-]+)'").firstMatch(body);
         match ??= RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(body);
-        if (match != null) return match.group(1);
-        if (kDebugMode) _log('playback: page body length ${body.length}, searching for script URLs');
+        if (match != null) {
+          if (kDebugMode) _log('playback: [embed] client_id found in page body (regex)');
+          return match.group(1);
+        }
+        if (kDebugMode) _log('playback: [embed] no client_id in page body, trying script URLs');
+        if (kDebugMode) _log('playback: [embed] page body length=${body.length}, searching for script URLs');
         final List<RegExp> scriptUrlPatterns = [
           RegExp(r'https://a-v2\.sndcdn\.com/[^"]+\.js'),
           RegExp(r'//a-v2\.sndcdn\.com/([^"]+\.js)'),
@@ -511,15 +516,20 @@ class SoundCloudService implements BaseMediaService {
           RegExp(r'a-v2\.sndcdn\.com/([^"\s>]+\.js)'),
         ];
         bool anyScriptTried = false;
-        for (final pattern in scriptUrlPatterns) {
+        for (var pi = 0; pi < scriptUrlPatterns.length; pi++) {
+          final pattern = scriptUrlPatterns[pi];
           match = pattern.firstMatch(body);
+          if (kDebugMode) _log('playback: [embed] pattern#$pi match=${match != null}');
           if (match != null) {
-            String scriptUrl = match.group(1) ?? match.group(0)!;
+            final String scriptUrlRaw = match.groupCount >= 1 && match.group(1) != null ? match.group(1)! : match.group(0)!;
+            String scriptUrl = scriptUrlRaw;
             if (!scriptUrl.startsWith('http')) scriptUrl = scriptUrl.startsWith('//') ? 'https:$scriptUrl' : 'https://a-v2.sndcdn.com/$scriptUrl';
             anyScriptTried = true;
-            if (kDebugMode) _log('playback: fetching script ${scriptUrl.length > 80 ? '${scriptUrl.substring(0, 80)}...' : scriptUrl}');
+            if (kDebugMode) _log('playback: [embed] pattern#$pi extracted url (${scriptUrl.length} chars) ${scriptUrl.length > 100 ? '${scriptUrl.substring(0, 100)}...' : scriptUrl}');
             try {
+              if (kDebugMode) _log('playback: [embed] GET script...');
               final scriptRes = await http.get(Uri.parse(scriptUrl), headers: headers);
+              if (kDebugMode) _log('playback: [embed] script response status=${scriptRes.statusCode} bodyLength=${scriptRes.body.length}');
               if (scriptRes.statusCode == 200) {
                 final scriptBody = scriptRes.body;
                 final re2 = RegExp(r',client_id:\s*"([^"]+)"');
@@ -527,42 +537,49 @@ class SoundCloudService implements BaseMediaService {
                 m2 ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(scriptBody);
                 m2 ??= RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(scriptBody);
                 m2 ??= RegExp(r'client_id:(\w+)').firstMatch(scriptBody);
-                if (m2 != null) return m2.group(1);
+                if (m2 != null) {
+                  if (kDebugMode) _log('playback: [embed] client_id found in script (regex matched)');
+                  return m2.group(1);
+                }
                 if (kDebugMode) {
                   final idx = scriptBody.indexOf('client_id');
                   if (idx >= 0) {
                     final end = idx + 200 > scriptBody.length ? scriptBody.length : idx + 200;
                     final ctx = scriptBody.substring(idx, end);
-                    _log('playback: script has client_id at $idx, context: $ctx');
+                    _log('playback: [embed] script has "client_id" at index $idx but no regex matched, context: $ctx');
                   } else {
-                    _log('playback: script length ${scriptBody.length}, no client_id');
+                    _log('playback: [embed] script body length=${scriptBody.length}, substring "client_id" not found');
                   }
                 }
-              } else if (kDebugMode) {
-                _log('playback: script URL status ${scriptRes.statusCode}');
+              } else {
+                if (kDebugMode) _log('playback: [embed] script URL HTTP ${scriptRes.statusCode}, skipping');
               }
-            } catch (e) {
-              if (kDebugMode) _log('playback: script fetch error: $e');
+            } catch (e, st) {
+              if (kDebugMode) _log('playback: [embed] script fetch error: $e\n$st');
             }
           }
         }
-        if (kDebugMode && !anyScriptTried) {
-          _log('playback: no script URL pattern matched in page body (length ${body.length})');
+        if (kDebugMode) {
+          _log('playback: [embed] anyScriptTried=$anyScriptTried, bodyLength=${body.length}');
+          if (!anyScriptTried) _log('playback: [embed] no script URL pattern matched in page');
         }
-      } catch (e) {
-        if (kDebugMode) _log('playback: tryPage error: $e');
+      } catch (e, st) {
+        if (kDebugMode) _log('playback: [embed] tryPage error: $e\n$st');
       }
       return null;
     }
 
     try {
+      if (kDebugMode) _log('playback: [embed] _getEmbeddedClientId: trying soundcloud.com');
       String? cid = await tryPage('https://soundcloud.com', logBody: true);
+      if (cid == null && kDebugMode) _log('playback: [embed] soundcloud.com: no client_id, trying discover');
       cid ??= await tryPage('https://soundcloud.com/discover');
+      if (cid == null && kDebugMode) _log('playback: [embed] discover: no client_id, trying track page');
       cid ??= await tryPage('https://soundcloud.com/mt-marcy/cold-nights');
       if (cid != null && cid.isNotEmpty) {
         _embeddedClientId = cid;
         _embeddedClientIdFetched = DateTime.now();
-        _log('playback: embedded client_id obtained');
+        _log('playback: [embed] embedded client_id obtained (${cid.length} chars)');
         return _embeddedClientId;
       }
       _log('playback: embedded client_id not found in any page', isError: true);
