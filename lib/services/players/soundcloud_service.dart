@@ -252,34 +252,76 @@ class SoundCloudService implements BaseMediaService {
     return '';
   }
 
+  /// SoundCloud API expects numeric track id. Strip URN prefix if present (e.g. from MPRIS/media item).
+  static String _normalizeTrackId(String trackId) {
+    if (trackId.startsWith('soundcloud:tracks:')) {
+      return trackId.substring('soundcloud:tracks:'.length);
+    }
+    return trackId;
+  }
+
+  /// Ensure URL has client_id for streaming (required by SoundCloud).
+  String? _urlWithClientId(String? url) {
+    if (url == null || url.isEmpty || _clientId == null) return url;
+    final uri = Uri.tryParse(url);
+    if (uri == null) return url;
+    if (uri.queryParameters.containsKey('client_id')) return url;
+    final sep = url.contains('?') ? '&' : '?';
+    return '$url${sep}client_id=$_clientId';
+  }
+
+  List<String> _collectStreamUrlsFromMap(Map<String, dynamic> data) {
+    final urls = <String>[];
+    final hlsAac = data['hls_aac_160_url'] as String? ?? data['hls_aac_96_url'] as String?;
+    if (hlsAac != null && hlsAac.isNotEmpty) {
+      urls.add(_urlWithClientId(hlsAac) ?? hlsAac);
+    }
+    if (data['stream_url'] != null && _clientId != null) {
+      final streamUrl = data['stream_url'] as String;
+      final withClientId = _urlWithClientId(streamUrl) ?? streamUrl;
+      if (!urls.contains(withClientId)) urls.add(withClientId);
+    }
+    final httpMp3 = data['http_mp3_128_url'] as String?;
+    if (httpMp3 != null && httpMp3.isNotEmpty) {
+      final u = _urlWithClientId(httpMp3) ?? httpMp3;
+      if (!urls.contains(u)) urls.add(u);
+    }
+    final preview = data['preview_mp3_128_url'] as String?;
+    if (preview != null && preview.isNotEmpty) {
+      final u = _urlWithClientId(preview) ?? preview;
+      if (!urls.contains(u)) urls.add(u);
+    }
+    return urls;
+  }
+
   @override
   Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
     if (!await _ensureToken()) return [];
+    final numericId = _normalizeTrackId(trackId);
+    if (numericId.isEmpty) return [];
     try {
+      // GET track – response may include stream_url and/or transcoding URLs
       final response = await _dio.get<Map<String, dynamic>>(
-        '/tracks/$trackId',
+        '/tracks/$numericId',
         queryParameters: {'access': 'playable'},
       );
       final data = response.data;
-      if (data == null) return [];
-
-      final urls = <String>[];
-      if (data['stream_url'] != null && _clientId != null) {
-        final streamUrl = data['stream_url'] as String;
-        final uri = Uri.parse(streamUrl);
-        final withClientId = uri.queryParameters.isEmpty
-            ? '$streamUrl?client_id=$_clientId'
-            : uri.replace(queryParameters: {...uri.queryParameters, 'client_id': _clientId!}).toString();
-        urls.add(withClientId);
+      if (data != null) {
+        final urls = _collectStreamUrlsFromMap(data);
+        if (urls.isNotEmpty) return urls;
       }
-      if (data['hls_aac_160_url'] != null) {
-        urls.add(data['hls_aac_160_url'] as String);
+      // Fallback: dedicated streams endpoint (API: /tracks/{track_urn}/streams)
+      final streamsResponse = await _dio.get<Map<String, dynamic>>(
+        '/tracks/$numericId/streams',
+      );
+      final streamsData = streamsResponse.data;
+      if (streamsData != null) {
+        final urls = _collectStreamUrlsFromMap(streamsData);
+        if (urls.isNotEmpty) return urls;
       }
-      if (data['preview_mp3_128_url'] != null) {
-        urls.add(data['preview_mp3_128_url'] as String);
-      }
-      return urls;
-    } catch (_) {
+      return [];
+    } catch (e) {
+      _log('getAlternativeStreamUrlsAsync failed: $e', isError: true);
       return [];
     }
   }

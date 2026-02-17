@@ -793,6 +793,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
     try {
       final streamUrl = await _getStreamUrl(track);
+      if (streamUrl.isEmpty) {
+        _stateController.updateError('No stream URL available for this track');
+        _stateController.updateState(AudioPlayerState.error);
+        return;
+      }
       await _loadAndPlayTrack(streamUrl);
     } catch (e) {
       _stateController.updateError('Failed to play track: $e');
@@ -945,6 +950,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _stateController.updateCurrentTrack(track);
 
     final streamUrl = await _getStreamUrl(track);
+    if (streamUrl.isEmpty) {
+      _stateController.updateError('No stream URL available for this track');
+      _stateController.updateState(AudioPlayerState.error);
+      return;
+    }
     await _loadAndPlayTrack(streamUrl);
 
     // Desktop: Preload adjacent tracks for faster skips
