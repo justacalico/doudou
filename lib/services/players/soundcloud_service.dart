@@ -393,6 +393,18 @@ class SoundCloudService implements BaseMediaService {
     return true;
   }
 
+  static const String _apiV2Base = 'https://api-v2.soundcloud.com';
+
+  /// Redact query for logs (keep param names, hide values).
+  static String _redactUrl(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return url.length > 80 ? '${url.substring(0, 80)}...' : url;
+    final q = uri.queryParameters;
+    if (q.isEmpty) return url.length > 100 ? '${url.substring(0, 100)}...' : url;
+    final redacted = q.keys.map((k) => '$k=***').join('&');
+    return '${uri.origin}${uri.path}?$redacted';
+  }
+
   /// Some SoundCloud responses use transcodings array: [{ "url": "...", "protocol": "hls" }, ...].
   List<String> _addUrlsFromTranscodings(Map<String, dynamic> data, List<String> urls) {
     final list = data['transcodings'] as List<dynamic>?;
@@ -459,14 +471,118 @@ class SoundCloudService implements BaseMediaService {
     return urls;
   }
 
+  /// sound-on-fire flow: GET api-v2/tracks/:id?client_id=, then GET progressive transcoding URL?client_id=, parse response.url.
+  Future<String?> _resolveStreamViaApiV2(String trackId) async {
+    if (_clientId == null) return null;
+    try {
+      _log('playback: fallback api-v2 track $trackId');
+      final trackUrl = '$_apiV2Base/tracks/$trackId?client_id=$_clientId';
+      final trackRes = await http.get(Uri.parse(trackUrl));
+      if (trackRes.statusCode != 200) {
+        _log('playback: api-v2 track status ${trackRes.statusCode}', isError: true);
+        return null;
+      }
+      final trackData = jsonDecode(trackRes.body) as Map<String, dynamic>?;
+      if (trackData == null) return null;
+      final media = trackData['media'] as Map<String, dynamic>?;
+      final transcodings = media?['transcodings'] as List<dynamic>?;
+      if (transcodings == null || transcodings.isEmpty) {
+        _log('playback: api-v2 no media.transcodings');
+        return null;
+      }
+      String? transcodingUrl;
+      for (final t in transcodings) {
+        if (t is! Map<String, dynamic>) continue;
+        final format = t['format'] as Map<String, dynamic>?;
+        if (format?['protocol'] == 'progressive') {
+          transcodingUrl = t['url'] as String?;
+          break;
+        }
+      }
+      transcodingUrl ??= (transcodings.first as Map<String, dynamic>)['url'] as String?;
+      if (transcodingUrl == null || transcodingUrl.isEmpty) return null;
+      if (transcodingUrl.startsWith('/')) transcodingUrl = '$_apiV2Base$transcodingUrl';
+      final resolveUrl = transcodingUrl.contains('?') ? '$transcodingUrl&client_id=$_clientId' : '$transcodingUrl?client_id=$_clientId';
+      _log('playback: api-v2 resolve ${_redactUrl(resolveUrl)}');
+      final resolveRes = await http.get(Uri.parse(resolveUrl));
+      if (resolveRes.statusCode != 200) {
+        _log('playback: api-v2 resolve status ${resolveRes.statusCode}', isError: true);
+        return null;
+      }
+      final resolveData = jsonDecode(resolveRes.body) as Map<String, dynamic>?;
+      final url = resolveData?['url'] as String?;
+      if (url != null && url.isNotEmpty && _isUsableStreamUrl(url)) {
+        _log('playback: got CDN URL via api-v2 fallback');
+        return url;
+      }
+      return null;
+    } catch (e) {
+      _log('playback: api-v2 fallback failed: $e', isError: true);
+      return null;
+    }
+  }
+
   /// Resolve transcoding URL to final CDN stream URL.
   /// SoundCloud returns JSON { "url": "https://cdn..." } when you GET the transcoding URL.
-  /// Use client_id only (no OAuth): sound-on-fire uses plain GET with ?client_id=; OAuth causes 401 on transcoding endpoint.
+  /// Try OAuth first (official API); on 401 try api-v2.soundcloud.com with client_id only (sound-on-fire).
   Future<String?> _resolveTranscodingUrlToCdn(String transcodingUrl) async {
+    _log('playback: resolve request ${_redactUrl(transcodingUrl)}');
     try {
+      // 1) Try with OAuth (official api.soundcloud.com)
+      final dioResponse = await _dio.get<Map<String, dynamic>>(
+        transcodingUrl,
+        options: Options(validateStatus: (s) => s != null && s < 500),
+      );
+      if (dioResponse.statusCode == 200 && dioResponse.data != null) {
+        final url = dioResponse.data!['url'] as String?;
+        if (url != null && url.isNotEmpty && _isUsableStreamUrl(url)) {
+          _log('playback: resolved to CDN via OAuth');
+          return url;
+        }
+      }
+      if (dioResponse.statusCode == 401) {
+        _log('playback: resolve 401 with OAuth, trying api-v2 + client_id');
+        final bodySnippet = dioResponse.data != null
+            ? dioResponse.data.toString().replaceAll(RegExp(r'\s+'), ' ').length
+            : 0;
+        _log('playback: 401 response body length: $bodySnippet');
+      }
+
+      // 2) Try api-v2.soundcloud.com with client_id only (sound-on-fire)
+      final uri = Uri.tryParse(transcodingUrl);
+      if (uri != null &&
+          _clientId != null &&
+          uri.host.contains('api.soundcloud.com') &&
+          !uri.host.contains('api-v2')) {
+        final path = uri.path;
+        final query = uri.queryParameters;
+        final newQuery = Map<String, String>.from(query)..['client_id'] = _clientId!;
+        final apiV2Url = Uri.https('api-v2.soundcloud.com', path, newQuery).toString();
+        _log('playback: resolve try api-v2 ${_redactUrl(apiV2Url)}');
+        final response = await http.get(Uri.parse(apiV2Url));
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body) as Map<String, dynamic>?;
+          if (data != null) {
+            final url = data['url'] as String?;
+            if (url != null && url.isNotEmpty && _isUsableStreamUrl(url)) {
+              _log('playback: resolved to CDN via api-v2 + client_id');
+              return url;
+            }
+          }
+        } else {
+          _log('playback: api-v2 resolve status ${response.statusCode}', isError: true);
+          if (response.body.isNotEmpty) {
+            final snippet = response.body.length > 200 ? '${response.body.substring(0, 200)}...' : response.body;
+            _log('playback: api-v2 body: $snippet', isError: true);
+          }
+        }
+      }
+
+      // 3) Fallback: plain GET with client_id on original URL (already has client_id from caller)
       final response = await http.get(Uri.parse(transcodingUrl));
       if (response.statusCode != 200) {
-        _log('resolveTranscodingUrlToCdn status ${response.statusCode}', isError: true);
+        _log('playback: resolve status ${response.statusCode} bodyLen=${response.body.length}', isError: true);
+        if (response.body.isNotEmpty && response.body.length < 300) _log('playback: body ${response.body}', isError: true);
         return null;
       }
       final data = jsonDecode(response.body) as Map<String, dynamic>?;
@@ -474,7 +590,7 @@ class SoundCloudService implements BaseMediaService {
       final url = data['url'] as String?;
       if (url == null || url.isEmpty) return null;
       if (_isUsableStreamUrl(url)) {
-        _log('playback: transcoding response url is CDN');
+        _log('playback: resolved to CDN via client_id');
         return url;
       }
       return null;
@@ -505,6 +621,10 @@ class SoundCloudService implements BaseMediaService {
       if (data != null) {
         final keys = data.keys.toList();
         _log('playback: /tracks response keys: $keys');
+        final streamUrlVal = data['stream_url'] as String?;
+        if (streamUrlVal != null && streamUrlVal.isNotEmpty) {
+          _log('playback: /tracks stream_url prefix: ${streamUrlVal.length > 80 ? streamUrlVal.substring(0, 80) : streamUrlVal}');
+        }
         var urls = _collectStreamUrlsFromMap(data);
         urls = _addUrlsFromTranscodings(data, urls);
         if (urls.isNotEmpty) {
@@ -552,6 +672,13 @@ class SoundCloudService implements BaseMediaService {
           if (streamsData != null) {
             final sk = streamsData.keys.toList();
             _log('playback: /streams response keys: $sk');
+            final sampleKey = sk.isNotEmpty ? sk.first : null;
+            if (sampleKey != null) {
+              final sampleVal = streamsData[sampleKey];
+              if (sampleVal is String && sampleVal.isNotEmpty) {
+                _log('playback: /streams $sampleKey prefix: ${sampleVal.length > 80 ? sampleVal.substring(0, 80) : sampleVal}');
+              }
+            }
             var surls = _collectStreamUrlsFromMap(streamsData);
             surls = _addUrlsFromTranscodings(streamsData, surls);
             if (surls.isNotEmpty) {
@@ -589,6 +716,11 @@ class SoundCloudService implements BaseMediaService {
           _log('playback: /streams $id failed: $e', isError: true);
           continue;
         }
+      }
+      // Fallback: api-v2 with client_id only (sound-on-fire flow)
+      if (_clientId != null) {
+        final cdn = await _resolveStreamViaApiV2(numericId);
+        if (cdn != null && cdn.isNotEmpty) return [cdn];
       }
       _log('playback: no usable stream URL for track $numericId', isError: true);
       return [];
