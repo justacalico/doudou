@@ -685,12 +685,6 @@ class _GeneralSection extends StatelessWidget {
                             value: appState.oledDarkModeEnabled,
                             onChanged: appState.toggleOledDarkMode,
                           ),
-                          SwitchListTile(
-                            title: const Text('Dynamic Isle player'),
-                            subtitle: const Text('Show the mini player island'),
-                            value: appState.useDynamicIsle,
-                            onChanged: appState.toggleDynamicIsle,
-                          ),
                         ],
                       ),
                     ),
