@@ -564,9 +564,16 @@ class AppleTheme {
     );
   }
 
-  /// Creates a Dark Theme following Apple HIG
-  static ThemeData dark({Color? accentColor}) {
+  /// Creates a Dark Theme following Apple HIG.
+  /// When [oled] is true, uses pure black for all backgrounds (OLED-friendly).
+  static ThemeData dark({Color? accentColor, bool oled = false}) {
     final primaryColor = accentColor ?? AppleColors.systemPurpleDark;
+    final surface = oled ? Colors.black : AppleColors.backgroundSecondaryDark;
+    final surfaceContainerHighest = oled ? Colors.black : AppleColors.backgroundTertiaryDark;
+    final scaffoldBg = oled ? Colors.black : AppleColors.backgroundPrimaryDark;
+    final cardColor = oled ? Colors.black : AppleColors.elevatedPrimaryDark;
+    final appBarBg = oled ? Colors.black : AppleColors.backgroundPrimaryDark.withOpacity(0.8);
+    final navBarBg = oled ? Colors.black : AppleColors.backgroundSecondaryDark.withOpacity(0.8);
 
     return ThemeData(
       useMaterial3: true,
@@ -578,8 +585,8 @@ class AppleTheme {
         primaryContainer: primaryColor.withOpacity(0.24),
         secondary: AppleColors.systemGrayDark,
         secondaryContainer: AppleColors.systemGray4Dark,
-        surface: AppleColors.backgroundSecondaryDark,
-        surfaceContainerHighest: AppleColors.backgroundTertiaryDark,
+        surface: surface,
+        surfaceContainerHighest: surfaceContainerHighest,
         error: AppleColors.systemRedDark,
         onPrimary: Colors.white,
         onSecondary: AppleColors.labelPrimaryDark,
@@ -589,20 +596,20 @@ class AppleTheme {
         outlineVariant: AppleColors.separatorOpaqueDark,
         shadow: Colors.black,
         inverseSurface: AppleColors.labelPrimaryDark,
-        onInverseSurface: AppleColors.backgroundPrimaryDark,
+        onInverseSurface: oled ? Colors.black : AppleColors.backgroundPrimaryDark,
       ),
-      scaffoldBackgroundColor: AppleColors.backgroundPrimaryDark,
+      scaffoldBackgroundColor: scaffoldBg,
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
         ),
-        color: AppleColors.elevatedPrimaryDark,
+        color: cardColor,
       ),
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: AppleColors.backgroundPrimaryDark.withOpacity(0.8),
+        backgroundColor: appBarBg,
         foregroundColor: AppleColors.labelPrimaryDark,
         titleTextStyle: AppleTextStyles.headline(
           color: AppleColors.labelPrimaryDark,
@@ -610,7 +617,7 @@ class AppleTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
-        backgroundColor: AppleColors.backgroundSecondaryDark.withOpacity(0.8),
+        backgroundColor: navBarBg,
         indicatorColor: primaryColor.withOpacity(0.24),
         labelTextStyle: WidgetStateProperty.all(
           AppleTextStyles.caption2(color: AppleColors.labelSecondaryDark),
