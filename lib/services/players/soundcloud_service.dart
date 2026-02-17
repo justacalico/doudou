@@ -15,15 +15,15 @@ import '../base_service.dart';
 class SoundCloudService implements BaseMediaService {
   static const String _apiBase = 'https://api.soundcloud.com';
 
-  /// Log so it always appears in terminal (print + kprint).
+  /// Log so it always appears in terminal; kprint only in debug (release-safe).
   static void _log(String msg, {bool isError = false}) {
+    print('[SoundCloud] $msg');
     if (kDebugMode) {
-      print('[SoundCloud] $msg');
-    }
-    if (isError) {
-      kprint.err(msg);
-    } else {
-      kprint.lg(msg, symbol: '🌐');
+      if (isError) {
+        kprint.err(msg);
+      } else {
+        kprint.lg(msg, symbol: '🌐');
+      }
     }
   }
 
@@ -132,10 +132,10 @@ class SoundCloudService implements BaseMediaService {
       return false;
     } catch (e, st) {
       _log('token request threw: $e', isError: true);
+      print('[SoundCloud] $st');
       if (kDebugMode) {
-        print('[SoundCloud] $st');
+        kprint.err('[SoundCloud] $st');
       }
-      kprint.err('[SoundCloud] $st');
       return false;
     }
   }
