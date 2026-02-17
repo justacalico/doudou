@@ -2790,45 +2790,52 @@ class _DetailHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesktopTheme.spacingLg,
+        vertical: DesktopTheme.spacingXl,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            theme.colorScheme.primary.withOpacity(0.15),
+            theme.colorScheme.primary.withOpacity(0.08),
+            theme.colorScheme.primary.withOpacity(0.03),
             DesktopTheme.backgroundPrimary,
           ],
+          stops: const [0.0, 0.4, 1.0],
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Back button
           DesktopIconButton(
             icon: Icons.arrow_back_rounded,
             onPressed: onBack,
             tooltip: l10n.back,
           ),
-          const SizedBox(height: DesktopTheme.spacingMd),
-          // Content row
+          const SizedBox(height: DesktopTheme.spacingLg),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Image
               Container(
-                width: 180,
-                height: 180,
+                width: 192,
+                height: 192,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(
-                    isCircular ? 90 : DesktopTheme.radiusMd,
+                    isCircular ? 96 : DesktopTheme.radiusLg,
                   ),
                   color: DesktopTheme.backgroundElevated,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                      color: Colors.black.withOpacity(0.35),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -2841,8 +2848,7 @@ class _DetailHeader extends StatelessWidget {
                       )
                     : _buildPlaceholder(),
               ),
-              const SizedBox(width: DesktopTheme.spacingLg),
-              // Info
+              const SizedBox(width: DesktopTheme.spacingXl),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2851,50 +2857,61 @@ class _DetailHeader extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.5,
                         color: DesktopTheme.textPrimary,
+                        height: 1.2,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (subtitle != null) ...[
-                      const SizedBox(height: DesktopTheme.spacingSm),
+                      const SizedBox(height: DesktopTheme.spacingXs),
                       Text(
                         subtitle!,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           color: DesktopTheme.textSecondary,
+                          height: 1.35,
                         ),
                       ),
                     ],
                     if (year != null || trackCount != null) ...[
-                      const SizedBox(height: DesktopTheme.spacingSm),
+                      const SizedBox(height: DesktopTheme.spacingXs),
                       Text(
                         [
                           if (year != null) year,
                           if (trackCount != null) '$trackCount ${l10n.songs}',
                         ].join(' • '),
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           color: DesktopTheme.textTertiary,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ],
-                    const SizedBox(height: DesktopTheme.spacingLg),
-                    // Action buttons - use Wrap to handle overflow
-                    Wrap(
-                      spacing: DesktopTheme.spacingMd,
-                      runSpacing: DesktopTheme.spacingSm,
+                    const SizedBox(height: DesktopTheme.spacingXl),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        if (onPlay != null)
+                        if (onPlay != null) ...[
                           DesktopPlayButton(
                             isPlaying: false,
                             onPressed: onPlay!,
+                            size: 52,
                           ),
+                          const SizedBox(width: DesktopTheme.spacingMd),
+                        ],
                         if (onShuffle != null)
                           DesktopGlassButton(
                             onPressed: onShuffle!,
+                            accentColor: DesktopTheme.shufflePurple,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: DesktopTheme.spacingMd + 4,
+                              vertical: DesktopTheme.spacingMd,
+                            ),
+                            borderRadius: DesktopTheme.radiusRound,
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -2904,9 +2921,16 @@ class _DetailHeader extends StatelessWidget {
                               ],
                             ),
                           ),
-                        if (onDownload != null)
+                        if (onDownload != null) ...[
+                          if (onShuffle != null)
+                            const SizedBox(width: DesktopTheme.spacingSm),
                           DesktopGlassButton(
                             onPressed: onDownload!,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: DesktopTheme.spacingMd + 4,
+                              vertical: DesktopTheme.spacingMd,
+                            ),
+                            borderRadius: DesktopTheme.radiusRound,
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -2916,6 +2940,7 @@ class _DetailHeader extends StatelessWidget {
                               ],
                             ),
                           ),
+                        ],
                       ],
                     ),
                   ],
