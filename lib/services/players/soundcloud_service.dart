@@ -378,14 +378,14 @@ class SoundCloudService implements BaseMediaService {
     return '$url${sep}client_id=$_clientId';
   }
 
-  /// api.soundcloud.com/tracks/.../preview URLs do not work for playback; only CDN URLs do.
+  /// Only CDN URLs work for playback; api.soundcloud.com URLs require Authorization
+  /// which the player (MPV) cannot send, so they always 401.
   static bool _isUsableStreamUrl(String url) {
     if (url.isEmpty) return false;
     final lower = url.toLowerCase();
-    if (lower.contains('api.soundcloud.com/tracks') && lower.contains('/preview')) {
-      return false;
-    }
-    return lower.startsWith('http://') || lower.startsWith('https://');
+    if (!lower.startsWith('http://') && !lower.startsWith('https://')) return false;
+    if (lower.contains('api.soundcloud.com')) return false;
+    return true;
   }
 
   List<String> _collectStreamUrlsFromMap(Map<String, dynamic> data) {
