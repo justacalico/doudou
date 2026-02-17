@@ -137,15 +137,18 @@ class PageTemplate extends StatelessWidget {
                   const SizedBox(width: DesktopTheme.spacingMd),
                   if (actions != null) ...[
                     Flexible(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: actions!.map((action) => Padding(
-                            padding: const EdgeInsets.only(left: DesktopTheme.spacingSm),
-                            child: action,
-                          )).toList(),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: double.infinity),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: actions!.map((action) => Padding(
+                              padding: const EdgeInsets.only(left: DesktopTheme.spacingSm),
+                              child: action,
+                            )).toList(),
+                          ),
                         ),
                       ),
                     ),

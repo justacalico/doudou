@@ -49,11 +49,15 @@ class _DownloadsPageState extends State<DownloadsPage> {
                 children: [
                   const Icon(Icons.play_arrow_rounded, size: 18),
                   const SizedBox(width: DesktopTheme.spacingSm),
-                  Text(l10n.playAll),
+                  Flexible(
+                    child: Text(
+                      l10n.playAll,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(width: DesktopTheme.spacingSm),
             DesktopGlassButton(
               onPressed: downloadedTracks.isNotEmpty
                   ? () {
@@ -67,7 +71,12 @@ class _DownloadsPageState extends State<DownloadsPage> {
                 children: [
                   const Icon(Icons.shuffle_rounded, size: 18),
                   const SizedBox(width: DesktopTheme.spacingSm),
-                  Text(l10n.shuffleAll),
+                  Flexible(
+                    child: Text(
+                      l10n.shuffleAll,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
             ),
