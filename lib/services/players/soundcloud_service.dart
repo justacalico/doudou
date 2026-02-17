@@ -506,63 +506,59 @@ class SoundCloudService implements BaseMediaService {
           return match.group(1);
         }
         if (kDebugMode) _log('playback: [embed] no client_id in page body, trying script URLs');
-        if (kDebugMode) _log('playback: [embed] page body length=${body.length}, searching for script URLs');
+        if (kDebugMode) _log('playback: [embed] page body length=${body.length}, collecting unique script URLs');
         final List<RegExp> scriptUrlPatterns = [
           RegExp(r'https://a-v2\.sndcdn\.com/[^"]+\.js'),
           RegExp(r'//a-v2\.sndcdn\.com/([^"]+\.js)'),
-          RegExp(r'https://[a-z0-9.-]+\.sndcdn\.com/assets/[^"]+\.js'),
+          RegExp(r'https://[a-z0-9.-]+\.sndcdn\.com/[^"]+\.js'),
           RegExp(r'src="(https://[^"]*sndcdn[^"]+\.js)"'),
           RegExp(r'src="(//[^"]*sndcdn[^"]+\.js)"'),
-          RegExp(r'a-v2\.sndcdn\.com/([^"\s>]+\.js)'),
+          RegExp(r'[a-z0-9.-]+\.sndcdn\.com/([^"\s>]+\.js)'),
+          RegExp(r'"(https://[^"]*sndcdn[^"]+\.js)"'),
+          RegExp(r'"(//[^"]*sndcdn[^"]+\.js)"'),
         ];
-        bool anyScriptTried = false;
-        for (var pi = 0; pi < scriptUrlPatterns.length; pi++) {
-          final pattern = scriptUrlPatterns[pi];
-          match = pattern.firstMatch(body);
-          if (kDebugMode) _log('playback: [embed] pattern#$pi match=${match != null}');
-          if (match != null) {
-            final String scriptUrlRaw = match.groupCount >= 1 && match.group(1) != null ? match.group(1)! : match.group(0)!;
-            String scriptUrl = scriptUrlRaw;
-            if (!scriptUrl.startsWith('http')) scriptUrl = scriptUrl.startsWith('//') ? 'https:$scriptUrl' : 'https://a-v2.sndcdn.com/$scriptUrl';
-            anyScriptTried = true;
-            if (kDebugMode) _log('playback: [embed] pattern#$pi extracted url (${scriptUrl.length} chars) ${scriptUrl.length > 100 ? '${scriptUrl.substring(0, 100)}...' : scriptUrl}');
-            try {
-              if (kDebugMode) _log('playback: [embed] GET script...');
-              final scriptRes = await http.get(Uri.parse(scriptUrl), headers: headers);
-              if (kDebugMode) _log('playback: [embed] script response status=${scriptRes.statusCode} bodyLength=${scriptRes.body.length}');
-              if (scriptRes.statusCode == 200) {
-                final scriptBody = scriptRes.body;
-                final re2 = RegExp(r',client_id:\s*"([^"]+)"');
-                var m2 = re2.firstMatch(scriptBody);
-                m2 ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(scriptBody);
-                m2 ??= RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(scriptBody);
-                m2 ??= RegExp(r'client_id:(\w+)').firstMatch(scriptBody);
-                if (m2 != null) {
-                  if (kDebugMode) _log('playback: [embed] client_id found in script (regex matched)');
-                  return m2.group(1);
-                }
-                if (kDebugMode) {
-                  final idx = scriptBody.indexOf('client_id');
-                  if (idx >= 0) {
-                    final end = idx + 200 > scriptBody.length ? scriptBody.length : idx + 200;
-                    final ctx = scriptBody.substring(idx, end);
-                    _log('playback: [embed] script has "client_id" at index $idx but no regex matched, context: $ctx');
-                  } else {
-                    _log('playback: [embed] script body length=${scriptBody.length}, substring "client_id" not found');
-                  }
-                }
-              } else {
-                if (kDebugMode) _log('playback: [embed] script URL HTTP ${scriptRes.statusCode}, skipping');
-              }
-            } catch (e, st) {
-              if (kDebugMode) _log('playback: [embed] script fetch error: $e\n$st');
-            }
+        final Set<String> uniqueUrls = {};
+        for (final pattern in scriptUrlPatterns) {
+          for (final m in pattern.allMatches(body)) {
+            final String raw = m.groupCount >= 1 && m.group(1) != null ? m.group(1)! : m.group(0)!;
+            String url = raw;
+            if (!url.startsWith('http')) url = url.startsWith('//') ? 'https:$url' : 'https://a-v2.sndcdn.com/$url';
+            uniqueUrls.add(url);
           }
         }
-        if (kDebugMode) {
-          _log('playback: [embed] anyScriptTried=$anyScriptTried, bodyLength=${body.length}');
-          if (!anyScriptTried) _log('playback: [embed] no script URL pattern matched in page');
+        if (kDebugMode) _log('playback: [embed] unique script URLs: ${uniqueUrls.length}');
+        for (final scriptUrl in uniqueUrls) {
+          if (kDebugMode) _log('playback: [embed] GET ${scriptUrl.length > 80 ? '${scriptUrl.substring(0, 80)}...' : scriptUrl}');
+          try {
+            final scriptRes = await http.get(Uri.parse(scriptUrl), headers: headers);
+            if (kDebugMode) _log('playback: [embed] script status=${scriptRes.statusCode} bodyLength=${scriptRes.body.length}');
+            if (scriptRes.statusCode != 200) continue;
+            final scriptBody = scriptRes.body;
+            if (scriptBody.length < 2000 && scriptBody.indexOf('client_id') < 0) {
+              if (kDebugMode) _log('playback: [embed] skip small script (${scriptBody.length} bytes, no client_id)');
+              continue;
+            }
+            final re2 = RegExp(r',client_id:\s*"([^"]+)"');
+            var m2 = re2.firstMatch(scriptBody);
+            m2 ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(scriptBody);
+            m2 ??= RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(scriptBody);
+            m2 ??= RegExp(r'client_id:(\w+)').firstMatch(scriptBody);
+            if (m2 != null) {
+              if (kDebugMode) _log('playback: [embed] client_id found in script');
+              return m2.group(1);
+            }
+            if (kDebugMode) {
+              final idx = scriptBody.indexOf('client_id');
+              if (idx >= 0) {
+                final end = idx + 200 > scriptBody.length ? scriptBody.length : idx + 200;
+                _log('playback: [embed] script has "client_id" at $idx but no regex matched: ${scriptBody.substring(idx, end)}');
+              }
+            }
+          } catch (e, st) {
+            if (kDebugMode) _log('playback: [embed] script fetch error: $e\n$st');
+          }
         }
+        if (kDebugMode) _log('playback: [embed] no client_id in ${uniqueUrls.length} script(s)');
       } catch (e, st) {
         if (kDebugMode) _log('playback: [embed] tryPage error: $e\n$st');
       }
