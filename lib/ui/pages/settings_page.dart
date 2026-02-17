@@ -14,7 +14,7 @@ import 'package:doudou/services/update_service.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 
-/// Breakpoint: below this width use single-column layout (dropdown) instead of sidebar.
+/// Breakpoint: below this width use single-column layout (horizontal chips) instead of sidebar.
 const double _kSettingsBreakpoint = 768.0;
 
 /// Settings page: all sections ported from UI/desktop/pages/settings.dart.
@@ -522,7 +522,7 @@ class _Sidebar extends StatelessWidget {
   }
 }
 
-// --- Mobile category selector (dropdown on small screens) ---
+// --- Mobile category selector (horizontal scrollable chips on small screens) ---
 class _MobileCategorySelector extends StatelessWidget {
   final String selected;
   final ValueChanged<String> onSelect;
@@ -552,86 +552,92 @@ class _MobileCategorySelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final categories = _categories(l10n, isLocalMusic);
-    final current = categories.cast<Map<String, dynamic>>().firstWhere(
-          (c) => c['id'] == selected,
-          orElse: () => categories.first,
-        );
-    return Material(
-      color: DesktopTheme.backgroundSecondary,
-      borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-      child: InkWell(
-        onTap: () => _showPicker(context, theme, categories),
-        borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingMd, vertical: DesktopTheme.spacingSm + 4),
-          child: Row(
-            children: [
-              Icon(current['icon'] as IconData, size: 22, color: theme.colorScheme.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  current['label'] as String,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: DesktopTheme.textPrimary,
-                  ),
-                ),
-              ),
-              Icon(Icons.arrow_drop_down, color: DesktopTheme.textSecondary, size: 28),
-            ],
-          ),
-        ),
+    
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingMd),
+      child: Row(
+        children: categories.map((c) {
+          final id = c['id'] as String;
+          final isSelected = selected == id;
+          return Padding(
+            padding: const EdgeInsets.only(right: DesktopTheme.spacingSm),
+            child: _CategoryChip(
+              icon: c['icon'] as IconData,
+              label: c['label'] as String,
+              isSelected: isSelected,
+              onTap: () => onSelect(id),
+              theme: theme,
+            ),
+          );
+        }).toList(),
       ),
     );
   }
+}
 
-  void _showPicker(BuildContext context, ThemeData theme, List<Map<String, dynamic>> categories) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: DesktopTheme.backgroundSecondary,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(DesktopTheme.radiusMd)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(DesktopTheme.spacingMd),
-              child: Text(
-                l10n.settings,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: DesktopTheme.textPrimary,
+class _CategoryChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final ThemeData theme;
+
+  const _CategoryChip({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: isSelected
+          ? theme.colorScheme.primary.withOpacity(0.15)
+          : DesktopTheme.backgroundSecondary,
+      borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingMd,
+            vertical: DesktopTheme.spacingSm + 2,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+            border: Border.all(
+              color: isSelected
+                  ? theme.colorScheme.primary.withOpacity(0.3)
+                  : DesktopTheme.glassBorder,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : DesktopTheme.textSecondary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : DesktopTheme.textPrimary,
                 ),
               ),
-            ),
-            ...categories.map((c) {
-              final id = c['id'] as String;
-              final isSelected = selected == id;
-              return ListTile(
-                leading: Icon(
-                  c['icon'] as IconData,
-                  size: 22,
-                  color: isSelected ? theme.colorScheme.primary : DesktopTheme.textSecondary,
-                ),
-                title: Text(
-                  c['label'] as String,
-                  style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected ? theme.colorScheme.primary : DesktopTheme.textPrimary,
-                  ),
-                ),
-                trailing: isSelected ? Icon(Icons.check, size: 20, color: theme.colorScheme.primary) : null,
-                onTap: () {
-                  Navigator.pop(ctx);
-                  onSelect(id);
-                },
-              );
-            }),
-            const SizedBox(height: DesktopTheme.spacingMd),
-          ],
+            ],
+          ),
         ),
       ),
     );
