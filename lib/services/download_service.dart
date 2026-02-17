@@ -13,6 +13,7 @@ class DownloadService extends ChangeNotifier {
   final MediaServiceManager _mediaServiceManager;
   final Map<String, DownloadTask> _downloadTasks = {};
   final Map<String, DownloadedTrack> _downloadedTracks = {};
+  final Map<String, DownloadedAlbumMetadata> _downloadedAlbumMetadata = {};
   final List<String> _downloadQueue = [];
   bool _isDownloading = false;
   final int _maxConcurrentDownloads = 3;
@@ -77,6 +78,17 @@ class DownloadService extends ChangeNotifier {
   bool? getDownloadedTrackFavoriteStatus(String trackId) {
     return _downloadedTracks[trackId]?.isFavorite;
   }
+
+  /// Albums that have at least one downloaded track (metadata stored for showing all tracks).
+  List<DownloadedAlbumMetadata> get downloadedAlbums {
+    return _downloadedAlbumMetadata.values
+        .where((album) =>
+            album.tracks.any((t) => _downloadedTracks.containsKey(t.id)))
+        .toList();
+  }
+
+  DownloadedAlbumMetadata? getAlbumMetadata(String albumId) =>
+      _downloadedAlbumMetadata[albumId];
 
   // Download a track
   Future<void> downloadTrack(Track track) async {
@@ -151,6 +163,11 @@ class DownloadService extends ChangeNotifier {
       _downloadTasks[track.id] = task;
       _downloadQueue.add(track.id);
 
+      // Ensure we have album metadata for this track's album (for showing all tracks in Downloads)
+      if (track.albumId != null && track.albumId!.isNotEmpty) {
+        await _ensureAlbumMetadata(track);
+      }
+
       notifyListeners();
       await _saveDownloadData();
 
@@ -158,6 +175,34 @@ class DownloadService extends ChangeNotifier {
       _processDownloadQueue();
     } catch (e) {
       debugPrint('Error starting download for ${track.name}: $e');
+    }
+  }
+
+  Future<void> _ensureAlbumMetadata(Track track) async {
+    final albumId = track.albumId!;
+    if (_downloadedAlbumMetadata.containsKey(albumId)) return;
+    try {
+      final tracks = await _mediaServiceManager.getTracks(parentId: albumId);
+      final minimal = tracks
+          .map((t) => MinimalTrackInfo(
+                id: t.id,
+                name: t.name,
+                artistName: t.artistName,
+                albumName: t.albumName,
+                duration: t.duration,
+                trackNumber: t.trackNumber,
+              ))
+          .toList();
+      _downloadedAlbumMetadata[albumId] = DownloadedAlbumMetadata(
+        albumId: albumId,
+        name: track.albumName ?? track.name,
+        artistName: track.artistName,
+        imageUrl: track.imageUrl,
+        tracks: minimal,
+      );
+      await _saveDownloadData();
+    } catch (e) {
+      debugPrint('Could not fetch album metadata for ${track.albumId}: $e');
     }
   }
 
@@ -489,6 +534,12 @@ class DownloadService extends ChangeNotifier {
           .map((track) => track.toJson())
           .toList();
       await prefs.setString('downloaded_tracks', jsonEncode(tracksJson));
+
+      // Save downloaded album metadata
+      final albumsJson = _downloadedAlbumMetadata.values
+          .map((a) => a.toJson())
+          .toList();
+      await prefs.setString('downloaded_album_metadata', jsonEncode(albumsJson));
     } catch (e) {
       debugPrint('Error saving download data: $e');
     }
@@ -536,6 +587,16 @@ class DownloadService extends ChangeNotifier {
           if (await file.exists()) {
             _downloadedTracks[track.trackId] = track;
           }
+        }
+      }
+
+      // Load downloaded album metadata
+      final albumsJsonString = prefs.getString('downloaded_album_metadata');
+      if (albumsJsonString != null) {
+        final albumsList = jsonDecode(albumsJsonString) as List;
+        for (final albumJson in albumsList) {
+          final meta = DownloadedAlbumMetadata.fromJson(albumJson);
+          _downloadedAlbumMetadata[meta.albumId] = meta;
         }
       }
 
