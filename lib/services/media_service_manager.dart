@@ -104,6 +104,13 @@ class MediaServiceManager {
     );
   }
 
+  /// Last auth error from the current service (e.g. SoundCloud invalid_client). Null if not supported or none.
+  String? get lastAuthError {
+    final s = _currentService;
+    if (s is SoundCloudService) return s.lastAuthError;
+    return null;
+  }
+
   /// Set server URL for the current service
   void setServer(String serverUrl) {
     _currentService?.setServer(serverUrl);

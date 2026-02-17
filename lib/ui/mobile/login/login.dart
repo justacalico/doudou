@@ -652,7 +652,7 @@ class _LoginScreenState extends State<LoginScreen>
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Register an app at developers.soundcloud.com and paste your Client ID and Client Secret below.',
+                    'Register an app at developers.soundcloud.com and paste your Client ID and Client Secret below. Set Redirect URI to http://localhost/callback and click Save.',
                     style: TextStyle(
                       fontSize: 13,
                       color: isDark

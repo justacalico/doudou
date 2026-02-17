@@ -43,11 +43,37 @@ class SoundCloudService implements BaseMediaService {
     return _obtainToken();
   }
 
+  /// Redirect URI must be set in your SoundCloud app at developers.soundcloud.com.
+  /// Use this exact value in the app's "Redirect URI" field and click Save.
+  static const String _redirectUri = 'http://localhost/callback';
+
   Future<bool> _obtainToken() async {
+    _lastError = null;
+    final credentials = base64Encode(utf8.encode('$_clientId:$_clientSecret'));
+    // Try OAuth 2.1 endpoint first (with redirect_uri as required by some apps)
+    final ok = await _requestToken(
+      'https://secure.soundcloud.com/oauth2/token',
+      credentials,
+      {'grant_type': 'client_credentials', 'redirect_uri': _redirectUri},
+    );
+    if (ok) return true;
+    // Fallback: legacy endpoint without redirect_uri
+    _lastError = null;
+    return _requestToken(
+      'https://secure.soundcloud.com/oauth/token',
+      credentials,
+      {'grant_type': 'client_credentials'},
+    );
+  }
+
+  Future<bool> _requestToken(
+    String url,
+    String credentials,
+    Map<String, String> body,
+  ) async {
     try {
-      final credentials = base64Encode(utf8.encode('$_clientId:$_clientSecret'));
       final response = await _dio.post<Map<String, dynamic>>(
-        'https://secure.soundcloud.com/oauth/token',
+        url,
         options: Options(
           contentType: Headers.formUrlEncodedContentType,
           headers: {
@@ -55,7 +81,7 @@ class SoundCloudService implements BaseMediaService {
             'Accept': 'application/json; charset=utf-8',
           },
         ),
-        data: {'grant_type': 'client_credentials'},
+        data: body,
       );
 
       if (response.data == null) return false;
@@ -68,10 +94,23 @@ class SoundCloudService implements BaseMediaService {
 
       _dio.options.headers['Authorization'] = 'OAuth $_accessToken';
       return true;
-    } catch (e) {
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      if (data is Map && data['error'] != null) {
+        _lastError = data['error'] as String?;
+        final desc = data['error_description'] as String?;
+        if (desc != null) _lastError = '$_lastError: $desc';
+      }
+      return false;
+    } catch (_) {
       return false;
     }
   }
+
+  String? _lastError;
+
+  /// Last error from token endpoint (e.g. invalid_client). Null if none.
+  String? get lastAuthError => _lastError;
 
   Future<bool> _ensureToken() async {
     if (_accessToken != null &&
@@ -97,6 +136,7 @@ class SoundCloudService implements BaseMediaService {
     _clientSecret = null;
     _accessToken = null;
     _tokenExpiry = null;
+    _lastError = null;
     _dio.options.headers.remove('Authorization');
   }
 

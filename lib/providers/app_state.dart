@@ -857,7 +857,14 @@ class AppState extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _setError('Authentication failed. Please check your credentials.');
+        final detail = serverType == 'soundcloud'
+            ? _mediaServiceManager.lastAuthError
+            : null;
+        _setError(
+          detail != null && detail.isNotEmpty
+              ? 'Authentication failed. $detail'
+              : 'Authentication failed. Please check your credentials.',
+        );
         _setLoading(false);
         return false;
       }
