@@ -482,51 +482,52 @@ class SoundCloudService implements BaseMediaService {
         DateTime.now().difference(_embeddedClientIdFetched!) < _embeddedClientIdCache) {
       return _embeddedClientId;
     }
-    try {
-      final pageRes = await http.get(
-        Uri.parse('https://soundcloud.com'),
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
-          'Accept': 'text/html',
-        },
-      );
-      if (pageRes.statusCode != 200) return null;
-      final body = pageRes.body;
-      RegExp re = RegExp(r',client_id:\s*"([^"]+)"');
-      var match = re.firstMatch(body);
-      if (match == null) match = RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(body);
-      if (match == null) match = RegExp(r"client_id:\s*'([a-zA-Z0-9_.-]+)'").firstMatch(body);
-      if (match != null) {
-        _embeddedClientId = match.group(1);
-        _embeddedClientIdFetched = DateTime.now();
-        _log('playback: embedded client_id obtained from page');
-        return _embeddedClientId;
-      }
-      re = RegExp(r'https://[a-z0-9.-]+\.sndcdn\.com/assets/[^"]+\.js');
-      match = re.firstMatch(body);
-      if (match != null) {
-        final scriptUrl = match.group(0)!;
-        final scriptRes = await http.get(Uri.parse(scriptUrl), headers: {'User-Agent': 'Mozilla/5.0'});
-        if (scriptRes.statusCode == 200) {
-          final re2 = RegExp(r',client_id:\s*"([^"]+)"');
-          var m2 = re2.firstMatch(scriptRes.body);
-          if (m2 == null) m2 = RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(scriptRes.body);
-          if (m2 == null) {
-            final m3 = RegExp(r"client_id:\s*'([a-zA-Z0-9_.-]+)'").firstMatch(scriptRes.body);
-            if (m3 != null) {
-              _embeddedClientId = m3.group(1);
-              _embeddedClientIdFetched = DateTime.now();
-              _log('playback: embedded client_id obtained from script');
-              return _embeddedClientId;
-            }
-          } else {
-            _embeddedClientId = m2.group(1);
-            _embeddedClientIdFetched = DateTime.now();
-            _log('playback: embedded client_id obtained from script');
-            return _embeddedClientId;
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml',
+    };
+    Future<String?> tryPage(String url) async {
+      try {
+        final res = await http.get(Uri.parse(url), headers: headers);
+        if (res.statusCode != 200) return null;
+        final body = res.body;
+        if (kDebugMode && body.isNotEmpty) {
+          final snippet = body.length > 500 ? body.substring(0, 500) : body;
+          _log('playback: page body (first ${snippet.length} chars): $snippet');
+        }
+        RegExp re = RegExp(r',client_id:\s*"([^"]+)"');
+        var match = re.firstMatch(body);
+        if (match == null) match = RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(body);
+        if (match == null) match = RegExp(r"client_id:\s*'([a-zA-Z0-9_.-]+)'").firstMatch(body);
+        if (match == null) match = RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(body);
+        if (match != null) return match.group(1);
+        re = RegExp(r'https://[a-z0-9.-]+\.sndcdn\.com/assets/[^"]+\.js');
+        match = re.firstMatch(body);
+        if (match != null) {
+          final scriptRes = await http.get(Uri.parse(match.group(0)!), headers: headers);
+          if (scriptRes.statusCode == 200) {
+            final re2 = RegExp(r',client_id:\s*"([^"]+)"');
+            var m2 = re2.firstMatch(scriptRes.body);
+            if (m2 == null) m2 = RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(scriptRes.body);
+            if (m2 == null) m2 = RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(scriptRes.body);
+            if (m2 != null) return m2.group(1);
           }
         }
+      } catch (_) {}
+      return null;
+    }
+
+    try {
+      String? cid = await tryPage('https://soundcloud.com');
+      if (cid == null) cid = await tryPage('https://soundcloud.com/discover');
+      if (cid == null) cid = await tryPage('https://soundcloud.com/mt-marcy/cold-nights');
+      if (cid != null && cid.isNotEmpty) {
+        _embeddedClientId = cid;
+        _embeddedClientIdFetched = DateTime.now();
+        _log('playback: embedded client_id obtained');
+        return _embeddedClientId;
       }
+      _log('playback: embedded client_id not found in any page', isError: true);
     } catch (e) {
       _log('getEmbeddedClientId failed: $e', isError: true);
     }
@@ -535,6 +536,7 @@ class SoundCloudService implements BaseMediaService {
 
   /// Resolve stream via api-v2 with embedded client_id (bypasses official API 401).
   Future<String?> _resolveStreamViaEmbeddedClientId(String trackId) async {
+    _log('playback: trying embedded client_id fallback');
     final clientId = await _getEmbeddedClientId();
     if (clientId == null) return null;
     try {
