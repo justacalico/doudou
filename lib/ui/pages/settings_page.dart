@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
@@ -771,6 +772,29 @@ class _ServerSection extends StatelessWidget {
     required this.onClearCache,
   });
 
+  /// Get server URL and username from current service or SharedPreferences fallback.
+  Future<Map<String, String?>> _getServerInfo(AppState appState) async {
+    // Try to get from current service first
+    final currentServer = appState.mediaServiceManager.currentService?.currentServer;
+    if (currentServer is Map) {
+      final url = currentServer['url'] as String?;
+      final username = currentServer['username'] as String?;
+      if (url != null || username != null) {
+        return {'url': url, 'username': username};
+      }
+    }
+
+    // Fall back to SharedPreferences
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final serverUrl = prefs.getString('server_url');
+      final username = prefs.getString('server_identifier');
+      return {'url': serverUrl, 'username': username};
+    } catch (_) {
+      return {'url': null, 'username': null};
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -861,15 +885,26 @@ class _ServerSection extends StatelessWidget {
                         },
                       ),
                     ] else ...[
-                      ListTile(
-                        title: const Text('Server URL'),
-                        subtitle: Text(appState.jellyfinService.serverUrl ?? 'Not set'),
-                        trailing: const Icon(Icons.edit),
-                      ),
-                      ListTile(
-                        title: const Text('Username'),
-                        subtitle: Text(appState.jellyfinService.username ?? 'Not logged in'),
-                        trailing: const Icon(Icons.person),
+                      FutureBuilder<Map<String, String?>>(
+                        future: _getServerInfo(appState),
+                        builder: (context, snapshot) {
+                          final serverUrl = snapshot.data?['url'] ?? 'Not set';
+                          final username = snapshot.data?['username'] ?? 'Not logged in';
+                          return Column(
+                            children: [
+                              ListTile(
+                                title: const Text('Server URL'),
+                                subtitle: Text(serverUrl),
+                                trailing: const Icon(Icons.edit),
+                              ),
+                              ListTile(
+                                title: const Text('Username'),
+                                subtitle: Text(username),
+                                trailing: const Icon(Icons.person),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                       const Divider(),
                       ListTile(
