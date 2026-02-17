@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
@@ -376,6 +377,10 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+          _menuKey.currentState?.showButtonMenu();
+        },
         onSecondaryTapDown: (_) => _menuKey.currentState?.showButtonMenu(),
         child: AnimatedContainer(
           duration: AppleDesignSystem.durationFast,
