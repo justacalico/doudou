@@ -641,33 +641,7 @@ class _GeneralSection extends StatelessWidget {
           children: [
             Text(l10n.generalSettings, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
             SizedBox(height: isSmall ? 12 : 24),
-            Wrap(
-              spacing: isSmall ? 8 : 16,
-              runSpacing: isSmall ? 8 : 16,
-              children: [
-                SizedBox(
-                  width: isSmall ? double.infinity : 520,
-                  child: Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(isSmall ? 12 : 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Playback & visuals', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                          SizedBox(height: isSmall ? 8 : 12),
-                          SwitchListTile(
-                            title: const Text('Show album art'),
-                            subtitle: const Text('Display artwork in lists and now playing views'),
-                            value: appState.showAlbumArtEnabled,
-                            onChanged: appState.toggleShowAlbumArt,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // Playback & visuals section removed - no options remaining
           ],
         ),
       ),
