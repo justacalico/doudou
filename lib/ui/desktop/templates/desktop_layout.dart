@@ -13,7 +13,6 @@ import '../pages/details/media_details.dart';
 import '../pages/details/artist_details.dart';
 import '../widgets/universal_image.dart';
 import 'desktop_theme.dart';
-import 'package:flutter/foundation.dart' show debugPrint;
 
 /// Static helpers for detail overlay and dialogs (main shell is [AppShell]).
 class DesktopLayout {
