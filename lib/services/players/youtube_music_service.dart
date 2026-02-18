@@ -279,7 +279,8 @@ class YouTubeMusicService implements BaseMediaService {
     return '';
   }
 
-  /// HTTP headers required for googlevideo.com (403 without browser-like User-Agent).
+  /// HTTP headers for googlevideo.com. On desktop we return null so MPV gets the direct
+  /// URL and uses user-agent from ~/.config/mpv/mpv.conf (avoids the failing header-proxy).
   static const Map<String, String> _streamHttpHeaders = {
     'User-Agent':
         'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -287,12 +288,13 @@ class YouTubeMusicService implements BaseMediaService {
     'Accept-Language': 'en-US,en;q=0.9',
   };
 
-  /// Returns headers to pass to the audio player for googlevideo.com URLs.
-  /// Needed because googlevideo returns 403 without proper User-Agent.
-  /// mpv.conf is also written with user-agent, but embedded libmpv may not read it.
   static Map<String, String>? getStreamHeaders(String url) {
-    if (url.contains('googlevideo.com')) return Map.unmodifiable(_streamHttpHeaders);
-    return null;
+    if (!url.contains('googlevideo.com')) return null;
+    final isDesktop = defaultTargetPlatform == TargetPlatform.linux ||
+        defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+    if (isDesktop) return null; // MPV uses mpv.conf user-agent; no proxy
+    return Map.unmodifiable(_streamHttpHeaders);
   }
 
   /// Invidious API - open-source YouTube frontend with stream proxy.
@@ -315,7 +317,8 @@ class YouTubeMusicService implements BaseMediaService {
   static const String _prefKeyInvidiousInstance = 'youtube_music_invidious_instance';
   static const String _prefKeyPipedInstance = 'youtube_music_piped_instance';
 
-  /// Fetch stream URL(s) from Piped API for a video (audioStreams[].url)
+  /// Fetch stream URL(s) from Piped API (currently unused; kept for optional re-enable)
+  // ignore: unused_element
   Future<List<String>> _getPipedStreamUrls(String videoId) async {
     List<String> instances = _pipedInstances;
     try {
@@ -376,8 +379,8 @@ class YouTubeMusicService implements BaseMediaService {
     return [];
   }
 
-  /// Fetch stream URL(s) from Invidious API for a video
-  /// Uses local=true so URLs are proxied through Invidious (avoids 403/User-Agent issues)
+  /// Fetch stream URL(s) from Invidious API (currently unused; kept for optional re-enable)
+  // ignore: unused_element
   Future<List<String>> _getInvidiousStreamUrls(String videoId) async {
     List<String> instances = _invidiousInstances;
     try {
@@ -561,24 +564,9 @@ class YouTubeMusicService implements BaseMediaService {
       }
     }
 
-    // 2) Piped and Invidious - proxied streams, no headers needed, work reliably with MPV.
-    final pipedUrls = await _getPipedStreamUrls(videoId);
-    final invidiousUrls = await _getInvidiousStreamUrls(videoId);
-
-    final isDesktop = defaultTargetPlatform == TargetPlatform.linux ||
-        defaultTargetPlatform == TargetPlatform.windows ||
-        defaultTargetPlatform == TargetPlatform.macOS;
-
-    // Desktop: prefer proxied URLs first (no 403); fallback to direct with headers.
-    // Mobile: prefer youtube_explode direct URLs first (ExoPlayer handles headers well).
-    final List<String> result;
-    if (isDesktop && (pipedUrls.isNotEmpty || invidiousUrls.isNotEmpty)) {
-      result = <String>[...pipedUrls, ...invidiousUrls, ...urls];
-    } else {
-      urls.addAll(pipedUrls);
-      urls.addAll(invidiousUrls);
-      result = urls;
-    }
+    // 2) Piped and Invidious skipped - use only youtube_explode direct URLs.
+    // On desktop, MPV fetches directly using user-agent from ~/.config/mpv/mpv.conf.
+    final result = urls;
 
     if (kDebugMode) {
       print('[YouTubeMusic] getAlternativeStreamUrlsAsync: returning ${result.length} URL(s) for $videoId');
