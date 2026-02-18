@@ -479,7 +479,8 @@ class YouTubeMusicService implements BaseMediaService {
   Future<List<Track>> getStarredTracks() async {
     if (_hasCookies && _isReady) {
       try {
-        final videos = await _ytMusic.getPlaylistVideos('LM');
+        // Use VLM (VL+LM) like Python ytmusicapi; browseId "LM" alone returns 400 from YouTube.
+        final videos = await _ytMusic.getPlaylistVideos('VLM');
         return videos.map((v) {
           final t = _trackFromVideoDetailed(v);
           return Track(
