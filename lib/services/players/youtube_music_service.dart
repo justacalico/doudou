@@ -817,16 +817,35 @@ class YouTubeMusicService implements BaseMediaService {
     );
   }
 
+  /// Call YouTube Music API to like (thumbs up) or unlike a song. Used when logged in with cookies.
+  Future<bool> _rateSongOnYouTube(String videoId, bool like) async {
+    if (!_hasCookies || !_isReady) return false;
+    try {
+      final endpoint = like ? 'like/like' : 'like/removelike';
+      await _ytMusic.constructRequest(
+        endpoint,
+        body: {'target': {'videoId': videoId}},
+      );
+      return true;
+    } catch (e) {
+      if (kDebugMode) print('[YouTubeMusic] _rateSongOnYouTube failed: $e');
+      return false;
+    }
+  }
+
   @override
   Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
     await _loadLocalData();
     // isFavorite is CURRENT status - we need to toggle it (remove if currently favorite, add if not)
     if (isFavorite) {
-      // Remove from favorites
+      // Remove from favorites: when logged in, unlike on YouTube Music too
+      await _rateSongOnYouTube(itemId, false);
       _localFavorites.removeWhere((j) => (j['id'] ?? '').toString() == itemId);
       await _saveLocalFavorites();
       return true;
     }
+    // Add to favorites: when logged in, like on YouTube Music (Liked Music playlist) too
+    await _rateSongOnYouTube(itemId, true);
     // Add to favorites: try to fetch track from API to store full snapshot
     if (!_isReady) {
       // If not ready, save minimal favorite locally
