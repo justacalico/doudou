@@ -669,8 +669,11 @@ class _AppleTrackMenu extends StatelessWidget {
               : Icons.favorite_border_rounded,
           track.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
         ),
-        const PopupMenuDivider(),
-        _buildDownloadMenuItem(context),
+        if (context.read<AppState>().mediaServiceManager.currentServerType !=
+            ServerType.soundcloud) ...[
+          const PopupMenuDivider(),
+          _buildDownloadMenuItem(context),
+        ],
         if (onRemove != null) ...[
           const PopupMenuDivider(),
           _buildMenuItem(

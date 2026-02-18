@@ -575,14 +575,15 @@ class _TrackInfo extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              PopupMenuItem(
-                value: 'download',
-                child: ListTile(
-                  leading: Icon(downloadIcon),
-                  title: Text(downloadLabel),
-                  contentPadding: EdgeInsets.zero,
+              if (!isSoundCloud)
+                PopupMenuItem(
+                  value: 'download',
+                  child: ListTile(
+                    leading: Icon(downloadIcon),
+                    title: Text(downloadLabel),
+                    contentPadding: EdgeInsets.zero,
+                  ),
                 ),
-              ),
             ];
           },
         ),
@@ -2574,7 +2575,11 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
                       final shuffled = List<Track>.from(_tracks)..shuffle();
                       appState.playPlaylist(shuffled, 0);
                     },
-                    onDownload: _tracks.isNotEmpty ? () => _downloadAlbum(context, appState) : null,
+                    onDownload: appState.mediaServiceManager.currentServerType !=
+                                ServerType.soundcloud &&
+                            _tracks.isNotEmpty
+                        ? () => _downloadAlbum(context, appState)
+                        : null,
                   ),
                 ),
               ),
@@ -3594,6 +3599,9 @@ class _TrackRowState extends State<_TrackRow> {
                   itemBuilder: (context) {
                     final l10n = AppLocalizations.of(context);
                     final appState = context.read<AppState>();
+                    final isSoundCloud = appState.mediaServiceManager
+                            .currentServerType ==
+                        ServerType.soundcloud;
                     final downloadService = appState.downloadService;
                     final isDownloaded = downloadService.isTrackDownloaded(
                       widget.track.id,
@@ -3637,30 +3645,31 @@ class _TrackRowState extends State<_TrackRow> {
                           ],
                         ),
                       ),
-                      PopupMenuItem(
-                        value: 'download',
-                        enabled: !isDownloaded && !isDownloading,
-                        child: Row(
-                          children: [
-                            Icon(
-                              downloadIcon,
-                              size: 20,
-                              color: (isDownloaded || isDownloading)
-                                  ? DesktopTheme.textTertiary
-                                  : null,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              downloadLabel,
-                              style: TextStyle(
+                      if (!isSoundCloud)
+                        PopupMenuItem(
+                          value: 'download',
+                          enabled: !isDownloaded && !isDownloading,
+                          child: Row(
+                            children: [
+                              Icon(
+                                downloadIcon,
+                                size: 20,
                                 color: (isDownloaded || isDownloading)
                                     ? DesktopTheme.textTertiary
                                     : null,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              Text(
+                                downloadLabel,
+                                style: TextStyle(
+                                  color: (isDownloaded || isDownloading)
+                                      ? DesktopTheme.textTertiary
+                                      : null,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
                     ];
                   },
                 )

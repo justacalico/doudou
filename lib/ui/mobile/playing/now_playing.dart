@@ -1562,8 +1562,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
               ],
             ),
           ),
-          // Download
-          _buildDownloadAction(context, currentTrack, appState),
+          // Download (disabled for SoundCloud)
+          if (appState.mediaServiceManager.currentServerType !=
+              ServerType.soundcloud)
+            _buildDownloadAction(context, currentTrack, appState),
           // Share
           CupertinoActionSheetAction(
             onPressed: () {

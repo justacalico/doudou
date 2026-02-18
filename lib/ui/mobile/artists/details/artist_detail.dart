@@ -101,8 +101,10 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
         title: Text(widget.artist.name, style: const TextStyle(fontSize: 16)),
         message: Text(summary, style: const TextStyle(fontSize: 14)),
         actions: [
-          // Download all tracks
-          if (_artistTracks.isNotEmpty)
+          // Download all tracks (disabled for SoundCloud)
+          if (_artistTracks.isNotEmpty &&
+              appState.mediaServiceManager.currentServerType !=
+                  ServerType.soundcloud)
             CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
@@ -1172,7 +1174,8 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       showAlbumArt: true,
       showTrackNumber: false,
       showDuration: true,
-      showDownloadButton: true,
+      showDownloadButton: appState.mediaServiceManager.currentServerType !=
+          ServerType.soundcloud,
       showFavoriteButton: true,
     );
   }

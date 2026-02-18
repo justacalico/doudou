@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../providers/app_state.dart';
 import '../../../services/album_art_color_service.dart';
+import '../../../services/base_service.dart';
 import '../widgets/cached_image_widget.dart';
 import '../widgets/apple_design/liquid_glass.dart';
 import '../partials/tracks/track_list_item.dart';
@@ -672,18 +673,21 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                     SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final track = tracks[index];
+                        final appState = context.read<AppState>();
                         return TrackListItem(
                           track: track,
                           showAlbumArt:
                               widget.viewType == DetailViewType.playlist,
                           showTrackNumber:
                               widget.viewType == DetailViewType.album,
+                          showDownloadButton: appState.mediaServiceManager
+                                  .currentServerType !=
+                              ServerType.soundcloud,
                           onRemoveFromPlaylist:
                               widget.viewType == DetailViewType.playlist
                               ? () => _removeTrackFromPlaylist(index, track)
                               : null,
                           onTap: () {
-                            final appState = context.read<AppState>();
                             appState.playPlaylist(tracks, index);
                           },
                         );
