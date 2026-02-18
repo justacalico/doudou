@@ -1011,7 +1011,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 40,
+                                      horizontal: 36,
                                     ),
                                     child: Row(
                                       mainAxisAlignment:

@@ -8,6 +8,7 @@ import 'package:rxdart/rxdart.dart';
 // Conditional imports for platform-specific features
 import 'audio_state_controller.dart';
 import 'queue_manager.dart';
+import 'stream_proxy_service_stub.dart' if (dart.library.io) 'stream_proxy_service.dart';
 import '../../models/jellyfin_models.dart';
 import '../media_service_manager.dart';
 
@@ -1062,10 +1063,26 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
 
-    // Harmony-Music style: AudioSource.uri() without headers or proxy
-    // MPV reads User-Agent from mpv.conf (configured in PlatformAudioConfig)
-    // Reference: Harmony-Music lib/services/audio_handler.dart – AudioSource.uri(Uri.tryParse(url)!) with no headers
+    // Desktop + googlevideo.com: MPV/ffmpeg often fail (TLS, blocking). Use local proxy with headers.
     final isYouTube = url.contains('googlevideo.com');
+    if (isYouTube && _isDesktop) {
+      try {
+        final proxyUrl = await StreamProxyService.instance.register(url, {
+          'User-Agent':
+              'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Referer': 'https://www.youtube.com/',
+        });
+        url = proxyUrl;
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrack: using proxy for YouTube (desktop)');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrack: proxy register failed: $e, using direct URL');
+        }
+      }
+    }
+
     if (kDebugMode) {
       final track = _stateController.currentTrack;
       debugPrint('[Playback] _loadAndPlayTrack: track=${track?.name ?? "?"} id=${track?.id ?? "?"} '
