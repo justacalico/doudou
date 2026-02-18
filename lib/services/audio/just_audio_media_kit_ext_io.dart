@@ -10,55 +10,67 @@ class PlatformAudioConfig {
   /// Check if we're on Windows
   static bool get isWindows => Platform.isWindows;
   
-  /// Create mpv.conf file with audio-exclusive=no
+  /// Create mpv.conf with platform-specific options:
+  /// - Windows: audio-exclusive=no (WASAPI shared mode for system volume)
+  /// - Linux: cache=no (avoids lavf "Failed to create file cache" on stream playback, e.g. after server switch)
   static Future<void> createMpvConfig() async {
     try {
       String configDir;
-      
+      String optionsToAdd = '';
+
       if (Platform.isWindows) {
-        // On Windows, mpv reads from %APPDATA%/mpv/
         final appData = Platform.environment['APPDATA'];
         if (appData == null) {
           debugPrint('PlatformAudioConfig: APPDATA not found');
           return;
         }
         configDir = '$appData/mpv';
-      } else {
-        // On Linux/macOS, mpv reads from ~/.config/mpv/
+        optionsToAdd = '# Doudou: WASAPI shared mode for system volume integration\naudio-exclusive=no\n';
+      } else if (Platform.isLinux) {
         final home = Platform.environment['HOME'];
         if (home == null) {
           debugPrint('PlatformAudioConfig: HOME not found');
           return;
         }
         configDir = '$home/.config/mpv';
+        optionsToAdd =
+            '# Doudou: Disable demuxer cache to avoid lavf "Failed to create file cache" (streams, server switch)\ncache=no\n';
+      } else if (Platform.isMacOS) {
+        final home = Platform.environment['HOME'];
+        if (home == null) {
+          debugPrint('PlatformAudioConfig: HOME not found');
+          return;
+        }
+        configDir = '$home/.config/mpv';
+        // macOS: no extra options by default
+        return;
+      } else {
+        return;
       }
-      
+
       final dir = Directory(configDir);
       if (!await dir.exists()) {
         await dir.create(recursive: true);
       }
-      
+
       final configFile = File('$configDir/mpv.conf');
-      
-      // Read existing config if present
+
       String existingContent = '';
       if (await configFile.exists()) {
         existingContent = await configFile.readAsString();
-        
-        // Check if audio-exclusive is already set
-        if (existingContent.contains('audio-exclusive')) {
-          debugPrint('PlatformAudioConfig: audio-exclusive already in mpv.conf');
+        // Skip if we already added our options
+        if (existingContent.contains('audio-exclusive') ||
+            (Platform.isLinux && existingContent.contains('cache=no'))) {
+          debugPrint('PlatformAudioConfig: Options already in mpv.conf');
           return;
         }
       }
-      
-      // Append audio-exclusive=no
-      final newContent = existingContent.isEmpty 
-          ? '# Doudou: Disable WASAPI exclusive mode for system volume integration\naudio-exclusive=no\n'
-          : '$existingContent\n# Doudou: Disable WASAPI exclusive mode for system volume integration\naudio-exclusive=no\n';
-      
+
+      final newContent =
+          existingContent.isEmpty ? optionsToAdd : '$existingContent\n$optionsToAdd';
+
       await configFile.writeAsString(newContent);
-      debugPrint('PlatformAudioConfig: Created mpv.conf with audio-exclusive=no at $configDir');
+      debugPrint('PlatformAudioConfig: Created mpv.conf at $configDir');
     } catch (e) {
       debugPrint('PlatformAudioConfig: Error creating mpv config: $e');
     }
