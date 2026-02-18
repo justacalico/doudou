@@ -1643,17 +1643,8 @@ class AppState extends ChangeNotifier {
       _tracks = results[2] as List<Track>;
       _playlists = results[3] as List<Playlist>;
 
-      // YouTube Music: load home sections (recommendations, quick picks, etc.) for a richer home page
-      if (_mediaServiceManager.currentServerType == ServerType.youtubeMusic) {
-        try {
-          _youtubeMusicHomeSections =
-              await _mediaServiceManager.getYouTubeMusicHomeSections();
-        } catch (e) {
-          _youtubeMusicHomeSections = [];
-        }
-      } else {
-        _youtubeMusicHomeSections = [];
-      }
+      // YouTube Music home shows only library/followed content (Your artists, etc.), not curated sections
+      _youtubeMusicHomeSections = [];
 
       // Restore favorite status from downloaded tracks
       _restoreFavoriteStatusFromDownloads();
