@@ -324,6 +324,7 @@ class YouTubeMusicService implements BaseMediaService {
           id: t.id,
           name: t.name,
           artistName: t.artistName,
+          artistId: t.artistId,
           albumName: t.albumName,
           albumId: playlistId,
           duration: t.duration,
@@ -868,7 +869,12 @@ class YouTubeMusicService implements BaseMediaService {
   Track _trackFromSongDetailed(dynamic s) {
     final videoId = s.videoId as String? ?? '';
     final name = s.name as String? ?? 'Unknown';
-    final artistName = s.artist?.name as String? ?? 'Unknown Artist';
+    final artist = s.artist;
+    final artistName = artist?.name as String? ?? 'Unknown Artist';
+    final artistId = artist?.artistId as String?;
+    final album = s.album;
+    final albumName = album?.name;
+    final albumId = album?.albumId as String?;
     final duration = _durationMs(s.duration);
     final thumbnails = s.thumbnails;
     final imageUrl = _thumbUrl(thumbnails);
@@ -876,8 +882,9 @@ class YouTubeMusicService implements BaseMediaService {
       id: videoId,
       name: name,
       artistName: artistName,
-      albumName: s.album?.name,
-      albumId: null,
+      artistId: artistId,
+      albumName: albumName,
+      albumId: albumId,
       duration: duration,
       imageUrl: imageUrl.isNotEmpty ? imageUrl : null,
       isFavorite: _localFavorites.any((f) => (f['id'] ?? '').toString() == videoId),
@@ -887,7 +894,9 @@ class YouTubeMusicService implements BaseMediaService {
   Track _trackFromVideoDetailed(dynamic v) {
     final videoId = v.videoId as String? ?? '';
     final name = v.name as String? ?? 'Unknown';
-    final artistName = v.artist?.name as String? ?? 'Unknown Artist';
+    final artist = v.artist;
+    final artistName = artist?.name as String? ?? 'Unknown Artist';
+    final artistId = artist?.artistId as String?;
     final duration = _durationMs(v.duration);
     final thumbnails = v.thumbnails;
     final imageUrl = _thumbUrl(thumbnails);
@@ -895,6 +904,7 @@ class YouTubeMusicService implements BaseMediaService {
       id: videoId,
       name: name,
       artistName: artistName,
+      artistId: artistId,
       albumName: null,
       albumId: null,
       duration: duration,

@@ -113,6 +113,8 @@ class Track {
   final String? albumName;
   final String? artistName;
   final String? albumId;
+  /// Optional artist ID (e.g. YouTube Music browseId) for navigation when not in library.
+  final String? artistId;
   final String? playlistItemId;
   final int? duration; // in milliseconds
   final int? trackNumber;
@@ -126,6 +128,7 @@ class Track {
     this.albumName,
     this.artistName,
     this.albumId,
+    this.artistId,
     this.playlistItemId,
     this.duration,
     this.trackNumber,
@@ -141,6 +144,7 @@ class Track {
       albumName: json['Album'],
       artistName: json['Artists']?.join(', '),
       albumId: json['AlbumId'],
+      artistId: json['ArtistId'],
       playlistItemId: json['PlaylistItemId'] ?? json['PlaylistItemID'],
       duration: json['RunTimeTicks'] != null
           ? (json['RunTimeTicks'] / 10000)
@@ -163,6 +167,7 @@ class Track {
       'Album': albumName,
       'Artists': artistName?.split(', '),
       'AlbumId': albumId,
+      'ArtistId': artistId,
       'PlaylistItemId': playlistItemId,
       'RunTimeTicks': duration != null ? duration! * 10000 : null,
       'IndexNumber': trackNumber,

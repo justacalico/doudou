@@ -1512,12 +1512,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           style: const TextStyle(fontSize: 14),
         ),
         actions: [
-          // Go to Album (SoundCloud doesn't support albums)
+          // Go to Album (SoundCloud doesn't support albums; YT Music when track has album info)
           if (appState.mediaServiceManager.currentServerType !=
                   ServerType.soundcloud &&
-              appState.mediaServiceManager.currentServerType !=
-                  ServerType.youtubeMusic &&
-              currentTrack.albumName != null)
+              currentTrack.albumName != null &&
+              (appState.mediaServiceManager.currentServerType !=
+                      ServerType.youtubeMusic ||
+                  currentTrack.albumId != null ||
+                  currentTrack.artistId != null))
             CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
@@ -1960,6 +1962,37 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         'Attempting to navigate to album: ${track.albumName} (ID: ${track.albumId})',
       );
 
+      final isYouTubeMusic = appState.mediaServiceManager.currentServerType ==
+          ServerType.youtubeMusic;
+
+      if (isYouTubeMusic) {
+        // YouTube Music: build album from track (real or virtual id)
+        String? albumId = track.albumId;
+        if (albumId == null || albumId.isEmpty) {
+          if (track.artistId != null && track.albumName != null && track.albumName!.isNotEmpty) {
+            final safeName = track.albumName!.replaceAll(':', '_');
+            albumId = '${virtualAlbumIdPrefix}${track.artistId}:$safeName';
+          }
+        }
+        if (albumId == null || albumId.isEmpty) {
+          _showErrorSnackBar(context, 'Album information not available');
+          return;
+        }
+        final album = Album(
+          id: albumId,
+          name: track.albumName ?? 'Unknown Album',
+          artistName: track.artistName,
+          imageUrl: track.imageUrl,
+          year: null,
+          isFavorite: false,
+        );
+        debugPrint('Navigating to YT Music album: ${album.name}');
+        Navigator.of(context).push(
+          CupertinoPageRoute(builder: (context) => DetailTrackView.album(album)),
+        );
+        return;
+      }
+
       if (track.albumId == null) {
         debugPrint('Track albumId is null, cannot navigate');
         _showErrorSnackBar(context, 'Album information not available');
@@ -1967,7 +2000,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
       }
 
       final album = appState.albums.firstWhere(
-        (album) => album.id == track.albumId,
+        (a) => a.id == track.albumId,
         orElse: () => throw StateError('Album not found'),
       );
 
@@ -1985,14 +2018,36 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     try {
       debugPrint('Attempting to navigate to artist: ${track.artistName}');
 
-      if (track.artistName == null) {
+      if (track.artistName == null || track.artistName!.isEmpty) {
         debugPrint('Track artistName is null, cannot navigate');
         _showErrorSnackBar(context, 'Artist information not available');
         return;
       }
 
+      final isYouTubeMusic = appState.mediaServiceManager.currentServerType ==
+          ServerType.youtubeMusic;
+      final isSoundCloud = appState.mediaServiceManager.currentServerType ==
+          ServerType.soundcloud;
+
+      // YouTube Music / SoundCloud: use track.artistId to build artist when not in library
+      if ((isYouTubeMusic || isSoundCloud) && track.artistId != null && track.artistId!.isNotEmpty) {
+        final artist = Artist(
+          id: track.artistId!,
+          name: track.artistName!,
+          imageUrl: null,
+        );
+        debugPrint('Using track artistId for YT Music/SoundCloud: ${artist.name}, navigating...');
+        Navigator.of(context).push(
+          CupertinoPageRoute(
+            builder: (context) => ArtistDetailScreen(artist: artist),
+          ),
+        );
+        return;
+      }
+
+      // Try library artists (by name)
       final artist = appState.artists.firstWhere(
-        (artist) => artist.name == track.artistName,
+        (a) => a.name == track.artistName,
         orElse: () => throw StateError('Artist not found'),
       );
 
