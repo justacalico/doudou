@@ -36,12 +36,32 @@ enum RepeatMode { none, one, all }
 /// - Desktop: media_kit backend, player recreation
 /// - Web: CORS handling, simplified streams
 class UnifiedAudioHandler extends BaseAudioHandler {
+  UnifiedAudioHandler(this._mediaServiceManager) {
+    _player = _createPlayer();
+    _initializeAudio();
+  }
+
   final MediaServiceManager _mediaServiceManager;
   final AudioStateController _stateController = AudioStateController();
   final AudioQueueManager _queueManager = AudioQueueManager();
 
+  /// Browser-like User-Agent for googlevideo.com (403 without it).
+  static const String _desktopUserAgent =
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
   // Player instance - may be recreated on desktop to prevent native callback crashes
-  AudioPlayer _player = AudioPlayer();
+  late AudioPlayer _player;
+
+  AudioPlayer _createPlayer() {
+    if (_isDesktop) {
+      // Pass headers to media_kit/libmpv natively; proxy times out on desktop
+      return AudioPlayer(
+        userAgent: _desktopUserAgent,
+        useProxyForRequestHeaders: false,
+      );
+    }
+    return AudioPlayer();
+  }
 
   // Player generation ID for desktop callback invalidation
   int _playerGeneration = 0;
@@ -106,11 +126,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   static const int _maxResolvedUrlCacheSize = 40;
   // Track IDs we're currently preloading (avoid duplicate work)
   final Set<String> _preloadingTrackIds = {};
-
-  // Constructor
-  UnifiedAudioHandler(this._mediaServiceManager) {
-    _initializeAudio();
-  }
 
   /// Initialize audio system based on platform
   Future<void> _initializeAudio() async {
@@ -366,7 +381,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final oldSubscriptions = _subscriptions;
 
       _subscriptions = [];
-      _player = AudioPlayer();
+      _player = _createPlayer();
       _setupPlayerListeners();
 
       // Dispose old resources in background

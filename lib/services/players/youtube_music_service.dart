@@ -279,8 +279,8 @@ class YouTubeMusicService implements BaseMediaService {
     return '';
   }
 
-  /// HTTP headers for googlevideo.com. On desktop we return null so MPV gets the direct
-  /// URL and uses user-agent from ~/.config/mpv/mpv.conf (avoids the failing header-proxy).
+  /// HTTP headers for googlevideo.com (403 without browser-like User-Agent).
+  /// On desktop, headers are passed to media_kit/libmpv via useProxyForRequestHeaders: false.
   static const Map<String, String> _streamHttpHeaders = {
     'User-Agent':
         'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -289,12 +289,8 @@ class YouTubeMusicService implements BaseMediaService {
   };
 
   static Map<String, String>? getStreamHeaders(String url) {
-    if (!url.contains('googlevideo.com')) return null;
-    final isDesktop = defaultTargetPlatform == TargetPlatform.linux ||
-        defaultTargetPlatform == TargetPlatform.windows ||
-        defaultTargetPlatform == TargetPlatform.macOS;
-    if (isDesktop) return null; // MPV uses mpv.conf user-agent; no proxy
-    return Map.unmodifiable(_streamHttpHeaders);
+    if (url.contains('googlevideo.com')) return Map.unmodifiable(_streamHttpHeaders);
+    return null;
   }
 
   /// Invidious API - open-source YouTube frontend with stream proxy.
