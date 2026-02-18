@@ -167,6 +167,7 @@ class _SettingsPageState extends State<SettingsPage> {
           onSignOut: _showSignOutDialog,
           onClearCache: _showClearCacheDialog,
           onShowNotification: _showNotification,
+          onShowYtmStreamInstancesDialog: _showYtmStreamInstancesDialog,
         );
       case 'about':
         return _AboutSection(appState: appState);
@@ -196,6 +197,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onSignOut: _showSignOutDialog,
             onClearCache: _showClearCacheDialog,
             onShowNotification: _showNotification,
+            onShowYtmStreamInstancesDialog: _showYtmStreamInstancesDialog,
           ),
           _AboutSection(appState: appState),
         ],
@@ -393,6 +395,61 @@ class _SettingsPageState extends State<SettingsPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  static const String _prefKeyInvidiousInstance = 'youtube_music_invidious_instance';
+  static const String _prefKeyPipedInstance = 'youtube_music_piped_instance';
+
+  Future<void> _showYtmStreamInstancesDialog(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final invidious = prefs.getString(_prefKeyInvidiousInstance) ?? '';
+    final piped = prefs.getString(_prefKeyPipedInstance) ?? '';
+    final invidiousController = TextEditingController(text: invidious);
+    final pipedController = TextEditingController(text: piped);
+    if (!context.mounted) return;
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Custom stream instances'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Optional. If set, this instance is tried first when resolving YouTube Music streams.', style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: invidiousController,
+                decoration: const InputDecoration(
+                  labelText: 'Custom Invidious instance URL',
+                  hintText: 'https://inv.example.com',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: pipedController,
+                decoration: const InputDecoration(
+                  labelText: 'Custom Piped instance URL',
+                  hintText: 'https://pipedapi.example.com',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              await prefs.setString(_prefKeyInvidiousInstance, invidiousController.text.trim());
+              await prefs.setString(_prefKeyPipedInstance, pipedController.text.trim());
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (mounted) _showNotification('Stream instances saved');
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }
@@ -763,6 +820,7 @@ class _ServerSection extends StatefulWidget {
   final void Function(AppState) onSignOut;
   final void Function(String) onClearCache;
   final void Function(String, {Color? color}) onShowNotification;
+  final void Function(BuildContext)? onShowYtmStreamInstancesDialog;
 
   const _ServerSection({
     required this.appState,
@@ -773,6 +831,7 @@ class _ServerSection extends StatefulWidget {
     required this.onSignOut,
     required this.onClearCache,
     required this.onShowNotification,
+    this.onShowYtmStreamInstancesDialog,
   });
 
   @override
@@ -1041,8 +1100,7 @@ class _ServerSectionState extends State<_ServerSection> {
                           await localService.setFetchOnlineArtwork(v);
                         },
                       ),
-                    ] else if (appState.mediaServiceManager.currentServerType == ServerType.soundcloud ||
-                    appState.mediaServiceManager.currentServerType == ServerType.youtubeMusic) ...[
+                    ] else if (appState.mediaServiceManager.currentServerType == ServerType.soundcloud) ...[
                       ListTile(
                         title: const Text('SoundCloud'),
                         subtitle: const Text('Using your app credentials (Client ID / Client Secret)'),
@@ -1053,6 +1111,18 @@ class _ServerSectionState extends State<_ServerSection> {
                         subtitle: const Text('developers.soundcloud.com'),
                         leading: const Icon(Icons.link),
                         onTap: () => launchUrl(Uri.parse('https://developers.soundcloud.com')),
+                      ),
+                    ] else if (appState.mediaServiceManager.currentServerType == ServerType.youtubeMusic) ...[
+                      ListTile(
+                        title: const Text('YouTube Music'),
+                        subtitle: const Text('Cookie-based login; streams via youtube_explode, Piped, then Invidious'),
+                        leading: const Icon(Icons.music_video),
+                      ),
+                      ListTile(
+                        title: const Text('Custom stream instances'),
+                        subtitle: const Text('Optional Invidious or Piped instance URL (used first when set)'),
+                        leading: const Icon(Icons.settings_ethernet),
+                        onTap: () => widget.onShowYtmStreamInstancesDialog?.call(context),
                       ),
                     ] else ...[
                       FutureBuilder<Map<String, String?>>(

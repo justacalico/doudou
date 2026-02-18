@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:dart_ytmusic_api/yt_music.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart' hide Playlist;
 
 import '../../models/jellyfin_models.dart';
@@ -299,12 +300,93 @@ class YouTubeMusicService implements BaseMediaService {
     'https://vid.puffyan.us',
     'https://invidious.snopyta.org',
     'https://yewtu.be',
+    'https://inv.nadeko.net',
+    'https://invidious.nerdvpn.de',
   ];
+
+  /// Piped API - alternative to Invidious for proxied stream URLs
+  /// See https://docs.piped.video/docs/api-documentation/
+  static const List<String> _pipedInstances = [
+    'https://pipedapi.kavin.rocks',
+    'https://api.piped.yt',
+  ];
+
+  static const String _prefKeyInvidiousInstance = 'youtube_music_invidious_instance';
+  static const String _prefKeyPipedInstance = 'youtube_music_piped_instance';
+
+  /// Fetch stream URL(s) from Piped API for a video (audioStreams[].url)
+  Future<List<String>> _getPipedStreamUrls(String videoId) async {
+    List<String> instances = _pipedInstances;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final custom = prefs.getString(_prefKeyPipedInstance)?.trim();
+      if (custom != null && custom.isNotEmpty) {
+        instances = [custom, ..._pipedInstances];
+      }
+    } catch (_) {}
+    for (final base in instances) {
+      try {
+        final uri = Uri.parse('$base/streams/$videoId');
+        final client = http.Client();
+        try {
+          final resp = await client.get(uri).timeout(const Duration(seconds: 8));
+          if (resp.statusCode != 200) continue;
+
+          final json = jsonDecode(resp.body) as Map<String, dynamic>?;
+          if (json == null) continue;
+
+          final audioStreams = json['audioStreams'] as List<dynamic>? ?? [];
+          final withUrl = <Map<String, dynamic>>[];
+          for (final e in audioStreams) {
+            if (e is! Map) continue;
+            final u = e['url'] as String?;
+            if (u == null || u.isEmpty) continue;
+            withUrl.add(Map<String, dynamic>.from(e));
+          }
+          withUrl.sort((a, b) {
+            final aBit = (a['bitrate'] is int)
+                ? a['bitrate'] as int
+                : int.tryParse(a['bitrate']?.toString() ?? '0') ?? 0;
+            final bBit = (b['bitrate'] is int)
+                ? b['bitrate'] as int
+                : int.tryParse(b['bitrate']?.toString() ?? '0') ?? 0;
+            return bBit.compareTo(aBit);
+          });
+          final urls = withUrl
+              .map((f) => f['url'] as String?)
+              .where((u) => u != null && u.isNotEmpty)
+              .cast<String>()
+              .toList();
+          if (urls.isNotEmpty) {
+            if (kDebugMode) {
+              print('[YouTubeMusic] Piped: got ${urls.length} URL(s) from $base');
+            }
+            return urls;
+          }
+        } finally {
+          client.close();
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('[YouTubeMusic] Piped $base failed: $e');
+        }
+      }
+    }
+    return [];
+  }
 
   /// Fetch stream URL(s) from Invidious API for a video
   /// Uses local=true so URLs are proxied through Invidious (avoids 403/User-Agent issues)
   Future<List<String>> _getInvidiousStreamUrls(String videoId) async {
-    for (final base in _invidiousInstances) {
+    List<String> instances = _invidiousInstances;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final custom = prefs.getString(_prefKeyInvidiousInstance)?.trim();
+      if (custom != null && custom.isNotEmpty) {
+        instances = [custom, ..._invidiousInstances];
+      }
+    } catch (_) {}
+    for (final base in instances) {
       try {
         final uri = Uri.parse('$base/api/v1/videos/$videoId').replace(
           queryParameters: {'local': 'true'},
@@ -401,15 +483,16 @@ class YouTubeMusicService implements BaseMediaService {
     final urls = <String>[];
 
     // 1) youtube_explode_dart first - fast, local resolution; User-Agent in mpv.conf helps
-    // androidMusic uses music.youtube.com and is ideal for YouTube Music
+    // 3.x: multiple clients improve 403 resilience (signature/n-parameter handling)
     final clientConfigs = <List<YoutubeApiClient>?>[
-      null, // default: android + ios
+      null, // default
       [YoutubeApiClient.tv],
-      [YoutubeApiClient.androidMusic],
-      [YoutubeApiClient.mweb],
+      [YoutubeApiClient.androidVr],
+      [YoutubeApiClient.ios],
+      [YoutubeApiClient.safari],
     ];
 
-    const clientNames = ['default', 'tv', 'androidMusic', 'mweb'];
+    const clientNames = ['default', 'tv', 'androidVr', 'ios', 'safari'];
     for (var i = 0; i < clientConfigs.length; i++) {
       final ytClients = clientConfigs[i];
       final clientName = clientNames[i];
@@ -419,8 +502,8 @@ class YouTubeMusicService implements BaseMediaService {
       final yt = YoutubeExplode();
       try {
         final manifest = ytClients == null
-            ? await yt.videos.streamsClient.getManifest(videoId)
-            : await yt.videos.streamsClient.getManifest(
+            ? await yt.videos.streams.getManifest(videoId)
+            : await yt.videos.streams.getManifest(
                 videoId,
                 ytClients: ytClients,
               );
@@ -471,7 +554,13 @@ class YouTubeMusicService implements BaseMediaService {
       }
     }
 
-    // 2) Invidious API fallback - proxied streams (local=true), works when direct URLs 403
+    // 2) Piped API fallback - proxied streams (when Invidious instances are down)
+    if (urls.isEmpty) {
+      final pipedUrls = await _getPipedStreamUrls(videoId);
+      urls.addAll(pipedUrls);
+    }
+
+    // 3) Invidious API fallback - proxied streams (local=true), works when direct URLs 403
     if (urls.isEmpty) {
       final invidiousUrls = await _getInvidiousStreamUrls(videoId);
       urls.addAll(invidiousUrls);

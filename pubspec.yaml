@@ -84,7 +84,7 @@ dependencies:
   # YouTube Music (catalog; does not work on web - disabled when kIsWeb)
   dart_ytmusic_api: ^1.3.6
   # YouTube Music / YouTube stream URLs (video ID -> audio stream URL)
-  youtube_explode_dart: ^2.2.2
+  youtube_explode_dart: ^3.0.5
 
 dev_dependencies:
   flutter_test:
