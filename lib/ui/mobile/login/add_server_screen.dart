@@ -13,22 +13,19 @@ import '../../../l10n/app_localizations.dart';
 import '../widgets/apple_design/apple_theme.dart';
 import '../../../services/players/jellyfin_service.dart';
 import '../settings/local_music_settings.dart';
-import 'package:doudou/ui/layout/app_shell.dart';
 
 // Auth method enum for Jellyfin
 enum JellyfinAuthMethod { account, apiKey, quickConnect }
 
-class LoginScreen extends StatefulWidget {
-  /// When true, pops on success instead of replacing route (used when opened from Settings/overlay).
-  final bool fromSettings;
-
-  const LoginScreen({super.key, this.fromSettings = false});
+/// Add Server screen - configure and add a new media server.
+class AddServerScreen extends StatefulWidget {
+  const AddServerScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<AddServerScreen> createState() => _AddServerScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen>
+class _AddServerScreenState extends State<AddServerScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _serverController = TextEditingController();
@@ -605,7 +602,7 @@ class _LoginScreenState extends State<LoginScreen>
             children: [
               // Form header
               Text(
-                'Sign In',
+                'Add Server',
                 style: TextStyle(
                   fontFamily: AppleDesignSystem.fontFamily,
                   fontSize: 28,
@@ -617,7 +614,7 @@ class _LoginScreenState extends State<LoginScreen>
               const SizedBox(height: 8),
 
               Text(
-                'Connect to your media server',
+                'Configure a new media server',
                 style: TextStyle(
                   fontFamily: AppleDesignSystem.fontFamily,
                   fontSize: 15,
@@ -1663,7 +1660,7 @@ class _LoginScreenState extends State<LoginScreen>
           _quickConnectCode = null;
           _quickConnectSecret = null;
         });
-        if (mounted && widget.fromSettings) {
+        if (mounted) {
           Navigator.of(context).pop();
         }
       } else {
@@ -1910,14 +1907,7 @@ class _LoginScreenState extends State<LoginScreen>
         // Success vibration
         await _triggerHapticFeedback(isSuccess: true);
         if (mounted) {
-          if (widget.fromSettings) {
-            Navigator.of(context).pop();
-          } else {
-            Navigator.of(context).pushAndRemoveUntil(
-              CupertinoPageRoute(builder: (context) => const AppShell()),
-              (route) => false,
-            );
-          }
+          Navigator.of(context).pop();
         }
       } else if (mounted) {
         // Error vibration

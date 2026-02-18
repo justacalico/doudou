@@ -56,7 +56,13 @@ class AppState extends ChangeNotifier {
   // Locale settings
   Locale? _locale; // null means use system locale
 
+  /// Configured servers for multi-server support. Each map: {id, type, url, displayName?}.
+  List<Map<String, String>> _configuredServers = [];
+  String? _activeServerId;
+
   // Getters
+  List<Map<String, String>> get configuredServers => List.unmodifiable(_configuredServers);
+  String? get activeServerId => _activeServerId;
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
@@ -229,9 +235,24 @@ class AppState extends ChangeNotifier {
     _audioHandlerSubscriptions.clear();
   }
 
+  static const String _keyConfiguredServers = 'configured_servers';
+  static const String _keyActiveServerId = 'active_server_id';
+
   Future<void> _loadSavedServer() async {
     try {
-      // Try to load saved credentials for any server type
+      final prefs = await SharedPreferences.getInstance();
+      _configuredServers = await _loadConfiguredServers();
+      _activeServerId = prefs.getString(_keyActiveServerId);
+
+      if (_configuredServers.isNotEmpty && _activeServerId != null) {
+        final server = _configuredServers.where((s) => s['id'] == _activeServerId).firstOrNull;
+        if (server != null) {
+          final success = await _connectToServer(server);
+          if (success) return;
+        }
+      }
+
+      // Fall back to legacy single-server format and migrate
       final credentials = await _loadServerCredentials();
 
       if (credentials != null) {
@@ -290,6 +311,24 @@ class AppState extends ChangeNotifier {
             _isLoggedIn = true;
             _isConnected = true;
             _isOfflineMode = false;
+
+            // Migrate to multi-server format
+            final serverId = 'srv_${DateTime.now().millisecondsSinceEpoch}_${serverUrl.hashCode.abs()}';
+            final serverConfig = <String, String>{
+              'id': serverId,
+              'type': serverType,
+              'url': serverUrl,
+              'authMethod': authMethod,
+              if (authMethod == 'api_key' && credentials['apiKey'] != null)
+                'apiKey': credentials['apiKey']!,
+              if (authMethod == 'password') ...{
+                'identifier': credentials['identifier']!,
+                'credential': credentials['credential']!,
+              },
+            };
+            _configuredServers = [serverConfig];
+            _activeServerId = serverId;
+            await _saveConfiguredServers();
 
             // Initialize cache service first
             await _cacheService.initialize();
@@ -579,6 +618,19 @@ class AppState extends ChangeNotifier {
       if (success) {
         _isLoggedIn = true;
 
+        // Add to configured servers
+        final serverId = 'srv_${DateTime.now().millisecondsSinceEpoch}_${serverUrl.hashCode.abs()}';
+        final serverConfig = <String, String>{
+          'id': serverId,
+          'type': 'jellyfin',
+          'url': serverUrl,
+          'authMethod': 'api_key',
+          'apiKey': apiKey,
+        };
+        _configuredServers = [..._configuredServers, serverConfig];
+        _activeServerId = serverId;
+        await _saveConfiguredServers();
+
         // Initialize cache service
         await _cacheService.initialize();
 
@@ -641,6 +693,20 @@ class AppState extends ChangeNotifier {
       );
 
       _isLoggedIn = true;
+
+      final serverUrl = authenticatedService.serverUrl ?? '';
+      // Add to configured servers (Quick Connect - credentials from jellyfinService)
+      final serverId = 'srv_${DateTime.now().millisecondsSinceEpoch}_${serverUrl.hashCode.abs()}';
+      final serverConfig = <String, String>{
+        'id': serverId,
+        'type': 'jellyfin',
+        'url': serverUrl,
+        'authMethod': 'quick_connect',
+        'identifier': authenticatedService.userId ?? '',
+      };
+      _configuredServers = [..._configuredServers, serverConfig];
+      _activeServerId = serverId;
+      await _saveConfiguredServers();
 
       // Initialize cache service
       await _cacheService.initialize();
@@ -727,6 +793,18 @@ class AppState extends ChangeNotifier {
       }
 
       _isLoggedIn = true;
+
+      // Add to configured servers
+      final serverId = 'srv_local_${DateTime.now().millisecondsSinceEpoch}';
+      final serverConfig = <String, String>{
+        'id': serverId,
+        'type': 'local',
+        'url': 'local',
+        'authMethod': 'local',
+      };
+      _configuredServers = [..._configuredServers, serverConfig];
+      _activeServerId = serverId;
+      await _saveConfiguredServers();
 
       // Initialize cache service
       await _cacheService.initialize();
@@ -828,6 +906,20 @@ class AppState extends ChangeNotifier {
       if (success) {
         _isLoggedIn = true;
 
+        // Add to configured servers
+        final serverId = 'srv_${DateTime.now().millisecondsSinceEpoch}_${serverUrl.hashCode.abs()}';
+        final serverConfig = <String, String>{
+          'id': serverId,
+          'type': serverType,
+          'url': serverUrl,
+          'authMethod': 'password',
+          'identifier': identifier,
+          'credential': credential,
+        };
+        _configuredServers = [..._configuredServers, serverConfig];
+        _activeServerId = serverId;
+        await _saveConfiguredServers();
+
         // Initialize cache service
         await _cacheService.initialize();
 
@@ -907,6 +999,165 @@ class AppState extends ChangeNotifier {
     await prefs.setString('server_credential', credential);
   }
 
+  Future<List<Map<String, String>>> _loadConfiguredServers() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_keyConfiguredServers);
+      if (json == null) return [];
+      final list = jsonDecode(json) as List<dynamic>? ?? [];
+      return list
+          .map((e) => (e as Map<String, dynamic>).map(
+                (k, v) => MapEntry(k, v?.toString() ?? ''),
+              ))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<void> _saveConfiguredServers() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyConfiguredServers, jsonEncode(_configuredServers));
+    if (_activeServerId != null) {
+      await prefs.setString(_keyActiveServerId, _activeServerId!);
+    } else {
+      await prefs.remove(_keyActiveServerId);
+    }
+  }
+
+  /// Connect to a server config (from configured_servers with full credentials).
+  Future<bool> _connectToServer(Map<String, String> server) async {
+    final serverType = server['type'] ?? 'jellyfin';
+    var serverUrl = server['url'] ?? '';
+    final authMethod = server['authMethod'] ?? 'password';
+
+    if (serverType == 'local') {
+      return await loginWithLocalMusic();
+    }
+
+    ServerType type;
+    switch (serverType) {
+      case 'plex':
+        type = ServerType.plex;
+        break;
+      case 'subsonic':
+        type = ServerType.subsonic;
+        break;
+      case 'soundcloud':
+        type = ServerType.soundcloud;
+        break;
+      default:
+        type = ServerType.jellyfin;
+    }
+
+    _mediaServiceManager.initializeService(type);
+    if (type != ServerType.plex &&
+        type != ServerType.local &&
+        type != ServerType.soundcloud &&
+        !serverUrl.startsWith('http://') &&
+        !serverUrl.startsWith('https://')) {
+      serverUrl = 'http://$serverUrl';
+    }
+    if (type == ServerType.soundcloud &&
+        (serverUrl.isEmpty || !serverUrl.startsWith('http'))) {
+      serverUrl = 'https://api.soundcloud.com';
+    }
+    _mediaServiceManager.setServer(serverUrl);
+
+    try {
+      bool isValid = false;
+      if (authMethod == 'api_key' && server['apiKey'] != null) {
+        isValid = await _jellyfinService
+            .authenticateWithApiKey(serverUrl, server['apiKey']!)
+            .timeout(const Duration(seconds: 10));
+      } else {
+        final identifier = server['identifier'] ?? '';
+        final credential = server['credential'] ?? '';
+        isValid = await _mediaServiceManager
+            .authenticate(serverUrl, identifier, credential)
+            .timeout(const Duration(seconds: 10));
+      }
+
+      if (isValid) {
+        _isLoggedIn = true;
+        _isConnected = true;
+        _isOfflineMode = false;
+        await _cacheService.initialize();
+        try {
+          final audioService = AudioServiceIntegration.instance;
+          await audioService.initialize(_mediaServiceManager);
+          _audioHandler = audioService;
+          audioService.audioHandler?.setSmartBackToStartEnabled(_smartBackToStartEnabled);
+        } catch (e) {
+          _audioHandler = null;
+        }
+        await loadLibraryData();
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  /// Switch to a different configured server.
+  Future<bool> switchToServer(String serverId) async {
+    _setLoading(true);
+    _clearError();
+    try {
+      final servers = await _loadConfiguredServers();
+      final server = servers.where((s) => s['id'] == serverId).firstOrNull;
+      if (server == null) {
+        _setLoading(false);
+        return false;
+      }
+
+      await _disconnectWithoutClearingServers();
+      _activeServerId = serverId;
+      _configuredServers = servers;
+      await _saveConfiguredServers();
+      final success = await _connectToServer(server);
+      _setLoading(false);
+      notifyListeners();
+      return success;
+    } catch (e) {
+      _setLoading(false);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Disconnect from current server without clearing configured servers.
+  Future<void> _disconnectWithoutClearingServers() async {
+    _mediaServiceManager.clearAuth();
+    try {
+      await _audioHandler?.dispose();
+    } catch (_) {}
+    _audioHandler = null;
+    _isLoggedIn = false;
+    _albums.clear();
+    _artists.clear();
+    _tracks.clear();
+    _playlists.clear();
+    _clearError();
+  }
+
+  /// Remove a server from the list. If it was active, switch to another.
+  Future<void> removeServer(String serverId) async {
+    _configuredServers = _configuredServers.where((s) => s['id'] != serverId).toList();
+    if (_activeServerId == serverId) {
+      _activeServerId = _configuredServers.isNotEmpty ? _configuredServers.first['id'] : null;
+      if (_activeServerId != null) {
+        await switchToServer(_activeServerId!);
+      } else {
+        await _disconnectWithoutClearingServers();
+        await _saveConfiguredServers();
+        notifyListeners();
+      }
+    } else {
+      await _saveConfiguredServers();
+      notifyListeners();
+    }
+  }
+
   Future<Map<String, String>?> _loadServerCredentials() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -954,7 +1205,7 @@ class AppState extends ChangeNotifier {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Clear all server credentials
+    // Clear all server credentials and multi-server data
     await prefs.remove('jellyfin_server'); // Legacy Jellyfin
     await prefs.remove('jellyfin_credentials');
     await prefs.remove('subsonic_credentials');
@@ -963,9 +1214,11 @@ class AppState extends ChangeNotifier {
     await prefs.remove('server_url');
     await prefs.remove('server_identifier');
     await prefs.remove('server_credential');
-
-    // Clear saved server type
+    await prefs.remove(_keyConfiguredServers);
+    await prefs.remove(_keyActiveServerId);
     await prefs.remove('saved_server_type');
+    _configuredServers = [];
+    _activeServerId = null;
 
     // Clear local music data if using local service
     final localService = _mediaServiceManager.localMusicService;

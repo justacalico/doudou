@@ -14,7 +14,7 @@ import 'package:doudou/services/update_service.dart';
 
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
-import 'package:doudou/ui/mobile/login/login.dart';
+import 'package:doudou/ui/mobile/login/add_server_screen.dart';
 
 /// Breakpoint: below this width use single-column layout (all sections stacked) instead of sidebar.
 const double _kSettingsBreakpoint = 768.0;
@@ -775,6 +775,23 @@ class _ServerSection extends StatelessWidget {
     required this.onShowNotification,
   });
 
+  String _serverTypeLabel(String type) {
+    switch (type) {
+      case 'jellyfin':
+        return 'Jellyfin';
+      case 'plex':
+        return 'Plex';
+      case 'subsonic':
+        return 'Subsonic/Navidrome';
+      case 'soundcloud':
+        return 'SoundCloud';
+      case 'local':
+        return 'Local Music';
+      default:
+        return type;
+    }
+  }
+
   /// Get server URL and username from current service or SharedPreferences fallback.
   Future<Map<String, String?>> _getServerInfo(AppState appState) async {
     // Try to get from current service first
@@ -817,27 +834,97 @@ class _ServerSection extends StatelessWidget {
               style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             SizedBox(height: isSmall ? 12 : 24),
-            if (!appState.isLoggedIn) ...[
-              Padding(
-                padding: EdgeInsets.only(bottom: isSmall ? 12 : 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(fromSettings: true),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Add Server'),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
+            Padding(
+              padding: EdgeInsets.only(bottom: isSmall ? 12 : 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AddServerScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Add Server'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
               ),
+            ),
+            if (appState.configuredServers.isNotEmpty) ...[
+              Text(
+                'Configured Servers',
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: isSmall ? 8 : 12),
+              ...appState.configuredServers.map((server) {
+                final id = server['id'] ?? '';
+                final type = server['type'] ?? 'unknown';
+                final url = server['url'] ?? '';
+                final displayUrl = url == 'local' ? 'Local Music' : (url.length > 50 ? '${url.substring(0, 47)}...' : url);
+                final isActive = id == appState.activeServerId;
+                return Card(
+                  margin: EdgeInsets.only(bottom: isSmall ? 8 : 12),
+                  child: ListTile(
+                    leading: Icon(
+                      type == 'local' ? Icons.folder_rounded : Icons.dns_rounded,
+                      color: isActive ? theme.colorScheme.primary : null,
+                    ),
+                    title: Text(
+                      displayUrl,
+                      style: TextStyle(
+                        fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                    subtitle: Text('${_serverTypeLabel(type)}${isActive ? ' (Active)' : ''}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (!isActive)
+                          TextButton(
+                            onPressed: () async {
+                              final ok = await appState.switchToServer(id);
+                              if (context.mounted) {
+                                onShowNotification(ok ? 'Switched to server' : 'Failed to switch', color: ok ? null : Colors.red);
+                              }
+                            },
+                            child: const Text('Switch'),
+                          ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                          onPressed: () async {
+                            final ok = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Remove Server'),
+                                content: Text('Remove "$displayUrl" from configured servers?'),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                    child: const Text('Remove'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (ok == true) {
+                              await appState.removeServer(id);
+                              if (context.mounted) {
+                                onShowNotification('Server removed');
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              SizedBox(height: isSmall ? 8 : 12),
             ],
             Card(
               child: Padding(

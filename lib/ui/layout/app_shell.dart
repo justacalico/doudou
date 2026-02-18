@@ -26,7 +26,7 @@ import 'package:doudou/ui/pages/tracks_page.dart';
 import 'package:doudou/ui/pages/playlists_page.dart';
 import 'package:doudou/ui/pages/downloads_page.dart';
 import 'package:doudou/ui/pages/settings_page.dart';
-import 'package:doudou/ui/mobile/login/login.dart';
+import 'package:doudou/ui/mobile/login/add_server_screen.dart';
 
 /// Single responsive shell: sidebar on desktop, bottom navbar on mobile.
 /// Uses one [selectedIndex] and one set of pages so resizing never reloads or loses state.
@@ -244,7 +244,7 @@ class _AppShellState extends State<AppShell> {
 
   void _openAddServer() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const LoginScreen(fromSettings: true)),
+      MaterialPageRoute(builder: (context) => const AddServerScreen()),
     );
   }
 
