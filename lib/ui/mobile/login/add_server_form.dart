@@ -1126,10 +1126,6 @@ class _AddServerFormState extends State<AddServerForm> {
       if (!mounted) return;
       final appState = context.read<AppState>();
       final existingId = widget.existingServer?['id'];
-      if (existingId != null && existingId.isNotEmpty) {
-        await appState.removeServer(existingId);
-        if (!mounted) return;
-      }
       bool success;
 
       final displayName = _nameController.text.trim().isEmpty
@@ -1169,6 +1165,10 @@ class _AddServerFormState extends State<AddServerForm> {
       }
 
       if (success && mounted) {
+        if (existingId != null && existingId.isNotEmpty) {
+          await appState.removeServer(existingId);
+          if (!mounted) return;
+        }
         await _triggerHapticFeedback(isSuccess: true);
         if (mounted) {
           if (widget.onSuccess != null) {
