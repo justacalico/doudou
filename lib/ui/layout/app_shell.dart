@@ -74,11 +74,6 @@ class _AppShellState extends State<AppShell> {
         ServerType.local;
   }
 
-  bool get _isSoundCloud {
-    return context.read<AppState>().mediaServiceManager.currentServerType ==
-        ServerType.soundcloud;
-  }
-
   void _rebuildPageLists() {
     _navItems = _buildNavItems();
     _libraryItems = _buildLibraryItems();
@@ -106,7 +101,7 @@ class _AppShellState extends State<AppShell> {
         Icons.queue_music_rounded,
         'Playlists',
       ),
-      if (!_isLocalMusic && !_isSoundCloud)
+      if (!_isLocalMusic)
         const _NavItem(Icons.download_outlined, Icons.download_rounded, 'Downloads'),
     ];
   }
@@ -121,7 +116,7 @@ class _AppShellState extends State<AppShell> {
       const TracksPage(),
       const PlaylistsPage(),
     ];
-    if (!_isLocalMusic && !_isSoundCloud) list.add(const DownloadsPage());
+    if (!_isLocalMusic) list.add(const DownloadsPage());
     list.add(const SettingsPage());
     return list;
   }
@@ -155,7 +150,7 @@ class _AppShellState extends State<AppShell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final showDownloads = !_isLocalMusic && !_isSoundCloud;
+    final showDownloads = !_isLocalMusic;
     final wasShowingDownloads = _libraryItems.length == 5;
     if (showDownloads != wasShowingDownloads) _rebuildPageLists();
   }
