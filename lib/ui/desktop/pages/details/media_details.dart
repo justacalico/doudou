@@ -722,7 +722,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             SizedBox(
               width: 60,
               child: Text(
-                _formatDuration(track.duration ?? 0),
+                track.duration != null ? _formatDuration(track.duration!) : '--:--',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

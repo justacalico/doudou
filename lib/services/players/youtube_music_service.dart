@@ -296,7 +296,10 @@ class YouTubeMusicService implements BaseMediaService {
       try {
         final album = await _ytMusic.getAlbum(parentId);
         if (album.songs.isNotEmpty) {
-          return album.songs.map((s) => _trackFromSongDetailed(s)).toList();
+          var tracks = album.songs.map((s) => _trackFromSongDetailed(s)).toList();
+          // Enrich tracks with null duration (album parser sometimes misses duration)
+          tracks = await _enrichDurations(tracks, maxEnrich: 20);
+          return tracks;
         }
       } catch (_) {}
       return getPlaylistTracks(parentId);
@@ -719,6 +722,43 @@ class YouTubeMusicService implements BaseMediaService {
     return true;
   }
 
+  /// Enrich tracks that have null duration by fetching video details (e.g. album list sometimes misses duration).
+  Future<List<Track>> _enrichDurations(List<Track> tracks, {int maxEnrich = 20}) async {
+    final needEnrich = <int>[];
+    for (var i = 0; i < tracks.length && needEnrich.length < maxEnrich; i++) {
+      if (tracks[i].duration == null) needEnrich.add(i);
+    }
+    if (needEnrich.isEmpty) return tracks;
+    const batchSize = 5;
+    final result = List<Track>.from(tracks);
+    for (var b = 0; b < needEnrich.length; b += batchSize) {
+      final batch = needEnrich.skip(b).take(batchSize).toList();
+      final futures = batch.map((i) => _getTrackById(result[i].id));
+      final full = await Future.wait(futures);
+      for (var j = 0; j < batch.length; j++) {
+        final fullTrack = full[j];
+        if (fullTrack != null && fullTrack.duration != null) {
+          final t = result[batch[j]];
+          result[batch[j]] = Track(
+            id: t.id,
+            name: t.name,
+            artistName: t.artistName,
+            albumName: t.albumName,
+            albumId: t.albumId,
+            artistId: t.artistId,
+            playlistItemId: t.playlistItemId,
+            duration: fullTrack.duration,
+            trackNumber: t.trackNumber,
+            imageUrl: t.imageUrl ?? fullTrack.imageUrl,
+            isFavorite: t.isFavorite,
+            playCount: t.playCount,
+          );
+        }
+      }
+    }
+    return result;
+  }
+
   /// Try to fetch a track by ID (for favorites)
   Future<Track?> _getTrackById(String trackId) async {
     if (!_isReady) return null;
@@ -857,13 +897,35 @@ class YouTubeMusicService implements BaseMediaService {
     return '';
   }
 
-  /// Convert API duration to milliseconds. dart_ytmusic_api returns duration in seconds.
+  /// Convert API duration to milliseconds. dart_ytmusic_api returns duration in seconds (int).
+  /// Also accepts string "M:SS" or "H:MM:SS" in case the API or parser returns that.
   static int? _durationMs(dynamic raw) {
     if (raw == null) return null;
-    final v = raw is int ? raw : int.tryParse(raw.toString());
-    if (v == null) return null;
-    // Values > 360000 are likely already ms (e.g. 369000 = 6:09); else assume seconds.
-    return v > 360000 ? v : v * 1000;
+    if (raw is int) {
+      // Values > 360000 are likely already ms (e.g. 369000 = 6:09); else assume seconds.
+      return raw > 360000 ? raw : raw * 1000;
+    }
+    final str = raw.toString().trim();
+    if (str.isEmpty) return null;
+    // Try plain integer (seconds or ms)
+    final v = int.tryParse(str);
+    if (v != null) return v > 360000 ? v : v * 1000;
+    // Try time string M:SS or H:MM:SS (e.g. "4:32", "1:04:32")
+    final match = RegExp(r'(\d+):(\d+)(?::(\d+))?').firstMatch(str);
+    if (match != null) {
+      final g2 = int.tryParse(match.group(2) ?? '') ?? 0;
+      final g3 = match.group(3);
+      if (g3 != null) {
+        final h = int.tryParse(match.group(1) ?? '') ?? 0;
+        final m = g2;
+        final sec = int.tryParse(g3) ?? 0;
+        return (h * 3600 + m * 60 + sec) * 1000;
+      }
+      final m = int.tryParse(match.group(1) ?? '') ?? 0;
+      final sec = g2;
+      return (m * 60 + sec) * 1000;
+    }
+    return null;
   }
 
   Track _trackFromSongDetailed(dynamic s) {
