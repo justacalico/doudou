@@ -554,22 +554,30 @@ class YouTubeMusicService implements BaseMediaService {
       }
     }
 
-    // 2) Piped API fallback - proxied streams (when Invidious instances are down)
-    if (urls.isEmpty) {
-      final pipedUrls = await _getPipedStreamUrls(videoId);
-      urls.addAll(pipedUrls);
-    }
+    // 2) Piped and Invidious - always add as fallbacks (proxied streams, no custom headers).
+    // On desktop, MPV often fails with direct googlevideo.com URLs when a local header-proxy
+    // is used; prefer proxied URLs on desktop so playback works without that proxy.
+    final pipedUrls = await _getPipedStreamUrls(videoId);
+    final invidiousUrls = await _getInvidiousStreamUrls(videoId);
 
-    // 3) Invidious API fallback - proxied streams (local=true), works when direct URLs 403
-    if (urls.isEmpty) {
-      final invidiousUrls = await _getInvidiousStreamUrls(videoId);
+    final isDesktop = defaultTargetPlatform == TargetPlatform.linux ||
+        defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+
+    final List<String> result;
+    if (isDesktop && (pipedUrls.isNotEmpty || invidiousUrls.isNotEmpty)) {
+      // Desktop: try proxied URLs first so we avoid the failing local header-proxy for googlevideo.com
+      result = <String>[...pipedUrls, ...invidiousUrls, ...urls];
+    } else {
+      urls.addAll(pipedUrls);
       urls.addAll(invidiousUrls);
+      result = urls;
     }
 
     if (kDebugMode) {
-      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: returning ${urls.length} URL(s) for $videoId');
+      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: returning ${result.length} URL(s) for $videoId');
     }
-    return urls;
+    return result;
   }
 
   static String _normalizeVideoId(String trackId) {
