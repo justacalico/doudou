@@ -517,17 +517,30 @@ class YouTubeMusicService implements BaseMediaService {
   @override
   Future<List<Playlist>> getPlaylists() async {
     if (_hasCookies && _isReady) {
+      final result = <Playlist>[];
+      // Always show Liked Music first when logged in (YouTube's thumbs-up playlist).
+      result.add(Playlist(
+        id: 'VLM',
+        name: 'Liked Music',
+        imageUrl: null,
+        trackCount: 0,
+      ));
       try {
         final data = await _ytMusic.constructRequest(
           'browse',
           body: {'browseId': 'FEmusic_liked_playlists'},
         );
-        final list = _parseLibraryPlaylistsFromBrowse(data);
-        if (list.isNotEmpty) return list;
+        final library = _parseLibraryPlaylistsFromBrowse(data);
+        for (final p in library) {
+          if (p.id != 'VLM') result.add(p);
+        }
       } catch (e) {
         if (kDebugMode) {
           print('[YouTubeMusic] getPlaylists (API) failed: $e');
         }
+      }
+      if (result.length > 1 || (result.length == 1 && result[0].id == 'VLM')) {
+        return result;
       }
     }
     await _loadLocalData();
@@ -543,8 +556,21 @@ class YouTubeMusicService implements BaseMediaService {
       final content = tabs[0]['tabRenderer']?['content']?['sectionListRenderer']?['contents'];
       if (content is! List) return list;
       for (final section in content) {
-        final items = section['gridRenderer']?['items'] ?? section['musicShelfRenderer']?['contents'];
-        if (items is! List) continue;
+        // Items can be in gridRenderer.items, musicShelfRenderer.contents, or itemSectionRenderer.contents[].gridRenderer.items
+        List<dynamic>? items = section['gridRenderer']?['items'] ?? section['musicShelfRenderer']?['contents'];
+        if (items == null || items.isEmpty) {
+          final itemSection = section['itemSectionRenderer'];
+          if (itemSection != null && itemSection['contents'] is List) {
+            for (final block in itemSection['contents'] as List) {
+              final grid = block?['gridRenderer']?['items'];
+              if (grid is List && grid.isNotEmpty) {
+                items = grid;
+                break;
+              }
+            }
+          }
+        }
+        if (items == null || items.isEmpty) continue;
         for (final item in items) {
           final renderer = item['musicTwoRowItemRenderer'] ?? item['musicResponsiveListItemRenderer'];
           if (renderer == null) continue;
