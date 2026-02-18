@@ -55,23 +55,6 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: DesktopTheme.spacingMd),
                       _quickAccess(context, appState, l10n),
                       const SizedBox(height: DesktopTheme.spacingXl),
-                      if (appState.mediaServiceManager.currentServerType ==
-                              ServerType.youtubeMusic &&
-                          appState.youtubeMusicHomeSections.isNotEmpty) ...[
-                        ...appState.youtubeMusicHomeSections
-                            .map(
-                              (s) => [
-                                SectionHeader(
-                                  title: s.title,
-                                  subtitle: '',
-                                ),
-                                const SizedBox(height: DesktopTheme.spacingMd),
-                                _ytmSectionRow(context, appState, s, l10n),
-                                const SizedBox(height: DesktopTheme.spacingXl),
-                              ],
-                            )
-                            .expand((e) => e),
-                      ],
                       if (appState.albums.isNotEmpty) ...[
                         SectionHeader(
                           title: l10n.recentlyAddedAlbums,
@@ -116,9 +99,8 @@ class _HomePageState extends State<HomePage> {
                       ],
                       if ((appState.mediaServiceManager.currentServerType ==
                                   ServerType.soundcloud ||
-                              (appState.mediaServiceManager.currentServerType ==
-                                      ServerType.youtubeMusic &&
-                                  appState.youtubeMusicHomeSections.isEmpty)) &&
+                              appState.mediaServiceManager.currentServerType ==
+                                  ServerType.youtubeMusic) &&
                           appState.albums.isEmpty &&
                           appState.artists.isEmpty &&
                           appState.tracks.isEmpty) ...[
@@ -367,83 +349,6 @@ class _HomePageState extends State<HomePage> {
             ),
           )
           .toList(),
-    );
-  }
-
-  Widget _ytmSectionRow(
-    BuildContext context,
-    AppState appState,
-    YTMHomeSection section,
-    AppLocalizations l10n,
-  ) {
-    final cards = <Widget>[];
-    int index = 0;
-    for (final album in section.albums) {
-      cards.add(
-        Padding(
-          padding: EdgeInsets.only(
-              right: index < section.albums.length - 1
-                  ? DesktopTheme.spacingMd
-                  : 0),
-          child: MusicCard(
-            title: album.name,
-            subtitle: album.artistName ?? l10n.unknownArtist,
-            imageUrl: _imageUrl(appState, album.imageUrl),
-            size: 180,
-            onTap: () => NavigationService().navigateToAlbum(album),
-          ),
-        ),
-      );
-      index++;
-    }
-    int plIndex = 0;
-    for (final playlist in section.playlists) {
-      cards.add(
-        Padding(
-          padding: EdgeInsets.only(
-              right: plIndex < section.playlists.length - 1
-                  ? DesktopTheme.spacingMd
-                  : 0),
-          child: MusicCard(
-            title: playlist.name,
-            subtitle: l10n.playlists,
-            imageUrl: _imageUrl(appState, playlist.imageUrl),
-            size: 180,
-            placeholderIcon: Icons.playlist_play_rounded,
-            onTap: () => NavigationService().navigateToPlaylist(playlist),
-          ),
-        ),
-      );
-      plIndex++;
-    }
-    final trackList = section.tracks;
-    for (int i = 0; i < trackList.length; i++) {
-      final track = trackList[i];
-      cards.add(
-        Padding(
-          padding: EdgeInsets.only(
-              right: i < trackList.length - 1 ? DesktopTheme.spacingMd : 0),
-          child: MusicCard(
-            title: track.name,
-            subtitle: track.artistName ?? l10n.unknownArtist,
-            imageUrl: _imageUrl(appState, track.imageUrl),
-            size: 180,
-            placeholderIcon: Icons.music_note_rounded,
-            onTap: () {
-              appState.playPlaylist(trackList, i);
-            },
-          ),
-        ),
-      );
-    }
-    if (cards.isEmpty) return const SizedBox.shrink();
-    return SizedBox(
-      height: 230,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        children: cards,
-      ),
     );
   }
 
