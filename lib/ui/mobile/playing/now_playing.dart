@@ -836,107 +836,127 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                           child: SizedBox(
                                             height: 44,
                                             child: Center(
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                                child: BackdropFilter(
-                                                  filter: ImageFilter.blur(
-                                                      sigmaX: 5, sigmaY: 5),
-                                                  child: Container(
-                                                    height: 8,
-                                                    width: double.infinity,
-                                                    decoration: BoxDecoration(
-                                                      color: CupertinoColors
-                                                          .white
-                                                          .withOpacity(0.15),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6),
-                                                    ),
-                                                    child: LayoutBuilder(
-                                                      builder: (context,
-                                                          constraints) {
-                                                        final progress = sliderValue
-                                                            .clamp(0.0, 1.0);
-                                                        const thumbRadius = 6.0;
-                                                        final thumbLeft = (constraints
-                                                                    .maxWidth *
-                                                                progress -
-                                                            thumbRadius)
-                                                            .clamp(
-                                                                0.0,
-                                                                constraints
-                                                                        .maxWidth -
-                                                                    thumbRadius *
-                                                                        2);
-                                                        return Stack(
-                                                          clipBehavior:
-                                                              Clip.none,
-                                                          alignment:
-                                                              Alignment
-                                                                  .centerLeft,
-                                                          children: [
-                                                            // Filled portion: left to right only
-                                                            SizedBox(
-                                                              width: constraints
-                                                                      .maxWidth *
-                                                                  progress,
+                                              child: LayoutBuilder(
+                                                builder: (context, constraints) {
+                                                  final barWidth =
+                                                      constraints.maxWidth;
+                                                  final progress = sliderValue
+                                                      .clamp(0.0, 1.0);
+                                                  const barHeight = 4.0;
+                                                  const thumbRadius = 6.0;
+                                                  final thumbLeft =
+                                                      (barWidth * progress -
+                                                              thumbRadius)
+                                                          .clamp(
+                                                              0.0,
+                                                              barWidth -
+                                                                  thumbRadius *
+                                                                      2);
+                                                  return SizedBox(
+                                                    height: 16,
+                                                    width: barWidth,
+                                                    child: Stack(
+                                                      clipBehavior: Clip.none,
+                                                      children: [
+                                                        // Thin track (blurred)
+                                                        Positioned(
+                                                          left: 0,
+                                                          right: 0,
+                                                          top: (16 - barHeight) /
+                                                              2,
+                                                          height: barHeight,
+                                                          child: ClipRRect(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(2),
+                                                            child: BackdropFilter(
+                                                              filter: ImageFilter
+                                                                  .blur(
+                                                                      sigmaX: 5,
+                                                                      sigmaY: 5),
                                                               child: Container(
-                                                                decoration: BoxDecoration(
-                                                                  gradient: const LinearGradient(
-                                                                    begin: Alignment
-                                                                        .centerLeft,
-                                                                    end: Alignment
-                                                                        .centerRight,
-                                                                    colors: [
-                                                                      Color(
-                                                                          0xFF8B5CF6),
-                                                                      Color(
-                                                                          0xFFEC4899),
-                                                                    ],
-                                                                  ),
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  color: CupertinoColors
+                                                                      .white
+                                                                      .withOpacity(
+                                                                          0.15),
                                                                   borderRadius:
                                                                       BorderRadius
                                                                           .circular(
-                                                                              6),
+                                                                              2),
                                                                 ),
                                                               ),
                                                             ),
-                                                            // Playhead (thumb)
-                                                            Positioned(
-                                                              left: thumbLeft +
-                                                                  thumbRadius,
-                                                              child: Container(
-                                                                width: thumbRadius *
-                                                                    2,
-                                                                height: thumbRadius *
-                                                                    2,
-                                                                decoration: BoxDecoration(
-                                                                  shape: BoxShape
-                                                                      .circle,
+                                                          ),
+                                                        ),
+                                                        // Active portion
+                                                        Positioned(
+                                                          left: 0,
+                                                          top: (16 -
+                                                                  barHeight) /
+                                                              2,
+                                                          width: barWidth *
+                                                              progress,
+                                                          height: barHeight,
+                                                          child: Container(
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              gradient: const LinearGradient(
+                                                                begin: Alignment
+                                                                    .centerLeft,
+                                                                end: Alignment
+                                                                    .centerRight,
+                                                                colors: [
+                                                                  Color(
+                                                                      0xFF8B5CF6),
+                                                                  Color(
+                                                                      0xFFEC4899),
+                                                                ],
+                                                              ),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          2),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        // Playhead: circle that escapes the box
+                                                        Positioned(
+                                                          left: thumbLeft,
+                                                          top: (16 -
+                                                                  thumbRadius *
+                                                                      2) /
+                                                              2,
+                                                          child: Container(
+                                                            width: thumbRadius *
+                                                                2,
+                                                            height: thumbRadius *
+                                                                2,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              shape: BoxShape
+                                                                  .circle,
+                                                              color: Colors
+                                                                  .white,
+                                                              boxShadow: [
+                                                                BoxShadow(
                                                                   color: Colors
-                                                                      .white,
-                                                                  boxShadow: [
-                                                                    BoxShadow(
-                                                                      color: Colors
-                                                                          .black
-                                                                          .withOpacity(
-                                                                              0.3),
-                                                                      blurRadius:
-                                                                          4,
-                                                                      offset: const Offset(
-                                                                          0, 1),
-                                                                    ),
-                                                                  ],
+                                                                      .black
+                                                                      .withOpacity(
+                                                                          0.3),
+                                                                  blurRadius: 4,
+                                                                  offset: const Offset(
+                                                                      0, 1),
                                                                 ),
-                                                              ),
+                                                              ],
                                                             ),
-                                                          ],
-                                                        );
-                                                      },
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ),
-                                                ),
+                                                  );
+                                                },
                                               ),
                                             ),
                                           ),

@@ -304,45 +304,61 @@ class _ProgressBarState extends State<_ProgressBar> {
           _dragValue = null;
         },
         child: SizedBox(
-          height: isExpanded ? 12 : 8,
+          height: 16,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final progress = currentProgress.clamp(0.0, 1.0);
+              const barHeight = 4.0;
               const thumbRadius = 6.0;
               final thumbLeft = (constraints.maxWidth * progress - thumbRadius)
                   .clamp(0.0, constraints.maxWidth - thumbRadius * 2);
               return Stack(
                 clipBehavior: Clip.none,
-                alignment: Alignment.centerLeft,
                 children: [
-                  // Background track
-                  Container(
-                    decoration: BoxDecoration(
-                      color: DesktopTheme.backgroundElevated,
-                      borderRadius: BorderRadius.circular(4),
+                  // Thin track (full width, centered vertically)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: (16 - barHeight) / 2,
+                    height: barHeight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: DesktopTheme.backgroundElevated,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                  // Active track
-                  FractionallySizedBox(
-                    widthFactor: progress,
+                  // Active track (thin line, left portion)
+                  Positioned(
+                    left: 0,
+                    top: (16 - barHeight) / 2,
+                    width: constraints.maxWidth * progress,
+                    height: barHeight,
                     child: Container(
                       decoration: BoxDecoration(
                         color: isExpanded
                             ? theme.colorScheme.primary
                             : DesktopTheme.textPrimary,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
-                  // Playhead (thumb)
+                  // Playhead: circle that escapes the box (extends above/below bar)
                   Positioned(
-                    left: thumbLeft + thumbRadius,
+                    left: thumbLeft,
+                    top: (16 - thumbRadius * 2) / 2,
                     child: Container(
                       width: thumbRadius * 2,
                       height: thumbRadius * 2,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white,
+                        color: isExpanded
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.primary.withOpacity(0.9),
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 2,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.25),
