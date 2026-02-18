@@ -70,7 +70,7 @@ No. You can play local files directly from your device without any server as wel
 Yes, as long as your server is accessible over the internet.
 
 **How do I download for offline listening?**
-Long-press any song, album, or playlist and select "Download for offline listening." (Note: Soundcloud has the downloads page disabled to not break trust with them.)
+Long-press any song, album, or playlist and select "Download for offline listening." We have disabled downloading for online provideres to prevent blocking we will not advaocte for priacy.
 
 **Which server works best?**
 Subsonic offers the best experience with full feature support and is completely free. If you are looking for non-local use the Soundcloud provider.
