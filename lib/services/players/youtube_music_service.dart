@@ -289,6 +289,9 @@ class YouTubeMusicService implements BaseMediaService {
     return null;
   }
 
+  /// JossRed proxy URL (OpenTune fallback) - avoids googlevideo.com 403/User-Agent issues
+  static const String _jossRedStreamBase = 'https://jossred.josprox.com/yt/v2/stream/';
+
   @override
   Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
     if (kIsWeb || !_authenticated) return [];
@@ -304,7 +307,15 @@ class YouTubeMusicService implements BaseMediaService {
       print('[YouTubeMusic] getAlternativeStreamUrlsAsync: resolving videoId=$videoId');
     }
 
-    // Try default clients first, then fallbacks when YouTube API changes
+    final urls = <String>[];
+
+    // 1) JossRed proxy first (OpenTune pattern) - no User-Agent issues, works when direct URLs fail
+    urls.add('$_jossRedStreamBase$videoId');
+    if (kDebugMode) {
+      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: added JossRed proxy URL');
+    }
+
+    // 2) Try youtube_explode_dart for direct googlevideo URLs (higher quality, may need User-Agent)
     // androidMusic uses music.youtube.com and is ideal for YouTube Music
     final clientConfigs = <List<YoutubeApiClient>?>[
       null, // default: android + ios
@@ -362,7 +373,8 @@ class YouTubeMusicService implements BaseMediaService {
             print('[YouTubeMusic] getAlternativeStreamUrlsAsync: SUCCESS client=$clientName '
                 'host=$host expire=$expire urlLen=${url.length}');
           }
-          return [url];
+          urls.add(url);
+          break; // got a direct URL, stop trying clients
         }
       } catch (e, st) {
         if (kDebugMode) {
@@ -375,9 +387,9 @@ class YouTubeMusicService implements BaseMediaService {
     }
 
     if (kDebugMode) {
-      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: no stream URLs for $videoId');
+      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: returning ${urls.length} URL(s) for $videoId');
     }
-    return [];
+    return urls;
   }
 
   static String _normalizeVideoId(String trackId) {

@@ -787,13 +787,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _updatePlaybackStateStream();
 
     try {
-      final streamUrl = await _getStreamUrl(track);
-      if (streamUrl.isEmpty) {
+      final urls = await _getStreamUrls(track);
+      if (urls.isEmpty) {
         _stateController.updateError('No stream URL available for this track');
         _stateController.updateState(AudioPlayerState.error);
         return;
       }
-      await _loadAndPlayTrack(streamUrl);
+      await _loadAndPlayTrackWithFallbacks(urls);
     } catch (e) {
       _stateController.updateError('Failed to play track: $e');
       _stateController.updateState(AudioPlayerState.error);
@@ -951,13 +951,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _stateController.updateCurrentIndex(index);
     _stateController.updateCurrentTrack(track);
 
-    final streamUrl = await _getStreamUrl(track);
-    if (streamUrl.isEmpty) {
+    final urls = await _getStreamUrls(track);
+    if (urls.isEmpty) {
       _stateController.updateError('No stream URL available for this track');
       _stateController.updateState(AudioPlayerState.error);
       return;
     }
-    await _loadAndPlayTrack(streamUrl);
+    await _loadAndPlayTrackWithFallbacks(urls);
 
     // Preload adjacent tracks for faster skips (desktop uses preloaded URLs; mobile/web use cache)
     _preloadAdjacentTracks(index);
@@ -1174,15 +1174,46 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         errorString.contains('access-control');
   }
 
-  /// Get stream URL for track
-  Future<String> _getStreamUrl(Track track) async {
+  /// Load and play track, trying each URL until one succeeds (for YouTube Music fallbacks)
+  Future<void> _loadAndPlayTrackWithFallbacks(List<String> urls) async {
+    assert(urls.isNotEmpty);
+    Object? lastError;
+    for (var i = 0; i < urls.length; i++) {
+      final url = urls[i];
+      if (url.isEmpty) continue;
+      final lower = url.toLowerCase();
+      if (lower.contains('api.soundcloud.com')) continue;
+      if (!lower.startsWith('http://') && !lower.startsWith('https://')) continue;
+
+      try {
+        await _loadAndPlayTrack(url);
+        final track = _stateController.currentTrack;
+        if (track != null && urls.length > 1) {
+          _cacheResolvedUrl(track.id, url);
+        }
+        if (kDebugMode && i > 0) {
+          debugPrint('[Playback] _loadAndPlayTrackWithFallbacks: succeeded with URL #${i + 1} of ${urls.length}');
+        }
+        return;
+      } catch (e) {
+        lastError = e;
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrackWithFallbacks: URL #${i + 1} failed: $e, trying next');
+        }
+      }
+    }
+    throw lastError ?? Exception('All stream URLs failed to load');
+  }
+
+  /// Get stream URLs for track (list for fallback support; single URL for others)
+  Future<List<String>> _getStreamUrls(Track track) async {
     // 1) Check resolved URL cache (SoundCloud, YouTube Music – gapless after first load)
     final cached = _resolvedUrlCache.remove(track.id);
     if (cached != null && cached.isNotEmpty) {
       if (kDebugMode) {
-        debugPrint('[Playback] _getStreamUrl: using cached URL for track id=${track.id}');
+        debugPrint('[Playback] _getStreamUrls: using cached URL for track id=${track.id}');
       }
-      return cached;
+      return [cached];
     }
 
     // 2) Check preloaded URLs (desktop)
@@ -1197,9 +1228,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           final url = _preloadedNextUrl!;
           _preloadedNextUrl = null;
           if (kDebugMode) {
-            debugPrint('[Playback] _getStreamUrl: using preloaded NEXT URL for track id=${track.id}');
+            debugPrint('[Playback] _getStreamUrls: using preloaded NEXT URL for track id=${track.id}');
           }
-          return url;
+          return [url];
         }
 
         if (currentIndex - 1 >= 0 &&
@@ -1208,9 +1239,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           final url = _preloadedPreviousUrl!;
           _preloadedPreviousUrl = null;
           if (kDebugMode) {
-            debugPrint('[Playback] _getStreamUrl: using preloaded PREV URL for track id=${track.id}');
+            debugPrint('[Playback] _getStreamUrls: using preloaded PREV URL for track id=${track.id}');
           }
-          return url;
+          return [url];
         }
       }
     }
@@ -1218,38 +1249,40 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     // 3) Try direct stream first
     final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
     if (directUrl.isNotEmpty) {
-      return directUrl;
+      return [directUrl];
     }
 
     // 4) Fallback to transcoded stream
     final streamUrl = _mediaServiceManager.getStreamUrl(track.id);
     if (streamUrl.isNotEmpty) {
-      return streamUrl;
+      return [streamUrl];
     }
 
     // 5) For providers that need async URL resolution (e.g. SoundCloud, YouTube Music)
     if (kDebugMode) {
-      debugPrint('[Playback] _getStreamUrl: resolving async for track id=${track.id} name=${track.name}');
+      debugPrint('[Playback] _getStreamUrls: resolving async for track id=${track.id} name=${track.name}');
     }
     final asyncUrls = await _mediaServiceManager.getAlternativeStreamUrlsAsync(track.id);
     if (asyncUrls.isEmpty) {
-      debugPrint('[Playback] _getStreamUrl: No stream URLs for track id=${track.id} name=${track.name}');
-      return '';
+      debugPrint('[Playback] _getStreamUrls: No stream URLs for track id=${track.id} name=${track.name}');
+      return [];
     }
+    final valid = <String>[];
     for (final url in asyncUrls) {
       if (url.isEmpty) continue;
       final lower = url.toLowerCase();
       if (lower.contains('api.soundcloud.com')) continue;
       if (lower.startsWith('http://') || lower.startsWith('https://')) {
-        if (kDebugMode) {
-          debugPrint('[Playback] _getStreamUrl: using URL len=${url.length} host=${Uri.tryParse(url)?.host} for track id=${track.id}');
-        }
-        _cacheResolvedUrl(track.id, url);
-        return url;
+        valid.add(url);
       }
     }
-    debugPrint('[Playback] _getStreamUrl: All ${asyncUrls.length} URL(s) rejected for track id=${track.id}');
-    return '';
+    if (valid.isNotEmpty && valid.length == 1) {
+      _cacheResolvedUrl(track.id, valid.first);
+    }
+    if (kDebugMode && valid.isNotEmpty) {
+      debugPrint('[Playback] _getStreamUrls: ${valid.length} valid URL(s) for track id=${track.id}');
+    }
+    return valid;
   }
 
   void _cacheResolvedUrl(String trackId, String url) {
