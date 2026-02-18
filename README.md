@@ -7,8 +7,8 @@ A privacy-focused music player for your media server. Stream your music collecti
 - **Subsonic** - Full API compatibility
 - **Jellyfin** - Full support
 - **Plex** - Working (unstested (issues will be fixed if reported))
-- **Soundcloud** - Working (auth needed)
-- **Youtube Music** - Working (cookie auth, InnerTube streaming)
+- **Soundcloud** - Working (auth needed) (expermental)
+- **Youtube Music** - Semi-wroking (expermental)
 - **Local Files** - Play music directly from your device without a server
 
 ## Features
