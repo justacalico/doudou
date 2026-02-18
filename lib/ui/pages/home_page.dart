@@ -55,28 +55,34 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: DesktopTheme.spacingMd),
                       _quickAccess(context, appState, l10n),
                       const SizedBox(height: DesktopTheme.spacingXl),
-                      if (appState.albums.isNotEmpty) ...[
-                        SectionHeader(
-                          title: l10n.recentlyAddedAlbums,
-                          subtitle: l10n.yourNewestAdditions,
-                          useGradient: true,
-                          onSeeAllPressed: () =>
-                              NavigationService().selectPage(3),
-                        ),
-                        const SizedBox(height: DesktopTheme.spacingMd),
-                        _recentlyAddedAlbumRow(context, appState, l10n),
-                        const SizedBox(height: DesktopTheme.spacingXl),
-                      ],
-                      if (appState.recentlyPlayedAlbums.isNotEmpty) ...[
-                        SectionHeader(
-                          title: l10n.continueListening,
-                          subtitle: l10n.recentlyPlayedSection,
-                          onSeeAllPressed: () =>
-                              NavigationService().selectPage(3),
-                        ),
-                        const SizedBox(height: DesktopTheme.spacingMd),
-                        _continueListeningRow(context, appState, l10n),
-                        const SizedBox(height: DesktopTheme.spacingXl),
+                      // SoundCloud & YouTube Music: home = only what you follow (Your artists)
+                      if (appState.mediaServiceManager.currentServerType !=
+                              ServerType.soundcloud &&
+                          appState.mediaServiceManager.currentServerType !=
+                              ServerType.youtubeMusic) ...[
+                        if (appState.albums.isNotEmpty) ...[
+                          SectionHeader(
+                            title: l10n.recentlyAddedAlbums,
+                            subtitle: l10n.yourNewestAdditions,
+                            useGradient: true,
+                            onSeeAllPressed: () =>
+                                NavigationService().selectPage(3),
+                          ),
+                          const SizedBox(height: DesktopTheme.spacingMd),
+                          _recentlyAddedAlbumRow(context, appState, l10n),
+                          const SizedBox(height: DesktopTheme.spacingXl),
+                        ],
+                        if (appState.recentlyPlayedAlbums.isNotEmpty) ...[
+                          SectionHeader(
+                            title: l10n.continueListening,
+                            subtitle: l10n.recentlyPlayedSection,
+                            onSeeAllPressed: () =>
+                                NavigationService().selectPage(3),
+                          ),
+                          const SizedBox(height: DesktopTheme.spacingMd),
+                          _continueListeningRow(context, appState, l10n),
+                          const SizedBox(height: DesktopTheme.spacingXl),
+                        ],
                       ],
                       if (appState.artists.isNotEmpty) ...[
                         SectionHeader(
@@ -89,7 +95,11 @@ class _HomePageState extends State<HomePage> {
                         _artistRow(context, appState, l10n),
                         const SizedBox(height: DesktopTheme.spacingXl),
                       ],
-                      if (appState.tracks.isNotEmpty) ...[
+                      if (appState.mediaServiceManager.currentServerType !=
+                              ServerType.soundcloud &&
+                          appState.mediaServiceManager.currentServerType !=
+                              ServerType.youtubeMusic &&
+                          appState.tracks.isNotEmpty) ...[
                         SectionHeader(
                           title: l10n.recentTracks,
                           subtitle: l10n.yourMusicCollection,
@@ -101,9 +111,7 @@ class _HomePageState extends State<HomePage> {
                                   ServerType.soundcloud ||
                               appState.mediaServiceManager.currentServerType ==
                                   ServerType.youtubeMusic) &&
-                          appState.albums.isEmpty &&
-                          appState.artists.isEmpty &&
-                          appState.tracks.isEmpty) ...[
+                          appState.artists.isEmpty) ...[
                         const SizedBox(height: DesktopTheme.spacingXl * 2),
                         Center(
                           child: Padding(
