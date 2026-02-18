@@ -346,15 +346,33 @@ class SoundCloudService implements BaseMediaService {
   }) async {
     if (!await _ensureToken()) return [];
     try {
-      final results = await search('', limit: (limit ?? 50).clamp(1, 200));
+      // Fetch tracks directly to get user (artist) avatar_url from each item
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/tracks',
+        queryParameters: {
+          'q': 'music',
+          'access': 'playable',
+          'limit': (limit ?? 50).clamp(1, 200),
+          'linked_partitioning': 'true',
+        },
+      );
+      final data = response.data;
+      if (data == null) return [];
+      final collection = data['collection'] as List<dynamic>? ?? [];
       final seen = <String>{};
       final artists = <Artist>[];
-      for (final t in results.tracks) {
-        final name = t.artistName ?? 'Unknown Artist';
-        final id = name.toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+      for (final item in collection) {
+        final map = item as Map<String, dynamic>;
+        final user = map['user'] as Map<String, dynamic>?;
+        if (user == null) continue;
+        final id = user['id']?.toString();
+        if (id == null) continue;
+        final name = user['username'] as String? ?? 'Unknown Artist';
         if (seen.contains(id)) continue;
         seen.add(id);
-        artists.add(Artist(id: id, name: name, imageUrl: null));
+        // SoundCloud user object has avatar_url for artist icon
+        final avatarUrl = user['avatar_url'] as String?;
+        artists.add(Artist(id: id, name: name, imageUrl: avatarUrl));
       }
       return artists;
     } catch (_) {
