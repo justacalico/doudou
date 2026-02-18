@@ -1525,11 +1525,15 @@ class _NowPlayingControls extends StatelessWidget {
         final isShuffled = audioHandler?.shuffleEnabled ?? false;
         final repeatMode = audioHandler?.repeatMode ?? RepeatMode.none;
 
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Shuffle
-            DesktopIconButton(
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Shuffle
+              DesktopIconButton(
               icon: Icons.shuffle_rounded,
               size: 24,
               isActive: isShuffled,
@@ -1596,7 +1600,8 @@ class _NowPlayingControls extends StatelessWidget {
                     }
                   : null,
             ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -2503,20 +2508,25 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
           color: DesktopTheme.backgroundPrimary,
           child: Column(
             children: [
-              // Header with back button
-              _DetailHeader(
-                onBack: widget.onBack,
-                title: widget.album.name,
-                subtitle: widget.album.artistName,
-                imageUrl: imageUrl,
-                year: widget.album.year?.toString(),
-                trackCount: _tracks.length,
-                onPlay: () => appState.playPlaylist(_tracks, 0),
-                onShuffle: () {
-                  final shuffled = List<Track>.from(_tracks)..shuffle();
-                  appState.playPlaylist(shuffled, 0);
-                },
-                onDownload: _tracks.isNotEmpty ? () => _downloadAlbum(context, appState) : null,
+              // Header with back button (Flexible + ScrollView prevents overflow on small heights)
+              Flexible(
+                flex: 0,
+                child: SingleChildScrollView(
+                  child: _DetailHeader(
+                    onBack: widget.onBack,
+                    title: widget.album.name,
+                    subtitle: widget.album.artistName,
+                    imageUrl: imageUrl,
+                    year: widget.album.year?.toString(),
+                    trackCount: _tracks.length,
+                    onPlay: () => appState.playPlaylist(_tracks, 0),
+                    onShuffle: () {
+                      final shuffled = List<Track>.from(_tracks)..shuffle();
+                      appState.playPlaylist(shuffled, 0);
+                    },
+                    onDownload: _tracks.isNotEmpty ? () => _downloadAlbum(context, appState) : null,
+                  ),
+                ),
               ),
               // Track list
               Expanded(
@@ -2615,20 +2625,25 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
           color: DesktopTheme.backgroundPrimary,
           child: Column(
             children: [
-              // Header with back button
-              _DetailHeader(
-                onBack: widget.onBack,
-                title: widget.artist.name,
-                subtitle: _albums.isNotEmpty
-                    ? '${_albums.length} ${l10n.albums} • ${_tracks.length} ${l10n.songs}'
-                    : '${_tracks.length} ${l10n.songs}',
-                imageUrl: imageUrl,
-                isCircular: true,
-                onPlay: () => appState.playPlaylist(_tracks, 0),
-                onShuffle: () {
-                  final shuffled = List<Track>.from(_tracks)..shuffle();
-                  appState.playPlaylist(shuffled, 0);
-                },
+              // Header with back button (Flexible + ScrollView prevents overflow on small heights)
+              Flexible(
+                flex: 0,
+                child: SingleChildScrollView(
+                  child: _DetailHeader(
+                    onBack: widget.onBack,
+                    title: widget.artist.name,
+                    subtitle: _albums.isNotEmpty
+                        ? '${_albums.length} ${l10n.albums} • ${_tracks.length} ${l10n.songs}'
+                        : '${_tracks.length} ${l10n.songs}',
+                    imageUrl: imageUrl,
+                    isCircular: true,
+                    onPlay: () => appState.playPlaylist(_tracks, 0),
+                    onShuffle: () {
+                      final shuffled = List<Track>.from(_tracks)..shuffle();
+                      appState.playPlaylist(shuffled, 0);
+                    },
+                  ),
+                ),
               ),
               // Tab selector
               Padding(
@@ -2726,17 +2741,22 @@ class _PlaylistDetailViewState extends State<_PlaylistDetailView> {
           color: DesktopTheme.backgroundPrimary,
           child: Column(
             children: [
-              // Header with back button
-              _DetailHeader(
-                onBack: widget.onBack,
-                title: widget.playlist.name,
-                subtitle: '${_tracks.length} ${l10n.songs}',
-                imageUrl: imageUrl,
-                onPlay: () => appState.playPlaylist(_tracks, 0),
-                onShuffle: () {
-                  final shuffled = List<Track>.from(_tracks)..shuffle();
-                  appState.playPlaylist(shuffled, 0);
-                },
+              // Header with back button (Flexible + ScrollView prevents overflow on small heights)
+              Flexible(
+                flex: 0,
+                child: SingleChildScrollView(
+                  child: _DetailHeader(
+                    onBack: widget.onBack,
+                    title: widget.playlist.name,
+                    subtitle: '${_tracks.length} ${l10n.songs}',
+                    imageUrl: imageUrl,
+                    onPlay: () => appState.playPlaylist(_tracks, 0),
+                    onShuffle: () {
+                      final shuffled = List<Track>.from(_tracks)..shuffle();
+                      appState.playPlaylist(shuffled, 0);
+                    },
+                  ),
+                ),
               ),
               // Track list
               Expanded(
@@ -2960,7 +2980,12 @@ class _DetailHeaderState extends State<_DetailHeader> {
                               children: [
                                 const Icon(Icons.shuffle_rounded, size: 18),
                                 const SizedBox(width: 8),
-                                Text(l10n.shuffle),
+                                Flexible(
+                                  child: Text(
+                                    l10n.shuffle,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -2977,7 +3002,12 @@ class _DetailHeaderState extends State<_DetailHeader> {
                               children: [
                                 const Icon(Icons.download_rounded, size: 18),
                                 const SizedBox(width: 8),
-                                Text(l10n.download),
+                                Flexible(
+                                  child: Text(
+                                    l10n.download,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ],
                             ),
                           ),

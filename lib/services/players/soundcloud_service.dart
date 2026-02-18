@@ -496,14 +496,17 @@ class SoundCloudService implements BaseMediaService {
           _log('playback: page body (first ${snippet.length} chars): $snippet');
         }
         if (kDebugMode) _log('playback: [embed] tryPage url=$url');
-        RegExp re = RegExp(r',client_id:\s*"([^"]+)"');
+        RegExp re = RegExp(r',client_id:\s*"([a-zA-Z0-9_.-]{20,})"');
         var match = re.firstMatch(body);
-        match ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(body);
-        match ??= RegExp(r"client_id:\s*'([a-zA-Z0-9_.-]+)'").firstMatch(body);
-        match ??= RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(body);
+        match ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]{20,})"').firstMatch(body);
+        match ??= RegExp(r"client_id:\s*'([a-zA-Z0-9_.-]{20,})'").firstMatch(body);
+        match ??= RegExp(r'client_id=([a-zA-Z0-9_.-]{20,})').firstMatch(body);
         if (match != null) {
-          if (kDebugMode) _log('playback: [embed] client_id found in page body (regex)');
-          return match.group(1);
+          final cid = match.group(1)!;
+          if (cid.length >= 20) {
+            if (kDebugMode) _log('playback: [embed] client_id found in page body (regex)');
+            return cid;
+          }
         }
         if (kDebugMode) _log('playback: [embed] no client_id in page body, trying script URLs');
         if (kDebugMode) _log('playback: [embed] page body length=${body.length}, collecting unique script URLs');
@@ -534,18 +537,21 @@ class SoundCloudService implements BaseMediaService {
             if (kDebugMode) _log('playback: [embed] script status=${scriptRes.statusCode} bodyLength=${scriptRes.body.length}');
             if (scriptRes.statusCode != 200) continue;
             final scriptBody = scriptRes.body;
-            if (scriptBody.length < 2000 && scriptBody.indexOf('client_id') < 0) {
+            if (scriptBody.length < 2000 && !scriptBody.contains('client_id')) {
               if (kDebugMode) _log('playback: [embed] skip small script (${scriptBody.length} bytes, no client_id)');
               continue;
             }
-            final re2 = RegExp(r',client_id:\s*"([^"]+)"');
+            final re2 = RegExp(r',client_id:\s*"([a-zA-Z0-9_.-]{20,})"');
             var m2 = re2.firstMatch(scriptBody);
-            m2 ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]+)"').firstMatch(scriptBody);
-            m2 ??= RegExp(r'client_id=([a-zA-Z0-9_.-]+)').firstMatch(scriptBody);
-            m2 ??= RegExp(r'client_id:(\w+)').firstMatch(scriptBody);
+            m2 ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]{20,})"').firstMatch(scriptBody);
+            m2 ??= RegExp(r'client_id=([a-zA-Z0-9_.-]{20,})').firstMatch(scriptBody);
+            m2 ??= RegExp(r'client_id:\s*"([^"]{20,})"').firstMatch(scriptBody);
             if (m2 != null) {
-              if (kDebugMode) _log('playback: [embed] client_id found in script');
-              return m2.group(1);
+              final cid = m2.group(1)!;
+              if (cid.length >= 20) {
+                if (kDebugMode) _log('playback: [embed] client_id found in script');
+                return cid;
+              }
             }
             if (kDebugMode) {
               final idx = scriptBody.indexOf('client_id');
@@ -572,11 +578,14 @@ class SoundCloudService implements BaseMediaService {
       cid ??= await tryPage('https://soundcloud.com/discover');
       if (cid == null && kDebugMode) _log('playback: [embed] discover: no client_id, trying track page');
       cid ??= await tryPage('https://soundcloud.com/mt-marcy/cold-nights');
-      if (cid != null && cid.isNotEmpty) {
+      if (cid != null && cid.length >= 20) {
         _embeddedClientId = cid;
         _embeddedClientIdFetched = DateTime.now();
         _log('playback: [embed] embedded client_id obtained (${cid.length} chars)');
         return _embeddedClientId;
+      }
+      if (cid != null && cid.isNotEmpty && kDebugMode) {
+        _log('playback: [embed] rejected client_id (${cid.length} chars, need >=20)', isError: true);
       }
       _log('playback: embedded client_id not found in any page', isError: true);
     } catch (e) {
@@ -636,7 +645,8 @@ class SoundCloudService implements BaseMediaService {
   }
 
   /// Resolve transcoding URL to final CDN stream URL.
-  /// Per SoundCloud issue #478: use Bearer token, follow 302 redirect to get CDN URL for player.
+  /// Per SoundCloud issue #478: use OAuth token, follow 302 redirect to get CDN URL for player.
+  /// SoundCloud API requires Authorization: OAuth <token>, not Bearer (see developers.soundcloud.com).
   Future<String?> _resolveTranscodingUrlToCdn(String transcodingUrl) async {
     if (_accessToken == null) return null;
     _log('playback: resolve request ${_redactUrl(transcodingUrl)}');
@@ -646,7 +656,7 @@ class SoundCloudService implements BaseMediaService {
         receiveTimeout: const Duration(seconds: 30),
         followRedirects: true,
         headers: {
-          'Authorization': 'Bearer $_accessToken',
+          'Authorization': 'OAuth $_accessToken',
           'Accept': '*/*',
         },
       ));
@@ -659,7 +669,7 @@ class SoundCloudService implements BaseMediaService {
       );
       final finalUri = response.realUri.toString();
       if (_isUsableStreamUrl(finalUri)) {
-        _log('playback: resolved to CDN via Bearer (redirect)');
+        _log('playback: resolved to CDN via OAuth (redirect)');
         return finalUri;
       }
       if (response.statusCode == 302 || response.statusCode == 301) {
@@ -677,7 +687,7 @@ class SoundCloudService implements BaseMediaService {
         }
       }
       if (response.statusCode == 401) {
-        _log('playback: resolve 401 with Bearer');
+        _log('playback: resolve 401 with OAuth');
       }
       return null;
     } catch (e) {

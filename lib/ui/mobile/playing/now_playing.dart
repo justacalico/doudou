@@ -731,13 +731,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 30,
                                     ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          height: 36,
-                                          child: MarqueeText(
+                                    child: SingleChildScrollView(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          SizedBox(
+                                            height: 36,
+                                            child: MarqueeText(
                                             text: currentTrack.name,
                                             style: const TextStyle(
                                               fontSize: 26,
@@ -764,7 +766,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
