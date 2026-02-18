@@ -1,4 +1,4 @@
-# 🎵 Doudou — Privacy-First Music Player
+# 🎵 Doudou
 
 <p align="center">
   <img src="https://openlyst.ink/apps/doudou/icon.png" alt="Doudou" width="120">
