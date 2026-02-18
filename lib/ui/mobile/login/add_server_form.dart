@@ -204,17 +204,6 @@ class _AddServerFormState extends State<AddServerForm> {
                       isDark: isDark,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildSecondaryButton(
-                      context: context,
-                      label: 'Try Demo',
-                      icon: CupertinoIcons.play_circle,
-                      onPressed: appState.isLoading ? null : _loginDemo,
-                      isDark: isDark,
-                      accentColor: AppleColors.systemGreen,
-                    ),
-                  ),
                 ],
               ),
 
@@ -1108,27 +1097,6 @@ class _AddServerFormState extends State<AddServerForm> {
         ),
       ),
     );
-  }
-
-  // Demo login method
-  Future<void> _loginDemo() async {
-    await _triggerButtonPress();
-
-    if (!mounted) return;
-    final appState = context.read<AppState>();
-
-    final success = await appState.loginWithServerType(
-      'jellyfin',
-      'https://demo.jellyfin.org/stable/web',
-      'demo',
-      '',
-    );
-
-    if (success && mounted) {
-      await _triggerHapticFeedback(isSuccess: true);
-    } else if (mounted) {
-      await _triggerHapticFeedback(isSuccess: false);
-    }
   }
 
   // Login and utility methods

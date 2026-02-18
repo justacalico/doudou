@@ -321,11 +321,6 @@
     "description": "Sign out button label"
   },
 
-  "tryDemo": "Try Demo",
-  "@tryDemo": {
-    "description": "Try demo button label"
-  },
-
   "useOfflineMode": "Use Offline Mode",
   "@useOfflineMode": {
     "description": "Use offline mode button label"
