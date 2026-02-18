@@ -294,18 +294,21 @@ class YouTubeMusicService implements BaseMediaService {
 
   /// Invidious API - open-source YouTube frontend with stream proxy
   /// See https://invidious.io/ and https://docs.invidious.io/api/
+  /// local=true proxies streams through the instance (avoids googlevideo.com 403)
   static const List<String> _invidiousInstances = [
-    'https://invidious.io',
     'https://vid.puffyan.us',
     'https://invidious.snopyta.org',
     'https://yewtu.be',
   ];
 
   /// Fetch stream URL(s) from Invidious API for a video
+  /// Uses local=true so URLs are proxied through Invidious (avoids 403/User-Agent issues)
   Future<List<String>> _getInvidiousStreamUrls(String videoId) async {
     for (final base in _invidiousInstances) {
       try {
-        final uri = Uri.parse('$base/api/v1/videos/$videoId');
+        final uri = Uri.parse('$base/api/v1/videos/$videoId').replace(
+          queryParameters: {'local': 'true'},
+        );
         final client = http.Client();
         try {
           final resp = await client.get(uri).timeout(const Duration(seconds: 8));
@@ -319,11 +322,18 @@ class YouTubeMusicService implements BaseMediaService {
           // Prefer adaptiveFormats - audio-only (audioQuality set) or audio+video
           final adaptive = json['adaptiveFormats'] as List<dynamic>? ?? [];
           final withUrl = <Map<String, dynamic>>[];
+          String _abs(String? u) {
+            if (u == null || u.isEmpty) return '';
+            if (u.startsWith('http')) return u;
+            if (u.startsWith('/')) return '$base$u';
+            return u;
+          }
+
           for (final e in adaptive) {
             if (e is! Map) continue;
-            final u = e['url'] as String?;
-            if (u == null || u.isEmpty || !u.startsWith('http')) continue;
-            withUrl.add(Map<String, dynamic>.from(e));
+            final u = _abs(e['url'] as String?);
+            if (u.isEmpty) continue;
+            withUrl.add(Map<String, dynamic>.from(e)..['url'] = u);
           }
           // Prefer audio-only, then sort by bitrate (desc)
           withUrl.sort((a, b) {
@@ -344,9 +354,15 @@ class YouTubeMusicService implements BaseMediaService {
             final streams = json['formatStreams'] as List<dynamic>? ?? [];
             for (final s in streams) {
               if (s is! Map) continue;
-              final u = s['url'] as String?;
-              if (u != null && u.isNotEmpty && u.startsWith('http')) urls.add(u);
+              final u = _abs(s['url'] as String?);
+              if (u.isNotEmpty) urls.add(u);
             }
+          }
+
+          // Fallback to hlsUrl when formatStreams/adaptiveFormats are blank (Invidious bug #5420)
+          if (urls.isEmpty) {
+            final hls = _abs(json['hlsUrl'] as String?);
+            if (hls.isNotEmpty) urls.add(hls);
           }
 
           if (urls.isNotEmpty) {
@@ -384,11 +400,7 @@ class YouTubeMusicService implements BaseMediaService {
 
     final urls = <String>[];
 
-    // 1) Invidious API first - open-source proxy, avoids googlevideo.com 403
-    final invidiousUrls = await _getInvidiousStreamUrls(videoId);
-    urls.addAll(invidiousUrls);
-
-    // 2) Try youtube_explode_dart for direct googlevideo URLs (higher quality, may need User-Agent)
+    // 1) youtube_explode_dart first - fast, local resolution; User-Agent in mpv.conf helps
     // androidMusic uses music.youtube.com and is ideal for YouTube Music
     final clientConfigs = <List<YoutubeApiClient>?>[
       null, // default: android + ios
@@ -457,6 +469,12 @@ class YouTubeMusicService implements BaseMediaService {
       } finally {
         yt.close();
       }
+    }
+
+    // 2) Invidious API fallback - proxied streams (local=true), works when direct URLs 403
+    if (urls.isEmpty) {
+      final invidiousUrls = await _getInvidiousStreamUrls(videoId);
+      urls.addAll(invidiousUrls);
     }
 
     if (kDebugMode) {

@@ -1077,7 +1077,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (kDebugMode) {
           debugPrint('[Playback] _loadAndPlayTrack: calling setAudioSource (desktop)');
         }
-        await _player.setAudioSource(audioSource).timeout(const Duration(seconds: 8));
+        await _player
+            .setAudioSource(audioSource)
+            .timeout(const Duration(seconds: 20));
 
         if (_disposed || currentOperationId != _loadOperationId) return;
 
