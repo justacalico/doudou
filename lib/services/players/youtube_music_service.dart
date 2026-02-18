@@ -2,8 +2,11 @@
 // We use dart_ytmusic_api for catalog and youtube_explode_dart for stream URLs.
 // Auth is cookie-based. Disabled on web (dart_ytmusic_api does not work on web).
 
+import 'dart:convert';
+
 import 'package:dart_ytmusic_api/yt_music.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:youtube_explode_dart/youtube_explode_dart.dart' hide Playlist;
 
 import '../../models/jellyfin_models.dart';
@@ -289,8 +292,80 @@ class YouTubeMusicService implements BaseMediaService {
     return null;
   }
 
-  /// JossRed proxy URL (OpenTune fallback) - avoids googlevideo.com 403/User-Agent issues
-  static const String _jossRedStreamBase = 'https://jossred.josprox.com/yt/v2/stream/';
+  /// Invidious API - open-source YouTube frontend with stream proxy
+  /// See https://invidious.io/ and https://docs.invidious.io/api/
+  static const List<String> _invidiousInstances = [
+    'https://invidious.io',
+    'https://vid.puffyan.us',
+    'https://invidious.snopyta.org',
+    'https://yewtu.be',
+  ];
+
+  /// Fetch stream URL(s) from Invidious API for a video
+  Future<List<String>> _getInvidiousStreamUrls(String videoId) async {
+    for (final base in _invidiousInstances) {
+      try {
+        final uri = Uri.parse('$base/api/v1/videos/$videoId');
+        final client = http.Client();
+        try {
+          final resp = await client.get(uri).timeout(const Duration(seconds: 8));
+          if (resp.statusCode != 200) continue;
+
+          final json = jsonDecode(resp.body) as Map<String, dynamic>?;
+          if (json == null) continue;
+
+          final urls = <String>[];
+
+          // Prefer adaptiveFormats - audio-only (audioQuality set) or audio+video
+          final adaptive = json['adaptiveFormats'] as List<dynamic>? ?? [];
+          final withUrl = <Map<String, dynamic>>[];
+          for (final e in adaptive) {
+            if (e is! Map) continue;
+            final u = e['url'] as String?;
+            if (u == null || u.isEmpty || !u.startsWith('http')) continue;
+            withUrl.add(Map<String, dynamic>.from(e));
+          }
+          // Prefer audio-only, then sort by bitrate (desc)
+          withUrl.sort((a, b) {
+            final aAudio = a['audioQuality'] != null ? 1 : 0;
+            final bAudio = b['audioQuality'] != null ? 1 : 0;
+            if (aAudio != bAudio) return bAudio - aAudio;
+            final aBit = int.tryParse(a['bitrate']?.toString() ?? '0') ?? 0;
+            final bBit = int.tryParse(b['bitrate']?.toString() ?? '0') ?? 0;
+            return bBit.compareTo(aBit);
+          });
+          for (final f in withUrl) {
+            final u = f['url'] as String?;
+            if (u != null) urls.add(u);
+          }
+
+          // Fallback to formatStreams (muxed progressive)
+          if (urls.isEmpty) {
+            final streams = json['formatStreams'] as List<dynamic>? ?? [];
+            for (final s in streams) {
+              if (s is! Map) continue;
+              final u = s['url'] as String?;
+              if (u != null && u.isNotEmpty && u.startsWith('http')) urls.add(u);
+            }
+          }
+
+          if (urls.isNotEmpty) {
+            if (kDebugMode) {
+              print('[YouTubeMusic] Invidious: got ${urls.length} URL(s) from $base');
+            }
+            return urls;
+          }
+        } finally {
+          client.close();
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('[YouTubeMusic] Invidious $base failed: $e');
+        }
+      }
+    }
+    return [];
+  }
 
   @override
   Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
@@ -309,11 +384,9 @@ class YouTubeMusicService implements BaseMediaService {
 
     final urls = <String>[];
 
-    // 1) JossRed proxy first (OpenTune pattern) - no User-Agent issues, works when direct URLs fail
-    urls.add('$_jossRedStreamBase$videoId');
-    if (kDebugMode) {
-      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: added JossRed proxy URL');
-    }
+    // 1) Invidious API first - open-source proxy, avoids googlevideo.com 403
+    final invidiousUrls = await _getInvidiousStreamUrls(videoId);
+    urls.addAll(invidiousUrls);
 
     // 2) Try youtube_explode_dart for direct googlevideo URLs (higher quality, may need User-Agent)
     // androidMusic uses music.youtube.com and is ideal for YouTube Music
