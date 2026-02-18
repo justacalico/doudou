@@ -293,6 +293,7 @@ class YouTubeMusicService implements BaseMediaService {
   // Stream URL resolution – Harmony-Music StreamProvider.fetch() ONLY.
   // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch(videoId).
   // Harmony uses ONLY youtube_explode_dart; no Piped, no Invidious, no InnerTube.
+  // This method never caches URLs; callers must fetch fresh on each play (YT URLs expire quickly).
   // ---------------------------------------------------------------------------
 
   @override
@@ -310,7 +311,7 @@ class YouTubeMusicService implements BaseMediaService {
     }
 
     if (kDebugMode) {
-      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: resolving videoId=$videoId using Harmony StreamProvider');
+      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: resolving videoId=$videoId (fresh fetch, no cache)');
     }
 
     // Use Harmony-Music's StreamProvider.fetch() – their working method.
@@ -342,7 +343,7 @@ class YouTubeMusicService implements BaseMediaService {
 
       if (urls.isNotEmpty) {
         if (kDebugMode) {
-          print('[YouTubeMusic] StreamProvider: ${urls.length} URL(s), best=itag ${highest?.itag ?? "?"}');
+          print('[YouTubeMusic] StreamProvider: returning ${urls.length} fresh URL(s), best=itag ${highest?.itag ?? "?"} (do not cache)');
         }
         return urls;
       }

@@ -1005,6 +1005,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   void _preloadStreamUrlIntoNextPrev(String trackId, {required bool isNext}) {
     if (trackId.isEmpty || _preloadingTrackIds.contains(trackId)) return;
+    // YouTube Music: do not preload or cache – URLs expire; fetch fresh on play
+    if (_mediaServiceManager.isYouTubeMusic) return;
     if (_resolvedUrlCache.containsKey(trackId)) {
       final url = _resolvedUrlCache[trackId]!;
       if (isNext) {
@@ -1197,6 +1199,22 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         errorString.contains('access-control');
   }
 
+  /// True if a YouTube (googlevideo.com) URL is expired or within 60s of expiry.
+  static bool _isYouTubeUrlExpired(String url) {
+    if (!url.contains('googlevideo.com')) return false;
+    try {
+      final uri = Uri.parse(url);
+      final expireStr = uri.queryParameters['expire'];
+      if (expireStr == null) return false;
+      final expireSec = int.tryParse(expireStr);
+      if (expireSec == null) return false;
+      const marginSec = 60;
+      return DateTime.now().millisecondsSinceEpoch ~/ 1000 > expireSec - marginSec;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Load and play track, trying each URL until one succeeds (for YouTube Music fallbacks)
   Future<void> _loadAndPlayTrackWithFallbacks(List<String> urls) async {
     assert(urls.isNotEmpty);
@@ -1207,12 +1225,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final lower = url.toLowerCase();
       if (lower.contains('api.soundcloud.com')) continue;
       if (!lower.startsWith('http://') && !lower.startsWith('https://')) continue;
+      if (lower.contains('googlevideo.com') && _isYouTubeUrlExpired(url)) continue;
 
       try {
         await _loadAndPlayTrack(url);
         final track = _stateController.currentTrack;
-        // Cache successful URL immediately (even if first URL) for instant playback next time
-        if (track != null) {
+        // Cache successful URL for non-YouTube providers (YouTube URLs expire quickly)
+        if (track != null && !url.contains('googlevideo.com')) {
           _cacheResolvedUrl(track.id, url);
         }
         if (kDebugMode && i > 0) {
@@ -1231,18 +1250,23 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   }
 
   /// Get stream URLs for track (list for fallback support; single URL for others)
+  /// YouTube Music: never use cache or preloaded URLs – YT URLs expire quickly; always fetch fresh.
   Future<List<String>> _getStreamUrls(Track track) async {
-    // 1) Check resolved URL cache (SoundCloud, YouTube Music – gapless after first load)
-    final cached = _resolvedUrlCache.remove(track.id);
-    if (cached != null && cached.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint('[Playback] _getStreamUrls: using cached URL for track id=${track.id}');
+    final isYouTubeMusic = _mediaServiceManager.isYouTubeMusic;
+
+    // 1) Check resolved URL cache (SoundCloud, etc. – not YouTube Music; YT URLs expire)
+    if (!isYouTubeMusic) {
+      final cached = _resolvedUrlCache.remove(track.id);
+      if (cached != null && cached.isNotEmpty) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _getStreamUrls: using cached URL for track id=${track.id}');
+        }
+        return [cached];
       }
-      return [cached];
     }
 
-    // 2) Check preloaded URLs (desktop)
-    if (_isDesktop) {
+    // 2) Check preloaded URLs (desktop) – skip for YouTube Music (URLs expire)
+    if (_isDesktop && !isYouTubeMusic) {
       final currentIndex = _stateController.currentIndex;
       final queue = _stateController.queue;
 
@@ -1287,12 +1311,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     if (kDebugMode) {
       debugPrint('[Playback] _getStreamUrls: resolving async for track id=${track.id} name=${track.name}');
     }
-    final asyncUrls = await _mediaServiceManager.getAlternativeStreamUrlsAsync(track.id);
+    List<String> asyncUrls = await _mediaServiceManager.getAlternativeStreamUrlsAsync(track.id);
     if (asyncUrls.isEmpty) {
       debugPrint('[Playback] _getStreamUrls: No stream URLs for track id=${track.id} name=${track.name}');
       return [];
     }
-    final valid = <String>[];
+    var valid = <String>[];
     for (final url in asyncUrls) {
       if (url.isEmpty) continue;
       final lower = url.toLowerCase();
@@ -1301,8 +1325,25 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         valid.add(url);
       }
     }
-    // Cache first URL immediately for instant playback (Harmony-style)
-    if (valid.isNotEmpty) {
+    // For YouTube Music: drop expired URLs; refetch once if all expired
+    if (isYouTubeMusic && valid.isNotEmpty) {
+      valid = valid.where((url) => !_isYouTubeUrlExpired(url)).toList();
+      if (valid.isEmpty) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _getStreamUrls: all YouTube URLs expired, refetching for track id=${track.id}');
+        }
+        asyncUrls = await _mediaServiceManager.getAlternativeStreamUrlsAsync(track.id);
+        valid = asyncUrls
+            .where((url) =>
+                url.isNotEmpty &&
+                (url.startsWith('http://') || url.startsWith('https://')) &&
+                !url.toLowerCase().contains('api.soundcloud.com') &&
+                !_isYouTubeUrlExpired(url))
+            .toList();
+      }
+    }
+    // Cache first URL for non-YouTube providers (YouTube URLs expire – do not cache)
+    if (valid.isNotEmpty && !isYouTubeMusic) {
       _cacheResolvedUrl(track.id, valid.first);
     }
     if (kDebugMode && valid.isNotEmpty) {
@@ -1320,8 +1361,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   }
 
   /// Preload stream URL for a track (e.g. SoundCloud). Call when queue is set or user is about to play.
+  /// YouTube Music: skipped – URLs expire quickly; we fetch fresh on play.
   void preloadStreamUrl(String trackId) {
     if (trackId.isEmpty || _preloadingTrackIds.contains(trackId)) return;
+    if (_mediaServiceManager.isYouTubeMusic) return;
     if (_resolvedUrlCache.containsKey(trackId)) return;
     if (_mediaServiceManager.getDirectStreamUrl(trackId).isNotEmpty) return;
     _preloadingTrackIds.add(trackId);

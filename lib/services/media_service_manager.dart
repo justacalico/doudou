@@ -17,6 +17,9 @@ class MediaServiceManager {
   BaseMediaService? get currentService => _currentService;
   LocalMusicService? get localMusicService => _sharedLocalMusicService;
 
+  /// True when current service is YouTube Music (used to skip URL caching – YT URLs expire quickly).
+  bool get isYouTubeMusic => _currentService is YouTubeMusicService;
+
   /// Constructor that uses a shared JellyfinService instance
   MediaServiceManager.withJellyfinService(JellyfinService jellyfinService) {
     _sharedJellyfinService = jellyfinService;
