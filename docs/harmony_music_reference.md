@@ -5,10 +5,11 @@ We reference [Harmony Music](https://github.com/anandnet/Harmony-Music) for YouT
 ## Referenced concepts and files
 
 - **No login required**: Harmony Music does not require cookies or account; we allow optional cookies for personalized catalog and enforce login only when the user explicitly adds credentials.
-- **Stream resolution**: Harmony uses `youtube_explode_dart` for resolving audio stream URLs (see their `lib/services/stream_service.dart`). We use the same approach in `lib/services/players/youtube_music_service.dart` as one of our fallbacks (InnerTube → Piped → Invidious → youtube_explode_dart).
+- **Stream resolution (primary stack)**: Harmony uses **only** `youtube_explode_dart` for streaming (see their `lib/services/stream_service.dart` – `StreamProvider.fetch(videoId)`). We **port that as our primary** YouTube Music stream source: we try youtube_explode first, then Piped, Invidious, then InnerTube. This order matches Harmony’s working stack and avoids relying on direct googlevideo.com URLs first.
+- **Stream selection**: Harmony’s `stream_service.dart` defines `highestQualityAudio` as itag 251 (opus) or 140 (mp4a), and `lowQualityAudio` as itag 249/139. We use the same itag preference in `_pickAudioUrlsFromManifest()` and `_preferredItags` / `_fallbackItags` in `youtube_music_service.dart`.
 - **Constants**: Harmony’s `lib/services/constant.dart` defines `baseUrl` for `music.youtube.com/youtubei/v1/` and a WEB_REMIX API key; our InnerTube client uses the same base and key for WEB_REMIX (see `lib/services/players/innertube_client.dart`).
 
 ## In-code references
 
-- `lib/services/players/youtube_music_service.dart` — stream fallback order and no-login support; stream logic referenced from Harmony-Music `lib/services/stream_service.dart`.
+- `lib/services/players/youtube_music_service.dart` — **streaming stack ported from Harmony-Music**: resolution order is 1) youtube_explode_dart (Harmony’s only source), 2) Piped, 3) Invidious, 4) InnerTube; stream selection uses Harmony’s itag preference (251/140 then 250/139) in `_pickAudioUrlsFromManifest()`; no-login support; references `lib/services/stream_service.dart` (StreamProvider.fetch, highestQualityAudio).
 - `lib/services/players/innertube_client.dart` — InnerTube API key and base URL alignment with Harmony-Music `lib/services/constant.dart`.

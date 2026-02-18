@@ -1,8 +1,8 @@
 // YouTube Music backend reference: OpenTune (Arturo254/OpenTune) innertube/ only.
 // No-login streaming approach referenced from Harmony-Music (anandnet/Harmony-Music)
 // lib/services/stream_service.dart — fetch streams via youtube_explode_dart without auth.
-// We use dart_ytmusic_api for catalog, InnerTubeClient for stream URLs (primary),
-// with Piped/Invidious/youtube_explode_dart as fallbacks. Auth is optional (cookie-based when set).
+// We use dart_ytmusic_api for catalog; stream URLs use Harmony-Music stack (youtube_explode_dart first,
+// then Piped, Invidious, InnerTube). Auth is optional (cookie-based when set).
 // Disabled on web (dart_ytmusic_api does not work on web).
 
 import 'dart:convert';
@@ -331,7 +331,9 @@ class YouTubeMusicService implements BaseMediaService {
   static const String _prefKeyPipedInstance = 'youtube_music_piped_instance';
 
   // ---------------------------------------------------------------------------
-  // Stream URL resolution – InnerTube first, then Piped, Invidious, yt_explode
+  // Stream URL resolution – Harmony-Music stack first (yt_explode), then proxies, then InnerTube.
+  // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch() is their only source;
+  // they use youtube_explode_dart and prefer itag 251 (opus) / 140 (mp4a). We try that first for reliability.
   // ---------------------------------------------------------------------------
 
   @override
@@ -352,24 +354,10 @@ class YouTubeMusicService implements BaseMediaService {
       print('[YouTubeMusic] getAlternativeStreamUrlsAsync: resolving videoId=$videoId');
     }
 
-    // ── 1) InnerTube direct (most reliable – same as official apps) ──
-    try {
-      final streams = await _innerTube.getStreamUrls(videoId);
-      if (streams.isNotEmpty) {
-        final urls = streams.map((s) => s.url).toList();
-        if (kDebugMode) {
-          final best = streams.first;
-          print('[YouTubeMusic] InnerTube: ${urls.length} stream(s), '
-              'best=${best.quality} ${best.codec} ${best.bitrate}bps '
-              'client=${best.clientName}');
-        }
-        return urls;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('[YouTubeMusic] InnerTube failed: $e');
-      }
-    }
+    // ── 1) youtube_explode_dart (Harmony-Music streaming stack – primary)
+    // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch(videoId).
+    final ytExplodeUrls = await _getYoutubeExplodeStreamUrls(videoId);
+    if (ytExplodeUrls.isNotEmpty) return ytExplodeUrls;
 
     // ── 2) Piped – proxied URLs, no custom headers needed ──
     try {
@@ -391,10 +379,24 @@ class YouTubeMusicService implements BaseMediaService {
       }
     }
 
-    // ── 4) youtube_explode_dart – direct googlevideo URLs (last resort)
-    // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch(videoId) without login.
-    final ytExplodeUrls = await _getYoutubeExplodeStreamUrls(videoId);
-    if (ytExplodeUrls.isNotEmpty) return ytExplodeUrls;
+    // ── 4) InnerTube direct (same as official apps; may need cookies for some tracks) ──
+    try {
+      final streams = await _innerTube.getStreamUrls(videoId);
+      if (streams.isNotEmpty) {
+        final urls = streams.map((s) => s.url).toList();
+        if (kDebugMode) {
+          final best = streams.first;
+          print('[YouTubeMusic] InnerTube: ${urls.length} stream(s), '
+              'best=${best.quality} ${best.codec} ${best.bitrate}bps '
+              'client=${best.clientName}');
+        }
+        return urls;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('[YouTubeMusic] InnerTube failed: $e');
+      }
+    }
 
     if (kDebugMode) {
       print('[YouTubeMusic] ALL methods failed for videoId=$videoId');
@@ -403,8 +405,14 @@ class YouTubeMusicService implements BaseMediaService {
   }
 
   // ---------------------------------------------------------------------------
-  // youtube_explode_dart fallback
+  // youtube_explode_dart – Harmony-Music streaming stack (primary).
+  // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch(),
+  // highestQualityAudio = itag 251 (opus) or 140 (mp4a); fallback lowQualityAudio itag 249/139.
   // ---------------------------------------------------------------------------
+
+  /// Preferred itags for best audio (Harmony-Music stream_service.dart: highestQualityAudio).
+  static const List<int> _preferredItags = [251, 140]; // opus, mp4a
+  static const List<int> _fallbackItags = [250, 139]; // lower opus/mp4a
 
   Future<List<String>> _getYoutubeExplodeStreamUrls(String videoId) async {
     final clientConfigs = <List<YoutubeApiClient>?>[
@@ -424,40 +432,17 @@ class YouTubeMusicService implements BaseMediaService {
         final manifest = ytClients == null
             ? await yt.videos.streams
                 .getManifest(videoId)
-                .timeout(const Duration(seconds: 15))
+                .timeout(const Duration(seconds: 20))
             : await yt.videos.streams
                 .getManifest(videoId, ytClients: ytClients)
-                .timeout(const Duration(seconds: 15));
+                .timeout(const Duration(seconds: 20));
 
-        String? url;
-        final audioOnly = manifest.audioOnly;
-        final muxed = manifest.muxed;
-
-        if (audioOnly.isNotEmpty) {
-          final filtered = audioOnly
-              .where((s) =>
-                  s.audioTrack == null || s.audioTrack!.audioIsDefault)
-              .toList();
-          final list = filtered.isEmpty ? audioOnly : filtered;
-          list.sort((a, b) => b.bitrate.compareTo(a.bitrate));
-          url = list.first.url.toString();
-        }
-        if ((url == null || url.isEmpty) && muxed.isNotEmpty) {
-          final list = muxed.toList()
-            ..sort((a, b) => b.bitrate.compareTo(a.bitrate));
-          url = list.first.url.toString();
-        }
-        if ((url == null || url.isEmpty) && manifest.audio.isNotEmpty) {
-          final list = manifest.audio.toList()
-            ..sort((a, b) => b.bitrate.compareTo(a.bitrate));
-          url = list.first.url.toString();
-        }
-
-        if (url != null && url.isNotEmpty) {
+        final urls = _pickAudioUrlsFromManifest(manifest);
+        if (urls.isNotEmpty) {
           if (kDebugMode) {
-            print('[YouTubeMusic] yt_explode: SUCCESS client=$clientName');
+            print('[YouTubeMusic] yt_explode: SUCCESS client=$clientName urls=${urls.length}');
           }
-          return [url];
+          return urls;
         }
       } catch (e) {
         if (kDebugMode) {
@@ -466,6 +451,39 @@ class YouTubeMusicService implements BaseMediaService {
       } finally {
         yt.close();
       }
+    }
+    return [];
+  }
+
+  /// Pick audio stream URLs from manifest (Harmony-Music style: prefer itag 251/140, then by bitrate).
+  List<String> _pickAudioUrlsFromManifest(dynamic manifest) {
+    final audioOnly = manifest.audioOnly;
+    final muxed = manifest.muxed;
+    final audio = manifest.audio;
+
+    // Prefer audio-only, with Harmony's itag preference (251 opus, 140 mp4a).
+    if (audioOnly.isNotEmpty) {
+      final list = audioOnly.toList();
+      final preferred = list.where((s) => _preferredItags.contains(s.tag)).toList();
+      final fallback = list.where((s) => _fallbackItags.contains(s.tag)).toList();
+      preferred.sort((a, b) => b.bitrate.compareTo(a.bitrate));
+      fallback.sort((a, b) => b.bitrate.compareTo(a.bitrate));
+      final rest = list
+          .where((s) => !_preferredItags.contains(s.tag) && !_fallbackItags.contains(s.tag))
+          .toList();
+      rest.sort((a, b) => b.bitrate.compareTo(a.bitrate));
+      final ordered = [...preferred, ...fallback, ...rest];
+      if (ordered.isNotEmpty) {
+        return ordered.map((s) => s.url.toString()).toList();
+      }
+    }
+    if (muxed.isNotEmpty) {
+      final list = muxed.toList()..sort((a, b) => b.bitrate.compareTo(a.bitrate));
+      return list.map((s) => s.url.toString()).toList();
+    }
+    if (audio.isNotEmpty) {
+      final list = audio.toList()..sort((a, b) => b.bitrate.compareTo(a.bitrate));
+      return list.map((s) => s.url.toString()).toList();
     }
     return [];
   }
