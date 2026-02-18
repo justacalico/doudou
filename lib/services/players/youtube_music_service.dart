@@ -22,9 +22,11 @@ class YouTubeMusicService implements BaseMediaService {
 
   final YTMusic _ytMusic = YTMusic();
   bool _authenticated = false;
+  /// True when user provided a cookie string (logged in). When false, playlists/favorites/subscriptions are local-only.
+  bool _hasCookies = false;
   String? _lastAuthError;
 
-  // Local data (persisted in SharedPreferences, like SoundCloud)
+  // Local data (persisted in SharedPreferences); used only when _hasCookies is false
   static const String _prefsFollowedArtistsKey = 'youtube_music_followed_artists';
   static const String _prefsFavoritesKey = 'youtube_music_favorites';
   static const String _prefsPlaylistsKey = 'youtube_music_playlists';
@@ -52,10 +54,11 @@ class YouTubeMusicService implements BaseMediaService {
     }
     _lastAuthError = null;
     final cookies = credential.trim();
+    _hasCookies = cookies.isNotEmpty;
     try {
       if (cookies.isEmpty) {
         // No login: initialize without cookies (Harmony-Music style; no auth required).
-        // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch() works without auth.
+        // Playlists, favorites, and subscriptions stay local-only.
         await _ytMusic.initialize();
       } else {
         await _ytMusic.initialize(
@@ -273,6 +276,20 @@ class YouTubeMusicService implements BaseMediaService {
   }
 
   Future<List<Artist>> getFollowedArtists() async {
+    if (_hasCookies && _isReady) {
+      try {
+        final data = await _ytMusic.constructRequest(
+          'browse',
+          body: {'browseId': 'FEmusic_library_corpus_artists'},
+        );
+        final list = _parseLibraryArtistsFromBrowse(data);
+        if (list.isNotEmpty) return list;
+      } catch (e) {
+        if (kDebugMode) {
+          print('[YouTubeMusic] getFollowedArtists (API) failed: $e');
+        }
+      }
+    }
     await _loadLocalData();
     return _localFollowedArtists
         .map((a) => Artist(
@@ -281,6 +298,40 @@ class YouTubeMusicService implements BaseMediaService {
               imageUrl: a['imageUrl'] as String?,
             ))
         .toList();
+  }
+
+  /// Parse library (subscribed) artists from browse response (FEmusic_library_corpus_artists).
+  List<Artist> _parseLibraryArtistsFromBrowse(dynamic data) {
+    final list = <Artist>[];
+    try {
+      final tabs = data?['contents']?['singleColumnBrowseResultsRenderer']?['tabs'];
+      if (tabs is! List || tabs.isEmpty) return list;
+      final content = tabs[0]['tabRenderer']?['content']?['sectionListRenderer']?['contents'];
+      if (content is! List) return list;
+      for (final section in content) {
+        final items = section['musicShelfRenderer']?['contents'] ?? section['gridRenderer']?['items'];
+        if (items is! List) continue;
+        for (final item in items) {
+          final renderer = item['musicResponsiveListItemRenderer'] ?? item['musicTwoRowItemRenderer'];
+          if (renderer == null) continue;
+          final nav = renderer['navigationEndpoint'] ?? renderer['title']?['runs']?[0]?['navigationEndpoint'];
+          final artistId = nav?['browseEndpoint']?['browseId']?.toString();
+          if (artistId == null || artistId.isEmpty) continue;
+          String name = 'Artist';
+          final runs = renderer['title']?['runs'] ?? renderer['flexColumns']?[0]?['musicResponsiveListItemFlexColumnRenderer']?['text']?['runs'];
+          if (runs is List && runs.isNotEmpty) {
+            name = runs[0]['text']?.toString() ?? name;
+          }
+          final thumbnails = renderer['thumbnail']?['thumbnails'] ?? renderer['thumbnail']?['musicThumbnailRenderer']?['thumbnail']?['thumbnails'];
+          String? imageUrl;
+          if (thumbnails is List && thumbnails.isNotEmpty) {
+            imageUrl = thumbnails[0]['url']?.toString();
+          }
+          list.add(Artist(id: artistId, name: name, imageUrl: imageUrl));
+        }
+      }
+    } catch (_) {}
+    return list;
   }
 
   @override
@@ -336,7 +387,18 @@ class YouTubeMusicService implements BaseMediaService {
         )).toList();
       }
     }
-    // Local playlists (like SoundCloud)
+    // With cookies: fetch playlist tracks from API (library playlists and Liked Songs)
+    if (_hasCookies && _isReady && !playlistId.startsWith('ytm_local_')) {
+      try {
+        final videos = await _ytMusic.getPlaylistVideos(playlistId);
+        return videos.map((v) => _trackFromVideoDetailed(v)).toList();
+      } catch (e) {
+        if (kDebugMode) {
+          print('[YouTubeMusic] getPlaylistTracks (API) failed for $playlistId: $e');
+        }
+      }
+    }
+    // Local playlists (no cookies or local-only playlist)
     await _loadLocalData();
     final list = _localPlaylistTracks[playlistId];
     if (list == null) return [];
@@ -403,6 +465,30 @@ class YouTubeMusicService implements BaseMediaService {
 
   @override
   Future<List<Track>> getStarredTracks() async {
+    if (_hasCookies && _isReady) {
+      try {
+        final videos = await _ytMusic.getPlaylistVideos('LM');
+        return videos.map((v) {
+          final t = _trackFromVideoDetailed(v);
+          return Track(
+            id: t.id,
+            name: t.name,
+            artistName: t.artistName,
+            artistId: t.artistId,
+            albumName: t.albumName,
+            albumId: t.albumId,
+            playlistItemId: t.playlistItemId,
+            duration: t.duration,
+            trackNumber: t.trackNumber,
+            imageUrl: t.imageUrl,
+            isFavorite: true,
+            playCount: t.playCount,
+          );
+        }).toList();
+      } catch (e) {
+        if (kDebugMode) print('[YouTubeMusic] getStarredTracks (API) failed: $e');
+      }
+    }
     await _loadLocalData();
     try {
       return _localFavorites.map(_trackFromStoredJson).toList();
@@ -423,9 +509,66 @@ class YouTubeMusicService implements BaseMediaService {
 
   @override
   Future<List<Playlist>> getPlaylists() async {
-    // Like SoundCloud: return only local playlists
+    if (_hasCookies && _isReady) {
+      try {
+        final data = await _ytMusic.constructRequest(
+          'browse',
+          body: {'browseId': 'FEmusic_liked_playlists'},
+        );
+        final list = _parseLibraryPlaylistsFromBrowse(data);
+        if (list.isNotEmpty) return list;
+      } catch (e) {
+        if (kDebugMode) {
+          print('[YouTubeMusic] getPlaylists (API) failed: $e');
+        }
+      }
+    }
     await _loadLocalData();
     return List<Playlist>.from(_localPlaylists);
+  }
+
+  /// Parse library playlists from browse response (FEmusic_liked_playlists).
+  List<Playlist> _parseLibraryPlaylistsFromBrowse(dynamic data) {
+    final list = <Playlist>[];
+    try {
+      final tabs = data?['contents']?['singleColumnBrowseResultsRenderer']?['tabs'];
+      if (tabs is! List || tabs.isEmpty) return list;
+      final content = tabs[0]['tabRenderer']?['content']?['sectionListRenderer']?['contents'];
+      if (content is! List) return list;
+      for (final section in content) {
+        final items = section['gridRenderer']?['items'] ?? section['musicShelfRenderer']?['contents'];
+        if (items is! List) continue;
+        for (final item in items) {
+          final renderer = item['musicTwoRowItemRenderer'] ?? item['musicResponsiveListItemRenderer'];
+          if (renderer == null) continue;
+          final nav = renderer['navigationEndpoint'];
+          final playlistId = nav?['watchPlaylistEndpoint']?['playlistId'] ?? nav?['browseEndpoint']?['browseId'];
+          if (playlistId is! String || playlistId.isEmpty) continue;
+          final runs = renderer['title']?['runs'];
+          String name = 'Playlist';
+          if (runs is List && runs.isNotEmpty) {
+            name = runs[0]['text']?.toString() ?? name;
+          }
+          final countStr = renderer['subtitle']?['runs']?[0]?['text']?.toString();
+          int count = 0;
+          if (countStr != null) {
+            count = int.tryParse(countStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+          }
+          final thumbnails = renderer['thumbnail']?['thumbnails'];
+          String? imageUrl;
+          if (thumbnails is List && thumbnails.isNotEmpty) {
+            imageUrl = thumbnails[0]['url']?.toString();
+          }
+          list.add(Playlist(
+            id: playlistId,
+            name: name,
+            imageUrl: imageUrl,
+            trackCount: count,
+          ));
+        }
+      }
+    } catch (_) {}
+    return list;
   }
 
   /// Home sections (recommendations, quick picks, etc.) for the logged-in user.
@@ -781,6 +924,7 @@ class YouTubeMusicService implements BaseMediaService {
   @override
   void clearAuth() {
     _authenticated = false;
+    _hasCookies = false;
     _lastAuthError = null;
     _localFollowedArtists = [];
     _localFavorites = [];
