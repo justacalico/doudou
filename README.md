@@ -57,24 +57,23 @@ See [DOCKER.md](docs/DOCKER.md) for detailed deployment instructions.
 ## Setup
 
 1. Open Doudou and tap "Add Server"
-2. Select your server type (Jellyfin, Plex, or Subsonic)
-3. Enter your server address (e.g., `http://192.168.1.100:8096`)
-4. Sign in with your credentials
-5. Your library will sync and you can start streaming
+2. Select your server type (Jellyfin, Plex, Soundcloud, or Subsonic)
+3. Sign in with your credentials
+4. Your library will sync and you can start streaming
 
 ## FAQ
 
 **Do I need a server?**
-No. You can play local files directly from your device without any server.
+No. You can play local files directly from your device without any server as well as using Soundcloud.
 
 **Can I use this away from home?**
-Yes, as long as your server is accessible over the internet. Consider using a VPN for security.
+Yes, as long as your server is accessible over the internet.
 
 **How do I download for offline listening?**
-Long-press any song, album, or playlist and select "Download for offline listening."
+Long-press any song, album, or playlist and select "Download for offline listening." (Note: Soundcloud has the downloads page disabled to not break trust with them.)
 
 **Which server works best?**
-Subsonic offers the best experience with full feature support and is completely free. If you are looking for non-local use soundcloud
+Subsonic offers the best experience with full feature support and is completely free. If you are looking for non-local use the Soundcloud provider.
 
 ## Building from Source
 
