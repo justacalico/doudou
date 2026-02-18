@@ -279,10 +279,7 @@ class YouTubeMusicService implements BaseMediaService {
     return '';
   }
 
-  /// HTTP headers for googlevideo.com (mobile ExoPlayer can use these).
-  /// On desktop we return null to avoid the local header-proxy (127.0.0.1) which
-  /// just_audio creates when headers are passed - that proxy often fails/timeouts.
-  /// MPV gets the raw URL and uses its own User-Agent; direct URLs may work without headers.
+  /// HTTP headers required for googlevideo.com (403 without browser-like User-Agent).
   static const Map<String, String> _streamHttpHeaders = {
     'User-Agent':
         'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -291,14 +288,11 @@ class YouTubeMusicService implements BaseMediaService {
   };
 
   /// Returns headers to pass to the audio player for googlevideo.com URLs.
-  /// Returns null on desktop to avoid the broken local header-proxy; mobile keeps headers.
+  /// Needed because googlevideo returns 403 without proper User-Agent.
+  /// mpv.conf is also written with user-agent, but embedded libmpv may not read it.
   static Map<String, String>? getStreamHeaders(String url) {
-    if (!url.contains('googlevideo.com')) return null;
-    final isDesktop = defaultTargetPlatform == TargetPlatform.linux ||
-        defaultTargetPlatform == TargetPlatform.windows ||
-        defaultTargetPlatform == TargetPlatform.macOS;
-    if (isDesktop) return null; // no headers -> no proxy -> direct URL to MPV
-    return Map.unmodifiable(_streamHttpHeaders);
+    if (url.contains('googlevideo.com')) return Map.unmodifiable(_streamHttpHeaders);
+    return null;
   }
 
   /// Invidious API - open-source YouTube frontend with stream proxy.
@@ -312,9 +306,10 @@ class YouTubeMusicService implements BaseMediaService {
   ];
 
   /// Piped API - proxied stream URLs, no custom headers needed.
-  /// pipedapi.kavin.rocks is the official instance with CDN support.
   static const List<String> _pipedInstances = [
     'https://pipedapi.kavin.rocks',
+    'https://pipedapi.rivo.lol',
+    'https://pipedapi.syncpundit.io',
   ];
 
   static const String _prefKeyInvidiousInstance = 'youtube_music_invidious_instance';
@@ -574,7 +569,7 @@ class YouTubeMusicService implements BaseMediaService {
         defaultTargetPlatform == TargetPlatform.windows ||
         defaultTargetPlatform == TargetPlatform.macOS;
 
-    // Desktop: prefer proxied URLs (Piped, Invidious) - no header-proxy, no 403 from googlevideo.
+    // Desktop: prefer proxied URLs first (no 403); fallback to direct with headers.
     // Mobile: prefer youtube_explode direct URLs first (ExoPlayer handles headers well).
     final List<String> result;
     if (isDesktop && (pipedUrls.isNotEmpty || invidiousUrls.isNotEmpty)) {
