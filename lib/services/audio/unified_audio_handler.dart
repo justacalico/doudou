@@ -1546,6 +1546,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     clearQueue();
     _stateController.updateCurrentTrack(null);
     _stateController.updateState(AudioPlayerState.idle);
+    _stateController.updatePosition(Duration.zero);
+    _stateController.updateDuration(Duration.zero);
+    _stateController.updateQueue([], currentIndex: null);
+    _updateMediaItem(null);
+    _updatePlaybackStateStream();
     _preloadedNextUrl = null;
     _preloadedPreviousUrl = null;
     _resolvedUrlCache.clear();
