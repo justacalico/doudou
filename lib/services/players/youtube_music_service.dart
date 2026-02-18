@@ -4,8 +4,11 @@
 // This replaces our broken implementation with Harmony's working code.
 // Catalog/search uses dart_ytmusic_api; streaming uses Harmony's StreamProvider (youtube_explode_dart only).
 
+import 'dart:convert';
+
 import 'package:dart_ytmusic_api/yt_music.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
@@ -20,6 +23,11 @@ class YouTubeMusicService implements BaseMediaService {
   final YTMusic _ytMusic = YTMusic();
   bool _authenticated = false;
   String? _lastAuthError;
+
+  // Followed artists (persisted locally, like SoundCloud) – show on home and library
+  static const String _prefsFollowedArtistsKey = 'youtube_music_followed_artists';
+  List<Map<String, dynamic>> _localFollowedArtists = [];
+  bool _localDataLoaded = false;
 
   @override
   ServerType get serverType => ServerType.youtubeMusic;
@@ -121,13 +129,68 @@ class YouTubeMusicService implements BaseMediaService {
     int? limit,
     int? startIndex,
   }) async {
-    if (!_isReady) return [];
+    // Like SoundCloud: artists = followed artists (show on home and library)
+    return getFollowedArtists();
+  }
+
+  Future<void> _loadLocalData() async {
+    if (_localDataLoaded) return;
+    _localDataLoaded = true;
     try {
-      final results = await _ytMusic.searchArtists('artist');
-      return results.take(limit ?? 50).map((a) => _artistFromDetailed(a)).toList();
-    } catch (_) {
-      return [];
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_prefsFollowedArtistsKey);
+      if (json != null) {
+        final list = jsonDecode(json) as List<dynamic>?;
+        _localFollowedArtists = list?.cast<Map<String, dynamic>>() ?? [];
+      }
+    } catch (e) {
+      if (kDebugMode) print('[YouTubeMusic] _loadLocalData failed: $e');
     }
+  }
+
+  Future<void> _saveFollowedArtists() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefsFollowedArtistsKey, jsonEncode(_localFollowedArtists));
+    } catch (e) {
+      if (kDebugMode) print('[YouTubeMusic] _saveFollowedArtists failed: $e');
+    }
+  }
+
+  /// Follow an artist (like SoundCloud). They appear on home and in library.
+  Future<bool> followArtist(Artist artist) async {
+    await _loadLocalData();
+    if (_localFollowedArtists.any((a) => (a['id'] as String?) == artist.id)) return true;
+    _localFollowedArtists.add({
+      'id': artist.id,
+      'name': artist.name,
+      'imageUrl': artist.imageUrl,
+    });
+    await _saveFollowedArtists();
+    return true;
+  }
+
+  /// Unfollow an artist
+  Future<bool> unfollowArtist(String artistId) async {
+    await _loadLocalData();
+    _localFollowedArtists.removeWhere((a) => (a['id'] as String?) == artistId);
+    await _saveFollowedArtists();
+    return true;
+  }
+
+  bool isFollowingArtist(String artistId) {
+    return _localFollowedArtists.any((a) => (a['id'] as String?) == artistId);
+  }
+
+  Future<List<Artist>> getFollowedArtists() async {
+    await _loadLocalData();
+    return _localFollowedArtists
+        .map((a) => Artist(
+              id: a['id'] as String? ?? '',
+              name: a['name'] as String? ?? 'Unknown Artist',
+              imageUrl: a['imageUrl'] as String?,
+            ))
+        .toList();
   }
 
   @override
@@ -168,7 +231,30 @@ class YouTubeMusicService implements BaseMediaService {
 
   @override
   Future<List<Track>> getAllTracks({int? maxTracks}) async {
-    return getTracks(limit: maxTracks ?? 10000);
+    await _loadLocalData();
+    final max = maxTracks ?? 500;
+    final perArtist = (max / 10).ceil().clamp(5, 50);
+    final seen = <String>{};
+    final merged = <Track>[];
+    for (final a in _localFollowedArtists) {
+      final id = a['id'] as String?;
+      if (id == null || id.isEmpty) continue;
+      try {
+        final tracks = await getArtistTracks(id, artistName: a['name'] as String?);
+        for (final t in tracks.take(perArtist)) {
+          if (seen.contains(t.id)) continue;
+          seen.add(t.id);
+          merged.add(t);
+        }
+      } catch (_) {}
+    }
+    if (merged.length >= max) return merged.take(max).toList();
+    final fromSearch = await getTracks(limit: max - merged.length);
+    for (final t in fromSearch) {
+      if (seen.contains(t.id)) continue;
+      merged.add(t);
+    }
+    return merged.take(max).toList();
   }
 
   @override
@@ -462,6 +548,8 @@ class YouTubeMusicService implements BaseMediaService {
   void clearAuth() {
     _authenticated = false;
     _lastAuthError = null;
+    _localFollowedArtists = [];
+    _localDataLoaded = false;
   }
 
   Future<List<Track>> getArtistTracks(String artistId, {String? artistName}) async {

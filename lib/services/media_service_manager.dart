@@ -393,26 +393,35 @@ class MediaServiceManager {
     _currentService = null;
   }
 
-  /// Follow an artist (SoundCloud only)
+  /// Follow an artist (SoundCloud and YouTube Music). They show on home and library.
   Future<bool> followArtist(Artist artist) async {
     if (_currentService is SoundCloudService) {
       return await (_currentService! as SoundCloudService).followArtist(artist);
     }
-    return false;
-  }
-
-  /// Unfollow an artist (SoundCloud only)
-  Future<bool> unfollowArtist(String userId) async {
-    if (_currentService is SoundCloudService) {
-      return await (_currentService! as SoundCloudService).unfollowArtist(userId);
+    if (_currentService is YouTubeMusicService) {
+      return await (_currentService! as YouTubeMusicService).followArtist(artist);
     }
     return false;
   }
 
-  /// Check if following an artist (SoundCloud only)
+  /// Unfollow an artist (SoundCloud and YouTube Music)
+  Future<bool> unfollowArtist(String userId) async {
+    if (_currentService is SoundCloudService) {
+      return await (_currentService! as SoundCloudService).unfollowArtist(userId);
+    }
+    if (_currentService is YouTubeMusicService) {
+      return await (_currentService! as YouTubeMusicService).unfollowArtist(userId);
+    }
+    return false;
+  }
+
+  /// Check if following an artist (SoundCloud and YouTube Music)
   bool isFollowingArtist(String userId) {
     if (_currentService is SoundCloudService) {
       return (_currentService! as SoundCloudService).isFollowingArtist(userId);
+    }
+    if (_currentService is YouTubeMusicService) {
+      return (_currentService! as YouTubeMusicService).isFollowingArtist(userId);
     }
     return false;
   }
