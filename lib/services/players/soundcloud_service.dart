@@ -477,8 +477,13 @@ class SoundCloudService implements BaseMediaService {
 
   @override
   Future<List<Track>> getStarredTracks() async {
-    await _loadLocalData();
-    return _localFavorites.map(_trackFromStoredJson).toList();
+    try {
+      await _loadLocalData();
+      return _localFavorites.map(_trackFromStoredJson).toList();
+    } catch (e) {
+      if (kDebugMode) _log('getStarredTracks failed: $e', isError: true);
+      return [];
+    }
   }
 
   @override
@@ -500,20 +505,33 @@ class SoundCloudService implements BaseMediaService {
 
   @override
   Future<List<Track>> getAllTracks({int? maxTracks}) async {
-    await _loadLocalData();
-    // SoundCloud: Library = followed artists + favorites (no generic search)
-    final fromFollowed = await _getTracksFromFollowedArtists(
-      maxPerArtist: ((maxTracks ?? 500) / 10).ceil().clamp(10, 100),
-    );
-    final favorites = await getStarredTracks();
-    final seen = <String>{};
-    final merged = <Track>[];
-    for (final t in [...fromFollowed, ...favorites]) {
-      if (seen.contains(t.id)) continue;
-      seen.add(t.id);
-      merged.add(t);
+    try {
+      await _loadLocalData();
+      // SoundCloud: followed artists + favorites + all playlist tracks
+      final fromFollowed = await _getTracksFromFollowedArtists(
+        maxPerArtist: ((maxTracks ?? 500) / 10).ceil().clamp(10, 100),
+      );
+      final favorites = await getStarredTracks();
+      final seen = <String>{};
+      final merged = <Track>[];
+      for (final t in [...fromFollowed, ...favorites]) {
+        if (seen.contains(t.id)) continue;
+        seen.add(t.id);
+        merged.add(t);
+      }
+      for (final entry in _localPlaylistTracks.entries) {
+        for (final j in entry.value) {
+          final t = _trackFromStoredJson(j);
+          if (seen.contains(t.id)) continue;
+          seen.add(t.id);
+          merged.add(t);
+        }
+      }
+      return merged;
+    } catch (e) {
+      if (kDebugMode) _log('getAllTracks failed: $e', isError: true);
+      return [];
     }
-    return merged;
   }
 
   @override
