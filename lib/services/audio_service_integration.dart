@@ -444,6 +444,16 @@ class AudioServiceIntegration {
 
   // === Utility Methods ===
 
+  /// Preload stream URL for a track (e.g. SoundCloud). Call when showing a playlist or when user is about to play to reduce first-play delay.
+  void preloadStreamUrl(String trackId) {
+    if (!_initialized || _audioHandler == null) return;
+    try {
+      _audioHandler!.preloadStreamUrl(trackId);
+    } catch (e) {
+      // Ignore
+    }
+  }
+
   /// Update media library (optional method for compatibility)
   Future<void> updateMediaLibrary(
     List<Track> tracks,

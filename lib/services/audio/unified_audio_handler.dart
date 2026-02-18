@@ -101,6 +101,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   // Preloading system for faster skips
   String? _preloadedNextUrl;
   String? _preloadedPreviousUrl;
+  // Resolved stream URL cache (e.g. SoundCloud) for gapless / instant play
+  final Map<String, String> _resolvedUrlCache = {};
+  static const int _maxResolvedUrlCacheSize = 40;
+  // Track IDs we're currently preloading (avoid duplicate work)
+  final Set<String> _preloadingTrackIds = {};
 
   // Constructor
   UnifiedAudioHandler(this._mediaServiceManager) {
@@ -820,6 +825,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _stateController.updateCurrentTrack(tracks[validStartIndex]);
     _stateController.updateState(AudioPlayerState.loading);
 
+    // Preload first track (and next) for providers that need async resolution (e.g. SoundCloud)
+    preloadStreamUrl(tracks[validStartIndex].id);
+    if (validStartIndex + 1 < tracks.length) {
+      preloadStreamUrl(tracks[validStartIndex + 1].id);
+    }
+
     // Update UI streams for all platforms
     _updateMediaItem(tracks[validStartIndex]);
     _updatePlaybackStateStream();
@@ -960,33 +971,65 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
     await _loadAndPlayTrack(streamUrl);
 
-    // Desktop: Preload adjacent tracks for faster skips
-    if (_isDesktop) {
-      _preloadAdjacentTracks(index);
-    }
+    // Preload adjacent tracks for faster skips (desktop uses preloaded URLs; mobile/web use cache)
+    _preloadAdjacentTracks(index);
   }
 
-  /// Preload adjacent tracks (desktop only)
+  /// Preload adjacent tracks (desktop + async for SoundCloud etc.)
   void _preloadAdjacentTracks(int currentIndex) {
-    if (!_isDesktop) return;
-
     final queue = _stateController.queue;
 
     if (currentIndex + 1 < queue.length) {
       final nextTrack = queue[currentIndex + 1];
-      _preloadedNextUrl = _mediaServiceManager.getDirectStreamUrl(nextTrack.id);
+      final direct = _mediaServiceManager.getDirectStreamUrl(nextTrack.id);
+      if (direct.isNotEmpty) {
+        _preloadedNextUrl = direct;
+      } else {
+        _preloadedNextUrl = null;
+        _preloadStreamUrlIntoNextPrev(nextTrack.id, isNext: true);
+      }
     } else {
       _preloadedNextUrl = null;
     }
 
     if (currentIndex - 1 >= 0) {
       final previousTrack = queue[currentIndex - 1];
-      _preloadedPreviousUrl = _mediaServiceManager.getDirectStreamUrl(
-        previousTrack.id,
-      );
+      final direct = _mediaServiceManager.getDirectStreamUrl(previousTrack.id);
+      if (direct.isNotEmpty) {
+        _preloadedPreviousUrl = direct;
+      } else {
+        _preloadedPreviousUrl = null;
+        _preloadStreamUrlIntoNextPrev(previousTrack.id, isNext: false);
+      }
     } else {
       _preloadedPreviousUrl = null;
     }
+  }
+
+  void _preloadStreamUrlIntoNextPrev(String trackId, {required bool isNext}) {
+    if (trackId.isEmpty || _preloadingTrackIds.contains(trackId)) return;
+    if (_resolvedUrlCache.containsKey(trackId)) {
+      final url = _resolvedUrlCache[trackId]!;
+      if (isNext) _preloadedNextUrl = url; else _preloadedPreviousUrl = url;
+      return;
+    }
+    _preloadingTrackIds.add(trackId);
+    _mediaServiceManager.getAlternativeStreamUrlsAsync(trackId).then((urls) {
+      _preloadingTrackIds.remove(trackId);
+      if (_disposed) return;
+      for (final url in urls) {
+        if (url.isEmpty) continue;
+        final lower = url.toLowerCase();
+        if (lower.contains('api.soundcloud.com')) continue;
+        if (lower.startsWith('http://') || lower.startsWith('https://')) {
+          _cacheResolvedUrl(trackId, url);
+          if (isNext) _preloadedNextUrl = url; else _preloadedPreviousUrl = url;
+          return;
+        }
+      }
+    }).catchError((_) {
+      _preloadingTrackIds.remove(trackId);
+    });
   }
 
   /// Load and play track from URL
@@ -1096,7 +1139,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   /// Get stream URL for track
   Future<String> _getStreamUrl(Track track) async {
-    // Check preloaded URLs (desktop)
+    // 1) Check resolved URL cache (SoundCloud etc. – gapless after first load)
+    final cached = _resolvedUrlCache.remove(track.id);
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+
+    // 2) Check preloaded URLs (desktop)
     if (_isDesktop) {
       final currentIndex = _stateController.currentIndex;
       final queue = _stateController.queue;
@@ -1105,30 +1154,34 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (currentIndex + 1 < queue.length &&
             queue[currentIndex + 1].id == track.id &&
             _preloadedNextUrl != null) {
-          return _preloadedNextUrl!;
+          final url = _preloadedNextUrl!;
+          _preloadedNextUrl = null;
+          return url;
         }
 
         if (currentIndex - 1 >= 0 &&
             queue[currentIndex - 1].id == track.id &&
             _preloadedPreviousUrl != null) {
-          return _preloadedPreviousUrl!;
+          final url = _preloadedPreviousUrl!;
+          _preloadedPreviousUrl = null;
+          return url;
         }
       }
     }
 
-    // Try direct stream first
+    // 3) Try direct stream first
     final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
     if (directUrl.isNotEmpty) {
       return directUrl;
     }
 
-    // Fallback to transcoded stream
+    // 4) Fallback to transcoded stream
     final streamUrl = _mediaServiceManager.getStreamUrl(track.id);
     if (streamUrl.isNotEmpty) {
       return streamUrl;
     }
 
-    // For providers that need async URL resolution (e.g. SoundCloud)
+    // 5) For providers that need async URL resolution (e.g. SoundCloud)
     final asyncUrls = await _mediaServiceManager.getAlternativeStreamUrlsAsync(track.id);
     if (asyncUrls.isEmpty) {
       debugPrint('[Playback] No stream URLs for track id=${track.id}');
@@ -1140,11 +1193,43 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       if (lower.contains('api.soundcloud.com')) continue;
       if (lower.startsWith('http://') || lower.startsWith('https://')) {
         debugPrint('[Playback] Using stream URL (length=${url.length}) for track id=${track.id}');
+        _cacheResolvedUrl(track.id, url);
         return url;
       }
     }
     debugPrint('[Playback] All ${asyncUrls.length} URL(s) rejected for track id=${track.id}');
     return '';
+  }
+
+  void _cacheResolvedUrl(String trackId, String url) {
+    if (_resolvedUrlCache.length >= _maxResolvedUrlCacheSize) {
+      final firstKey = _resolvedUrlCache.keys.first;
+      _resolvedUrlCache.remove(firstKey);
+    }
+    _resolvedUrlCache[trackId] = url;
+  }
+
+  /// Preload stream URL for a track (e.g. SoundCloud). Call when queue is set or user is about to play.
+  void preloadStreamUrl(String trackId) {
+    if (trackId.isEmpty || _preloadingTrackIds.contains(trackId)) return;
+    if (_resolvedUrlCache.containsKey(trackId)) return;
+    if (_mediaServiceManager.getDirectStreamUrl(trackId).isNotEmpty) return;
+    _preloadingTrackIds.add(trackId);
+    _mediaServiceManager.getAlternativeStreamUrlsAsync(trackId).then((urls) {
+      _preloadingTrackIds.remove(trackId);
+      if (_disposed) return;
+      for (final url in urls) {
+        if (url.isEmpty) continue;
+        final lower = url.toLowerCase();
+        if (lower.contains('api.soundcloud.com')) continue;
+        if (lower.startsWith('http://') || lower.startsWith('https://')) {
+          _cacheResolvedUrl(trackId, url);
+          return;
+        }
+      }
+    }).catchError((_) {
+      _preloadingTrackIds.remove(trackId);
+    });
   }
 
   // === Queue Management ===
@@ -1179,6 +1264,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _stateController.updateState(AudioPlayerState.idle);
     _preloadedNextUrl = null;
     _preloadedPreviousUrl = null;
+    _resolvedUrlCache.clear();
+    _preloadingTrackIds.clear();
   }
 
   // === Playback Modes ===
@@ -1674,9 +1761,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       _foregroundServiceActive = false;
     }
 
-    // Clear preloaded URLs
+    // Clear preloaded URLs and cache
     _preloadedNextUrl = null;
     _preloadedPreviousUrl = null;
+    _resolvedUrlCache.clear();
+    _preloadingTrackIds.clear();
 
     // Stop and dispose player
     try {
