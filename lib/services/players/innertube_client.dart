@@ -6,8 +6,8 @@ import 'package:http/http.dart' as http;
 ///
 /// Talks directly to YouTube's private InnerTube API, the same backend that
 /// official YouTube/YouTube Music clients use. Multiple client identities are
-/// tried in order; ANDROID_MUSIC and IOS typically return direct stream URLs
-/// without needing cipher/signature solving.
+/// tried in order; ANDROID returns direct stream URLs without login for most
+/// music content.
 ///
 /// Reference: InnerTune (z-huang/InnerTune) innertube module.
 class InnerTubeClient {
@@ -19,69 +19,76 @@ class InnerTubeClient {
   /// Visitor data token included in every request context.
   String? visitorData;
 
-  static const String _baseUrl = 'https://music.youtube.com/youtubei/v1';
+  static const String _youtubeBase = 'https://www.youtube.com/youtubei/v1';
+  static const String _musicBase = 'https://music.youtube.com/youtubei/v1';
 
   // ---------------------------------------------------------------------------
-  // Client definitions – mirrors InnerTune's YouTubeClient constants.
+  // Client definitions – order matters: ANDROID first (works without auth for
+  // YouTube Music tracks), then authenticated music clients, then IOS fallback.
   // ---------------------------------------------------------------------------
 
   static const List<_ClientConfig> _clients = [
-    _ClientConfig(
-      name: 'ANDROID_MUSIC',
-      version: '7.27.52',
-      apiKey: 'AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI',
-      userAgent: 'com.google.android.apps.youtube.music/7.27.52 (Linux; U; Android 14) gzip',
-      androidSdkVersion: 34,
-      osName: 'Android',
-      osVersion: '14',
-      platform: 'MOBILE',
-    ),
+    // ANDROID on www.youtube.com – works for music tracks without login
     _ClientConfig(
       name: 'ANDROID',
       version: '19.29.37',
       apiKey: 'AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w',
       userAgent: 'com.google.android.youtube/19.29.37 (Linux; U; Android 14) gzip',
+      baseUrl: _youtubeBase,
       androidSdkVersion: 34,
       osName: 'Android',
       osVersion: '14',
       platform: 'MOBILE',
     ),
+    // IOS on www.youtube.com – good fallback, may need login for music-only
     _ClientConfig(
       name: 'IOS',
       version: '19.29.1',
       apiKey: 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc',
       userAgent: 'com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)',
+      baseUrl: _youtubeBase,
       osName: 'iOS',
       osVersion: '17.5.1.21F90',
       platform: 'MOBILE',
       deviceModel: 'iPhone16,2',
     ),
+    // ANDROID_MUSIC on music.youtube.com – needs cookies for auth
+    _ClientConfig(
+      name: 'ANDROID_MUSIC',
+      version: '7.27.52',
+      apiKey: 'AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI',
+      userAgent: 'com.google.android.apps.youtube.music/7.27.52 (Linux; U; Android 14) gzip',
+      baseUrl: _musicBase,
+      androidSdkVersion: 34,
+      osName: 'Android',
+      osVersion: '14',
+      platform: 'MOBILE',
+      needsCookie: true,
+    ),
+    // IOS_MUSIC on music.youtube.com – needs cookies for auth
     _ClientConfig(
       name: 'IOS_MUSIC',
       version: '7.27.0',
       apiKey: 'AIzaSyBAETezhkwP0ZWA02RsqT1zu78Fpt0bC_s',
       userAgent: 'com.google.ios.youtubemusic/7.27.0 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)',
+      baseUrl: _musicBase,
       osName: 'iOS',
       osVersion: '18.1.0.22B83',
       platform: 'MOBILE',
       deviceModel: 'iPhone16,2',
+      needsCookie: true,
     ),
-    _ClientConfig(
-      name: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
-      version: '2.0',
-      apiKey: 'AIzaSyDCU8hByM-4DrUqRUYnGn-3llEO78bcxq8',
-      userAgent:
-          'Mozilla/5.0 (PlayStation 4 5.55) AppleWebKit/601.2 (KHTML, like Gecko)',
-      platform: 'TV',
-    ),
+    // WEB_REMIX on music.youtube.com – needs cookies for auth
     _ClientConfig(
       name: 'WEB_REMIX',
       version: '1.20241106.01.00',
       apiKey: 'AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30',
       userAgent:
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      baseUrl: _musicBase,
       referer: 'https://music.youtube.com/',
       platform: 'WEB',
+      needsCookie: true,
     ),
   ];
 
@@ -95,6 +102,9 @@ class InnerTubeClient {
   /// Tries multiple InnerTube client identities until one succeeds.
   Future<List<InnerTubeStreamResult>> getStreamUrls(String videoId) async {
     for (final client in _clients) {
+      if (client.needsCookie && (cookie == null || cookie!.isEmpty)) {
+        continue;
+      }
       try {
         final results = await _playerRequest(client, videoId);
         if (results.isNotEmpty) {
@@ -121,7 +131,7 @@ class InnerTubeClient {
     _ClientConfig client,
     String videoId,
   ) async {
-    final uri = Uri.parse('$_baseUrl/player').replace(
+    final uri = Uri.parse('${client.baseUrl}/player').replace(
       queryParameters: {'key': client.apiKey, 'prettyPrint': 'false'},
     );
 
@@ -160,17 +170,9 @@ class InnerTubeClient {
       'racyCheckOk': true,
     };
 
-    if (client.name == 'TVHTML5_SIMPLY_EMBEDDED_PLAYER') {
-      body['context'] = {
-        'client': contextClient,
-        'thirdParty': {
-          'embedUrl': 'https://www.youtube.com/watch?v=$videoId',
-        },
-      };
-    }
-
     final headers = <String, String>{
       'Content-Type': 'application/json',
+      'User-Agent': client.userAgent,
       'X-Goog-Api-Format-Version': '1',
       'X-YouTube-Client-Name': client.name,
       'X-YouTube-Client-Version': client.version,
@@ -181,12 +183,15 @@ class InnerTubeClient {
       headers['Referer'] = client.referer!;
     }
 
-    if (cookie != null && cookie!.isNotEmpty) {
+    if (cookie != null && cookie!.isNotEmpty && client.needsCookie) {
       headers['cookie'] = cookie!;
       final sapisid = _extractSAPISID(cookie!);
       if (sapisid != null) {
+        final origin = client.baseUrl.startsWith(_musicBase)
+            ? 'https://music.youtube.com'
+            : 'https://www.youtube.com';
         final ts = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-        final hash = _sha1Hash('$ts $sapisid https://music.youtube.com');
+        final hash = _sha1Hash('$ts $sapisid $origin');
         headers['Authorization'] = 'SAPISIDHASH ${ts}_$hash';
       }
     }
@@ -261,7 +266,6 @@ class InnerTubeClient {
         ));
       }
 
-      // Also check HLS manifest as fallback
       if (results.isEmpty) {
         final hlsUrl = streamingData['hlsManifestUrl'] as String?;
         if (hlsUrl != null && hlsUrl.isNotEmpty) {
@@ -279,9 +283,10 @@ class InnerTubeClient {
         }
       }
 
+      // Prefer opus (smaller, higher quality at same bitrate), then sort by bitrate
       results.sort((a, b) {
-        if (a.codec == 'opus' && b.codec != 'opus') return -1;
-        if (a.codec != 'opus' && b.codec == 'opus') return 1;
+        if (a.codec.contains('opus') && !b.codec.contains('opus')) return -1;
+        if (!a.codec.contains('opus') && b.codec.contains('opus')) return 1;
         return b.bitrate.compareTo(a.bitrate);
       });
 
@@ -301,21 +306,16 @@ class InnerTubeClient {
     return match?.group(1);
   }
 
-  /// Simple SHA-1 for SAPISIDHASH auth.
   static String _sha1Hash(String input) {
     try {
-      // Use dart:convert + crypto if available; fallback to manual.
-      // We import crypto in the parent service; here we do a minimal impl.
       final bytes = utf8.encode(input);
-      // Dart's built-in doesn't have SHA-1, but we can use the crypto package
-      // which is already a dependency. Import is at top of file that uses this.
       return _simpleSha1(bytes);
     } catch (_) {
       return '';
     }
   }
 
-  /// Minimal SHA-1 implementation (pure Dart, no external deps).
+  /// Minimal SHA-1 (pure Dart, zero deps).
   static String _simpleSha1(List<int> data) {
     int h0 = 0x67452301;
     int h1 = 0xEFCDAB89;
@@ -329,14 +329,10 @@ class InnerTubeClient {
       padded.add(0);
     }
     padded.addAll([
-      (bitLen >> 56) & 0xff,
-      (bitLen >> 48) & 0xff,
-      (bitLen >> 40) & 0xff,
-      (bitLen >> 32) & 0xff,
-      (bitLen >> 24) & 0xff,
-      (bitLen >> 16) & 0xff,
-      (bitLen >> 8) & 0xff,
-      bitLen & 0xff,
+      (bitLen >> 56) & 0xff, (bitLen >> 48) & 0xff,
+      (bitLen >> 40) & 0xff, (bitLen >> 32) & 0xff,
+      (bitLen >> 24) & 0xff, (bitLen >> 16) & 0xff,
+      (bitLen >> 8) & 0xff, bitLen & 0xff,
     ]);
 
     int rotl(int n, int c) => ((n << c) | (n >> (32 - c))) & 0xFFFFFFFF;
@@ -357,31 +353,21 @@ class InnerTubeClient {
       for (var j = 0; j < 80; j++) {
         int f, k;
         if (j < 20) {
-          f = (b & c) | (~b & d);
-          k = 0x5A827999;
+          f = (b & c) | (~b & d); k = 0x5A827999;
         } else if (j < 40) {
-          f = b ^ c ^ d;
-          k = 0x6ED9EBA1;
+          f = b ^ c ^ d; k = 0x6ED9EBA1;
         } else if (j < 60) {
-          f = (b & c) | (b & d) | (c & d);
-          k = 0x8F1BBCDC;
+          f = (b & c) | (b & d) | (c & d); k = 0x8F1BBCDC;
         } else {
-          f = b ^ c ^ d;
-          k = 0xCA62C1D6;
+          f = b ^ c ^ d; k = 0xCA62C1D6;
         }
         f &= 0xFFFFFFFF;
         final temp = (rotl(a, 5) + f + e + k + w[j]) & 0xFFFFFFFF;
-        e = d;
-        d = c;
-        c = rotl(b, 30);
-        b = a;
-        a = temp;
+        e = d; d = c; c = rotl(b, 30); b = a; a = temp;
       }
 
-      h0 = (h0 + a) & 0xFFFFFFFF;
-      h1 = (h1 + b) & 0xFFFFFFFF;
-      h2 = (h2 + c) & 0xFFFFFFFF;
-      h3 = (h3 + d) & 0xFFFFFFFF;
+      h0 = (h0 + a) & 0xFFFFFFFF; h1 = (h1 + b) & 0xFFFFFFFF;
+      h2 = (h2 + c) & 0xFFFFFFFF; h3 = (h3 + d) & 0xFFFFFFFF;
       h4 = (h4 + e) & 0xFFFFFFFF;
     }
 
@@ -400,24 +386,28 @@ class _ClientConfig {
     required this.version,
     required this.apiKey,
     required this.userAgent,
+    required this.baseUrl,
     this.referer,
     this.androidSdkVersion,
     this.osName,
     this.osVersion,
     this.platform,
     this.deviceModel,
+    this.needsCookie = false,
   });
 
   final String name;
   final String version;
   final String apiKey;
   final String userAgent;
+  final String baseUrl;
   final String? referer;
   final int? androidSdkVersion;
   final String? osName;
   final String? osVersion;
   final String? platform;
   final String? deviceModel;
+  final bool needsCookie;
 }
 
 class InnerTubeStreamResult {

@@ -299,18 +299,14 @@ class YouTubeMusicService implements BaseMediaService {
 
   // ---------------------------------------------------------------------------
   // Piped API instances – proxied stream URLs, no custom headers needed.
-  // Updated Feb 2026 from github.com/TeamPiped/documentation
+  // Tested Feb 2026: most public instances are down (502/521/DNS fail).
+  // Keep a small list; user can set custom instance in Settings.
   // ---------------------------------------------------------------------------
 
   static const List<String> _pipedInstances = [
     'https://pipedapi.kavin.rocks',
-    'https://pipedapi.leptons.xyz',
-    'https://pipedapi.nosebs.ru',
-    'https://pipedapi-libre.kavin.rocks',
-    'https://piped-api.privacy.com.de',
     'https://pipedapi.adminforge.de',
-    'https://pipedapi.drgns.space',
-    'https://pipedapi.reallyaweso.me',
+    'https://pipedapi.leptons.xyz',
   ];
 
   // ---------------------------------------------------------------------------
@@ -322,8 +318,6 @@ class YouTubeMusicService implements BaseMediaService {
     'https://yewtu.be',
     'https://vid.puffyan.us',
     'https://invidious.nerdvpn.de',
-    'https://invidious.privacyredirect.com',
-    'https://invidious.protokolla.fi',
   ];
 
   static const String _prefKeyInvidiousInstance = 'youtube_music_invidious_instance';
