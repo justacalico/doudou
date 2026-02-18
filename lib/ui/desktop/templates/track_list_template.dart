@@ -21,6 +21,9 @@ class TrackListTemplate extends StatelessWidget {
   final bool showArtwork;
   final Function(Track track, int index)? onTrackTap;
   final Function(Track track)? onRemoveTrack;
+  /// When true, the list does not scroll itself (shrinkWrap + NeverScrollableScrollPhysics)
+  /// so a parent SingleChildScrollView can scroll the whole page.
+  final bool shrinkWrap;
 
   const TrackListTemplate({
     super.key,
@@ -34,6 +37,7 @@ class TrackListTemplate extends StatelessWidget {
     this.showArtwork = false,
     this.onTrackTap,
     this.onRemoveTrack,
+    this.shrinkWrap = false,
   });
 
   static const double _compactBreakpoint = 500.0;
@@ -104,40 +108,49 @@ class TrackListTemplate extends StatelessWidget {
               ),
 
               // Track list with custom scroll physics
-              Expanded(
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: tracks.length,
-                  itemBuilder: (context, index) {
-                    final track = tracks[index];
-                    return _AppleTrackListItem(
-                      track: track,
-                      index: index,
-                      totalTracks: tracks.length,
-                      showTrackNumber: showTrackNumber,
-                      showArtist: showArtist,
-                      showAlbum: effectiveShowAlbum,
-                      showArtwork: showArtwork,
-                      tracks: tracks,
-                      onTap: () {
-                        if (onTrackTap != null) {
-                          onTrackTap!(track, index);
-                        } else {
-                          context.read<AppState>().playPlaylist(tracks, index);
-                        }
-                      },
-                      onRemove: onRemoveTrack != null
-                          ? () => onRemoveTrack!(track)
-                          : null,
-                    );
-                  },
-                ),
-              ),
+              _buildTrackList(context, effectiveShowAlbum),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildTrackList(BuildContext context, bool effectiveShowAlbum) {
+    final listView = ListView.builder(
+      shrinkWrap: shrinkWrap,
+      physics: shrinkWrap
+          ? const NeverScrollableScrollPhysics()
+          : const BouncingScrollPhysics(),
+      itemCount: tracks.length,
+      itemBuilder: (context, index) {
+        final track = tracks[index];
+        return _AppleTrackListItem(
+          track: track,
+          index: index,
+          totalTracks: tracks.length,
+          showTrackNumber: showTrackNumber,
+          showArtist: showArtist,
+          showAlbum: effectiveShowAlbum,
+          showArtwork: showArtwork,
+          tracks: tracks,
+          onTap: () {
+            if (onTrackTap != null) {
+              onTrackTap!(track, index);
+            } else {
+              context.read<AppState>().playPlaylist(tracks, index);
+            }
+          },
+          onRemove: onRemoveTrack != null
+              ? () => onRemoveTrack!(track)
+              : null,
+        );
+      },
+    );
+    if (shrinkWrap) {
+      return listView;
+    }
+    return Expanded(child: listView);
   }
 
   Widget _buildEmptyState(BuildContext context, bool isDark) {

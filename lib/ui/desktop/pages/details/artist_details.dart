@@ -98,43 +98,35 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
           showBackButton: true,
           title: widget.artist.name,
           onBackPressed: () => Navigator.of(context).pop(),
-          child: Column(
-            children: [
-              // Fixed header section
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Action buttons row
-                    _buildActionButtons(theme, l10n),
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Action buttons row
+                        _buildActionButtons(theme, l10n),
 
-                    const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                    // Artist header
-                    _buildArtistHeader(theme, appState, l10n),
+                        // Artist header
+                        _buildArtistHeader(theme, appState, l10n),
 
-                    const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                    // Tab selector
-                    _buildTabSelector(theme, l10n),
-                  ],
+                        // Tab selector
+                        _buildTabSelector(theme, l10n),
+
+                        const SizedBox(height: 16),
+
+                        // Tab content (grid or list) – scrolls with the page
+                        _buildTabContent(theme, appState, l10n),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Scrollable content section
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildTabContent(theme, appState, l10n),
-                      ),
-              ),
-            ],
-          ),
         );
       },
     );
@@ -529,6 +521,8 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
             }
 
             return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 16,
@@ -622,50 +616,18 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     AppState appState,
     AppLocalizations l10n,
   ) {
-    return Column(
-      children: [
-        // Header
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Text(
-                  l10n.popularSongs,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    // Show all songs
-                  },
-                  child: Text(l10n.viewAll),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Track list
-        Expanded(
-          child: TrackListTemplate(
-            tracks: _popularTracks,
-            emptyStateTitle: l10n.noSongsFound,
-            emptyStateMessage: l10n.artistHasNoSongsYet,
-            showTrackNumber: true,
-            showArtist: false,
-            showAlbum: true,
-            showArtwork: true,
-            onTrackTap: (track, index) async {
-              await appState.playPlaylist(_popularTracks, index);
-            },
-          ),
-        ),
-      ],
+    return TrackListTemplate(
+      tracks: _popularTracks,
+      emptyStateTitle: l10n.noSongsFound,
+      emptyStateMessage: l10n.artistHasNoSongsYet,
+      showTrackNumber: true,
+      showArtist: false,
+      showAlbum: true,
+      showArtwork: true,
+      shrinkWrap: true,
+      onTrackTap: (track, index) async {
+        await appState.playPlaylist(_popularTracks, index);
+      },
     );
   }
 
