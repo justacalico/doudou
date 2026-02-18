@@ -2834,10 +2834,14 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
       final isYouTubeMusic = appState.mediaServiceManager.currentServerType ==
           ServerType.youtubeMusic;
 
-      if (isSoundCloud || isYouTubeMusic) {
+      if (isSoundCloud) {
         _albums = [];
         _tracks = await appState.getArtistTracks(widget.artist);
         _selectedTab = 'songs';
+      } else if (isYouTubeMusic) {
+        _tracks = await appState.getArtistTracks(widget.artist);
+        _albums = albumsFromTracks(_tracks, artistName: widget.artist.name, artistId: widget.artist.id);
+        if (_albums.isEmpty) _selectedTab = 'songs';
       } else {
         _albums = appState.albums
             .where((album) => album.artistName == widget.artist.name)

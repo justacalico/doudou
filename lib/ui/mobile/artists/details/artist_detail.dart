@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../../providers/app_state.dart';
 import '../../../../models/jellyfin_models.dart';
 import '../../../../services/base_service.dart';
+import '../../../../utils/display_utils.dart';
 import '../../widgets/apple_design/liquid_glass.dart';
 import '../../partials/player/mini_player.dart';
 import '../../partials/tracks/track_list_item.dart';
@@ -44,9 +45,12 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       final isYouTubeMusic = appState.mediaServiceManager.currentServerType ==
           ServerType.youtubeMusic;
 
-      if (isSoundCloud || isYouTubeMusic) {
+      if (isSoundCloud) {
         _artistAlbums = [];
         _artistTracks = await appState.getArtistTracks(widget.artist);
+      } else if (isYouTubeMusic) {
+        _artistTracks = await appState.getArtistTracks(widget.artist);
+        _artistAlbums = albumsFromTracks(_artistTracks, artistName: widget.artist.name, artistId: widget.artist.id);
       } else {
         // Get all tracks by this artist
         final allTracks = appState.tracks;

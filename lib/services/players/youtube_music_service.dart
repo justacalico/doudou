@@ -311,7 +311,28 @@ class YouTubeMusicService implements BaseMediaService {
 
   @override
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
-    // Like SoundCloud: return tracks from local storage
+    // Virtual album (artist albums derived from tracks on artist page)
+    if (playlistId.startsWith('ytm_album:')) {
+      final rest = playlistId.substring('ytm_album:'.length);
+      final colon = rest.indexOf(':');
+      if (colon >= 0) {
+        final artistId = rest.substring(0, colon);
+        final albumName = rest.substring(colon + 1).replaceAll('_', ':');
+        final tracks = await getArtistTracks(artistId, artistName: null);
+        final filtered = tracks.where((t) => t.albumName == albumName).toList();
+        return filtered.map((t) => Track(
+          id: t.id,
+          name: t.name,
+          artistName: t.artistName,
+          albumName: t.albumName,
+          albumId: playlistId,
+          duration: t.duration,
+          imageUrl: t.imageUrl,
+          isFavorite: t.isFavorite,
+        )).toList();
+      }
+    }
+    // Local playlists (like SoundCloud)
     await _loadLocalData();
     final list = _localPlaylistTracks[playlistId];
     if (list == null) return [];

@@ -4,7 +4,9 @@ import '../../templates/page_template.dart';
 import '../../templates/track_list_template.dart';
 import '../../../../providers/app_state.dart';
 import '../../../../models/jellyfin_models.dart';
+import '../../../../services/base_service.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../utils/display_utils.dart';
 import 'media_details.dart';
 
 class ArtistDetailsPage extends StatefulWidget {
@@ -35,23 +37,34 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     });
 
     try {
-      // Get albums by this artist
-      _artistAlbums = appState.albums
-          .where((album) => album.artistName == widget.artist.name)
-          .toList();
+      final isYouTubeMusic = appState.mediaServiceManager.currentServerType ==
+          ServerType.youtubeMusic;
 
-      // Sort albums by year (newest first)
-      _artistAlbums.sort((a, b) {
-        final aYear = a.year ?? 0;
-        final bYear = b.year ?? 0;
-        return bYear.compareTo(aYear);
-      });
+      if (isYouTubeMusic) {
+        // YouTube Music: get artist tracks and derive albums from them
+        final allTracks = await appState.getArtistTracks(widget.artist);
+        _popularTracks = allTracks;
+        _artistAlbums = albumsFromTracks(allTracks, artistName: widget.artist.name, artistId: widget.artist.id);
+        _artistAlbums.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      } else {
+        // Get albums by this artist
+        _artistAlbums = appState.albums
+            .where((album) => album.artistName == widget.artist.name)
+            .toList();
 
-      // Get popular tracks by this artist
-      _popularTracks = appState.tracks
-          .where((track) => track.artistName == widget.artist.name)
-          .take(10)
-          .toList();
+        // Sort albums by year (newest first)
+        _artistAlbums.sort((a, b) {
+          final aYear = a.year ?? 0;
+          final bYear = b.year ?? 0;
+          return bYear.compareTo(aYear);
+        });
+
+        // Get popular tracks by this artist
+        _popularTracks = appState.tracks
+            .where((track) => track.artistName == widget.artist.name)
+            .take(10)
+            .toList();
+      }
 
       if (_artistAlbums.isEmpty) {
         _selectedTab = 'songs';
