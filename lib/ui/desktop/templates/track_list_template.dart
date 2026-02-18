@@ -35,10 +35,16 @@ class TrackListTemplate extends StatelessWidget {
     this.onRemoveTrack,
   });
 
+  static const double _compactBreakpoint = 500.0;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final width = MediaQuery.sizeOf(context).width;
+    final isCompact = width < _compactBreakpoint;
+    // On small screens, hide album column to free space for title and artist
+    final effectiveShowAlbum = showAlbum && !isCompact;
 
     if (tracks.isEmpty) {
       return _buildEmptyState(context, isDark);
@@ -67,7 +73,7 @@ class TrackListTemplate extends StatelessWidget {
           child: Column(
             children: [
               // Track list header with Apple styling
-              _buildHeader(context, isDark),
+              _buildHeader(context, isDark, effectiveShowAlbum),
 
               // Subtle gradient divider
               Container(
@@ -104,7 +110,7 @@ class TrackListTemplate extends StatelessWidget {
                       totalTracks: tracks.length,
                       showTrackNumber: showTrackNumber,
                       showArtist: showArtist,
-                      showAlbum: showAlbum,
+                      showAlbum: effectiveShowAlbum,
                       showArtwork: showArtwork,
                       tracks: tracks,
                       onTap: () {
@@ -228,7 +234,7 @@ class TrackListTemplate extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, bool isDark) {
+  Widget _buildHeader(BuildContext context, bool isDark, [bool effectiveShowAlbum = true]) {
     return Padding(
       padding: const EdgeInsets.all(AppleDesignSystem.spacing16),
       child: Row(
@@ -257,7 +263,7 @@ class TrackListTemplate extends StatelessWidget {
             const SizedBox(width: 52), // Space for artwork + margin
 
           Expanded(
-            flex: showArtist || showAlbum ? 3 : 1,
+            flex: showArtist || effectiveShowAlbum ? 3 : 1,
             child: Text(
               'TITLE',
               style: TextStyle(
@@ -289,7 +295,7 @@ class TrackListTemplate extends StatelessWidget {
               ),
             ),
 
-          if (showAlbum)
+          if (effectiveShowAlbum)
             Expanded(
               flex: 2,
               child: Text(
