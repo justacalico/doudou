@@ -1014,6 +1014,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         final lower = url.toLowerCase();
         if (lower.contains('api.soundcloud.com')) continue;
         if (lower.startsWith('http://') || lower.startsWith('https://')) {
+          if (kDebugMode) {
+            debugPrint('[Playback] preloadStreamUrl: cached URL for trackId=$trackId isNext=$isNext');
+          }
           _cacheResolvedUrl(trackId, url);
           if (isNext) {
             _preloadedNextUrl = url;
@@ -1023,7 +1026,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           return;
         }
       }
-    }).catchError((_) {
+    }).catchError((e) {
+      if (kDebugMode) {
+        debugPrint('[Playback] preloadStreamUrl: failed for trackId=$trackId: $e');
+      }
       _preloadingTrackIds.remove(trackId);
     });
   }
@@ -1031,6 +1037,14 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   /// Load and play track from URL
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
+
+    final headers = _mediaServiceManager.getStreamHeaders(url);
+    final isYouTube = url.contains('googlevideo.com');
+    if (kDebugMode) {
+      final track = _stateController.currentTrack;
+      debugPrint('[Playback] _loadAndPlayTrack: track=${track?.name ?? "?"} id=${track?.id ?? "?"} '
+          'urlHost=${Uri.tryParse(url)?.host ?? "?"} isYouTube=$isYouTube hasHeaders=${headers != null}');
+    }
 
     _stateController.updateState(AudioPlayerState.loading);
     _stateController.updateUserIntent(true);
@@ -1046,6 +1060,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }
     }
 
+    final audioSource = headers != null
+        ? AudioSource.uri(Uri.parse(url), headers: headers)
+        : AudioSource.uri(Uri.parse(url));
+
     // Desktop: Recreate player to prevent native callback crashes
     if (_isDesktop) {
       final currentOperationId = ++_loadOperationId;
@@ -1056,14 +1074,22 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       if (_disposed || currentOperationId != _loadOperationId) return;
 
       try {
-        await _player
-            .setAudioSource(AudioSource.uri(Uri.parse(url)))
-            .timeout(const Duration(seconds: 8));
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrack: calling setAudioSource (desktop)');
+        }
+        await _player.setAudioSource(audioSource).timeout(const Duration(seconds: 8));
 
         if (_disposed || currentOperationId != _loadOperationId) return;
 
         await _player.play().timeout(const Duration(seconds: 3));
-      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrack: play() succeeded (desktop)');
+        }
+      } catch (e, st) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrack: FAILED (desktop): $e');
+          debugPrint('[Playback] stackTrace: $st');
+        }
         _stateController.updateState(AudioPlayerState.error);
         _stateController.updateUserIntent(false);
         _stateController.updateError('Failed to load track: $e');
@@ -1075,16 +1101,26 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (kIsWeb) {
           await _tryLoadWithFallbacks(url);
         } else {
-          await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+          if (kDebugMode) {
+            debugPrint('[Playback] _loadAndPlayTrack: calling setAudioSource (mobile)');
+          }
+          await _player.setAudioSource(audioSource);
 
           if (_stateController.userIntendedPlaying) {
             if (_isMobile) await _attemptForegroundService();
             await _player.play();
           }
+          if (kDebugMode) {
+            debugPrint('[Playback] _loadAndPlayTrack: play() succeeded (mobile)');
+          }
         }
 
         if (_isMobile) _cancelLoadingTimeout();
-      } catch (e) {
+      } catch (e, st) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrack: FAILED (mobile): $e');
+          debugPrint('[Playback] stackTrace: $st');
+        }
         if (_isMobile) _cancelLoadingTimeout();
         _stateController.updateState(AudioPlayerState.error);
         _stateController.updateUserIntent(false);
@@ -1110,8 +1146,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
     for (int i = 0; i < urlsToTry.length; i++) {
       final url = urlsToTry[i];
+      final headers = _mediaServiceManager.getStreamHeaders(url);
+      final source =
+          headers != null
+              ? AudioSource.uri(Uri.parse(url), headers: headers)
+              : AudioSource.uri(Uri.parse(url));
       try {
-        await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+        await _player.setAudioSource(source);
         await _player.play();
         return;
       } catch (e) {
@@ -1135,9 +1176,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   /// Get stream URL for track
   Future<String> _getStreamUrl(Track track) async {
-    // 1) Check resolved URL cache (SoundCloud etc. – gapless after first load)
+    // 1) Check resolved URL cache (SoundCloud, YouTube Music – gapless after first load)
     final cached = _resolvedUrlCache.remove(track.id);
     if (cached != null && cached.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint('[Playback] _getStreamUrl: using cached URL for track id=${track.id}');
+      }
       return cached;
     }
 
@@ -1152,6 +1196,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             _preloadedNextUrl != null) {
           final url = _preloadedNextUrl!;
           _preloadedNextUrl = null;
+          if (kDebugMode) {
+            debugPrint('[Playback] _getStreamUrl: using preloaded NEXT URL for track id=${track.id}');
+          }
           return url;
         }
 
@@ -1160,6 +1207,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             _preloadedPreviousUrl != null) {
           final url = _preloadedPreviousUrl!;
           _preloadedPreviousUrl = null;
+          if (kDebugMode) {
+            debugPrint('[Playback] _getStreamUrl: using preloaded PREV URL for track id=${track.id}');
+          }
           return url;
         }
       }
@@ -1177,10 +1227,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       return streamUrl;
     }
 
-    // 5) For providers that need async URL resolution (e.g. SoundCloud)
+    // 5) For providers that need async URL resolution (e.g. SoundCloud, YouTube Music)
+    if (kDebugMode) {
+      debugPrint('[Playback] _getStreamUrl: resolving async for track id=${track.id} name=${track.name}');
+    }
     final asyncUrls = await _mediaServiceManager.getAlternativeStreamUrlsAsync(track.id);
     if (asyncUrls.isEmpty) {
-      debugPrint('[Playback] No stream URLs for track id=${track.id}');
+      debugPrint('[Playback] _getStreamUrl: No stream URLs for track id=${track.id} name=${track.name}');
       return '';
     }
     for (final url in asyncUrls) {
@@ -1188,12 +1241,14 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final lower = url.toLowerCase();
       if (lower.contains('api.soundcloud.com')) continue;
       if (lower.startsWith('http://') || lower.startsWith('https://')) {
-        debugPrint('[Playback] Using stream URL (length=${url.length}) for track id=${track.id}');
+        if (kDebugMode) {
+          debugPrint('[Playback] _getStreamUrl: using URL len=${url.length} host=${Uri.tryParse(url)?.host} for track id=${track.id}');
+        }
         _cacheResolvedUrl(track.id, url);
         return url;
       }
     }
-    debugPrint('[Playback] All ${asyncUrls.length} URL(s) rejected for track id=${track.id}');
+    debugPrint('[Playback] _getStreamUrl: All ${asyncUrls.length} URL(s) rejected for track id=${track.id}');
     return '';
   }
 

@@ -296,6 +296,11 @@ class MediaServiceManager {
     return await _currentService!.getAlternativeStreamUrlsAsync(trackId);
   }
 
+  /// HTTP headers to pass when loading a stream URL (e.g. User-Agent for googlevideo.com)
+  Map<String, String>? getStreamHeaders(String url) {
+    return YouTubeMusicService.getStreamHeaders(url);
+  }
+
   /// Get image URL from the current service
   String getImageUrl(
     String itemId, {

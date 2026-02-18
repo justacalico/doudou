@@ -23,13 +23,17 @@ class PlatformAudioConfig {
         if (appData == null) return;
         configDir = '$appData/mpv';
         optionsToAdd =
-            '# Doudou: WASAPI shared mode for system volume\naudio-exclusive=no\n';
+            '# Doudou: WASAPI shared mode for system volume\naudio-exclusive=no\n'
+            '# Doudou: User-Agent for googlevideo.com (YouTube Music)\n'
+            'user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n';
       } else if (Platform.isLinux) {
         final home = Platform.environment['HOME'];
         if (home == null) return;
         configDir = '$home/.config/mpv';
         optionsToAdd =
-            '# Doudou: avoid lavf "Failed to create file cache" (blocks playback)\ncache=no\n';
+            '# Doudou: avoid lavf "Failed to create file cache" (blocks playback)\ncache=no\n'
+            '# Doudou: User-Agent for googlevideo.com (YouTube Music)\n'
+            'user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n';
       } else {
         return;
       }
@@ -41,8 +45,25 @@ class PlatformAudioConfig {
       String existingContent = '';
       if (await configFile.exists()) {
         existingContent = await configFile.readAsString();
-        if ((Platform.isWindows && existingContent.contains('audio-exclusive')) ||
-            (Platform.isLinux && existingContent.contains('cache=no'))) {
+        final hasRequired = Platform.isWindows
+            ? (existingContent.contains('audio-exclusive') &&
+                existingContent.contains('user-agent'))
+            : (existingContent.contains('cache=no') &&
+                existingContent.contains('user-agent'));
+        if (hasRequired) {
+          return;
+        }
+        // Add user-agent if missing (older configs may not have it)
+        if (!existingContent.contains('user-agent')) {
+          const uaLinux =
+              '# Doudou: User-Agent for googlevideo.com (YouTube Music)\n'
+              'user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n';
+          const uaWindows =
+              '# Doudou: User-Agent for googlevideo.com (YouTube Music)\n'
+              'user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n';
+          final ua = Platform.isLinux ? uaLinux : uaWindows;
+          await configFile.writeAsString('$existingContent\n$ua');
+          debugPrint('PlatformAudioConfig: added user-agent to mpv.conf');
           return;
         }
       }

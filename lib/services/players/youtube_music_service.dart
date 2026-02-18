@@ -275,11 +275,34 @@ class YouTubeMusicService implements BaseMediaService {
     return '';
   }
 
+  /// HTTP headers required for googlevideo.com streams (MPV/FFmpeg often blocked without these)
+  static const Map<String, String> _streamHttpHeaders = {
+    'User-Agent':
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': '*/*',
+    'Accept-Language': 'en-US,en;q=0.9',
+  };
+
+  /// Returns headers to pass to the audio player for googlevideo.com URLs
+  static Map<String, String>? getStreamHeaders(String url) {
+    if (url.contains('googlevideo.com')) return Map.unmodifiable(_streamHttpHeaders);
+    return null;
+  }
+
   @override
   Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
     if (kIsWeb || !_authenticated) return [];
     final videoId = _normalizeVideoId(trackId);
-    if (videoId.isEmpty) return [];
+    if (videoId.isEmpty) {
+      if (kDebugMode) {
+        print('[YouTubeMusic] getAlternativeStreamUrlsAsync: empty videoId for trackId=$trackId');
+      }
+      return [];
+    }
+
+    if (kDebugMode) {
+      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: resolving videoId=$videoId');
+    }
 
     // Try default clients first, then fallbacks when YouTube API changes
     // androidMusic uses music.youtube.com and is ideal for YouTube Music
@@ -290,7 +313,13 @@ class YouTubeMusicService implements BaseMediaService {
       [YoutubeApiClient.mweb],
     ];
 
-    for (final ytClients in clientConfigs) {
+    const clientNames = ['default', 'tv', 'androidMusic', 'mweb'];
+    for (var i = 0; i < clientConfigs.length; i++) {
+      final ytClients = clientConfigs[i];
+      final clientName = clientNames[i];
+      if (kDebugMode) {
+        print('[YouTubeMusic] getAlternativeStreamUrlsAsync: trying client=$clientName');
+      }
       final yt = YoutubeExplode();
       try {
         final manifest = ytClients == null
@@ -326,11 +355,19 @@ class YouTubeMusicService implements BaseMediaService {
         }
 
         if (url != null && url.isNotEmpty) {
+          if (kDebugMode) {
+            final host = Uri.tryParse(url)?.host ?? 'unknown';
+            final expireMatch = RegExp(r'expire=(\d+)').firstMatch(url);
+            final expire = expireMatch != null ? int.tryParse(expireMatch.group(1)!) : null;
+            print('[YouTubeMusic] getAlternativeStreamUrlsAsync: SUCCESS client=$clientName '
+                'host=$host expire=$expire urlLen=${url.length}');
+          }
           return [url];
         }
-      } catch (e) {
+      } catch (e, st) {
         if (kDebugMode) {
-          print('[YouTubeMusic] getAlternativeStreamUrlsAsync (client fallback): $e');
+          print('[YouTubeMusic] getAlternativeStreamUrlsAsync: client=$clientName failed: $e');
+          print('[YouTubeMusic] stackTrace: $st');
         }
       } finally {
         yt.close();
