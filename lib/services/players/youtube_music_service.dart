@@ -24,9 +24,15 @@ class YouTubeMusicService implements BaseMediaService {
   bool _authenticated = false;
   String? _lastAuthError;
 
-  // Followed artists (persisted locally, like SoundCloud) – show on home and library
+  // Local data (persisted in SharedPreferences, like SoundCloud)
   static const String _prefsFollowedArtistsKey = 'youtube_music_followed_artists';
+  static const String _prefsFavoritesKey = 'youtube_music_favorites';
+  static const String _prefsPlaylistsKey = 'youtube_music_playlists';
+  static const String _prefsPlaylistTracksKey = 'youtube_music_playlist_tracks';
   List<Map<String, dynamic>> _localFollowedArtists = [];
+  List<Map<String, dynamic>> _localFavorites = [];
+  List<Playlist> _localPlaylists = [];
+  final Map<String, List<Map<String, dynamic>>> _localPlaylistTracks = {};
   bool _localDataLoaded = false;
 
   @override
@@ -138,10 +144,35 @@ class YouTubeMusicService implements BaseMediaService {
     _localDataLoaded = true;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final json = prefs.getString(_prefsFollowedArtistsKey);
-      if (json != null) {
-        final list = jsonDecode(json) as List<dynamic>?;
+      // Load followed artists
+      final followedJson = prefs.getString(_prefsFollowedArtistsKey);
+      if (followedJson != null) {
+        final list = jsonDecode(followedJson) as List<dynamic>?;
         _localFollowedArtists = list?.cast<Map<String, dynamic>>() ?? [];
+      }
+      // Load favorites
+      final favJson = prefs.getString(_prefsFavoritesKey);
+      if (favJson != null) {
+        final list = jsonDecode(favJson) as List<dynamic>?;
+        _localFavorites = list?.cast<Map<String, dynamic>>() ?? [];
+      }
+      // Load playlists
+      final playlistsJson = prefs.getString(_prefsPlaylistsKey);
+      if (playlistsJson != null) {
+        final list = jsonDecode(playlistsJson) as List<dynamic>?;
+        _localPlaylists = (list ?? []).map((e) => _playlistFromJson(e as Map<String, dynamic>)).toList();
+      }
+      // Load playlist tracks
+      final tracksJson = prefs.getString(_prefsPlaylistTracksKey);
+      if (tracksJson != null) {
+        final map = jsonDecode(tracksJson) as Map<String, dynamic>?;
+        _localPlaylistTracks.clear();
+        if (map != null) {
+          for (final entry in map.entries) {
+            final list = entry.value as List<dynamic>?;
+            _localPlaylistTracks[entry.key] = list?.cast<Map<String, dynamic>>() ?? [];
+          }
+        }
       }
     } catch (e) {
       if (kDebugMode) print('[YouTubeMusic] _loadLocalData failed: $e');
@@ -156,6 +187,65 @@ class YouTubeMusicService implements BaseMediaService {
       if (kDebugMode) print('[YouTubeMusic] _saveFollowedArtists failed: $e');
     }
   }
+
+  Future<void> _saveLocalFavorites() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefsFavoritesKey, jsonEncode(_localFavorites));
+    } catch (e) {
+      if (kDebugMode) print('[YouTubeMusic] _saveLocalFavorites failed: $e');
+    }
+  }
+
+  Future<void> _saveLocalPlaylists() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefsPlaylistsKey, jsonEncode(_localPlaylists.map(_playlistToJson).toList()));
+      final tracksMap = <String, List<Map<String, dynamic>>>{};
+      for (final e in _localPlaylistTracks.entries) {
+        tracksMap[e.key] = e.value;
+      }
+      await prefs.setString(_prefsPlaylistTracksKey, jsonEncode(tracksMap));
+    } catch (e) {
+      if (kDebugMode) print('[YouTubeMusic] _saveLocalPlaylists failed: $e');
+    }
+  }
+
+  static Map<String, dynamic> _playlistToJson(Playlist p) => {
+        'id': p.id,
+        'name': p.name,
+        'imageUrl': p.imageUrl,
+        'trackCount': p.trackCount,
+      };
+
+  static Playlist _playlistFromJson(Map<String, dynamic> j) => Playlist(
+        id: j['id'] ?? '',
+        name: j['name'] ?? '',
+        imageUrl: j['imageUrl'],
+        trackCount: (j['trackCount'] as num?)?.toInt() ?? 0,
+      );
+
+  static Track _trackFromStoredJson(Map<String, dynamic> j) => Track(
+        id: j['id'] ?? '',
+        name: j['name'] ?? '',
+        artistName: j['artistName'],
+        albumName: j['albumName'],
+        albumId: j['albumId'],
+        duration: (j['duration'] as num?)?.toInt(),
+        imageUrl: j['imageUrl'],
+        isFavorite: j['isFavorite'] == true,
+      );
+
+  static Map<String, dynamic> _trackToStoredJson(Track t) => {
+        'id': t.id,
+        'name': t.name,
+        'artistName': t.artistName,
+        'albumName': t.albumName,
+        'albumId': t.albumId,
+        'duration': t.duration,
+        'imageUrl': t.imageUrl,
+        'isFavorite': t.isFavorite,
+      };
 
   /// Follow an artist (like SoundCloud). They appear on home and in library.
   Future<bool> followArtist(Artist artist) async {
@@ -200,6 +290,7 @@ class YouTubeMusicService implements BaseMediaService {
     int? limit,
     int? startIndex,
   }) async {
+    await _loadLocalData(); // Ensure favorites are loaded for isFavorite flag
     if (!_isReady) return [];
     if (parentId != null && parentId.isNotEmpty) {
       try {
@@ -220,13 +311,23 @@ class YouTubeMusicService implements BaseMediaService {
 
   @override
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
-    if (!_isReady) return [];
-    try {
-      final videos = await _ytMusic.getPlaylistVideos(playlistId);
-      return videos.map((v) => _trackFromVideoDetailed(v)).toList();
-    } catch (_) {
-      return [];
-    }
+    // Like SoundCloud: return tracks from local storage
+    await _loadLocalData();
+    final list = _localPlaylistTracks[playlistId];
+    if (list == null) return [];
+    return list.map((j) {
+      final t = _trackFromStoredJson(j);
+      return Track(
+        id: t.id,
+        name: t.name,
+        artistName: t.artistName,
+        albumName: t.albumName,
+        albumId: playlistId,
+        duration: t.duration,
+        imageUrl: t.imageUrl,
+        isFavorite: t.isFavorite,
+      );
+    }).toList();
   }
 
   @override
@@ -236,6 +337,14 @@ class YouTubeMusicService implements BaseMediaService {
     final perArtist = (max / 10).ceil().clamp(5, 50);
     final seen = <String>{};
     final merged = <Track>[];
+    // Add favorites (like SoundCloud)
+    final favorites = await getStarredTracks();
+    for (final t in favorites) {
+      if (seen.contains(t.id)) continue;
+      seen.add(t.id);
+      merged.add(t);
+    }
+    // Add tracks from followed artists
     for (final a in _localFollowedArtists) {
       final id = a['id'] as String?;
       if (id == null || id.isEmpty) continue;
@@ -248,7 +357,17 @@ class YouTubeMusicService implements BaseMediaService {
         }
       } catch (_) {}
     }
+    // Add tracks from playlists
+    for (final entry in _localPlaylistTracks.entries) {
+      for (final j in entry.value) {
+        final t = _trackFromStoredJson(j);
+        if (seen.contains(t.id)) continue;
+        seen.add(t.id);
+        merged.add(t);
+      }
+    }
     if (merged.length >= max) return merged.take(max).toList();
+    // Fill with search results if needed
     final fromSearch = await getTracks(limit: max - merged.length);
     for (final t in fromSearch) {
       if (seen.contains(t.id)) continue;
@@ -258,7 +377,15 @@ class YouTubeMusicService implements BaseMediaService {
   }
 
   @override
-  Future<List<Track>> getStarredTracks() async => [];
+  Future<List<Track>> getStarredTracks() async {
+    await _loadLocalData();
+    try {
+      return _localFavorites.map(_trackFromStoredJson).toList();
+    } catch (e) {
+      if (kDebugMode) print('[YouTubeMusic] getStarredTracks failed: $e');
+      return [];
+    }
+  }
 
   @override
   Future<List<Album>> getStarredAlbums() async => [];
@@ -271,15 +398,9 @@ class YouTubeMusicService implements BaseMediaService {
 
   @override
   Future<List<Playlist>> getPlaylists() async {
-    if (!_isReady) return [];
-    try {
-      final fromHome = await _getPlaylistsFromHomeSections();
-      if (fromHome.isNotEmpty) return fromHome;
-      final results = await _ytMusic.searchPlaylists('playlist');
-      return results.take(50).map((p) => _playlistFromDetailed(p)).toList();
-    } catch (_) {
-      return [];
-    }
+    // Like SoundCloud: return only local playlists
+    await _loadLocalData();
+    return List<Playlist>.from(_localPlaylists);
   }
 
   /// Home sections (recommendations, quick picks, etc.) for the logged-in user.
@@ -343,24 +464,6 @@ class YouTubeMusicService implements BaseMediaService {
     return YTMHomeSection(title: title, albums: albums, playlists: playlists, tracks: tracks);
   }
 
-  Future<List<Playlist>> _getPlaylistsFromHomeSections() async {
-    try {
-      final sections = await _ytMusic.getHomeSections();
-      final seen = <String>{};
-      final list = <Playlist>[];
-      for (final section in sections) {
-        final contents = section.contents as List<dynamic>? ?? [];
-        for (final item in contents) {
-          if (!_hasPlaylistId(item)) continue;
-          final p = _playlistFromDetailed(item);
-          if (seen.add(p.id)) list.add(p);
-        }
-      }
-      return list;
-    } catch (_) {
-      return [];
-    }
-  }
 
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
@@ -541,7 +644,76 @@ class YouTubeMusicService implements BaseMediaService {
 
   @override
   Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
-    return false;
+    await _loadLocalData();
+    // isFavorite is CURRENT status - we need to toggle it (remove if currently favorite, add if not)
+    if (isFavorite) {
+      // Remove from favorites
+      _localFavorites.removeWhere((j) => (j['id'] ?? '').toString() == itemId);
+      await _saveLocalFavorites();
+      return true;
+    }
+    // Add to favorites: try to fetch track from API to store full snapshot
+    if (!_isReady) {
+      // If not ready, save minimal favorite locally
+      if (_localFavorites.any((j) => (j['id'] ?? '').toString() == itemId)) return true;
+      _localFavorites.add({
+        'id': itemId,
+        'name': 'Unknown',
+        'artistName': 'Unknown Artist',
+        'albumName': null,
+        'albumId': null,
+        'duration': null,
+        'imageUrl': null,
+        'isFavorite': true,
+      });
+      await _saveLocalFavorites();
+      return true;
+    }
+    try {
+      // Try to fetch track details from API
+      final track = await _getTrackById(itemId);
+      if (track != null) {
+        if (_localFavorites.any((j) => (j['id'] ?? '').toString() == track.id)) return true;
+        _localFavorites.add(_trackToStoredJson(track));
+        await _saveLocalFavorites();
+        return true;
+      }
+    } catch (e) {
+      if (kDebugMode) print('[YouTubeMusic] toggleFavorite fetch track failed: $e, saving minimal favorite locally');
+    }
+    // Fallback: save minimal favorite locally
+    if (_localFavorites.any((j) => (j['id'] ?? '').toString() == itemId)) return true;
+    _localFavorites.add({
+      'id': itemId,
+      'name': 'Unknown',
+      'artistName': 'Unknown Artist',
+      'albumName': null,
+      'albumId': null,
+      'duration': null,
+      'imageUrl': null,
+      'isFavorite': true,
+    });
+    await _saveLocalFavorites();
+    return true;
+  }
+
+  /// Try to fetch a track by ID (for favorites)
+  Future<Track?> _getTrackById(String trackId) async {
+    if (!_isReady) return null;
+    try {
+      // Try to get from video ID
+      final video = await _ytMusic.getVideo(trackId);
+      return _trackFromVideoDetailed(video);
+    } catch (_) {
+      // Try search as fallback
+      try {
+        final results = await _ytMusic.searchSongs(trackId);
+        if (results.isNotEmpty) {
+          return _trackFromSongDetailed(results.first);
+        }
+      } catch (_) {}
+    }
+    return null;
   }
 
   @override
@@ -549,7 +721,95 @@ class YouTubeMusicService implements BaseMediaService {
     _authenticated = false;
     _lastAuthError = null;
     _localFollowedArtists = [];
+    _localFavorites = [];
+    _localPlaylists = [];
+    _localPlaylistTracks.clear();
     _localDataLoaded = false;
+  }
+
+  /// Create a local playlist (like SoundCloud)
+  Future<Playlist?> createPlaylist(String name) async {
+    await _loadLocalData();
+    final id = 'ytm_local_${DateTime.now().millisecondsSinceEpoch}_${name.hashCode.abs()}';
+    final playlist = Playlist(id: id, name: name, trackCount: 0);
+    _localPlaylists.add(playlist);
+    _localPlaylistTracks[id] = [];
+    await _saveLocalPlaylists();
+    return playlist;
+  }
+
+  /// Add track to local playlist (like SoundCloud)
+  Future<bool> addToPlaylist(String playlistId, String trackId) async {
+    await _loadLocalData();
+    if (!_localPlaylists.any((p) => p.id == playlistId)) return false;
+    final list = _localPlaylistTracks[playlistId] ?? [];
+    if (list.any((j) => (j['id'] ?? '').toString() == trackId)) return true;
+    // Try to fetch track details
+    Track? track;
+    if (_isReady) {
+      track = await _getTrackById(trackId);
+    }
+    if (track == null) {
+      // Fallback: create minimal track entry
+      track = Track(
+        id: trackId,
+        name: 'Unknown',
+        artistName: 'Unknown Artist',
+        albumName: null,
+        albumId: playlistId,
+        duration: null,
+        imageUrl: null,
+        isFavorite: false,
+      );
+    } else {
+      // Update albumId to playlistId for playlist context
+      track = Track(
+        id: track.id,
+        name: track.name,
+        artistName: track.artistName,
+        albumName: track.albumName,
+        albumId: playlistId,
+        duration: track.duration,
+        imageUrl: track.imageUrl,
+        isFavorite: track.isFavorite,
+      );
+    }
+    list.add(_trackToStoredJson(track));
+    _localPlaylistTracks[playlistId] = list;
+    final idx = _localPlaylists.indexWhere((p) => p.id == playlistId);
+    if (idx >= 0) {
+      final p = _localPlaylists[idx];
+      _localPlaylists[idx] = Playlist(
+        id: p.id,
+        name: p.name,
+        imageUrl: p.imageUrl ?? track.imageUrl,
+        trackCount: list.length,
+      );
+    }
+    await _saveLocalPlaylists();
+    return true;
+  }
+
+  /// Remove track from local playlist (like SoundCloud)
+  Future<bool> removeTrackFromPlaylist(String playlistId, String trackId) async {
+    await _loadLocalData();
+    final list = _localPlaylistTracks[playlistId];
+    if (list == null) return false;
+    final before = list.length;
+    list.removeWhere((j) => (j['id'] ?? '').toString() == trackId);
+    if (list.length == before) return false;
+    final idx = _localPlaylists.indexWhere((p) => p.id == playlistId);
+    if (idx >= 0) {
+      final p = _localPlaylists[idx];
+      _localPlaylists[idx] = Playlist(
+        id: p.id,
+        name: p.name,
+        imageUrl: list.isNotEmpty ? (list.first['imageUrl'] ?? p.imageUrl) : null,
+        trackCount: list.length,
+      );
+    }
+    await _saveLocalPlaylists();
+    return true;
   }
 
   Future<List<Track>> getArtistTracks(String artistId, {String? artistName}) async {
@@ -599,7 +859,7 @@ class YouTubeMusicService implements BaseMediaService {
       albumId: null,
       duration: duration,
       imageUrl: imageUrl.isNotEmpty ? imageUrl : null,
-      isFavorite: false,
+      isFavorite: _localFavorites.any((f) => (f['id'] ?? '').toString() == videoId),
     );
   }
 
@@ -618,7 +878,7 @@ class YouTubeMusicService implements BaseMediaService {
       albumId: null,
       duration: duration,
       imageUrl: imageUrl.isNotEmpty ? imageUrl : null,
-      isFavorite: false,
+      isFavorite: _localFavorites.any((f) => (f['id'] ?? '').toString() == videoId),
     );
   }
 

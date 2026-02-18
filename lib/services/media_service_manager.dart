@@ -464,7 +464,9 @@ class MediaServiceManager {
         }
         break;
       case ServerType.youtubeMusic:
-        // Playlist create not implemented for YTM
+        if (_currentService is YouTubeMusicService) {
+          return await (_currentService as YouTubeMusicService).createPlaylist(name);
+        }
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -506,7 +508,12 @@ class MediaServiceManager {
         }
         break;
       case ServerType.youtubeMusic:
-        // Add to playlist not implemented for YTM
+        if (_currentService is YouTubeMusicService) {
+          return await (_currentService as YouTubeMusicService).addToPlaylist(
+            playlistId,
+            trackId,
+          );
+        }
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -560,12 +567,17 @@ class MediaServiceManager {
       case ServerType.plex:
         // Plex remove track from playlist not yet implemented
         break;
-      case ServerType.youtubeMusic:
-        // Remove from playlist not implemented for YTM
-        break;
       case ServerType.soundcloud:
         if (_currentService is SoundCloudService) {
           return await (_currentService as SoundCloudService).removeTrackFromPlaylist(
+            playlistId,
+            trackId,
+          );
+        }
+        break;
+      case ServerType.youtubeMusic:
+        if (_currentService is YouTubeMusicService) {
+          return await (_currentService as YouTubeMusicService).removeTrackFromPlaylist(
             playlistId,
             trackId,
           );
