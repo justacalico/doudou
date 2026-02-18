@@ -110,7 +110,7 @@ flutter gen-l10n
 # Android
 flutter build apk --debug          # Debug APK
 flutter build apk --release        # Release APK
-flutter build appbundle --release  # App Bundle for Play Store
+flutter build appbundle --release  # App Bundle
 
 # iOS
 flutter build ios --release
