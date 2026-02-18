@@ -60,6 +60,9 @@ class TrackListTemplate extends StatelessWidget {
       return _buildEmptyState(context, isDark);
     }
 
+    // On mobile/narrow: no table header, only art + name rows
+    final showTableHeader = !isCompact;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
       child: BackdropFilter(
@@ -82,33 +85,32 @@ class TrackListTemplate extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // Track list header with Apple styling
-              _buildHeader(context, isDark, effectiveShowAlbum),
-
-              // Subtle gradient divider
-              Container(
-                height: 0.5,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      (isDark
-                              ? AppleColors.separatorDark
-                              : AppleColors.separator)
-                          .withValues(alpha: 0),
-                      isDark
-                          ? AppleColors.separatorDark
-                          : AppleColors.separator,
-                      (isDark
-                              ? AppleColors.separatorDark
-                              : AppleColors.separator)
-                          .withValues(alpha: 0),
-                    ],
+              if (showTableHeader) ...[
+                _buildHeader(context, isDark, effectiveShowAlbum),
+                Container(
+                  height: 0.5,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        (isDark
+                                ? AppleColors.separatorDark
+                                : AppleColors.separator)
+                            .withValues(alpha: 0),
+                        isDark
+                            ? AppleColors.separatorDark
+                            : AppleColors.separator,
+                        (isDark
+                                ? AppleColors.separatorDark
+                                : AppleColors.separator)
+                            .withValues(alpha: 0),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ],
 
               // Track list with custom scroll physics
-              _buildTrackList(context, effectiveShowAlbum),
+              _buildTrackList(context, effectiveShowAlbum, isCompact),
             ],
           ),
         ),
@@ -116,7 +118,7 @@ class TrackListTemplate extends StatelessWidget {
     );
   }
 
-  Widget _buildTrackList(BuildContext context, bool effectiveShowAlbum) {
+  Widget _buildTrackList(BuildContext context, bool effectiveShowAlbum, bool isCompact) {
     final listView = ListView.builder(
       shrinkWrap: shrinkWrap,
       physics: shrinkWrap
@@ -133,6 +135,7 @@ class TrackListTemplate extends StatelessWidget {
           showArtist: showArtist,
           showAlbum: effectiveShowAlbum,
           showArtwork: showArtwork,
+          isCompact: isCompact,
           tracks: tracks,
           onTap: () {
             if (onTrackTap != null) {
@@ -363,6 +366,7 @@ class _AppleTrackListItem extends StatefulWidget {
   final bool showArtist;
   final bool showAlbum;
   final bool showArtwork;
+  final bool isCompact;
   final List<Track> tracks;
   final VoidCallback onTap;
   final VoidCallback? onRemove;
@@ -375,6 +379,7 @@ class _AppleTrackListItem extends StatefulWidget {
     required this.showArtist,
     required this.showAlbum,
     required this.showArtwork,
+    this.isCompact = false,
     required this.tracks,
     required this.onTap,
     this.onRemove,
@@ -431,7 +436,9 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
                   )
                 : null,
           ),
-          child: Row(
+          child: widget.isCompact
+              ? _buildCompactRow(context, theme, isDark, appState)
+              : Row(
             children: [
               // Track number or play indicator
               if (widget.showTrackNumber)
@@ -638,6 +645,128 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCompactRow(BuildContext context, ThemeData theme, bool isDark, AppState appState) {
+    final title = widget.track.name.isEmpty ? 'Unknown' : widget.track.name;
+    final artist = widget.track.artistName ?? 'Unknown Artist';
+    return Row(
+      children: [
+        if (widget.showArtwork)
+          Container(
+            width: 48,
+            height: 48,
+            margin: const EdgeInsets.only(right: AppleDesignSystem.spacing12),
+            decoration: BoxDecoration(
+              color: isDark ? AppleColors.systemGray5Dark : AppleColors.systemGray5,
+              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
+              child: widget.track.imageUrl != null
+                  ? buildSmartImage(
+                      imageUrl: appState.getImageUrl(widget.track.imageUrl!),
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                      errorBuilder: () => Icon(
+                        Icons.music_note_rounded,
+                        size: 22,
+                        color: isDark
+                            ? AppleColors.labelTertiaryDark
+                            : AppleColors.labelTertiary,
+                      ),
+                    )
+                  : Icon(
+                      Icons.music_note_rounded,
+                      size: 22,
+                      color: isDark
+                          ? AppleColors.labelTertiaryDark
+                          : AppleColors.labelTertiary,
+                    ),
+            ),
+          ),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: AppleDesignSystem.typeScaleBody,
+                  fontWeight: AppleDesignSystem.weightMedium,
+                  color: isDark
+                      ? AppleColors.labelPrimaryDark
+                      : AppleColors.labelPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                artist,
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: AppleDesignSystem.typeScaleSubheadline,
+                  color: isDark
+                      ? AppleColors.labelSecondaryDark
+                      : AppleColors.labelSecondary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        if (widget.track.duration != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: Text(
+              _formatDuration(widget.track.duration!),
+              style: TextStyle(
+                fontFamily: AppleDesignSystem.fontFamily,
+                fontSize: AppleDesignSystem.typeScaleSubheadline,
+                fontFeatures: const [FontFeature.tabularFigures()],
+                color: isDark
+                    ? AppleColors.labelSecondaryDark
+                    : AppleColors.labelSecondary,
+              ),
+            ),
+          ),
+        IconButton(
+          icon: Icon(
+            appState.isFavorite(widget.track.id)
+                ? Icons.favorite_rounded
+                : Icons.favorite_border_rounded,
+            size: 20,
+            color: appState.isFavorite(widget.track.id)
+                ? const Color(0xFFEC4899)
+                : (isDark
+                    ? AppleColors.labelTertiaryDark
+                    : AppleColors.labelTertiary),
+          ),
+          onPressed: () async {
+            try {
+              await appState.toggleFavorite(widget.track);
+            } catch (_) {}
+          },
+          style: IconButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(32, 32),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+        _AppleTrackMenu(
+          menuKey: _menuKey,
+          track: widget.track,
+          index: widget.index,
+          tracks: widget.tracks,
+          onRemove: widget.onRemove,
+        ),
+      ],
     );
   }
 
