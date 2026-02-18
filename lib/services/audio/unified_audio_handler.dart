@@ -1049,6 +1049,19 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     });
   }
 
+  /// Apply current volume and speed from state to the player.
+  /// Needed after loading a new track so the new stream respects user settings
+  /// (e.g. on desktop the player is recreated and defaults to 1.0).
+  Future<void> _applyVolumeAndSpeedToPlayer() async {
+    if (_disposed) return;
+    try {
+      await _player.setVolume(_stateController.volume);
+      await _player.setSpeed(_stateController.speed);
+    } catch (e) {
+      // Ignore
+    }
+  }
+
   /// Load and play track from URL
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
@@ -1104,6 +1117,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (kDebugMode) {
           debugPrint('[Playback] _loadAndPlayTrack: play() succeeded (desktop)');
         }
+        await _applyVolumeAndSpeedToPlayer();
       } catch (e, st) {
         if (kDebugMode) {
           debugPrint('[Playback] _loadAndPlayTrack: FAILED (desktop): $e');
@@ -1135,6 +1149,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         }
 
         if (_isMobile) _cancelLoadingTimeout();
+        await _applyVolumeAndSpeedToPlayer();
       } catch (e, st) {
         if (kDebugMode) {
           debugPrint('[Playback] _loadAndPlayTrack: FAILED (mobile): $e');
