@@ -181,8 +181,90 @@ class YouTubeMusicService implements BaseMediaService {
   Future<List<Playlist>> getPlaylists() async {
     if (!_isReady) return [];
     try {
+      final fromHome = await _getPlaylistsFromHomeSections();
+      if (fromHome.isNotEmpty) return fromHome;
       final results = await _ytMusic.searchPlaylists('playlist');
       return results.take(50).map((p) => _playlistFromDetailed(p)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Home sections (recommendations, quick picks, etc.) for the logged-in user.
+  Future<List<YTMHomeSection>> getHomeSectionsForApp() async {
+    if (!_isReady) return [];
+    try {
+      final sections = await _ytMusic.getHomeSections();
+      return sections
+          .map((s) => _sectionFromApiSection(s))
+          .where((s) => !s.isEmpty)
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('[YouTubeMusic] getHomeSectionsForApp failed: $e');
+      }
+      return [];
+    }
+  }
+
+  bool _hasAlbumId(dynamic item) {
+    try {
+      return (item.albumId as String? ?? '').isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool _hasPlaylistId(dynamic item) {
+    try {
+      return (item.playlistId as String? ?? '').isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool _hasVideoId(dynamic item) {
+    try {
+      return (item.videoId as String? ?? '').isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  YTMHomeSection _sectionFromApiSection(dynamic section) {
+    final title = (section.title as String?) ?? '';
+    final contents = section.contents as List<dynamic>? ?? [];
+    final albums = <Album>[];
+    final playlists = <Playlist>[];
+    final tracks = <Track>[];
+    for (final item in contents) {
+      try {
+        if (_hasAlbumId(item)) {
+          albums.add(_albumFromDetailed(item));
+        } else if (_hasPlaylistId(item)) {
+          playlists.add(_playlistFromDetailed(item));
+        } else if (_hasVideoId(item)) {
+          tracks.add(_trackFromSongDetailed(item));
+        }
+      } catch (_) {}
+    }
+    return YTMHomeSection(title: title, albums: albums, playlists: playlists, tracks: tracks);
+  }
+
+  Future<List<Playlist>> _getPlaylistsFromHomeSections() async {
+    try {
+      final sections = await _ytMusic.getHomeSections();
+      final seen = <String>{};
+      final list = <Playlist>[];
+      for (final section in sections) {
+        final contents = section.contents as List<dynamic>? ?? [];
+        for (final item in contents) {
+          if (!_hasPlaylistId(item)) continue;
+          final p = _playlistFromDetailed(item);
+          if (seen.add(p.id)) list.add(p);
+        }
+      }
+      return list;
     } catch (_) {
       return [];
     }

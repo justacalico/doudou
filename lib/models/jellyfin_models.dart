@@ -268,3 +268,22 @@ class Library {
     };
   }
 }
+
+/// One section from YouTube Music home (e.g. "Quick picks", "Recommendations").
+/// Used when server is YouTube Music to show personalized home content.
+class YTMHomeSection {
+  final String title;
+  final List<Album> albums;
+  final List<Playlist> playlists;
+  final List<Track> tracks;
+
+  const YTMHomeSection({
+    required this.title,
+    this.albums = const [],
+    this.playlists = const [],
+    this.tracks = const [],
+  });
+
+  bool get isEmpty =>
+      albums.isEmpty && playlists.isEmpty && tracks.isEmpty;
+}

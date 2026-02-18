@@ -228,6 +228,13 @@ class MediaServiceManager {
     return playlists;
   }
 
+  /// YouTube Music home sections (recommendations, quick picks). Empty when not YTM.
+  Future<List<YTMHomeSection>> getYouTubeMusicHomeSections() async {
+    final s = _currentService;
+    if (s is! YouTubeMusicService) return [];
+    return s.getHomeSectionsForApp();
+  }
+
   /// Get tracks from a playlist
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
     if (_currentService == null) return [];

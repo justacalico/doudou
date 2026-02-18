@@ -45,6 +45,7 @@ class AppState extends ChangeNotifier {
   List<Track> _tracks = [];
   List<Playlist> _playlists = [];
   List<Track> _recentTracks = [];
+  List<YTMHomeSection> _youtubeMusicHomeSections = [];
 
   bool _oledDarkModeEnabled = true;
   bool _showAlbumArtEnabled = true;
@@ -80,6 +81,8 @@ class AppState extends ChangeNotifier {
   List<Track> get tracks => _tracks;
   List<Playlist> get playlists => _playlists;
   List<Track> get recentTracks => _recentTracks;
+  List<YTMHomeSection> get youtubeMusicHomeSections =>
+      List.unmodifiable(_youtubeMusicHomeSections);
 
   /// Albums from recently played tracks (unique, order preserved), for "Continue listening".
   List<Album> get recentlyPlayedAlbums {
@@ -1206,6 +1209,7 @@ class AppState extends ChangeNotifier {
     _tracks.clear();
     _playlists.clear();
     _recentTracks.clear();
+    _youtubeMusicHomeSections = [];
     // Clear library cache so loadLibraryData fetches fresh data from new server
     try {
       await _cacheService.clearAlbumsCache();
@@ -1323,6 +1327,7 @@ class AppState extends ChangeNotifier {
     _artists.clear();
     _tracks.clear();
     _playlists.clear();
+    _youtubeMusicHomeSections = [];
     _clearError();
 
     notifyListeners();
@@ -1600,6 +1605,16 @@ class AppState extends ChangeNotifier {
       _artists = results[1] as List<Artist>;
       _tracks = results[2] as List<Track>;
       _playlists = results[3] as List<Playlist>;
+
+      _youtubeMusicHomeSections = [];
+      if (_mediaServiceManager.currentServerType == ServerType.youtubeMusic) {
+        try {
+          _youtubeMusicHomeSections =
+              await _mediaServiceManager.getYouTubeMusicHomeSections();
+        } catch (_) {
+          _youtubeMusicHomeSections = [];
+        }
+      }
 
       // Restore favorite status from downloaded tracks
       _restoreFavoriteStatusFromDownloads();
