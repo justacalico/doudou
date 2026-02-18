@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/services/base_service.dart';
 import 'package:doudou/ui/desktop/services/navigation_service.dart';
 
 import 'package:doudou/ui/layout/breakpoint.dart';
@@ -37,6 +38,9 @@ class _LibraryPageState extends State<LibraryPage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        final isSoundCloud = appState.mediaServiceManager
+                .currentServerType ==
+            ServerType.soundcloud;
         return PageTemplate(
           title: l10n.navLibrary,
           child: SingleChildScrollView(
@@ -60,14 +64,15 @@ class _LibraryPageState extends State<LibraryPage> {
                       spacing: spacing,
                       runSpacing: spacing,
                       children: [
-                        _LibraryTile(
-                          icon: Icons.album_rounded,
-                          label: l10n.albums,
-                          count: appState.albums.length,
-                          onTap: () =>
-                              NavigationService().selectPage(3),
-                          width: tileWidth,
-                        ),
+                        if (!isSoundCloud)
+                          _LibraryTile(
+                            icon: Icons.album_rounded,
+                            label: l10n.albums,
+                            count: appState.albums.length,
+                            onTap: () =>
+                                NavigationService().selectPage(3),
+                            width: tileWidth,
+                          ),
                         _LibraryTile(
                           icon: Icons.person_rounded,
                           label: l10n.artists,
@@ -96,7 +101,7 @@ class _LibraryPageState extends State<LibraryPage> {
                     );
                   },
                 ),
-                if (appState.albums.isNotEmpty) ...[
+                if (!isSoundCloud && appState.albums.isNotEmpty) ...[
                   const SizedBox(height: DesktopTheme.spacingXl),
                   SectionHeader(
                     title: l10n.recentlyAddedAlbums,

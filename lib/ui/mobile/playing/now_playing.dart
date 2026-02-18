@@ -10,6 +10,7 @@ import '../../../models/jellyfin_models.dart';
 import '../../../models/download_models.dart';
 import '../../../services/album_art_color_service.dart';
 import '../../../services/audio/unified_audio_handler.dart' show RepeatMode;
+import '../../../services/base_service.dart';
 import 'lyrics/lyrics_overlay.dart';
 import 'queue/queue_overlay.dart';
 import '../widgets/cached_image_widget.dart';
@@ -1499,12 +1500,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
       builder: (context) => CupertinoActionSheet(
         title: Text(currentTrack.name, style: const TextStyle(fontSize: 16)),
         message: Text(
-          _buildArtistAlbumText(currentTrack),
+          _buildArtistAlbumText(currentTrack, appState),
           style: const TextStyle(fontSize: 14),
         ),
         actions: [
-          // Go to Album
-          if (currentTrack.albumName != null)
+          // Go to Album (SoundCloud doesn't support albums)
+          if (appState.mediaServiceManager.currentServerType !=
+                  ServerType.soundcloud &&
+              currentTrack.albumName != null)
             CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
@@ -1914,11 +1917,16 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     return '${twoDigits(minutes)}:${twoDigits(seconds)}';
   }
 
-  String _buildArtistAlbumText(dynamic track) {
-    final albumName = track.albumName;
+  String _buildArtistAlbumText(dynamic track, AppState appState) {
     final artistDisplay =
         displayArtistName(track.artistName, defaultName: 'Unknown Artist');
-
+    final isSoundCloud = appState.mediaServiceManager.currentServerType ==
+        ServerType.soundcloud;
+    // SoundCloud doesn't support albums - show artist only
+    if (isSoundCloud) {
+      return artistDisplay;
+    }
+    final albumName = track.albumName;
     if (albumName != null && artistDisplay.isNotEmpty) {
       return '$artistDisplay - $albumName';
     } else if (artistDisplay.isNotEmpty) {

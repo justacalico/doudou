@@ -7,6 +7,7 @@ import '../../../models/jellyfin_models.dart';
 import '../../../models/download_models.dart';
 import '../../../services/album_art_color_service.dart';
 import '../../../services/audio/unified_audio_handler.dart';
+import '../../../services/base_service.dart';
 import '../../../services/lyrics_service.dart';
 import '../services/navigation_service.dart';
 import '../pages/details/media_details.dart';
@@ -517,6 +518,9 @@ class _TrackInfo extends StatelessWidget {
           },
           itemBuilder: (context) {
             final l10n = AppLocalizations.of(context);
+            final isSoundCloud = appState.mediaServiceManager
+                    .currentServerType ==
+                ServerType.soundcloud;
             final track = appState.tracks
                 .where((t) => t.id == trackId)
                 .firstOrNull;
@@ -554,14 +558,15 @@ class _TrackInfo extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              PopupMenuItem(
-                value: 'showAlbum',
-                child: ListTile(
-                  leading: const Icon(Icons.album_rounded),
-                  title: Text(l10n.showAlbum),
-                  contentPadding: EdgeInsets.zero,
+              if (!isSoundCloud)
+                PopupMenuItem(
+                  value: 'showAlbum',
+                  child: ListTile(
+                    leading: const Icon(Icons.album_rounded),
+                    title: Text(l10n.showAlbum),
+                    contentPadding: EdgeInsets.zero,
+                  ),
                 ),
-              ),
               PopupMenuItem(
                 value: 'showArtist',
                 child: ListTile(
@@ -1319,7 +1324,11 @@ class _NowPlayingMain extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final hasAlbum = mediaItem?.album != null && mediaItem!.album!.isNotEmpty;
+    final isSoundCloud = appState.mediaServiceManager.currentServerType ==
+        ServerType.soundcloud;
+    final hasAlbum = !isSoundCloud &&
+        mediaItem?.album != null &&
+        mediaItem!.album!.isNotEmpty;
     final hasArtist =
         mediaItem?.artist != null && mediaItem!.artist!.isNotEmpty;
 

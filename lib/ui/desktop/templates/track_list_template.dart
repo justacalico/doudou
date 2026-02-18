@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
+import '../../../services/base_service.dart';
 import '../../../models/download_models.dart';
 import '../../mobile/widgets/apple_design/apple_theme.dart';
 import '../widgets/universal_image.dart';
@@ -43,8 +44,11 @@ class TrackListTemplate extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final width = MediaQuery.sizeOf(context).width;
     final isCompact = width < _compactBreakpoint;
-    // On small screens, hide album column to free space for title and artist
-    final effectiveShowAlbum = showAlbum && !isCompact;
+    final isSoundCloud =
+        context.read<AppState>().mediaServiceManager.currentServerType ==
+            ServerType.soundcloud;
+    // On small screens or SoundCloud, hide album column (SoundCloud doesn't support albums)
+    final effectiveShowAlbum = showAlbum && !isCompact && !isSoundCloud;
 
     if (tracks.isEmpty) {
       return _buildEmptyState(context, isDark);

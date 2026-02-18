@@ -149,7 +149,10 @@ class _SearchPageState extends State<SearchPage> {
               final albums = _searchResults!.albums;
               final artists = _searchResults!.artists;
               final tracks = _searchResults!.tracks;
-              final showEmpty = albums.isEmpty &&
+              final isSoundCloud = appState.mediaServiceManager
+                      .currentServerType ==
+                  ServerType.soundcloud;
+              final showEmpty = (isSoundCloud || albums.isEmpty) &&
                   artists.isEmpty &&
                   tracks.isEmpty;
 
@@ -157,7 +160,7 @@ class _SearchPageState extends State<SearchPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (albums.isNotEmpty) ...[
+                    if (!isSoundCloud && albums.isNotEmpty) ...[
                       SectionHeader(title: l10n.albums),
                       const SizedBox(height: DesktopTheme.spacingSm),
                       SizedBox(
