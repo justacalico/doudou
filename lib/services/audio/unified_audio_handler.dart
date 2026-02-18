@@ -10,7 +10,6 @@ import 'audio_state_controller.dart';
 import 'queue_manager.dart';
 import '../../models/jellyfin_models.dart';
 import '../media_service_manager.dart';
-import 'stream_proxy_service_stub.dart' if (dart.library.io) 'stream_proxy_service.dart';
 
 // Platform detection
 bool get _isMobile =>
@@ -1061,24 +1060,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
 
-    // On desktop, MPV does not reliably apply User-Agent from mpv.conf to googlevideo.com,
-    // so we proxy the URL and add headers server-side (StreamProxyService).
+    // Harmony-Music style: AudioSource.uri() without headers or proxy
+    // MPV reads User-Agent from mpv.conf (configured in PlatformAudioConfig)
+    // Reference: Harmony-Music lib/services/audio_handler.dart – AudioSource.uri(Uri.tryParse(url)!) with no headers
     final isYouTube = url.contains('googlevideo.com');
-    if (_isDesktop && isYouTube) {
-      try {
-        const chromeUA =
-            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-        url = await StreamProxyService.instance.register(url, {'User-Agent': chromeUA});
-        if (kDebugMode) {
-          debugPrint('[Playback] _loadAndPlayTrack: using stream proxy for googlevideo.com');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          debugPrint('[Playback] _loadAndPlayTrack: stream proxy failed ($e), using direct URL');
-        }
-      }
-    }
-
     if (kDebugMode) {
       final track = _stateController.currentTrack;
       debugPrint('[Playback] _loadAndPlayTrack: track=${track?.name ?? "?"} id=${track?.id ?? "?"} '
