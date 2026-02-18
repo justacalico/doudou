@@ -280,19 +280,67 @@ class YouTubeMusicService implements BaseMediaService {
     if (kIsWeb || !_authenticated) return [];
     final videoId = _normalizeVideoId(trackId);
     if (videoId.isEmpty) return [];
-    try {
+
+    // Try default clients first, then fallbacks when YouTube API changes
+    // androidMusic uses music.youtube.com and is ideal for YouTube Music
+    final clientConfigs = <List<YoutubeApiClient>?>[
+      null, // default: android + ios
+      [YoutubeApiClient.tv],
+      [YoutubeApiClient.androidMusic],
+      [YoutubeApiClient.mweb],
+    ];
+
+    for (final ytClients in clientConfigs) {
       final yt = YoutubeExplode();
-      final manifest = await yt.videos.streamsClient.getManifest(videoId);
-      final audio = manifest.audioOnly.withHighestBitrate();
-      yt.close();
-      final url = audio.url.toString();
-      return url.isNotEmpty ? [url] : [];
-    } catch (e) {
-      if (kDebugMode) {
-        print('[YouTubeMusic] getAlternativeStreamUrlsAsync failed: $e');
+      try {
+        final manifest = ytClients == null
+            ? await yt.videos.streamsClient.getManifest(videoId)
+            : await yt.videos.streamsClient.getManifest(
+                videoId,
+                ytClients: ytClients,
+              );
+
+        // Prefer audio-only (smaller), then muxed (audio+video)
+        String? url;
+        final audioOnly = manifest.audioOnly;
+        final muxed = manifest.muxed;
+
+        if (audioOnly.isNotEmpty) {
+          final filtered = audioOnly
+              .where((s) =>
+                  s.audioTrack == null || s.audioTrack!.audioIsDefault)
+              .toList();
+          final list = filtered.isEmpty ? audioOnly : filtered;
+          list.sort((a, b) => b.bitrate.compareTo(a.bitrate));
+          url = list.first.url.toString();
+        }
+        if ((url == null || url.isEmpty) && muxed.isNotEmpty) {
+          final list = muxed.toList()
+            ..sort((a, b) => b.bitrate.compareTo(a.bitrate));
+          url = list.first.url.toString();
+        }
+        if ((url == null || url.isEmpty) && manifest.audio.isNotEmpty) {
+          final list = manifest.audio.toList()
+            ..sort((a, b) => b.bitrate.compareTo(a.bitrate));
+          url = list.first.url.toString();
+        }
+
+        if (url != null && url.isNotEmpty) {
+          return [url];
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('[YouTubeMusic] getAlternativeStreamUrlsAsync (client fallback): $e');
+        }
+      } finally {
+        yt.close();
       }
-      return [];
     }
+
+    if (kDebugMode) {
+      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: no stream URLs for $videoId');
+    }
+    return [];
   }
 
   static String _normalizeVideoId(String trackId) {
