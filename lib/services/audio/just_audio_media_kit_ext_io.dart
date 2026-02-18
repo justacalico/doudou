@@ -10,47 +10,49 @@ class PlatformAudioConfig {
   /// Check if we're on Windows
   static bool get isWindows => Platform.isWindows;
   
-  /// Create mpv.conf file with audio-exclusive=no (Windows)
+  /// Create mpv.conf with platform-specific options:
+  /// - Windows: audio-exclusive=no (WASAPI shared mode)
+  /// - Linux: cache=no (avoids lavf "Failed to create file cache" which blocks playback)
   static Future<void> createMpvConfig() async {
     try {
       String configDir;
+      String optionsToAdd;
 
       if (Platform.isWindows) {
         final appData = Platform.environment['APPDATA'];
-        if (appData == null) {
-          debugPrint('PlatformAudioConfig: APPDATA not found');
-          return;
-        }
+        if (appData == null) return;
         configDir = '$appData/mpv';
+        optionsToAdd =
+            '# Doudou: WASAPI shared mode for system volume\naudio-exclusive=no\n';
+      } else if (Platform.isLinux) {
+        final home = Platform.environment['HOME'];
+        if (home == null) return;
+        configDir = '$home/.config/mpv';
+        optionsToAdd =
+            '# Doudou: avoid lavf "Failed to create file cache" (blocks playback)\ncache=no\n';
       } else {
         return;
       }
 
       final dir = Directory(configDir);
-      if (!await dir.exists()) {
-        await dir.create(recursive: true);
-      }
+      if (!await dir.exists()) await dir.create(recursive: true);
 
       final configFile = File('$configDir/mpv.conf');
-
       String existingContent = '';
       if (await configFile.exists()) {
         existingContent = await configFile.readAsString();
-        if (existingContent.contains('audio-exclusive')) {
-          debugPrint('PlatformAudioConfig: audio-exclusive already in mpv.conf');
+        if ((Platform.isWindows && existingContent.contains('audio-exclusive')) ||
+            (Platform.isLinux && existingContent.contains('cache=no'))) {
           return;
         }
       }
 
-      const optionsToAdd =
-          '# Doudou: WASAPI shared mode for system volume integration\naudio-exclusive=no\n';
       final newContent =
           existingContent.isEmpty ? optionsToAdd : '$existingContent\n$optionsToAdd';
-
       await configFile.writeAsString(newContent);
-      debugPrint('PlatformAudioConfig: Created mpv.conf at $configDir');
+      debugPrint('PlatformAudioConfig: mpv.conf at $configDir');
     } catch (e) {
-      debugPrint('PlatformAudioConfig: Error creating mpv config: $e');
+      debugPrint('PlatformAudioConfig: $e');
     }
   }
 }
