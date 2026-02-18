@@ -52,6 +52,12 @@ class JustAudioMediaKitExt {
       libmpv: libmpv,
     );
     
+    // Harmony-Music configuration: protocol whitelist for desktop (Windows/Linux)
+    // Reference: Harmony-Music lib/services/audio_handler.dart – JustAudioMediaKit.protocolWhitelist
+    if ((linux || windows || macOS) && !android && !iOS) {
+      JustAudioMediaKit.protocolWhitelist = const ['http', 'https', 'file'];
+    }
+    
     // Set the title to show in Windows volume mixer
     JustAudioMediaKit.title = 'Doudou';
     
