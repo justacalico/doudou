@@ -80,6 +80,12 @@ class _AppShellState extends State<AppShell> {
     _libraryItems = _buildLibraryItems();
     _pages = _buildPages();
     _settingsIndex = _pages.length - 1;
+    // Clamp _selectedIndex when page list changes (e.g. Downloads shown/hidden)
+    // to avoid wrong nav icon being highlighted
+    if (_selectedIndex >= _pages.length) {
+      _selectedIndex = _pages.length - 1;
+      _nav.selectedPageIndex.value = _selectedIndex;
+    }
   }
 
   List<_NavItem> _buildNavItems() => [
