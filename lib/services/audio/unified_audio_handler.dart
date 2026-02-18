@@ -471,8 +471,24 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   Future<void> _handleTrackCompletion() async {
     if (_disposed) return;
     if (_isHandlingCompletion) return;
-    _isHandlingCompletion = true;
 
+    // YouTube Music: ConcatenatingAudioSource clear()+add() can cause spurious completion
+    // events (e.g. when switching tracks or from MPV). Only treat as real track end when
+    // position is near duration; otherwise we'd skip after 1–2 seconds every time.
+    if (_mediaServiceManager.isYouTubeMusic) {
+      final duration = _player.duration;
+      final position = _player.position;
+      if (duration != null &&
+          duration > Duration.zero &&
+          position < duration - const Duration(seconds: 5)) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _handleTrackCompletion: ignoring spurious YT completion (position=$position, duration=$duration)');
+        }
+        return;
+      }
+    }
+
+    _isHandlingCompletion = true;
     try {
       if (_isMobile) _cancelLoadingTimeout();
 
