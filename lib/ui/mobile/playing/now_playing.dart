@@ -1154,15 +1154,23 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                               .white,
                                                         ),
                                                   )
-                                                : Icon(
-                                                    isPlaying
-                                                        ? CupertinoIcons
-                                                              .pause_fill
-                                                        : CupertinoIcons
-                                                              .play_arrow_solid,
-                                                    size: 32,
-                                                    color:
-                                                        CupertinoColors.white,
+                                                : AnimatedSwitcher(
+                                                    duration: const Duration(milliseconds: 200),
+                                                    transitionBuilder: (Widget child, Animation<double> animation) {
+                                                      return ScaleTransition(
+                                                        scale: animation,
+                                                        child: FadeTransition(opacity: animation, child: child),
+                                                      );
+                                                    },
+                                                    child: Icon(
+                                                      key: ValueKey(isPlaying),
+                                                      isPlaying
+                                                          ? CupertinoIcons.pause_fill
+                                                          : CupertinoIcons.play_arrow_solid,
+                                                      size: 32,
+                                                      color:
+                                                          CupertinoColors.white,
+                                                    ),
                                                   ),
                                           ),
                                         ),

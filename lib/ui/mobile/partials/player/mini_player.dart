@@ -383,12 +383,22 @@ class _MiniPlayerState extends State<MiniPlayer>
                                     ? const CupertinoActivityIndicator(
                                         color: Color(0xFFFFFFFF),
                                       )
-                                    : Icon(
-                                        isPlaying
-                                            ? CupertinoIcons.pause_fill
-                                            : CupertinoIcons.play_fill,
-                                        size: 24,
-                                        color: const Color(0xFFFFFFFF),
+                                    : AnimatedSwitcher(
+                                        duration: const Duration(milliseconds: 200),
+                                        transitionBuilder: (Widget child, Animation<double> animation) {
+                                          return ScaleTransition(
+                                            scale: animation,
+                                            child: FadeTransition(opacity: animation, child: child),
+                                          );
+                                        },
+                                        child: Icon(
+                                          key: ValueKey(isPlaying),
+                                          isPlaying
+                                              ? CupertinoIcons.pause_fill
+                                              : CupertinoIcons.play_fill,
+                                          size: 24,
+                                          color: const Color(0xFFFFFFFF),
+                                        ),
                                       ),
                               ),
                             ),

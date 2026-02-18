@@ -461,12 +461,22 @@ class _DesktopPlayButtonState extends State<DesktopPlayButton>
                           color: Colors.white,
                         ),
                       )
-                    : Icon(
-                        widget.isPlaying
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
-                        color: Colors.white,
-                        size: widget.size * 0.55,
+                    : AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        transitionBuilder: (Widget child, Animation<double> animation) {
+                          return ScaleTransition(
+                            scale: animation,
+                            child: FadeTransition(opacity: animation, child: child),
+                          );
+                        },
+                        child: Icon(
+                          key: ValueKey(widget.isPlaying),
+                          widget.isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
+                          color: Colors.white,
+                          size: widget.size * 0.55,
+                        ),
                       ),
               ),
             );

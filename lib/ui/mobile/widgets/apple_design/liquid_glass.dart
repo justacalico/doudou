@@ -519,13 +519,23 @@ class _LiquidGlassIconButtonState extends State<_LiquidGlassIconButton>
                 ? CupertinoActivityIndicator(
                     color: widget.isDark ? Colors.white : Colors.black,
                   )
-                : Icon(
-                    widget.icon,
-                    size: widget.size * 0.7,
-                    color: widget.disabled
-                        ? (widget.isDark ? Colors.white : Colors.black)
-                              .withOpacity(0.3)
-                        : (widget.isDark ? Colors.white : Colors.black),
+                : AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return ScaleTransition(
+                        scale: animation,
+                        child: FadeTransition(opacity: animation, child: child),
+                      );
+                    },
+                    child: Icon(
+                      key: ValueKey(widget.icon),
+                      widget.icon,
+                      size: widget.size * 0.7,
+                      color: widget.disabled
+                          ? (widget.isDark ? Colors.white : Colors.black)
+                                .withOpacity(0.3)
+                          : (widget.isDark ? Colors.white : Colors.black),
+                    ),
                   ),
           ),
         ),

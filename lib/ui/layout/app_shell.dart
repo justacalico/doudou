@@ -867,16 +867,22 @@ class _MobilePlayerBar extends StatelessWidget {
                                       MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: Icon(
-                                        playing
-                                            ? Icons
-                                                .pause_rounded
-                                            : Icons
-                                                .play_arrow_rounded,
-                                        color: theme
-                                            .colorScheme
-                                            .primary,
-                                        size: 28,
+                                      icon: AnimatedSwitcher(
+                                        duration: const Duration(milliseconds: 200),
+                                        transitionBuilder: (Widget child, Animation<double> animation) {
+                                          return ScaleTransition(
+                                            scale: animation,
+                                            child: FadeTransition(opacity: animation, child: child),
+                                          );
+                                        },
+                                        child: Icon(
+                                          key: ValueKey(playing),
+                                          playing
+                                              ? Icons.pause_rounded
+                                              : Icons.play_arrow_rounded,
+                                          color: theme.colorScheme.primary,
+                                          size: 28,
+                                        ),
                                       ),
                                       onPressed: () =>
                                           appState

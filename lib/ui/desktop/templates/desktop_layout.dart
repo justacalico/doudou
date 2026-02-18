@@ -879,10 +879,20 @@ class _PlayPauseButtonState extends State<_PlayPauseButton> {
             color: DesktopTheme.textPrimary,
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            widget.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-            color: DesktopTheme.backgroundDeep,
-            size: 24,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return ScaleTransition(
+                scale: animation,
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+            child: Icon(
+              key: ValueKey(widget.isPlaying),
+              widget.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              color: DesktopTheme.backgroundDeep,
+              size: 24,
+            ),
           ),
         ),
       ),
@@ -1804,10 +1814,20 @@ class _LargePlayButtonState extends State<_LargePlayButton> {
             color: DesktopTheme.textPrimary,
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            widget.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-            color: DesktopTheme.backgroundDeep,
-            size: 32,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return ScaleTransition(
+                scale: animation,
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+            child: Icon(
+              key: ValueKey(widget.isPlaying),
+              widget.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              color: DesktopTheme.backgroundDeep,
+              size: 32,
+            ),
           ),
         ),
       ),
