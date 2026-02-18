@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -128,6 +129,8 @@ class SoundCloudService implements BaseMediaService {
 
       _dio.options.headers['Authorization'] = 'OAuth $_accessToken';
       _log('token obtained, expires_in=${expiresIn}s');
+      // Pre-warm embedded client_id for faster first playback
+      unawaited(_getEmbeddedClientId());
       return true;
     } on DioException catch (e) {
       final status = e.response?.statusCode;
@@ -529,39 +532,34 @@ class SoundCloudService implements BaseMediaService {
             uniqueUrls.add(url);
           }
         }
-        if (kDebugMode) _log('playback: [embed] unique script URLs: ${uniqueUrls.length}');
-        for (final scriptUrl in uniqueUrls) {
-          if (kDebugMode) _log('playback: [embed] GET ${scriptUrl.length > 80 ? '${scriptUrl.substring(0, 80)}...' : scriptUrl}');
-          try {
-            final scriptRes = await http.get(Uri.parse(scriptUrl), headers: headers);
-            if (kDebugMode) _log('playback: [embed] script status=${scriptRes.statusCode} bodyLength=${scriptRes.body.length}');
-            if (scriptRes.statusCode != 200) continue;
-            final scriptBody = scriptRes.body;
-            if (scriptBody.length < 2000 && !scriptBody.contains('client_id')) {
-              if (kDebugMode) _log('playback: [embed] skip small script (${scriptBody.length} bytes, no client_id)');
-              continue;
+        if (kDebugMode) _log('playback: [embed] unique script URLs: ${uniqueUrls.length}, fetching in parallel');
+        // Fetch all scripts in parallel for faster client_id extraction
+        final scriptBodies = await Future.wait(
+          uniqueUrls.map((scriptUrl) async {
+            try {
+              final res = await http.get(Uri.parse(scriptUrl), headers: headers);
+              return res.statusCode == 200 ? res.body : null;
+            } catch (_) {
+              return null;
             }
-            final re2 = RegExp(r',client_id:\s*"([a-zA-Z0-9_.-]{20,})"');
-            var m2 = re2.firstMatch(scriptBody);
-            m2 ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]{20,})"').firstMatch(scriptBody);
-            m2 ??= RegExp(r'client_id=([a-zA-Z0-9_.-]{20,})').firstMatch(scriptBody);
-            m2 ??= RegExp(r'client_id:\s*"([^"]{20,})"').firstMatch(scriptBody);
-            if (m2 != null) {
-              final cid = m2.group(1)!;
-              if (cid.length >= 20) {
-                if (kDebugMode) _log('playback: [embed] client_id found in script');
-                return cid;
-              }
+          }),
+        );
+        for (final scriptBody in scriptBodies) {
+          if (scriptBody == null ||
+              (scriptBody.length < 2000 && !scriptBody.contains('client_id'))) {
+            continue;
+          }
+          final re2 = RegExp(r',client_id:\s*"([a-zA-Z0-9_.-]{20,})"');
+          var m2 = re2.firstMatch(scriptBody);
+          m2 ??= RegExp(r'client_id:\s*"([a-zA-Z0-9_.-]{20,})"').firstMatch(scriptBody);
+          m2 ??= RegExp(r'client_id=([a-zA-Z0-9_.-]{20,})').firstMatch(scriptBody);
+          m2 ??= RegExp(r'client_id:\s*"([^"]{20,})"').firstMatch(scriptBody);
+          if (m2 != null) {
+            final cid = m2.group(1)!;
+            if (cid.length >= 20) {
+              if (kDebugMode) _log('playback: [embed] client_id found in script');
+              return cid;
             }
-            if (kDebugMode) {
-              final idx = scriptBody.indexOf('client_id');
-              if (idx >= 0) {
-                final end = idx + 200 > scriptBody.length ? scriptBody.length : idx + 200;
-                _log('playback: [embed] script has "client_id" at $idx but no regex matched: ${scriptBody.substring(idx, end)}');
-              }
-            }
-          } catch (e, st) {
-            if (kDebugMode) _log('playback: [embed] script fetch error: $e\n$st');
           }
         }
         if (kDebugMode) _log('playback: [embed] no client_id in ${uniqueUrls.length} script(s)');
@@ -592,6 +590,54 @@ class SoundCloudService implements BaseMediaService {
       _log('getEmbeddedClientId failed: $e', isError: true);
     }
     return null;
+  }
+
+  /// Run OAuth resolve and embedded client_id resolve in parallel; return first success.
+  Future<String?> _resolveStreamWithRace(
+    List<String> apiUrls,
+    String trackId,
+  ) async {
+    final completer = Completer<String?>();
+    var oauthDone = false;
+    var embeddedDone = false;
+
+    void tryComplete(String? url) {
+      if (url != null && url.isNotEmpty && !completer.isCompleted) {
+        completer.complete(url);
+      }
+    }
+
+    void maybeCompleteNull() {
+      if (oauthDone && embeddedDone && !completer.isCompleted) {
+        completer.complete(null);
+      }
+    }
+
+    Future<void> oauthPath() async {
+      for (final apiUrl in apiUrls) {
+        if (completer.isCompleted) return;
+        final cdn = await _resolveTranscodingUrlToCdn(apiUrl);
+        if (cdn != null && cdn.isNotEmpty) {
+          tryComplete(cdn);
+          return;
+        }
+      }
+      oauthDone = true;
+      maybeCompleteNull();
+    }
+
+    Future<void> embeddedPath() async {
+      if (completer.isCompleted) return;
+      final url = await _resolveStreamViaEmbeddedClientId(trackId);
+      tryComplete(url);
+      embeddedDone = true;
+      maybeCompleteNull();
+    }
+
+    unawaited(oauthPath());
+    unawaited(embeddedPath());
+
+    return completer.future;
   }
 
   /// Resolve stream via api-v2 with embedded client_id (bypasses official API 401).
@@ -752,13 +798,11 @@ class SoundCloudService implements BaseMediaService {
           }
         }
         _addApiUrlsFromMediaTranscodings(data, apiUrls);
-        _log('playback: api URLs to resolve: ${apiUrls.length}');
-        for (final apiUrl in apiUrls) {
-          final cdn = await _resolveTranscodingUrlToCdn(apiUrl);
-          if (cdn != null && cdn.isNotEmpty) {
-            _log('playback: resolved API URL to CDN');
-            return [cdn];
-          }
+        _log('playback: api URLs to resolve: ${apiUrls.length} (OAuth + embedded in parallel)');
+        final cdn = await _resolveStreamWithRace(apiUrls, numericId);
+        if (cdn != null && cdn.isNotEmpty) {
+          _log('playback: resolved API URL to CDN');
+          return [cdn];
         }
       }
       for (final id in [numericId, if (trackId != numericId) trackId]) {
@@ -804,13 +848,11 @@ class SoundCloudService implements BaseMediaService {
               }
             }
             _addApiUrlsFromMediaTranscodings(streamsData, apiUrls);
-            _log('playback: /streams api URLs to resolve: ${apiUrls.length}');
-            for (final apiUrl in apiUrls) {
-              final cdn = await _resolveTranscodingUrlToCdn(apiUrl);
-              if (cdn != null && cdn.isNotEmpty) {
-                _log('playback: resolved /streams API URL to CDN');
-                return [cdn];
-              }
+            _log('playback: /streams api URLs to resolve: ${apiUrls.length} (OAuth + embedded in parallel)');
+            final cdn = await _resolveStreamWithRace(apiUrls, id);
+            if (cdn != null && cdn.isNotEmpty) {
+              _log('playback: resolved /streams API URL to CDN');
+              return [cdn];
             }
           }
         } catch (e) {
