@@ -55,11 +55,9 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: DesktopTheme.spacingMd),
                       _quickAccess(context, appState, l10n),
                       const SizedBox(height: DesktopTheme.spacingXl),
-                      // SoundCloud & YouTube Music: home = only what you follow (Your artists)
+                      // SoundCloud has no albums; show album sections for YouTube Music and others
                       if (appState.mediaServiceManager.currentServerType !=
-                              ServerType.soundcloud &&
-                          appState.mediaServiceManager.currentServerType !=
-                              ServerType.youtubeMusic) ...[
+                          ServerType.soundcloud) ...[
                         if (appState.albums.isNotEmpty) ...[
                           SectionHeader(
                             title: l10n.recentlyAddedAlbums,
