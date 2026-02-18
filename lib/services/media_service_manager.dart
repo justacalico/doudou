@@ -4,6 +4,7 @@ import 'players/jellyfin_service.dart';
 import 'players/plex_service.dart';
 import 'players/subsonic_service.dart';
 import 'players/soundcloud_service.dart';
+import 'players/youtube_music_service.dart';
 import 'players/local_music_service.dart';
 
 class MediaServiceManager {
@@ -45,6 +46,9 @@ class MediaServiceManager {
         break;
       case ServerType.soundcloud:
         _currentService = SoundCloudService();
+        break;
+      case ServerType.youtubeMusic:
+        _currentService = YouTubeMusicService();
         break;
       case ServerType.local:
         _sharedLocalMusicService ??= LocalMusicService();
@@ -108,6 +112,7 @@ class MediaServiceManager {
   String? get lastAuthError {
     final s = _currentService;
     if (s is SoundCloudService) return s.lastAuthError;
+    if (s is YouTubeMusicService) return s.lastAuthError;
     return null;
   }
 
@@ -263,6 +268,11 @@ class MediaServiceManager {
       return subsonicService.getDirectStreamUrl(trackId);
     }
 
+    // YouTube Music: stream URL is resolved async via getAlternativeStreamUrlsAsync
+    if (_currentService is YouTubeMusicService) {
+      return '';
+    }
+
     // For other services, fallback to regular stream URL
     return _currentService!.getStreamUrl(trackId);
   }
@@ -398,6 +408,10 @@ class MediaServiceManager {
       return await (_currentService! as SoundCloudService)
           .getArtistTracks(artistId, artistName: artistName);
     }
+    if (_currentService is YouTubeMusicService) {
+      return await (_currentService! as YouTubeMusicService)
+          .getArtistTracks(artistId, artistName: artistName);
+    }
     return [];
   }
 
@@ -424,6 +438,9 @@ class MediaServiceManager {
         if (_currentService is SoundCloudService) {
           return await (_currentService as SoundCloudService).createPlaylist(name);
         }
+        break;
+      case ServerType.youtubeMusic:
+        // Playlist create not implemented for YTM
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -463,6 +480,9 @@ class MediaServiceManager {
             trackId,
           );
         }
+        break;
+      case ServerType.youtubeMusic:
+        // Add to playlist not implemented for YTM
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -516,6 +536,9 @@ class MediaServiceManager {
       case ServerType.plex:
         // Plex remove track from playlist not yet implemented
         break;
+      case ServerType.youtubeMusic:
+        // Remove from playlist not implemented for YTM
+        break;
       case ServerType.soundcloud:
         if (_currentService is SoundCloudService) {
           return await (_currentService as SoundCloudService).removeTrackFromPlaylist(
@@ -557,6 +580,9 @@ class MediaServiceManager {
           );
         }
         break;
+      case ServerType.youtubeMusic:
+        // Rename playlist not implemented for YTM
+        break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
           final localMusicService = _currentService as LocalMusicService;
@@ -591,6 +617,9 @@ class MediaServiceManager {
             playlistId,
           );
         }
+        break;
+      case ServerType.youtubeMusic:
+        // Remove playlist not implemented for YTM
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {

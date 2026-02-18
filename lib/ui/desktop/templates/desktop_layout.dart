@@ -520,7 +520,9 @@ class _TrackInfo extends StatelessWidget {
             final l10n = AppLocalizations.of(context);
             final isSoundCloud = appState.mediaServiceManager
                     .currentServerType ==
-                ServerType.soundcloud;
+                ServerType.soundcloud ||
+                appState.mediaServiceManager.currentServerType ==
+                    ServerType.youtubeMusic;
             final track = appState.tracks
                 .where((t) => t.id == trackId)
                 .firstOrNull;
@@ -1327,7 +1329,9 @@ class _NowPlayingMain extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final isSoundCloud = appState.mediaServiceManager.currentServerType ==
         ServerType.soundcloud;
-    final hasAlbum = !isSoundCloud &&
+    final isYouTubeMusic = appState.mediaServiceManager.currentServerType ==
+        ServerType.youtubeMusic;
+    final hasAlbum = !isSoundCloud && !isYouTubeMusic &&
         mediaItem?.album != null &&
         mediaItem!.album!.isNotEmpty;
     final hasArtist =
@@ -2577,6 +2581,8 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
                     },
                     onDownload: appState.mediaServiceManager.currentServerType !=
                                 ServerType.soundcloud &&
+                            appState.mediaServiceManager.currentServerType !=
+                                ServerType.youtubeMusic &&
                             _tracks.isNotEmpty
                         ? () => _downloadAlbum(context, appState)
                         : null,
@@ -2639,8 +2645,10 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
     try {
       final isSoundCloud = appState.mediaServiceManager.currentServerType ==
           ServerType.soundcloud;
+      final isYouTubeMusic = appState.mediaServiceManager.currentServerType ==
+          ServerType.youtubeMusic;
 
-      if (isSoundCloud) {
+      if (isSoundCloud || isYouTubeMusic) {
         _albums = [];
         _tracks = await appState.getArtistTracks(widget.artist);
         _selectedTab = 'songs';
@@ -2707,7 +2715,9 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
               ),
               // Follow button (SoundCloud only)
               if (appState.mediaServiceManager.currentServerType ==
-                  ServerType.soundcloud)
+                  ServerType.soundcloud ||
+              appState.mediaServiceManager.currentServerType ==
+                  ServerType.youtubeMusic)
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: DesktopTheme.spacingLg,
@@ -3601,7 +3611,9 @@ class _TrackRowState extends State<_TrackRow> {
                     final appState = context.read<AppState>();
                     final isSoundCloud = appState.mediaServiceManager
                             .currentServerType ==
-                        ServerType.soundcloud;
+                        ServerType.soundcloud ||
+                    appState.mediaServiceManager.currentServerType ==
+                        ServerType.youtubeMusic;
                     final downloadService = appState.downloadService;
                     final isDownloaded = downloadService.isTrackDownloaded(
                       widget.track.id,

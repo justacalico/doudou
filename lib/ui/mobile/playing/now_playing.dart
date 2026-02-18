@@ -1507,6 +1507,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           // Go to Album (SoundCloud doesn't support albums)
           if (appState.mediaServiceManager.currentServerType !=
                   ServerType.soundcloud &&
+              appState.mediaServiceManager.currentServerType !=
+                  ServerType.youtubeMusic &&
               currentTrack.albumName != null)
             CupertinoActionSheetAction(
               onPressed: () {
@@ -1562,9 +1564,11 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
               ],
             ),
           ),
-          // Download (disabled for SoundCloud)
+          // Download (disabled for SoundCloud and YouTube Music)
           if (appState.mediaServiceManager.currentServerType !=
-              ServerType.soundcloud)
+              ServerType.soundcloud &&
+              appState.mediaServiceManager.currentServerType !=
+                  ServerType.youtubeMusic)
             _buildDownloadAction(context, currentTrack, appState),
           // Share
           CupertinoActionSheetAction(
@@ -1924,8 +1928,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         displayArtistName(track.artistName, defaultName: 'Unknown Artist');
     final isSoundCloud = appState.mediaServiceManager.currentServerType ==
         ServerType.soundcloud;
-    // SoundCloud doesn't support albums - show artist only
-    if (isSoundCloud) {
+    final isYouTubeMusic = appState.mediaServiceManager.currentServerType ==
+        ServerType.youtubeMusic;
+    // SoundCloud/YouTube Music: show artist only when no album
+    if (isSoundCloud || isYouTubeMusic) {
       return artistDisplay;
     }
     final albumName = track.albumName;

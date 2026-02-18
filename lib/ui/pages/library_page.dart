@@ -40,7 +40,9 @@ class _LibraryPageState extends State<LibraryPage> {
       builder: (context, appState, child) {
         final isSoundCloud = appState.mediaServiceManager
                 .currentServerType ==
-            ServerType.soundcloud;
+            ServerType.soundcloud ||
+        appState.mediaServiceManager.currentServerType ==
+            ServerType.youtubeMusic;
         return PageTemplate(
           title: l10n.navLibrary,
           child: SingleChildScrollView(

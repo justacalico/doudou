@@ -41,8 +41,10 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     try {
       final isSoundCloud = appState.mediaServiceManager.currentServerType ==
           ServerType.soundcloud;
+      final isYouTubeMusic = appState.mediaServiceManager.currentServerType ==
+          ServerType.youtubeMusic;
 
-      if (isSoundCloud) {
+      if (isSoundCloud || isYouTubeMusic) {
         _artistAlbums = [];
         _artistTracks = await appState.getArtistTracks(widget.artist);
       } else {
@@ -104,7 +106,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
           // Download all tracks (disabled for SoundCloud)
           if (_artistTracks.isNotEmpty &&
               appState.mediaServiceManager.currentServerType !=
-                  ServerType.soundcloud)
+                  ServerType.soundcloud &&
+              appState.mediaServiceManager.currentServerType !=
+                  ServerType.youtubeMusic)
             CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
@@ -697,7 +701,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                 // Follow button (SoundCloud only)
                                 if (appState.mediaServiceManager
                                         .currentServerType ==
-                                    ServerType.soundcloud) ...[
+                                    ServerType.soundcloud ||
+                                appState.mediaServiceManager.currentServerType ==
+                                    ServerType.youtubeMusic) ...[
                                   const SizedBox(height: 12),
                                   CupertinoButton(
                                     padding: EdgeInsets.zero,
@@ -1175,7 +1181,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       showTrackNumber: false,
       showDuration: true,
       showDownloadButton: appState.mediaServiceManager.currentServerType !=
-          ServerType.soundcloud,
+          ServerType.soundcloud &&
+      appState.mediaServiceManager.currentServerType !=
+          ServerType.youtubeMusic,
       showFavoriteButton: true,
     );
   }

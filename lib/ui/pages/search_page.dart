@@ -151,7 +151,9 @@ class _SearchPageState extends State<SearchPage> {
               final tracks = _searchResults!.tracks;
               final isSoundCloud = appState.mediaServiceManager
                       .currentServerType ==
-                  ServerType.soundcloud;
+                  ServerType.soundcloud ||
+              appState.mediaServiceManager.currentServerType ==
+                  ServerType.youtubeMusic;
               final showEmpty = (isSoundCloud || albums.isEmpty) &&
                   artists.isEmpty &&
                   tracks.isEmpty;

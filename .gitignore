@@ -81,3 +81,5 @@ lib/l10n/app_localizations_en.dart
 lib/l10n/app_localizations_ru.dart
 lib/l10n/app_localizations_zh.dart
 /agents
+# OpenTune reference clone (backend study only)
+docs/reference/OpenTune

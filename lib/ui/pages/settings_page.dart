@@ -793,6 +793,8 @@ class _ServerSectionState extends State<_ServerSection> {
         return 'Subsonic/Navidrome';
       case 'soundcloud':
         return 'SoundCloud';
+      case 'youtubeMusic':
+        return 'YouTube Music';
       case 'local':
         return 'Local Music';
       default:
@@ -1039,7 +1041,8 @@ class _ServerSectionState extends State<_ServerSection> {
                           await localService.setFetchOnlineArtwork(v);
                         },
                       ),
-                    ] else if (appState.mediaServiceManager.currentServerType == ServerType.soundcloud) ...[
+                    ] else if (appState.mediaServiceManager.currentServerType == ServerType.soundcloud ||
+                    appState.mediaServiceManager.currentServerType == ServerType.youtubeMusic) ...[
                       ListTile(
                         title: const Text('SoundCloud'),
                         subtitle: const Text('Using your app credentials (Client ID / Client Secret)'),

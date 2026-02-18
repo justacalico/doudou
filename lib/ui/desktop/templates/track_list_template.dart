@@ -46,7 +46,9 @@ class TrackListTemplate extends StatelessWidget {
     final isCompact = width < _compactBreakpoint;
     final isSoundCloud =
         context.read<AppState>().mediaServiceManager.currentServerType ==
-            ServerType.soundcloud;
+            ServerType.soundcloud ||
+        context.read<AppState>().mediaServiceManager.currentServerType ==
+            ServerType.youtubeMusic;
     // On small screens or SoundCloud, hide album column (SoundCloud doesn't support albums)
     final effectiveShowAlbum = showAlbum && !isCompact && !isSoundCloud;
 
@@ -701,7 +703,9 @@ class _AppleTrackMenu extends StatelessWidget {
           track.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
         ),
         if (context.read<AppState>().mediaServiceManager.currentServerType !=
-            ServerType.soundcloud) ...[
+            ServerType.soundcloud &&
+        context.read<AppState>().mediaServiceManager.currentServerType !=
+            ServerType.youtubeMusic) ...[
           const PopupMenuDivider(),
           _buildDownloadMenuItem(context),
         ],

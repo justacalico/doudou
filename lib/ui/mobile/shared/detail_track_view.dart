@@ -682,7 +682,9 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                               widget.viewType == DetailViewType.album,
                           showDownloadButton: appState.mediaServiceManager
                                   .currentServerType !=
-                              ServerType.soundcloud,
+                              ServerType.soundcloud &&
+                          appState.mediaServiceManager.currentServerType !=
+                              ServerType.youtubeMusic,
                           onRemoveFromPlaylist:
                               widget.viewType == DetailViewType.playlist
                               ? () => _removeTrackFromPlaylist(index, track)

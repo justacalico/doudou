@@ -97,8 +97,10 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: DesktopTheme.spacingMd),
                         _recentTracks(context, appState, l10n),
                       ],
-                      if (appState.mediaServiceManager.currentServerType ==
-                              ServerType.soundcloud &&
+                      if ((appState.mediaServiceManager.currentServerType ==
+                              ServerType.soundcloud ||
+                          appState.mediaServiceManager.currentServerType ==
+                              ServerType.youtubeMusic) &&
                           appState.albums.isEmpty &&
                           appState.artists.isEmpty &&
                           appState.tracks.isEmpty) ...[

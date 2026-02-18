@@ -253,8 +253,13 @@ class AppState extends ChangeNotifier {
       if (_configuredServers.isNotEmpty && _activeServerId != null) {
         final server = _configuredServers.where((s) => s['id'] == _activeServerId).firstOrNull;
         if (server != null) {
-          final success = await _connectToServer(server);
-          if (success) return;
+          // YouTube Music is not available on web; do not activate
+          if (server['type'] == 'youtubeMusic' && kIsWeb) {
+            // Leave user logged out of YTM on web; they can switch to another server
+          } else {
+            final success = await _connectToServer(server);
+            if (success) return;
+          }
         }
       }
 
@@ -276,6 +281,12 @@ class AppState extends ChangeNotifier {
           }
         }
 
+        // YouTube Music is not available on web; skip restoring
+        if (serverType == 'youtubeMusic' && kIsWeb) {
+          _setLoading(false);
+          return;
+        }
+
         // Initialize the appropriate service
         ServerType type;
         switch (serverType) {
@@ -287,6 +298,9 @@ class AppState extends ChangeNotifier {
             break;
           case 'soundcloud':
             type = ServerType.soundcloud;
+            break;
+          case 'youtubeMusic':
+            type = ServerType.youtubeMusic;
             break;
           default:
             type = ServerType.jellyfin;
@@ -884,6 +898,9 @@ class AppState extends ChangeNotifier {
         case 'soundcloud':
           type = ServerType.soundcloud;
           break;
+        case 'youtubeMusic':
+          type = ServerType.youtubeMusic;
+          break;
         case 'local':
           type = ServerType.local;
           break;
@@ -896,10 +913,11 @@ class AppState extends ChangeNotifier {
       // Initialize the appropriate service
       _mediaServiceManager.initializeService(type);
 
-      // Ensure serverUrl has protocol for non-Plex, non-local, and non-SoundCloud services
+      // Ensure serverUrl has protocol for non-Plex, non-local, non-SoundCloud, and non-YouTube Music services
       if (type != ServerType.plex &&
           type != ServerType.local &&
           type != ServerType.soundcloud &&
+          type != ServerType.youtubeMusic &&
           !serverUrl.startsWith('http://') &&
           !serverUrl.startsWith('https://')) {
         serverUrl = 'http://$serverUrl';
@@ -909,6 +927,12 @@ class AppState extends ChangeNotifier {
       if (type == ServerType.soundcloud &&
           (serverUrl.isEmpty || !serverUrl.startsWith('http'))) {
         serverUrl = 'https://api.soundcloud.com';
+      }
+
+      // YouTube Music uses fixed URL
+      if (type == ServerType.youtubeMusic &&
+          (serverUrl.isEmpty || !serverUrl.startsWith('http'))) {
+        serverUrl = 'https://music.youtube.com';
       }
 
       final success = await _mediaServiceManager.authenticate(
@@ -967,7 +991,7 @@ class AppState extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        final detail = serverType == 'soundcloud'
+        final detail = (serverType == 'soundcloud' || serverType == 'youtubeMusic')
             ? _mediaServiceManager.lastAuthError
             : null;
         _setError(
@@ -1050,6 +1074,11 @@ class AppState extends ChangeNotifier {
       return await loginWithLocalMusic();
     }
 
+    // YouTube Music is not available on web
+    if (serverType == 'youtubeMusic' && kIsWeb) {
+      return false;
+    }
+
     ServerType type;
     switch (serverType) {
       case 'plex':
@@ -1061,6 +1090,9 @@ class AppState extends ChangeNotifier {
       case 'soundcloud':
         type = ServerType.soundcloud;
         break;
+      case 'youtubeMusic':
+        type = ServerType.youtubeMusic;
+        break;
       default:
         type = ServerType.jellyfin;
     }
@@ -1069,6 +1101,7 @@ class AppState extends ChangeNotifier {
     if (type != ServerType.plex &&
         type != ServerType.local &&
         type != ServerType.soundcloud &&
+        type != ServerType.youtubeMusic &&
         !serverUrl.startsWith('http://') &&
         !serverUrl.startsWith('https://')) {
       serverUrl = 'http://$serverUrl';
@@ -1076,6 +1109,10 @@ class AppState extends ChangeNotifier {
     if (type == ServerType.soundcloud &&
         (serverUrl.isEmpty || !serverUrl.startsWith('http'))) {
       serverUrl = 'https://api.soundcloud.com';
+    }
+    if (type == ServerType.youtubeMusic &&
+        (serverUrl.isEmpty || !serverUrl.startsWith('http'))) {
+      serverUrl = 'https://music.youtube.com';
     }
     _mediaServiceManager.setServer(serverUrl);
 

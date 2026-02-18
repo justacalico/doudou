@@ -72,13 +72,13 @@ class _AppShellState extends State<AppShell> {
   /// Downloads page: show for Jellyfin/Plex/Subsonic; hide for Local and SoundCloud.
   bool get _showDownloads {
     final st = context.read<AppState>().mediaServiceManager.currentServerType;
-    return st != ServerType.local && st != ServerType.soundcloud;
+    return st != ServerType.local && st != ServerType.soundcloud && st != ServerType.youtubeMusic;
   }
 
   /// Albums page: hide for SoundCloud (no albums support).
   bool get _showAlbums {
     final st = context.read<AppState>().mediaServiceManager.currentServerType;
-    return st != ServerType.soundcloud;
+    return st != ServerType.soundcloud && st != ServerType.youtubeMusic;
   }
 
   void _rebuildPageLists() {

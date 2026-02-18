@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -137,8 +138,8 @@ class _AddServerFormState extends State<AddServerForm> {
               ),
               SizedBox(height: isDesktop ? 16 : 12),
 
-              // Server URL field (hidden for SoundCloud – uses client credentials only)
-              if (_selectedServerType != 'soundcloud')
+              // Server URL field (hidden for SoundCloud and YouTube Music – they use fixed URLs)
+              if (_selectedServerType != 'soundcloud' && _selectedServerType != 'youtubeMusic')
                 _buildModernTextField(
                   controller: _serverController,
                   label: 'Server URL',
@@ -168,7 +169,21 @@ class _AddServerFormState extends State<AddServerForm> {
                   ),
                 ),
 
-              if (_selectedServerType != 'soundcloud')
+              if (_selectedServerType == 'youtubeMusic')
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Log in to music.youtube.com in a browser, then export cookies (e.g. with a cookie export extension) and paste the full cookie string below. Not available on web.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark
+                          ? Colors.white.withOpacity(0.6)
+                          : Colors.black.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+
+              if (_selectedServerType != 'soundcloud' && _selectedServerType != 'youtubeMusic')
                 SizedBox(height: isDesktop ? 16 : 12),
 
               // Account fields
@@ -225,8 +240,17 @@ class _AddServerFormState extends State<AddServerForm> {
     {'type': 'plex', 'label': 'Plex'},
     {'type': 'subsonic', 'label': 'Subsonic'},
     {'type': 'soundcloud', 'label': 'SoundCloud'},
+    {'type': 'youtubeMusic', 'label': 'YouTube Music'},
     {'type': 'local', 'label': 'Local Music'},
   ];
+
+  /// Server type options for dropdown. YouTube Music excluded on web (dart_ytmusic_api does not work on web).
+  List<Map<String, dynamic>> get _effectiveServerTypeOptions {
+    if (kIsWeb) {
+      return _serverTypeOptions.where((o) => o['type'] != 'youtubeMusic').toList();
+    }
+    return _serverTypeOptions;
+  }
 
   Widget _buildServerTypeSelection(BuildContext context, bool isDesktop) {
     final brightness = MediaQuery.of(context).platformBrightness;
@@ -249,7 +273,9 @@ class _AddServerFormState extends State<AddServerForm> {
         ),
         SizedBox(height: isDesktop ? 12 : 10),
         DropdownButtonFormField<String>(
-          value: _selectedServerType,
+          value: _effectiveServerTypeOptions.any((o) => o['type'] == _selectedServerType)
+              ? _selectedServerType
+              : (_effectiveServerTypeOptions.isNotEmpty ? _effectiveServerTypeOptions.first['type'] as String : 'jellyfin'),
           decoration: InputDecoration(
             filled: true,
             fillColor: isDark
@@ -271,7 +297,7 @@ class _AddServerFormState extends State<AddServerForm> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
           dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-          items: _serverTypeOptions.map((opt) {
+          items: _effectiveServerTypeOptions.map((opt) {
             final type = opt['type'] as String;
             final label = opt['label'] as String;
             return DropdownMenuItem<String>(
@@ -462,6 +488,47 @@ class _AddServerFormState extends State<AddServerForm> {
               });
             },
           ),
+        ),
+      ];
+    } else if (_selectedServerType == 'youtubeMusic') {
+      return [
+        _buildModernTextField(
+          controller: _usernameController,
+          label: 'Display name (optional)',
+          icon: CupertinoIcons.person,
+          placeholder: 'e.g. My YouTube Music',
+          isDark: isDark,
+        ),
+        SizedBox(height: isDesktop ? 16 : 12),
+        _buildModernTextField(
+          controller: _passwordController,
+          label: 'Cookie string',
+          icon: CupertinoIcons.lock,
+          placeholder: 'Paste cookies from music.youtube.com (e.g. export with browser extension)',
+          obscureText: !_isPasswordVisible,
+          isDark: isDark,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _isPasswordVisible
+                  ? CupertinoIcons.eye_slash
+                  : CupertinoIcons.eye,
+              size: 20,
+              color: isDark
+                  ? Colors.white.withOpacity(0.5)
+                  : Colors.black.withOpacity(0.4),
+            ),
+            onPressed: () {
+              setState(() {
+                _isPasswordVisible = !_isPasswordVisible;
+              });
+            },
+          ),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Please enter your cookie string';
+            }
+            return null;
+          },
         ),
       ];
     } else if (_selectedServerType == 'plex') {
@@ -1140,6 +1207,14 @@ class _AddServerFormState extends State<AddServerForm> {
           _passwordController.text,
           displayName: displayName,
         );
+      } else if (_selectedServerType == 'youtubeMusic') {
+        success = await appState.loginWithServerType(
+          _selectedServerType,
+          'https://music.youtube.com',
+          _usernameController.text.trim(),
+          _passwordController.text,
+          displayName: displayName,
+        );
       } else if (_selectedServerType == 'plex') {
         success = await appState.loginWithServerType(
           _selectedServerType,
@@ -1197,6 +1272,7 @@ class _AddServerFormState extends State<AddServerForm> {
       case 'subsonic':
         return 'http://your-subsonic-server:4533';
       case 'soundcloud':
+      case 'youtubeMusic':
       case 'local':
         return '';
       default:
