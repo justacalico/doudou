@@ -58,7 +58,7 @@ class _HomePageState extends State<HomePage> {
                       // SoundCloud has no albums; show album sections for YouTube Music and others
                       if (appState.mediaServiceManager.currentServerType !=
                           ServerType.soundcloud) ...[
-                        if (appState.albums.isNotEmpty) ...[
+                        if (_albumsForHomeSection(appState).isNotEmpty) ...[
                           SectionHeader(
                             title: l10n.recentlyAddedAlbums,
                             subtitle: l10n.yourNewestAdditions,
@@ -221,10 +221,26 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Albums to show in the home "Recently Added" section: all albums, or only from followed artists (YT Music/SoundCloud).
+  List<Album> _albumsForHomeSection(AppState appState) {
+    final isFollowBased = appState.mediaServiceManager.currentServerType ==
+            ServerType.youtubeMusic ||
+        appState.mediaServiceManager.currentServerType == ServerType.soundcloud;
+    if (!isFollowBased) return List<Album>.from(appState.albums);
+    final artistNames = appState.artists.map((a) => a.name.toLowerCase()).toSet();
+    return appState.albums
+        .where((a) =>
+            a.artistName != null &&
+            artistNames.contains(a.artistName!.toLowerCase()))
+        .toList();
+  }
+
   /// Recently added albums (sorted by date added, newest first).
+  /// For YouTube Music (and SoundCloud), only albums from followed artists are shown.
   Widget _recentlyAddedAlbumRow(
       BuildContext context, AppState appState, AppLocalizations l10n) {
-    final sorted = List<Album>.from(appState.albums)
+    final albums = _albumsForHomeSection(appState);
+    final sorted = List<Album>.from(albums)
       ..sort((a, b) {
         final da = a.dateCreated;
         final db = b.dateCreated;
