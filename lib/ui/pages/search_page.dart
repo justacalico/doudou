@@ -86,10 +86,10 @@ class _SearchPageState extends State<SearchPage> {
       builder: (context, appState, child) {
         return PageTemplate(
           title: l10n.search,
-          actions: [
-            SizedBox(
-              width: 280,
-              child: TextField(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
                 controller: _controller,
                 decoration: InputDecoration(
                   hintText: l10n.search,
@@ -103,9 +103,9 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 ),
               ),
-            ),
-          ],
-          child: ValueListenableBuilder<String>(
+              const SizedBox(height: DesktopTheme.spacingLg),
+              Expanded(
+                child: ValueListenableBuilder<String>(
             valueListenable: _query,
             builder: (context, q, _) {
               final query = q.trim();
@@ -256,6 +256,9 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               );
             },
+          ),
+              ),
+            ],
           ),
         );
       },
