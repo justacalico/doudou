@@ -281,20 +281,11 @@ class YouTubeMusicService implements BaseMediaService {
     return '';
   }
 
-  /// HTTP headers for googlevideo.com (403 without browser-like User-Agent).
-  /// Reference: Harmony-Music uses just_audio with AudioSource.uri(url) – no special headers.
-  /// We keep headers for compatibility but Harmony's StreamProvider returns URLs that work.
-  static const Map<String, String> _streamHttpHeaders = {
-    'User-Agent':
-        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-    'Accept': '*/*',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Origin': 'https://www.youtube.com',
-    'Referer': 'https://www.youtube.com/',
-  };
-
+  /// Harmony-Music uses AudioSource.uri() WITHOUT headers – just_audio handles googlevideo.com natively.
+  /// Reference: Harmony-Music lib/services/audio_handler.dart – AudioSource.uri(Uri.tryParse(url)!) with no headers.
+  /// MPV's user-agent is set via mpv.conf (PlatformAudioConfig), so no headers needed in AudioSource.
   static Map<String, String>? getStreamHeaders(String url) {
-    if (url.contains('googlevideo.com')) return Map.unmodifiable(_streamHttpHeaders);
+    // No headers – Harmony-style (just_audio + MPV handle googlevideo.com natively)
     return null;
   }
 

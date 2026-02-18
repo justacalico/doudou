@@ -45,22 +45,15 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   final AudioStateController _stateController = AudioStateController();
   final AudioQueueManager _queueManager = AudioQueueManager();
 
-  /// Browser-like User-Agent for googlevideo.com (403 without it).
-  static const String _desktopUserAgent =
-      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+  // Harmony-Music uses simple AudioPlayer() without userAgent/proxy config
+  // User-Agent is set via mpv.conf (PlatformAudioConfig) instead
 
   // Player instance - may be recreated on desktop to prevent native callback crashes
   late AudioPlayer _player;
 
   AudioPlayer _createPlayer() {
-    if (_isDesktop) {
-      // Use proxy for headers (like Harmony-Music) - just_audio creates local HTTP proxy
-      // that forwards requests with headers, which works better than passing headers to MPV directly
-      return AudioPlayer(
-        userAgent: _desktopUserAgent,
-        useProxyForRequestHeaders: true, // Enable proxy so headers work (Harmony-style)
-      );
-    }
+    // Harmony-Music uses simple AudioPlayer() without headers/proxy
+    // They use AudioSource.uri() without headers - just_audio handles googlevideo.com natively
     return AudioPlayer();
   }
 
@@ -1067,14 +1060,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
 
-    // Prefer Piped/Invidious URLs (no headers needed). Direct googlevideo needs headers
-    // but MPV on desktop does not apply them reliably; stream proxy is disabled.
-    final headers = _mediaServiceManager.getStreamHeaders(url);
+    // Harmony-Music uses AudioSource.uri() WITHOUT headers - just_audio handles googlevideo.com natively
+    // Reference: Harmony-Music lib/services/audio_handler.dart – AudioSource.uri(Uri.tryParse(url)!) with no headers
     final isYouTube = url.contains('googlevideo.com');
     if (kDebugMode) {
       final track = _stateController.currentTrack;
       debugPrint('[Playback] _loadAndPlayTrack: track=${track?.name ?? "?"} id=${track?.id ?? "?"} '
-          'urlHost=${Uri.tryParse(url)?.host ?? "?"} isYouTube=$isYouTube hasHeaders=${headers != null}');
+          'urlHost=${Uri.tryParse(url)?.host ?? "?"} isYouTube=$isYouTube');
     }
 
     _stateController.updateState(AudioPlayerState.loading);
@@ -1091,16 +1083,15 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }
     }
 
-    final audioSource = headers != null
-        ? AudioSource.uri(Uri.parse(url), headers: headers)
-        : AudioSource.uri(Uri.parse(url));
+    // Harmony-style: AudioSource.uri() without headers (just_audio handles googlevideo.com natively)
+    final audioSource = AudioSource.uri(Uri.parse(url));
 
     // Desktop: Recreate player to prevent native callback crashes
     if (_isDesktop) {
       final currentOperationId = ++_loadOperationId;
 
       await _recreatePlayer();
-      await Future.delayed(const Duration(milliseconds: 50));
+      // Harmony doesn't delay – try immediately
 
       if (_disposed || currentOperationId != _loadOperationId) return;
 
@@ -1181,11 +1172,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
     for (int i = 0; i < urlsToTry.length; i++) {
       final url = urlsToTry[i];
-      final headers = _mediaServiceManager.getStreamHeaders(url);
-      final source =
-          headers != null
-              ? AudioSource.uri(Uri.parse(url), headers: headers)
-              : AudioSource.uri(Uri.parse(url));
+      // Harmony-style: no headers (just_audio handles URLs natively)
+      final source = AudioSource.uri(Uri.parse(url));
       try {
         await _player.setAudioSource(source);
         await _player.play();
