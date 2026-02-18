@@ -1422,6 +1422,40 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Restore favorite status from service local storage (YouTube Music / SoundCloud).
+  /// Call after loading from cache so favorites persist across app restarts.
+  Future<void> _restoreFavoriteStatusFromService() async {
+    if (_mediaServiceManager.currentServerType != ServerType.youtubeMusic &&
+        _mediaServiceManager.currentServerType != ServerType.soundcloud) {
+      return;
+    }
+    try {
+      final starred = await _mediaServiceManager.getStarredTracks();
+      final favoriteIds = starred.map((t) => t.id).toSet();
+      for (int i = 0; i < _tracks.length; i++) {
+        final track = _tracks[i];
+        final shouldBeFavorite = favoriteIds.contains(track.id);
+        if (track.isFavorite != shouldBeFavorite) {
+          _tracks[i] = Track(
+            id: track.id,
+            name: track.name,
+            albumName: track.albumName,
+            artistName: track.artistName,
+            albumId: track.albumId,
+            playlistItemId: track.playlistItemId,
+            duration: track.duration,
+            trackNumber: track.trackNumber,
+            imageUrl: track.imageUrl,
+            isFavorite: shouldBeFavorite,
+            playCount: track.playCount,
+          );
+        }
+      }
+    } catch (_) {
+      // Ignore; service may not be ready
+    }
+  }
+
   Future<void> loadLibraryData() async {
     if (!_isLoggedIn) {
       return;
@@ -1451,6 +1485,9 @@ class AppState extends ChangeNotifier {
 
         // Restore favorite status from downloaded tracks
         _restoreFavoriteStatusFromDownloads();
+
+        // Restore favorite status from service (YouTube Music / SoundCloud local storage)
+        await _restoreFavoriteStatusFromService();
 
         try {
           _audioHandler?.updateMediaLibrary(
