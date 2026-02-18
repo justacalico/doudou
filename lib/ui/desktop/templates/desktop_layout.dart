@@ -2627,26 +2627,31 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
     _loadData();
   }
 
-  void _loadData() {
+  Future<void> _loadData() async {
     final appState = context.read<AppState>();
     setState(() => _isLoading = true);
 
     try {
-      _albums = appState.albums
-          .where((album) => album.artistName == widget.artist.name)
-          .toList();
-      _albums.sort((a, b) {
-        final aYear = a.year ?? 0;
-        final bYear = b.year ?? 0;
-        return bYear.compareTo(aYear);
-      });
+      final isSoundCloud = appState.mediaServiceManager.currentServerType ==
+          ServerType.soundcloud;
 
-      _tracks = appState.tracks
-          .where((track) => track.artistName == widget.artist.name)
-          .toList();
-
-      if (_albums.isEmpty) {
+      if (isSoundCloud) {
+        _albums = [];
+        _tracks = await appState.getArtistTracks(widget.artist);
         _selectedTab = 'songs';
+      } else {
+        _albums = appState.albums
+            .where((album) => album.artistName == widget.artist.name)
+            .toList();
+        _albums.sort((a, b) {
+          final aYear = a.year ?? 0;
+          final bYear = b.year ?? 0;
+          return bYear.compareTo(aYear);
+        });
+        _tracks = appState.tracks
+            .where((track) => track.artistName == widget.artist.name)
+            .toList();
+        if (_albums.isEmpty) _selectedTab = 'songs';
       }
     } catch (e) {
       _albums = [];
@@ -2695,6 +2700,30 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
                   ),
                 ),
               ),
+              // Follow button (SoundCloud only)
+              if (appState.mediaServiceManager.currentServerType ==
+                  ServerType.soundcloud)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesktopTheme.spacingLg,
+                    vertical: DesktopTheme.spacingSm,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _FollowButton(
+                      artist: widget.artist,
+                      isFollowing: appState.isFollowingArtist(widget.artist.id),
+                      onFollow: () async {
+                        await appState.followArtist(widget.artist);
+                        if (mounted) setState(() {});
+                      },
+                      onUnfollow: () async {
+                        await appState.unfollowArtist(widget.artist.id);
+                        if (mounted) setState(() {});
+                      },
+                    ),
+                  ),
+                ),
               // Tab selector
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -2825,6 +2854,70 @@ class _PlaylistDetailViewState extends State<_PlaylistDetailView> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Follow/Following button (SoundCloud only)
+class _FollowButton extends StatelessWidget {
+  final Artist artist;
+  final bool isFollowing;
+  final VoidCallback onFollow;
+  final VoidCallback onUnfollow;
+
+  const _FollowButton({
+    required this.artist,
+    required this.isFollowing,
+    required this.onFollow,
+    required this.onUnfollow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isFollowing ? onUnfollow : onFollow,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingMd,
+            vertical: DesktopTheme.spacingSm,
+          ),
+          decoration: BoxDecoration(
+            color: isFollowing
+                ? DesktopTheme.backgroundSecondary
+                : DesktopTheme.playButtonGreen,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isFollowing
+                  ? DesktopTheme.textSecondary.withOpacity(0.3)
+                  : Colors.transparent,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isFollowing ? Icons.person_rounded : Icons.person_add_rounded,
+                size: 18,
+                color: isFollowing ? DesktopTheme.textSecondary : Colors.white,
+              ),
+              const SizedBox(width: DesktopTheme.spacingSm),
+              Text(
+                isFollowing ? 'Following' : 'Follow',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isFollowing
+                      ? DesktopTheme.textSecondary
+                      : Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

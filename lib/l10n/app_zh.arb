@@ -197,6 +197,7 @@
   "noTracksFound": "未找到曲目",
   "noSongsFound": "未找到歌曲",
   "noContentFound": "未找到{name}的内容",
+  "soundcloudFollowPrompt": "在搜索页关注艺术家后，他们的内容会显示在这里。",
   "contentWillAppear": "此艺术家的音乐将在加载后显示在这里。",
   "albumsWillAppear": "您的音乐专辑将在从Jellyfin服务器加载后显示在这里。",
   "artistsWillAppear": "您的音乐艺术家将在从Jellyfin服务器加载后显示在这里。",

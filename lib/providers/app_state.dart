@@ -1449,6 +1449,19 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Get tracks for an artist (SoundCloud only - fetches from API)
+  Future<List<Track>> getArtistTracks(Artist artist) async {
+    try {
+      return await _mediaServiceManager.getArtistTracks(
+        artist.id,
+        artistName: artist.name,
+      );
+    } catch (e) {
+      _setError('Failed to load artist tracks: ${e.toString()}');
+      return [];
+    }
+  }
+
   Future<void> playTrack(Track track) async {
     if (_audioHandler != null) {
       await _audioHandler!.playTrack(track);
@@ -1759,6 +1772,39 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       _setError('Failed to toggle album favorite: ${e.toString()}');
     }
+  }
+
+  /// Follow an artist (SoundCloud only). Their tracks show up on home/library.
+  Future<bool> followArtist(Artist artist) async {
+    try {
+      final success = await _mediaServiceManager.followArtist(artist);
+      if (success) {
+        await loadLibraryData();
+      }
+      return success;
+    } catch (e) {
+      _setError('Failed to follow artist: ${e.toString()}');
+      return false;
+    }
+  }
+
+  /// Unfollow an artist (SoundCloud only)
+  Future<bool> unfollowArtist(String artistId) async {
+    try {
+      final success = await _mediaServiceManager.unfollowArtist(artistId);
+      if (success) {
+        await loadLibraryData();
+      }
+      return success;
+    } catch (e) {
+      _setError('Failed to unfollow artist: ${e.toString()}');
+      return false;
+    }
+  }
+
+  /// Check if following an artist (SoundCloud only)
+  bool isFollowingArtist(String artistId) {
+    return _mediaServiceManager.isFollowingArtist(artistId);
   }
 
   Future<bool> createPlaylist(String name) async {

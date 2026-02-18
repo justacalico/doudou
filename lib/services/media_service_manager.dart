@@ -368,6 +368,39 @@ class MediaServiceManager {
     _currentService = null;
   }
 
+  /// Follow an artist (SoundCloud only)
+  Future<bool> followArtist(Artist artist) async {
+    if (_currentService is SoundCloudService) {
+      return await (_currentService! as SoundCloudService).followArtist(artist);
+    }
+    return false;
+  }
+
+  /// Unfollow an artist (SoundCloud only)
+  Future<bool> unfollowArtist(String userId) async {
+    if (_currentService is SoundCloudService) {
+      return await (_currentService! as SoundCloudService).unfollowArtist(userId);
+    }
+    return false;
+  }
+
+  /// Check if following an artist (SoundCloud only)
+  bool isFollowingArtist(String userId) {
+    if (_currentService is SoundCloudService) {
+      return (_currentService! as SoundCloudService).isFollowingArtist(userId);
+    }
+    return false;
+  }
+
+  /// Get tracks for an artist (SoundCloud only - /users/{id}/tracks)
+  Future<List<Track>> getArtistTracks(String artistId, {String? artistName}) async {
+    if (_currentService is SoundCloudService) {
+      return await (_currentService! as SoundCloudService)
+          .getArtistTracks(artistId, artistName: artistName);
+    }
+    return [];
+  }
+
   /// Service-specific playlist management methods (not in base interface)
   Future<Playlist?> createPlaylist(String name) async {
     // Dynamic dispatch based on service type

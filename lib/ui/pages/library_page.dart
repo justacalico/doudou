@@ -134,6 +134,43 @@ class _LibraryPageState extends State<LibraryPage> {
                     ),
                   ),
                 ],
+                if (isSoundCloud &&
+                    appState.artists.isEmpty &&
+                    appState.tracks.isEmpty) ...[
+                  const SizedBox(height: DesktopTheme.spacingXl * 2),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(DesktopTheme.spacingXl),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.person_add_rounded,
+                            size: 64,
+                            color: DesktopTheme.textMuted,
+                          ),
+                          const SizedBox(height: DesktopTheme.spacingMd),
+                          Text(
+                            l10n.soundcloudFollowPrompt,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: DesktopTheme.textSecondary,
+                              height: 1.4,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: DesktopTheme.spacingMd),
+                          TextButton.icon(
+                            onPressed: () =>
+                                NavigationService().selectPage(1),
+                            icon: const Icon(Icons.search_rounded),
+                            label: Text(l10n.search),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 120),
               ],
             ),

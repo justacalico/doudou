@@ -1061,6 +1061,11 @@
     "description": "No songs found message"
   },
 
+  "soundcloudFollowPrompt": "Follow artists using the Search page to see their content here.",
+  "@soundcloudFollowPrompt": {
+    "description": "SoundCloud empty state - user needs to follow artists"
+  },
+
   "noContentFound": "No content found for {name}",
   "@noContentFound": {
     "description": "No content found message",

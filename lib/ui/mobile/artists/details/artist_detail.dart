@@ -39,25 +39,33 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     });
 
     try {
-      // Get all tracks by this artist
-      final allTracks = appState.tracks;
-      _artistTracks = allTracks
-          .where(
-            (track) =>
-                track.artistName?.toLowerCase() ==
-                widget.artist.name.toLowerCase(),
-          )
-          .toList();
+      final isSoundCloud = appState.mediaServiceManager.currentServerType ==
+          ServerType.soundcloud;
 
-      // Get all albums by this artist
-      final allAlbums = appState.albums;
-      _artistAlbums = allAlbums
-          .where(
-            (album) =>
-                album.artistName?.toLowerCase() ==
-                widget.artist.name.toLowerCase(),
-          )
-          .toList();
+      if (isSoundCloud) {
+        _artistAlbums = [];
+        _artistTracks = await appState.getArtistTracks(widget.artist);
+      } else {
+        // Get all tracks by this artist
+        final allTracks = appState.tracks;
+        _artistTracks = allTracks
+            .where(
+              (track) =>
+                  track.artistName?.toLowerCase() ==
+                  widget.artist.name.toLowerCase(),
+            )
+            .toList();
+
+        // Get all albums by this artist
+        final allAlbums = appState.albums;
+        _artistAlbums = allAlbums
+            .where(
+              (album) =>
+                  album.artistName?.toLowerCase() ==
+                  widget.artist.name.toLowerCase(),
+            )
+            .toList();
+      }
 
       setState(() {
         _isLoading = false;
@@ -684,6 +692,82 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                       ),
                                     ],
                                   ),
+                                // Follow button (SoundCloud only)
+                                if (appState.mediaServiceManager
+                                        .currentServerType ==
+                                    ServerType.soundcloud) ...[
+                                  const SizedBox(height: 12),
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () async {
+                                      if (appState.isFollowingArtist(
+                                          widget.artist.id)) {
+                                        await appState.unfollowArtist(
+                                            widget.artist.id);
+                                      } else {
+                                        await appState.followArtist(
+                                            widget.artist);
+                                      }
+                                      if (mounted) setState(() {});
+                                    },
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(
+                                            sigmaX: 10, sigmaY: 10),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 24,
+                                            vertical: 12,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: appState.isFollowingArtist(
+                                                    widget.artist.id)
+                                                ? Colors.white.withOpacity(0.15)
+                                                : const Color(0xFF34C759),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: appState.isFollowingArtist(
+                                                      widget.artist.id)
+                                                  ? Colors.white
+                                                      .withOpacity(0.3)
+                                                  : Colors.transparent,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                appState.isFollowingArtist(
+                                                        widget.artist.id)
+                                                    ? CupertinoIcons.person_fill
+                                                    : CupertinoIcons
+                                                        .person_add_solid,
+                                                size: 18,
+                                                color: Colors.white,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                appState.isFollowingArtist(
+                                                        widget.artist.id)
+                                                    ? 'Following'
+                                                    : 'Follow',
+                                                style: const TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),

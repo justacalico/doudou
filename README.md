@@ -74,10 +74,7 @@ Yes, as long as your server is accessible over the internet. Consider using a VP
 Long-press any song, album, or playlist and select "Download for offline listening."
 
 **Which server works best?**
-Jellyfin offers the best experience with full feature support and is completely free.
-
-**Is the desktop version different?**
-Yes, desktop platforms have an enhanced interface optimized for larger screens and keyboard/mouse input.
+Subsonic offers the best experience with full feature support and is completely free. If you are looking for non-local use soundcloud
 
 ## Building from Source
 
@@ -139,10 +136,13 @@ flutter clean
 
 ## Credits
 
-Built with these open-source projects:
+Built with these projects:
 
-- [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Subsonic](http://www.subsonic.org/) - Media servers
-- [Flutter](https://flutter.dev/) - Cross-platform framework
+- [Jellyfin](https://jellyfin.org/)
+- [Plex](https://plex.tv/)
+- [Subsonic](http://www.subsonic.org/)
+- [Soundcloud](https://soundcloud.com/)
+- [Flutter](https://flutter.dev/)
 
 ## License
 

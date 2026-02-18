@@ -43,13 +43,15 @@ class SoundCloudService implements BaseMediaService {
   DateTime? _embeddedClientIdFetched;
   static const Duration _embeddedClientIdCache = Duration(hours: 1);
 
-  // Local playlists and favorites (persisted in SharedPreferences)
+  // Local playlists, favorites, and followed artists (persisted in SharedPreferences)
   static const String _prefsPlaylistsKey = 'soundcloud_playlists';
   static const String _prefsPlaylistTracksKey = 'soundcloud_playlist_tracks';
   static const String _prefsFavoritesKey = 'soundcloud_favorites';
+  static const String _prefsFollowedArtistsKey = 'soundcloud_followed_artists';
   List<Playlist> _localPlaylists = [];
   final Map<String, List<Map<String, dynamic>>> _localPlaylistTracks = {};
   List<Map<String, dynamic>> _localFavorites = [];
+  List<Map<String, dynamic>> _localFollowedArtists = [];
   bool _localDataLoaded = false;
 
   @override
@@ -198,7 +200,131 @@ class SoundCloudService implements BaseMediaService {
     _localPlaylists = [];
     _localPlaylistTracks.clear();
     _localFavorites = [];
+    _localFollowedArtists = [];
     _localDataLoaded = false;
+  }
+
+  /// Follow an artist (SoundCloud only) - their tracks show up on home/library
+  Future<bool> followArtist(Artist artist) async {
+    await _loadLocalData();
+    if (_localFollowedArtists.any((a) => a['id'] == artist.id)) return true;
+    _localFollowedArtists.add({
+      'id': artist.id,
+      'name': artist.name,
+      'imageUrl': artist.imageUrl,
+    });
+    await _saveFollowedArtists();
+    return true;
+  }
+
+  /// Unfollow an artist
+  Future<bool> unfollowArtist(String userId) async {
+    await _loadLocalData();
+    _localFollowedArtists.removeWhere((a) => a['id'] == userId);
+    await _saveFollowedArtists();
+    return true;
+  }
+
+  bool isFollowingArtist(String userId) {
+    return _localFollowedArtists.any((a) => a['id'] == userId);
+  }
+
+  Future<List<Artist>> getFollowedArtists() async {
+    await _loadLocalData();
+    return _localFollowedArtists.map((j) => Artist(
+      id: j['id'] ?? '',
+      name: j['name'] ?? 'Unknown Artist',
+      imageUrl: j['imageUrl'] as String?,
+    )).toList();
+  }
+
+  Future<void> _saveFollowedArtists() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefsFollowedArtistsKey, jsonEncode(_localFollowedArtists));
+    } catch (e) {
+      if (kDebugMode) _log('_saveFollowedArtists failed: $e', isError: true);
+    }
+  }
+
+  /// Fetch tracks for a specific artist (user) via /users/{id}/tracks
+  Future<List<Track>> getArtistTracks(String userId, {String? artistName}) async {
+    if (!await _ensureToken()) return [];
+    try {
+      final response = await _dio.get<List<dynamic>>(
+        '/users/$userId/tracks',
+        queryParameters: {'limit': 100, 'linked_partitioning': 'true'},
+      );
+      final list = response.data;
+      if (list == null) return [];
+      final fallbackName = artistName ?? _localFollowedArtists
+          .where((a) => a['id'] == userId)
+          .map((a) => a['name'] as String)
+          .firstOrNull ?? 'Unknown Artist';
+      final tracks = <Track>[];
+      for (final item in list) {
+        if (item is! Map<String, dynamic>) continue;
+        final id = item['id']?.toString();
+        if (id == null) continue;
+        final user = item['user'] as Map<String, dynamic>?;
+        final durationMs = item['duration'] != null ? (item['duration'] as num).toInt() : null;
+        final artwork = item['artwork_url'] as String?;
+        tracks.add(Track(
+          id: id,
+          name: item['title'] as String? ?? 'Unknown',
+          artistName: user?['username'] ?? fallbackName,
+          albumName: null,
+          duration: durationMs,
+          imageUrl: artwork,
+          isFavorite: _localFavorites.any((f) => (f['id'] ?? '').toString() == id),
+        ));
+      }
+      return tracks;
+    } catch (e) {
+      if (kDebugMode) _log('getArtistTracks $userId: $e', isError: true);
+      return [];
+    }
+  }
+
+  /// Fetch tracks from followed artists via /users/{id}/tracks
+  Future<List<Track>> _getTracksFromFollowedArtists({int? maxPerArtist}) async {
+    if (!await _ensureToken()) return [];
+    final limit = maxPerArtist ?? 50;
+    final allTracks = <Track>[];
+    for (final a in _localFollowedArtists) {
+      final userId = a['id'] as String?;
+      if (userId == null || userId.isEmpty) continue;
+      try {
+        final response = await _dio.get<List<dynamic>>(
+          '/users/$userId/tracks',
+          queryParameters: {'limit': limit, 'linked_partitioning': 'true'},
+        );
+        final list = response.data;
+        if (list == null) continue;
+        final artistName = a['name'] as String? ?? 'Unknown Artist';
+        for (final item in list) {
+          if (item is! Map<String, dynamic>) continue;
+          final id = item['id']?.toString();
+          if (id == null) continue;
+          final user = item['user'] as Map<String, dynamic>?;
+          final name = user?['username'] ?? artistName;
+          final durationMs = item['duration'] != null ? (item['duration'] as num).toInt() : null;
+          final artwork = item['artwork_url'] as String?;
+          allTracks.add(Track(
+            id: id,
+            name: item['title'] as String? ?? 'Unknown',
+            artistName: name,
+            albumName: null,
+            duration: durationMs,
+            imageUrl: artwork,
+            isFavorite: _localFavorites.any((f) => (f['id'] ?? '').toString() == id),
+          ));
+        }
+      } catch (e) {
+        if (kDebugMode) _log('getTracksFromFollowedArtists user $userId: $e', isError: true);
+      }
+    }
+    return allTracks;
   }
 
   Future<void> _loadLocalData() async {
@@ -226,6 +352,11 @@ class SoundCloudService implements BaseMediaService {
       if (favJson != null) {
         final list = jsonDecode(favJson) as List<dynamic>?;
         _localFavorites = list?.cast<Map<String, dynamic>>() ?? [];
+      }
+      final followedJson = prefs.getString(_prefsFollowedArtistsKey);
+      if (followedJson != null) {
+        final list = jsonDecode(followedJson) as List<dynamic>?;
+        _localFollowedArtists = list?.cast<Map<String, dynamic>>() ?? [];
       }
     } catch (e) {
       if (kDebugMode) _log('_loadLocalData failed: $e', isError: true);
@@ -344,45 +475,27 @@ class SoundCloudService implements BaseMediaService {
     int? limit,
     int? startIndex,
   }) async {
-    if (!await _ensureToken()) return [];
-    try {
-      // Fetch tracks directly to get user (artist) avatar_url from each item
-      final response = await _dio.get<Map<String, dynamic>>(
-        '/tracks',
-        queryParameters: {
-          'q': 'music',
-          'access': 'playable',
-          'limit': (limit ?? 50).clamp(1, 200),
-          'linked_partitioning': 'true',
-        },
-      );
-      final data = response.data;
-      if (data == null) return [];
-      final collection = data['collection'] as List<dynamic>? ?? [];
-      final seen = <String>{};
-      final artists = <Artist>[];
-      for (final item in collection) {
-        final map = item as Map<String, dynamic>;
-        final user = map['user'] as Map<String, dynamic>?;
-        if (user == null) continue;
-        final id = user['id']?.toString();
-        if (id == null) continue;
-        final name = user['username'] as String? ?? 'Unknown Artist';
-        if (seen.contains(id)) continue;
-        seen.add(id);
-        // SoundCloud user object has avatar_url for artist icon
-        final avatarUrl = user['avatar_url'] as String?;
-        artists.add(Artist(id: id, name: name, imageUrl: avatarUrl));
-      }
-      return artists;
-    } catch (_) {
-      return [];
-    }
+    await _loadLocalData();
+    // SoundCloud: Artists = followed artists (your dashboard shows their content)
+    return getFollowedArtists();
   }
 
   @override
   Future<List<Track>> getAllTracks({int? maxTracks}) async {
-    return getTracks(limit: maxTracks ?? 500);
+    await _loadLocalData();
+    // SoundCloud: Library = followed artists + favorites (no generic search)
+    final fromFollowed = await _getTracksFromFollowedArtists(
+      maxPerArtist: ((maxTracks ?? 500) / 10).ceil().clamp(10, 100),
+    );
+    final favorites = await getStarredTracks();
+    final seen = <String>{};
+    final merged = <Track>[];
+    for (final t in [...fromFollowed, ...favorites]) {
+      if (seen.contains(t.id)) continue;
+      seen.add(t.id);
+      merged.add(t);
+    }
+    return merged;
   }
 
   @override
@@ -972,6 +1085,8 @@ class SoundCloudService implements BaseMediaService {
 
       final collection = data['collection'] as List<dynamic>? ?? [];
       final tracks = <Track>[];
+      final seenArtists = <String>{};
+      final artists = <Artist>[];
 
       for (final item in collection) {
         final map = item as Map<String, dynamic>;
@@ -980,10 +1095,20 @@ class SoundCloudService implements BaseMediaService {
 
         final user = map['user'] as Map<String, dynamic>?;
         final artistName = user?['username'] as String? ?? 'Unknown Artist';
+        final userId = user?['id']?.toString();
         final durationMs = map['duration'] != null
             ? (map['duration'] as num).toInt()
             : null;
         final artwork = map['artwork_url'] as String?;
+
+        if (userId != null && !seenArtists.contains(userId)) {
+          seenArtists.add(userId);
+          artists.add(Artist(
+            id: userId,
+            name: artistName,
+            imageUrl: user?['avatar_url'] as String?,
+          ));
+        }
 
         tracks.add(Track(
           id: id,
@@ -996,7 +1121,7 @@ class SoundCloudService implements BaseMediaService {
         ));
       }
 
-      return SearchResults(tracks: tracks);
+      return SearchResults(artists: artists, tracks: tracks);
     } catch (_) {
       return SearchResults();
     }

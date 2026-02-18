@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/services/base_service.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/ui/desktop/services/navigation_service.dart';
 
@@ -95,6 +96,45 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(height: DesktopTheme.spacingMd),
                         _recentTracks(context, appState, l10n),
+                      ],
+                      if (appState.mediaServiceManager.currentServerType ==
+                              ServerType.soundcloud &&
+                          appState.albums.isEmpty &&
+                          appState.artists.isEmpty &&
+                          appState.tracks.isEmpty) ...[
+                        const SizedBox(height: DesktopTheme.spacingXl * 2),
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(DesktopTheme.spacingXl),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.person_add_rounded,
+                                  size: 64,
+                                  color: DesktopTheme.textMuted,
+                                ),
+                                const SizedBox(height: DesktopTheme.spacingMd),
+                                Text(
+                                  l10n.soundcloudFollowPrompt,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: DesktopTheme.textSecondary,
+                                    height: 1.4,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: DesktopTheme.spacingMd),
+                                TextButton.icon(
+                                  onPressed: () =>
+                                      NavigationService().selectPage(1),
+                                  icon: const Icon(Icons.search_rounded),
+                                  label: Text(l10n.search),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                       const SizedBox(height: 120),
                     ],
