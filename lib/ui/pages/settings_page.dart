@@ -975,8 +975,14 @@ class _ServerSectionState extends State<_ServerSection> {
                       style: TextStyle(
                         fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    subtitle: Text('${_serverTypeLabel(type)}${isActive ? ' (Active)' : ''}'),
+                    subtitle: Text(
+                      '${_serverTypeLabel(type)}${isActive ? ' (Active)' : ''}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -1134,12 +1140,20 @@ class _ServerSectionState extends State<_ServerSection> {
                             children: [
                               ListTile(
                                 title: const Text('Server URL'),
-                                subtitle: Text(serverUrl),
+                                subtitle: Text(
+                                  serverUrl,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                                 trailing: const Icon(Icons.edit),
                               ),
                               ListTile(
                                 title: const Text('Username'),
-                                subtitle: Text(username),
+                                subtitle: Text(
+                                  username,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                                 trailing: const Icon(Icons.person),
                               ),
                             ],
