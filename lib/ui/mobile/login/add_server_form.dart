@@ -1,15 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
-import 'dart:ui';
-import 'dart:math' as math;
-import 'dart:async';
 import '../../../providers/app_state.dart';
-import '../../../l10n/app_localizations.dart';
 import '../widgets/apple_design/apple_theme.dart';
 import '../../../services/players/jellyfin_service.dart';
 import '../settings/local_music_settings.dart';
@@ -17,16 +14,24 @@ import '../settings/local_music_settings.dart';
 // Auth method enum for Jellyfin
 enum JellyfinAuthMethod { account, apiKey, quickConnect }
 
-/// Add Server screen - configure and add a new media server.
-class AddServerScreen extends StatefulWidget {
-  const AddServerScreen({super.key});
+/// Add/Edit Server form - embeddable in Settings, no separate screen.
+class AddServerForm extends StatefulWidget {
+  final VoidCallback? onSuccess;
+  final VoidCallback? onCancel;
+  final Map<String, String>? existingServer;
+
+  const AddServerForm({
+    super.key,
+    this.onSuccess,
+    this.onCancel,
+    this.existingServer,
+  });
 
   @override
-  State<AddServerScreen> createState() => _AddServerScreenState();
+  State<AddServerForm> createState() => _AddServerFormState();
 }
 
-class _AddServerScreenState extends State<AddServerScreen>
-    with TickerProviderStateMixin {
+class _AddServerFormState extends State<AddServerForm> {
   final _formKey = GlobalKey<FormState>();
   final _serverController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -44,41 +49,23 @@ class _AddServerScreenState extends State<AddServerScreen>
   String? _quickConnectSecret;
   Timer? _quickConnectPollTimer;
 
-  late AnimationController _animationController;
-  late AnimationController _backgroundController;
-  late AnimationController _pulseController;
-  late Animation<double> _fadeAnimation;
-
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-    _backgroundController = AnimationController(
-      duration: const Duration(seconds: 20),
-      vsync: this,
-    )..repeat();
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
-    _animationController.forward();
-
-    // Set default server URLs
-    _serverController.text = _getServerPlaceholder();
+    final existing = widget.existingServer;
+    if (existing != null) {
+      _selectedServerType = existing['type'] ?? 'jellyfin';
+      _serverController.text = existing['url'] ?? _getServerPlaceholder();
+      _usernameController.text = existing['username'] ?? '';
+      _apiKeyController.text = existing['apiKey'] ?? '';
+      _plexTokenController.text = existing['plexToken'] ?? '';
+    } else {
+      _serverController.text = _getServerPlaceholder();
+    }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
-    _backgroundController.dispose();
-    _pulseController.dispose();
     _serverController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
@@ -90,502 +77,9 @@ class _AddServerScreenState extends State<AddServerScreen>
 
   @override
   Widget build(BuildContext context) {
-    final appState = context.watch<AppState>();
     final screenSize = MediaQuery.of(context).size;
     final isDesktop = screenSize.width > 768;
-    final brightness = MediaQuery.of(context).platformBrightness;
-    final isDark = brightness == Brightness.dark;
-
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: Theme.of(context),
-      locale: appState.locale,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            // Animated gradient background
-            _buildAnimatedBackground(isDark),
-
-            // Main content
-            SafeArea(
-              child: isDesktop
-                  ? _buildDesktopLayout(context)
-                  : _buildMobileLayout(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAnimatedBackground(bool isDark) {
-    return AnimatedBuilder(
-      animation: _backgroundController,
-      builder: (context, child) {
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      const Color(0xFF0D0D0D),
-                      const Color(0xFF1A1A2E),
-                      const Color(0xFF16213E),
-                      const Color(0xFF0F0F23),
-                    ]
-                  : [
-                      const Color(0xFFF8F9FA),
-                      const Color(0xFFE8EAF6),
-                      const Color(0xFFE3F2FD),
-                      const Color(0xFFF3E5F5),
-                    ],
-              stops: const [0.0, 0.3, 0.6, 1.0],
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Floating orbs
-              ..._buildFloatingOrbs(isDark),
-              // Subtle grid pattern
-              if (isDark) _buildGridPattern(),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  List<Widget> _buildFloatingOrbs(bool isDark) {
-    final size = MediaQuery.of(context).size;
-    return [
-      // Primary orb - purple
-      AnimatedBuilder(
-        animation: _backgroundController,
-        builder: (context, _) {
-          final progress = _backgroundController.value;
-          return Positioned(
-            left: size.width * 0.1 + math.sin(progress * math.pi * 2) * 50,
-            top: size.height * 0.2 + math.cos(progress * math.pi * 2) * 30,
-            child: _buildOrb(
-              200,
-              isDark
-                  ? AppleColors.systemPurple.withOpacity(0.3)
-                  : AppleColors.systemPurple.withOpacity(0.15),
-            ),
-          );
-        },
-      ),
-      // Secondary orb - blue
-      AnimatedBuilder(
-        animation: _backgroundController,
-        builder: (context, _) {
-          final progress = _backgroundController.value;
-          return Positioned(
-            right: size.width * 0.05 + math.cos(progress * math.pi * 2) * 40,
-            top: size.height * 0.4 + math.sin(progress * math.pi * 2) * 50,
-            child: _buildOrb(
-              160,
-              isDark
-                  ? AppleColors.systemBlue.withOpacity(0.25)
-                  : AppleColors.systemBlue.withOpacity(0.12),
-            ),
-          );
-        },
-      ),
-      // Tertiary orb - pink
-      AnimatedBuilder(
-        animation: _backgroundController,
-        builder: (context, _) {
-          final progress = _backgroundController.value;
-          return Positioned(
-            left: size.width * 0.3 + math.sin(progress * math.pi * 2 + 1) * 60,
-            bottom:
-                size.height * 0.1 + math.cos(progress * math.pi * 2 + 1) * 40,
-            child: _buildOrb(
-              180,
-              isDark
-                  ? AppleColors.systemPink.withOpacity(0.2)
-                  : AppleColors.systemPink.withOpacity(0.1),
-            ),
-          );
-        },
-      ),
-    ];
-  }
-
-  Widget _buildOrb(double size, Color color) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(colors: [color, color.withOpacity(0)]),
-      ),
-    );
-  }
-
-  Widget _buildGridPattern() {
-    return Opacity(
-      opacity: 0.03,
-      child: CustomPaint(size: Size.infinite, painter: _GridPainter()),
-    );
-  }
-
-  Widget _buildDesktopLayout(BuildContext context) {
-    final brightness = MediaQuery.of(context).platformBrightness;
-    final isDark = brightness == Brightness.dark;
-
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          child: Padding(
-            padding: const EdgeInsets.all(48),
-            child: Row(
-              children: [
-                // Left side - Branding
-                Expanded(flex: 5, child: _buildBrandingSection(isDark)),
-
-                const SizedBox(width: 64),
-
-                // Right side - Login form with glassmorphism
-                Expanded(
-                  flex: 4,
-                  child: _buildGlassCard(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(40),
-                      child: _buildLoginForm(context, isDesktop: true),
-                    ),
-                    isDark: isDark,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBrandingSection(bool isDark) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // App icon with glow
-        AnimatedBuilder(
-          animation: _pulseController,
-          builder: (context, child) {
-            return Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppleColors.systemPurple, AppleColors.systemIndigo],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppleColors.systemPurple.withOpacity(
-                      0.3 + _pulseController.value * 0.2,
-                    ),
-                    blurRadius: 30 + _pulseController.value * 20,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                CupertinoIcons.music_note_2,
-                size: 50,
-                color: Colors.white,
-              ),
-            );
-          },
-        ),
-
-        const SizedBox(height: 40),
-
-        // Welcome text
-        SlideTransition(
-          position:
-              Tween<Offset>(
-                begin: const Offset(-0.3, 0),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(
-                  parent: _animationController,
-                  curve: const Interval(0.2, 0.7, curve: Curves.easeOut),
-                ),
-              ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Welcome to',
-                style: TextStyle(
-                  fontFamily: AppleDesignSystem.fontFamily,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w500,
-                  color: isDark
-                      ? Colors.white.withOpacity(0.7)
-                      : Colors.black.withOpacity(0.6),
-                ),
-              ),
-              const SizedBox(height: 8),
-              ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [
-                    AppleColors.systemPurple,
-                    AppleColors.systemPink,
-                    AppleColors.systemIndigo,
-                  ],
-                ).createShader(bounds),
-                child: const Text(
-                  'Doudou',
-                  style: TextStyle(
-                    fontFamily: AppleDesignSystem.fontFamily,
-                    fontSize: 64,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    height: 1.1,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // Tagline
-        SlideTransition(
-          position:
-              Tween<Offset>(
-                begin: const Offset(-0.2, 0),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(
-                  parent: _animationController,
-                  curve: const Interval(0.4, 0.9, curve: Curves.easeOut),
-                ),
-              ),
-          child: Text(
-            'Your personal music companion.\nStream from your own media server with\nstyle and privacy.',
-            style: TextStyle(
-              fontFamily: AppleDesignSystem.fontFamily,
-              fontSize: 18,
-              height: 1.6,
-              color: isDark
-                  ? Colors.white.withOpacity(0.6)
-                  : Colors.black.withOpacity(0.5),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 48),
-
-        // Feature pills
-        SlideTransition(
-          position:
-              Tween<Offset>(
-                begin: const Offset(-0.1, 0),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(
-                  parent: _animationController,
-                  curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
-                ),
-              ),
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _buildFeaturePill('Privacy First', isDark),
-              _buildFeaturePill('High Quality Audio', isDark),
-              _buildFeaturePill('All Platforms', isDark),
-              _buildFeaturePill('No Cloud Required', isDark),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFeaturePill(String text, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(0.08)
-            : Colors.black.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withOpacity(0.1)
-              : Colors.black.withOpacity(0.08),
-        ),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontFamily: AppleDesignSystem.fontFamily,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: isDark
-              ? Colors.white.withOpacity(0.8)
-              : Colors.black.withOpacity(0.7),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGlassCard({required Widget child, required bool isDark}) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(32),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withOpacity(0.08)
-                : Colors.white.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withOpacity(0.15)
-                  : Colors.white.withOpacity(0.8),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
-                blurRadius: 40,
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMobileLayout(BuildContext context) {
-    final brightness = MediaQuery.of(context).platformBrightness;
-    final isDark = brightness == Brightness.dark;
-
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-
-              // Mobile header with logo
-              _buildMobileHeader(isDark),
-
-              const SizedBox(height: 32),
-
-              // Login form card
-              _buildGlassCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: _buildLoginForm(context, isDesktop: false),
-                ),
-                isDark: isDark,
-              ),
-
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMobileHeader(bool isDark) {
-    return Column(
-      children: [
-        // Animated logo
-        AnimatedBuilder(
-          animation: _pulseController,
-          builder: (context, child) {
-            return Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppleColors.systemPurple, AppleColors.systemIndigo],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppleColors.systemPurple.withOpacity(
-                      0.25 + _pulseController.value * 0.15,
-                    ),
-                    blurRadius: 20 + _pulseController.value * 15,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                CupertinoIcons.music_note_2,
-                size: 40,
-                color: Colors.white,
-              ),
-            );
-          },
-        ),
-
-        const SizedBox(height: 20),
-
-        // App name with gradient
-        ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [AppleColors.systemPurple, AppleColors.systemPink],
-          ).createShader(bounds),
-          child: Text(
-            'Doudou',
-            style: TextStyle(
-              fontFamily: AppleDesignSystem.fontFamily,
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        Text(
-          'Your personal music companion',
-          style: TextStyle(
-            fontFamily: AppleDesignSystem.fontFamily,
-            fontSize: 16,
-            color: isDark
-                ? Colors.white.withOpacity(0.6)
-                : Colors.black.withOpacity(0.5),
-          ),
-        ),
-      ],
-    );
+    return _buildLoginForm(context, isDesktop: isDesktop);
   }
 
   Widget _buildLoginForm(BuildContext context, {required bool isDesktop}) {
@@ -602,7 +96,7 @@ class _AddServerScreenState extends State<AddServerScreen>
             children: [
               // Form header
               Text(
-                'Add Server',
+                widget.existingServer != null ? 'Edit Server' : 'Add Server',
                 style: TextStyle(
                   fontFamily: AppleDesignSystem.fontFamily,
                   fontSize: 28,
@@ -614,7 +108,7 @@ class _AddServerScreenState extends State<AddServerScreen>
               const SizedBox(height: 8),
 
               Text(
-                'Configure a new media server',
+                widget.existingServer != null ? 'Update server configuration' : 'Configure a new media server',
                 style: TextStyle(
                   fontFamily: AppleDesignSystem.fontFamily,
                   fontSize: 15,
@@ -676,10 +170,10 @@ class _AddServerScreenState extends State<AddServerScreen>
                 SizedBox(height: isDesktop ? 20 : 16),
               ],
 
-              // Sign in button
+              // Sign in / Save button
               _buildPrimaryButton(
                 context: context,
-                label: 'Sign In',
+                label: widget.existingServer != null ? 'Save' : 'Sign In',
                 icon: CupertinoIcons.arrow_right,
                 isLoading: appState.isLoading,
                 onPressed: appState.isLoading ? null : _login,
@@ -688,9 +182,20 @@ class _AddServerScreenState extends State<AddServerScreen>
 
               SizedBox(height: isDesktop ? 12 : 10),
 
-              // Secondary actions
+              // Cancel / Secondary actions row
               Row(
                 children: [
+                  if (widget.onCancel != null)
+                    Expanded(
+                      child: _buildSecondaryButton(
+                        context: context,
+                        label: 'Cancel',
+                        icon: CupertinoIcons.xmark,
+                        onPressed: appState.isLoading ? null : widget.onCancel,
+                        isDark: isDark,
+                      ),
+                    ),
+                  if (widget.onCancel != null) const SizedBox(width: 12),
                   Expanded(
                     child: _buildSecondaryButton(
                       context: context,
@@ -1661,7 +1166,11 @@ class _AddServerScreenState extends State<AddServerScreen>
           _quickConnectSecret = null;
         });
         if (mounted) {
-          Navigator.of(context).pop();
+          if (widget.onSuccess != null) {
+            widget.onSuccess!();
+          } else {
+            Navigator.of(context).maybePop();
+          }
         }
       } else {
         await _triggerHapticFeedback(isSuccess: false);
@@ -1815,7 +1324,7 @@ class _AddServerScreenState extends State<AddServerScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 18, color: accentColor),
+            Icon(icon, size: 18, color: color),
             const SizedBox(width: 6),
             Text(
               label,
@@ -1823,7 +1332,7 @@ class _AddServerScreenState extends State<AddServerScreen>
                 fontFamily: AppleDesignSystem.fontFamily,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: accentColor,
+                color: color,
               ),
             ),
           ],
@@ -1864,11 +1373,15 @@ class _AddServerScreenState extends State<AddServerScreen>
     }
 
     if (_formKey.currentState!.validate()) {
-      // Trigger button press haptic feedback
       await _triggerButtonPress();
 
       if (!mounted) return;
       final appState = context.read<AppState>();
+      final existingId = widget.existingServer?['id'];
+      if (existingId != null && existingId.isNotEmpty) {
+        await appState.removeServer(existingId);
+        if (!mounted) return;
+      }
       bool success;
 
       if (_selectedServerType == 'soundcloud') {
@@ -1904,10 +1417,13 @@ class _AddServerScreenState extends State<AddServerScreen>
       }
 
       if (success && mounted) {
-        // Success vibration
         await _triggerHapticFeedback(isSuccess: true);
         if (mounted) {
-          Navigator.of(context).pop();
+          if (widget.onSuccess != null) {
+            widget.onSuccess!();
+          } else {
+            Navigator.of(context).maybePop();
+          }
         }
       } else if (mounted) {
         // Error vibration
@@ -2003,29 +1519,4 @@ class _AddServerScreenState extends State<AddServerScreen>
       // Silently fail if haptic feedback is not supported
     }
   }
-}
-
-class _GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 0.5
-      ..style = PaintingStyle.stroke;
-
-    const gridSize = 40.0;
-
-    // Vertical lines
-    for (double x = 0; x < size.width; x += gridSize) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-
-    // Horizontal lines
-    for (double y = 0; y < size.height; y += gridSize) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -14,7 +14,7 @@ import 'package:doudou/services/update_service.dart';
 
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
-import 'package:doudou/ui/mobile/login/add_server_screen.dart';
+import 'package:doudou/ui/mobile/login/add_server_form.dart';
 
 /// Breakpoint: below this width use single-column layout (all sections stacked) instead of sidebar.
 const double _kSettingsBreakpoint = 768.0;
@@ -754,7 +754,7 @@ const Map<String, String> _languageNames = {
 };
 
 // --- Server ---
-class _ServerSection extends StatelessWidget {
+class _ServerSection extends StatefulWidget {
   final AppState appState;
   final Future<void> Function(AppState) onAddDir;
   final Future<void> Function(AppState, String) onRemoveDir;
@@ -774,6 +774,14 @@ class _ServerSection extends StatelessWidget {
     required this.onClearCache,
     required this.onShowNotification,
   });
+
+  @override
+  State<_ServerSection> createState() => _ServerSectionState();
+}
+
+class _ServerSectionState extends State<_ServerSection> {
+  bool _showAddForm = false;
+  Map<String, String>? _editingServer;
 
   String _serverTypeLabel(String type) {
     switch (type) {
@@ -819,6 +827,7 @@ class _ServerSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final appState = widget.appState;
     final isLocal = appState.mediaServiceManager.currentServerType == ServerType.local;
     final localService = appState.mediaServiceManager.localMusicService;
 
@@ -834,26 +843,50 @@ class _ServerSection extends StatelessWidget {
               style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             SizedBox(height: isSmall ? 12 : 24),
-            Padding(
-              padding: EdgeInsets.only(bottom: isSmall ? 12 : 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const AddServerScreen(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.add_rounded),
-                  label: const Text('Add Server'),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+            if (_showAddForm) ...[
+              Card(
+                child: Padding(
+                  padding: EdgeInsets.all(isSmall ? 12 : 16),
+                  child: AddServerForm(
+                    existingServer: _editingServer,
+                    onSuccess: () {
+                      final wasEditing = _editingServer != null;
+                      setState(() {
+                        _showAddForm = false;
+                        _editingServer = null;
+                      });
+                      widget.onShowNotification(wasEditing ? 'Server updated' : 'Server added');
+                    },
+                    onCancel: () {
+                      setState(() {
+                        _showAddForm = false;
+                        _editingServer = null;
+                      });
+                    },
                   ),
                 ),
               ),
-            ),
+              SizedBox(height: isSmall ? 12 : 16),
+            ] else
+              Padding(
+                padding: EdgeInsets.only(bottom: isSmall ? 12 : 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _showAddForm = true;
+                        _editingServer = null;
+                      });
+                    },
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Add Server'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ),
+              ),
             if (appState.configuredServers.isNotEmpty) ...[
               Text(
                 'Configured Servers',
@@ -888,11 +921,20 @@ class _ServerSection extends StatelessWidget {
                             onPressed: () async {
                               final ok = await appState.switchToServer(id);
                               if (context.mounted) {
-                                onShowNotification(ok ? 'Switched to server' : 'Failed to switch', color: ok ? null : Colors.red);
+                                widget.onShowNotification(ok ? 'Switched to server' : 'Failed to switch', color: ok ? null : Colors.red);
                               }
                             },
                             child: const Text('Switch'),
                           ),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _showAddForm = true;
+                              _editingServer = Map<String, String>.from(server);
+                            });
+                          },
+                          child: const Text('Edit'),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
                           onPressed: () async {
@@ -914,7 +956,7 @@ class _ServerSection extends StatelessWidget {
                             if (ok == true) {
                               await appState.removeServer(id);
                               if (context.mounted) {
-                                onShowNotification('Server removed');
+                                widget.onShowNotification('Server removed');
                               }
                             }
                           },
@@ -957,7 +999,7 @@ class _ServerSection extends StatelessWidget {
                       onTap: () async {
                         await appState.loadLibraryData();
                         if (context.mounted) {
-                          onShowNotification('Library refreshed');
+                          widget.onShowNotification('Library refreshed');
                         }
                       },
                     ),
@@ -974,16 +1016,16 @@ class _ServerSection extends StatelessWidget {
                         subtitle: Text(dir, style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
                         trailing: IconButton(
                           icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                          onPressed: () => onRemoveDir(appState, dir),
+                          onPressed: () => widget.onRemoveDir(appState, dir),
                         ),
                       )),
                       const Divider(),
-                      ListTile(title: const Text('Add Directory'), leading: const Icon(Icons.create_new_folder), onTap: () => onAddDir(appState)),
+                      ListTile(title: const Text('Add Directory'), leading: const Icon(Icons.create_new_folder), onTap: () => widget.onAddDir(appState)),
                       ListTile(
                         title: const Text('Rescan Library'),
                         leading: const Icon(Icons.refresh),
                         subtitle: const Text('Scan directories for new music'),
-                        onTap: () => onRescan(appState),
+                        onTap: () => widget.onRescan(appState),
                       ),
                       const Divider(),
                       SwitchListTile(
@@ -1032,7 +1074,7 @@ class _ServerSection extends StatelessWidget {
                       ListTile(
                         title: const Text('Test Connection'),
                         leading: const Icon(Icons.wifi_tethering),
-                        onTap: () => onTestConnection(appState),
+                        onTap: () => widget.onTestConnection(appState),
                       ),
                     ],
                     ListTile(
@@ -1040,7 +1082,7 @@ class _ServerSection extends StatelessWidget {
                       leading: const Icon(Icons.logout),
                       textColor: Colors.red,
                       iconColor: Colors.red,
-                      onTap: () => onSignOut(appState),
+                      onTap: () => widget.onSignOut(appState),
                     ),
                   ],
                 ),
@@ -1059,7 +1101,7 @@ class _ServerSection extends StatelessWidget {
                       title: const Text('Clear image cache'),
                       subtitle: const Text('Free up storage space'),
                       trailing: const Icon(Icons.clear),
-                      onTap: () => onClearCache('images'),
+                      onTap: () => widget.onClearCache('images'),
                     ),
                     if (isLocal && localService != null)
                       ListTile(
@@ -1069,7 +1111,7 @@ class _ServerSection extends StatelessWidget {
                         onTap: () async {
                           await localService.clearArtworkCache();
                           if (context.mounted) {
-                            onShowNotification('Artwork cache cleared');
+                            widget.onShowNotification('Artwork cache cleared');
                           }
                         },
                       ),
@@ -1077,7 +1119,7 @@ class _ServerSection extends StatelessWidget {
                       title: const Text('Clear all cache'),
                       subtitle: const Text('Remove all cached data'),
                       trailing: const Icon(Icons.delete_sweep),
-                      onTap: () => onClearCache('all'),
+                      onTap: () => widget.onClearCache('all'),
                     ),
                   ],
                 ),

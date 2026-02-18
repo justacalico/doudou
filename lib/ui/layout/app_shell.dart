@@ -26,7 +26,6 @@ import 'package:doudou/ui/pages/tracks_page.dart';
 import 'package:doudou/ui/pages/playlists_page.dart';
 import 'package:doudou/ui/pages/downloads_page.dart';
 import 'package:doudou/ui/pages/settings_page.dart';
-import 'package:doudou/ui/mobile/login/add_server_screen.dart';
 
 /// Single responsive shell: sidebar on desktop, bottom navbar on mobile.
 /// Uses one [selectedIndex] and one set of pages so resizing never reloads or loses state.
@@ -233,18 +232,11 @@ class _AppShellState extends State<AppShell> {
             ),
             if (!appState.isLoggedIn && _selectedIndex != _settingsIndex)
               _AddServerOverlay(
-                onAddServer: _openAddServer,
                 onOpenSettings: () => _navigateTo(_settingsIndex),
               ),
           ],
         );
       },
-    );
-  }
-
-  void _openAddServer() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const AddServerScreen()),
     );
   }
 
@@ -264,11 +256,9 @@ class _AppShellState extends State<AppShell> {
 }
 
 class _AddServerOverlay extends StatelessWidget {
-  final VoidCallback onAddServer;
   final VoidCallback onOpenSettings;
 
   const _AddServerOverlay({
-    required this.onAddServer,
     required this.onOpenSettings,
   });
 
@@ -286,7 +276,7 @@ class _AddServerOverlay extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.add_circle_outline_rounded,
+                    Icons.settings_rounded,
                     size: 80,
                     color: DesktopTheme.textMuted,
                   ),
@@ -302,21 +292,15 @@ class _AddServerOverlay extends StatelessWidget {
                   ),
                   const SizedBox(height: DesktopTheme.spacingXl * 2),
                   FilledButton.icon(
-                    onPressed: onAddServer,
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Add Server'),
+                    onPressed: onOpenSettings,
+                    icon: const Icon(Icons.settings_rounded),
+                    label: Text(l10n.settings),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: DesktopTheme.spacingXl,
                         vertical: DesktopTheme.spacingMd,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: DesktopTheme.spacingMd),
-                  TextButton.icon(
-                    onPressed: onOpenSettings,
-                    icon: const Icon(Icons.settings_rounded),
-                    label: Text(l10n.settings),
                   ),
                 ],
               ),
