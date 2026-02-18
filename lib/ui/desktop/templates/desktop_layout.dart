@@ -442,6 +442,54 @@ class _TrackInfo extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              if (mediaItem!.album != null &&
+                  mediaItem!.album!.isNotEmpty &&
+                  mediaItem!.album! != 'Unknown Album') ...[
+                const SizedBox(height: 2),
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () {
+                      final albumId = mediaItem!.extras?['albumId'] as String?;
+                      final albumName = mediaItem!.album;
+                      if (albumId != null) {
+                        final album = appState.albums.where((a) => a.id == albumId).firstOrNull;
+                        if (album != null) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => MediaDetailsPage.album(album: album),
+                            ),
+                          );
+                          return;
+                        }
+                      }
+                      if (albumName != null) {
+                        final album = appState.albums
+                            .where((a) => a.name == albumName)
+                            .firstOrNull;
+                        if (album != null) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => MediaDetailsPage.album(album: album),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: Text(
+                      mediaItem!.album!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: DesktopTheme.textTertiary,
+                        decoration: TextDecoration.underline,
+                        decorationColor: DesktopTheme.textTertiary.withOpacity(0.5),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -1147,36 +1195,67 @@ class _NowPlayingOverlayState extends State<NowPlayingOverlay>
                                         ),
                                       ),
                                       // Playing from
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: DesktopTheme.spacingMd,
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              '${l10n.playingFrom} ',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color:
-                                                    DesktopTheme.textTertiary,
+                                      if (mediaItem?.album != null &&
+                                          mediaItem!.album!.isNotEmpty &&
+                                          mediaItem!.album! != 'Unknown Album')
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: DesktopTheme.spacingMd,
+                                          ),
+                                          child: MouseRegion(
+                                            cursor: SystemMouseCursors.click,
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                final albumId = mediaItem?.extras?['albumId'] as String?;
+                                                final albumName = mediaItem?.album;
+                                                if (albumId != null) {
+                                                  final album = widget.appState.albums
+                                                      .where((a) => a.id == albumId)
+                                                      .firstOrNull;
+                                                  if (album != null) {
+                                                    NavigationService().navigateToAlbum(album);
+                                                    return;
+                                                  }
+                                                }
+                                                if (albumName != null) {
+                                                  final album = widget.appState.albums
+                                                      .where((a) => a.name == albumName)
+                                                      .firstOrNull;
+                                                  if (album != null) {
+                                                    NavigationService().navigateToAlbum(album);
+                                                  }
+                                                }
+                                              },
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    '${l10n.playingFrom} ',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color:
+                                                          DesktopTheme.textTertiary,
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Text(
+                                                      mediaItem!.album!,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.w500,
+                                                        color:
+                                                            DesktopTheme.textPrimary,
+                                                        decoration: TextDecoration.underline,
+                                                        decorationColor: DesktopTheme.textPrimary
+                                                            .withOpacity(0.5),
+                                                      ),
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                            Expanded(
-                                              child: Text(
-                                                mediaItem?.album ??
-                                                    l10n.unknownAlbum,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                  color:
-                                                      DesktopTheme.textPrimary,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
+                                          ),
                                         ),
-                                      ),
                                       const SizedBox(
                                         height: DesktopTheme.spacingSm,
                                       ),
@@ -1327,13 +1406,10 @@ class _NowPlayingMain extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final isSoundCloud = appState.mediaServiceManager.currentServerType ==
-        ServerType.soundcloud;
-    final isYouTubeMusic = appState.mediaServiceManager.currentServerType ==
-        ServerType.youtubeMusic;
-    final hasAlbum = !isSoundCloud && !isYouTubeMusic &&
-        mediaItem?.album != null &&
-        mediaItem!.album!.isNotEmpty;
+    // Show album for all providers if album data exists (not 'Unknown Album')
+    final hasAlbum = mediaItem?.album != null &&
+        mediaItem!.album!.isNotEmpty &&
+        mediaItem!.album! != 'Unknown Album';
     final hasArtist =
         mediaItem?.artist != null && mediaItem!.artist!.isNotEmpty;
 
@@ -1798,6 +1874,7 @@ class _QueueList extends StatelessWidget {
         return _QueueItem(
           track: track,
           isCurrentTrack: isCurrentTrack,
+          appState: appState,
           onTap: () => audioHandler?.skipToQueueItem(index),
         );
       },
@@ -1809,11 +1886,13 @@ class _QueueList extends StatelessWidget {
 class _QueueItem extends StatefulWidget {
   final Track track;
   final bool isCurrentTrack;
+  final AppState appState;
   final VoidCallback onTap;
 
   const _QueueItem({
     required this.track,
     required this.isCurrentTrack,
+    required this.appState,
     required this.onTap,
   });
 
@@ -1907,6 +1986,58 @@ class _QueueItemState extends State<_QueueItem> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (widget.track.albumName != null &&
+                        widget.track.albumName!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            final albumId = widget.track.albumId;
+                            final albumName = widget.track.albumName;
+                            if (albumId != null) {
+                              final album = widget.appState.albums
+                                  .where((a) => a.id == albumId)
+                                  .firstOrNull;
+                              if (album != null) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        MediaDetailsPage.album(album: album),
+                                  ),
+                                );
+                                return;
+                              }
+                            }
+                            if (albumName != null) {
+                              final album = widget.appState.albums
+                                  .where((a) => a.name == albumName)
+                                  .firstOrNull;
+                              if (album != null) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        MediaDetailsPage.album(album: album),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          child: Text(
+                            widget.track.albumName!,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: DesktopTheme.textTertiary.withOpacity(0.8),
+                              decoration: TextDecoration.underline,
+                              decorationColor: DesktopTheme.textTertiary
+                                  .withOpacity(0.4),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
