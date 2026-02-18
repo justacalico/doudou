@@ -1107,9 +1107,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }
       final state = _player.playerState;
       final duration = _player.duration;
-      if (state.processingState == ProcessingState.ready &&
-          duration != null &&
-          duration > Duration.zero) {
+      // Accept ready or buffering (stream has started); duration > 0 means URL opened successfully.
+      final hasDuration = duration != null && duration > Duration.zero;
+      final canPlay = state.processingState == ProcessingState.ready ||
+          state.processingState == ProcessingState.buffering;
+      if (hasDuration && canPlay) {
         if (!completer.isCompleted) completer.complete();
       }
     }
@@ -1183,8 +1185,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         }
         if (_disposed || currentOperationId != _loadOperationId) return;
         // Wait for stream to actually load (duration > 0); otherwise MPV may have failed to open the URL.
+        // Use 5s so we try the next fallback URL sooner when the first is slow (reduces first-play delay).
         await _waitForYtStreamReady(
-          timeout: const Duration(seconds: 10),
+          timeout: const Duration(seconds: 5),
           operationId: currentOperationId,
         );
         if (_isMobile) _cancelLoadingTimeout();
