@@ -1559,12 +1559,20 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   }
 
   MediaItem _trackToMediaItem(Track track) {
-    // Get the image URL
-    final imageUrl = _mediaServiceManager.getImageUrl(
-      track.albumId ?? track.id,
-      width: 512,
-      height: 512,
-    );
+    // Prefer track.imageUrl when it's already a full URL (SoundCloud, Plex, Subsonic)
+    String imageUrl = '';
+    if (track.imageUrl != null &&
+        (track.imageUrl!.startsWith('http://') ||
+            track.imageUrl!.startsWith('https://'))) {
+      imageUrl = track.imageUrl!;
+    }
+    if (imageUrl.isEmpty) {
+      imageUrl = _mediaServiceManager.getImageUrl(
+        track.albumId ?? track.id,
+        width: 512,
+        height: 512,
+      );
+    }
 
     // Only use artUri if it's a valid HTTP/HTTPS URL
     // file:// URIs cause errors with SMTC/flutter_cache_manager on Windows
