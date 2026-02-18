@@ -596,7 +596,11 @@ class AppState extends ChangeNotifier {
   }
 
   /// Login to Jellyfin using an API key instead of username/password
-  Future<bool> loginWithApiKey(String serverUrl, String apiKey) async {
+  Future<bool> loginWithApiKey(
+    String serverUrl,
+    String apiKey, {
+    String? displayName,
+  }) async {
     _setLoading(true);
     _clearError();
 
@@ -626,6 +630,7 @@ class AppState extends ChangeNotifier {
           'url': serverUrl,
           'authMethod': 'api_key',
           'apiKey': apiKey,
+          if (displayName != null && displayName.isNotEmpty) 'displayName': displayName,
         };
         _configuredServers = [..._configuredServers, serverConfig];
         _activeServerId = serverId;
@@ -681,8 +686,9 @@ class AppState extends ChangeNotifier {
 
   /// Login to Jellyfin using Quick Connect (already authenticated service)
   Future<bool> loginWithQuickConnect(
-    JellyfinService authenticatedService,
-  ) async {
+    JellyfinService authenticatedService, {
+    String? displayName,
+  }) async {
     _setLoading(true);
     _clearError();
 
@@ -703,6 +709,7 @@ class AppState extends ChangeNotifier {
         'url': serverUrl,
         'authMethod': 'quick_connect',
         'identifier': authenticatedService.userId ?? '',
+        if (displayName != null && displayName.isNotEmpty) 'displayName': displayName,
       };
       _configuredServers = [..._configuredServers, serverConfig];
       _activeServerId = serverId;
@@ -852,8 +859,9 @@ class AppState extends ChangeNotifier {
     String serverType,
     String serverUrl,
     String identifier,
-    String credential,
-  ) async {
+    String credential, {
+    String? displayName,
+  }) async {
     _setLoading(true);
     _clearError();
 
@@ -915,6 +923,7 @@ class AppState extends ChangeNotifier {
           'authMethod': 'password',
           'identifier': identifier,
           'credential': credential,
+          if (displayName != null && displayName.isNotEmpty) 'displayName': displayName,
         };
         _configuredServers = [..._configuredServers, serverConfig];
         _activeServerId = serverId;

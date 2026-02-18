@@ -33,6 +33,7 @@ class AddServerForm extends StatefulWidget {
 class _AddServerFormState extends State<AddServerForm> {
   final _formKey = GlobalKey<FormState>();
   final _serverController = TextEditingController();
+  final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _plexTokenController = TextEditingController();
@@ -55,6 +56,7 @@ class _AddServerFormState extends State<AddServerForm> {
     if (existing != null) {
       _selectedServerType = existing['type'] ?? 'jellyfin';
       _serverController.text = existing['url'] ?? _getServerPlaceholder();
+      _nameController.text = existing['displayName'] ?? '';
       _usernameController.text = existing['username'] ?? '';
       _apiKeyController.text = existing['apiKey'] ?? '';
       _plexTokenController.text = existing['plexToken'] ?? '';
@@ -66,6 +68,7 @@ class _AddServerFormState extends State<AddServerForm> {
   @override
   void dispose() {
     _serverController.dispose();
+    _nameController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
     _plexTokenController.dispose();
@@ -123,6 +126,16 @@ class _AddServerFormState extends State<AddServerForm> {
               _buildServerTypeSelection(context, isDesktop),
 
               SizedBox(height: isDesktop ? 28 : 20),
+
+              // Optional name
+              _buildModernTextField(
+                controller: _nameController,
+                label: 'Name (optional)',
+                icon: CupertinoIcons.tag,
+                placeholder: 'e.g. My Home Server',
+                isDark: isDark,
+              ),
+              SizedBox(height: isDesktop ? 16 : 12),
 
               // Server URL field (hidden for SoundCloud – uses client credentials only)
               if (_selectedServerType != 'soundcloud')
@@ -905,7 +918,13 @@ class _AddServerFormState extends State<AddServerForm> {
         // Update app state with the authenticated service - capture reference immediately after mounted check
         // ignore: use_build_context_synchronously
         final appState = context.read<AppState>();
-        await appState.loginWithQuickConnect(jellyfinService);
+        final displayName = _nameController.text.trim().isEmpty
+            ? null
+            : _nameController.text.trim();
+        await appState.loginWithQuickConnect(
+          jellyfinService,
+          displayName: displayName,
+        );
 
         await _triggerHapticFeedback(isSuccess: true);
 
@@ -1113,35 +1132,39 @@ class _AddServerFormState extends State<AddServerForm> {
       }
       bool success;
 
+      final displayName = _nameController.text.trim().isEmpty
+          ? null
+          : _nameController.text.trim();
       if (_selectedServerType == 'soundcloud') {
         success = await appState.loginWithServerType(
           _selectedServerType,
           'https://api.soundcloud.com',
           _usernameController.text.trim(),
           _passwordController.text,
+          displayName: displayName,
         );
       } else if (_selectedServerType == 'plex') {
-        // Plex token auth
         success = await appState.loginWithServerType(
           _selectedServerType,
           _serverController.text.trim(),
           '',
           _plexTokenController.text,
+          displayName: displayName,
         );
       } else if (_selectedServerType == 'jellyfin' &&
           _jellyfinAuthMethod == JellyfinAuthMethod.apiKey) {
-        // Jellyfin API key auth
         success = await appState.loginWithApiKey(
           _serverController.text.trim(),
           _apiKeyController.text.trim(),
+          displayName: displayName,
         );
       } else {
-        // Standard username/password auth
         success = await appState.loginWithServerType(
           _selectedServerType,
           _serverController.text.trim(),
           _usernameController.text.trim(),
           _passwordController.text,
+          displayName: displayName,
         );
       }
 

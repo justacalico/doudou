@@ -1164,7 +1164,7 @@ class SoundCloudService implements BaseMediaService {
       await _saveLocalFavorites();
       return true;
     }
-    // Adding to favorites: fetch track from API to store full snapshot
+    // Adding to favorites: fetch track from API to store full snapshot; fallback to minimal entry on API failure
     if (!await _ensureToken()) return false;
     try {
       final response = await _dio.get<Map<String, dynamic>>('/tracks/$numericId');
@@ -1186,8 +1186,21 @@ class SoundCloudService implements BaseMediaService {
       await _saveLocalFavorites();
       return true;
     } catch (e) {
-      if (kDebugMode) _log('toggleFavorite fetch track failed: $e', isError: true);
-      return false;
+      if (kDebugMode) _log('toggleFavorite fetch track failed: $e, saving minimal favorite locally', isError: true);
+      // Fallback: save minimal favorite locally so the favorite persists even when API fails
+      if (_localFavorites.any((j) => (j['id'] ?? '').toString() == numericId)) return true;
+      _localFavorites.add({
+        'id': numericId,
+        'name': 'Unknown',
+        'artistName': 'Unknown Artist',
+        'albumName': null,
+        'albumId': null,
+        'duration': null,
+        'imageUrl': null,
+        'isFavorite': true,
+      });
+      await _saveLocalFavorites();
+      return true;
     }
   }
 

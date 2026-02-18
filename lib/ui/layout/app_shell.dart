@@ -69,9 +69,10 @@ class _AppShellState extends State<AppShell> {
 
   void _onDetailChanged() => setState(() {});
 
-  bool get _isLocalMusic {
-    return context.read<AppState>().mediaServiceManager.currentServerType ==
-        ServerType.local;
+  /// Downloads page: show for Jellyfin/Plex/Subsonic; hide for Local and SoundCloud.
+  bool get _showDownloads {
+    final st = context.read<AppState>().mediaServiceManager.currentServerType;
+    return st != ServerType.local && st != ServerType.soundcloud;
   }
 
   void _rebuildPageLists() {
@@ -101,7 +102,7 @@ class _AppShellState extends State<AppShell> {
         Icons.queue_music_rounded,
         'Playlists',
       ),
-      if (!_isLocalMusic)
+      if (_showDownloads)
         const _NavItem(Icons.download_outlined, Icons.download_rounded, 'Downloads'),
     ];
   }
@@ -116,7 +117,7 @@ class _AppShellState extends State<AppShell> {
       const TracksPage(),
       const PlaylistsPage(),
     ];
-    if (!_isLocalMusic) list.add(const DownloadsPage());
+    if (_showDownloads) list.add(const DownloadsPage());
     list.add(const SettingsPage());
     return list;
   }
@@ -150,7 +151,7 @@ class _AppShellState extends State<AppShell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final showDownloads = !_isLocalMusic;
+    final showDownloads = _showDownloads;
     final wasShowingDownloads = _libraryItems.length == 5;
     if (showDownloads != wasShowingDownloads) _rebuildPageLists();
   }
@@ -224,7 +225,7 @@ class _AppShellState extends State<AppShell> {
                     onTap: _navigateTo,
                     itemCount: _pages.length,
                     settingsIndex: _settingsIndex,
-                    isLocalMusic: _isLocalMusic,
+                    isLocalMusic: !_showDownloads,
                   ),
           ),
         );

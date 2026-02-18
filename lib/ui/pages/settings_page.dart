@@ -897,7 +897,10 @@ class _ServerSectionState extends State<_ServerSection> {
                 final id = server['id'] ?? '';
                 final type = server['type'] ?? 'unknown';
                 final url = server['url'] ?? '';
-                final displayUrl = url == 'local' ? 'Local Music' : (url.length > 50 ? '${url.substring(0, 47)}...' : url);
+                final displayName = server['displayName']?.trim();
+                final displayUrl = displayName?.isNotEmpty == true
+                    ? displayName!
+                    : (url == 'local' ? 'Local Music' : (url.length > 50 ? '${url.substring(0, 47)}...' : url));
                 final isActive = id == appState.activeServerId;
                 return Card(
                   margin: EdgeInsets.only(bottom: isSmall ? 8 : 12),
