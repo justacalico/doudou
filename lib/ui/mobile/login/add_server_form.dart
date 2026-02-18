@@ -181,10 +181,10 @@ class _AddServerFormState extends State<AddServerForm> {
 
               SizedBox(height: isDesktop ? 12 : 10),
 
-              // Cancel / Secondary actions row
-              Row(
-                children: [
-                  if (widget.onCancel != null)
+              // Cancel button when embedded
+              if (widget.onCancel != null) ...[
+                Row(
+                  children: [
                     Expanded(
                       child: _buildSecondaryButton(
                         context: context,
@@ -194,18 +194,10 @@ class _AddServerFormState extends State<AddServerForm> {
                         isDark: isDark,
                       ),
                     ),
-                  if (widget.onCancel != null) const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildSecondaryButton(
-                      context: context,
-                      label: 'Offline',
-                      icon: CupertinoIcons.arrow_down_circle,
-                      onPressed: appState.isLoading ? null : _enterOfflineMode,
-                      isDark: isDark,
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+                SizedBox(height: isDesktop ? 12 : 10),
+              ],
 
               SizedBox(height: isDesktop ? 24 : 20),
             ],
@@ -1169,40 +1161,6 @@ class _AddServerFormState extends State<AddServerForm> {
     } else {
       // Form validation failed - error vibration
       await _triggerHapticFeedback(isSuccess: false);
-    }
-  }
-
-  Future<void> _enterOfflineMode() async {
-    // Trigger button press haptic feedback
-    await _triggerButtonPress();
-
-    if (!mounted) return;
-    final appState = context.read<AppState>();
-    final success = await appState.enterOfflineModeWithoutLogin();
-
-    if (success && mounted) {
-      // Success vibration
-      await _triggerHapticFeedback(isSuccess: true);
-    } else if (mounted) {
-      // Error vibration for no offline content
-      await _triggerHapticFeedback(isSuccess: false);
-
-      if (!mounted) return;
-      showCupertinoDialog(
-        context: context,
-        builder: (ctx) => CupertinoAlertDialog(
-          title: const Text('No Downloaded Content'),
-          content: const Text(
-            'You need to have downloaded music to use offline mode. Please sign in first to download some music.',
-          ),
-          actions: [
-            CupertinoDialogAction(
-              child: const Text('OK'),
-              onPressed: () => Navigator.pop(ctx),
-            ),
-          ],
-        ),
-      );
     }
   }
 
