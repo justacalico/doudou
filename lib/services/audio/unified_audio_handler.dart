@@ -72,6 +72,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   // Guard against multiple rapid completion events (prevents skipping many tracks)
   bool _isHandlingCompletion = false;
 
+  // YouTube Music: ignore completion events for this long after handling one (clear()+add() can emit spurious completed)
+  DateTime? _lastYtCompletionHandledAt;
+  static const Duration _ytCompletionCooldown = Duration(seconds: 2);
+
   // Lock to prevent concurrent player recreation (desktop)
   bool _isRecreatingPlayer = false;
 
@@ -473,8 +477,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     if (_isHandlingCompletion) return;
 
     // YouTube Music: ConcatenatingAudioSource clear()+add() can cause spurious completion
-    // events when switching tracks or starting a new load. Ignore completion unless we're
-    // actually at the end of the track (position near duration) and not still loading.
+    // events when switching tracks. Ignore completion while loading, and use cooldown to
+    // ignore duplicate/spurious completed events shortly after we've just handled one.
     if (_mediaServiceManager.isYouTubeMusic) {
       if (_stateController.currentState == AudioPlayerState.loading) {
         if (kDebugMode) {
@@ -482,15 +486,17 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         }
         return;
       }
-      final duration = _player.duration;
-      final position = _player.position;
-      if (duration == null || duration <= Duration.zero) {
+      if (_lastYtCompletionHandledAt != null &&
+          DateTime.now().difference(_lastYtCompletionHandledAt!) < _ytCompletionCooldown) {
         if (kDebugMode) {
-          debugPrint('[Playback] _handleTrackCompletion: ignoring YT completion (no duration yet)');
+          debugPrint('[Playback] _handleTrackCompletion: ignoring YT completion (cooldown)');
         }
         return;
       }
-      if (position < duration - const Duration(seconds: 5)) {
+      final duration = _player.duration;
+      final position = _player.position;
+      // When track ends, player may already have reset duration to null; only reject if we have duration and position is not near end
+      if (duration != null && duration > Duration.zero && position < duration - const Duration(seconds: 5)) {
         if (kDebugMode) {
           debugPrint('[Playback] _handleTrackCompletion: ignoring spurious YT completion (position=$position, duration=$duration)');
         }
@@ -527,6 +533,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }
     } finally {
       _isHandlingCompletion = false;
+      if (_mediaServiceManager.isYouTubeMusic) {
+        _lastYtCompletionHandledAt = DateTime.now();
+      }
     }
   }
 
