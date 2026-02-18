@@ -311,10 +311,11 @@ class YouTubeMusicService implements BaseMediaService {
   // ---------------------------------------------------------------------------
 
   static const List<String> _pipedInstances = [
-    'https://pipedapi.kavin.rocks',   // official, CDN
+    'https://pipedapi.kavin.rocks',   // official
     'https://pipedapi.leptons.xyz',
+    'https://pipedapi.nosebs.ru',
     'https://pipedapi.tokhmi.xyz',
-    'https://pipedapi.adminforge.de',
+    // adminforge.de removed: DNS resolves to adminforge.destreams and fails
   ];
 
   // ---------------------------------------------------------------------------
@@ -525,7 +526,11 @@ class YouTubeMusicService implements BaseMediaService {
           final resp = await client.get(uri).timeout(const Duration(seconds: 8));
           if (resp.statusCode != 200) continue;
 
-          final json = jsonDecode(resp.body) as Map<String, dynamic>?;
+          // Skip HTML/error pages (e.g. <!-- ... --> or <!DOCTYPE) – Piped sometimes returns these
+          final body = resp.body.trim();
+          if (body.isEmpty || !body.startsWith('{')) continue;
+
+          final json = jsonDecode(body) as Map<String, dynamic>?;
           if (json == null) continue;
 
           final audioStreams = json['audioStreams'] as List<dynamic>? ?? [];
