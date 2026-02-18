@@ -487,11 +487,20 @@ class YouTubeMusicService implements BaseMediaService {
     return '';
   }
 
+  /// Convert API duration to milliseconds. dart_ytmusic_api returns duration in seconds.
+  static int? _durationMs(dynamic raw) {
+    if (raw == null) return null;
+    final v = raw is int ? raw : int.tryParse(raw.toString());
+    if (v == null) return null;
+    // Values > 360000 are likely already ms (e.g. 369000 = 6:09); else assume seconds.
+    return v > 360000 ? v : v * 1000;
+  }
+
   Track _trackFromSongDetailed(dynamic s) {
     final videoId = s.videoId as String? ?? '';
     final name = s.name as String? ?? 'Unknown';
     final artistName = s.artist?.name as String? ?? 'Unknown Artist';
-    final duration = s.duration as int?;
+    final duration = _durationMs(s.duration);
     final thumbnails = s.thumbnails;
     final imageUrl = _thumbUrl(thumbnails);
     return Track(
@@ -510,7 +519,7 @@ class YouTubeMusicService implements BaseMediaService {
     final videoId = v.videoId as String? ?? '';
     final name = v.name as String? ?? 'Unknown';
     final artistName = v.artist?.name as String? ?? 'Unknown Artist';
-    final duration = v.duration as int?;
+    final duration = _durationMs(v.duration);
     final thumbnails = v.thumbnails;
     final imageUrl = _thumbUrl(thumbnails);
     return Track(
