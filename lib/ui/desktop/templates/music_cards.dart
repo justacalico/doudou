@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'desktop_theme.dart';
 import '../widgets/universal_image.dart';
+import '../../../services/album_art_color_service.dart';
 
 /// Modern glass-styled music card with hover effects and glow
 class MusicCard extends StatefulWidget {
@@ -35,10 +36,34 @@ class _MusicCardState extends State<MusicCard>
     with SingleTickerProviderStateMixin {
   bool _isHovering = false;
   bool _isPressed = false;
+  Color? _hoverColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHoverColor();
+  }
+
+  @override
+  void didUpdateWidget(covariant MusicCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageUrl != widget.imageUrl) _loadHoverColor();
+  }
+
+  Future<void> _loadHoverColor() async {
+    final url = widget.imageUrl;
+    if (url == null || url.isEmpty) {
+      if (mounted) setState(() => _hoverColor = null);
+      return;
+    }
+    final color = await AlbumArtColorService.getDominantGlowColor(url);
+    if (mounted && widget.imageUrl == url) setState(() => _hoverColor = color);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hoverColor = _hoverColor ?? theme.colorScheme.primary;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
@@ -78,9 +103,7 @@ class _MusicCardState extends State<MusicCard>
                       boxShadow: _isHovering
                           ? [
                               BoxShadow(
-                                color: theme.colorScheme.primary.withOpacity(
-                                  0.3,
-                                ),
+                                color: hoverColor.withOpacity(0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -133,10 +156,10 @@ class _MusicCardState extends State<MusicCard>
                                   width: 48,
                                   height: 48,
                                   decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary,
+                                    color: hoverColor,
                                     shape: BoxShape.circle,
                                     boxShadow: DesktopTheme.shadowGlow(
-                                      theme.colorScheme.primary,
+                                      hoverColor,
                                     ),
                                   ),
                                   child: const Icon(
