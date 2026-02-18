@@ -8,7 +8,6 @@ import 'package:rxdart/rxdart.dart';
 // Conditional imports for platform-specific features
 import 'audio_state_controller.dart';
 import 'queue_manager.dart';
-import 'stream_proxy_service_stub.dart' if (dart.library.io) 'stream_proxy_service.dart';
 import '../../models/jellyfin_models.dart';
 import '../media_service_manager.dart';
 
@@ -111,6 +110,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   static const MethodChannel _batteryChannel = MethodChannel(
     'app.channel/battery',
   );
+
+  // YouTube Music: Harmony 1:1 – single ConcatenatingAudioSource, clear + add one + play (mobile + desktop)
+  ConcatenatingAudioSource? _ytConcatSource;
+  bool _ytConcatSourceAttached = false;
 
   // === Desktop-specific state ===
   // Preloading system for faster skips
@@ -368,6 +371,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   Future<void> _recreatePlayer() async {
     if (!_isDesktop || _isRecreatingPlayer) return;
     _isRecreatingPlayer = true;
+    _ytConcatSourceAttached = false;
 
     try {
       _playerGeneration++;
@@ -1063,26 +1067,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
 
-    // Desktop + googlevideo.com: MPV/ffmpeg often fail (TLS, blocking). Use local proxy with headers.
+    // Harmony 1:1: no proxy; direct googlevideo.com URL for YT on mobile and desktop.
     final isYouTube = url.contains('googlevideo.com');
-    if (isYouTube && _isDesktop) {
-      try {
-        final proxyUrl = await StreamProxyService.instance.register(url, {
-          'User-Agent':
-              'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Referer': 'https://www.youtube.com/',
-        });
-        url = proxyUrl;
-        if (kDebugMode) {
-          debugPrint('[Playback] _loadAndPlayTrack: using proxy for YouTube (desktop)');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          debugPrint('[Playback] _loadAndPlayTrack: proxy register failed: $e, using direct URL');
-        }
-      }
-    }
-
     if (kDebugMode) {
       final track = _stateController.currentTrack;
       debugPrint('[Playback] _loadAndPlayTrack: track=${track?.name ?? "?"} id=${track?.id ?? "?"} '
@@ -1103,15 +1089,53 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }
     }
 
+    // YouTube Music: Harmony 1:1 – single ConcatenatingAudioSource, clear + add one + play (mobile + desktop)
+    if (_mediaServiceManager.isYouTubeMusic) {
+      final currentOperationId = ++_loadOperationId;
+      _ytConcatSource ??= ConcatenatingAudioSource(
+        children: [],
+        useLazyPreparation: false,
+      );
+      try {
+        await _ytConcatSource!.clear();
+        await _ytConcatSource!.add(AudioSource.uri(Uri.parse(url)));
+        if (_disposed || currentOperationId != _loadOperationId) return;
+        if (!_ytConcatSourceAttached) {
+          await _player.setAudioSource(_ytConcatSource!);
+          _ytConcatSourceAttached = true;
+        }
+        if (_disposed || currentOperationId != _loadOperationId) return;
+        if (_stateController.userIntendedPlaying) {
+          if (_isMobile) await _attemptForegroundService();
+          await _player.play();
+        }
+        if (_isMobile) _cancelLoadingTimeout();
+        await _applyVolumeAndSpeedToPlayer();
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrack: play() succeeded (YT concat)');
+        }
+      } catch (e, st) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrack: FAILED (YT): $e');
+          debugPrint('[Playback] stackTrace: $st');
+        }
+        if (_isMobile) _cancelLoadingTimeout();
+        _stateController.updateState(AudioPlayerState.error);
+        _stateController.updateUserIntent(false);
+        _stateController.updateError('Failed to load track: $e');
+        rethrow;
+      }
+      return;
+    }
+
+    _ytConcatSourceAttached = false;
     final audioSource = AudioSource.uri(Uri.parse(url));
 
-    // Desktop: Recreate player to prevent native callback crashes
+    // Desktop: Recreate player to prevent native callback crashes (non-YT only)
     if (_isDesktop) {
       final currentOperationId = ++_loadOperationId;
 
       await _recreatePlayer();
-      // Harmony doesn't delay – try immediately
-
       if (_disposed || currentOperationId != _loadOperationId) return;
 
       try {
@@ -1120,7 +1144,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         }
         await _player
             .setAudioSource(audioSource)
-            .timeout(const Duration(seconds: 10)); // Reduced timeout for faster fallback
+            .timeout(const Duration(seconds: 10));
 
         if (_disposed || currentOperationId != _loadOperationId) return;
 
@@ -1140,7 +1164,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         rethrow;
       }
     } else {
-      // Mobile and Web
+      // Mobile and Web (non-YT)
       try {
         if (kIsWeb) {
           await _tryLoadWithFallbacks(url);

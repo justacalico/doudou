@@ -18,36 +18,25 @@ class HarmonyStreamProvider {
     this.statusMSG = "",
   });
 
-  /// Fetch stream info for a video ID (Harmony's working method).
-  /// Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch(videoId).
+  /// Fetch stream info for a video ID. 1:1 port of Harmony-Music stream_service.dart StreamProvider.fetch(videoId).
+  /// Uses youtube_explode_dart 2.x: streamsClient.getManifest(videoId), audioOnly, highestQualityAudio (itag 251/140).
   static Future<HarmonyStreamProvider> fetch(String videoId) async {
     final yt = YoutubeExplode();
 
     try {
-      // Harmony uses streamsClient.getManifest (2.x API); we use streams.getManifest (3.x)
-      // Both work the same way - get manifest, get audioOnly streams.
-      final res = await yt.videos.streams.getManifest(videoId);
+      final res = await yt.videos.streamsClient.getManifest(videoId);
       final audio = res.audioOnly;
-
-      // Get video info for duration (not available on AudioOnlyStreamInfo in 3.x)
-      int durationMs = 0;
-      try {
-        final video = await yt.videos.get(videoId);
-        durationMs = video.duration?.inMilliseconds ?? 0;
-      } catch (_) {
-        // Duration not critical, continue without it
-      }
-
       return HarmonyStreamProvider(
         playable: true,
         statusMSG: "OK",
         audioFormats: audio
             .map((e) => HarmonyAudio(
                   itag: e.tag,
-                  audioCodec: e.audioCodec.contains('mp') ? HarmonyCodec.mp4a : HarmonyCodec.opus,
+                  audioCodec:
+                      e.audioCodec.contains('mp') ? HarmonyCodec.mp4a : HarmonyCodec.opus,
                   bitrate: e.bitrate.bitsPerSecond,
-                  duration: durationMs, // Use video duration (not available on stream in 3.x)
-                  loudnessDb: 0.0, // Not available on AudioOnlyStreamInfo in 3.x
+                  duration: e.duration ?? 0,
+                  loudnessDb: e.loudnessDb,
                   url: e.url.toString(),
                   size: e.size.totalBytes,
                 ))
@@ -62,7 +51,7 @@ class HarmonyStreamProvider {
       } else if (e is VideoUnplayableException) {
         return HarmonyStreamProvider(
           playable: false,
-          statusMSG: e.toString(), // VideoUnplayableException doesn't have 'reason' in 3.x
+          statusMSG: e.reason ?? "Song is unplayable",
         );
       } else if (e is VideoRequiresPurchaseException) {
         return HarmonyStreamProvider(
@@ -85,8 +74,6 @@ class HarmonyStreamProvider {
           statusMSG: "Unknown error occurred",
         );
       }
-    } finally {
-      yt.close();
     }
   }
 
