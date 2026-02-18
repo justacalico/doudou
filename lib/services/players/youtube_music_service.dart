@@ -26,11 +26,10 @@ class YouTubeMusicService implements BaseMediaService {
   bool _hasCookies = false;
   String? _lastAuthError;
 
-  // Local data (persisted in SharedPreferences); used only when _hasCookies is false
-  static const String _prefsFollowedArtistsKey = 'youtube_music_followed_artists';
-  static const String _prefsFavoritesKey = 'youtube_music_favorites';
-  static const String _prefsPlaylistsKey = 'youtube_music_playlists';
-  static const String _prefsPlaylistTracksKey = 'youtube_music_playlist_tracks';
+  // Local data (persisted in SharedPreferences); used only when _hasCookies is false. Keyed by server ID so each server keeps its own data when switching.
+  String? _serverId;
+  String _prefsKey(String base) =>
+      _serverId != null && _serverId!.isNotEmpty ? '${base}_$_serverId' : base;
   List<Map<String, dynamic>> _localFollowedArtists = [];
   List<Map<String, dynamic>> _localFavorites = [];
   List<Playlist> _localPlaylists = [];
@@ -81,6 +80,19 @@ class YouTubeMusicService implements BaseMediaService {
   @override
   void setServer(String serverUrl) {
     // No-op; we use fixed music.youtube.com
+  }
+
+  @override
+  void setServerId(String? serverId) {
+    _serverId = serverId;
+  }
+
+  @override
+  Future<void> persistLocalDataIfAny() async {
+    if (!_localDataLoaded) return;
+    await _saveFollowedArtists();
+    await _saveLocalFavorites();
+    await _saveLocalPlaylists();
   }
 
   @override
@@ -148,25 +160,25 @@ class YouTubeMusicService implements BaseMediaService {
     try {
       final prefs = await SharedPreferences.getInstance();
       // Load followed artists
-      final followedJson = prefs.getString(_prefsFollowedArtistsKey);
+      final followedJson = prefs.getString(_prefsKey('youtube_music_followed_artists'));
       if (followedJson != null) {
         final list = jsonDecode(followedJson) as List<dynamic>?;
         _localFollowedArtists = list?.cast<Map<String, dynamic>>() ?? [];
       }
       // Load favorites
-      final favJson = prefs.getString(_prefsFavoritesKey);
+      final favJson = prefs.getString(_prefsKey('youtube_music_favorites'));
       if (favJson != null) {
         final list = jsonDecode(favJson) as List<dynamic>?;
         _localFavorites = list?.cast<Map<String, dynamic>>() ?? [];
       }
       // Load playlists
-      final playlistsJson = prefs.getString(_prefsPlaylistsKey);
+      final playlistsJson = prefs.getString(_prefsKey('youtube_music_playlists'));
       if (playlistsJson != null) {
         final list = jsonDecode(playlistsJson) as List<dynamic>?;
         _localPlaylists = (list ?? []).map((e) => _playlistFromJson(e as Map<String, dynamic>)).toList();
       }
       // Load playlist tracks
-      final tracksJson = prefs.getString(_prefsPlaylistTracksKey);
+      final tracksJson = prefs.getString(_prefsKey('youtube_music_playlist_tracks'));
       if (tracksJson != null) {
         final map = jsonDecode(tracksJson) as Map<String, dynamic>?;
         _localPlaylistTracks.clear();
@@ -185,7 +197,7 @@ class YouTubeMusicService implements BaseMediaService {
   Future<void> _saveFollowedArtists() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefsFollowedArtistsKey, jsonEncode(_localFollowedArtists));
+      await prefs.setString(_prefsKey('youtube_music_followed_artists'), jsonEncode(_localFollowedArtists));
     } catch (e) {
       if (kDebugMode) print('[YouTubeMusic] _saveFollowedArtists failed: $e');
     }
@@ -194,7 +206,7 @@ class YouTubeMusicService implements BaseMediaService {
   Future<void> _saveLocalFavorites() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefsFavoritesKey, jsonEncode(_localFavorites));
+      await prefs.setString(_prefsKey('youtube_music_favorites'), jsonEncode(_localFavorites));
     } catch (e) {
       if (kDebugMode) print('[YouTubeMusic] _saveLocalFavorites failed: $e');
     }
@@ -203,12 +215,12 @@ class YouTubeMusicService implements BaseMediaService {
   Future<void> _saveLocalPlaylists() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefsPlaylistsKey, jsonEncode(_localPlaylists.map(_playlistToJson).toList()));
+      await prefs.setString(_prefsKey('youtube_music_playlists'), jsonEncode(_localPlaylists.map(_playlistToJson).toList()));
       final tracksMap = <String, List<Map<String, dynamic>>>{};
       for (final e in _localPlaylistTracks.entries) {
         tracksMap[e.key] = e.value;
       }
-      await prefs.setString(_prefsPlaylistTracksKey, jsonEncode(tracksMap));
+      await prefs.setString(_prefsKey('youtube_music_playlist_tracks'), jsonEncode(tracksMap));
     } catch (e) {
       if (kDebugMode) print('[YouTubeMusic] _saveLocalPlaylists failed: $e');
     }

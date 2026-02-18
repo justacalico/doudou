@@ -124,6 +124,16 @@ class MediaServiceManager {
     _currentService?.setServer(serverUrl);
   }
 
+  /// Set server ID so services can scope local data (followed, favorites, playlists) per server.
+  void setServerId(String? serverId) {
+    _currentService?.setServerId(serverId);
+  }
+
+  /// Persist current service's local data before disconnect (e.g. when switching servers).
+  Future<void> persistLocalDataIfAny() async {
+    await _currentService?.persistLocalDataIfAny();
+  }
+
   /// Validate credentials with the current service
   Future<bool> validateCredentials() async {
     if (_currentService == null) return false;
@@ -689,6 +699,12 @@ class JellyfinServiceAdapter implements BaseMediaService {
       credential,
     );
   }
+
+  @override
+  void setServerId(String? serverId) {}
+
+  @override
+  Future<void> persistLocalDataIfAny() async {}
 
   @override
   void setServer(String serverUrl) {

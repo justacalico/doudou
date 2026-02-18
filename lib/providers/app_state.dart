@@ -1101,6 +1101,7 @@ class AppState extends ChangeNotifier {
     }
 
     _mediaServiceManager.initializeService(type);
+    _mediaServiceManager.setServerId(server['id']);
     if (type != ServerType.plex &&
         type != ServerType.local &&
         type != ServerType.soundcloud &&
@@ -1191,6 +1192,7 @@ class AppState extends ChangeNotifier {
   /// When [disposeAudio] is false (e.g. server switch), the audio handler is
   /// reset but not disposed so audio works after reconnecting.
   Future<void> _disconnectWithoutClearingServers({bool disposeAudio = true}) async {
+    await _mediaServiceManager.persistLocalDataIfAny();
     _mediaServiceManager.clearAuth();
     _clearAudioHandlerListeners();
     if (disposeAudio) {

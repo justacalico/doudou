@@ -598,6 +598,12 @@ class LocalMusicService implements BaseMediaService {
   }
 
   @override
+  void setServerId(String? serverId) {}
+
+  @override
+  Future<void> persistLocalDataIfAny() async {}
+
+  @override
   void setServer(String serverUrl) {
     // For local music, serverUrl is treated as a directory path
     if (serverUrl.isNotEmpty && !_musicDirectories.contains(serverUrl)) {

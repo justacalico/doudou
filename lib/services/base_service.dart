@@ -16,6 +16,12 @@ abstract class BaseMediaService {
   /// Set server configuration
   void setServer(String serverUrl);
 
+  /// Set server ID for per-server local data (followed artists, favorites, playlists). No-op if not supported.
+  void setServerId(String? serverId) {}
+
+  /// Persist local data (e.g. followed, favorites) before disconnect so it is not lost when switching servers. No-op if none.
+  Future<void> persistLocalDataIfAny() async {}
+
   /// Validate stored credentials
   Future<bool> validateCredentials();
 

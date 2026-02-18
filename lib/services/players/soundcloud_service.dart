@@ -43,11 +43,10 @@ class SoundCloudService implements BaseMediaService {
   DateTime? _embeddedClientIdFetched;
   static const Duration _embeddedClientIdCache = Duration(hours: 1);
 
-  // Local playlists, favorites, and followed artists (persisted in SharedPreferences)
-  static const String _prefsPlaylistsKey = 'soundcloud_playlists';
-  static const String _prefsPlaylistTracksKey = 'soundcloud_playlist_tracks';
-  static const String _prefsFavoritesKey = 'soundcloud_favorites';
-  static const String _prefsFollowedArtistsKey = 'soundcloud_followed_artists';
+  // Local playlists, favorites, and followed artists (persisted in SharedPreferences). Keyed by server ID so each server keeps its own data when switching.
+  String? _serverId;
+  String _prefsKey(String base) =>
+      _serverId != null && _serverId!.isNotEmpty ? '${base}_$_serverId' : base;
   List<Playlist> _localPlaylists = [];
   final Map<String, List<Map<String, dynamic>>> _localPlaylistTracks = {};
   List<Map<String, dynamic>> _localFavorites = [];
@@ -184,6 +183,19 @@ class SoundCloudService implements BaseMediaService {
   void setServer(String serverUrl) {}
 
   @override
+  void setServerId(String? serverId) {
+    _serverId = serverId;
+  }
+
+  @override
+  Future<void> persistLocalDataIfAny() async {
+    if (!_localDataLoaded) return;
+    await _saveLocalPlaylists();
+    await _saveLocalFavorites();
+    await _saveFollowedArtists();
+  }
+
+  @override
   Future<bool> validateCredentials() async {
     if (_clientId == null || _clientSecret == null) return false;
     return _obtainToken();
@@ -241,7 +253,7 @@ class SoundCloudService implements BaseMediaService {
   Future<void> _saveFollowedArtists() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefsFollowedArtistsKey, jsonEncode(_localFollowedArtists));
+      await prefs.setString(_prefsKey('soundcloud_followed_artists'), jsonEncode(_localFollowedArtists));
     } catch (e) {
       if (kDebugMode) _log('_saveFollowedArtists failed: $e', isError: true);
     }
@@ -350,12 +362,12 @@ class SoundCloudService implements BaseMediaService {
     _localDataLoaded = true;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final playlistsJson = prefs.getString(_prefsPlaylistsKey);
+      final playlistsJson = prefs.getString(_prefsKey('soundcloud_playlists'));
       if (playlistsJson != null) {
         final list = jsonDecode(playlistsJson) as List<dynamic>?;
         _localPlaylists = (list ?? []).map((e) => _playlistFromJson(e as Map<String, dynamic>)).toList();
       }
-      final tracksJson = prefs.getString(_prefsPlaylistTracksKey);
+      final tracksJson = prefs.getString(_prefsKey('soundcloud_playlist_tracks'));
       if (tracksJson != null) {
         final map = jsonDecode(tracksJson) as Map<String, dynamic>?;
         _localPlaylistTracks.clear();
@@ -366,12 +378,12 @@ class SoundCloudService implements BaseMediaService {
           }
         }
       }
-      final favJson = prefs.getString(_prefsFavoritesKey);
+      final favJson = prefs.getString(_prefsKey('soundcloud_favorites'));
       if (favJson != null) {
         final list = jsonDecode(favJson) as List<dynamic>?;
         _localFavorites = list?.cast<Map<String, dynamic>>() ?? [];
       }
-      final followedJson = prefs.getString(_prefsFollowedArtistsKey);
+      final followedJson = prefs.getString(_prefsKey('soundcloud_followed_artists'));
       if (followedJson != null) {
         final list = jsonDecode(followedJson) as List<dynamic>?;
         _localFollowedArtists = list?.cast<Map<String, dynamic>>() ?? [];
@@ -384,12 +396,12 @@ class SoundCloudService implements BaseMediaService {
   Future<void> _saveLocalPlaylists() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefsPlaylistsKey, jsonEncode(_localPlaylists.map(_playlistToJson).toList()));
+      await prefs.setString(_prefsKey('soundcloud_playlists'), jsonEncode(_localPlaylists.map(_playlistToJson).toList()));
       final tracksMap = <String, List<Map<String, dynamic>>>{};
       for (final e in _localPlaylistTracks.entries) {
         tracksMap[e.key] = e.value;
       }
-      await prefs.setString(_prefsPlaylistTracksKey, jsonEncode(tracksMap));
+      await prefs.setString(_prefsKey('soundcloud_playlist_tracks'), jsonEncode(tracksMap));
     } catch (e) {
       if (kDebugMode) _log('_saveLocalPlaylists failed: $e', isError: true);
     }
@@ -398,7 +410,7 @@ class SoundCloudService implements BaseMediaService {
   Future<void> _saveLocalFavorites() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefsFavoritesKey, jsonEncode(_localFavorites));
+      await prefs.setString(_prefsKey('soundcloud_favorites'), jsonEncode(_localFavorites));
     } catch (e) {
       if (kDebugMode) _log('_saveLocalFavorites failed: $e', isError: true);
     }
