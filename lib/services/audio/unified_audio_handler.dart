@@ -76,9 +76,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   DateTime? _lastYtCompletionHandledAt;
   static const Duration _ytCompletionCooldown = Duration(seconds: 2);
 
-  // Lock to prevent concurrent player recreation (desktop)
-  bool _isRecreatingPlayer = false;
-
   // Radio mode state
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
@@ -369,45 +366,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         _safeUpdateQueue(tracks);
       }),
     );
-  }
-
-  /// Recreate player instance (desktop only) to prevent native callback crashes
-  Future<void> _recreatePlayer() async {
-    if (!_isDesktop || _isRecreatingPlayer) return;
-    _isRecreatingPlayer = true;
-    _ytConcatSourceAttached = false;
-
-    try {
-      _playerGeneration++;
-
-      final oldPlayer = _player;
-      final oldSubscriptions = _subscriptions;
-
-      _subscriptions = [];
-      _player = _createPlayer();
-      _setupPlayerListeners();
-
-      // Dispose old resources in background
-      Future.microtask(() async {
-        for (final sub in oldSubscriptions) {
-          try {
-            await sub.cancel();
-          } catch (e) {
-            // Ignore
-          }
-        }
-      });
-
-      Future.delayed(const Duration(milliseconds: 200), () async {
-        try {
-          await oldPlayer.dispose();
-        } catch (e) {
-          // Ignore
-        }
-      });
-    } finally {
-      _isRecreatingPlayer = false;
-    }
   }
 
   /// Handle player state changes
@@ -1221,12 +1179,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _ytConcatSourceAttached = false;
     final audioSource = AudioSource.uri(Uri.parse(url));
 
-    // Desktop: Recreate player to prevent native callback crashes (non-YT only)
+    // Desktop (non-YT): use same player, set source and play – no recreation so Navidrome/Jellyfin/etc. start quickly.
+    // YouTube Music uses the branch above (concat source + wait for stream ready).
     if (_isDesktop) {
       final currentOperationId = ++_loadOperationId;
-
-      await _recreatePlayer();
-      if (_disposed || currentOperationId != _loadOperationId) return;
 
       try {
         if (kDebugMode) {
