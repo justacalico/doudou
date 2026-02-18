@@ -166,6 +166,9 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        appState.setCloseNowPlayingOverlay(() {
+          if (context.mounted) Navigator.of(context).maybePop();
+        });
         return Stack(
           children: [
             LayoutBuilder(

@@ -26,6 +26,12 @@ class AppState extends ChangeNotifier {
   AudioServiceIntegration? _audioHandler;
   final List<StreamSubscription<dynamic>> _audioHandlerSubscriptions = [];
 
+  /// Called by the shell to close the desktop Now Playing overlay. Used on server switch.
+  void Function()? _closeNowPlayingOverlay;
+  void setCloseNowPlayingOverlay(void Function()? fn) {
+    _closeNowPlayingOverlay = fn;
+  }
+
   bool get _isLinux => !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
 
   bool _isLoggedIn = false;
@@ -1122,6 +1128,8 @@ class AppState extends ChangeNotifier {
         _setLoading(false);
         return false;
       }
+
+      _closeNowPlayingOverlay?.call();
 
       // Keep audio handler alive so AudioService does not need re-init (not supported)
       await _disconnectWithoutClearingServers(disposeAudio: false);
