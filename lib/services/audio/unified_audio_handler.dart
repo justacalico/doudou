@@ -1169,6 +1169,18 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _queueManager.clearQueue();
   }
 
+  /// Reset playback state for server switch. Keeps handler alive (no dispose)
+  /// so AudioService does not need to be re-initialized.
+  Future<void> resetForServerSwitch() async {
+    if (_disposed) return;
+    await stop();
+    clearQueue();
+    _stateController.updateCurrentTrack(null);
+    _stateController.updateState(AudioPlayerState.idle);
+    _preloadedNextUrl = null;
+    _preloadedPreviousUrl = null;
+  }
+
   // === Playback Modes ===
 
   @override

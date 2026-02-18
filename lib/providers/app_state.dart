@@ -1093,13 +1093,16 @@ class AppState extends ChangeNotifier {
         _isOfflineMode = false;
         await _cacheService.initialize();
         try {
-          final audioService = AudioServiceIntegration.instance;
-          await audioService.initialize(_mediaServiceManager);
-          _audioHandler = audioService;
+          if (_audioHandler == null) {
+            final audioService = AudioServiceIntegration.instance;
+            await audioService.initialize(_mediaServiceManager);
+            _audioHandler = audioService;
+          }
           _setupAudioHandlerListeners();
-          audioService.audioHandler?.setSmartBackToStartEnabled(_smartBackToStartEnabled);
+          _audioHandler!.audioHandler?.setSmartBackToStartEnabled(_smartBackToStartEnabled);
         } catch (e) {
-          _audioHandler = null;
+          if (_audioHandler == null) rethrow;
+          _setupAudioHandlerListeners();
         }
         await loadLibraryData();
         return true;
@@ -1120,9 +1123,8 @@ class AppState extends ChangeNotifier {
         return false;
       }
 
-      await _disconnectWithoutClearingServers();
-      // Brief delay to allow audio backend (MPV on Linux) to fully release before reinit
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      // Keep audio handler alive so AudioService does not need re-init (not supported)
+      await _disconnectWithoutClearingServers(disposeAudio: false);
       _activeServerId = serverId;
       _configuredServers = servers;
       await _saveConfiguredServers();
@@ -1138,13 +1140,21 @@ class AppState extends ChangeNotifier {
   }
 
   /// Disconnect from current server without clearing configured servers.
-  Future<void> _disconnectWithoutClearingServers() async {
+  /// When [disposeAudio] is false (e.g. server switch), the audio handler is
+  /// reset but not disposed so audio works after reconnecting.
+  Future<void> _disconnectWithoutClearingServers({bool disposeAudio = true}) async {
     _mediaServiceManager.clearAuth();
     _clearAudioHandlerListeners();
-    try {
-      await _audioHandler?.dispose();
-    } catch (_) {}
-    _audioHandler = null;
+    if (disposeAudio) {
+      try {
+        await _audioHandler?.dispose();
+      } catch (_) {}
+      _audioHandler = null;
+    } else {
+      try {
+        await _audioHandler?.resetForServerSwitch();
+      } catch (_) {}
+    }
     _isLoggedIn = false;
     _albums.clear();
     _artists.clear();

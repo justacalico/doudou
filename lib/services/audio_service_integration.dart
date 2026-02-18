@@ -385,6 +385,17 @@ class AudioServiceIntegration {
     }
   }
 
+  /// Reset playback state for server switch without disposing. Keeps
+  /// AudioService alive so audio works after switching server.
+  Future<void> resetForServerSwitch() async {
+    if (!_initialized || _audioHandler == null) return;
+    try {
+      await _audioHandler!.resetForServerSwitch();
+    } catch (e) {
+      // Ignore
+    }
+  }
+
   // === Radio Mode ===
 
   /// Toggle radio mode
