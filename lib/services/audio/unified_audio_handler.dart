@@ -54,10 +54,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   AudioPlayer _createPlayer() {
     if (_isDesktop) {
-      // Pass headers to media_kit/libmpv natively; proxy times out on desktop
+      // Use proxy for headers (like Harmony-Music) - just_audio creates local HTTP proxy
+      // that forwards requests with headers, which works better than passing headers to MPV directly
       return AudioPlayer(
         userAgent: _desktopUserAgent,
-        useProxyForRequestHeaders: false,
+        useProxyForRequestHeaders: true, // Enable proxy so headers work (Harmony-style)
       );
     }
     return AudioPlayer();
@@ -1109,7 +1110,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         }
         await _player
             .setAudioSource(audioSource)
-            .timeout(const Duration(seconds: 20));
+            .timeout(const Duration(seconds: 10)); // Reduced timeout for faster fallback
 
         if (_disposed || currentOperationId != _loadOperationId) return;
 
@@ -1222,7 +1223,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       try {
         await _loadAndPlayTrack(url);
         final track = _stateController.currentTrack;
-        if (track != null && urls.length > 1) {
+        // Cache successful URL immediately (even if first URL) for instant playback next time
+        if (track != null) {
           _cacheResolvedUrl(track.id, url);
         }
         if (kDebugMode && i > 0) {
@@ -1234,6 +1236,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (kDebugMode) {
           debugPrint('[Playback] _loadAndPlayTrackWithFallbacks: URL #${i + 1} failed: $e, trying next');
         }
+        // Don't wait between attempts - try next URL immediately
       }
     }
     throw lastError ?? Exception('All stream URLs failed to load');
@@ -1310,7 +1313,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         valid.add(url);
       }
     }
-    if (valid.isNotEmpty && valid.length == 1) {
+    // Cache first URL immediately for instant playback (Harmony-style)
+    if (valid.isNotEmpty) {
       _cacheResolvedUrl(track.id, valid.first);
     }
     if (kDebugMode && valid.isNotEmpty) {
