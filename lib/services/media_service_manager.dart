@@ -20,6 +20,11 @@ class MediaServiceManager {
   /// True when current service is YouTube Music (used to skip URL caching – YT URLs expire quickly).
   bool get isYouTubeMusic => _currentService is YouTubeMusicService;
 
+  /// True when YouTube Music is active and user has cookie login (personalized library).
+  bool get isYouTubeMusicLoggedIn =>
+      _currentService is YouTubeMusicService &&
+      (_currentService as YouTubeMusicService).hasCookies;
+
   /// Constructor that uses a shared JellyfinService instance
   MediaServiceManager.withJellyfinService(JellyfinService jellyfinService) {
     _sharedJellyfinService = jellyfinService;

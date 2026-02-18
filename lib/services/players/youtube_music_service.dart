@@ -41,6 +41,9 @@ class YouTubeMusicService implements BaseMediaService {
 
   String? get lastAuthError => _lastAuthError;
 
+  /// True when user set a cookie string (personalized library, synced playlists/favorites).
+  bool get hasCookies => _hasCookies;
+
   @override
   Future<bool> authenticate(
     String serverUrl,

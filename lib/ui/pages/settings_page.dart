@@ -1121,7 +1121,37 @@ class _ServerSectionState extends State<_ServerSection> {
                     ] else if (appState.mediaServiceManager.currentServerType == ServerType.youtubeMusic) ...[
                       ListTile(
                         title: const Text('YouTube Music'),
-                        subtitle: const Text('Cookie-based login; streams via youtube_explode, Piped, then Invidious'),
+                        subtitle: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                appState.mediaServiceManager.isYouTubeMusicLoggedIn
+                                    ? 'Logged in – synced playlists, favorites & artists'
+                                    : 'No login – local playlists & favorites only',
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: appState.mediaServiceManager.isYouTubeMusicLoggedIn
+                                    ? Colors.green
+                                    : Colors.grey.shade700,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                appState.mediaServiceManager.isYouTubeMusicLoggedIn
+                                    ? 'Logged in'
+                                    : 'Local only',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                         leading: const Icon(Icons.music_video),
                       ),
                       ListTile(
