@@ -311,9 +311,10 @@ class YouTubeMusicService implements BaseMediaService {
   // ---------------------------------------------------------------------------
 
   static const List<String> _pipedInstances = [
-    'https://pipedapi.kavin.rocks',
-    'https://pipedapi.adminforge.de',
+    'https://pipedapi.kavin.rocks',   // official, CDN
     'https://pipedapi.leptons.xyz',
+    'https://pipedapi.tokhmi.xyz',
+    'https://pipedapi.adminforge.de',
   ];
 
   // ---------------------------------------------------------------------------
@@ -331,9 +332,9 @@ class YouTubeMusicService implements BaseMediaService {
   static const String _prefKeyPipedInstance = 'youtube_music_piped_instance';
 
   // ---------------------------------------------------------------------------
-  // Stream URL resolution – Harmony-Music stack first (yt_explode), then proxies, then InnerTube.
-  // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch() is their only source;
-  // they use youtube_explode_dart and prefer itag 251 (opus) / 140 (mp4a). We try that first for reliability.
+  // Stream URL resolution – prefer PROXIED URLs first (Piped, Invidious) so desktop
+  // MPV can open them without googlevideo.com (which fails with "Failed to open").
+  // Then yt_explode (Harmony-Music stream_service.dart), then InnerTube.
   // ---------------------------------------------------------------------------
 
   @override
@@ -354,32 +355,41 @@ class YouTubeMusicService implements BaseMediaService {
       print('[YouTubeMusic] getAlternativeStreamUrlsAsync: resolving videoId=$videoId');
     }
 
-    // ── 1) youtube_explode_dart (Harmony-Music streaming stack – primary)
-    // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch(videoId).
-    final ytExplodeUrls = await _getYoutubeExplodeStreamUrls(videoId);
-    if (ytExplodeUrls.isNotEmpty) return ytExplodeUrls;
-
-    // ── 2) Piped – proxied URLs, no custom headers needed ──
+    // ── 1) Piped – proxied URLs (no googlevideo.com), no custom headers; works with MPV on desktop ──
     try {
       final piped = await _getPipedStreamUrls(videoId);
-      if (piped.isNotEmpty) return piped;
+      if (piped.isNotEmpty) {
+        if (kDebugMode) {
+          print('[YouTubeMusic] Piped: ${piped.length} URL(s) (proxied, MPV-friendly)');
+        }
+        return piped;
+      }
     } catch (e) {
       if (kDebugMode) {
         print('[YouTubeMusic] Piped all failed: $e');
       }
     }
 
-    // ── 3) Invidious with local=true – proxied through instance ──
+    // ── 2) Invidious with local=true – proxied through instance ──
     try {
       final invidious = await _getInvidiousStreamUrls(videoId);
-      if (invidious.isNotEmpty) return invidious;
+      if (invidious.isNotEmpty) {
+        if (kDebugMode) {
+          print('[YouTubeMusic] Invidious: ${invidious.length} URL(s) (proxied, MPV-friendly)');
+        }
+        return invidious;
+      }
     } catch (e) {
       if (kDebugMode) {
         print('[YouTubeMusic] Invidious all failed: $e');
       }
     }
 
-    // ── 4) InnerTube direct (same as official apps; may need cookies for some tracks) ──
+    // ── 3) youtube_explode_dart (Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch)
+    final ytExplodeUrls = await _getYoutubeExplodeStreamUrls(videoId);
+    if (ytExplodeUrls.isNotEmpty) return ytExplodeUrls;
+
+    // ── 4) InnerTube direct (googlevideo.com; may fail on desktop MPV) ──
     try {
       final streams = await _innerTube.getStreamUrls(videoId);
       if (streams.isNotEmpty) {
