@@ -6,7 +6,6 @@
 
 import 'dart:convert';
 
-import 'package:dart_ytmusic_api/dart_ytmusic_api.dart';
 import 'package:dart_ytmusic_api/yt_music.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -401,19 +400,11 @@ class YouTubeMusicService implements BaseMediaService {
         )).toList();
       }
     }
-    // With cookies: fetch playlist tracks from API (library playlists and Liked Songs)
-    if (_hasCookies && _isReady && !playlistId.startsWith('ytm_local_')) {
-      try {
-        final videos = await _ytMusic.getPlaylistVideos(playlistId);
-        return videos.map((v) => _trackFromVideoDetailed(v)).toList();
-      } catch (e) {
-        if (kDebugMode) {
-          print('[YouTubeMusic] getPlaylistTracks (API) failed for $playlistId: $e');
-        }
-      }
-    }
-    // Local playlists (no cookies or local-only playlist)
+    // Always use local data for playlists and favorites (even when logged in).
     await _loadLocalData();
+    if (playlistId == 'VLM') {
+      return _localFavorites.map(_trackFromStoredJson).toList();
+    }
     final list = _localPlaylistTracks[playlistId];
     if (list == null) return [];
     return list.map((j) {
@@ -470,68 +461,8 @@ class YouTubeMusicService implements BaseMediaService {
     return merged.take(max).toList();
   }
 
-  /// Fetches Liked Music (VLM) with safe handling for empty playlists.
-  /// dart_ytmusic_api's getPlaylistVideos does continuation[0] and throws RangeError when continuation is [].
-  Future<List<VideoDetailed>> _getLikedSongsSafe() async {
-    final playlistData =
-        await _ytMusic.constructRequest('browse', body: {'browseId': 'VLM'});
-    final songs = traverseList(
-      playlistData,
-      ['musicPlaylistShelfRenderer', 'musicResponsiveListItemRenderer'],
-    );
-    dynamic continuation = traverse(playlistData, ['continuation']);
-    if (continuation is List && continuation.isNotEmpty) {
-      continuation = continuation[0];
-    }
-    while (continuation != null && continuation is! List) {
-      final songsData = await _ytMusic.constructRequest(
-        'browse',
-        query: {'continuation': continuation},
-      );
-      songs.addAll(
-        traverseList(songsData, ['musicResponsiveListItemRenderer']),
-      );
-      continuation = traverse(songsData, ['continuation']);
-      if (continuation is List && continuation.isNotEmpty) {
-        continuation = continuation[0];
-      } else if (continuation is List) {
-        continuation = null;
-      }
-    }
-    return songs
-        .map((item) => VideoParser.parsePlaylistVideo(item))
-        .whereType<VideoDetailed>()
-        .toList();
-  }
-
   @override
   Future<List<Track>> getStarredTracks() async {
-    if (_hasCookies && _isReady) {
-      try {
-        final videos = await _getLikedSongsSafe();
-        return videos.map((v) {
-          final t = _trackFromVideoDetailed(v);
-          return Track(
-            id: t.id,
-            name: t.name,
-            artistName: t.artistName,
-            artistId: t.artistId,
-            albumName: t.albumName,
-            albumId: t.albumId,
-            playlistItemId: t.playlistItemId,
-            duration: t.duration,
-            trackNumber: t.trackNumber,
-            imageUrl: t.imageUrl,
-            isFavorite: true,
-            playCount: t.playCount,
-          );
-        }).toList();
-      } catch (e) {
-        if (kDebugMode) {
-          print('[YouTubeMusic] getStarredTracks (API) failed: $e');
-        }
-      }
-    }
     await _loadLocalData();
     try {
       return _localFavorites.map(_trackFromStoredJson).toList();
@@ -552,92 +483,8 @@ class YouTubeMusicService implements BaseMediaService {
 
   @override
   Future<List<Playlist>> getPlaylists() async {
-    if (_hasCookies && _isReady) {
-      final result = <Playlist>[];
-      // Always show Liked Music first when logged in (YouTube's thumbs-up playlist).
-      result.add(Playlist(
-        id: 'VLM',
-        name: 'Liked Music',
-        imageUrl: null,
-        trackCount: 0,
-      ));
-      try {
-        final data = await _ytMusic.constructRequest(
-          'browse',
-          body: {'browseId': 'FEmusic_liked_playlists'},
-        );
-        final library = _parseLibraryPlaylistsFromBrowse(data);
-        for (final p in library) {
-          if (p.id != 'VLM') result.add(p);
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('[YouTubeMusic] getPlaylists (API) failed: $e');
-        }
-      }
-      if (result.length > 1 || (result.length == 1 && result[0].id == 'VLM')) {
-        return result;
-      }
-    }
     await _loadLocalData();
     return List<Playlist>.from(_localPlaylists);
-  }
-
-  /// Parse library playlists from browse response (FEmusic_liked_playlists).
-  List<Playlist> _parseLibraryPlaylistsFromBrowse(dynamic data) {
-    final list = <Playlist>[];
-    try {
-      final tabs = data?['contents']?['singleColumnBrowseResultsRenderer']?['tabs'];
-      if (tabs is! List || tabs.isEmpty) return list;
-      final content = tabs[0]['tabRenderer']?['content']?['sectionListRenderer']?['contents'];
-      if (content is! List) return list;
-      for (final section in content) {
-        // Items can be in gridRenderer.items, musicShelfRenderer.contents, or itemSectionRenderer.contents[].gridRenderer.items
-        List<dynamic>? items = section['gridRenderer']?['items'] ?? section['musicShelfRenderer']?['contents'];
-        if (items == null || items.isEmpty) {
-          final itemSection = section['itemSectionRenderer'];
-          if (itemSection != null && itemSection['contents'] is List) {
-            for (final block in itemSection['contents'] as List) {
-              final grid = block?['gridRenderer']?['items'];
-              if (grid is List && grid.isNotEmpty) {
-                items = grid;
-                break;
-              }
-            }
-          }
-        }
-        if (items == null || items.isEmpty) continue;
-        for (final item in items) {
-          final renderer = item['musicTwoRowItemRenderer'] ?? item['musicResponsiveListItemRenderer'];
-          if (renderer == null) continue;
-          final nav = renderer['navigationEndpoint'];
-          final playlistId = nav?['watchPlaylistEndpoint']?['playlistId'] ?? nav?['browseEndpoint']?['browseId'];
-          if (playlistId is! String || playlistId.isEmpty) continue;
-          final runs = renderer['title']?['runs'];
-          String name = 'Playlist';
-          if (runs is List && runs.isNotEmpty) {
-            name = runs[0]['text']?.toString() ?? name;
-          }
-          final countStr = renderer['subtitle']?['runs']?[0]?['text']?.toString();
-          int count = 0;
-          if (countStr != null) {
-            count = int.tryParse(countStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-          }
-          final thumbnails = renderer['thumbnail']?['thumbnails'];
-          String? imageUrl;
-          if (thumbnails is List && thumbnails.isNotEmpty) {
-            imageUrl = thumbnails[0]['url']?.toString();
-          }
-          list.add(Playlist(
-            id: playlistId,
-            name: name,
-            imageUrl: imageUrl,
-            trackCount: count,
-          ));
-        }
-      }
-    } catch (_) {}
-    return list;
   }
 
   /// Home sections (recommendations, quick picks, etc.) for the logged-in user.
