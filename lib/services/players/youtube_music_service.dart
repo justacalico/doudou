@@ -1,29 +1,23 @@
-// YouTube Music backend reference: OpenTune (Arturo254/OpenTune) innertube/ only.
-// No-login streaming approach referenced from Harmony-Music (anandnet/Harmony-Music)
-// lib/services/stream_service.dart — fetch streams via youtube_explode_dart without auth.
-// We use dart_ytmusic_api for catalog; stream URLs use Harmony-Music stack (youtube_explode_dart first,
-// then Piped, Invidious, InnerTube). Auth is optional (cookie-based when set).
-// Disabled on web (dart_ytmusic_api does not work on web).
-
-import 'dart:convert';
+// YouTube Music service using Harmony-Music's StreamProvider (anandnet/Harmony-Music).
+// Ported from Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch().
+// Reference: https://github.com/anandnet/Harmony-Music/blob/main/lib/services/stream_service.dart
+// This replaces our broken implementation with Harmony's working code.
+// Catalog/search uses dart_ytmusic_api; streaming uses Harmony's StreamProvider (youtube_explode_dart only).
 
 import 'package:dart_ytmusic_api/yt_music.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:youtube_explode_dart/youtube_explode_dart.dart' hide Playlist;
 
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
-import 'innertube_client.dart';
+import 'harmony_stream_provider.dart';
 
-/// YouTube Music service using dart_ytmusic_api (catalog) and InnerTube (streams).
-/// Does not work on web — authenticate() returns false when kIsWeb.
+/// YouTube Music service using Harmony-Music's StreamProvider for streaming.
+/// Ported from Harmony-Music lib/services/stream_service.dart.
+/// Does not work on web (dart_ytmusic_api does not work on web).
 class YouTubeMusicService implements BaseMediaService {
   static const String _serverUrl = 'https://music.youtube.com';
 
   final YTMusic _ytMusic = YTMusic();
-  late final InnerTubeClient _innerTube = InnerTubeClient();
   bool _authenticated = false;
   String? _lastAuthError;
 
@@ -46,17 +40,15 @@ class YouTubeMusicService implements BaseMediaService {
     final cookies = credential.trim();
     try {
       if (cookies.isEmpty) {
-        // No login: initialize without cookies (Harmony-Music-style; no auth required).
-        // Reference: Harmony-Music lib/services/stream_service.dart — streams via youtube_explode without auth.
+        // No login: initialize without cookies (Harmony-Music style; no auth required).
+        // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch() works without auth.
         await _ytMusic.initialize();
-        _innerTube.cookie = null;
       } else {
         await _ytMusic.initialize(
           cookies: cookies,
           gl: 'US',
           hl: 'en',
         );
-        _innerTube.cookie = cookies;
       }
       _authenticated = true;
       return true;
@@ -290,6 +282,8 @@ class YouTubeMusicService implements BaseMediaService {
   }
 
   /// HTTP headers for googlevideo.com (403 without browser-like User-Agent).
+  /// Reference: Harmony-Music uses just_audio with AudioSource.uri(url) – no special headers.
+  /// We keep headers for compatibility but Harmony's StreamProvider returns URLs that work.
   static const Map<String, String> _streamHttpHeaders = {
     'User-Agent':
         'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
@@ -305,37 +299,9 @@ class YouTubeMusicService implements BaseMediaService {
   }
 
   // ---------------------------------------------------------------------------
-  // Piped API instances – proxied stream URLs, no custom headers needed.
-  // Tested Feb 2026: most public instances are down (502/521/DNS fail).
-  // Keep a small list; user can set custom instance in Settings.
-  // ---------------------------------------------------------------------------
-
-  static const List<String> _pipedInstances = [
-    'https://pipedapi.kavin.rocks',   // official
-    'https://pipedapi.leptons.xyz',
-    'https://pipedapi.nosebs.ru',
-    'https://pipedapi.tokhmi.xyz',
-    // adminforge.de removed: DNS resolves to adminforge.destreams and fails
-  ];
-
-  // ---------------------------------------------------------------------------
-  // Invidious API instances – local=true proxies streams through the instance.
-  // ---------------------------------------------------------------------------
-
-  static const List<String> _invidiousInstances = [
-    'https://inv.nadeko.net',
-    'https://yewtu.be',
-    'https://vid.puffyan.us',
-    'https://invidious.nerdvpn.de',
-  ];
-
-  static const String _prefKeyInvidiousInstance = 'youtube_music_invidious_instance';
-  static const String _prefKeyPipedInstance = 'youtube_music_piped_instance';
-
-  // ---------------------------------------------------------------------------
-  // Stream URL resolution – prefer PROXIED URLs first (Piped, Invidious) so desktop
-  // MPV can open them without googlevideo.com (which fails with "Failed to open").
-  // Then yt_explode (Harmony-Music stream_service.dart), then InnerTube.
+  // Stream URL resolution – Harmony-Music StreamProvider.fetch() ONLY.
+  // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch(videoId).
+  // Harmony uses ONLY youtube_explode_dart; no Piped, no Invidious, no InnerTube.
   // ---------------------------------------------------------------------------
 
   @override
@@ -353,312 +319,50 @@ class YouTubeMusicService implements BaseMediaService {
     }
 
     if (kDebugMode) {
-      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: resolving videoId=$videoId');
+      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: resolving videoId=$videoId using Harmony StreamProvider');
     }
 
-    // ── 1) Piped – proxied URLs (no googlevideo.com), no custom headers; works with MPV on desktop ──
+    // Use Harmony-Music's StreamProvider.fetch() – their working method.
+    // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch(videoId).
     try {
-      final piped = await _getPipedStreamUrls(videoId);
-      if (piped.isNotEmpty) {
+      final streamInfo = await HarmonyStreamProvider.fetch(videoId);
+      if (!streamInfo.playable) {
         if (kDebugMode) {
-          print('[YouTubeMusic] Piped: ${piped.length} URL(s) (proxied, MPV-friendly)');
+          print('[YouTubeMusic] StreamProvider: not playable: ${streamInfo.statusMSG}');
         }
-        return piped;
+        return [];
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('[YouTubeMusic] Piped all failed: $e');
-      }
-    }
 
-    // ── 2) Invidious with local=true – proxied through instance ──
-    try {
-      final invidious = await _getInvidiousStreamUrls(videoId);
-      if (invidious.isNotEmpty) {
-        if (kDebugMode) {
-          print('[YouTubeMusic] Invidious: ${invidious.length} URL(s) (proxied, MPV-friendly)');
+      // Harmony uses highestQualityAudio (itag 251/140) as primary, then fallbacks.
+      // Reference: Harmony-Music lib/services/stream_service.dart – highestQualityAudio getter.
+      final urls = <String>[];
+      final highest = streamInfo.highestQualityAudio;
+      if (highest != null) {
+        urls.add(highest.url);
+      }
+      // Add all other audio formats as fallbacks (Harmony's audioFormats list).
+      if (streamInfo.audioFormats != null) {
+        for (final audio in streamInfo.audioFormats!) {
+          if (audio.url != highest?.url && !urls.contains(audio.url)) {
+            urls.add(audio.url);
+          }
         }
-        return invidious;
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('[YouTubeMusic] Invidious all failed: $e');
-      }
-    }
 
-    // ── 3) youtube_explode_dart (Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch)
-    final ytExplodeUrls = await _getYoutubeExplodeStreamUrls(videoId);
-    if (ytExplodeUrls.isNotEmpty) return ytExplodeUrls;
-
-    // ── 4) InnerTube direct (googlevideo.com; may fail on desktop MPV) ──
-    try {
-      final streams = await _innerTube.getStreamUrls(videoId);
-      if (streams.isNotEmpty) {
-        final urls = streams.map((s) => s.url).toList();
+      if (urls.isNotEmpty) {
         if (kDebugMode) {
-          final best = streams.first;
-          print('[YouTubeMusic] InnerTube: ${urls.length} stream(s), '
-              'best=${best.quality} ${best.codec} ${best.bitrate}bps '
-              'client=${best.clientName}');
+          print('[YouTubeMusic] StreamProvider: ${urls.length} URL(s), best=itag ${highest?.itag ?? "?"}');
         }
         return urls;
       }
     } catch (e) {
       if (kDebugMode) {
-        print('[YouTubeMusic] InnerTube failed: $e');
+        print('[YouTubeMusic] StreamProvider.fetch failed: $e');
       }
     }
 
     if (kDebugMode) {
-      print('[YouTubeMusic] ALL methods failed for videoId=$videoId');
-    }
-    return [];
-  }
-
-  // ---------------------------------------------------------------------------
-  // youtube_explode_dart – Harmony-Music streaming stack (primary).
-  // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch(),
-  // highestQualityAudio = itag 251 (opus) or 140 (mp4a); fallback lowQualityAudio itag 249/139.
-  // ---------------------------------------------------------------------------
-
-  /// Preferred itags for best audio (Harmony-Music stream_service.dart: highestQualityAudio).
-  static const List<int> _preferredItags = [251, 140]; // opus, mp4a
-  static const List<int> _fallbackItags = [250, 139]; // lower opus/mp4a
-
-  Future<List<String>> _getYoutubeExplodeStreamUrls(String videoId) async {
-    final clientConfigs = <List<YoutubeApiClient>?>[
-      null,
-      [YoutubeApiClient.tv],
-      [YoutubeApiClient.androidVr],
-      [YoutubeApiClient.ios],
-      [YoutubeApiClient.safari],
-    ];
-    const clientNames = ['default', 'tv', 'androidVr', 'ios', 'safari'];
-
-    for (var i = 0; i < clientConfigs.length; i++) {
-      final ytClients = clientConfigs[i];
-      final clientName = clientNames[i];
-      final yt = YoutubeExplode();
-      try {
-        final manifest = ytClients == null
-            ? await yt.videos.streams
-                .getManifest(videoId)
-                .timeout(const Duration(seconds: 20))
-            : await yt.videos.streams
-                .getManifest(videoId, ytClients: ytClients)
-                .timeout(const Duration(seconds: 20));
-
-        final urls = _pickAudioUrlsFromManifest(manifest);
-        if (urls.isNotEmpty) {
-          if (kDebugMode) {
-            print('[YouTubeMusic] yt_explode: SUCCESS client=$clientName urls=${urls.length}');
-          }
-          return urls;
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('[YouTubeMusic] yt_explode client=$clientName failed: $e');
-        }
-      } finally {
-        yt.close();
-      }
-    }
-    return [];
-  }
-
-  /// Pick audio stream URLs from manifest (Harmony-Music style: prefer itag 251/140, then by bitrate).
-  /// Typed comparators avoid '(dynamic, dynamic) => dynamic' not a subtype of '((AudioOnlyStreamInfo, AudioOnlyStreamInfo) => int)'.
-  List<String> _pickAudioUrlsFromManifest(StreamManifest manifest) {
-    final audioOnly = manifest.audioOnly;
-    final muxed = manifest.muxed;
-    final audio = manifest.audio;
-
-    int compareAudioOnly(AudioOnlyStreamInfo a, AudioOnlyStreamInfo b) =>
-        b.bitrate.compareTo(a.bitrate);
-
-    // Prefer audio-only, with Harmony's itag preference (251 opus, 140 mp4a).
-    if (audioOnly.isNotEmpty) {
-      final list = audioOnly.toList();
-      final preferred = list.where((s) => _preferredItags.contains(s.tag)).toList();
-      final fallback = list.where((s) => _fallbackItags.contains(s.tag)).toList();
-      preferred.sort(compareAudioOnly);
-      fallback.sort(compareAudioOnly);
-      final rest = list
-          .where((s) => !_preferredItags.contains(s.tag) && !_fallbackItags.contains(s.tag))
-          .toList();
-      rest.sort(compareAudioOnly);
-      final ordered = [...preferred, ...fallback, ...rest];
-      if (ordered.isNotEmpty) {
-        return ordered.map((s) => s.url.toString()).toList();
-      }
-    }
-    if (muxed.isNotEmpty) {
-      final list = muxed.toList()
-        ..sort((MuxedStreamInfo a, MuxedStreamInfo b) => b.bitrate.compareTo(a.bitrate));
-      return list.map((s) => s.url.toString()).toList();
-    }
-    if (audio.isNotEmpty) {
-      final list = audio.toList()
-        ..sort((AudioStreamInfo a, AudioStreamInfo b) => b.bitrate.compareTo(a.bitrate));
-      return list.map((s) => s.url.toString()).toList();
-    }
-    return [];
-  }
-
-  // ---------------------------------------------------------------------------
-  // Piped API
-  // ---------------------------------------------------------------------------
-
-  Future<List<String>> _getPipedStreamUrls(String videoId) async {
-    List<String> instances = _pipedInstances;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final custom = prefs.getString(_prefKeyPipedInstance)?.trim();
-      if (custom != null && custom.isNotEmpty) {
-        instances = [custom, ..._pipedInstances];
-      }
-    } catch (_) {}
-    for (final base in instances) {
-      try {
-        final uri = Uri.parse('$base/streams/$videoId');
-        final client = http.Client();
-        try {
-          final resp = await client.get(uri).timeout(const Duration(seconds: 8));
-          if (resp.statusCode != 200) continue;
-
-          // Skip HTML/error pages (e.g. <!-- ... --> or <!DOCTYPE) – Piped sometimes returns these
-          final body = resp.body.trim();
-          if (body.isEmpty || !body.startsWith('{')) continue;
-
-          final json = jsonDecode(body) as Map<String, dynamic>?;
-          if (json == null) continue;
-
-          final audioStreams = json['audioStreams'] as List<dynamic>? ?? [];
-          final withUrl = <Map<String, dynamic>>[];
-          for (final e in audioStreams) {
-            if (e is! Map) continue;
-            final u = e['url'] as String?;
-            if (u == null || u.isEmpty) continue;
-            withUrl.add(Map<String, dynamic>.from(e));
-          }
-          withUrl.sort((a, b) {
-            final aBit = (a['bitrate'] is int)
-                ? a['bitrate'] as int
-                : int.tryParse(a['bitrate']?.toString() ?? '0') ?? 0;
-            final bBit = (b['bitrate'] is int)
-                ? b['bitrate'] as int
-                : int.tryParse(b['bitrate']?.toString() ?? '0') ?? 0;
-            return bBit.compareTo(aBit);
-          });
-          final urls = withUrl
-              .map((f) => f['url'] as String?)
-              .where((u) => u != null && u.isNotEmpty)
-              .cast<String>()
-              .toList();
-          if (urls.isNotEmpty) {
-            if (kDebugMode) {
-              print('[YouTubeMusic] Piped: got ${urls.length} URL(s) from $base');
-            }
-            return urls;
-          }
-        } finally {
-          client.close();
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('[YouTubeMusic] Piped $base failed: $e');
-        }
-      }
-    }
-    return [];
-  }
-
-  // ---------------------------------------------------------------------------
-  // Invidious API
-  // ---------------------------------------------------------------------------
-
-  Future<List<String>> _getInvidiousStreamUrls(String videoId) async {
-    List<String> instances = _invidiousInstances;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final custom = prefs.getString(_prefKeyInvidiousInstance)?.trim();
-      if (custom != null && custom.isNotEmpty) {
-        instances = [custom, ..._invidiousInstances];
-      }
-    } catch (_) {}
-    for (final base in instances) {
-      try {
-        final uri = Uri.parse('$base/api/v1/videos/$videoId').replace(
-          queryParameters: {'local': 'true'},
-        );
-        final client = http.Client();
-        try {
-          final resp = await client.get(uri).timeout(const Duration(seconds: 8));
-          if (resp.statusCode != 200) continue;
-          final body = resp.body;
-          if (body.isEmpty || body.trimLeft().startsWith('<')) continue;
-
-          final json = jsonDecode(body) as Map<String, dynamic>?;
-          if (json == null) continue;
-
-          final urls = <String>[];
-
-          String abs(String? u) {
-            if (u == null || u.isEmpty) return '';
-            if (u.startsWith('http')) return u;
-            if (u.startsWith('/')) return '$base$u';
-            return u;
-          }
-
-          final adaptive = json['adaptiveFormats'] as List<dynamic>? ?? [];
-          final withUrl = <Map<String, dynamic>>[];
-          for (final e in adaptive) {
-            if (e is! Map) continue;
-            final u = abs(e['url'] as String?);
-            if (u.isEmpty) continue;
-            withUrl.add(Map<String, dynamic>.from(e)..['url'] = u);
-          }
-          withUrl.sort((a, b) {
-            final aAudio = a['audioQuality'] != null ? 1 : 0;
-            final bAudio = b['audioQuality'] != null ? 1 : 0;
-            if (aAudio != bAudio) return bAudio - aAudio;
-            final aBit = int.tryParse(a['bitrate']?.toString() ?? '0') ?? 0;
-            final bBit = int.tryParse(b['bitrate']?.toString() ?? '0') ?? 0;
-            return bBit.compareTo(aBit);
-          });
-          for (final f in withUrl) {
-            final u = f['url'] as String?;
-            if (u != null) urls.add(u);
-          }
-
-          if (urls.isEmpty) {
-            final streams = json['formatStreams'] as List<dynamic>? ?? [];
-            for (final s in streams) {
-              if (s is! Map) continue;
-              final u = abs(s['url'] as String?);
-              if (u.isNotEmpty) urls.add(u);
-            }
-          }
-
-          if (urls.isEmpty) {
-            final hls = abs(json['hlsUrl'] as String?);
-            if (hls.isNotEmpty) urls.add(hls);
-          }
-
-          if (urls.isNotEmpty) {
-            if (kDebugMode) {
-              print('[YouTubeMusic] Invidious: got ${urls.length} URL(s) from $base');
-            }
-            return urls;
-          }
-        } finally {
-          client.close();
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('[YouTubeMusic] Invidious $base failed: $e');
-        }
-      }
+      print('[YouTubeMusic] StreamProvider: no URLs for videoId=$videoId');
     }
     return [];
   }
@@ -766,7 +470,6 @@ class YouTubeMusicService implements BaseMediaService {
   void clearAuth() {
     _authenticated = false;
     _lastAuthError = null;
-    _innerTube.cookie = null;
   }
 
   Future<List<Track>> getArtistTracks(String artistId, {String? artistName}) async {
