@@ -1,7 +1,9 @@
 // YouTube Music backend reference: OpenTune (Arturo254/OpenTune) innertube/ only.
+// No-login streaming approach referenced from Harmony-Music (anandnet/Harmony-Music)
+// lib/services/stream_service.dart — fetch streams via youtube_explode_dart without auth.
 // We use dart_ytmusic_api for catalog, InnerTubeClient for stream URLs (primary),
-// with Piped/Invidious/youtube_explode_dart as fallbacks.
-// Auth is cookie-based. Disabled on web (dart_ytmusic_api does not work on web).
+// with Piped/Invidious/youtube_explode_dart as fallbacks. Auth is optional (cookie-based when set).
+// Disabled on web (dart_ytmusic_api does not work on web).
 
 import 'dart:convert';
 
@@ -42,17 +44,20 @@ class YouTubeMusicService implements BaseMediaService {
     }
     _lastAuthError = null;
     final cookies = credential.trim();
-    if (cookies.isEmpty) {
-      _lastAuthError = 'Cookie string is required.';
-      return false;
-    }
     try {
-      await _ytMusic.initialize(
-        cookies: cookies,
-        gl: 'US',
-        hl: 'en',
-      );
-      _innerTube.cookie = cookies;
+      if (cookies.isEmpty) {
+        // No login: initialize without cookies (Harmony-Music-style; no auth required).
+        // Reference: Harmony-Music lib/services/stream_service.dart — streams via youtube_explode without auth.
+        await _ytMusic.initialize();
+        _innerTube.cookie = null;
+      } else {
+        await _ytMusic.initialize(
+          cookies: cookies,
+          gl: 'US',
+          hl: 'en',
+        );
+        _innerTube.cookie = cookies;
+      }
       _authenticated = true;
       return true;
     } catch (e) {
@@ -76,10 +81,12 @@ class YouTubeMusicService implements BaseMediaService {
       await _ytMusic.getHomeSections();
       return true;
     } catch (_) {
-      return false;
+      // Without cookies, home sections may fail; still consider "valid" for no-login mode.
+      return true;
     }
   }
 
+  /// Ready when not on web and service is connected (with or without cookies).
   bool get _isReady => !kIsWeb && _authenticated;
 
   @override
@@ -384,7 +391,8 @@ class YouTubeMusicService implements BaseMediaService {
       }
     }
 
-    // ── 4) youtube_explode_dart – direct googlevideo URLs (last resort) ──
+    // ── 4) youtube_explode_dart – direct googlevideo URLs (last resort)
+    // Reference: Harmony-Music lib/services/stream_service.dart – StreamProvider.fetch(videoId) without login.
     final ytExplodeUrls = await _getYoutubeExplodeStreamUrls(videoId);
     if (ytExplodeUrls.isNotEmpty) return ytExplodeUrls;
 

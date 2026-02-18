@@ -173,7 +173,7 @@ class _AddServerFormState extends State<AddServerForm> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Log in to music.youtube.com in a browser, then export cookies (e.g. with a cookie export extension) and paste the full cookie string below. Not available on web.',
+                    'No login required. Leave cookie empty to stream without an account. For a personalized library, paste cookies from music.youtube.com (e.g. export with a browser extension). Not available on web.',
                     style: TextStyle(
                       fontSize: 13,
                       color: isDark
@@ -195,7 +195,7 @@ class _AddServerFormState extends State<AddServerForm> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'YouTube Music streaming uses InnerTube API. Paste your music.youtube.com cookies to authenticate.',
+                          'YouTube Music uses InnerTube and fallbacks (Piped, Invidious, youtube_explode). Optional cookies enable home sections and saved playlists.',
                           style: TextStyle(
                             fontSize: 13,
                             color: isDark
@@ -517,6 +517,7 @@ class _AddServerFormState extends State<AddServerForm> {
         ),
       ];
     } else if (_selectedServerType == 'youtubeMusic') {
+      // Cookie optional: no login required (reference: Harmony-Music no-login streaming).
       return [
         _buildModernTextField(
           controller: _usernameController,
@@ -528,9 +529,9 @@ class _AddServerFormState extends State<AddServerForm> {
         SizedBox(height: isDesktop ? 16 : 12),
         _buildModernTextField(
           controller: _passwordController,
-          label: 'Cookie string',
+          label: 'Cookie string (optional – for personalized library)',
           icon: CupertinoIcons.lock,
-          placeholder: 'Paste cookies from music.youtube.com (e.g. export with browser extension)',
+          placeholder: 'Leave empty for no login, or paste cookies from music.youtube.com',
           obscureText: !_isPasswordVisible,
           isDark: isDark,
           suffixIcon: IconButton(
@@ -549,12 +550,6 @@ class _AddServerFormState extends State<AddServerForm> {
               });
             },
           ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Please enter your cookie string';
-            }
-            return null;
-          },
         ),
       ];
     } else if (_selectedServerType == 'plex') {

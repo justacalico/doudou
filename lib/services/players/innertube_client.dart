@@ -9,7 +9,8 @@ import 'package:http/http.dart' as http;
 /// tried in order; ANDROID returns direct stream URLs without login for most
 /// music content.
 ///
-/// Reference: InnerTune (z-huang/InnerTune) innertube module.
+/// References: InnerTune (z-huang/InnerTune) innertube module; Harmony-Music
+/// (anandnet/Harmony-Music) lib/services/constant.dart for baseUrl/youtubei/v1 and API key.
 class InnerTubeClient {
   InnerTubeClient({this.cookie, this.visitorData});
 
