@@ -579,6 +579,37 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
                 ),
               ),
 
+              // Favorite indicator (like Jellyfin)
+              SizedBox(
+                width: 40,
+                child: IconButton(
+                  icon: Icon(
+                    appState.isFavorite(widget.track.id)
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    size: 20,
+                    color: appState.isFavorite(widget.track.id)
+                        ? const Color(0xFFEC4899)
+                        : (isDark
+                            ? AppleColors.labelTertiaryDark
+                            : AppleColors.labelTertiary),
+                  ),
+                  tooltip: appState.isFavorite(widget.track.id)
+                      ? 'Remove from favorites'
+                      : 'Add to favorites',
+                  onPressed: () async {
+                    try {
+                      await appState.toggleFavorite(widget.track);
+                    } catch (_) {}
+                  },
+                  style: IconButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(32, 32),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ),
+
               // Actions menu
               const SizedBox(width: AppleDesignSystem.spacing8),
               _AppleTrackMenu(
