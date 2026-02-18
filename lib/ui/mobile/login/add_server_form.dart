@@ -188,14 +188,14 @@ class _AddServerFormState extends State<AddServerForm> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
-                        CupertinoIcons.exclamationmark_triangle_fill,
+                        CupertinoIcons.info_circle_fill,
                         size: 16,
-                        color: AppleColors.systemOrange.withOpacity(0.9),
+                        color: AppleColors.systemBlue.withOpacity(0.9),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Playback is broken in doudou with YouTube Music and we can\'t get it working yet.',
+                          'YouTube Music streaming uses InnerTube API. Paste your music.youtube.com cookies to authenticate.',
                           style: TextStyle(
                             fontSize: 13,
                             color: isDark

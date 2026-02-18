@@ -8,7 +8,7 @@ A privacy-focused music player for your media server. Stream your music collecti
 - **Jellyfin** - Full support
 - **Plex** - Working (unstested (issues will be fixed if reported))
 - **Soundcloud** - Working (auth needed)
-- **Youtube Music** - Playback is broken
+- **Youtube Music** - Working (cookie auth, InnerTube streaming)
 - **Local Files** - Play music directly from your device without a server
 
 ## Features

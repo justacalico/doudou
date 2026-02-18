@@ -47,7 +47,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   /// Browser-like User-Agent for googlevideo.com (403 without it).
   static const String _desktopUserAgent =
-      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
   // Player instance - may be recreated on desktop to prevent native callback crashes
   late AudioPlayer _player;

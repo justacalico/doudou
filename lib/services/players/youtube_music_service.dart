@@ -1,5 +1,6 @@
 // YouTube Music backend reference: OpenTune (Arturo254/OpenTune) innertube/ only.
-// We use dart_ytmusic_api for catalog and youtube_explode_dart for stream URLs.
+// We use dart_ytmusic_api for catalog, InnerTubeClient for stream URLs (primary),
+// with Piped/Invidious/youtube_explode_dart as fallbacks.
 // Auth is cookie-based. Disabled on web (dart_ytmusic_api does not work on web).
 
 import 'dart:convert';
@@ -12,20 +13,21 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart' hide Playlist;
 
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
+import 'innertube_client.dart';
 
-/// YouTube Music service using dart_ytmusic_api (catalog) and youtube_explode_dart (stream URLs).
+/// YouTube Music service using dart_ytmusic_api (catalog) and InnerTube (streams).
 /// Does not work on web — authenticate() returns false when kIsWeb.
 class YouTubeMusicService implements BaseMediaService {
   static const String _serverUrl = 'https://music.youtube.com';
 
   final YTMusic _ytMusic = YTMusic();
+  late final InnerTubeClient _innerTube = InnerTubeClient();
   bool _authenticated = false;
   String? _lastAuthError;
 
   @override
   ServerType get serverType => ServerType.youtubeMusic;
 
-  /// Last auth error (e.g. invalid cookie). Null if not supported or none.
   String? get lastAuthError => _lastAuthError;
 
   @override
@@ -50,6 +52,7 @@ class YouTubeMusicService implements BaseMediaService {
         gl: 'US',
         hl: 'en',
       );
+      _innerTube.cookie = cookies;
       _authenticated = true;
       return true;
     } catch (e) {
@@ -280,10 +283,9 @@ class YouTubeMusicService implements BaseMediaService {
   }
 
   /// HTTP headers for googlevideo.com (403 without browser-like User-Agent).
-  /// On desktop, StreamProxyService fetches with these headers and streams to MPV.
   static const Map<String, String> _streamHttpHeaders = {
     'User-Agent':
-        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
     'Accept': '*/*',
     'Accept-Language': 'en-US,en;q=0.9',
     'Origin': 'https://www.youtube.com',
@@ -291,32 +293,185 @@ class YouTubeMusicService implements BaseMediaService {
   };
 
   static Map<String, String>? getStreamHeaders(String url) {
-    // Only add headers for direct googlevideo.com; Piped/Invidious URLs are proxied.
     if (url.contains('googlevideo.com')) return Map.unmodifiable(_streamHttpHeaders);
     return null;
   }
 
-  /// Invidious API - open-source YouTube frontend with stream proxy.
-  /// local=true proxies streams through the instance (avoids googlevideo.com 403).
-  /// Use instances that return JSON directly (avoid those that redirect to instance selector).
-  static const List<String> _invidiousInstances = [
-    'https://vid.puffyan.us',
-    'https://inv.nadeko.net',
-    'https://yewtu.be',
-    'https://invidious.nerdvpn.de',
-  ];
+  // ---------------------------------------------------------------------------
+  // Piped API instances – proxied stream URLs, no custom headers needed.
+  // Updated Feb 2026 from github.com/TeamPiped/documentation
+  // ---------------------------------------------------------------------------
 
-  /// Piped API - proxied stream URLs, no custom headers needed.
   static const List<String> _pipedInstances = [
     'https://pipedapi.kavin.rocks',
-    'https://pipedapi.rivo.lol',
-    'https://pipedapi.syncpundit.io',
+    'https://pipedapi.leptons.xyz',
+    'https://pipedapi.nosebs.ru',
+    'https://pipedapi-libre.kavin.rocks',
+    'https://piped-api.privacy.com.de',
+    'https://pipedapi.adminforge.de',
+    'https://pipedapi.drgns.space',
+    'https://pipedapi.reallyaweso.me',
+  ];
+
+  // ---------------------------------------------------------------------------
+  // Invidious API instances – local=true proxies streams through the instance.
+  // ---------------------------------------------------------------------------
+
+  static const List<String> _invidiousInstances = [
+    'https://inv.nadeko.net',
+    'https://yewtu.be',
+    'https://vid.puffyan.us',
+    'https://invidious.nerdvpn.de',
+    'https://invidious.privacyredirect.com',
+    'https://invidious.protokolla.fi',
   ];
 
   static const String _prefKeyInvidiousInstance = 'youtube_music_invidious_instance';
   static const String _prefKeyPipedInstance = 'youtube_music_piped_instance';
 
-  /// Fetch stream URL(s) from Piped API – proxied URLs, no custom headers needed.
+  // ---------------------------------------------------------------------------
+  // Stream URL resolution – InnerTube first, then Piped, Invidious, yt_explode
+  // ---------------------------------------------------------------------------
+
+  @override
+  Future<List<String>> getAlternativeStreamUrlsAsync(
+    String trackId, {
+    bool requireAuth = true,
+  }) async {
+    if (requireAuth && (kIsWeb || !_authenticated)) return [];
+    final videoId = _normalizeVideoId(trackId);
+    if (videoId.isEmpty) {
+      if (kDebugMode) {
+        print('[YouTubeMusic] getAlternativeStreamUrlsAsync: empty videoId for trackId=$trackId');
+      }
+      return [];
+    }
+
+    if (kDebugMode) {
+      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: resolving videoId=$videoId');
+    }
+
+    // ── 1) InnerTube direct (most reliable – same as official apps) ──
+    try {
+      final streams = await _innerTube.getStreamUrls(videoId);
+      if (streams.isNotEmpty) {
+        final urls = streams.map((s) => s.url).toList();
+        if (kDebugMode) {
+          final best = streams.first;
+          print('[YouTubeMusic] InnerTube: ${urls.length} stream(s), '
+              'best=${best.quality} ${best.codec} ${best.bitrate}bps '
+              'client=${best.clientName}');
+        }
+        return urls;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('[YouTubeMusic] InnerTube failed: $e');
+      }
+    }
+
+    // ── 2) Piped – proxied URLs, no custom headers needed ──
+    try {
+      final piped = await _getPipedStreamUrls(videoId);
+      if (piped.isNotEmpty) return piped;
+    } catch (e) {
+      if (kDebugMode) {
+        print('[YouTubeMusic] Piped all failed: $e');
+      }
+    }
+
+    // ── 3) Invidious with local=true – proxied through instance ──
+    try {
+      final invidious = await _getInvidiousStreamUrls(videoId);
+      if (invidious.isNotEmpty) return invidious;
+    } catch (e) {
+      if (kDebugMode) {
+        print('[YouTubeMusic] Invidious all failed: $e');
+      }
+    }
+
+    // ── 4) youtube_explode_dart – direct googlevideo URLs (last resort) ──
+    final ytExplodeUrls = await _getYoutubeExplodeStreamUrls(videoId);
+    if (ytExplodeUrls.isNotEmpty) return ytExplodeUrls;
+
+    if (kDebugMode) {
+      print('[YouTubeMusic] ALL methods failed for videoId=$videoId');
+    }
+    return [];
+  }
+
+  // ---------------------------------------------------------------------------
+  // youtube_explode_dart fallback
+  // ---------------------------------------------------------------------------
+
+  Future<List<String>> _getYoutubeExplodeStreamUrls(String videoId) async {
+    final clientConfigs = <List<YoutubeApiClient>?>[
+      null,
+      [YoutubeApiClient.tv],
+      [YoutubeApiClient.androidVr],
+      [YoutubeApiClient.ios],
+      [YoutubeApiClient.safari],
+    ];
+    const clientNames = ['default', 'tv', 'androidVr', 'ios', 'safari'];
+
+    for (var i = 0; i < clientConfigs.length; i++) {
+      final ytClients = clientConfigs[i];
+      final clientName = clientNames[i];
+      final yt = YoutubeExplode();
+      try {
+        final manifest = ytClients == null
+            ? await yt.videos.streams
+                .getManifest(videoId)
+                .timeout(const Duration(seconds: 15))
+            : await yt.videos.streams
+                .getManifest(videoId, ytClients: ytClients)
+                .timeout(const Duration(seconds: 15));
+
+        String? url;
+        final audioOnly = manifest.audioOnly;
+        final muxed = manifest.muxed;
+
+        if (audioOnly.isNotEmpty) {
+          final filtered = audioOnly
+              .where((s) =>
+                  s.audioTrack == null || s.audioTrack!.audioIsDefault)
+              .toList();
+          final list = filtered.isEmpty ? audioOnly : filtered;
+          list.sort((a, b) => b.bitrate.compareTo(a.bitrate));
+          url = list.first.url.toString();
+        }
+        if ((url == null || url.isEmpty) && muxed.isNotEmpty) {
+          final list = muxed.toList()
+            ..sort((a, b) => b.bitrate.compareTo(a.bitrate));
+          url = list.first.url.toString();
+        }
+        if ((url == null || url.isEmpty) && manifest.audio.isNotEmpty) {
+          final list = manifest.audio.toList()
+            ..sort((a, b) => b.bitrate.compareTo(a.bitrate));
+          url = list.first.url.toString();
+        }
+
+        if (url != null && url.isNotEmpty) {
+          if (kDebugMode) {
+            print('[YouTubeMusic] yt_explode: SUCCESS client=$clientName');
+          }
+          return [url];
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('[YouTubeMusic] yt_explode client=$clientName failed: $e');
+        }
+      } finally {
+        yt.close();
+      }
+    }
+    return [];
+  }
+
+  // ---------------------------------------------------------------------------
+  // Piped API
+  // ---------------------------------------------------------------------------
+
   Future<List<String>> _getPipedStreamUrls(String videoId) async {
     List<String> instances = _pipedInstances;
     try {
@@ -377,7 +532,10 @@ class YouTubeMusicService implements BaseMediaService {
     return [];
   }
 
-  /// Fetch stream URL(s) from Invidious API (local=true = proxied), no custom headers needed.
+  // ---------------------------------------------------------------------------
+  // Invidious API
+  // ---------------------------------------------------------------------------
+
   Future<List<String>> _getInvidiousStreamUrls(String videoId) async {
     List<String> instances = _invidiousInstances;
     try {
@@ -404,23 +562,21 @@ class YouTubeMusicService implements BaseMediaService {
 
           final urls = <String>[];
 
-          // Prefer adaptiveFormats - audio-only (audioQuality set) or audio+video
-          final adaptive = json['adaptiveFormats'] as List<dynamic>? ?? [];
-          final withUrl = <Map<String, dynamic>>[];
-          String _abs(String? u) {
+          String abs(String? u) {
             if (u == null || u.isEmpty) return '';
             if (u.startsWith('http')) return u;
             if (u.startsWith('/')) return '$base$u';
             return u;
           }
 
+          final adaptive = json['adaptiveFormats'] as List<dynamic>? ?? [];
+          final withUrl = <Map<String, dynamic>>[];
           for (final e in adaptive) {
             if (e is! Map) continue;
-            final u = _abs(e['url'] as String?);
+            final u = abs(e['url'] as String?);
             if (u.isEmpty) continue;
             withUrl.add(Map<String, dynamic>.from(e)..['url'] = u);
           }
-          // Prefer audio-only, then sort by bitrate (desc)
           withUrl.sort((a, b) {
             final aAudio = a['audioQuality'] != null ? 1 : 0;
             final bAudio = b['audioQuality'] != null ? 1 : 0;
@@ -434,19 +590,17 @@ class YouTubeMusicService implements BaseMediaService {
             if (u != null) urls.add(u);
           }
 
-          // Fallback to formatStreams (muxed progressive)
           if (urls.isEmpty) {
             final streams = json['formatStreams'] as List<dynamic>? ?? [];
             for (final s in streams) {
               if (s is! Map) continue;
-              final u = _abs(s['url'] as String?);
+              final u = abs(s['url'] as String?);
               if (u.isNotEmpty) urls.add(u);
             }
           }
 
-          // Fallback to hlsUrl when formatStreams/adaptiveFormats are blank (Invidious bug #5420)
           if (urls.isEmpty) {
-            final hls = _abs(json['hlsUrl'] as String?);
+            final hls = abs(json['hlsUrl'] as String?);
             if (hls.isNotEmpty) urls.add(hls);
           }
 
@@ -468,117 +622,9 @@ class YouTubeMusicService implements BaseMediaService {
     return [];
   }
 
-  /// Resolves stream URLs for a video ID. Use [requireAuth: false] only for testing.
-  /// Order: Piped/Invidious (proxied, work on desktop) → youtube_explode (direct, needs headers).
-  @override
-  Future<List<String>> getAlternativeStreamUrlsAsync(
-    String trackId, {
-    bool requireAuth = true,
-  }) async {
-    if (requireAuth && (kIsWeb || !_authenticated)) return [];
-    final videoId = _normalizeVideoId(trackId);
-    if (videoId.isEmpty) {
-      if (kDebugMode) {
-        print('[YouTubeMusic] getAlternativeStreamUrlsAsync: empty videoId for trackId=$trackId');
-      }
-      return [];
-    }
-
-    if (kDebugMode) {
-      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: resolving videoId=$videoId');
-    }
-
-    final urls = <String>[];
-
-    // 1) Piped first – proxied URLs work without custom headers (desktop MPV)
-    final piped = await _getPipedStreamUrls(videoId);
-    urls.addAll(piped);
-
-    // 2) Invidious with local=true – proxied through instance
-    if (urls.isEmpty) {
-      final invidious = await _getInvidiousStreamUrls(videoId);
-      urls.addAll(invidious);
-    }
-
-    // 3) youtube_explode_dart – direct googlevideo URLs (need User-Agent; 403 on desktop MPV)
-    // 3.x: multiple clients improve 403 resilience (signature/n-parameter handling)
-    final clientConfigs = <List<YoutubeApiClient>?>[
-      null, // default
-      [YoutubeApiClient.tv],
-      [YoutubeApiClient.androidVr],
-      [YoutubeApiClient.ios],
-      [YoutubeApiClient.safari],
-    ];
-
-    const clientNames = ['default', 'tv', 'androidVr', 'ios', 'safari'];
-    for (var i = 0; i < clientConfigs.length; i++) {
-      final ytClients = clientConfigs[i];
-      final clientName = clientNames[i];
-      if (kDebugMode) {
-        print('[YouTubeMusic] getAlternativeStreamUrlsAsync: trying client=$clientName');
-      }
-      final yt = YoutubeExplode();
-      try {
-        final manifest = ytClients == null
-            ? await yt.videos.streams.getManifest(videoId)
-            : await yt.videos.streams.getManifest(
-                videoId,
-                ytClients: ytClients,
-              );
-
-        // Prefer audio-only (smaller), then muxed (audio+video)
-        String? url;
-        final audioOnly = manifest.audioOnly;
-        final muxed = manifest.muxed;
-
-        if (audioOnly.isNotEmpty) {
-          final filtered = audioOnly
-              .where((s) =>
-                  s.audioTrack == null || s.audioTrack!.audioIsDefault)
-              .toList();
-          final list = filtered.isEmpty ? audioOnly : filtered;
-          list.sort((a, b) => b.bitrate.compareTo(a.bitrate));
-          url = list.first.url.toString();
-        }
-        if ((url == null || url.isEmpty) && muxed.isNotEmpty) {
-          final list = muxed.toList()
-            ..sort((a, b) => b.bitrate.compareTo(a.bitrate));
-          url = list.first.url.toString();
-        }
-        if ((url == null || url.isEmpty) && manifest.audio.isNotEmpty) {
-          final list = manifest.audio.toList()
-            ..sort((a, b) => b.bitrate.compareTo(a.bitrate));
-          url = list.first.url.toString();
-        }
-
-        if (url != null && url.isNotEmpty) {
-          if (kDebugMode) {
-            final host = Uri.tryParse(url)?.host ?? 'unknown';
-            final expireMatch = RegExp(r'expire=(\d+)').firstMatch(url);
-            final expire = expireMatch != null ? int.tryParse(expireMatch.group(1)!) : null;
-            print('[YouTubeMusic] getAlternativeStreamUrlsAsync: SUCCESS client=$clientName '
-                'host=$host expire=$expire urlLen=${url.length}');
-          }
-          urls.add(url);
-          break; // got a direct URL, stop trying clients
-        }
-      } catch (e, st) {
-        if (kDebugMode) {
-          print('[YouTubeMusic] getAlternativeStreamUrlsAsync: client=$clientName failed: $e');
-          print('[YouTubeMusic] stackTrace: $st');
-        }
-      } finally {
-        yt.close();
-      }
-    }
-
-    final result = urls;
-
-    if (kDebugMode) {
-      print('[YouTubeMusic] getAlternativeStreamUrlsAsync: returning ${result.length} URL(s) for $videoId');
-    }
-    return result;
-  }
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
 
   static String _normalizeVideoId(String trackId) {
     if (trackId.startsWith('youtube:') || trackId.startsWith('yt:')) {
@@ -679,9 +725,9 @@ class YouTubeMusicService implements BaseMediaService {
   void clearAuth() {
     _authenticated = false;
     _lastAuthError = null;
+    _innerTube.cookie = null;
   }
 
-  /// Artist tracks (songs by artist). Not part of BaseMediaService; used via MediaServiceManager.getArtistTracks.
   Future<List<Track>> getArtistTracks(String artistId, {String? artistName}) async {
     if (!_isReady) return [];
     try {
