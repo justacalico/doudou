@@ -81,5 +81,6 @@ lib/l10n/app_localizations_en.dart
 lib/l10n/app_localizations_ru.dart
 lib/l10n/app_localizations_zh.dart
 /agents
-# OpenTune reference clone (backend study only)
+# OpenTune reference clone (backend study only) (ended up not being used)
 docs/reference/OpenTune
+/Harmony-Music
