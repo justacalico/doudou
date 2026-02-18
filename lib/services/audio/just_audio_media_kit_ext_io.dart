@@ -10,13 +10,10 @@ class PlatformAudioConfig {
   /// Check if we're on Windows
   static bool get isWindows => Platform.isWindows;
   
-  /// Create mpv.conf with platform-specific options:
-  /// - Windows: audio-exclusive=no (WASAPI shared mode for system volume)
-  /// - Linux: cache=no (avoids lavf "Failed to create file cache" on stream playback, e.g. after server switch)
+  /// Create mpv.conf file with audio-exclusive=no (Windows)
   static Future<void> createMpvConfig() async {
     try {
       String configDir;
-      String optionsToAdd = '';
 
       if (Platform.isWindows) {
         final appData = Platform.environment['APPDATA'];
@@ -25,25 +22,6 @@ class PlatformAudioConfig {
           return;
         }
         configDir = '$appData/mpv';
-        optionsToAdd = '# Doudou: WASAPI shared mode for system volume integration\naudio-exclusive=no\n';
-      } else if (Platform.isLinux) {
-        final home = Platform.environment['HOME'];
-        if (home == null) {
-          debugPrint('PlatformAudioConfig: HOME not found');
-          return;
-        }
-        configDir = '$home/.config/mpv';
-        optionsToAdd =
-            '# Doudou: Disable demuxer cache to avoid lavf "Failed to create file cache" (streams, server switch)\ncache=no\n';
-      } else if (Platform.isMacOS) {
-        final home = Platform.environment['HOME'];
-        if (home == null) {
-          debugPrint('PlatformAudioConfig: HOME not found');
-          return;
-        }
-        configDir = '$home/.config/mpv';
-        // macOS: no extra options by default
-        return;
       } else {
         return;
       }
@@ -58,14 +36,14 @@ class PlatformAudioConfig {
       String existingContent = '';
       if (await configFile.exists()) {
         existingContent = await configFile.readAsString();
-        // Skip if we already added our options
-        if (existingContent.contains('audio-exclusive') ||
-            (Platform.isLinux && existingContent.contains('cache=no'))) {
-          debugPrint('PlatformAudioConfig: Options already in mpv.conf');
+        if (existingContent.contains('audio-exclusive')) {
+          debugPrint('PlatformAudioConfig: audio-exclusive already in mpv.conf');
           return;
         }
       }
 
+      const optionsToAdd =
+          '# Doudou: WASAPI shared mode for system volume integration\naudio-exclusive=no\n';
       final newContent =
           existingContent.isEmpty ? optionsToAdd : '$existingContent\n$optionsToAdd';
 

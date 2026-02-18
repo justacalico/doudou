@@ -1150,6 +1150,14 @@ class AppState extends ChangeNotifier {
     _artists.clear();
     _tracks.clear();
     _playlists.clear();
+    _recentTracks.clear();
+    // Clear library cache so loadLibraryData fetches fresh data from new server
+    try {
+      await _cacheService.clearAlbumsCache();
+      await _cacheService.clearArtistsCache();
+      await _cacheService.clearTracksCache();
+      await _cacheService.clearPlaylistsCache();
+    } catch (_) {}
     _clearError();
   }
 
