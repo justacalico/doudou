@@ -1063,6 +1063,52 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
+  /// Wait until the YT stream has actually loaded (duration > 0).
+  /// If MPV fails to open the URL, duration stays null/zero and we throw so fallback URLs are tried.
+  Future<void> _waitForYtStreamReady({
+    required Duration timeout,
+    required int operationId,
+  }) async {
+    final completer = Completer<void>();
+    StreamSubscription<PlayerState>? subState;
+    StreamSubscription<Duration?>? subDuration;
+    Timer? timeoutTimer;
+
+    void check() {
+      if (_disposed || _loadOperationId != operationId) {
+        if (!completer.isCompleted) completer.complete();
+        return;
+      }
+      final state = _player.playerState;
+      final duration = _player.duration;
+      if (state.processingState == ProcessingState.ready &&
+          duration != null &&
+          duration > Duration.zero) {
+        if (!completer.isCompleted) completer.complete();
+      }
+    }
+
+    subState = _player.playerStateStream.listen((_) => check());
+    subDuration = _player.durationStream.listen((_) => check());
+    check();
+
+    timeoutTimer = Timer(timeout, () {
+      if (!completer.isCompleted) {
+        completer.completeError(
+          TimeoutException('YT stream did not become ready within ${timeout.inSeconds}s', timeout),
+        );
+      }
+    });
+
+    try {
+      await completer.future;
+    } finally {
+      await subState.cancel();
+      await subDuration.cancel();
+      timeoutTimer.cancel();
+    }
+  }
+
   /// Load and play track from URL
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
@@ -1109,6 +1155,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           if (_isMobile) await _attemptForegroundService();
           await _player.play();
         }
+        if (_disposed || currentOperationId != _loadOperationId) return;
+        // Wait for stream to actually load (duration > 0); otherwise MPV may have failed to open the URL.
+        await _waitForYtStreamReady(
+          timeout: const Duration(seconds: 10),
+          operationId: currentOperationId,
+        );
         if (_isMobile) _cancelLoadingTimeout();
         await _applyVolumeAndSpeedToPlayer();
         if (kDebugMode) {
