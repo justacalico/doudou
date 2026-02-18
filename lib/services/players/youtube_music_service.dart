@@ -6,6 +6,7 @@
 
 import 'dart:convert';
 
+import 'package:dart_ytmusic_api/dart_ytmusic_api.dart';
 import 'package:dart_ytmusic_api/yt_music.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -469,12 +470,45 @@ class YouTubeMusicService implements BaseMediaService {
     return merged.take(max).toList();
   }
 
+  /// Fetches Liked Music (VLM) with safe handling for empty playlists.
+  /// dart_ytmusic_api's getPlaylistVideos does continuation[0] and throws RangeError when continuation is [].
+  Future<List<VideoDetailed>> _getLikedSongsSafe() async {
+    final playlistData =
+        await _ytMusic.constructRequest('browse', body: {'browseId': 'VLM'});
+    final songs = traverseList(
+      playlistData,
+      ['musicPlaylistShelfRenderer', 'musicResponsiveListItemRenderer'],
+    );
+    dynamic continuation = traverse(playlistData, ['continuation']);
+    if (continuation is List && continuation.isNotEmpty) {
+      continuation = continuation[0];
+    }
+    while (continuation != null && continuation is! List) {
+      final songsData = await _ytMusic.constructRequest(
+        'browse',
+        query: {'continuation': continuation},
+      );
+      songs.addAll(
+        traverseList(songsData, ['musicResponsiveListItemRenderer']),
+      );
+      continuation = traverse(songsData, ['continuation']);
+      if (continuation is List && continuation.isNotEmpty) {
+        continuation = continuation[0];
+      } else if (continuation is List) {
+        continuation = null;
+      }
+    }
+    return songs
+        .map((item) => VideoParser.parsePlaylistVideo(item))
+        .whereType<VideoDetailed>()
+        .toList();
+  }
+
   @override
   Future<List<Track>> getStarredTracks() async {
     if (_hasCookies && _isReady) {
       try {
-        // Use VLM (VL+LM) like Python ytmusicapi; browseId "LM" alone returns 400 from YouTube.
-        final videos = await _ytMusic.getPlaylistVideos('VLM');
+        final videos = await _getLikedSongsSafe();
         return videos.map((v) {
           final t = _trackFromVideoDetailed(v);
           return Track(
@@ -493,7 +527,9 @@ class YouTubeMusicService implements BaseMediaService {
           );
         }).toList();
       } catch (e) {
-        if (kDebugMode) print('[YouTubeMusic] getStarredTracks (API) failed: $e');
+        if (kDebugMode) {
+          print('[YouTubeMusic] getStarredTracks (API) failed: $e');
+        }
       }
     }
     await _loadLocalData();
