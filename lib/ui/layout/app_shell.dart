@@ -75,6 +75,12 @@ class _AppShellState extends State<AppShell> {
     return st != ServerType.local && st != ServerType.soundcloud;
   }
 
+  /// Albums page: hide for SoundCloud (no albums support).
+  bool get _showAlbums {
+    final st = context.read<AppState>().mediaServiceManager.currentServerType;
+    return st != ServerType.soundcloud;
+  }
+
   void _rebuildPageLists() {
     _navItems = _buildNavItems();
     _libraryItems = _buildLibraryItems();
@@ -100,7 +106,8 @@ class _AppShellState extends State<AppShell> {
 
   List<_NavItem> _buildLibraryItems() {
     return [
-      const _NavItem(Icons.album_outlined, Icons.album_rounded, 'Albums'),
+      if (_showAlbums)
+        const _NavItem(Icons.album_outlined, Icons.album_rounded, 'Albums'),
       const _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Artists'),
       const _NavItem(Icons.music_note_outlined, Icons.music_note_rounded, 'Tracks'),
       const _NavItem(
@@ -118,7 +125,7 @@ class _AppShellState extends State<AppShell> {
       const HomePage(),
       const SearchPage(),
       const LibraryPage(),
-      const AlbumsPage(),
+      if (_showAlbums) const AlbumsPage(),
       const ArtistsPage(),
       const TracksPage(),
       const PlaylistsPage(),
@@ -158,8 +165,10 @@ class _AppShellState extends State<AppShell> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final showDownloads = _showDownloads;
-    final wasShowingDownloads = _libraryItems.length == 5;
-    if (showDownloads != wasShowingDownloads) _rebuildPageLists();
+    final showAlbums = _showAlbums;
+    final prevCount = _libraryItems.length;
+    final expectedCount = (showAlbums ? 1 : 0) + 3 + (showDownloads ? 1 : 0);
+    if (prevCount != expectedCount) _rebuildPageLists();
   }
 
   @override
@@ -204,6 +213,7 @@ class _AppShellState extends State<AppShell> {
                           currentIndex: _selectedIndex,
                           navItems: _navItems,
                           libraryItems: _libraryItems,
+                          showAlbums: _showAlbums,
                           settingsIndex: _settingsIndex,
                           onTap: _navigateTo,
                         ),
@@ -333,6 +343,7 @@ class _Sidebar extends StatelessWidget {
   final int currentIndex;
   final List<_NavItem> navItems;
   final List<_NavItem> libraryItems;
+  final bool showAlbums;
   final int settingsIndex;
   final ValueChanged<int> onTap;
 
@@ -340,6 +351,7 @@ class _Sidebar extends StatelessWidget {
     required this.currentIndex,
     required this.navItems,
     required this.libraryItems,
+    required this.showAlbums,
     required this.settingsIndex,
     required this.onTap,
   });
@@ -430,7 +442,7 @@ class _Sidebar extends StatelessWidget {
                     return _SidebarTile(
                       icon: e.value.icon,
                       activeIcon: e.value.activeIcon,
-                      label: _libraryLabel(l10n, e.key),
+                      label: _libraryLabel(l10n, e.key, showAlbums),
                       selected: currentIndex == idx,
                       onTap: () => onTap(idx),
                     );
@@ -465,17 +477,31 @@ class _Sidebar extends StatelessWidget {
     }
   }
 
-  String _libraryLabel(AppLocalizations l10n, int index) {
+  String _libraryLabel(AppLocalizations l10n, int index, bool showAlbums) {
+    if (showAlbums) {
+      switch (index) {
+        case 0:
+          return l10n.albums;
+        case 1:
+          return l10n.artists;
+        case 2:
+          return l10n.songs;
+        case 3:
+          return l10n.playlists;
+        case 4:
+          return l10n.downloads;
+        default:
+          return '';
+      }
+    }
     switch (index) {
       case 0:
-        return l10n.albums;
-      case 1:
         return l10n.artists;
-      case 2:
+      case 1:
         return l10n.songs;
-      case 3:
+      case 2:
         return l10n.playlists;
-      case 4:
+      case 3:
         return l10n.downloads;
       default:
         return '';
