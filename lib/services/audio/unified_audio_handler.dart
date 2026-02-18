@@ -55,6 +55,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   // Loading operation management
   int _loadOperationId = 0;
 
+  // Guard against multiple rapid completion events (prevents skipping many tracks)
+  bool _isHandlingCompletion = false;
+
   // Lock to prevent concurrent player recreation (desktop)
   bool _isRecreatingPlayer = false;
 
@@ -448,31 +451,37 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   /// Handle track completion
   Future<void> _handleTrackCompletion() async {
     if (_disposed) return;
+    if (_isHandlingCompletion) return;
+    _isHandlingCompletion = true;
 
-    if (_isMobile) _cancelLoadingTimeout();
+    try {
+      if (_isMobile) _cancelLoadingTimeout();
 
-    // In radio mode, fetch and play similar tracks
-    if (_radioModeEnabled) {
-      await _handleRadioModeNext();
-      return;
-    }
-
-    // Normal mode - advance to next track
-    final nextIndex = _queueManager.getNextTrackIndex();
-    if (nextIndex != null) {
-      if (_isDesktop) {
-        await _playNextTrackWithRetry(nextIndex);
-      } else {
-        await _performSkipToQueueItem(nextIndex);
+      // In radio mode, fetch and play similar tracks
+      if (_radioModeEnabled) {
+        await _handleRadioModeNext();
+        return;
       }
-    } else {
-      // Queue ended - check if autoplay is enabled
-      if (_autoplayEnabled) {
-        await _handleAutoplayNext();
+
+      // Normal mode - advance to next track
+      final nextIndex = _queueManager.getNextTrackIndex();
+      if (nextIndex != null) {
+        if (_isDesktop) {
+          await _playNextTrackWithRetry(nextIndex);
+        } else {
+          await _performSkipToQueueItem(nextIndex);
+        }
       } else {
-        _stateController.updateState(AudioPlayerState.completed);
-        _stateController.updateUserIntent(false);
+        // Queue ended - check if autoplay is enabled
+        if (_autoplayEnabled) {
+          await _handleAutoplayNext();
+        } else {
+          _stateController.updateState(AudioPlayerState.completed);
+          _stateController.updateUserIntent(false);
+        }
       }
+    } finally {
+      _isHandlingCompletion = false;
     }
   }
 
