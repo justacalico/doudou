@@ -43,6 +43,11 @@ class _LibraryPageState extends State<LibraryPage> {
             ServerType.soundcloud ||
         appState.mediaServiceManager.currentServerType ==
             ServerType.youtubeMusic;
+        // Page indices match app_shell: when Albums is hidden (SoundCloud/YT), indices shift by 1.
+        final albumsIndex = 3;
+        final artistsIndex = isSoundCloud ? 3 : 4;
+        final songsIndex = isSoundCloud ? 4 : 5;
+        final playlistsIndex = isSoundCloud ? 5 : 6;
         return PageTemplate(
           title: l10n.navLibrary,
           child: SingleChildScrollView(
@@ -72,7 +77,7 @@ class _LibraryPageState extends State<LibraryPage> {
                             label: l10n.albums,
                             count: appState.albums.length,
                             onTap: () =>
-                                NavigationService().selectPage(3),
+                                NavigationService().selectPage(albumsIndex),
                             width: tileWidth,
                           ),
                         _LibraryTile(
@@ -80,7 +85,7 @@ class _LibraryPageState extends State<LibraryPage> {
                           label: l10n.artists,
                           count: appState.artists.length,
                           onTap: () =>
-                              NavigationService().selectPage(4),
+                              NavigationService().selectPage(artistsIndex),
                           width: tileWidth,
                         ),
                         _LibraryTile(
@@ -88,7 +93,7 @@ class _LibraryPageState extends State<LibraryPage> {
                           label: l10n.songs,
                           count: appState.tracks.length,
                           onTap: () =>
-                              NavigationService().selectPage(5),
+                              NavigationService().selectPage(songsIndex),
                           width: tileWidth,
                         ),
                         _LibraryTile(
@@ -96,7 +101,7 @@ class _LibraryPageState extends State<LibraryPage> {
                           label: l10n.playlists,
                           count: appState.playlists.length,
                           onTap: () =>
-                              NavigationService().selectPage(6),
+                              NavigationService().selectPage(playlistsIndex),
                           width: tileWidth,
                         ),
                       ],
@@ -107,7 +112,8 @@ class _LibraryPageState extends State<LibraryPage> {
                   const SizedBox(height: DesktopTheme.spacingXl),
                   SectionHeader(
                     title: l10n.recentlyAddedAlbums,
-                    onSeeAllPressed: () => NavigationService().selectPage(3),
+                    onSeeAllPressed: () =>
+                        NavigationService().selectPage(albumsIndex),
                   ),
                   const SizedBox(height: DesktopTheme.spacingMd),
                   SizedBox(
