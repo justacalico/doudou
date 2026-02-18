@@ -82,27 +82,15 @@ class SoundCloudService implements BaseMediaService {
     return _obtainToken();
   }
 
-  /// Redirect URI must be set in your SoundCloud app at developers.soundcloud.com.
-  /// Use this exact value in the app's "Redirect URI" field and click Save.
-  static const String _redirectUri = 'http://localhost/callback';
-
   Future<bool> _obtainToken() async {
     _lastError = null;
     final credentials = base64Encode(utf8.encode('$_clientId:$_clientSecret'));
-    // Try legacy endpoint first (oauth2/token returns 404 on SoundCloud)
+    // SoundCloud only supports oauth/token (oauth2/token does not exist and returns 404)
     _log('trying oauth/token');
-    final ok = await _requestToken(
+    return _requestToken(
       'https://secure.soundcloud.com/oauth/token',
       credentials,
       {'grant_type': 'client_credentials'},
-    );
-    if (ok) return true;
-    _log('oauth/token failed, trying oauth2/token with redirect_uri');
-    _lastError = null;
-    return _requestToken(
-      'https://secure.soundcloud.com/oauth2/token',
-      credentials,
-      {'grant_type': 'client_credentials', 'redirect_uri': _redirectUri},
     );
   }
 
@@ -168,8 +156,20 @@ class SoundCloudService implements BaseMediaService {
 
   String? _lastError;
 
-  /// Last error from token endpoint (e.g. invalid_client). Null if none.
-  String? get lastAuthError => _lastError;
+  /// Last error from token endpoint (e.g. invalid_client, rate_limit_exceeded). Null if none.
+  /// Returns a user-friendly message when the error is known.
+  String? get lastAuthError {
+    if (_lastError == null) return null;
+    switch (_lastError!) {
+      case 'rate_limit_exceeded':
+        return 'Rate limit exceeded. Please wait a few minutes before trying again.';
+      case 'invalid_client':
+      case 'invalid_client_id':
+        return 'Invalid Client ID or Client Secret. Check your app at developers.soundcloud.com.';
+      default:
+        return _lastError;
+    }
+  }
 
   Future<bool> _ensureToken() async {
     if (_accessToken != null &&
