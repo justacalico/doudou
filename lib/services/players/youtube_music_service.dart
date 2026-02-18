@@ -291,6 +291,7 @@ class YouTubeMusicService implements BaseMediaService {
   };
 
   static Map<String, String>? getStreamHeaders(String url) {
+    // Only add headers for direct googlevideo.com; Piped/Invidious URLs are proxied.
     if (url.contains('googlevideo.com')) return Map.unmodifiable(_streamHttpHeaders);
     return null;
   }
@@ -315,8 +316,7 @@ class YouTubeMusicService implements BaseMediaService {
   static const String _prefKeyInvidiousInstance = 'youtube_music_invidious_instance';
   static const String _prefKeyPipedInstance = 'youtube_music_piped_instance';
 
-  /// Fetch stream URL(s) from Piped API (currently unused; kept for optional re-enable)
-  // ignore: unused_element
+  /// Fetch stream URL(s) from Piped API – proxied URLs, no custom headers needed.
   Future<List<String>> _getPipedStreamUrls(String videoId) async {
     List<String> instances = _pipedInstances;
     try {
@@ -377,8 +377,7 @@ class YouTubeMusicService implements BaseMediaService {
     return [];
   }
 
-  /// Fetch stream URL(s) from Invidious API (currently unused; kept for optional re-enable)
-  // ignore: unused_element
+  /// Fetch stream URL(s) from Invidious API (local=true = proxied), no custom headers needed.
   Future<List<String>> _getInvidiousStreamUrls(String videoId) async {
     List<String> instances = _invidiousInstances;
     try {
@@ -470,6 +469,7 @@ class YouTubeMusicService implements BaseMediaService {
   }
 
   /// Resolves stream URLs for a video ID. Use [requireAuth: false] only for testing.
+  /// Order: Piped/Invidious (proxied, work on desktop) → youtube_explode (direct, needs headers).
   @override
   Future<List<String>> getAlternativeStreamUrlsAsync(
     String trackId, {
@@ -490,7 +490,17 @@ class YouTubeMusicService implements BaseMediaService {
 
     final urls = <String>[];
 
-    // 1) youtube_explode_dart first - fast, local resolution; User-Agent in mpv.conf helps
+    // 1) Piped first – proxied URLs work without custom headers (desktop MPV)
+    final piped = await _getPipedStreamUrls(videoId);
+    urls.addAll(piped);
+
+    // 2) Invidious with local=true – proxied through instance
+    if (urls.isEmpty) {
+      final invidious = await _getInvidiousStreamUrls(videoId);
+      urls.addAll(invidious);
+    }
+
+    // 3) youtube_explode_dart – direct googlevideo URLs (need User-Agent; 403 on desktop MPV)
     // 3.x: multiple clients improve 403 resilience (signature/n-parameter handling)
     final clientConfigs = <List<YoutubeApiClient>?>[
       null, // default
@@ -562,8 +572,6 @@ class YouTubeMusicService implements BaseMediaService {
       }
     }
 
-    // 2) Piped and Invidious skipped - use only youtube_explode direct URLs.
-    // On desktop, MPV fetches directly using user-agent from ~/.config/mpv/mpv.conf.
     final result = urls;
 
     if (kDebugMode) {

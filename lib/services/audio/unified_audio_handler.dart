@@ -8,8 +8,6 @@ import 'package:rxdart/rxdart.dart';
 // Conditional imports for platform-specific features
 import 'audio_state_controller.dart';
 import 'queue_manager.dart';
-import 'stream_proxy_service_stub.dart'
-    if (dart.library.io) 'stream_proxy_service.dart' as _proxy;
 import '../../models/jellyfin_models.dart';
 import '../media_service_manager.dart';
 
@@ -1055,18 +1053,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
 
-    // Desktop + googlevideo: use local proxy (MPV does not apply http-header-fields reliably)
-    String playbackUrl = url;
-    Map<String, String>? headers = _mediaServiceManager.getStreamHeaders(url);
-    if (_isDesktop && url.contains('googlevideo.com') && headers != null) {
-      try {
-        playbackUrl = await _proxy.StreamProxyService.instance.register(url, headers);
-        headers = null; // Proxy adds headers; no need to pass to player
-      } catch (e) {
-        if (kDebugMode) debugPrint('[Playback] StreamProxy register failed: $e');
-      }
-    }
-
+    // Prefer Piped/Invidious URLs (no headers needed). Direct googlevideo needs headers
+    // but MPV on desktop does not apply them reliably; stream proxy is disabled.
+    final headers = _mediaServiceManager.getStreamHeaders(url);
     final isYouTube = url.contains('googlevideo.com');
     if (kDebugMode) {
       final track = _stateController.currentTrack;
@@ -1089,8 +1078,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
 
     final audioSource = headers != null
-        ? AudioSource.uri(Uri.parse(playbackUrl), headers: headers)
-        : AudioSource.uri(Uri.parse(playbackUrl));
+        ? AudioSource.uri(Uri.parse(url), headers: headers)
+        : AudioSource.uri(Uri.parse(url));
 
     // Desktop: Recreate player to prevent native callback crashes
     if (_isDesktop) {
