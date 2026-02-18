@@ -516,18 +516,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
-  int _getNextAvailableTrackIndex(int currentIndex) {
-    final queue = _stateController.queue;
-    final nextIndex = currentIndex + 1;
-
-    if (nextIndex < queue.length) return nextIndex;
-
-    if (_stateController.repeatMode == RepeatMode.all && queue.isNotEmpty) {
-      return 0;
-    }
-
-    return -1;
-  }
 
   /// Handle radio mode - fetch similar tracks
   Future<void> _handleRadioModeNext() async {
@@ -1010,7 +998,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     if (trackId.isEmpty || _preloadingTrackIds.contains(trackId)) return;
     if (_resolvedUrlCache.containsKey(trackId)) {
       final url = _resolvedUrlCache[trackId]!;
-      if (isNext) _preloadedNextUrl = url; else _preloadedPreviousUrl = url;
+      if (isNext) {
+        _preloadedNextUrl = url;
+      } else {
+        _preloadedPreviousUrl = url;
+      }
       return;
     }
     _preloadingTrackIds.add(trackId);
@@ -1023,7 +1015,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (lower.contains('api.soundcloud.com')) continue;
         if (lower.startsWith('http://') || lower.startsWith('https://')) {
           _cacheResolvedUrl(trackId, url);
-          if (isNext) _preloadedNextUrl = url; else _preloadedPreviousUrl = url;
+          if (isNext) {
+            _preloadedNextUrl = url;
+          } else {
+            _preloadedPreviousUrl = url;
+          }
           return;
         }
       }

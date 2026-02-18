@@ -289,16 +289,16 @@ class _AddServerFormState extends State<AddServerForm> {
           onChanged: (String? newType) async {
             if (newType == null) return;
             await _triggerButtonPress();
+            if (!mounted) return;
             if (newType == 'local') {
-              if (mounted) {
-                Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                    builder: (context) =>
-                        const LocalMusicSettingsScreen(isInitialSetup: true),
-                  ),
-                );
-              }
+              if (!mounted) return;
+              Navigator.push(
+                context,
+                CupertinoPageRoute(
+                  builder: (context) =>
+                      const LocalMusicSettingsScreen(isInitialSetup: true),
+                ),
+              );
               return;
             }
             setState(() {

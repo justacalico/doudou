@@ -905,7 +905,7 @@ class SoundCloudService implements BaseMediaService {
 
   /// Resolve transcoding URL to final CDN stream URL.
   /// Per SoundCloud issue #478: use OAuth token, follow 302 redirect to get CDN URL for player.
-  /// SoundCloud API requires Authorization: OAuth <token>, not Bearer (see developers.soundcloud.com).
+  /// SoundCloud API requires `Authorization: OAuth <token>`, not Bearer (see developers.soundcloud.com).
   Future<String?> _resolveTranscodingUrlToCdn(String transcodingUrl) async {
     if (_accessToken == null) return null;
     _log('playback: resolve request ${_redactUrl(transcodingUrl)}');
