@@ -75,10 +75,10 @@ class _AppShellState extends State<AppShell> {
     return st != ServerType.local && st != ServerType.soundcloud && st != ServerType.youtubeMusic;
   }
 
-  /// Albums page: hide for SoundCloud (no albums support).
+  /// Albums page: hide only for SoundCloud (no albums support). YouTube Music has albums.
   bool get _showAlbums {
     final st = context.read<AppState>().mediaServiceManager.currentServerType;
-    return st != ServerType.soundcloud && st != ServerType.youtubeMusic;
+    return st != ServerType.soundcloud;
   }
 
   void _rebuildPageLists() {

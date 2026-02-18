@@ -38,16 +38,15 @@ class _LibraryPageState extends State<LibraryPage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final isSoundCloud = appState.mediaServiceManager
-                .currentServerType ==
-            ServerType.soundcloud ||
-        appState.mediaServiceManager.currentServerType ==
-            ServerType.youtubeMusic;
-        // Page indices match app_shell: when Albums is hidden (SoundCloud/YT), indices shift by 1.
+        final st = appState.mediaServiceManager.currentServerType;
+        final showAlbums = st != ServerType.soundcloud;
+        final isFollowBasedProvider =
+            st == ServerType.soundcloud || st == ServerType.youtubeMusic;
+        // Page indices match app_shell: when Albums is hidden (SoundCloud only), indices shift by 1.
         final albumsIndex = 3;
-        final artistsIndex = isSoundCloud ? 3 : 4;
-        final songsIndex = isSoundCloud ? 4 : 5;
-        final playlistsIndex = isSoundCloud ? 5 : 6;
+        final artistsIndex = showAlbums ? 4 : 3;
+        final songsIndex = showAlbums ? 5 : 4;
+        final playlistsIndex = showAlbums ? 6 : 5;
         return PageTemplate(
           title: l10n.navLibrary,
           child: SingleChildScrollView(
@@ -71,7 +70,7 @@ class _LibraryPageState extends State<LibraryPage> {
                       spacing: spacing,
                       runSpacing: spacing,
                       children: [
-                        if (!isSoundCloud)
+                        if (showAlbums)
                           _LibraryTile(
                             icon: Icons.album_rounded,
                             label: l10n.albums,
@@ -108,7 +107,7 @@ class _LibraryPageState extends State<LibraryPage> {
                     );
                   },
                 ),
-                if (!isSoundCloud && appState.albums.isNotEmpty) ...[
+                if (showAlbums && appState.albums.isNotEmpty) ...[
                   const SizedBox(height: DesktopTheme.spacingXl),
                   SectionHeader(
                     title: l10n.recentlyAddedAlbums,
@@ -142,7 +141,7 @@ class _LibraryPageState extends State<LibraryPage> {
                     ),
                   ),
                 ],
-                if (isSoundCloud &&
+                if (isFollowBasedProvider &&
                     appState.artists.isEmpty &&
                     appState.tracks.isEmpty) ...[
                   const SizedBox(height: DesktopTheme.spacingXl * 2),
