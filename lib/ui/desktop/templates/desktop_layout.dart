@@ -433,14 +433,36 @@ class _TrackInfo extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),
-              Text(
-                displayArtistName(mediaItem!.artist, defaultName: 'Unknown Artist'),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: DesktopTheme.textSecondary,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () {
+                    final artistName = mediaItem!.artist;
+                    if (artistName != null) {
+                      final artist = appState.artists
+                          .where((a) => a.name == artistName)
+                          .firstOrNull;
+                      if (artist != null) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ArtistDetailsPage(artist: artist),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: Text(
+                    displayArtistName(mediaItem!.artist, defaultName: 'Unknown Artist'),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: DesktopTheme.textSecondary,
+                      decoration: TextDecoration.underline,
+                      decorationColor: DesktopTheme.textSecondary.withOpacity(0.5),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
               if (mediaItem!.album != null &&
                   mediaItem!.album!.isNotEmpty &&
@@ -1195,50 +1217,51 @@ class _NowPlayingOverlayState extends State<NowPlayingOverlay>
                                         ),
                                       ),
                                       // Playing from
-                                      if (mediaItem?.album != null &&
-                                          mediaItem!.album!.isNotEmpty &&
-                                          mediaItem!.album! != 'Unknown Album')
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: DesktopTheme.spacingMd,
-                                          ),
-                                          child: MouseRegion(
-                                            cursor: SystemMouseCursors.click,
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                final albumId = mediaItem?.extras?['albumId'] as String?;
-                                                final albumName = mediaItem?.album;
-                                                if (albumId != null) {
-                                                  final album = widget.appState.albums
-                                                      .where((a) => a.id == albumId)
-                                                      .firstOrNull;
-                                                  if (album != null) {
-                                                    NavigationService().navigateToAlbum(album);
-                                                    return;
-                                                  }
-                                                }
-                                                if (albumName != null) {
-                                                  final album = widget.appState.albums
-                                                      .where((a) => a.name == albumName)
-                                                      .firstOrNull;
-                                                  if (album != null) {
-                                                    NavigationService().navigateToAlbum(album);
-                                                  }
-                                                }
-                                              },
-                                              child: Row(
-                                                children: [
-                                                  Text(
-                                                    '${l10n.playingFrom} ',
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color:
-                                                          DesktopTheme.textTertiary,
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: Text(
-                                                      mediaItem!.album!,
+                                      if (mediaItem != null &&
+                                          mediaItem.album != null &&
+                                          mediaItem.album!.isNotEmpty &&
+                                          mediaItem.album! != 'Unknown Album')
+                                        Builder(
+                                          builder: (context) {
+                                            final albumName = mediaItem.album!;
+                                            return Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: DesktopTheme.spacingMd,
+                                              ),
+                                              child: MouseRegion(
+                                                cursor: SystemMouseCursors.click,
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    final albumId = mediaItem.extras?['albumId'] as String?;
+                                                    if (albumId != null) {
+                                                      final album = widget.appState.albums
+                                                          .where((a) => a.id == albumId)
+                                                          .firstOrNull;
+                                                      if (album != null) {
+                                                        NavigationService().navigateToAlbum(album);
+                                                        return;
+                                                      }
+                                                    }
+                                                    final album = widget.appState.albums
+                                                        .where((a) => a.name == albumName)
+                                                        .firstOrNull;
+                                                    if (album != null) {
+                                                      NavigationService().navigateToAlbum(album);
+                                                    }
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      Text(
+                                                        '${l10n.playingFrom} ',
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color:
+                                                              DesktopTheme.textTertiary,
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: Text(
+                                                          albumName,
                                                       style: TextStyle(
                                                         fontSize: 12,
                                                         fontWeight: FontWeight.w500,
@@ -1255,6 +1278,8 @@ class _NowPlayingOverlayState extends State<NowPlayingOverlay>
                                               ),
                                             ),
                                           ),
+                                            );
+                                          },
                                         ),
                                       const SizedBox(
                                         height: DesktopTheme.spacingSm,
@@ -1418,7 +1443,7 @@ class _NowPlayingMain extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Album art
+          // Album art (clickable to navigate to album)
           Expanded(
             child: Center(
               child: AspectRatio(
@@ -1436,7 +1461,15 @@ class _NowPlayingMain extends StatelessWidget {
                     ],
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: _getAlbumArtWidget(mediaItem),
+                  child: hasAlbum
+                      ? MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () => _navigateToAlbum(context),
+                            child: _getAlbumArtWidget(mediaItem),
+                          ),
+                        )
+                      : _getAlbumArtWidget(mediaItem),
                 ),
               ),
             ),
@@ -1977,14 +2010,36 @@ class _QueueItemState extends State<_QueueItem> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      widget.track.artistName ?? '',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: DesktopTheme.textTertiary,
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: () {
+                          final artistName = widget.track.artistName;
+                          if (artistName != null && artistName.isNotEmpty) {
+                            final artist = widget.appState.artists
+                                .where((a) => a.name == artistName)
+                                .firstOrNull;
+                            if (artist != null) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => ArtistDetailsPage(artist: artist),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: Text(
+                          widget.track.artistName ?? '',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: DesktopTheme.textTertiary,
+                            decoration: TextDecoration.underline,
+                            decorationColor: DesktopTheme.textTertiary.withOpacity(0.4),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     if (widget.track.albumName != null &&
                         widget.track.albumName!.isNotEmpty) ...[
