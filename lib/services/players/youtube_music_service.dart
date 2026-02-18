@@ -280,12 +280,14 @@ class YouTubeMusicService implements BaseMediaService {
   }
 
   /// HTTP headers for googlevideo.com (403 without browser-like User-Agent).
-  /// On desktop, headers are passed to media_kit/libmpv via useProxyForRequestHeaders: false.
+  /// On desktop, StreamProxyService fetches with these headers and streams to MPV.
   static const Map<String, String> _streamHttpHeaders = {
     'User-Agent':
         'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': '*/*',
     'Accept-Language': 'en-US,en;q=0.9',
+    'Origin': 'https://www.youtube.com',
+    'Referer': 'https://www.youtube.com/',
   };
 
   static Map<String, String>? getStreamHeaders(String url) {
