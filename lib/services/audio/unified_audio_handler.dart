@@ -476,37 +476,30 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
-  /// Play next track with retry logic (desktop)
+  /// Play next track with retry logic (desktop).
+  /// Retries the same track up to maxRetries; does NOT skip to next track on
+  /// failure, to avoid silently jumping over multiple tracks (e.g. SoundCloud).
   Future<void> _playNextTrackWithRetry(
     int startIndex, {
     int maxRetries = 3,
   }) async {
-    int currentIndex = startIndex;
     int retryCount = 0;
 
-    while (retryCount < maxRetries &&
-        currentIndex < _stateController.queue.length) {
+    while (retryCount < maxRetries) {
       try {
-        await skipToQueueItem(currentIndex);
+        await skipToQueueItem(startIndex);
         return;
       } catch (e) {
         retryCount++;
         if (retryCount >= maxRetries) {
-          retryCount = 0;
-          currentIndex = _getNextAvailableTrackIndex(currentIndex);
-          if (currentIndex == -1) {
-            _stateController.updateState(AudioPlayerState.completed);
-            _stateController.updateUserIntent(false);
-            return;
-          }
-        } else {
-          await Future.delayed(const Duration(milliseconds: 500));
+          _stateController.updateError('Failed to play track: $e');
+          _stateController.updateState(AudioPlayerState.error);
+          _stateController.updateUserIntent(false);
+          return;
         }
+        await Future.delayed(const Duration(milliseconds: 500));
       }
     }
-
-    _stateController.updateState(AudioPlayerState.completed);
-    _stateController.updateUserIntent(false);
   }
 
   int _getNextAvailableTrackIndex(int currentIndex) {
@@ -939,6 +932,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     } catch (e) {
       _stateController.updateError('Skip failed: $e');
       _stateController.updateState(AudioPlayerState.error);
+      rethrow;
     }
   }
 
