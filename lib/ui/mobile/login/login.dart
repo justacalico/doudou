@@ -19,7 +19,10 @@ import 'package:doudou/ui/layout/app_shell.dart';
 enum JellyfinAuthMethod { account, apiKey, quickConnect }
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  /// When true, pops on success instead of replacing route (used when opened from Settings/overlay).
+  final bool fromSettings;
+
+  const LoginScreen({super.key, this.fromSettings = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -1660,6 +1663,9 @@ class _LoginScreenState extends State<LoginScreen>
           _quickConnectCode = null;
           _quickConnectSecret = null;
         });
+        if (mounted && widget.fromSettings) {
+          Navigator.of(context).pop();
+        }
       } else {
         await _triggerHapticFeedback(isSuccess: false);
         if (!mounted) return;
@@ -1903,12 +1909,15 @@ class _LoginScreenState extends State<LoginScreen>
       if (success && mounted) {
         // Success vibration
         await _triggerHapticFeedback(isSuccess: true);
-        // Force navigation to home screen
         if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            CupertinoPageRoute(builder: (context) => const AppShell()),
-            (route) => false,
-          );
+          if (widget.fromSettings) {
+            Navigator.of(context).pop();
+          } else {
+            Navigator.of(context).pushAndRemoveUntil(
+              CupertinoPageRoute(builder: (context) => const AppShell()),
+              (route) => false,
+            );
+          }
         }
       } else if (mounted) {
         // Error vibration

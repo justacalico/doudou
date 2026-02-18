@@ -14,6 +14,7 @@ import 'package:doudou/services/update_service.dart';
 
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
+import 'package:doudou/ui/mobile/login/login.dart';
 
 /// Breakpoint: below this width use single-column layout (all sections stacked) instead of sidebar.
 const double _kSettingsBreakpoint = 768.0;
@@ -816,6 +817,28 @@ class _ServerSection extends StatelessWidget {
               style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             SizedBox(height: isSmall ? 12 : 24),
+            if (!appState.isLoggedIn) ...[
+              Padding(
+                padding: EdgeInsets.only(bottom: isSmall ? 12 : 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(fromSettings: true),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Add Server'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             Card(
               child: Padding(
                 padding: EdgeInsets.all(isSmall ? 12 : 16),

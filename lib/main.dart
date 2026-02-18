@@ -14,7 +14,6 @@ import 'services/logging_service.dart';
 import 'services/players/jellyfin_service.dart';
 import 'services/voice_command_handler.dart';
 import 'l10n/app_localizations.dart';
-import 'ui/mobile/login/login.dart';
 import 'ui/mobile/widgets/apple_design/apple_theme.dart';
 import 'ui/desktop/templates/desktop_theme.dart';
 import 'ui/layout/app_shell.dart';
@@ -115,11 +114,7 @@ class DoudouApp extends StatelessWidget {
                       );
                     }
 
-                    if (appState.isLoggedIn) {
-                      return const AppShell();
-                    } else {
-                      return const LoginScreen();
-                    }
+                    return const AppShell();
                   },
                 ),
                 debugShowCheckedModeBanner: false,

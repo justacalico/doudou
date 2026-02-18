@@ -26,6 +26,7 @@ import 'package:doudou/ui/pages/tracks_page.dart';
 import 'package:doudou/ui/pages/playlists_page.dart';
 import 'package:doudou/ui/pages/downloads_page.dart';
 import 'package:doudou/ui/pages/settings_page.dart';
+import 'package:doudou/ui/mobile/login/login.dart';
 
 /// Single responsive shell: sidebar on desktop, bottom navbar on mobile.
 /// Uses one [selectedIndex] and one set of pages so resizing never reloads or loses state.
@@ -157,10 +158,14 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isDesktop = constraints.maxWidth >= kLayoutBreakpoint;
-        void openNowPlaying() {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return Stack(
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isDesktop = constraints.maxWidth >= kLayoutBreakpoint;
+                void openNowPlaying() {
           Navigator.of(context).push(
             PageRouteBuilder(
               opaque: false,
@@ -215,7 +220,7 @@ class _AppShellState extends State<AppShell> {
             ),
             bottomNavigationBar: isDesktop
                 ? null
-                : _MobileNavBar(
+                  : _MobileNavBar(
                     currentIndex: _selectedIndex,
                     onTap: _navigateTo,
                     itemCount: _pages.length,
@@ -225,6 +230,21 @@ class _AppShellState extends State<AppShell> {
           ),
         );
       },
+            ),
+            if (!appState.isLoggedIn && _selectedIndex != _settingsIndex)
+              _AddServerOverlay(
+                onAddServer: _openAddServer,
+                onOpenSettings: () => _navigateTo(_settingsIndex),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _openAddServer() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const LoginScreen(fromSettings: true)),
     );
   }
 
@@ -240,6 +260,71 @@ class _AppShellState extends State<AppShell> {
         HardwareKeyboard.instance.isControlPressed) {
       appState.skipToPrevious();
     }
+  }
+}
+
+class _AddServerOverlay extends StatelessWidget {
+  final VoidCallback onAddServer;
+  final VoidCallback onOpenSettings;
+
+  const _AddServerOverlay({
+    required this.onAddServer,
+    required this.onOpenSettings,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Positioned.fill(
+      child: Material(
+        color: DesktopTheme.backgroundDeep,
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(DesktopTheme.spacingXl * 2),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.add_circle_outline_rounded,
+                    size: 80,
+                    color: DesktopTheme.textMuted,
+                  ),
+                  const SizedBox(height: DesktopTheme.spacingXl),
+                  Text(
+                    'Add a server from Settings to get started',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: DesktopTheme.textSecondary,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: DesktopTheme.spacingXl * 2),
+                  FilledButton.icon(
+                    onPressed: onAddServer,
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Add Server'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesktopTheme.spacingXl,
+                        vertical: DesktopTheme.spacingMd,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: DesktopTheme.spacingMd),
+                  TextButton.icon(
+                    onPressed: onOpenSettings,
+                    icon: const Icon(Icons.settings_rounded),
+                    label: Text(l10n.settings),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
