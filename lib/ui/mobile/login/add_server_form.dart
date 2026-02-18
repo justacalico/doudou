@@ -169,7 +169,7 @@ class _AddServerFormState extends State<AddServerForm> {
                   ),
                 ),
 
-              if (_selectedServerType == 'youtubeMusic')
+              if (_selectedServerType == 'youtubeMusic') ...[
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
@@ -182,6 +182,32 @@ class _AddServerFormState extends State<AddServerForm> {
                     ),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        CupertinoIcons.exclamationmark_triangle_fill,
+                        size: 16,
+                        color: AppleColors.systemOrange.withOpacity(0.9),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Playback is broken in doudou with YouTube Music and we can\'t get it working yet.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark
+                                ? Colors.white.withOpacity(0.6)
+                                : Colors.black.withOpacity(0.5),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
 
               if (_selectedServerType != 'soundcloud' && _selectedServerType != 'youtubeMusic')
                 SizedBox(height: isDesktop ? 16 : 12),
