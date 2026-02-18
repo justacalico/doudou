@@ -856,19 +856,31 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                     child: LayoutBuilder(
                                                       builder: (context,
                                                           constraints) {
+                                                        final progress = sliderValue
+                                                            .clamp(0.0, 1.0);
+                                                        const thumbRadius = 6.0;
+                                                        final thumbLeft = (constraints
+                                                                    .maxWidth *
+                                                                progress -
+                                                            thumbRadius)
+                                                            .clamp(
+                                                                0.0,
+                                                                constraints
+                                                                        .maxWidth -
+                                                                    thumbRadius *
+                                                                        2);
                                                         return Stack(
+                                                          clipBehavior:
+                                                              Clip.none,
                                                           alignment:
                                                               Alignment
                                                                   .centerLeft,
                                                           children: [
-                                                            // Filled portion: left to right only (single direction)
+                                                            // Filled portion: left to right only
                                                             SizedBox(
                                                               width: constraints
                                                                       .maxWidth *
-                                                                  sliderValue
-                                                                      .clamp(
-                                                                          0.0,
-                                                                          1.0),
+                                                                  progress,
                                                               child: Container(
                                                                 decoration: BoxDecoration(
                                                                   gradient: const LinearGradient(
@@ -887,6 +899,35 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                                       BorderRadius
                                                                           .circular(
                                                                               6),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            // Playhead (thumb)
+                                                            Positioned(
+                                                              left: thumbLeft +
+                                                                  thumbRadius,
+                                                              child: Container(
+                                                                width: thumbRadius *
+                                                                    2,
+                                                                height: thumbRadius *
+                                                                    2,
+                                                                decoration: BoxDecoration(
+                                                                  shape: BoxShape
+                                                                      .circle,
+                                                                  color: Colors
+                                                                      .white,
+                                                                  boxShadow: [
+                                                                    BoxShadow(
+                                                                      color: Colors
+                                                                          .black
+                                                                          .withOpacity(
+                                                                              0.3),
+                                                                      blurRadius:
+                                                                          4,
+                                                                      offset: const Offset(
+                                                                          0, 1),
+                                                                    ),
+                                                                  ],
                                                                 ),
                                                               ),
                                                             ),

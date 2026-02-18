@@ -304,27 +304,52 @@ class _ProgressBarState extends State<_ProgressBar> {
           _dragValue = null;
         },
         child: SizedBox(
-          height: isExpanded ? 6 : 4,
+          height: isExpanded ? 12 : 8,
           child: LayoutBuilder(
             builder: (context, constraints) {
+              final progress = currentProgress.clamp(0.0, 1.0);
+              const thumbRadius = 6.0;
+              final thumbLeft = (constraints.maxWidth * progress - thumbRadius)
+                  .clamp(0.0, constraints.maxWidth - thumbRadius * 2);
               return Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.centerLeft,
                 children: [
                   // Background track
                   Container(
                     decoration: BoxDecoration(
                       color: DesktopTheme.backgroundElevated,
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                   // Active track
                   FractionallySizedBox(
-                    widthFactor: currentProgress.clamp(0.0, 1.0),
+                    widthFactor: progress,
                     child: Container(
                       decoration: BoxDecoration(
                         color: isExpanded
                             ? theme.colorScheme.primary
                             : DesktopTheme.textPrimary,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  // Playhead (thumb)
+                  Positioned(
+                    left: thumbLeft + thumbRadius,
+                    child: Container(
+                      width: thumbRadius * 2,
+                      height: thumbRadius * 2,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                       ),
                     ),
                   ),
