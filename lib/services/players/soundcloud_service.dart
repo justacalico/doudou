@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:kib_debug_print/kib_debug_print.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
@@ -41,6 +42,15 @@ class SoundCloudService implements BaseMediaService {
   String? _embeddedClientId;
   DateTime? _embeddedClientIdFetched;
   static const Duration _embeddedClientIdCache = Duration(hours: 1);
+
+  // Local playlists and favorites (persisted in SharedPreferences)
+  static const String _prefsPlaylistsKey = 'soundcloud_playlists';
+  static const String _prefsPlaylistTracksKey = 'soundcloud_playlist_tracks';
+  static const String _prefsFavoritesKey = 'soundcloud_favorites';
+  List<Playlist> _localPlaylists = [];
+  final Map<String, List<Map<String, dynamic>>> _localPlaylistTracks = {};
+  List<Map<String, dynamic>> _localFavorites = [];
+  bool _localDataLoaded = false;
 
   @override
   ServerType get serverType => ServerType.soundcloud;
@@ -185,7 +195,99 @@ class SoundCloudService implements BaseMediaService {
     _tokenExpiry = null;
     _lastError = null;
     _dio.options.headers.remove('Authorization');
+    _localPlaylists = [];
+    _localPlaylistTracks.clear();
+    _localFavorites = [];
+    _localDataLoaded = false;
   }
+
+  Future<void> _loadLocalData() async {
+    if (_localDataLoaded) return;
+    _localDataLoaded = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final playlistsJson = prefs.getString(_prefsPlaylistsKey);
+      if (playlistsJson != null) {
+        final list = jsonDecode(playlistsJson) as List<dynamic>?;
+        _localPlaylists = (list ?? []).map((e) => _playlistFromJson(e as Map<String, dynamic>)).toList();
+      }
+      final tracksJson = prefs.getString(_prefsPlaylistTracksKey);
+      if (tracksJson != null) {
+        final map = jsonDecode(tracksJson) as Map<String, dynamic>?;
+        _localPlaylistTracks.clear();
+        if (map != null) {
+          for (final entry in map.entries) {
+            final list = entry.value as List<dynamic>?;
+            _localPlaylistTracks[entry.key] = list?.cast<Map<String, dynamic>>() ?? [];
+          }
+        }
+      }
+      final favJson = prefs.getString(_prefsFavoritesKey);
+      if (favJson != null) {
+        final list = jsonDecode(favJson) as List<dynamic>?;
+        _localFavorites = list?.cast<Map<String, dynamic>>() ?? [];
+      }
+    } catch (e) {
+      if (kDebugMode) _log('_loadLocalData failed: $e', isError: true);
+    }
+  }
+
+  Future<void> _saveLocalPlaylists() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefsPlaylistsKey, jsonEncode(_localPlaylists.map(_playlistToJson).toList()));
+      final tracksMap = <String, List<Map<String, dynamic>>>{};
+      for (final e in _localPlaylistTracks.entries) {
+        tracksMap[e.key] = e.value;
+      }
+      await prefs.setString(_prefsPlaylistTracksKey, jsonEncode(tracksMap));
+    } catch (e) {
+      if (kDebugMode) _log('_saveLocalPlaylists failed: $e', isError: true);
+    }
+  }
+
+  Future<void> _saveLocalFavorites() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefsFavoritesKey, jsonEncode(_localFavorites));
+    } catch (e) {
+      if (kDebugMode) _log('_saveLocalFavorites failed: $e', isError: true);
+    }
+  }
+
+  static Map<String, dynamic> _playlistToJson(Playlist p) => {
+        'id': p.id,
+        'name': p.name,
+        'imageUrl': p.imageUrl,
+        'trackCount': p.trackCount,
+      };
+  static Playlist _playlistFromJson(Map<String, dynamic> j) => Playlist(
+        id: j['id'] ?? '',
+        name: j['name'] ?? '',
+        imageUrl: j['imageUrl'],
+        trackCount: (j['trackCount'] as num?)?.toInt() ?? 0,
+      );
+
+  static Track _trackFromStoredJson(Map<String, dynamic> j) => Track(
+        id: j['id'] ?? '',
+        name: j['name'] ?? '',
+        artistName: j['artistName'],
+        albumName: j['albumName'],
+        albumId: j['albumId'],
+        duration: (j['duration'] as num?)?.toInt(),
+        imageUrl: j['imageUrl'],
+        isFavorite: j['isFavorite'] == true,
+      );
+  static Map<String, dynamic> _trackToStoredJson(Track t) => {
+        'id': t.id,
+        'name': t.name,
+        'artistName': t.artistName,
+        'albumName': t.albumName,
+        'albumId': t.albumId,
+        'duration': t.duration,
+        'imageUrl': t.imageUrl,
+        'isFavorite': t.isFavorite,
+      };
 
   @override
   dynamic get currentServer => {
@@ -225,7 +327,10 @@ class SoundCloudService implements BaseMediaService {
   }
 
   @override
-  Future<List<Track>> getStarredTracks() async => [];
+  Future<List<Track>> getStarredTracks() async {
+    await _loadLocalData();
+    return _localFavorites.map(_trackFromStoredJson).toList();
+  }
 
   @override
   Future<List<Album>> getStarredAlbums() async => [];
@@ -281,87 +386,28 @@ class SoundCloudService implements BaseMediaService {
 
   @override
   Future<List<Playlist>> getPlaylists() async {
-    if (!await _ensureToken()) return [];
-    try {
-      final response = await _dio.get<dynamic>(
-        '/playlists',
-        queryParameters: {
-          'q': 'music',
-          'representation': 'compact',
-          'limit': 50,
-          'linked_partitioning': 'true',
-        },
-      );
-      final data = response.data;
-      if (data == null) return [];
-      final collection = data is List
-          ? data
-          : (data is Map && data['collection'] != null)
-              ? data['collection'] as List<dynamic>
-              : <dynamic>[];
-      final playlists = <Playlist>[];
-      for (final item in collection) {
-        final map = item as Map<String, dynamic>;
-        final id = map['id']?.toString();
-        if (id == null) continue;
-        final title = map['title'] as String? ?? 'Playlist';
-        final trackCount = (map['track_count'] as num?)?.toInt() ??
-            (map['tracks'] as List<dynamic>?)?.length ??
-            0;
-        final artwork = map['artwork_url'] as String?;
-        playlists.add(Playlist(
-          id: id,
-          name: title,
-          imageUrl: artwork,
-          trackCount: trackCount,
-        ));
-      }
-      return playlists;
-    } catch (e) {
-      _log('getPlaylists failed: $e', isError: true);
-      return [];
-    }
+    await _loadLocalData();
+    return List<Playlist>.from(_localPlaylists);
   }
 
   @override
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
-    if (!await _ensureToken()) return [];
-    try {
-      // Default representation returns full track objects
-      final response = await _dio.get<Map<String, dynamic>>(
-        '/playlists/$playlistId',
+    await _loadLocalData();
+    final list = _localPlaylistTracks[playlistId];
+    if (list == null) return [];
+    return list.map((j) {
+      final t = _trackFromStoredJson(j);
+      return Track(
+        id: t.id,
+        name: t.name,
+        artistName: t.artistName,
+        albumName: t.albumName,
+        albumId: playlistId,
+        duration: t.duration,
+        imageUrl: t.imageUrl,
+        isFavorite: t.isFavorite,
       );
-      final data = response.data;
-      if (data == null) return [];
-      final trackList = data['tracks'] as List<dynamic>? ?? [];
-      final tracks = <Track>[];
-      for (final t in trackList) {
-        if (t is! Map<String, dynamic>) continue;
-        final id = t['id']?.toString();
-        if (id == null) continue;
-        final title = t['title'] as String? ?? 'Unknown';
-        final user = t['user'] as Map<String, dynamic>?;
-        final artistName = user?['username'] as String? ?? 'Unknown Artist';
-        final durationMs = t['duration'] != null
-            ? (t['duration'] as num).toInt()
-            : null;
-        final artwork = t['artwork_url'] as String?;
-        tracks.add(Track(
-          id: id,
-          name: title,
-          artistName: artistName,
-          albumName: null,
-          albumId: playlistId,
-          duration: durationMs,
-          imageUrl: artwork,
-          isFavorite: false,
-        ));
-      }
-      return tracks;
-    } catch (e) {
-      _log('getPlaylistTracks failed: $e', isError: true);
-      return [];
-    }
+    }).toList();
   }
 
   @override
@@ -950,6 +996,132 @@ class SoundCloudService implements BaseMediaService {
 
   @override
   Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
-    return false;
+    await _loadLocalData();
+    final numericId = _normalizeTrackId(itemId);
+    if (isFavorite) {
+      _localFavorites.removeWhere((j) => (j['id'] ?? '').toString() == numericId || (j['id'] ?? '').toString() == itemId);
+      await _saveLocalFavorites();
+      return true;
+    }
+    // Adding to favorites: fetch track from API to store full snapshot
+    if (!await _ensureToken()) return false;
+    try {
+      final response = await _dio.get<Map<String, dynamic>>('/tracks/$numericId');
+      final data = response.data;
+      if (data == null) return false;
+      final user = data['user'] as Map<String, dynamic>?;
+      final artistName = user?['username'] as String? ?? 'Unknown Artist';
+      final track = Track(
+        id: data['id']?.toString() ?? numericId,
+        name: data['title'] as String? ?? 'Unknown',
+        artistName: artistName,
+        albumName: null,
+        duration: (data['duration'] as num?)?.toInt(),
+        imageUrl: data['artwork_url'] as String?,
+        isFavorite: true,
+      );
+      if (_localFavorites.any((j) => (j['id'] ?? '').toString() == track.id)) return true;
+      _localFavorites.add(_trackToStoredJson(track));
+      await _saveLocalFavorites();
+      return true;
+    } catch (e) {
+      if (kDebugMode) _log('toggleFavorite fetch track failed: $e', isError: true);
+      return false;
+    }
+  }
+
+  /// Local playlist CRUD (used by media_service_manager for SoundCloud)
+  Future<Playlist?> createPlaylist(String name) async {
+    await _loadLocalData();
+    final id = 'sc_local_${DateTime.now().millisecondsSinceEpoch}_${name.hashCode.abs()}';
+    final playlist = Playlist(id: id, name: name, trackCount: 0);
+    _localPlaylists.add(playlist);
+    _localPlaylistTracks[id] = [];
+    await _saveLocalPlaylists();
+    return playlist;
+  }
+
+  Future<bool> addToPlaylist(String playlistId, String trackId) async {
+    await _loadLocalData();
+    if (!_localPlaylists.any((p) => p.id == playlistId)) return false;
+    final numericId = _normalizeTrackId(trackId);
+    final list = _localPlaylistTracks[playlistId] ?? [];
+    if (list.any((j) => (j['id'] ?? '').toString() == numericId)) return true;
+    if (!await _ensureToken()) return false;
+    try {
+      final response = await _dio.get<Map<String, dynamic>>('/tracks/$numericId');
+      final data = response.data;
+      if (data == null) return false;
+      final user = data['user'] as Map<String, dynamic>?;
+      final track = Track(
+        id: data['id']?.toString() ?? numericId,
+        name: data['title'] as String? ?? 'Unknown',
+        artistName: user?['username'] as String? ?? 'Unknown Artist',
+        albumName: null,
+        albumId: playlistId,
+        duration: (data['duration'] as num?)?.toInt(),
+        imageUrl: data['artwork_url'] as String?,
+        isFavorite: false,
+      );
+      list.add(_trackToStoredJson(track));
+      _localPlaylistTracks[playlistId] = list;
+      final idx = _localPlaylists.indexWhere((p) => p.id == playlistId);
+      if (idx >= 0) {
+        final p = _localPlaylists[idx];
+        _localPlaylists[idx] = Playlist(
+          id: p.id,
+          name: p.name,
+          imageUrl: p.imageUrl ?? track.imageUrl,
+          trackCount: list.length,
+        );
+      }
+      await _saveLocalPlaylists();
+      return true;
+    } catch (e) {
+      if (kDebugMode) _log('addToPlaylist fetch track failed: $e', isError: true);
+      return false;
+    }
+  }
+
+  Future<bool> removeTrackFromPlaylist(String playlistId, String trackId) async {
+    await _loadLocalData();
+    final list = _localPlaylistTracks[playlistId];
+    if (list == null) return false;
+    final numericId = _normalizeTrackId(trackId);
+    final before = list.length;
+    list.removeWhere((j) => (j['id'] ?? '').toString() == numericId || (j['id'] ?? '').toString() == trackId);
+    if (list.length == before) return false;
+    final idx = _localPlaylists.indexWhere((p) => p.id == playlistId);
+    if (idx >= 0) {
+      final p = _localPlaylists[idx];
+      _localPlaylists[idx] = Playlist(
+        id: p.id,
+        name: p.name,
+        imageUrl: list.isNotEmpty ? (list.first['imageUrl'] ?? p.imageUrl) : null,
+        trackCount: list.length,
+      );
+    }
+    await _saveLocalPlaylists();
+    return true;
+  }
+
+  Future<bool> renamePlaylist(String playlistId, String newName) async {
+    await _loadLocalData();
+    final idx = _localPlaylists.indexWhere((p) => p.id == playlistId);
+    if (idx < 0) return false;
+    final p = _localPlaylists[idx];
+    _localPlaylists[idx] = Playlist(id: p.id, name: newName, imageUrl: p.imageUrl, trackCount: p.trackCount);
+    await _saveLocalPlaylists();
+    return true;
+  }
+
+  Future<bool> removePlaylist(String playlistId) async {
+    await _loadLocalData();
+    final idx = _localPlaylists.indexWhere((p) => p.id == playlistId);
+    if (idx < 0) return false;
+    _localPlaylists.removeAt(idx);
+    _localPlaylistTracks.remove(playlistId);
+    await _saveLocalPlaylists();
+    return true;
   }
 }

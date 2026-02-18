@@ -388,7 +388,9 @@ class MediaServiceManager {
         // Plex playlist creation not yet implemented
         break;
       case ServerType.soundcloud:
-        // SoundCloud playlists not implemented
+        if (_currentService is SoundCloudService) {
+          return await (_currentService as SoundCloudService).createPlaylist(name);
+        }
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -422,6 +424,12 @@ class MediaServiceManager {
         // Plex add to playlist not yet implemented
         break;
       case ServerType.soundcloud:
+        if (_currentService is SoundCloudService) {
+          return await (_currentService as SoundCloudService).addToPlaylist(
+            playlistId,
+            trackId,
+          );
+        }
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -476,6 +484,12 @@ class MediaServiceManager {
         // Plex remove track from playlist not yet implemented
         break;
       case ServerType.soundcloud:
+        if (_currentService is SoundCloudService) {
+          return await (_currentService as SoundCloudService).removeTrackFromPlaylist(
+            playlistId,
+            trackId,
+          );
+        }
         break;
     }
     return false;
@@ -503,6 +517,12 @@ class MediaServiceManager {
         // Plex rename playlist not yet implemented
         break;
       case ServerType.soundcloud:
+        if (_currentService is SoundCloudService) {
+          return await (_currentService as SoundCloudService).renamePlaylist(
+            playlistId,
+            newName,
+          );
+        }
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -533,6 +553,11 @@ class MediaServiceManager {
         // Plex remove playlist not yet implemented
         break;
       case ServerType.soundcloud:
+        if (_currentService is SoundCloudService) {
+          return await (_currentService as SoundCloudService).removePlaylist(
+            playlistId,
+          );
+        }
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
