@@ -473,9 +473,13 @@ class YouTubeMusicService implements BaseMediaService {
     return [];
   }
 
+  /// Resolves stream URLs for a video ID. Use [requireAuth: false] only for testing.
   @override
-  Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
-    if (kIsWeb || !_authenticated) return [];
+  Future<List<String>> getAlternativeStreamUrlsAsync(
+    String trackId, {
+    bool requireAuth = true,
+  }) async {
+    if (requireAuth && (kIsWeb || !_authenticated)) return [];
     final videoId = _normalizeVideoId(trackId);
     if (videoId.isEmpty) {
       if (kDebugMode) {
