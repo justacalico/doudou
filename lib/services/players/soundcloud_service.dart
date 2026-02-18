@@ -248,15 +248,24 @@ class SoundCloudService implements BaseMediaService {
   }
 
   /// Fetch tracks for a specific artist (user) via /users/{id}/tracks
+  /// SoundCloud returns { collection: [...], next_href?: string } when linked_partitioning=true
   Future<List<Track>> getArtistTracks(String userId, {String? artistName}) async {
     if (!await _ensureToken()) return [];
     try {
-      final response = await _dio.get<List<dynamic>>(
+      final response = await _dio.get<dynamic>(
         '/users/$userId/tracks',
         queryParameters: {'limit': 100, 'linked_partitioning': 'true'},
       );
-      final list = response.data;
-      if (list == null) return [];
+      final raw = response.data;
+      List<dynamic> list;
+      if (raw is List<dynamic>) {
+        list = raw;
+      } else if (raw is Map<String, dynamic>) {
+        final coll = raw['collection'];
+        list = coll is List<dynamic> ? coll : <dynamic>[];
+      } else {
+        return [];
+      }
       final fallbackName = artistName ?? _localFollowedArtists
           .where((a) => a['id'] == userId)
           .map((a) => a['name'] as String)
@@ -287,6 +296,7 @@ class SoundCloudService implements BaseMediaService {
   }
 
   /// Fetch tracks from followed artists via /users/{id}/tracks
+  /// SoundCloud returns { collection: [...], next_href?: string } when linked_partitioning=true
   Future<List<Track>> _getTracksFromFollowedArtists({int? maxPerArtist}) async {
     if (!await _ensureToken()) return [];
     final limit = maxPerArtist ?? 50;
@@ -295,12 +305,20 @@ class SoundCloudService implements BaseMediaService {
       final userId = a['id'] as String?;
       if (userId == null || userId.isEmpty) continue;
       try {
-        final response = await _dio.get<List<dynamic>>(
+        final response = await _dio.get<dynamic>(
           '/users/$userId/tracks',
           queryParameters: {'limit': limit, 'linked_partitioning': 'true'},
         );
-        final list = response.data;
-        if (list == null) continue;
+        final raw = response.data;
+        List<dynamic> list;
+        if (raw is List<dynamic>) {
+          list = raw;
+        } else if (raw is Map<String, dynamic>) {
+          final coll = raw['collection'];
+          list = coll is List<dynamic> ? coll : <dynamic>[];
+        } else {
+          continue;
+        }
         final artistName = a['name'] as String? ?? 'Unknown Artist';
         for (final item in list) {
           if (item is! Map<String, dynamic>) continue;
