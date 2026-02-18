@@ -456,33 +456,39 @@ class YouTubeMusicService implements BaseMediaService {
   }
 
   /// Pick audio stream URLs from manifest (Harmony-Music style: prefer itag 251/140, then by bitrate).
-  List<String> _pickAudioUrlsFromManifest(dynamic manifest) {
+  /// Typed comparators avoid '(dynamic, dynamic) => dynamic' not a subtype of '((AudioOnlyStreamInfo, AudioOnlyStreamInfo) => int)'.
+  List<String> _pickAudioUrlsFromManifest(StreamManifest manifest) {
     final audioOnly = manifest.audioOnly;
     final muxed = manifest.muxed;
     final audio = manifest.audio;
+
+    int compareAudioOnly(AudioOnlyStreamInfo a, AudioOnlyStreamInfo b) =>
+        b.bitrate.compareTo(a.bitrate);
 
     // Prefer audio-only, with Harmony's itag preference (251 opus, 140 mp4a).
     if (audioOnly.isNotEmpty) {
       final list = audioOnly.toList();
       final preferred = list.where((s) => _preferredItags.contains(s.tag)).toList();
       final fallback = list.where((s) => _fallbackItags.contains(s.tag)).toList();
-      preferred.sort((a, b) => b.bitrate.compareTo(a.bitrate));
-      fallback.sort((a, b) => b.bitrate.compareTo(a.bitrate));
+      preferred.sort(compareAudioOnly);
+      fallback.sort(compareAudioOnly);
       final rest = list
           .where((s) => !_preferredItags.contains(s.tag) && !_fallbackItags.contains(s.tag))
           .toList();
-      rest.sort((a, b) => b.bitrate.compareTo(a.bitrate));
+      rest.sort(compareAudioOnly);
       final ordered = [...preferred, ...fallback, ...rest];
       if (ordered.isNotEmpty) {
         return ordered.map((s) => s.url.toString()).toList();
       }
     }
     if (muxed.isNotEmpty) {
-      final list = muxed.toList()..sort((a, b) => b.bitrate.compareTo(a.bitrate));
+      final list = muxed.toList()
+        ..sort((MuxedStreamInfo a, MuxedStreamInfo b) => b.bitrate.compareTo(a.bitrate));
       return list.map((s) => s.url.toString()).toList();
     }
     if (audio.isNotEmpty) {
-      final list = audio.toList()..sort((a, b) => b.bitrate.compareTo(a.bitrate));
+      final list = audio.toList()
+        ..sort((AudioStreamInfo a, AudioStreamInfo b) => b.bitrate.compareTo(a.bitrate));
       return list.map((s) => s.url.toString()).toList();
     }
     return [];
