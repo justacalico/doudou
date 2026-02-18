@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
 import '../../../providers/app_state.dart';
@@ -227,6 +226,14 @@ class _AddServerFormState extends State<AddServerForm> {
     );
   }
 
+  static const List<Map<String, dynamic>> _serverTypeOptions = [
+    {'type': 'jellyfin', 'label': 'Jellyfin'},
+    {'type': 'plex', 'label': 'Plex'},
+    {'type': 'subsonic', 'label': 'Subsonic'},
+    {'type': 'soundcloud', 'label': 'SoundCloud'},
+    {'type': 'local', 'label': 'Local Music'},
+  ];
+
   Widget _buildServerTypeSelection(BuildContext context, bool isDesktop) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
@@ -246,311 +253,73 @@ class _AddServerFormState extends State<AddServerForm> {
                 : Colors.black.withOpacity(0.6),
           ),
         ),
-
         SizedBox(height: isDesktop ? 12 : 10),
-
-        // Server type cards in a row (horizontal scroll on mobile)
-        if (isDesktop)
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildServerTypeCard(
-                  'jellyfin',
-                  'Jellyfin',
-                  'assets/icons/jellyfin.svg',
-                  AppleColors.systemPurple,
-                  isDark,
-                ),
-                const SizedBox(width: 12),
-                _buildServerTypeCard(
-                  'plex',
-                  'Plex',
-                  'assets/icons/plex.svg',
-                  AppleColors.systemOrange,
-                  isDark,
-                ),
-                const SizedBox(width: 12),
-                _buildServerTypeCard(
-                  'subsonic',
-                  'Subsonic',
-                  'assets/icons/subsonic.svg',
-                  AppleColors.systemBlue,
-                  isDark,
-                ),
-                const SizedBox(width: 12),
-                _buildServerTypeCard(
-                  'soundcloud',
-                  'SoundCloud',
-                  null,
-                  const Color(0xFFFF5500),
-                  isDark,
-                  icon: CupertinoIcons.cloud_fill,
-                ),
-                const SizedBox(width: 12),
-                _buildServerTypeCard(
-                  'local',
-                  'Local',
-                  null,
-                  AppleColors.systemGreen,
-                  isDark,
-                  icon: CupertinoIcons.folder_fill,
-                ),
-              ],
+        DropdownButtonFormField<String>(
+          value: _selectedServerType,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: isDark
+                ? Colors.white.withOpacity(0.06)
+                : Colors.black.withOpacity(0.04),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
             ),
-          )
-        else
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildServerTypeChip(
-                  'jellyfin',
-                  'Jellyfin',
-                  'assets/icons/jellyfin.svg',
-                  AppleColors.systemPurple,
-                  isDark,
-                ),
-                const SizedBox(width: 10),
-                _buildServerTypeChip(
-                  'plex',
-                  'Plex',
-                  'assets/icons/plex.svg',
-                  AppleColors.systemOrange,
-                  isDark,
-                ),
-                const SizedBox(width: 10),
-                _buildServerTypeChip(
-                  'subsonic',
-                  'Subsonic',
-                  'assets/icons/subsonic.svg',
-                  AppleColors.systemBlue,
-                  isDark,
-                ),
-                const SizedBox(width: 10),
-                _buildServerTypeChip(
-                  'soundcloud',
-                  'SoundCloud',
-                  null,
-                  const Color(0xFFFF5500),
-                  isDark,
-                  icon: CupertinoIcons.cloud_fill,
-                ),
-                const SizedBox(width: 10),
-                _buildServerTypeChip(
-                  'local',
-                  'Local',
-                  null,
-                  AppleColors.systemGreen,
-                  isDark,
-                  icon: CupertinoIcons.folder_fill,
-                ),
-              ],
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: isDark
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.black.withOpacity(0.08),
+                width: 1,
+              ),
             ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
+          dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          items: _serverTypeOptions.map((opt) {
+            final type = opt['type'] as String;
+            final label = opt['label'] as String;
+            return DropdownMenuItem<String>(
+              value: type,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: 16,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (String? newType) async {
+            if (newType == null) return;
+            await _triggerButtonPress();
+            if (newType == 'local') {
+              if (mounted) {
+                Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (context) =>
+                        const LocalMusicSettingsScreen(isInitialSetup: true),
+                  ),
+                );
+              }
+              return;
+            }
+            setState(() {
+              _selectedServerType = newType;
+              _serverController.text = _getServerPlaceholder();
+              if (newType == 'plex') {
+                _usernameController.clear();
+                _passwordController.clear();
+              } else {
+                _plexTokenController.clear();
+              }
+            });
+          },
+        ),
       ],
-    );
-  }
-
-  Widget _buildServerTypeCard(
-    String type,
-    String label,
-    String? iconPath,
-    Color color,
-    bool isDark, {
-    IconData? icon,
-  }) {
-    final isSelected = _selectedServerType == type;
-
-    return GestureDetector(
-      onTap: () async {
-        await _triggerButtonPress();
-        if (type == 'local') {
-          // Navigate to local music setup
-          if (mounted) {
-            Navigator.push(
-              context,
-              CupertinoPageRoute(
-                builder: (context) =>
-                    const LocalMusicSettingsScreen(isInitialSetup: true),
-              ),
-            );
-          }
-          return;
-        }
-        setState(() {
-          _selectedServerType = type;
-          _serverController.text = _getServerPlaceholder();
-          if (type == 'plex') {
-            _usernameController.clear();
-            _passwordController.clear();
-          } else {
-            _plexTokenController.clear();
-          }
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        width: 88,
-        height: 100,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? color.withOpacity(isDark ? 0.2 : 0.12)
-              : (isDark
-                    ? Colors.white.withOpacity(0.05)
-                    : Colors.black.withOpacity(0.03)),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? color.withOpacity(0.6)
-                : (isDark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.black.withOpacity(0.08)),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(isDark ? 0.15 : 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: icon != null
-                  ? Icon(icon, color: color, size: 24)
-                  : SvgPicture.asset(
-                      iconPath!,
-                      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-                    ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: AppleDesignSystem.fontFamily,
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected
-                    ? color
-                    : (isDark
-                          ? Colors.white.withOpacity(0.8)
-                          : Colors.black.withOpacity(0.7)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildServerTypeChip(
-    String type,
-    String label,
-    String? iconPath,
-    Color color,
-    bool isDark, {
-    IconData? icon,
-  }) {
-    final isSelected = _selectedServerType == type;
-
-    return GestureDetector(
-      onTap: () async {
-        await _triggerButtonPress();
-        if (type == 'local') {
-          // Navigate to local music setup
-          if (mounted) {
-            Navigator.push(
-              context,
-              CupertinoPageRoute(
-                builder: (context) =>
-                    const LocalMusicSettingsScreen(isInitialSetup: true),
-              ),
-            );
-          }
-          return;
-        }
-        setState(() {
-          _selectedServerType = type;
-          _serverController.text = _getServerPlaceholder();
-          if (type == 'plex') {
-            _usernameController.clear();
-            _passwordController.clear();
-          } else {
-            _plexTokenController.clear();
-          }
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? color.withOpacity(isDark ? 0.2 : 0.12)
-              : (isDark
-                    ? Colors.white.withOpacity(0.05)
-                    : Colors.black.withOpacity(0.03)),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? color.withOpacity(0.6)
-                : (isDark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.black.withOpacity(0.08)),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: color.withOpacity(isDark ? 0.15 : 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: icon != null
-                  ? Icon(icon, color: color, size: 20)
-                  : SvgPicture.asset(
-                      iconPath!,
-                      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-                    ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: AppleDesignSystem.fontFamily,
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected
-                    ? color
-                    : (isDark
-                          ? Colors.white.withOpacity(0.8)
-                          : Colors.black.withOpacity(0.7)),
-              ),
-            ),
-            if (isSelected) ...[
-              const SizedBox(width: 8),
-              Icon(
-                CupertinoIcons.checkmark_circle_fill,
-                size: 18,
-                color: color,
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 
