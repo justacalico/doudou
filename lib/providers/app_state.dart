@@ -1096,6 +1096,7 @@ class AppState extends ChangeNotifier {
           final audioService = AudioServiceIntegration.instance;
           await audioService.initialize(_mediaServiceManager);
           _audioHandler = audioService;
+          _setupAudioHandlerListeners();
           audioService.audioHandler?.setSmartBackToStartEnabled(_smartBackToStartEnabled);
         } catch (e) {
           _audioHandler = null;
@@ -1120,6 +1121,8 @@ class AppState extends ChangeNotifier {
       }
 
       await _disconnectWithoutClearingServers();
+      // Brief delay to allow audio backend (MPV on Linux) to fully release before reinit
+      await Future<void>.delayed(const Duration(milliseconds: 300));
       _activeServerId = serverId;
       _configuredServers = servers;
       await _saveConfiguredServers();
@@ -1137,6 +1140,7 @@ class AppState extends ChangeNotifier {
   /// Disconnect from current server without clearing configured servers.
   Future<void> _disconnectWithoutClearingServers() async {
     _mediaServiceManager.clearAuth();
+    _clearAudioHandlerListeners();
     try {
       await _audioHandler?.dispose();
     } catch (_) {}
