@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/base_service.dart';
-import 'package:doudou/ui/desktop/services/navigation_service.dart';
+import 'package:doudou/ui/layout/navigation_service.dart';
 
 import 'package:doudou/ui/layout/breakpoint.dart';
 import 'package:doudou/ui/theme.dart';

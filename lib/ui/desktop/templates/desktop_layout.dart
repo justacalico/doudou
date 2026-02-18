@@ -9,7 +9,7 @@ import '../../../services/album_art_color_service.dart';
 import '../../../services/audio/unified_audio_handler.dart';
 import '../../../services/base_service.dart';
 import '../../../services/lyrics_service.dart';
-import '../services/navigation_service.dart';
+import '../../layout/navigation_service.dart';
 import '../pages/details/media_details.dart';
 import '../pages/details/artist_details.dart';
 import '../widgets/universal_image.dart';

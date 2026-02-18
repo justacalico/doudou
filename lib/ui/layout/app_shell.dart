@@ -8,7 +8,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/base_service.dart';
-import 'package:doudou/ui/desktop/services/navigation_service.dart';
+import 'package:doudou/ui/layout/navigation_service.dart';
 import 'package:doudou/ui/desktop/templates/desktop_theme.dart';
 import 'package:doudou/ui/desktop/templates/desktop_layout.dart'
     show DesktopLayout, DesktopPlayerBar;
@@ -234,12 +234,12 @@ class _AppShellState extends State<AppShell> {
                 ),
                 isDesktop
                     ? DesktopPlayerBar(onNowPlayingTap: openNowPlaying)
-                    : _MobilePlayerBar(onNowPlayingTap: openNowPlaying),
+                    : _NarrowPlayerBar(onNowPlayingTap: openNowPlaying),
               ],
             ),
             bottomNavigationBar: isDesktop
                 ? null
-                  : _MobileNavBar(
+                  : _NarrowNavBar(
                     currentIndex: _selectedIndex,
                     onTap: _navigateTo,
                     itemCount: _pages.length,
@@ -594,14 +594,14 @@ class _SidebarTileState extends State<_SidebarTile> {
   }
 }
 
-class _MobileNavBar extends StatelessWidget {
+class _NarrowNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   final int itemCount;
   final int settingsIndex;
   final bool isLocalMusic;
 
-  const _MobileNavBar({
+  const _NarrowNavBar({
     required this.currentIndex,
     required this.onTap,
     required this.itemCount,
@@ -745,9 +745,9 @@ class _MobileNavBar extends StatelessWidget {
   }
 }
 
-/// Mobile playbar: old mini-player style (rounded liquid glass, album art, play/next).
-class _MobilePlayerBar extends StatelessWidget {
-  const _MobilePlayerBar({required this.onNowPlayingTap});
+/// Narrow layout play bar (bottom bar when width < breakpoint).
+class _NarrowPlayerBar extends StatelessWidget {
+  const _NarrowPlayerBar({required this.onNowPlayingTap});
 
   final VoidCallback onNowPlayingTap;
 

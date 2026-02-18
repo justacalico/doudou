@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import 'dart:ui';
 import '../../../../providers/app_state.dart';
 import '../../../../models/jellyfin_models.dart';
 import '../../../../utils/display_utils.dart';
+import 'package:doudou/ui/layout/breakpoint.dart';
 import '../../playing/now_playing.dart';
 import '../../widgets/cached_image_widget.dart';
 import '../../widgets/apple_design/apple_theme.dart';
@@ -70,15 +71,11 @@ class _MiniPlayerState extends State<MiniPlayer>
               return const SizedBox.shrink();
             }
 
-            // Determine if we're on a desktop platform
-            final isDesktop =
-                !kIsWeb &&
-                    (defaultTargetPlatform == TargetPlatform.linux ||
-                        defaultTargetPlatform == TargetPlatform.macOS ||
-                        defaultTargetPlatform == TargetPlatform.windows) ||
-                kIsWeb;
+            // Use width for layout: wide = desktop-style mini player, narrow = compact bar
+            final width = MediaQuery.sizeOf(context).width;
+            final isWide = width >= kLayoutBreakpoint;
 
-            if (isDesktop) {
+            if (isWide) {
               return _buildDesktopMiniPlayer(
                 context,
                 appState,

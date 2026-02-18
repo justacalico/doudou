@@ -6,8 +6,7 @@ import 'package:doudou/ui/layout/breakpoint.dart';
 import 'package:doudou/ui/desktop/templates/desktop_layout.dart' show NowPlayingOverlay;
 import 'package:doudou/ui/mobile/playing/now_playing.dart' show NowPlayingScreen;
 
-/// Now-playing UI that switches between desktop and mobile layout by width.
-/// Use this when opening the now-playing view so resizing updates the layout.
+/// Now-playing UI: wide layout = overlay, narrow = full-screen. One codebase, resizes by width.
 class ResponsiveNowPlaying extends StatelessWidget {
   const ResponsiveNowPlaying({super.key});
 

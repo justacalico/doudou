@@ -15,8 +15,8 @@ import 'lyrics/lyrics_overlay.dart';
 import 'queue/queue_overlay.dart';
 import '../widgets/cached_image_widget.dart';
 import '../widgets/marquee_text.dart';
-import '../shared/detail_track_view.dart';
-import '../artists/details/artist_detail.dart';
+import 'package:doudou/ui/desktop/pages/details/media_details.dart';
+import 'package:doudou/ui/desktop/pages/details/artist_details.dart';
 import '../../../services/lyrics_service.dart';
 import '../../../utils/display_utils.dart';
 
@@ -1988,7 +1988,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         );
         debugPrint('Navigating to YT Music album: ${album.name}');
         Navigator.of(context).push(
-          CupertinoPageRoute(builder: (context) => DetailTrackView.album(album)),
+          MaterialPageRoute(
+            builder: (context) => MediaDetailsPage.album(album: album),
+          ),
         );
         return;
       }
@@ -2006,7 +2008,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
       debugPrint('Found album: ${album.name}, navigating...');
       Navigator.of(context).push(
-        CupertinoPageRoute(builder: (context) => DetailTrackView.album(album)),
+        MaterialPageRoute(
+          builder: (context) => MediaDetailsPage.album(album: album),
+        ),
       );
     } catch (e) {
       debugPrint('Error navigating to album: $e');
@@ -2038,8 +2042,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         );
         debugPrint('Using track artistId for YT Music/SoundCloud: ${artist.name}, navigating...');
         Navigator.of(context).push(
-          CupertinoPageRoute(
-            builder: (context) => ArtistDetailScreen(artist: artist),
+          MaterialPageRoute(
+            builder: (context) => ArtistDetailsPage(artist: artist),
           ),
         );
         return;
@@ -2053,8 +2057,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
       debugPrint('Found artist: ${artist.name}, navigating...');
       Navigator.of(context).push(
-        CupertinoPageRoute(
-          builder: (context) => ArtistDetailScreen(artist: artist),
+        MaterialPageRoute(
+          builder: (context) => ArtistDetailsPage(artist: artist),
         ),
       );
     } catch (e) {
