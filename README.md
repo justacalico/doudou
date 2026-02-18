@@ -4,9 +4,11 @@ A privacy-focused music player for your media server. Stream your music collecti
 
 ## Supported Backends
 
-- **Jellyfin** - Full support (recommended)
-- **Plex** - Working with limitations
 - **Subsonic** - Full API compatibility
+- **Jellyfin** - Full support
+- **Plex** - Working (unstested (issues will be fixed if reported))
+- **Soundcloud** - Working (auth needed)
+- **Youtube Music** - Playback is broken
 - **Local Files** - Play music directly from your device without a server
 
 ## Features
@@ -141,6 +143,7 @@ Built with these projects:
 - [Plex](https://plex.tv/)
 - [Subsonic](http://www.subsonic.org/)
 - [Soundcloud](https://soundcloud.com/)
+- [YouTube Music](https://music.youtube.com/)
 - [Flutter](https://flutter.dev/)
 
 ## License
