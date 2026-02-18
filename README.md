@@ -46,15 +46,7 @@ A privacy-focused music player for your media server. Stream your music collecti
 
 **[Download for all platforms](https://openlyst.ink/apps/doudou)**
 
-Available for Android, iOS, macOS, Windows, Linux, and Web.
-
-### Docker (Self-Hosted Web Version)
-
-```bash
-docker run -d -p 34273:34273 --name doudou-web httpanimations/doudou:latest
-```
-
-See [DOCKER.md](docs/DOCKER.md) for detailed deployment instructions.
+Available for Android, iOS, macOS, Windows, and Linux.
 
 ## Setup
 
@@ -120,9 +112,6 @@ flutter build ipa --release
 flutter build windows --release
 flutter build macos --release
 flutter build linux --release
-
-# Web
-flutter build web --release
 
 # Clean build artifacts
 flutter clean

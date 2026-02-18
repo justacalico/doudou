@@ -111,11 +111,6 @@ flutter_launcher_icons:
   image_path: "assets/icons/icon.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
   remove_alpha_ios: true # Remove alpha channel for App Store compliance
-  web:
-    generate: true
-    image_path: "assets/icons/icon.png"
-    background_color: "#hexcode"
-    theme_color: "#hexcode"
   windows:
     generate: true
     image_path: "assets/icons/icon.png"
