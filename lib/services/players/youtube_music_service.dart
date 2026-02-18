@@ -367,12 +367,10 @@ class YouTubeMusicService implements BaseMediaService {
       } catch (_) {}
       return getPlaylistTracks(parentId);
     }
-    try {
-      final results = await _ytMusic.searchSongs('music');
-      return results.take(limit ?? 50).map((s) => _trackFromSongDetailed(s)).toList();
-    } catch (_) {
-      return [];
-    }
+    // No random search: only show tracks from followed artists, favorites, and local playlists (like getAllTracks).
+    final max = limit ?? 100;
+    final merged = await getAllTracks(maxTracks: max);
+    return merged.take(max).toList();
   }
 
   @override
@@ -464,13 +462,6 @@ class YouTubeMusicService implements BaseMediaService {
         seen.add(t.id);
         merged.add(t);
       }
-    }
-    if (merged.length >= max) return merged.take(max).toList();
-    // Fill with search results if needed
-    final fromSearch = await getTracks(limit: max - merged.length);
-    for (final t in fromSearch) {
-      if (seen.contains(t.id)) continue;
-      merged.add(t);
     }
     return merged.take(max).toList();
   }
