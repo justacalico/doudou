@@ -1258,11 +1258,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           }
         }
         
-        // Try to explicitly set audio output to pulse (if not already set)
+        // Try to explicitly set audio output to auto (will try pulse, alsa, etc.)
         try {
-          await platform.setProperty('ao', 'pulse');
+          await platform.setProperty('ao', 'auto');
           if (kDebugMode) {
-            debugPrint('[Linux Debug] _configureLinuxAudioOutput: set ao=pulse via MPV property');
+            debugPrint('[Linux Debug] _configureLinuxAudioOutput: set ao=auto via MPV property');
           }
           
           // Verify it was set

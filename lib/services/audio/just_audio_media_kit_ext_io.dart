@@ -38,8 +38,8 @@ class PlatformAudioConfig {
         if (home == null) return;
         configDir = '$home/.config/mpv';
         optionsToAdd =
-            '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (use ao=alsa if no PulseAudio)\n'
-            'ao=pulse\n'
+            '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (auto-detect best available: pulse, alsa, etc.)\n'
+            'ao=auto\n'
             '# Doudou: avoid lavf "Failed to create file cache" (blocks playback on server switch)\ncache=no\n'
             '# Doudou: User-Agent and Referrer for googlevideo.com (YouTube Music)\n'
             'user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n'
@@ -83,7 +83,7 @@ class PlatformAudioConfig {
             ? (existingContent.contains('audio-exclusive') &&
                 existingContent.contains('user-agent') &&
                 existingContent.contains('referrer'))
-            : (existingContent.contains('ao=pulse') &&
+            : ((existingContent.contains('ao=pulse') || existingContent.contains('ao=auto') || existingContent.contains('ao=alsa')) &&
                 existingContent.contains('cache=no') &&
                 existingContent.contains('user-agent') &&
                 existingContent.contains('referrer'));
@@ -92,11 +92,11 @@ class PlatformAudioConfig {
           _originalConfigContent ??= existingContent;
           return;
         }
-        // Add missing options (Linux: ao=pulse for Navidrome/non-YT audio; all: user-agent/referrer)
+        // Add missing options (Linux: ao=auto for Navidrome/non-YT audio; all: user-agent/referrer)
         var toAppend = '';
-        if (Platform.isLinux && !existingContent.contains('ao=pulse')) {
-          toAppend += '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (use ao=alsa if no PulseAudio)\n'
-              'ao=pulse\n';
+        if (Platform.isLinux && !existingContent.contains('ao=pulse') && !existingContent.contains('ao=auto') && !existingContent.contains('ao=alsa')) {
+          toAppend += '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (auto-detect best available: pulse, alsa, etc.)\n'
+              'ao=auto\n';
         }
         if (!existingContent.contains('user-agent') || !existingContent.contains('referrer')) {
           const uaLinux =
