@@ -1317,11 +1317,19 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final currentOperationId = ++_loadOperationId;
 
       // YouTube Music: reuse ConcatenatingAudioSource (no player recreation)
-      // Non-YouTube: recreate player for each track (like v14) to ensure clean state
+      // Non-YouTube: ensure Linux MPV config then recreate player (like v14)
       final isYouTubeMusic = audioSource is ConcatenatingAudioSource;
       
       if (!isYouTubeMusic) {
-        // Non-YouTube: recreate player like v14 for reliable playback
+        // Linux: ensure minimal mpv.conf (cache=no) exists before creating new player,
+        // so the new MPV instance gets consistent options and audio works (same as YT path).
+        if (_isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+          try {
+            await PlatformAudioConfig.createMpvConfig(forYouTubeMusic: false);
+          } catch (e) {
+            // Ignore
+          }
+        }
         await _recreatePlayer();
         await Future.delayed(const Duration(milliseconds: 50));
         

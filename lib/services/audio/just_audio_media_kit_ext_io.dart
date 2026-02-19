@@ -36,18 +36,22 @@ class PlatformAudioConfig {
             'user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n'
             'referrer="https://www.youtube.com/"\n';
       } else if (Platform.isLinux) {
-        // Linux: Only create MPV config for YouTube Music
-        if (!forYouTubeMusic) {
-          return; // Don't create config for non-YouTube playback (like v14)
-        }
         final home = Platform.environment['HOME'];
         if (home == null) return;
         configDir = '$home/.config/mpv';
-        optionsToAdd =
-            '# Doudou: User-Agent and Referrer for googlevideo.com (YouTube Music)\n'
-            'user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n'
-            'referrer="https://www.youtube.com/"\n'
-            '# Doudou: avoid lavf "Failed to create file cache" (blocks playback on server switch)\ncache=no\n';
+        if (forYouTubeMusic) {
+          optionsToAdd =
+              '# Doudou: User-Agent and Referrer for googlevideo.com (YouTube Music)\n'
+              'user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n'
+              'referrer="https://www.youtube.com/"\n'
+              '# Doudou: avoid lavf "Failed to create file cache" (blocks playback on server switch)\ncache=no\n';
+        } else {
+          // Minimal config for non-YouTube (Navidrome, etc.): ensure cache=no so new MPV
+          // instances get consistent options and avoid "Failed to create file cache"
+          optionsToAdd =
+              '# Doudou: minimal options for non-YouTube playback (Navidrome, etc.)\n'
+              'cache=no\n';
+        }
       } else {
         return;
       }
@@ -85,27 +89,31 @@ class PlatformAudioConfig {
         
         final hasRequired = Platform.isWindows
             ? (existingContent.contains('audio-exclusive'))
-            : (forYouTubeMusic && 
-                existingContent.contains('user-agent') &&
-                existingContent.contains('referrer') &&
-                existingContent.contains('cache=no'));
+            : (Platform.isLinux && existingContent.contains('cache=no') &&
+                (forYouTubeMusic
+                    ? (existingContent.contains('user-agent') && existingContent.contains('referrer'))
+                    : true));
         if (hasRequired) {
           // Already has required options, but store original if we haven't yet
           _originalConfigContent ??= existingContent;
           return;
         }
-        // Add missing options (Linux: only for YouTube Music)
+        // Add missing options
         var toAppend = '';
-        if (Platform.isLinux && forYouTubeMusic) {
-          if (!existingContent.contains('user-agent')) {
-            toAppend += '# Doudou: User-Agent for googlevideo.com (YouTube Music)\n'
-                'user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n';
-          }
-          if (!existingContent.contains('referrer')) {
-            toAppend += 'referrer="https://www.youtube.com/"\n';
-          }
+        if (Platform.isLinux) {
           if (!existingContent.contains('cache=no')) {
-            toAppend += '# Doudou: avoid lavf "Failed to create file cache"\ncache=no\n';
+            toAppend += forYouTubeMusic
+                ? '# Doudou: avoid lavf "Failed to create file cache"\ncache=no\n'
+                : '# Doudou: minimal options for non-YouTube playback\ncache=no\n';
+          }
+          if (forYouTubeMusic) {
+            if (!existingContent.contains('user-agent')) {
+              toAppend += '# Doudou: User-Agent for googlevideo.com (YouTube Music)\n'
+                  'user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n';
+            }
+            if (!existingContent.contains('referrer')) {
+              toAppend += 'referrer="https://www.youtube.com/"\n';
+            }
           }
         }
         if (Platform.isWindows && (!existingContent.contains('user-agent') || !existingContent.contains('referrer'))) {
