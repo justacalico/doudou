@@ -49,11 +49,15 @@ Future<void> _runApp() async {
           defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.macOS)) {
     // Only create MPV config for Windows (audio-exclusive=no)
-    // Linux MPV config is created dynamically only for YouTube Music
     if (defaultTargetPlatform == TargetPlatform.windows) {
       await PlatformAudioConfig.createMpvConfig();
     }
-    JustAudioMediaKitExt.ensureInitialized();
+    // Linux: use just_audio's native GStreamer backend (no media_kit/MPV)
+    JustAudioMediaKitExt.ensureInitialized(
+      linux: !Platform.isLinux,
+      windows: defaultTargetPlatform == TargetPlatform.windows,
+      macOS: defaultTargetPlatform == TargetPlatform.macOS,
+    );
   }
 
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
