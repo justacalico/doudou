@@ -1234,6 +1234,90 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
+  /// Configure Linux audio output explicitly via MPV properties
+  /// This ensures MPV uses the correct audio output driver
+  Future<void> _configureLinuxAudioOutput() async {
+    if (_disposed) return;
+    
+    try {
+      // Access NativePlayer to set MPV properties
+      final player = _player;
+      // Use dynamic to avoid import issues - just_audio_media_kit wraps media_kit
+      final platform = (player as dynamic).platform;
+      
+      if (platform != null) {
+        // Try to get the audio output property
+        try {
+          final ao = await platform.getProperty('ao');
+          if (kDebugMode) {
+            debugPrint('[Linux Debug] _configureLinuxAudioOutput: current ao=$ao');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint('[Linux Debug] _configureLinuxAudioOutput: failed to get ao property: $e');
+          }
+        }
+        
+        // Try to explicitly set audio output to pulse (if not already set)
+        try {
+          await platform.setProperty('ao', 'pulse');
+          if (kDebugMode) {
+            debugPrint('[Linux Debug] _configureLinuxAudioOutput: set ao=pulse via MPV property');
+          }
+          
+          // Verify it was set
+          await Future.delayed(const Duration(milliseconds: 100));
+          final aoAfter = await platform.getProperty('ao');
+          if (kDebugMode) {
+            debugPrint('[Linux Debug] _configureLinuxAudioOutput: ao after set=$aoAfter');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint('[Linux Debug] _configureLinuxAudioOutput: failed to set ao property: $e');
+          }
+        }
+        
+        // Check audio device status
+        try {
+          final audioDevice = await platform.getProperty('audio-device');
+          if (kDebugMode) {
+            debugPrint('[Linux Debug] _configureLinuxAudioOutput: audio-device=$audioDevice');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint('[Linux Debug] _configureLinuxAudioOutput: failed to get audio-device: $e');
+          }
+        }
+        
+        // Check if audio is muted
+        try {
+          final mute = await platform.getProperty('mute');
+          if (kDebugMode) {
+            debugPrint('[Linux Debug] _configureLinuxAudioOutput: mute=$mute');
+          }
+          if (mute == true) {
+            if (kDebugMode) {
+              debugPrint('[Linux Debug] _configureLinuxAudioOutput: WARNING - MPV is muted! Unmuting...');
+            }
+            await platform.setProperty('mute', false);
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint('[Linux Debug] _configureLinuxAudioOutput: failed to check mute: $e');
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint('[Linux Debug] _configureLinuxAudioOutput: platform is null, cannot configure MPV');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[Linux Debug] _configureLinuxAudioOutput: ERROR - $e');
+      }
+    }
+  }
+
   /// Wait until the stream has actually loaded (duration > 0, ready or buffering).
   /// Used for YT (throws on timeout so fallback URLs are tried) and optionally for desktop non-YT (don't throw).
   Future<void> _waitForStreamReady({
@@ -1435,6 +1519,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         }
         
         await _applyVolumeAndSpeedToPlayer();
+        
+        // Linux: Check and configure MPV audio output explicitly
+        if (_isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+          await _configureLinuxAudioOutput();
+        }
         
         if (_disposed || currentOperationId != _loadOperationId) return;
         
