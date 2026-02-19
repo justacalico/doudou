@@ -1256,10 +1256,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
     // Harmony 1:1: no proxy; direct googlevideo.com URL for YT on mobile and desktop.
     final isYouTube = url.contains('googlevideo.com');
-    if (kDebugMode) {
-      final track = _stateController.currentTrack;
-      debugPrint('[Playback] Loading: ${track?.name ?? "?"}');
-    }
 
     _stateController.updateState(AudioPlayerState.loading);
     _stateController.updateUserIntent(true);
@@ -1277,6 +1273,17 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
     // Update provider handler if service changed
     _updateProviderHandler();
+    
+    if (kDebugMode) {
+      final track = _stateController.currentTrack;
+      final uri = Uri.tryParse(url);
+      debugPrint('[Playback] Loading: ${track?.name ?? "?"}');
+      debugPrint('[Playback] Stream URL: $url');
+      debugPrint('[Playback] URL host: ${uri?.host ?? "?"}, isYouTube: $isYouTube, provider: ${_currentProviderHandler?.runtimeType.toString().replaceFirst('Handler', '') ?? "none"}');
+      if (track != null) {
+        debugPrint('[Playback] Track id: ${track.id}, duration: ${track.duration != null ? "${track.duration}ms" : "?"}');
+      }
+    }
     
     // Create audio source using provider handler
     _lastLoadStartedAt = DateTime.now();
