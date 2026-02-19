@@ -191,7 +191,15 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final oldPlayer = _player;
       final oldSubscriptions = List<StreamSubscription>.from(_subscriptions);
 
-      _subscriptions = [];
+      // Clear subscriptions list (will be repopulated by _setupPlayerListeners)
+      for (final sub in _subscriptions) {
+        try {
+          await sub.cancel();
+        } catch (e) {
+          // Ignore
+        }
+      }
+      _subscriptions.clear();
       _player = AudioPlayer();
       _setupPlayerListeners();
 
