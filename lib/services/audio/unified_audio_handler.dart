@@ -1325,127 +1325,80 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     // Desktop playback logic
     if (_isDesktop) {
       final currentOperationId = ++_loadOperationId;
-
-      // YouTube Music: reuse ConcatenatingAudioSource (no player recreation)
-      // Non-YouTube: recreate player like v14; on Linux restore mpv.conf first so new player gets clean config
       final isYouTubeMusic = audioSource is ConcatenatingAudioSource;
-      final isLinux = _isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
-      
+
+      // Non-YouTube: exact v14 path - no config, no provider source, just url
       if (!isYouTubeMusic) {
-        // Linux: restore mpv.conf so the new player doesn't get YT-only options (referrer etc.)
-        if (isLinux) {
+        try {
+          await _recreatePlayer();
+          await Future.delayed(const Duration(milliseconds: 50));
+          if (_disposed || currentOperationId != _loadOperationId) return;
+
+          await _player
+              .setAudioSource(AudioSource.uri(Uri.parse(url)))
+              .timeout(const Duration(seconds: 8));
+          if (_disposed || currentOperationId != _loadOperationId) return;
+
+          if (_stateController.userIntendedPlaying) {
+            await _player.play().timeout(const Duration(seconds: 3));
+          }
+
+          final track = _stateController.currentTrack;
+          if (track?.duration != null && track!.duration! > 0) {
+            final metaDuration = Duration(milliseconds: track.duration!);
+            if (_player.duration == null || _player.duration == Duration.zero) {
+              _stateController.updateDuration(metaDuration);
+            }
+          }
+        } catch (e, st) {
+          if (kDebugMode) debugPrint('[Playback] Failed to load track: $e');
+          _stateController.updateState(AudioPlayerState.error);
+          _stateController.updateUserIntent(false);
+          _stateController.updateError('Failed to load track: $e');
+          rethrow;
+        }
+        return;
+      }
+
+      // YouTube Music only: separate path (concat source + MPV config)
+      try {
+        if (defaultTargetPlatform == TargetPlatform.linux) {
           try {
-            await PlatformAudioConfig.cleanupMpvConfig();
+            await PlatformAudioConfig.createMpvConfig(forYouTubeMusic: true);
           } catch (e) {
             // Ignore
           }
         }
-        await _recreatePlayer();
-        await Future.delayed(const Duration(milliseconds: 50));
-        
-        if (_disposed || currentOperationId != _loadOperationId) return;
-      }
-
-      try {
-        // Check if provider source needs to be attached
-        // ConcatenatingAudioSource (YouTube Music) is reused and only attached once
-        if (audioSource is ConcatenatingAudioSource) {
-          // YouTube Music: Create MPV config for Linux (user-agent, referrer, cache=no)
-          if (_isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-            try {
-              await PlatformAudioConfig.createMpvConfig(forYouTubeMusic: true);
-            } catch (e) {
-              // Ignore MPV config errors
-            }
-          }
-          
-          if (!_providerAudioSourceAttached) {
-            await _player.setAudioSource(audioSource);
-            _providerAudioSourceAttached = true;
-          }
-          // Source is already attached, just play (content was updated via clear+add)
-        } else {
-          // Non-YouTube: simple approach like v14 - just set source and play
-          await _player.setAudioSource(audioSource).timeout(const Duration(seconds: 8));
-          _providerAudioSourceAttached = false;
+        if (!_providerAudioSourceAttached) {
+          await _player.setAudioSource(audioSource);
+          _providerAudioSourceAttached = true;
         }
-
         if (_disposed || currentOperationId != _loadOperationId) return;
-
-        // Play if user intended to play
         if (_stateController.userIntendedPlaying) {
-          if (isYouTubeMusic) {
-            // YouTube Music: wait for stream ready
-            try {
-              await _player.play().timeout(const Duration(seconds: 3));
-            } catch (e) {
-              // Ignore play errors for YT
-            }
-            
-            if (_disposed || currentOperationId != _loadOperationId) return;
-            
-            // Wait for stream ready if provider requires it
-            if (_currentProviderHandler != null && _currentProviderHandler!.shouldWaitForStreamReady()) {
-              final timeout = _currentProviderHandler!.getStreamReadyTimeout() ?? const Duration(seconds: 5);
-              final throwOnTimeout = _currentProviderHandler!.throwOnStreamReadyTimeout();
-              try {
-                await _waitForStreamReady(
-                  timeout: timeout,
-                  operationId: currentOperationId,
-                  throwOnTimeout: throwOnTimeout,
-                );
-              } catch (e) {
-                if (throwOnTimeout) {
-                  rethrow;
-                }
-              }
-            }
-          } else {
-            // Non-YouTube: play() and wait for stream to actually start
+          try {
             await _player.play().timeout(const Duration(seconds: 3));
-            
-            // Wait briefly for playback to actually start (position should advance)
-            // This ensures audio output is active, not just player state
-            try {
-              final startPosition = _player.position;
-              bool positionAdvanced = false;
-              
-              // Check every 100ms for up to 2 seconds
-              for (int i = 0; i < 20; i++) {
-                await Future.delayed(const Duration(milliseconds: 100));
-                final currentPosition = _player.position;
-                final state = _player.playerState;
-                
-                if (!state.playing) break; // Stopped playing
-                if (currentPosition > startPosition + const Duration(milliseconds: 100)) {
-                  positionAdvanced = true;
-                  break; // Position advanced, audio is playing
-                }
-              }
-              
-              if (!positionAdvanced && kDebugMode) {
-                debugPrint('[Playback] Warning: Position did not advance after play()');
-              }
-            } catch (e) {
-              // Ignore - playback may have started
-            }
+          } catch (e) {
+            // Ignore
           }
-        }
-
-        // Desktop: MPV often doesn't report duration for Navidrome/Subsonic streams.
-        // Use track metadata so progress bar and total time display correctly.
-        final track = _stateController.currentTrack;
-        if (track?.duration != null && track!.duration! > 0) {
-          final metaDuration = Duration(milliseconds: track.duration!);
-          final playerDuration = _player.duration;
-          if (playerDuration == null || playerDuration == Duration.zero) {
-            _stateController.updateDuration(metaDuration);
+          if (_currentProviderHandler != null &&
+              _currentProviderHandler!.shouldWaitForStreamReady()) {
+            final timeout = _currentProviderHandler!.getStreamReadyTimeout() ??
+                const Duration(seconds: 5);
+            final throwOnTimeout =
+                _currentProviderHandler!.throwOnStreamReadyTimeout();
+            try {
+              await _waitForStreamReady(
+                timeout: timeout,
+                operationId: currentOperationId,
+                throwOnTimeout: throwOnTimeout,
+              );
+            } catch (e) {
+              if (throwOnTimeout) rethrow;
+            }
           }
         }
       } catch (e, st) {
-        if (kDebugMode) {
-          debugPrint('[Playback] Failed to load track: $e');
-        }
+        if (kDebugMode) debugPrint('[Playback] Failed to load track: $e');
         _stateController.updateState(AudioPlayerState.error);
         _stateController.updateUserIntent(false);
         _stateController.updateError('Failed to load track: $e');
