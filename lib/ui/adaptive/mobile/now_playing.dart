@@ -1959,7 +1959,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         if (albumId == null || albumId.isEmpty) {
           if (track.artistId != null && track.albumName != null && track.albumName!.isNotEmpty) {
             final safeName = track.albumName!.replaceAll(':', '_');
-            albumId = '${virtualAlbumIdPrefix}${track.artistId}:$safeName';
+            albumId = '$virtualAlbumIdPrefix${track.artistId}:$safeName';
           }
         }
         if (albumId == null || albumId.isEmpty) {

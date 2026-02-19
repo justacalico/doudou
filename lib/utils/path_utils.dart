@@ -1,4 +1,5 @@
 /// Helpers for local file path handling (e.g. artwork URLs).
+library;
 
 /// Returns true if [url] is a local file path (file:// or absolute path).
 bool isLocalFilePath(String url) {

@@ -77,9 +77,11 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     } catch (e) {
       if (kDebugMode) debugPrint('[ArtistDetails] _loadArtistData failed: $e');
     } finally {
-      if (mounted) setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

@@ -265,16 +265,16 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               final followed = appState.isAlbumFollowed(widget.album!.id);
               if (followed) {
                 await appState.unfollowAlbum(widget.album!.id);
-                if (context.mounted) {
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.unfollowAlbum)));
                 }
               } else {
                 await appState.followAlbum(widget.album!);
-                if (context.mounted) {
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.followAlbum)));
                 }
               }
-              if (context.mounted) setState(() {});
+              if (mounted) setState(() {});
             }
             break;
           case 'add_playlist':
