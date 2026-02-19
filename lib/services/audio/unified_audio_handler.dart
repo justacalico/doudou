@@ -1327,15 +1327,20 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final currentOperationId = ++_loadOperationId;
       final isYouTubeMusic = audioSource is ConcatenatingAudioSource;
 
-      // Non-YouTube: exact v14 path - no config, no provider source, just url
+      // Non-YouTube on desktop: anandnet just_audio_media_kit fork never opens
+      // single-URI in load(); only concatenatingInsertAll calls _player.open().
+      // Use a single-item ConcatenatingAudioSource so the platform opens the stream.
       if (!isYouTubeMusic) {
         try {
           await _recreatePlayer();
           await Future.delayed(const Duration(milliseconds: 50));
           if (_disposed || currentOperationId != _loadOperationId) return;
 
+          final singleItemSource = ConcatenatingAudioSource(
+            children: [AudioSource.uri(Uri.parse(url))],
+          );
           await _player
-              .setAudioSource(AudioSource.uri(Uri.parse(url)))
+              .setAudioSource(singleItemSource)
               .timeout(const Duration(seconds: 8));
           if (_disposed || currentOperationId != _loadOperationId) return;
 
