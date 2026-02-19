@@ -1382,19 +1382,27 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             // Wait briefly for playback to actually start (position should advance)
             // This ensures audio output is active, not just player state
             try {
-              await Future.any([
-                // Wait for position to advance (indicates audio is playing)
-                Future.doWhile(() async {
-                  await Future.delayed(const Duration(milliseconds: 100));
-                  final position = _player.position;
-                  final state = _player.playerState;
-                  return position.inMilliseconds < 200 && state.playing;
-                }).timeout(const Duration(seconds: 2)),
-                // Or wait for ready state
-                Future.delayed(const Duration(milliseconds: 500)),
-              ]);
+              final startPosition = _player.position;
+              bool positionAdvanced = false;
+              
+              // Check every 100ms for up to 2 seconds
+              for (int i = 0; i < 20; i++) {
+                await Future.delayed(const Duration(milliseconds: 100));
+                final currentPosition = _player.position;
+                final state = _player.playerState;
+                
+                if (!state.playing) break; // Stopped playing
+                if (currentPosition > startPosition + const Duration(milliseconds: 100)) {
+                  positionAdvanced = true;
+                  break; // Position advanced, audio is playing
+                }
+              }
+              
+              if (!positionAdvanced && kDebugMode) {
+                debugPrint('[Playback] Warning: Position did not advance after play()');
+              }
             } catch (e) {
-              // Ignore timeout - playback may have started
+              // Ignore - playback may have started
             }
           }
         }
