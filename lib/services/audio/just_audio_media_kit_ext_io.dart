@@ -49,6 +49,16 @@ class PlatformAudioConfig {
       String existingContent = '';
       if (await configFile.exists()) {
         existingContent = await configFile.readAsString();
+        
+        // Remove any existing ao= lines to avoid duplicates (ao=pulse, ao=alsa, etc.)
+        // Use regex to match ao= followed by any value (including quoted values)
+        existingContent = existingContent.replaceAll(RegExp(r'^ao=.*$', multiLine: true), '');
+        // Also remove any comment lines about audio output (Doudou-added comments)
+        existingContent = existingContent.replaceAll(RegExp(r'^# Doudou:.*audio output.*$', multiLine: true), '');
+        // Clean up multiple consecutive newlines (but preserve single blank lines)
+        existingContent = existingContent.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+        existingContent = existingContent.trim();
+        
         final hasRequired = Platform.isWindows
             ? (existingContent.contains('audio-exclusive') &&
                 existingContent.contains('user-agent') &&
