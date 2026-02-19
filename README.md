@@ -4,6 +4,11 @@
   <img src="https://openlyst.ink/apps/doudou/icon.png" alt="Doudou" width="120">
 </p>
 
+
+# !!! THIS PROJECT IS BEING REWRITTEN !!!
+# https://gitlab.com/httpAnimations/doudou
+
+
 <p align="center">
   <strong>Your music. Your server. Your rules.</strong>
 </p>
