@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
@@ -229,12 +230,29 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       
       if (kDebugMode && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
         debugPrint('[Linux Debug] _recreatePlayer: listeners set up, MPV should read ~/.config/mpv/mpv.conf');
-        // Check if we can verify MPV config is being read
+        // Verify MPV config file exists and log its contents
         try {
+          final home = Platform.environment['HOME'];
+          if (home != null) {
+            final configPath = '$home/.config/mpv/mpv.conf';
+            final configFile = File(configPath);
+            if (await configFile.exists()) {
+              final configContent = await configFile.readAsString();
+              debugPrint('[Linux Debug] _recreatePlayer: MPV config file exists at $configPath');
+              debugPrint('[Linux Debug] _recreatePlayer: MPV config contents:');
+              configContent.split('\n').forEach((line) {
+                if (line.trim().isNotEmpty) {
+                  debugPrint('[Linux Debug] _recreatePlayer:   $line');
+                }
+              });
+            } else {
+              debugPrint('[Linux Debug] _recreatePlayer: WARNING - MPV config file NOT found at $configPath');
+            }
+          }
           final newPlayerState = _player.playerState;
           debugPrint('[Linux Debug] _recreatePlayer: new player initial state - playing=${newPlayerState.playing}, processingState=${newPlayerState.processingState}');
         } catch (e) {
-          debugPrint('[Linux Debug] _recreatePlayer: error checking new player state: $e');
+          debugPrint('[Linux Debug] _recreatePlayer: error checking MPV config or player state: $e');
         }
       }
 

@@ -124,6 +124,21 @@ class PlatformAudioConfig {
           existingContent.isEmpty ? optionsToAdd : '$existingContent\n$optionsToAdd';
       await configFile.writeAsString(newContent);
       debugPrint('PlatformAudioConfig: mpv.conf at $configDir');
+      
+      // Log final config contents for debugging
+      if (kDebugMode && Platform.isLinux) {
+        try {
+          final finalContent = await configFile.readAsString();
+          debugPrint('[Linux Debug] PlatformAudioConfig: Final mpv.conf contents:');
+          finalContent.split('\n').forEach((line) {
+            if (line.trim().isNotEmpty) {
+              debugPrint('[Linux Debug] PlatformAudioConfig:   $line');
+            }
+          });
+        } catch (e) {
+          debugPrint('[Linux Debug] PlatformAudioConfig: Failed to read final config: $e');
+        }
+      }
     } catch (e) {
       debugPrint('PlatformAudioConfig: $e');
     }
