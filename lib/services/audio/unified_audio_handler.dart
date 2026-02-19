@@ -80,6 +80,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   static const Duration _ytCompletionIgnoreAfterLoad = Duration(seconds: 15);
   // Minimum play position before we accept completion (reject very early "completed" from concat source)
   static const Duration _ytMinPositionBeforeCompletion = Duration(seconds: 10);
+  // If we've been playing this long, trust completion without position/duration (player may reset them on complete)
+  static const Duration _ytTrustCompletionAfterPlaying = Duration(seconds: 20);
 
   // Radio mode state
   bool _radioModeEnabled = false;
@@ -463,31 +465,37 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         }
         return;
       }
-      final duration = _player.duration;
-      final position = _player.position;
-      // Reject if we don't have a real duration (spurious from clear/add)
-      if (duration == null || duration <= Duration.zero) {
-        if (kDebugMode) {
-          debugPrint('[Playback] _handleTrackCompletion: ignoring YT completion (no duration)');
+      // If we've been playing long enough, trust completion without position/duration (player may reset them at end)
+      final playingLongEnough = _lastYtLoadStartedAt != null &&
+          DateTime.now().difference(_lastYtLoadStartedAt!) >= _ytTrustCompletionAfterPlaying &&
+          _stateController.currentState == AudioPlayerState.playing;
+      if (!playingLongEnough) {
+        final duration = _player.duration;
+        final position = _player.position;
+        // Reject if we don't have a real duration (spurious from clear/add)
+        if (duration == null || duration <= Duration.zero) {
+          if (kDebugMode) {
+            debugPrint('[Playback] _handleTrackCompletion: ignoring YT completion (no duration)');
+          }
+          return;
         }
-        return;
-      }
-      // Reject if track barely started (spurious completion right after load). For short tracks, accept when within 1s of end.
-      final minPosition = duration > _ytMinPositionBeforeCompletion + const Duration(seconds: 1)
-          ? _ytMinPositionBeforeCompletion
-          : duration - const Duration(seconds: 1);
-      if (position < minPosition) {
-        if (kDebugMode) {
-          debugPrint('[Playback] _handleTrackCompletion: ignoring YT completion (position=$position, min=$minPosition)');
+        // Reject if track barely started (spurious completion right after load). For short tracks, accept when within 1s of end.
+        final minPosition = duration > _ytMinPositionBeforeCompletion + const Duration(seconds: 1)
+            ? _ytMinPositionBeforeCompletion
+            : duration - const Duration(seconds: 1);
+        if (position < minPosition) {
+          if (kDebugMode) {
+            debugPrint('[Playback] _handleTrackCompletion: ignoring YT completion (position=$position, min=$minPosition)');
+          }
+          return;
         }
-        return;
-      }
-      // Reject if not near end of track (not a real completion). Use 10s margin so we accept real completion (player may report position slightly early).
-      if (position < duration - const Duration(seconds: 10)) {
-        if (kDebugMode) {
-          debugPrint('[Playback] _handleTrackCompletion: ignoring spurious YT completion (position=$position, duration=$duration)');
+        // Reject if not near end of track (not a real completion). Use 10s margin so we accept real completion (player may report position slightly early).
+        if (position < duration - const Duration(seconds: 10)) {
+          if (kDebugMode) {
+            debugPrint('[Playback] _handleTrackCompletion: ignoring spurious YT completion (position=$position, duration=$duration)');
+          }
+          return;
         }
-        return;
       }
     }
 
@@ -505,7 +513,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final currentIndex = _stateController.currentIndex;
       final nextIndex = _queueManager.getNextTrackIndex();
       if (nextIndex != null) {
-        if (nextIndex == currentIndex) {
+        final isRepeatOne = _stateController.repeatMode == RepeatMode.one;
+        if (nextIndex == currentIndex && isRepeatOne) {
           // Repeat one: seek to start and play (avoid full reload, especially for YT)
           try {
             await _player.seek(Duration.zero);
