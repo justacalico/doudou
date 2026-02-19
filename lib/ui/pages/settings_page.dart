@@ -697,7 +697,7 @@ class _AudioSection extends StatelessWidget {
             Text('Audio Settings', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
             SizedBox(height: isSmall ? 12 : 24),
             SizedBox(
-              width: isSmall ? double.infinity : 520,
+              width: double.infinity,
               child: Card(
                 child: Padding(
                   padding: EdgeInsets.all(isSmall ? 12 : 16),
@@ -747,7 +747,7 @@ class _AppearanceSection extends StatelessWidget {
             Text(l10n.appearanceSettings, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
             SizedBox(height: isSmall ? 12 : 24),
             SizedBox(
-              width: isSmall ? double.infinity : 520,
+              width: double.infinity,
               child: Card(
                 child: Padding(
                   padding: EdgeInsets.all(isSmall ? 12 : 16),
