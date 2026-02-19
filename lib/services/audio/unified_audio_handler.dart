@@ -1258,15 +1258,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
         if (_disposed || currentOperationId != _loadOperationId) return;
 
-        await _player.play().timeout(const Duration(seconds: 3));
-        if (_disposed || currentOperationId != _loadOperationId) return;
+        // Wait for stream to be ready (has duration, ready/buffering) before playing
+        // This ensures the stream is actually loaded before we try to play
         if (kDebugMode) {
-          debugPrint('[Playback] _loadAndPlayTrack: play() succeeded (desktop)');
+          debugPrint('[Playback] _loadAndPlayTrack: waiting for stream ready (desktop)');
         }
-        await _applyVolumeAndSpeedToPlayer();
-        if (_disposed || currentOperationId != _loadOperationId) return;
-        // Wait for stream to actually start (duration > 0, ready/buffering) so audio output opens on Linux.
-        // Don't throw on timeout so we still show playing; Navidrome/Jellyfin may report duration late.
         try {
           await _waitForStreamReady(
             timeout: const Duration(seconds: 10),
@@ -1274,36 +1270,63 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             throwOnTimeout: false,
           );
         } catch (_) {
-          // Ignore; we'll still set state and duration below
+          // Ignore timeout; we'll still try to play
         }
         if (_disposed || currentOperationId != _loadOperationId) return;
-        
-        // Ensure player is actually playing - media_kit may need a moment to start playback
-        // Check if player is playing, and if not, try play() again
+
+        // Now that stream is ready, play and verify playback actually started
         if (_stateController.userIntendedPlaying) {
           int retryCount = 0;
-          const maxRetries = 3;
-          while (retryCount < maxRetries && !_disposed && currentOperationId == _loadOperationId) {
-            await Future.delayed(const Duration(milliseconds: 200));
+          const maxRetries = 5;
+          bool playbackStarted = false;
+          
+          while (retryCount < maxRetries && !_disposed && currentOperationId == _loadOperationId && !playbackStarted) {
+            if (retryCount > 0) {
+              await Future.delayed(const Duration(milliseconds: 300));
+            }
+            
+            try {
+              await _player.play().timeout(const Duration(seconds: 2));
+            } catch (e) {
+              if (kDebugMode) {
+                debugPrint('[Playback] _loadAndPlayTrack: play() failed (attempt ${retryCount + 1}/$maxRetries): $e');
+              }
+            }
+            
+            // Wait a bit and verify playback actually started
+            await Future.delayed(const Duration(milliseconds: 300));
             final playerState = _player.playerState;
-            if (playerState.playing) {
+            final hasDuration = _player.duration != null && _player.duration! > Duration.zero;
+            
+            // Verify: player is playing AND stream has duration (actually loaded)
+            if (playerState.playing && hasDuration && 
+                (playerState.processingState == ProcessingState.ready || 
+                 playerState.processingState == ProcessingState.buffering)) {
+              playbackStarted = true;
+              if (kDebugMode) {
+                debugPrint('[Playback] _loadAndPlayTrack: playback verified (desktop, attempt ${retryCount + 1})');
+              }
               break;
             }
+            
             retryCount++;
-            if (retryCount < maxRetries) {
+            if (retryCount < maxRetries && !playbackStarted) {
               if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: player not playing, retrying play() (attempt $retryCount/$maxRetries)');
-              }
-              try {
-                await _player.play().timeout(const Duration(seconds: 2));
-              } catch (e) {
-                if (kDebugMode) {
-                  debugPrint('[Playback] _loadAndPlayTrack: retry play() failed: $e');
-                }
+                debugPrint('[Playback] _loadAndPlayTrack: playback not started, retrying (attempt $retryCount/$maxRetries) - playing=${playerState.playing}, hasDuration=$hasDuration, state=${playerState.processingState}');
               }
             }
           }
+          
+          if (!playbackStarted && kDebugMode) {
+            debugPrint('[Playback] _loadAndPlayTrack: warning - playback may not have started after $maxRetries attempts');
+          }
         }
+        
+        if (_disposed || currentOperationId != _loadOperationId) return;
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrack: play() succeeded (desktop)');
+        }
+        await _applyVolumeAndSpeedToPlayer();
         
         if (_disposed || currentOperationId != _loadOperationId) return;
         await _applyVolumeAndSpeedToPlayer();
