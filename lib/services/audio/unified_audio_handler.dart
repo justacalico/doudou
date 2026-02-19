@@ -74,7 +74,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   // YouTube Music: ignore completion events for this long after handling one (clear()+add() can emit spurious completed)
   DateTime? _lastYtCompletionHandledAt;
-  static const Duration _ytCompletionCooldown = Duration(seconds: 2);
+  static const Duration _ytCompletionCooldown = Duration(seconds: 5);
+  // YouTube Music: ignore completion for this long after we started loading a track (clear()+add() emits spurious completed)
+  DateTime? _lastYtLoadStartedAt;
+  static const Duration _ytCompletionIgnoreAfterLoad = Duration(seconds: 15);
+  // Minimum play position before we accept completion (reject very early "completed" from concat source)
+  static const Duration _ytMinPositionBeforeCompletion = Duration(seconds: 10);
 
   // Radio mode state
   bool _radioModeEnabled = false;
@@ -435,8 +440,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     if (_isHandlingCompletion) return;
 
     // YouTube Music: ConcatenatingAudioSource clear()+add() can cause spurious completion
-    // events when switching tracks. Ignore completion while loading, and use cooldown to
-    // ignore duplicate/spurious completed events shortly after we've just handled one.
+    // events when switching tracks. Ignore completion while loading, and use cooldown +
+    // "ignore after load start" and position/duration checks so we don't skip or loop wrongly.
     if (_mediaServiceManager.isYouTubeMusic) {
       if (_stateController.currentState == AudioPlayerState.loading) {
         if (kDebugMode) {
@@ -451,10 +456,34 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         }
         return;
       }
+      if (_lastYtLoadStartedAt != null &&
+          DateTime.now().difference(_lastYtLoadStartedAt!) < _ytCompletionIgnoreAfterLoad) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _handleTrackCompletion: ignoring YT completion (recent load)');
+        }
+        return;
+      }
       final duration = _player.duration;
       final position = _player.position;
-      // When track ends, player may already have reset duration to null; only reject if we have duration and position is not near end
-      if (duration != null && duration > Duration.zero && position < duration - const Duration(seconds: 5)) {
+      // Reject if we don't have a real duration (spurious from clear/add)
+      if (duration == null || duration <= Duration.zero) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _handleTrackCompletion: ignoring YT completion (no duration)');
+        }
+        return;
+      }
+      // Reject if track barely started (spurious completion right after load). For short tracks, accept when within 1s of end.
+      final minPosition = duration > _ytMinPositionBeforeCompletion + const Duration(seconds: 1)
+          ? _ytMinPositionBeforeCompletion
+          : duration - const Duration(seconds: 1);
+      if (position < minPosition) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _handleTrackCompletion: ignoring YT completion (position=$position, min=$minPosition)');
+        }
+        return;
+      }
+      // Reject if not near end of track (not a real completion)
+      if (position < duration - const Duration(seconds: 5)) {
         if (kDebugMode) {
           debugPrint('[Playback] _handleTrackCompletion: ignoring spurious YT completion (position=$position, duration=$duration)');
         }
@@ -1132,6 +1161,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
     // YouTube Music: Harmony 1:1 – single ConcatenatingAudioSource, clear + add one + play (mobile + desktop)
     if (_mediaServiceManager.isYouTubeMusic) {
+      _lastYtLoadStartedAt = DateTime.now();
       final currentOperationId = ++_loadOperationId;
       _ytConcatSource ??= ConcatenatingAudioSource(
         children: [],
