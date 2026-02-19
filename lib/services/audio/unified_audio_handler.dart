@@ -15,7 +15,6 @@ import 'providers/base_provider_handler.dart';
 import 'providers/youtube_music_handler.dart';
 import 'providers/soundcloud_handler.dart';
 import 'providers/navidrome_handler.dart';
-import 'providers/subsonic_handler.dart';
 import 'providers/plex_handler.dart';
 import 'providers/local_music_handler.dart';
 
@@ -1314,6 +1313,65 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         
         if (_disposed || currentOperationId != _loadOperationId) return;
         
+        // For non-YouTube providers (e.g., Navidrome), wait a bit for position to start advancing
+        // since duration may not be reported immediately and audio might take a moment to start
+        if (_currentProviderHandler != null && !_currentProviderHandler!.shouldWaitForStreamReady()) {
+          if (kDebugMode) {
+            debugPrint('[Playback] _loadAndPlayTrack: waiting for position to advance (non-YT provider)');
+          }
+          
+          // Wait up to 2 seconds for position to advance (indicates audio is actually playing)
+          int waitCount = 0;
+          bool positionAdvanced = false;
+          while (waitCount < 20) { // 20 * 100ms = 2 seconds max
+            await Future.delayed(const Duration(milliseconds: 100));
+            if (_disposed || currentOperationId != _loadOperationId) return;
+            
+            final currentPosition = _player.position;
+            final currentState = _player.playerState;
+            
+            if (kDebugMode && waitCount % 5 == 0) {
+              debugPrint('[Playback] _loadAndPlayTrack: wait check ${waitCount * 100}ms - position=${currentPosition.inMilliseconds}ms, playing=${currentState.playing}');
+            }
+            
+            // If position is advancing or player is playing, we're good
+            if (currentPosition.inMilliseconds > 100 || currentState.playing) {
+              positionAdvanced = true;
+              if (kDebugMode) {
+                debugPrint('[Playback] _loadAndPlayTrack: position advanced or playing=true after ${waitCount * 100}ms');
+              }
+              break;
+            }
+            waitCount++;
+          }
+          
+          // If still not playing/advancing after wait, try play() again
+          if (!positionAdvanced) {
+            final checkState = _player.playerState;
+            final checkPosition = _player.position;
+            if (kDebugMode) {
+              debugPrint('[Playback] _loadAndPlayTrack: position not advancing after wait (position=${checkPosition.inMilliseconds}ms, playing=${checkState.playing}), retrying play()');
+            }
+            try {
+              await _player.play().timeout(const Duration(seconds: 2));
+              await Future.delayed(const Duration(milliseconds: 500));
+              
+              // Check again after retry
+              final afterRetryState = _player.playerState;
+              final afterRetryPosition = _player.position;
+              if (kDebugMode) {
+                debugPrint('[Playback] _loadAndPlayTrack: after retry - position=${afterRetryPosition.inMilliseconds}ms, playing=${afterRetryState.playing}');
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                debugPrint('[Playback] _loadAndPlayTrack: retry play() failed: $e');
+              }
+            }
+          }
+        }
+        
+        if (_disposed || currentOperationId != _loadOperationId) return;
+        
         // Set state to playing
         if (_stateController.userIntendedPlaying) {
           final finalPlayerState = _player.playerState;
@@ -1327,6 +1385,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           } else {
             if (kDebugMode) {
               debugPrint('[Playback] _loadAndPlayTrack: ERROR - stream not ready and player not playing');
+              debugPrint('[Playback] _loadAndPlayTrack: playing=${finalPlayerState.playing}, duration=$finalDuration, position=$finalPosition');
             }
             _stateController.updateState(AudioPlayerState.error);
             _stateController.updateUserIntent(false);
