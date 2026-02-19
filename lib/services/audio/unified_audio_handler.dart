@@ -1376,8 +1376,26 @@ class UnifiedAudioHandler extends BaseAudioHandler {
               }
             }
           } else {
-            // Non-YouTube: simple play() like v14 - no extra logic
+            // Non-YouTube: play() and wait for stream to actually start
             await _player.play().timeout(const Duration(seconds: 3));
+            
+            // Wait briefly for playback to actually start (position should advance)
+            // This ensures audio output is active, not just player state
+            try {
+              await Future.any([
+                // Wait for position to advance (indicates audio is playing)
+                Future.doWhile(() async {
+                  await Future.delayed(const Duration(milliseconds: 100));
+                  final position = _player.position;
+                  final state = _player.playerState;
+                  return position.inMilliseconds < 200 && state.playing;
+                }).timeout(const Duration(seconds: 2)),
+                // Or wait for ready state
+                Future.delayed(const Duration(milliseconds: 500)),
+              ]);
+            } catch (e) {
+              // Ignore timeout - playback may have started
+            }
           }
         }
       } catch (e, st) {
