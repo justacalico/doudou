@@ -529,6 +529,8 @@
   "artistHasNoAlbumsYet": "此艺术家还没有专辑",
   "artistHasNoSongsYet": "此艺术家还没有歌曲",
   "followArtist": "关注艺术家",
+  "followAlbum": "关注专辑",
+  "unfollowAlbum": "取消关注专辑",
   "startRadio": "开始电台",
   "addSongsToGetStarted": "添加歌曲以开始",
   "albumTracksEmptyMessage": "此专辑为空或无法加载曲目。",

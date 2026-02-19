@@ -2753,6 +2753,14 @@
   "@followArtist": {
     "description": "Follow artist menu item"
   },
+  "followAlbum": "Follow Album",
+  "@followAlbum": {
+    "description": "Follow album button (YouTube Music)"
+  },
+  "unfollowAlbum": "Unfollow Album",
+  "@unfollowAlbum": {
+    "description": "Unfollow album button (YouTube Music)"
+  },
 
   "startRadio": "Start Radio",
   "@startRadio": {

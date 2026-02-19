@@ -532,6 +532,8 @@
   "noSongsFound": "Песни не найдены",
   "artistHasNoSongsYet": "У этого исполнителя пока нет песен",
   "followArtist": "Подписаться на исполнителя",
+  "followAlbum": "Подписаться на альбом",
+  "unfollowAlbum": "Отписаться от альбома",
   "startRadio": "Запустить радио",
   "noTracksInPlaylist": "В этом плейлисте нет треков",
   "addSongsToGetStarted": "Добавьте песни, чтобы начать",

@@ -2192,6 +2192,39 @@ class AppState extends ChangeNotifier {
     return _mediaServiceManager.isFollowingArtist(artistId);
   }
 
+  /// Follow an album (YouTube Music only). Album appears in the Albums library tab.
+  Future<bool> followAlbum(Album album) async {
+    try {
+      final success = await _mediaServiceManager.followAlbum(album);
+      if (success) {
+        await loadLibraryData();
+      }
+      return success;
+    } catch (e) {
+      _setError('Failed to follow album: ${e.toString()}');
+      return false;
+    }
+  }
+
+  /// Unfollow an album (YouTube Music only)
+  Future<bool> unfollowAlbum(String albumId) async {
+    try {
+      final success = await _mediaServiceManager.unfollowAlbum(albumId);
+      if (success) {
+        await loadLibraryData();
+      }
+      return success;
+    } catch (e) {
+      _setError('Failed to unfollow album: ${e.toString()}');
+      return false;
+    }
+  }
+
+  /// Check if following an album (YouTube Music only)
+  bool isAlbumFollowed(String albumId) {
+    return _mediaServiceManager.isAlbumFollowed(albumId);
+  }
+
   Future<bool> createPlaylist(String name) async {
     try {
       final newPlaylist = await _mediaServiceManager.createPlaylist(name);

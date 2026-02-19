@@ -5,6 +5,7 @@ import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/pages/details/artist_details.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/services/base_service.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 
 enum MediaType { playlist, album }
@@ -194,24 +195,52 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 ),
                 // Conditional buttons based on media type
                 if (widget.mediaType == MediaType.album) ...[
-                  // Favorite button (for albums)
-                  IconButton(
-                    onPressed: () {
-                      // Note: Albums don't typically have favorites in most services
-                      // This would need to be implemented based on your service's capabilities
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(l10n.albumFavoritesNotImplemented),
-                          backgroundColor: Colors.orange,
-                        ),
-                      );
-                    },
-                    icon: Icon(
-                      widget.album!.isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: widget.album!.isFavorite ? Colors.red : null,
+                  // YouTube Music: Follow/Unfollow album (saves to library)
+                  if (appState.mediaServiceManager.currentServerType == ServerType.youtubeMusic)
+                    Builder(
+                      builder: (context) {
+                        final isFollowed = appState.isAlbumFollowed(widget.album!.id);
+                        return OutlinedButton.icon(
+                          onPressed: () async {
+                            if (isFollowed) {
+                              await appState.unfollowAlbum(widget.album!.id);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(l10n.unfollowAlbum)),
+                                );
+                              }
+                            } else {
+                              await appState.followAlbum(widget.album!);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(l10n.followAlbum)),
+                                );
+                              }
+                            }
+                            if (context.mounted) setState(() {});
+                          },
+                          icon: Icon(isFollowed ? Icons.library_add_check : Icons.add_circle_outline),
+                          label: Text(isFollowed ? l10n.unfollowAlbum : l10n.followAlbum),
+                        );
+                      },
+                    )
+                  else
+                    // Other providers: favorite not implemented
+                    IconButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(l10n.albumFavoritesNotImplemented),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      },
+                      icon: Icon(
+                        widget.album!.isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: widget.album!.isFavorite ? Colors.red : null,
+                      ),
+                      tooltip: widget.album!.isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
                     ),
-                    tooltip: widget.album!.isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
-                  ),
                 ],
                 // Refresh button (for debugging when tracks are empty)
                 if (_tracks.isEmpty && !_isLoading)

@@ -441,6 +441,30 @@ class MediaServiceManager {
     return false;
   }
 
+  /// Follow an album (YouTube Music only). Album appears in the Albums library tab.
+  Future<bool> followAlbum(Album album) async {
+    if (_currentService is YouTubeMusicService) {
+      return await (_currentService! as YouTubeMusicService).followAlbum(album);
+    }
+    return false;
+  }
+
+  /// Unfollow an album (YouTube Music only)
+  Future<bool> unfollowAlbum(String albumId) async {
+    if (_currentService is YouTubeMusicService) {
+      return await (_currentService! as YouTubeMusicService).unfollowAlbum(albumId);
+    }
+    return false;
+  }
+
+  /// Check if following an album (YouTube Music only)
+  bool isAlbumFollowed(String albumId) {
+    if (_currentService is YouTubeMusicService) {
+      return (_currentService! as YouTubeMusicService).isAlbumFollowed(albumId);
+    }
+    return false;
+  }
+
   /// Get tracks for an artist (SoundCloud only - /users/{id}/tracks)
   Future<List<Track>> getArtistTracks(String artistId, {String? artistName}) async {
     if (_currentService is SoundCloudService) {

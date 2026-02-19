@@ -31,6 +31,7 @@ class YouTubeMusicService implements BaseMediaService {
   String _prefsKey(String base) =>
       _serverId != null && _serverId!.isNotEmpty ? '${base}_$_serverId' : base;
   List<Map<String, dynamic>> _localFollowedArtists = [];
+  List<Map<String, dynamic>> _localFollowedAlbums = [];
   List<Map<String, dynamic>> _localFavorites = [];
   List<Playlist> _localPlaylists = [];
   final Map<String, List<Map<String, dynamic>>> _localPlaylistTracks = {};
@@ -94,6 +95,7 @@ class YouTubeMusicService implements BaseMediaService {
   Future<void> persistLocalDataIfAny() async {
     if (!_localDataLoaded) return;
     await _saveFollowedArtists();
+    await _saveFollowedAlbums();
     await _saveLocalFavorites();
     await _saveLocalPlaylists();
   }
@@ -138,13 +140,47 @@ class YouTubeMusicService implements BaseMediaService {
     int? startIndex,
   }) async {
     if (!_isReady) return [];
-    try {
-      final results = await _ytMusic.searchAlbums('album');
-      final list = results.take(limit ?? 50).map((a) => _albumFromDetailed(a)).toList();
-      return list;
-    } catch (_) {
-      return [];
-    }
+    await _loadLocalData();
+    // Return followed albums so the Albums page shows saved albums (like followed artists).
+    final n = limit ?? 50;
+    return _localFollowedAlbums
+        .take(n)
+        .map((a) => Album(
+              id: a['id'] as String? ?? '',
+              name: a['name'] as String? ?? 'Unknown',
+              artistName: a['artistName'] as String?,
+              imageUrl: a['imageUrl'] as String?,
+              year: a['year'] as int?,
+              isFavorite: false,
+            ))
+        .toList();
+  }
+
+  /// Follow an album. It will appear in the Albums library tab.
+  Future<bool> followAlbum(Album album) async {
+    await _loadLocalData();
+    if (_localFollowedAlbums.any((a) => (a['id'] as String?) == album.id)) return true;
+    _localFollowedAlbums.add({
+      'id': album.id,
+      'name': album.name,
+      'artistName': album.artistName,
+      'imageUrl': album.imageUrl,
+      'year': album.year,
+    });
+    await _saveFollowedAlbums();
+    return true;
+  }
+
+  /// Unfollow an album
+  Future<bool> unfollowAlbum(String albumId) async {
+    await _loadLocalData();
+    _localFollowedAlbums.removeWhere((a) => (a['id'] as String?) == albumId);
+    await _saveFollowedAlbums();
+    return true;
+  }
+
+  bool isAlbumFollowed(String albumId) {
+    return _localFollowedAlbums.any((a) => (a['id'] as String?) == albumId);
   }
 
   @override
@@ -167,6 +203,12 @@ class YouTubeMusicService implements BaseMediaService {
       if (followedJson != null) {
         final list = jsonDecode(followedJson) as List<dynamic>?;
         _localFollowedArtists = list?.cast<Map<String, dynamic>>() ?? [];
+      }
+      // Load followed albums
+      final followedAlbumsJson = prefs.getString(_prefsKey('youtube_music_followed_albums'));
+      if (followedAlbumsJson != null) {
+        final list = jsonDecode(followedAlbumsJson) as List<dynamic>?;
+        _localFollowedAlbums = list?.cast<Map<String, dynamic>>() ?? [];
       }
       // Load favorites
       final favJson = prefs.getString(_prefsKey('youtube_music_favorites'));
@@ -203,6 +245,15 @@ class YouTubeMusicService implements BaseMediaService {
       await prefs.setString(_prefsKey('youtube_music_followed_artists'), jsonEncode(_localFollowedArtists));
     } catch (e) {
       if (kDebugMode) print('[YouTubeMusic] _saveFollowedArtists failed: $e');
+    }
+  }
+
+  Future<void> _saveFollowedAlbums() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefsKey('youtube_music_followed_albums'), jsonEncode(_localFollowedAlbums));
+    } catch (e) {
+      if (kDebugMode) print('[YouTubeMusic] _saveFollowedAlbums failed: $e');
     }
   }
 
