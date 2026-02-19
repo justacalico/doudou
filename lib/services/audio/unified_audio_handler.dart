@@ -1415,7 +1415,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final isYouTubeMusic = audioSource is ConcatenatingAudioSource;
       
       if (!isYouTubeMusic) {
-        // Non-YouTube: recreate player like v14 for reliable playback (no MPV config)
+        // Non-YouTube: recreate player like v14 for reliable playback
         await _recreatePlayer();
         await Future.delayed(const Duration(milliseconds: 50));
         
@@ -1425,13 +1425,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       try {
         if (kDebugMode) {
           debugPrint('[Playback] _loadAndPlayTrack: calling setAudioSource (desktop)');
-          if (_isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-            debugPrint('[Linux Debug] _loadAndPlayTrack: isYouTubeMusic=$isYouTubeMusic, audioSource type=${audioSource.runtimeType}');
-            if (audioSource is! ConcatenatingAudioSource) {
-              final uriSource = audioSource;
-              debugPrint('[Linux Debug] _loadAndPlayTrack: non-YT AudioSource URI=${uriSource.toString()}');
-            }
-          }
         }
         
         // Check if provider source needs to be attached
@@ -1441,59 +1434,32 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           if (_isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
             try {
               await PlatformAudioConfig.createMpvConfig(forYouTubeMusic: true);
-              if (kDebugMode) {
-                debugPrint('[Linux Debug] _loadAndPlayTrack: Created MPV config for YouTube Music');
-              }
             } catch (e) {
-              if (kDebugMode) {
-                debugPrint('[Linux Debug] _loadAndPlayTrack: Failed to create MPV config for YT: $e');
-              }
+              // Ignore MPV config errors
             }
           }
           
           if (!_providerAudioSourceAttached) {
-            if (kDebugMode && _isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-              debugPrint('[Linux Debug] _loadAndPlayTrack: attaching ConcatenatingAudioSource (YT)');
-            }
             await _player.setAudioSource(audioSource);
             _providerAudioSourceAttached = true;
-          } else {
-            if (kDebugMode && _isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-              debugPrint('[Linux Debug] _loadAndPlayTrack: ConcatenatingAudioSource already attached (YT)');
-            }
           }
           // Source is already attached, just play (content was updated via clear+add)
         } else {
-          // Non-YouTube: set source on fresh player (no MPV config - like v14)
-          if (kDebugMode && _isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-            debugPrint('[Linux Debug] _loadAndPlayTrack: setting AudioSource.uri() for non-YT track');
-            debugPrint('[Linux Debug] _loadAndPlayTrack: URL=$url');
-          }
+          // Non-YouTube: simple approach like v14 - just set source and play
           await _player.setAudioSource(audioSource).timeout(const Duration(seconds: 8));
           _providerAudioSourceAttached = false;
-          
-          if (kDebugMode && _isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-            final afterSetState = _player.playerState;
-            debugPrint('[Linux Debug] _loadAndPlayTrack: after setAudioSource - playing=${afterSetState.playing}, processingState=${afterSetState.processingState}');
-          }
         }
 
         if (_disposed || currentOperationId != _loadOperationId) return;
 
-        // Non-YouTube: simple play() like v14 (player was just recreated, so it's clean)
-        // YouTube Music: wait for stream ready
+        // Play if user intended to play
         if (_stateController.userIntendedPlaying) {
           if (isYouTubeMusic) {
             // YouTube Music: wait for stream ready
-            if (kDebugMode) {
-              debugPrint('[Playback] _loadAndPlayTrack: calling play() (desktop, YT)');
-            }
             try {
               await _player.play().timeout(const Duration(seconds: 3));
             } catch (e) {
-              if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: play() failed: $e');
-              }
+              // Ignore play errors for YT
             }
             
             if (_disposed || currentOperationId != _loadOperationId) return;
@@ -1509,71 +1475,15 @@ class UnifiedAudioHandler extends BaseAudioHandler {
                   throwOnTimeout: throwOnTimeout,
                 );
               } catch (e) {
-                if (kDebugMode) {
-                  debugPrint('[Playback] _loadAndPlayTrack: waitForStreamReady failed: $e');
-                }
                 if (throwOnTimeout) {
                   rethrow;
                 }
               }
             }
           } else {
-            // Non-YouTube: simple play() like v14
-            if (kDebugMode) {
-              debugPrint('[Playback] _loadAndPlayTrack: calling play() (desktop, non-YT)');
-              if (_isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-                final beforePlayState = _player.playerState;
-                final beforePlayPosition = _player.position;
-                final beforePlayDuration = _player.duration;
-                final beforePlayVolume = _player.volume;
-                debugPrint('[Linux Debug] _loadAndPlayTrack: before play() - playing=${beforePlayState.playing}, processingState=${beforePlayState.processingState}, position=${beforePlayPosition.inMilliseconds}ms, duration=${beforePlayDuration?.inMilliseconds ?? "null"}ms, volume=$beforePlayVolume');
-              }
-            }
-            try {
-              await _player.play().timeout(const Duration(seconds: 3));
-              
-              if (kDebugMode && _isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-                await Future.delayed(const Duration(milliseconds: 100));
-                final afterPlayState = _player.playerState;
-                final afterPlayPosition = _player.position;
-                final afterPlayDuration = _player.duration;
-                final afterPlayVolume = _player.volume;
-                debugPrint('[Linux Debug] _loadAndPlayTrack: after play() - playing=${afterPlayState.playing}, processingState=${afterPlayState.processingState}, position=${afterPlayPosition.inMilliseconds}ms, duration=${afterPlayDuration?.inMilliseconds ?? "null"}ms, volume=$afterPlayVolume');
-              }
-            } catch (e) {
-              if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: play() failed: $e');
-                if (_isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-                  debugPrint('[Linux Debug] _loadAndPlayTrack: play() ERROR - $e');
-                }
-              }
-              _stateController.updateState(AudioPlayerState.error);
-              _stateController.updateUserIntent(false);
-              _stateController.updateError('Failed to load track: $e');
-              rethrow;
-            }
+            // Non-YouTube: simple play() like v14 - no extra logic
+            await _player.play().timeout(const Duration(seconds: 3));
           }
-        }
-        
-        if (_disposed || currentOperationId != _loadOperationId) return;
-        
-        // Apply volume and speed (v14 doesn't do this, but we should for consistency)
-        await _applyVolumeAndSpeedToPlayer();
-        
-        // Set state to playing (v14 relies on state change handler)
-        if (_stateController.userIntendedPlaying && !isYouTubeMusic) {
-          // For non-YouTube, state will be set by _handlePlayerStateChange
-          // But ensure it's set if auto-continue doesn't fire
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (!_disposed && _player.playerState.playing) {
-              _stateController.updateState(AudioPlayerState.playing);
-            }
-          });
-        }
-        // Set duration from track metadata so progress bar shows correctly if player doesn't report duration immediately.
-        final track = _stateController.currentTrack;
-        if (track?.duration != null && track!.duration! > 0) {
-          _stateController.updateDuration(Duration(milliseconds: track.duration!));
         }
       } catch (e, st) {
         if (kDebugMode) {
