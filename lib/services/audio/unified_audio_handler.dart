@@ -1108,11 +1108,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
-  /// Wait until the YT stream has actually loaded (duration > 0).
-  /// If MPV fails to open the URL, duration stays null/zero and we throw so fallback URLs are tried.
-  Future<void> _waitForYtStreamReady({
+  /// Wait until the stream has actually loaded (duration > 0, ready or buffering).
+  /// Used for YT (throws on timeout so fallback URLs are tried) and optionally for desktop non-YT (don't throw).
+  Future<void> _waitForStreamReady({
     required Duration timeout,
     required int operationId,
+    bool throwOnTimeout = true,
   }) async {
     final completer = Completer<void>();
     StreamSubscription<PlayerState>? subState;
@@ -1141,9 +1142,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
     timeoutTimer = Timer(timeout, () {
       if (!completer.isCompleted) {
-        completer.completeError(
-          TimeoutException('YT stream did not become ready within ${timeout.inSeconds}s', timeout),
-        );
+        if (throwOnTimeout) {
+          completer.completeError(
+            TimeoutException('YT stream did not become ready within ${timeout.inSeconds}s', timeout),
+          );
+        } else {
+          completer.complete();
+        }
       }
     });
 
@@ -1206,9 +1211,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (_disposed || currentOperationId != _loadOperationId) return;
         // Wait for stream to actually load (duration > 0); otherwise MPV may have failed to open the URL.
         // Use 5s so we try the next fallback URL sooner when the first is slow (reduces first-play delay).
-        await _waitForYtStreamReady(
+        await _waitForStreamReady(
           timeout: const Duration(seconds: 5),
           operationId: currentOperationId,
+          throwOnTimeout: true,
         );
         if (_disposed || currentOperationId != _loadOperationId) return;
         if (_isMobile) _cancelLoadingTimeout();
@@ -1257,6 +1263,20 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (kDebugMode) {
           debugPrint('[Playback] _loadAndPlayTrack: play() succeeded (desktop)');
         }
+        await _applyVolumeAndSpeedToPlayer();
+        if (_disposed || currentOperationId != _loadOperationId) return;
+        // Wait for stream to actually start (duration > 0, ready/buffering) so audio output opens on Linux.
+        // Don't throw on timeout so we still show playing; Navidrome/Jellyfin may report duration late.
+        try {
+          await _waitForStreamReady(
+            timeout: const Duration(seconds: 10),
+            operationId: currentOperationId,
+            throwOnTimeout: false,
+          );
+        } catch (_) {
+          // Ignore; we'll still set state and duration below
+        }
+        if (_disposed || currentOperationId != _loadOperationId) return;
         await _applyVolumeAndSpeedToPlayer();
         if (_disposed || currentOperationId != _loadOperationId) return;
         // Ensure we leave "loading" so UI shows playing and position/duration update (media_kit may not emit ready→playing on Linux).
