@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -189,6 +191,10 @@ class _SettingsPageState extends State<SettingsPage> {
             onTheme: _showThemeDialog,
             onColor: _showColorDialog,
             onLanguage: () => _showLanguageDialog(appState),
+          ),
+          _BackupSection(
+            appState: appState,
+            onShowNotification: _showNotification,
           ),
           _ServerSection(
             appState: appState,
@@ -621,6 +627,96 @@ class _SettingsPageState extends State<SettingsPage> {
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text(l10n.clear),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// --- Backup (export/import settings) ---
+class _BackupSection extends StatelessWidget {
+  final AppState appState;
+  final void Function(String message, {Color? color}) onShowNotification;
+
+  const _BackupSection({required this.appState, required this.onShowNotification});
+
+  Future<void> _exportSettings(BuildContext context) async {
+    if (kIsWeb) {
+      onShowNotification('Export not available on web');
+      return;
+    }
+    try {
+      final data = await appState.exportAllPreferences();
+      final path = await FilePicker.platform.saveFile(
+        dialogTitle: 'Export settings',
+        fileName: 'doudou-settings.json',
+      );
+      if (path == null || path.isEmpty) return;
+      final jsonString = const JsonEncoder.withIndent('  ').convert(data);
+      await File(path).writeAsString(jsonString);
+      if (context.mounted) onShowNotification('Settings exported');
+    } catch (e) {
+      if (context.mounted) onShowNotification('Export failed: $e', color: Colors.red);
+    }
+  }
+
+  Future<void> _importSettings(BuildContext context) async {
+    if (kIsWeb) {
+      onShowNotification('Import not available on web');
+      return;
+    }
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+        dialogTitle: 'Import settings',
+      );
+      if (result == null || result.files.isEmpty) return;
+      final path = result.files.single.path;
+      if (path == null || path.isEmpty) {
+        if (context.mounted) onShowNotification('Could not read file', color: Colors.red);
+        return;
+      }
+      final content = await File(path).readAsString();
+      final data = jsonDecode(content) as Map<String, dynamic>;
+      await appState.importAllPreferences(data);
+      if (context.mounted) onShowNotification('Settings imported');
+    } catch (e) {
+      if (context.mounted) onShowNotification('Import failed: $e', color: Colors.red);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isSmall = MediaQuery.sizeOf(context).width < _kSettingsBreakpoint;
+    return Padding(
+      padding: EdgeInsets.all(isSmall ? DesktopTheme.spacingMd : DesktopTheme.spacingLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Backup', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+          SizedBox(height: isSmall ? 12 : 16),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.upload_file_rounded),
+                  title: const Text('Export settings'),
+                  subtitle: const Text('Save all settings to a JSON file (includes servers and preferences)'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () => _exportSettings(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.download_rounded),
+                  title: const Text('Import settings'),
+                  subtitle: const Text('Replace all settings from a previously exported file'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () => _importSettings(context),
+                ),
+              ],
+            ),
           ),
         ],
       ),

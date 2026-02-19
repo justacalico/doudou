@@ -2567,6 +2567,76 @@ class AppState extends ChangeNotifier {
     return _locale ?? ui.PlatformDispatcher.instance.locale;
   }
 
+  /// Export all SharedPreferences as a JSON-serializable map. Version and keys are
+  /// taken from prefs.getKeys() so new keys need no code changes.
+  Future<Map<String, dynamic>> exportAllPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys();
+    final prefsMap = <String, dynamic>{};
+    for (final key in keys) {
+      final list = prefs.getStringList(key);
+      if (list != null) {
+        prefsMap[key] = list;
+      } else {
+        final i = prefs.getInt(key);
+        if (i != null) {
+          prefsMap[key] = i;
+        } else {
+          final b = prefs.getBool(key);
+          if (b != null) {
+            prefsMap[key] = b;
+          } else {
+            final d = prefs.getDouble(key);
+            if (d != null) {
+              prefsMap[key] = d;
+            } else {
+              final s = prefs.getString(key);
+              if (s != null) prefsMap[key] = s;
+            }
+          }
+        }
+      }
+    }
+    return {
+      'version': 1,
+      'exportedAt': DateTime.now().toIso8601String(),
+      'prefs': prefsMap,
+    };
+  }
+
+  /// Import preferences from a map (e.g. from exportAllPreferences). Applies all
+  /// keys, then reloads user settings and server config so the app state updates.
+  Future<void> importAllPreferences(Map<String, dynamic> payload) async {
+    final prefsMap = payload['prefs'] as Map<String, dynamic>?;
+    if (prefsMap == null || prefsMap.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    for (final entry in prefsMap.entries) {
+      final key = entry.key;
+      final value = entry.value;
+      if (value is List) {
+        await prefs.setStringList(key, value.map((e) => e.toString()).toList());
+      } else if (value is int) {
+        await prefs.setInt(key, value);
+      } else if (value is bool) {
+        await prefs.setBool(key, value);
+      } else if (value is double) {
+        await prefs.setDouble(key, value);
+      } else if (value is String) {
+        await prefs.setString(key, value);
+      }
+    }
+    await _loadUserSettings();
+    _configuredServers = await _loadConfiguredServers();
+    _activeServerId = prefs.getString(_keyActiveServerId);
+    if (_configuredServers.isNotEmpty && _activeServerId != null) {
+      final server = _configuredServers.where((s) => s['id'] == _activeServerId).firstOrNull;
+      if (server != null && (server['type'] != 'youtubeMusic' || !kIsWeb)) {
+        await _connectToServer(server);
+      }
+    }
+    notifyListeners();
+  }
+
   // Cache management methods
   Future<void> clearAllCache() async {
     await _cacheService.initialize();
