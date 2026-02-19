@@ -71,7 +71,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   }
 
   // Player generation ID for desktop callback invalidation
-  final int _playerGeneration = 0;
+  int _playerGeneration = 0;
+  
+  // Lock to prevent concurrent player recreation (desktop)
+  bool _isRecreatingPlayer = false;
 
   // Stream subscriptions for proper cleanup
   final List<StreamSubscription> _subscriptions = [];
@@ -176,6 +179,45 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
+  /// Recreate player instance (desktop only) to prevent native callback crashes
+  /// This matches v14 behavior where player is recreated for each track
+  Future<void> _recreatePlayer() async {
+    if (!_isDesktop || _isRecreatingPlayer) return;
+    _isRecreatingPlayer = true;
+
+    try {
+      _playerGeneration++;
+
+      final oldPlayer = _player;
+      final oldSubscriptions = List<StreamSubscription>.from(_subscriptions);
+
+      _subscriptions = [];
+      _player = AudioPlayer();
+      _setupPlayerListeners();
+
+      // Dispose old resources in background
+      Future.microtask(() async {
+        for (final sub in oldSubscriptions) {
+          try {
+            await sub.cancel();
+          } catch (e) {
+            // Ignore
+          }
+        }
+      });
+
+      Future.delayed(const Duration(milliseconds: 200), () async {
+        try {
+          await oldPlayer.dispose();
+        } catch (e) {
+          // Ignore
+        }
+      });
+    } finally {
+      _isRecreatingPlayer = false;
+    }
+  }
+
   /// Initialize mobile audio session
   Future<void> _initializeMobileSession() async {
     // Audio session is automatically handled by audio_service package
@@ -241,8 +283,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     final capturedPlayer = _player;
 
     // Helper to check if callback should be ignored (desktop only)
-    bool shouldIgnore() =>
-        _disposed || (_isDesktop && capturedGeneration != _playerGeneration);
+    bool shouldIgnore() {
+      if (_disposed) return true;
+      if (_isDesktop && capturedGeneration != _playerGeneration) return true;
+      return false;
+    }
 
     // Position stream - throttle on desktop for performance
     if (_isDesktop) {
@@ -1431,10 +1476,22 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       _providerAudioSource = null;
     }
 
-    // Desktop (non-YT): use same player, set source and play – no recreation so Navidrome/Jellyfin/etc. start quickly.
-    // YouTube Music uses the branch above (concat source + wait for stream ready).
+    // Desktop: Recreate player for non-YouTube providers (like v14) to ensure clean state
+    // YouTube Music uses ConcatenatingAudioSource which is reused
     if (_isDesktop) {
       final currentOperationId = ++_loadOperationId;
+      
+      // For non-YouTube providers, recreate player (like v14) to ensure clean state
+      // YouTube Music reuses ConcatenatingAudioSource so we don't recreate
+      if (!(audioSource is ConcatenatingAudioSource)) {
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrack: recreating player for non-YouTube provider (desktop)');
+        }
+        await _recreatePlayer();
+        await Future.delayed(const Duration(milliseconds: 50));
+        
+        if (_disposed || currentOperationId != _loadOperationId) return;
+      }
 
       try {
         if (kDebugMode) {
