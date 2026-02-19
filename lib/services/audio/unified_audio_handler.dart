@@ -1294,17 +1294,23 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             }
             
             // Wait a bit and verify playback actually started
-            await Future.delayed(const Duration(milliseconds: 300));
+            await Future.delayed(const Duration(milliseconds: 500));
             final playerState = _player.playerState;
             final hasDuration = _player.duration != null && _player.duration! > Duration.zero;
+            final isReady = playerState.processingState == ProcessingState.ready || 
+                           playerState.processingState == ProcessingState.buffering;
             
-            // Verify: player is playing AND stream has duration (actually loaded)
-            if (playerState.playing && hasDuration && 
-                (playerState.processingState == ProcessingState.ready || 
-                 playerState.processingState == ProcessingState.buffering)) {
+            if (kDebugMode) {
+              debugPrint('[Playback] _loadAndPlayTrack: checking playback state (attempt ${retryCount + 1}) - playing=${playerState.playing}, isReady=$isReady, hasDuration=$hasDuration, processingState=${playerState.processingState}');
+            }
+            
+            // For non-YT providers (Navidrome/Jellyfin), duration may not be reported immediately.
+            // Accept playback if player is playing (duration and ready state are nice-to-have but not required).
+            // Duration will come later or we'll use track metadata duration.
+            if (playerState.playing) {
               playbackStarted = true;
               if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: playback verified (desktop, attempt ${retryCount + 1})');
+                debugPrint('[Playback] _loadAndPlayTrack: playback verified (desktop, attempt ${retryCount + 1}) - playing=true, hasDuration=$hasDuration, isReady=$isReady, state=${playerState.processingState}');
               }
               break;
             }
@@ -1312,7 +1318,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             retryCount++;
             if (retryCount < maxRetries && !playbackStarted) {
               if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: playback not started, retrying (attempt $retryCount/$maxRetries) - playing=${playerState.playing}, hasDuration=$hasDuration, state=${playerState.processingState}');
+                debugPrint('[Playback] _loadAndPlayTrack: playback not started, retrying (attempt $retryCount/$maxRetries) - playing=${playerState.playing}, isReady=$isReady, hasDuration=$hasDuration, state=${playerState.processingState}');
               }
             }
           }
