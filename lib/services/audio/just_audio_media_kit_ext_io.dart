@@ -32,7 +32,9 @@ class PlatformAudioConfig {
         if (home == null) return;
         configDir = '$home/.config/mpv';
         optionsToAdd =
-            '# Doudou: avoid lavf "Failed to create file cache" (blocks playback)\ncache=no\n'
+            '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (use ao=alsa if no PulseAudio)\n'
+            'ao=pulse\n'
+            '# Doudou: avoid lavf "Failed to create file cache" (blocks playback on server switch)\ncache=no\n'
             '# Doudou: User-Agent and Referrer for googlevideo.com (YouTube Music)\n'
             'user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n'
             'referrer="https://www.youtube.com/"\n';
@@ -51,13 +53,19 @@ class PlatformAudioConfig {
             ? (existingContent.contains('audio-exclusive') &&
                 existingContent.contains('user-agent') &&
                 existingContent.contains('referrer'))
-            : (existingContent.contains('cache=no') &&
+            : (existingContent.contains('ao=pulse') &&
+                existingContent.contains('cache=no') &&
                 existingContent.contains('user-agent') &&
                 existingContent.contains('referrer'));
         if (hasRequired) {
           return;
         }
-        // Add user-agent and referrer if missing (older configs may not have them)
+        // Add missing options (Linux: ao=pulse for Navidrome/non-YT audio; all: user-agent/referrer)
+        var toAppend = '';
+        if (Platform.isLinux && !existingContent.contains('ao=pulse')) {
+          toAppend += '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (use ao=alsa if no PulseAudio)\n'
+              'ao=pulse\n';
+        }
         if (!existingContent.contains('user-agent') || !existingContent.contains('referrer')) {
           const uaLinux =
               '# Doudou: User-Agent for googlevideo.com (YouTube Music)\n'
@@ -67,11 +75,12 @@ class PlatformAudioConfig {
               'user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n';
           const referrerLine = 'referrer="https://www.youtube.com/"\n';
           final ua = Platform.isLinux ? uaLinux : uaWindows;
-          var toAppend = '';
           if (!existingContent.contains('user-agent')) toAppend += ua;
           if (!existingContent.contains('referrer')) toAppend += referrerLine;
+        }
+        if (toAppend.isNotEmpty) {
           await configFile.writeAsString('$existingContent\n$toAppend');
-          debugPrint('PlatformAudioConfig: added user-agent/referrer to mpv.conf');
+          debugPrint('PlatformAudioConfig: added options to mpv.conf');
           return;
         }
       }
