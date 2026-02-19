@@ -170,7 +170,7 @@ class _SettingsPageState extends State<SettingsPage> {
           onShowYtmStreamInstancesDialog: _showYtmStreamInstancesDialog,
         );
       case 'about':
-        return _AboutSection(appState: appState);
+        return _AboutSectionWithSystemInfo(appState: appState);
       default:
         return _AudioSection(appState: appState);
     }
@@ -181,6 +181,7 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _AboutCardSection(appState: appState),
           _AudioSection(appState: appState),
           _AppearanceSection(
             appState: appState,
@@ -199,7 +200,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onShowNotification: _showNotification,
             onShowYtmStreamInstancesDialog: _showYtmStreamInstancesDialog,
           ),
-          _AboutSection(appState: appState),
+          _SystemInfoSection(),
         ],
       ),
     );
@@ -1235,25 +1236,55 @@ class _ServerSectionState extends State<_ServerSection> {
   }
 }
 
-// --- About ---
-class _AboutSection extends StatelessWidget {
+// --- About (card at top) and System Info (at bottom) ---
+String _getPlatformInfo() {
+  try {
+    if (Platform.isLinux || Platform.isMacOS) {
+      final r = Process.runSync('uname', ['-m']);
+      if (r.exitCode == 0) return '${Platform.operatingSystem} (${r.stdout.toString().trim()})';
+    }
+  } catch (_) {}
+  return Platform.operatingSystem;
+}
+
+String _getBuildDate() {
+  final n = DateTime.now();
+  return '${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';
+}
+
+String _getOSVersion() {
+  try {
+    if (Platform.isLinux) {
+      final r = Process.runSync('lsb_release', ['-d', '-s']);
+      if (r.exitCode == 0) return r.stdout.toString().trim().replaceAll('"', '');
+      final k = Process.runSync('uname', ['-r']);
+      if (k.exitCode == 0) return 'Linux ${k.stdout.toString().trim()}';
+    } else if (Platform.isMacOS) {
+      final r = Process.runSync('sw_vers', ['-productVersion']);
+      if (r.exitCode == 0) return 'macOS ${r.stdout.toString().trim()}';
+    }
+  } catch (_) {}
+  return Platform.operatingSystemVersion;
+}
+
+/// About Doudou card only (used at top of settings when no sidebar).
+class _AboutCardSection extends StatelessWidget {
   final AppState appState;
 
-  const _AboutSection({required this.appState});
+  const _AboutCardSection({required this.appState});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isSmall = MediaQuery.sizeOf(context).width < _kSettingsBreakpoint;
-    return SingleChildScrollView(
-      child: Padding(
-        padding: EdgeInsets.all(isSmall ? DesktopTheme.spacingMd : DesktopTheme.spacingLg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('About Doudou', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            SizedBox(height: isSmall ? 12 : 24),
-            Card(
+    return Padding(
+      padding: EdgeInsets.all(isSmall ? DesktopTheme.spacingMd : DesktopTheme.spacingLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('About Doudou', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+          SizedBox(height: isSmall ? 12 : 24),
+          Card(
               child: Padding(
                 padding: EdgeInsets.all(isSmall ? 16 : 32),
                 child: Column(
@@ -1284,56 +1315,58 @@ class _AboutSection extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: isSmall ? 12 : 16),
-            Card(
-              child: Padding(
-                padding: EdgeInsets.all(isSmall ? 12 : 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('System Information', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                    SizedBox(height: isSmall ? 12 : 16),
-                    ListTile(title: const Text('Platform'), subtitle: Text(_getPlatformInfo()), leading: const Icon(Icons.computer)),
-                    ListTile(title: const Text('Build Date'), subtitle: Text(_getBuildDate()), leading: const Icon(Icons.calendar_today)),
-                    ListTile(title: const Text('Operating System'), subtitle: Text(_getOSVersion()), leading: const Icon(Icons.settings_system_daydream)),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// System Information card only (used at bottom of settings when no sidebar).
+class _SystemInfoSection extends StatelessWidget {
+  const _SystemInfoSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isSmall = MediaQuery.sizeOf(context).width < _kSettingsBreakpoint;
+    return Padding(
+      padding: EdgeInsets.all(isSmall ? DesktopTheme.spacingMd : DesktopTheme.spacingLg),
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.all(isSmall ? 12 : 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('System Information', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+              SizedBox(height: isSmall ? 12 : 16),
+              ListTile(title: const Text('Platform'), subtitle: Text(_getPlatformInfo()), leading: const Icon(Icons.computer)),
+              ListTile(title: const Text('Build Date'), subtitle: Text(_getBuildDate()), leading: const Icon(Icons.calendar_today)),
+              ListTile(title: const Text('Operating System'), subtitle: Text(_getOSVersion()), leading: const Icon(Icons.settings_system_daydream)),
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  String _getPlatformInfo() {
-    try {
-      if (Platform.isLinux || Platform.isMacOS) {
-        final r = Process.runSync('uname', ['-m']);
-        if (r.exitCode == 0) return '${Platform.operatingSystem} (${r.stdout.toString().trim()})';
-      }
-    } catch (_) {}
-    return Platform.operatingSystem;
-  }
+/// Full About + System Info for sidebar "About" category.
+class _AboutSectionWithSystemInfo extends StatelessWidget {
+  final AppState appState;
 
-  String _getBuildDate() {
-    final n = DateTime.now();
-    return '${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';
-  }
+  const _AboutSectionWithSystemInfo({required this.appState});
 
-  String _getOSVersion() {
-    try {
-      if (Platform.isLinux) {
-        final r = Process.runSync('lsb_release', ['-d', '-s']);
-        if (r.exitCode == 0) return r.stdout.toString().trim().replaceAll('"', '');
-        final k = Process.runSync('uname', ['-r']);
-        if (k.exitCode == 0) return 'Linux ${k.stdout.toString().trim()}';
-      } else if (Platform.isMacOS) {
-        final r = Process.runSync('sw_vers', ['-productVersion']);
-        if (r.exitCode == 0) return 'macOS ${r.stdout.toString().trim()}';
-      }
-    } catch (_) {}
-    return Platform.operatingSystemVersion;
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _AboutCardSection(appState: appState),
+          _SystemInfoSection(),
+        ],
+      ),
+    );
   }
 }
 
