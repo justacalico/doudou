@@ -118,29 +118,33 @@ class _MusicCardState extends State<MusicCard>
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          // Image or placeholder
-                          widget.imageUrl != null
-                              ? buildSmartImage(
-                                  imageUrl: widget.imageUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: () =>
-                                      _buildPlaceholder(theme),
-                                )
-                              : _buildPlaceholder(theme),
+                          // Image or placeholder – Positioned.fill so image always fills and crops (no black bars)
+                          Positioned.fill(
+                            child: widget.imageUrl != null
+                                ? buildSmartImage(
+                                    imageUrl: widget.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: () =>
+                                        _buildPlaceholder(theme),
+                                  )
+                                : _buildPlaceholder(theme),
+                          ),
 
                           // Gradient overlay on hover
-                          AnimatedOpacity(
-                            duration: DesktopTheme.durationFast,
-                            opacity: _isHovering ? 1.0 : 0.0,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.black.withOpacity(0.5),
-                                  ],
+                          Positioned.fill(
+                            child: AnimatedOpacity(
+                              duration: DesktopTheme.durationFast,
+                              opacity: _isHovering ? 1.0 : 0.0,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withOpacity(0.5),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -458,12 +462,23 @@ class _FeaturedMusicCardState extends State<FeaturedMusicCard> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Background image
-                widget.imageUrl != null
-                    ? buildSmartImage(
-                        imageUrl: widget.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: () => Container(
+                // Background image – Positioned.fill so image fills and crops (no black bars)
+                Positioned.fill(
+                  child: widget.imageUrl != null
+                      ? buildSmartImage(
+                          imageUrl: widget.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: () => Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: DesktopTheme.accentGradientPurple,
+                              ),
+                            ),
+                          ),
+                        )
+                      : Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
@@ -472,27 +487,20 @@ class _FeaturedMusicCardState extends State<FeaturedMusicCard> {
                             ),
                           ),
                         ),
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: DesktopTheme.accentGradientPurple,
-                          ),
-                        ),
-                      ),
+                ),
 
                 // Gradient overlay
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.7),
-                      ],
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
                     ),
                   ),
                 ),
