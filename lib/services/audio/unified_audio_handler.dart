@@ -442,10 +442,15 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     if (_isHandlingCompletion) return;
 
     // YouTube Music: ConcatenatingAudioSource clear()+add() can cause spurious completion
-    // events when switching tracks. Ignore completion while loading, and use cooldown +
+    // events when switching tracks. Ignore completion while loading only in the first few
+    // seconds after load (spurious from clear+add); after that, desktop may stay in
+    // "loading" (e.g. buffering) so we must still accept real completion. Use cooldown +
     // "ignore after load start" and position/duration checks so we don't skip or loop wrongly.
     if (_mediaServiceManager.isYouTubeMusic) {
-      if (_stateController.currentState == AudioPlayerState.loading) {
+      final loadingAndRecentLoad = _stateController.currentState == AudioPlayerState.loading &&
+          _lastYtLoadStartedAt != null &&
+          DateTime.now().difference(_lastYtLoadStartedAt!) < _ytCompletionIgnoreAfterLoad;
+      if (loadingAndRecentLoad) {
         if (kDebugMode) {
           debugPrint('[Playback] _handleTrackCompletion: ignoring YT completion while loading');
         }
@@ -465,10 +470,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         }
         return;
       }
-      // If we've been playing long enough, trust completion without position/duration (player may reset them at end)
+      // If we've been playing long enough, trust completion without position/duration (player may reset them at end).
+      // On desktop/media_kit state may stay "loading" (e.g. buffering), so do not require state==playing.
       final playingLongEnough = _lastYtLoadStartedAt != null &&
-          DateTime.now().difference(_lastYtLoadStartedAt!) >= _ytTrustCompletionAfterPlaying &&
-          _stateController.currentState == AudioPlayerState.playing;
+          DateTime.now().difference(_lastYtLoadStartedAt!) >= _ytTrustCompletionAfterPlaying;
       if (!playingLongEnough) {
         final duration = _player.duration;
         final position = _player.position;
