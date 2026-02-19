@@ -482,8 +482,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         }
         return;
       }
-      // Reject if not near end of track (not a real completion)
-      if (position < duration - const Duration(seconds: 5)) {
+      // Reject if not near end of track (not a real completion). Use 10s margin so we accept real completion (player may report position slightly early).
+      if (position < duration - const Duration(seconds: 10)) {
         if (kDebugMode) {
           debugPrint('[Playback] _handleTrackCompletion: ignoring spurious YT completion (position=$position, duration=$duration)');
         }
@@ -501,9 +501,18 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         return;
       }
 
-      // Normal mode - advance to next track
+      // Normal mode - advance to next track (or repeat same if repeat one)
+      final currentIndex = _stateController.currentIndex;
       final nextIndex = _queueManager.getNextTrackIndex();
       if (nextIndex != null) {
+        if (nextIndex == currentIndex) {
+          // Repeat one: seek to start and play (avoid full reload, especially for YT)
+          try {
+            await _player.seek(Duration.zero);
+            if (_stateController.userIntendedPlaying) await _player.play();
+          } catch (_) {}
+          return;
+        }
         if (_isDesktop) {
           await _playNextTrackWithRetry(nextIndex);
         } else {

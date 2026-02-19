@@ -243,16 +243,19 @@ class YouTubeMusicService implements BaseMediaService {
         trackCount: (j['trackCount'] as num?)?.toInt() ?? 0,
       );
 
-  static Track _trackFromStoredJson(Map<String, dynamic> j) => Track(
-        id: j['id'] ?? '',
-        name: j['name'] ?? '',
-        artistName: j['artistName'],
-        albumName: j['albumName'],
-        albumId: j['albumId'],
-        duration: (j['duration'] as num?)?.toInt(),
-        imageUrl: j['imageUrl'],
-        isFavorite: j['isFavorite'] == true,
-      );
+  static Track _trackFromStoredJson(Map<String, dynamic> j) {
+    final id = (j['id'] as String?) ?? '';
+    return Track(
+      id: id,
+      name: (j['name'] as String?) ?? '',
+      artistName: j['artistName'],
+      albumName: j['albumName'],
+      albumId: j['albumId'],
+      duration: (j['duration'] as num?)?.toInt(),
+      imageUrl: ytHighResThumbUrl(id) ?? j['imageUrl'],
+      isFavorite: j['isFavorite'] == true,
+    );
+  }
 
   static Map<String, dynamic> _trackToStoredJson(Track t) => {
         'id': t.id,
@@ -827,7 +830,7 @@ class YouTubeMusicService implements BaseMediaService {
             playlistItemId: t.playlistItemId,
             duration: fullTrack.duration,
             trackNumber: t.trackNumber,
-            imageUrl: t.imageUrl ?? fullTrack.imageUrl,
+            imageUrl: ytHighResThumbUrl(t.id) ?? t.imageUrl ?? fullTrack.imageUrl,
             isFavorite: t.isFavorite,
             playCount: t.playCount,
           );
@@ -965,6 +968,12 @@ class YouTubeMusicService implements BaseMediaService {
 
   // --- Mapping from dart_ytmusic_api types to jellyfin_models ---
 
+  /// High-quality YouTube thumbnail (480x360). Use for track/album art so queue and cards aren't low-res previews.
+  static String? ytHighResThumbUrl(String? videoId) {
+    if (videoId == null || videoId.isEmpty) return null;
+    return 'https://i.ytimg.com/vi/$videoId/hqdefault.jpg';
+  }
+
   static String _thumbUrl(dynamic thumbnails) {
     if (thumbnails == null || thumbnails is! List || thumbnails.isEmpty) return '';
     try {
@@ -1017,8 +1026,10 @@ class YouTubeMusicService implements BaseMediaService {
     final albumName = album?.name;
     final albumId = album?.albumId as String?;
     final duration = _durationMs(s.duration);
-    final thumbnails = s.thumbnails;
-    final imageUrl = _thumbUrl(thumbnails);
+    final imageUrl = ytHighResThumbUrl(videoId) ?? (() {
+      final t = _thumbUrl(s.thumbnails);
+      return t.isNotEmpty ? t : null;
+    })();
     return Track(
       id: videoId,
       name: name,
@@ -1027,7 +1038,7 @@ class YouTubeMusicService implements BaseMediaService {
       albumName: albumName,
       albumId: albumId,
       duration: duration,
-      imageUrl: imageUrl.isNotEmpty ? imageUrl : null,
+      imageUrl: imageUrl,
       isFavorite: _localFavorites.any((f) => (f['id'] ?? '').toString() == videoId),
     );
   }
@@ -1039,8 +1050,10 @@ class YouTubeMusicService implements BaseMediaService {
     final artistName = artist?.name as String? ?? 'Unknown Artist';
     final artistId = artist?.artistId as String?;
     final duration = _durationMs(v.duration);
-    final thumbnails = v.thumbnails;
-    final imageUrl = _thumbUrl(thumbnails);
+    final imageUrl = ytHighResThumbUrl(videoId) ?? (() {
+      final t = _thumbUrl(v.thumbnails);
+      return t.isNotEmpty ? t : null;
+    })();
     return Track(
       id: videoId,
       name: name,
@@ -1049,7 +1062,7 @@ class YouTubeMusicService implements BaseMediaService {
       albumName: null,
       albumId: null,
       duration: duration,
-      imageUrl: imageUrl.isNotEmpty ? imageUrl : null,
+      imageUrl: imageUrl,
       isFavorite: _localFavorites.any((f) => (f['id'] ?? '').toString() == videoId),
     );
   }
