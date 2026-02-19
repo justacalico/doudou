@@ -323,10 +323,20 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             .listen((duration) {
               try {
                 if (!shouldIgnore()) {
-                  if (kDebugMode && duration != null && duration > Duration.zero) {
-                    debugPrint('[Playback] Duration detected: ${duration.inSeconds}s');
+                  if (duration != null && duration > Duration.zero) {
+                    if (kDebugMode) {
+                      debugPrint('[Playback] Duration detected: ${duration.inSeconds}s');
+                    }
+                    _stateController.updateDuration(duration);
+                  } else {
+                    // Linux/Navidrome: player often never reports duration. Use track metadata.
+                    final track = _stateController.currentTrack;
+                    if (track?.duration != null && track!.duration! > 0) {
+                      _stateController.updateDuration(Duration(milliseconds: track.duration!));
+                    } else {
+                      _stateController.updateDuration(Duration.zero);
+                    }
                   }
-                  _stateController.updateDuration(duration ?? Duration.zero);
                 }
               } catch (e) {
                 // Ignore
@@ -1419,6 +1429,17 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             } catch (e) {
               // Ignore - playback may have started
             }
+          }
+        }
+
+        // Desktop: MPV often doesn't report duration for Navidrome/Subsonic streams.
+        // Use track metadata so progress bar and total time display correctly.
+        final track = _stateController.currentTrack;
+        if (track?.duration != null && track!.duration! > 0) {
+          final metaDuration = Duration(milliseconds: track.duration!);
+          final playerDuration = _player.duration;
+          if (playerDuration == null || playerDuration == Duration.zero) {
+            _stateController.updateDuration(metaDuration);
           }
         }
       } catch (e, st) {
