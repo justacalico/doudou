@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -1452,32 +1453,36 @@ class _CustomColorPickerDialog extends StatefulWidget {
 }
 
 class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
-  late Color _color;
-  late TextEditingController _hex;
+  late double _hue; // 0–360
+  late double _saturation; // 0–1
+  late double _value; // 0–1
+
+  Color get _color => HSVColor.fromAHSV(1, _hue, _saturation, _value).toColor();
 
   @override
   void initState() {
     super.initState();
-    _color = widget.initialColor;
-    _hex = TextEditingController(text: _color.value.toRadixString(16).substring(2).toUpperCase());
+    final hsv = HSVColor.fromColor(widget.initialColor);
+    _hue = hsv.hue;
+    _saturation = hsv.saturation;
+    _value = hsv.value;
   }
 
-  @override
-  void dispose() {
-    _hex.dispose();
-    super.dispose();
-  }
-
-  void _update(Color c) {
+  void _setFromWheel(double hue, double saturation) {
     setState(() {
-      _color = c;
-      _hex.text = c.value.toRadixString(16).substring(2).toUpperCase();
+      _hue = hue;
+      _saturation = saturation.clamp(0.0, 1.0);
     });
+  }
+
+  void _setValue(double v) {
+    setState(() => _value = v.clamp(0.0, 1.0));
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    const wheelSize = 240.0;
     return AlertDialog(
       title: const Text('Custom Accent Color'),
       content: SingleChildScrollView(
@@ -1485,37 +1490,50 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              height: 60,
-              decoration: BoxDecoration(color: _color, borderRadius: BorderRadius.circular(8), border: Border.all(color: theme.colorScheme.outline)),
+              height: 56,
+              decoration: BoxDecoration(
+                color: _color,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: theme.colorScheme.outline),
+              ),
               child: Center(
                 child: Text(
                   'Preview',
-                  style: TextStyle(color: _color.computeLuminance() > 0.5 ? Colors.black : Colors.white, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: _color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            _slider('Red', _color.red.toDouble(), Colors.red, (v) => _update(Color.fromARGB(255, v.round(), _color.green, _color.blue))),
-            _slider('Green', _color.green.toDouble(), Colors.green, (v) => _update(Color.fromARGB(255, _color.red, v.round(), _color.blue))),
-            _slider('Blue', _color.blue.toDouble(), Colors.blue, (v) => _update(Color.fromARGB(255, _color.red, _color.green, v.round()))),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Text('Hex: #'),
-                Expanded(
-                  child: TextField(
-                    controller: _hex,
-                    maxLength: 6,
-                    onChanged: (s) {
-                      if (s.length == 6) {
-                        try {
-                          setState(() => _color = Color(int.parse('FF$s', radix: 16)));
-                        } catch (_) {}
-                      }
-                    },
-                  ),
-                ),
-              ],
+            const SizedBox(height: 20),
+            SizedBox(
+              width: wheelSize,
+              height: wheelSize,
+              child: _ColorWheel(
+                hue: _hue,
+                saturation: _saturation,
+                value: _value,
+                onChanged: _setFromWheel,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text('Brightness', style: theme.textTheme.bodySmall),
+            const SizedBox(height: 4),
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 12,
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+              ),
+              child: Slider(
+                value: _value,
+                min: 0,
+                max: 1,
+                divisions: 100,
+                activeColor: HSVColor.fromAHSV(1, _hue, _saturation, 1).toColor(),
+                onChanged: _setValue,
+              ),
             ),
           ],
         ),
@@ -1532,18 +1550,110 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
       ],
     );
   }
+}
 
-  Widget _slider(String label, double value, Color color, ValueChanged<double> onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('$label: ${value.round()}', style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 4),
-        SizedBox(
-          height: 30,
-          child: Slider(value: value, min: 0, max: 255, divisions: 255, activeColor: color, onChanged: onChanged),
-        ),
-      ],
+/// HSV color wheel: angle = hue, radius = saturation. Value is fixed for the wheel display.
+class _ColorWheel extends StatelessWidget {
+  final double hue;
+  final double saturation;
+  final double value;
+  final void Function(double hue, double saturation) onChanged;
+
+  const _ColorWheel({
+    required this.hue,
+    required this.saturation,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.maxWidth;
+        return GestureDetector(
+          onPanUpdate: (d) => _pickAt(d.localPosition, size, (h, s) => onChanged(h, s)),
+          onTapDown: (d) => _pickAt(d.localPosition, size, (h, s) => onChanged(h, s)),
+          child: CustomPaint(
+            size: Size(size, size),
+            painter: _ColorWheelPainter(hue: hue, saturation: saturation, value: value),
+          ),
+        );
+      },
     );
   }
+
+  void _pickAt(Offset local, double size, void Function(double h, double s) apply) {
+    final center = size / 2;
+    final dx = local.dx - center;
+    final dy = local.dy - center;
+    final dist = math.sqrt(dx * dx + dy * dy);
+    final r = (size / 2) * 0.92;
+    final sat = (dist / r).clamp(0.0, 1.0);
+    double angle = math.atan2(dy, dx);
+    if (angle < 0) angle += 2 * math.pi;
+    final h = (angle * 180 / math.pi) % 360;
+    apply(h, sat);
+  }
+}
+
+class _ColorWheelPainter extends CustomPainter {
+  final double hue;
+  final double saturation;
+  final double value;
+
+  _ColorWheelPainter({required this.hue, required this.saturation, required this.value});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.shortestSide / 2) * 0.92;
+    const segmentCount = 72;
+    for (var i = 0; i < segmentCount; i++) {
+      final startAngle = (i * 360 / segmentCount) * math.pi / 180;
+      final endAngle = ((i + 1) * 360 / segmentCount) * math.pi / 180;
+      final segmentHue = (i + 0.5) * 360 / segmentCount;
+      final path = Path()
+        ..moveTo(center.dx, center.dy)
+        ..lineTo(center.dx + radius * math.cos(startAngle), center.dy + radius * math.sin(startAngle))
+        ..arcTo(Rect.fromCircle(center: center, radius: radius), startAngle, endAngle - startAngle, false)
+        ..close();
+      final centerColor = HSVColor.fromAHSV(1, segmentHue, 0, value).toColor();
+      final edgeColor = HSVColor.fromAHSV(1, segmentHue, 1, value).toColor();
+      final rect = Rect.fromCircle(center: center, radius: radius);
+      final gradient = RadialGradient(
+        center: Alignment.center,
+        radius: 1,
+        colors: [centerColor, edgeColor],
+      );
+      final paint = Paint()
+        ..shader = gradient.createShader(rect)
+        ..style = PaintingStyle.fill;
+      canvas.drawPath(path, paint);
+    }
+    final borderPaint = Paint()
+      ..color = Colors.white24
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawCircle(center, radius, borderPaint);
+    final pickerRadius = 8.0;
+    final pickerAngle = hue * math.pi / 180;
+    final pickerDist = radius * saturation;
+    final pickerCenter = Offset(
+      center.dx + pickerDist * math.cos(pickerAngle),
+      center.dy + pickerDist * math.sin(pickerAngle),
+    );
+    final pickerPaint = Paint()
+      ..color = _color.computeLuminance() > 0.5 ? Colors.black87 : Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawCircle(pickerCenter, pickerRadius, pickerPaint);
+    canvas.drawCircle(pickerCenter, pickerRadius - 1, Paint()..color = _color);
+  }
+
+  Color get _color => HSVColor.fromAHSV(1, hue, saturation, value).toColor();
+
+  @override
+  bool shouldRepaint(covariant _ColorWheelPainter old) =>
+      old.hue != hue || old.saturation != saturation || old.value != value;
 }
