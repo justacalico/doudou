@@ -110,7 +110,34 @@ class NavidromeHandler extends BaseProviderHandler {
     required DateTime? loadStartedAt,
     required DateTime? lastCompletionHandledAt,
   }) {
-    // Standard completion handling - no special logic needed
+    // On Linux, MPV may emit completion events prematurely when duration is null.
+    // Only accept completion if:
+    // 1. We have a duration AND position is near the end (within 5 seconds)
+    // 2. OR position is > 30 seconds (track played long enough to be real completion)
+    
+    if (duration != null && duration > Duration.zero) {
+      // We have duration - only accept if position is near the end
+      final timeRemaining = duration - position;
+      if (timeRemaining.inSeconds > 5) {
+        if (kDebugMode) {
+          debugPrint('[NavidromeHandler] shouldHandleCompletion: rejecting - position=${position.inSeconds}s, duration=${duration.inSeconds}s, ${timeRemaining.inSeconds}s remaining');
+        }
+        return false;
+      }
+      // Position is within 5 seconds of end - accept completion
+      return true;
+    }
+    
+    // No duration - only accept if track played for at least 30 seconds
+    // This prevents premature completion when MPV doesn't report duration
+    if (position.inSeconds < 30) {
+      if (kDebugMode) {
+        debugPrint('[NavidromeHandler] shouldHandleCompletion: rejecting - no duration, position=${position.inSeconds}s < 30s');
+      }
+      return false;
+    }
+    
+    // Track played for 30+ seconds without duration - likely real completion
     return true;
   }
 

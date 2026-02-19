@@ -334,16 +334,19 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }),
     );
 
-    // Player completion
+    // Player completion - only listen, don't handle here (handled in _handlePlayerStateChange)
+    // This prevents double-handling of completion events
     _subscriptions.add(
       (_isDesktop ? capturedPlayer : _player).playbackEventStream
           .where((event) => event.processingState == ProcessingState.completed)
-          .listen((_) {
-            try {
-              if (!shouldIgnore()) _handleTrackCompletion();
-            } catch (e) {
-              // Ignore
+          .listen((event) {
+            if (kDebugMode && _isDesktop) {
+              final state = (_isDesktop ? capturedPlayer : _player).playerState;
+              final position = (_isDesktop ? capturedPlayer : _player).position;
+              final duration = (_isDesktop ? capturedPlayer : _player).duration;
+              debugPrint('[Linux Debug] playbackEventStream: COMPLETED event - position=${position.inMilliseconds}ms, duration=${duration?.inMilliseconds ?? "null"}ms, playing=${state.playing}');
             }
+            // Completion is handled in _handlePlayerStateChange to avoid double-handling
           }),
     );
 
