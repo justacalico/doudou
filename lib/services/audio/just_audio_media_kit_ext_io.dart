@@ -38,7 +38,8 @@ class PlatformAudioConfig {
         if (home == null) return;
         configDir = '$home/.config/mpv';
         optionsToAdd =
-            '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (auto-detect best available: pulse, alsa, etc.)\n'
+            '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (try pipewire first, fallback to auto)\n'
+            'ao=pipewire\n'
             'ao=auto\n'
             '# Doudou: avoid lavf "Failed to create file cache" (blocks playback on server switch)\ncache=no\n'
             '# Doudou: User-Agent and Referrer for googlevideo.com (YouTube Music)\n'
@@ -83,7 +84,7 @@ class PlatformAudioConfig {
             ? (existingContent.contains('audio-exclusive') &&
                 existingContent.contains('user-agent') &&
                 existingContent.contains('referrer'))
-            : ((existingContent.contains('ao=pulse') || existingContent.contains('ao=auto') || existingContent.contains('ao=alsa')) &&
+            : ((existingContent.contains('ao=pulse') || existingContent.contains('ao=auto') || existingContent.contains('ao=alsa') || existingContent.contains('ao=pipewire')) &&
                 existingContent.contains('cache=no') &&
                 existingContent.contains('user-agent') &&
                 existingContent.contains('referrer'));
@@ -92,10 +93,11 @@ class PlatformAudioConfig {
           _originalConfigContent ??= existingContent;
           return;
         }
-        // Add missing options (Linux: ao=auto for Navidrome/non-YT audio; all: user-agent/referrer)
+        // Add missing options (Linux: ao=pipewire/auto for Navidrome/non-YT audio; all: user-agent/referrer)
         var toAppend = '';
-        if (Platform.isLinux && !existingContent.contains('ao=pulse') && !existingContent.contains('ao=auto') && !existingContent.contains('ao=alsa')) {
-          toAppend += '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (auto-detect best available: pulse, alsa, etc.)\n'
+        if (Platform.isLinux && !existingContent.contains('ao=pulse') && !existingContent.contains('ao=auto') && !existingContent.contains('ao=alsa') && !existingContent.contains('ao=pipewire')) {
+          toAppend += '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (try pipewire first, fallback to auto)\n'
+              'ao=pipewire\n'
               'ao=auto\n';
         }
         if (!existingContent.contains('user-agent') || !existingContent.contains('referrer')) {
