@@ -36,227 +36,11 @@ class _HomePageState extends State<HomePage> {
     return imageId != null ? appState.getImageUrl(imageId) : null;
   }
 
-  /// Search bar for YouTube Music home (navigates to search page).
-  Widget _ytMusicSearchBar(BuildContext context, AppLocalizations l10n) {
-    return GestureDetector(
-      onTap: () => NavigationService().selectPage(1),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: DesktopTheme.spacingMd,
-          vertical: DesktopTheme.spacingSm + 4,
-        ),
-        decoration: BoxDecoration(
-          color: DesktopTheme.glassSurface.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
-          border: Border.all(color: DesktopTheme.glassBorder, width: 1),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.search_rounded,
-              size: 22,
-              color: DesktopTheme.textSecondary,
-            ),
-            const SizedBox(width: DesktopTheme.spacingMd),
-            Text(
-              'Songs, Playlist, Album or Artist',
-              style: TextStyle(
-                fontSize: 14,
-                color: DesktopTheme.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// YouTube Music home sections: Quick Picks grid + mood/album rows.
-  List<Widget> _ytMusicHomeSections(
-    BuildContext context,
-    AppState appState,
-    AppLocalizations l10n,
-  ) {
-    final sections = appState.youtubeMusicHomeSections;
-    if (sections.isEmpty) return [];
-
-    // First section with tracks becomes "Quick Picks"
-    YTMHomeSection? quickPicksSection;
-    for (final s in sections) {
-      if (s.tracks.isNotEmpty) {
-        quickPicksSection = s;
-        break;
-      }
-    }
-
-    final list = <Widget>[];
-
-    if (quickPicksSection != null && quickPicksSection.tracks.isNotEmpty) {
-      list.add(
-        SectionHeader(
-          title: quickPicksSection.title.isNotEmpty
-              ? quickPicksSection.title
-              : 'Quick Picks',
-        ),
-      );
-      list.add(const SizedBox(height: DesktopTheme.spacingMd));
-      list.add(_quickPicksGrid(context, appState, quickPicksSection.tracks));
-      list.add(const SizedBox(height: DesktopTheme.spacingXl));
-    }
-
-    for (final section in sections) {
-      if (section.playlists.isNotEmpty) {
-        list.add(
-          SectionHeader(
-            title: section.title.isNotEmpty ? section.title : 'Playlists',
-          ),
-        );
-        list.add(const SizedBox(height: DesktopTheme.spacingMd));
-        list.add(_ytMusicPlaylistRow(context, appState, section.playlists));
-        list.add(const SizedBox(height: DesktopTheme.spacingXl));
-      }
-      if (section.albums.isNotEmpty) {
-        list.add(
-          SectionHeader(
-            title: section.title.isNotEmpty
-                ? section.title
-                : 'Albums for you',
-          ),
-        );
-        list.add(const SizedBox(height: DesktopTheme.spacingMd));
-        list.add(_ytMusicAlbumRow(context, appState, section.albums, l10n));
-        list.add(const SizedBox(height: DesktopTheme.spacingXl));
-      }
-      // Sections that have only tracks and weren't used as Quick Picks
-      if (section.tracks.isNotEmpty && section != quickPicksSection) {
-        list.add(
-          SectionHeader(
-            title: section.title.isNotEmpty ? section.title : 'Songs',
-          ),
-        );
-        list.add(const SizedBox(height: DesktopTheme.spacingMd));
-        list.add(_quickPicksGrid(context, appState, section.tracks));
-        list.add(const SizedBox(height: DesktopTheme.spacingXl));
-      }
-    }
-
-    return list;
-  }
-
-  Widget _quickPicksGrid(
-    BuildContext context,
-    AppState appState,
-    List<Track> tracks,
-  ) {
-    const crossAxisCount = 3;
-    const childAspectRatio = 0.85;
-    final list = tracks.take(crossAxisCount * 4).toList(); // 3x4 = 12 items
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        childAspectRatio: childAspectRatio,
-        crossAxisSpacing: DesktopTheme.spacingMd,
-        mainAxisSpacing: DesktopTheme.spacingMd,
-      ),
-      itemCount: list.length,
-      itemBuilder: (context, index) {
-        final track = list[index];
-        final subtitle = track.artistName ?? '';
-        final playCountText = track.playCount != null
-            ? ' • ${_formatPlayCount(track.playCount!)} plays'
-            : '';
-        return MusicCard(
-          title: track.name,
-          subtitle: subtitle + playCountText,
-          imageUrl: _imageUrl(appState, track.imageUrl),
-          size: 140,
-          onTap: () => appState.playPlaylist(list, index),
-        );
-      },
-    );
-  }
-
-  Widget _ytMusicPlaylistRow(
-    BuildContext context,
-    AppState appState,
-    List<Playlist> playlists,
-  ) {
-    final list = playlists.take(10).toList();
-    return SizedBox(
-      height: 230,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: list.length,
-        itemBuilder: (context, index) {
-          final playlist = list[index];
-          return Padding(
-            padding: EdgeInsets.only(
-              right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
-            child: MusicCard(
-              title: playlist.name,
-              subtitle: playlist.trackCount > 0
-                  ? '${playlist.trackCount} ${playlist.trackCount == 1 ? 'song' : 'songs'}'
-                  : '',
-              imageUrl: _imageUrl(appState, playlist.imageUrl),
-              size: 180,
-              onTap: () => NavigationService().navigateToPlaylist(playlist),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _ytMusicAlbumRow(
-    BuildContext context,
-    AppState appState,
-    List<Album> albums,
-    AppLocalizations l10n,
-  ) {
-    final list = albums.take(10).toList();
-    return SizedBox(
-      height: 230,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: list.length,
-        itemBuilder: (context, index) {
-          final album = list[index];
-          return Padding(
-            padding: EdgeInsets.only(
-              right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
-            child: MusicCard(
-              title: album.name,
-              subtitle: album.artistName ?? l10n.unknownArtist,
-              imageUrl: _imageUrl(appState, album.imageUrl),
-              size: 180,
-              onTap: () => NavigationService().navigateToAlbum(album),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  String _formatPlayCount(int n) {
-    if (n >= 1000000000) return '${(n / 1000000000).toStringAsFixed(1)}B';
-    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
-    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
-    return '$n';
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final isYtMusicHome = appState.mediaServiceManager.currentServerType ==
-                ServerType.youtubeMusic &&
-            appState.youtubeMusicHomeSections.isNotEmpty;
-
         return PageTemplate(
           title: l10n.navHome,
           subtitle: _greeting(l10n),
@@ -269,105 +53,99 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: DesktopTheme.spacingMd),
-                      if (isYtMusicHome) ...[
-                        _ytMusicSearchBar(context, l10n),
-                        const SizedBox(height: DesktopTheme.spacingXl),
-                        ..._ytMusicHomeSections(context, appState, l10n),
-                      ] else ...[
-                        _quickAccess(context, appState, l10n),
-                        const SizedBox(height: DesktopTheme.spacingXl),
-                        // SoundCloud has no albums; show album sections for YouTube Music and others
-                        if (appState.mediaServiceManager.currentServerType !=
-                            ServerType.soundcloud) ...[
-                          if (_albumsForHomeSection(appState).isNotEmpty) ...[
-                            SectionHeader(
-                              title: l10n.recentlyAddedAlbums,
-                              subtitle: l10n.yourNewestAdditions,
-                              useGradient: true,
-                              onSeeAllPressed: () =>
-                                  NavigationService().selectPage(3),
-                            ),
-                            const SizedBox(height: DesktopTheme.spacingMd),
-                            _recentlyAddedAlbumRow(context, appState, l10n),
-                            const SizedBox(height: DesktopTheme.spacingXl),
-                          ],
-                          if (appState.recentlyPlayedAlbums.isNotEmpty) ...[
-                            SectionHeader(
-                              title: l10n.continueListening,
-                              subtitle: l10n.recentlyPlayedSection,
-                              onSeeAllPressed: () =>
-                                  NavigationService().selectPage(3),
-                            ),
-                            const SizedBox(height: DesktopTheme.spacingMd),
-                            _continueListeningRow(context, appState, l10n),
-                            const SizedBox(height: DesktopTheme.spacingXl),
-                          ],
-                        ],
-                        if (appState.artists.isNotEmpty) ...[
+                      _quickAccess(context, appState, l10n),
+                      const SizedBox(height: DesktopTheme.spacingXl),
+                      // SoundCloud has no albums; show album sections for YouTube Music and others
+                      if (appState.mediaServiceManager.currentServerType !=
+                          ServerType.soundcloud) ...[
+                        if (_albumsForHomeSection(appState).isNotEmpty) ...[
                           SectionHeader(
-                            title: l10n.yourArtists,
-                            subtitle: l10n.browseByArtist,
+                            title: l10n.recentlyAddedAlbums,
+                            subtitle: l10n.yourNewestAdditions,
+                            useGradient: true,
                             onSeeAllPressed: () =>
-                                NavigationService().selectPage(4),
+                                NavigationService().selectPage(3),
                           ),
                           const SizedBox(height: DesktopTheme.spacingMd),
-                          _artistRow(context, appState, l10n),
+                          _recentlyAddedAlbumRow(context, appState, l10n),
                           const SizedBox(height: DesktopTheme.spacingXl),
                         ],
-                        if (appState.mediaServiceManager.currentServerType !=
-                                ServerType.soundcloud &&
-                            appState.mediaServiceManager.currentServerType !=
-                                ServerType.youtubeMusic &&
-                            appState.tracks.isNotEmpty) ...[
+                        if (appState.recentlyPlayedAlbums.isNotEmpty) ...[
                           SectionHeader(
-                            title: l10n.recentTracks,
-                            subtitle: l10n.yourMusicCollection,
+                            title: l10n.continueListening,
+                            subtitle: l10n.recentlyPlayedSection,
+                            onSeeAllPressed: () =>
+                                NavigationService().selectPage(3),
                           ),
                           const SizedBox(height: DesktopTheme.spacingMd),
-                          _recentTracks(context, appState, l10n),
+                          _continueListeningRow(context, appState, l10n),
+                          const SizedBox(height: DesktopTheme.spacingXl),
                         ],
-                        if ((appState.mediaServiceManager.currentServerType ==
-                                    ServerType.soundcloud ||
-                                appState.mediaServiceManager.currentServerType ==
-                                    ServerType.youtubeMusic) &&
-                            appState.artists.isEmpty) ...[
-                          const SizedBox(height: DesktopTheme.spacingXl * 2),
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(
-                                  DesktopTheme.spacingXl),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.person_add_rounded,
-                                    size: 64,
-                                    color: DesktopTheme.textMuted,
+                      ],
+                      if (appState.artists.isNotEmpty) ...[
+                        SectionHeader(
+                          title: l10n.yourArtists,
+                          subtitle: l10n.browseByArtist,
+                          onSeeAllPressed: () =>
+                              NavigationService().selectPage(4),
+                        ),
+                        const SizedBox(height: DesktopTheme.spacingMd),
+                        _artistRow(context, appState, l10n),
+                        const SizedBox(height: DesktopTheme.spacingXl),
+                      ],
+                      if (appState.mediaServiceManager.currentServerType !=
+                              ServerType.soundcloud &&
+                          appState.mediaServiceManager.currentServerType !=
+                              ServerType.youtubeMusic &&
+                          appState.tracks.isNotEmpty) ...[
+                        SectionHeader(
+                          title: l10n.recentTracks,
+                          subtitle: l10n.yourMusicCollection,
+                        ),
+                        const SizedBox(height: DesktopTheme.spacingMd),
+                        _recentTracks(context, appState, l10n),
+                      ],
+                      if ((appState.mediaServiceManager.currentServerType ==
+                                  ServerType.soundcloud ||
+                              appState.mediaServiceManager.currentServerType ==
+                                  ServerType.youtubeMusic) &&
+                          appState.artists.isEmpty) ...[
+                        const SizedBox(height: DesktopTheme.spacingXl * 2),
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(
+                                DesktopTheme.spacingXl),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.person_add_rounded,
+                                  size: 64,
+                                  color: DesktopTheme.textMuted,
+                                ),
+                                const SizedBox(
+                                    height: DesktopTheme.spacingMd),
+                                Text(
+                                  l10n.soundcloudFollowPrompt,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: DesktopTheme.textSecondary,
+                                    height: 1.4,
                                   ),
-                                  const SizedBox(
-                                      height: DesktopTheme.spacingMd),
-                                  Text(
-                                    l10n.soundcloudFollowPrompt,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: DesktopTheme.textSecondary,
-                                      height: 1.4,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(
-                                      height: DesktopTheme.spacingMd),
-                                  TextButton.icon(
-                                    onPressed: () =>
-                                        NavigationService().selectPage(1),
-                                    icon: const Icon(Icons.search_rounded),
-                                    label: Text(l10n.search),
-                                  ),
-                                ],
-                              ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(
+                                    height: DesktopTheme.spacingMd),
+                                TextButton.icon(
+                                  onPressed: () =>
+                                      NavigationService().selectPage(1),
+                                  icon: const Icon(Icons.search_rounded),
+                                  label: Text(l10n.search),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ],
                       const SizedBox(height: 120),
                     ],
