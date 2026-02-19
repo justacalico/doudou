@@ -99,34 +99,38 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
       
       final result = await LyricsService.fetchLyrics(widget.trackName, widget.artistName);
       
-      setState(() {
-        _lyricsResult = result;
-        _isLoading = false;
-        
-        // Initialize line keys for scrolling
-        if (result?.syncedLyrics != null) {
-          _lineKeys.clear();
-          for (int i = 0; i < result!.syncedLyrics!.length; i++) {
-            _lineKeys.add(GlobalKey());
-          }
+      if (mounted) {
+        setState(() {
+          _lyricsResult = result;
+          _isLoading = false;
           
-          // After loading lyrics, check current position and scroll to appropriate line
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              final appState = Provider.of<AppState>(context, listen: false);
-              final currentPosition = appState.audioHandler?.playbackState.value.position ?? Duration.zero;
-              if (currentPosition > Duration.zero) {
-                _updateCurrentLine(currentPosition);
-              }
+          // Initialize line keys for scrolling
+          if (result?.syncedLyrics != null) {
+            _lineKeys.clear();
+            for (int i = 0; i < result!.syncedLyrics!.length; i++) {
+              _lineKeys.add(GlobalKey());
             }
-          });
-        }
-      });
+            
+            // After loading lyrics, check current position and scroll to appropriate line
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                final appState = Provider.of<AppState>(context, listen: false);
+                final currentPosition = appState.audioHandler?.playbackState.value.position ?? Duration.zero;
+                if (currentPosition > Duration.zero) {
+                  _updateCurrentLine(currentPosition);
+                }
+              }
+            });
+          }
+        });
+      }
     } catch (e) {
-      setState(() {
-        _lyricsResult = null;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _lyricsResult = null;
+          _isLoading = false;
+        });
+      }
     }
   }
 

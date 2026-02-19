@@ -483,7 +483,7 @@ class _DownloadAlbumDetailPageState extends State<_DownloadAlbumDetailPage> {
                           try {
                             final t = appState.tracks.firstWhere((x) => x.id == m.id);
                             playlist.add(t);
-                          } catch (_) {}
+                          } catch (_) { /* skip track not in library */ }
                         }
                         final idx = playlist.indexWhere((t) => t.id == track!.id);
                         if (idx >= 0) appState.playPlaylist(playlist, idx);

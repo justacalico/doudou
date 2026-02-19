@@ -63,3 +63,21 @@ String displayArtistName(String? artistName, {String defaultName = ''}) {
   final result = unique.join(', ');
   return result.isEmpty ? defaultName : result;
 }
+
+/// Format [duration] as "m:ss" or "h:mm:ss" when duration is >= 1 hour.
+String formatDuration(Duration duration) {
+  final hours = duration.inHours;
+  final minutes = duration.inMinutes.remainder(60);
+  final seconds = duration.inSeconds.remainder(60);
+  String twoDigits(int n) => n.toString().padLeft(2, '0');
+  if (hours > 0) {
+    return '$hours:${twoDigits(minutes)}:${twoDigits(seconds)}';
+  }
+  return '${twoDigits(minutes)}:${twoDigits(seconds)}';
+}
+
+/// Format [ms] as "m:ss" or "h:mm:ss". Returns '--:--' when [ms] is null.
+String formatDurationMs(int? ms) {
+  if (ms == null) return '--:--';
+  return formatDuration(Duration(milliseconds: ms));
+}

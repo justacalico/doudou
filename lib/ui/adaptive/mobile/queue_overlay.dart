@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/ui/widgets/cached_image_widget.dart';
+import 'package:doudou/utils/display_utils.dart';
 
 /// Shows the queue overlay with glass-morphism design
 void showQueueOverlay(BuildContext context) {
@@ -466,7 +467,7 @@ class _QueueOverlayState extends State<QueueOverlay>
             children: [
               if (track.duration != null)
                 Text(
-                  _formatDuration(Duration(milliseconds: track.duration!)),
+                  formatDurationMs(track.duration),
                   style: const TextStyle(
                     color: Colors.white60,
                     fontSize: 12,
@@ -499,12 +500,5 @@ class _QueueOverlayState extends State<QueueOverlay>
         ),
       ),
     );
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
   }
 }

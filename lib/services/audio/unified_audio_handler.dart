@@ -524,7 +524,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           try {
             await _player.seek(Duration.zero);
             if (_stateController.userIntendedPlaying) await _player.play();
-          } catch (_) {}
+          } catch (_) { /* ignore seek/play on repeat-one */ }
           return;
         }
         if (_isDesktop) {
@@ -1362,7 +1362,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   /// Load and play track, trying each URL until one succeeds (for YouTube Music fallbacks)
   Future<void> _loadAndPlayTrackWithFallbacks(List<String> urls) async {
-    assert(urls.isNotEmpty);
+    if (urls.isEmpty) return;
     Object? lastError;
     for (var i = 0; i < urls.length; i++) {
       final url = urls[i];

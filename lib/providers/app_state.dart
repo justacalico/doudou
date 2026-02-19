@@ -95,7 +95,7 @@ class AppState extends ChangeNotifier {
         final album = _albums.firstWhere((a) => a.id == id);
         seen.add(id);
         result.add(album);
-      } catch (_) {}
+      } catch (_) { /* skip missing album */ }
     }
     return result;
   }
@@ -204,10 +204,11 @@ class AppState extends ChangeNotifier {
 
   void _setupAudioHandlerListeners() {
     _clearAudioHandlerListeners();
-    if (_audioHandler == null) return;
+    final handler = _audioHandler;
+    if (handler == null) return;
 
     // Listen to media item changes (track changes)
-    final mediaItemStream = _audioHandler!.mediaItem;
+    final mediaItemStream = handler.mediaItem;
     if (mediaItemStream != null) {
       _audioHandlerSubscriptions.add(
         mediaItemStream.listen((_) {
@@ -217,7 +218,7 @@ class AppState extends ChangeNotifier {
     }
 
     // Listen to current track stream changes (more reliable)
-    final currentTrackStream = _audioHandler!.currentTrackStream;
+    final currentTrackStream = handler.currentTrackStream;
     if (currentTrackStream != null) {
       _audioHandlerSubscriptions.add(
         currentTrackStream.listen((_) {
@@ -227,7 +228,7 @@ class AppState extends ChangeNotifier {
     }
 
     // Listen to playback state changes (for playing/paused status)
-    final playbackStateStream = _audioHandler!.playbackState;
+    final playbackStateStream = handler.playbackState;
     if (playbackStateStream != null) {
       _audioHandlerSubscriptions.add(
         playbackStateStream.listen((_) {
@@ -1146,7 +1147,7 @@ class AppState extends ChangeNotifier {
             _audioHandler = audioService;
           }
           _setupAudioHandlerListeners();
-          _audioHandler!.audioHandler?.setSmartBackToStartEnabled(_smartBackToStartEnabled);
+          _audioHandler?.audioHandler?.setSmartBackToStartEnabled(_smartBackToStartEnabled);
         } catch (e) {
           if (_audioHandler == null) rethrow;
           _setupAudioHandlerListeners();
@@ -1154,7 +1155,7 @@ class AppState extends ChangeNotifier {
         await loadLibraryData();
         return true;
       }
-    } catch (_) {}
+    } catch (_) { /* connection or setup failed */ }
     return false;
   }
 
@@ -1198,12 +1199,12 @@ class AppState extends ChangeNotifier {
     if (disposeAudio) {
       try {
         await _audioHandler?.dispose();
-      } catch (_) {}
+      } catch (_) { /* ignore dispose error */ }
       _audioHandler = null;
     } else {
       try {
         await _audioHandler?.resetForServerSwitch();
-      } catch (_) {}
+      } catch (_) { /* ignore reset error */ }
     }
     _isLoggedIn = false;
     _albums.clear();
@@ -1218,7 +1219,7 @@ class AppState extends ChangeNotifier {
       await _cacheService.clearArtistsCache();
       await _cacheService.clearTracksCache();
       await _cacheService.clearPlaylistsCache();
-    } catch (_) {}
+    } catch (_) { /* ignore cache clear error */ }
     _clearError();
   }
 
@@ -1848,18 +1849,18 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> playTrack(Track track) async {
-    if (_audioHandler != null) {
-      await _audioHandler!.playTrack(track);
-      _addToRecentTracks(track);
-      notifyListeners();
-    }
+    final handler = _audioHandler;
+    if (handler == null) return;
+    await handler.playTrack(track);
+    _addToRecentTracks(track);
+    notifyListeners();
   }
 
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
-    if (_audioHandler != null) {
-      await _audioHandler!.playPlaylist(tracks, startIndex);
-      notifyListeners();
-    }
+    final handler = _audioHandler;
+    if (handler == null) return;
+    await handler.playPlaylist(tracks, startIndex);
+    notifyListeners();
   }
 
   Future<void> playPause() async {
@@ -1870,14 +1871,15 @@ class AppState extends ChangeNotifier {
     }
     _lastPlayPauseCommand = now;
 
-    if (_audioHandler != null) {
-      final userIntendedPlaying = _audioHandler!.userIntendedPlaying;
+    final handler = _audioHandler;
+    if (handler != null) {
+      final userIntendedPlaying = handler.userIntendedPlaying;
 
       try {
         if (userIntendedPlaying) {
-          await _audioHandler!.pause();
+          await handler.pause();
         } else {
-          await _audioHandler!.play();
+          await handler.play();
         }
       } catch (e) {
         // Try to recover by notifying listeners anyway
@@ -1888,30 +1890,30 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> skipToNext() async {
-    if (_audioHandler != null) {
-      await _audioHandler!.skipToNext();
-      notifyListeners();
-    }
+    final handler = _audioHandler;
+    if (handler == null) return;
+    await handler.skipToNext();
+    notifyListeners();
   }
 
   Future<void> skipToPrevious() async {
-    if (_audioHandler != null) {
-      await _audioHandler!.skipToPrevious();
-      notifyListeners();
-    }
+    final handler = _audioHandler;
+    if (handler == null) return;
+    await handler.skipToPrevious();
+    notifyListeners();
   }
 
   Future<void> skipToIndex(int index) async {
-    if (_audioHandler != null) {
-      await _audioHandler!.skipToQueueItem(index);
-      notifyListeners();
-    }
+    final handler = _audioHandler;
+    if (handler == null) return;
+    await handler.skipToQueueItem(index);
+    notifyListeners();
   }
 
   Future<void> seekTo(Duration position) async {
-    if (_audioHandler != null) {
-      await _audioHandler!.seek(position);
-    }
+    final handler = _audioHandler;
+    if (handler == null) return;
+    await handler.seek(position);
   }
 
   void addToQueue(Track track) {
@@ -2005,8 +2007,11 @@ class AppState extends ChangeNotifier {
       final shuffledTracks = List<Track>.from(allTracks);
       shuffledTracks.shuffle();
 
-      await _audioHandler!.playPlaylist(shuffledTracks, 0);
-      await _audioHandler!.shuffle(); // Enable shuffle mode
+      final handler = _audioHandler;
+      if (handler != null) {
+        await handler.playPlaylist(shuffledTracks, 0);
+        await handler.shuffle(); // Enable shuffle mode
+      }
     } catch (e) {
       // Error in shuffleAllTracks
     } finally {
@@ -2048,8 +2053,11 @@ class AppState extends ChangeNotifier {
       final shuffledFavorites = List<Track>.from(favoriteTracks);
       shuffledFavorites.shuffle();
 
-      await _audioHandler!.playPlaylist(shuffledFavorites, 0);
-      await _audioHandler!.shuffle(); // Enable shuffle mode
+      final handler = _audioHandler;
+      if (handler != null) {
+        await handler.playPlaylist(shuffledFavorites, 0);
+        await handler.shuffle(); // Enable shuffle mode
+      }
     } catch (e) {
       // Error in shuffleFavoriteTracks
     } finally {
@@ -2659,7 +2667,7 @@ class AppState extends ChangeNotifier {
     try {
       PaintingBinding.instance.imageCache.clear();
       PaintingBinding.instance.imageCache.clearLiveImages();
-    } catch (_) {}
+    } catch (_) { /* ignore image cache clear error */ }
   }
 
   Future<Map<String, dynamic>> getCacheStats() async {
@@ -2852,17 +2860,18 @@ class AppState extends ChangeNotifier {
 
   /// Cycle through repeat modes: none -> all -> one -> none
   Future<void> _cycleRepeatMode() async {
-    if (_audioHandler == null) return;
+    final handler = _audioHandler;
+    if (handler == null) return;
 
-    final currentMode = _audioHandler!.repeatMode;
+    final currentMode = handler.repeatMode;
 
     // Cycle: none -> all -> one -> none
     if (currentMode == RepeatMode.none) {
-      await _audioHandler!.setRepeatMode(RepeatMode.all);
+      await handler.setRepeatMode(RepeatMode.all);
     } else if (currentMode == RepeatMode.all) {
-      await _audioHandler!.setRepeatMode(RepeatMode.one);
+      await handler.setRepeatMode(RepeatMode.one);
     } else {
-      await _audioHandler!.setRepeatMode(RepeatMode.none);
+      await handler.setRepeatMode(RepeatMode.none);
     }
     notifyListeners();
   }
@@ -2870,8 +2879,9 @@ class AppState extends ChangeNotifier {
   /// Handle general "play music" command - plays recently played or shuffles all
   Future<void> _handleVoicePlayGeneral() async {
     // If there's something in the queue, resume playback
-    if (_audioHandler != null && queue.isNotEmpty) {
-      await _audioHandler!.play();
+    final handler = _audioHandler;
+    if (handler != null && queue.isNotEmpty) {
+      await handler.play();
       return;
     }
 

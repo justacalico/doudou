@@ -350,7 +350,7 @@ class LocalMusicService implements BaseMediaService {
           }
         }
       }
-    } catch (_) {}
+    } catch (_) { /* skip unreadable cache entry */ }
 
     return null;
   }

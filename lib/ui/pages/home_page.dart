@@ -10,6 +10,7 @@ import 'package:doudou/ui/layout/navigation_service.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/templates/music_card.dart';
+import 'package:doudou/utils/display_utils.dart';
 
 /// Home page built from reusable templates (page, section header, music cards, list tiles).
 class HomePage extends StatefulWidget {
@@ -351,7 +352,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     if (track.duration != null)
                       Text(
-                        _formatDuration(track.duration!),
+                        formatDurationMs(track.duration),
                         style: TextStyle(
                           fontSize: 12,
                           color: DesktopTheme.textTertiary,
@@ -375,10 +376,5 @@ class _HomePageState extends State<HomePage> {
           )
           .toList(),
     );
-  }
-
-  String _formatDuration(int ms) {
-    final d = Duration(milliseconds: ms);
-    return '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
   }
 }

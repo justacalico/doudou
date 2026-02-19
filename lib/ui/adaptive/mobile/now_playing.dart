@@ -971,7 +971,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
-                                                _formatDuration(position),
+                                                formatDuration(position),
                                                 style: TextStyle(
                                                   color: CupertinoColors.white
                                                       .withOpacity(0.6),
@@ -980,7 +980,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                 ),
                                               ),
                                               Text(
-                                                _formatDuration(duration),
+                                                formatDuration(duration),
                                                 style: TextStyle(
                                                   color: CupertinoColors.white
                                                       .withOpacity(0.6),
@@ -1919,18 +1919,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         );
       }
     }
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-
-    if (hours > 0) {
-      return '$hours:${twoDigits(minutes)}:${twoDigits(seconds)}';
-    }
-    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
   }
 
   String _buildArtistAlbumText(dynamic track, AppState appState) {

@@ -1,21 +1,7 @@
-import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:doudou/services/image_cache_manager.dart';
+import 'package:doudou/ui/widgets/cached_image.dart';
 
-/// Helper to check if a URL is a local file path
-bool _isLocalFilePath(String url) {
-  return url.startsWith('file://') || url.startsWith('/');
-}
-
-/// Helper to get the actual file path from a URL
-String _getFilePath(String url) {
-  if (url.startsWith('file://')) {
-    return url.substring(7); // Remove 'file://' prefix
-  }
-  return url;
-}
-
+/// Thin wrapper around [CachedImage] with a default [placeholderColor] (0xFF2C2C2E) for queue/overlay UIs.
 class CachedImageWidget extends StatelessWidget {
   final String imageUrl;
   final double? width;
@@ -40,104 +26,16 @@ class CachedImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget image;
-
-    if (_isLocalFilePath(imageUrl)) {
-      final filePath = _getFilePath(imageUrl);
-      final file = File(filePath);
-
-      image = FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          // Show placeholder while loading
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return placeholder ??
-                Container(
-                  width: width,
-                  height: height,
-                  color: placeholderColor ?? const Color(0xFF2C2C2E),
-                  child: const Center(
-                    child: CupertinoActivityIndicator(
-                      color: CupertinoColors.systemGrey,
-                    ),
-                  ),
-                );
-          }
-          
-          if (snapshot.data == true) {
-            return Image.file(
-              file,
-              width: width,
-              height: height,
-              fit: fit,
-              errorBuilder: (context, error, stackTrace) {
-                return errorWidget ??
-                    Container(
-                      width: width,
-                      height: height,
-                      color: const Color(0xFF2C2C2E),
-                      child: const Icon(
-                        CupertinoIcons.photo,
-                        color: CupertinoColors.systemGrey,
-                        size: 32,
-                      ),
-                    );
-              },
-            );
-          }
-
-          return errorWidget ??
-              Container(
-                width: width,
-                height: height,
-                color: const Color(0xFF2C2C2E),
-                child: const Icon(
-                  CupertinoIcons.photo,
-                  color: CupertinoColors.systemGrey,
-                  size: 32,
-                ),
-              );
-        },
-      );
-    } else {
-      image = CachedNetworkImage(
-        imageUrl: imageUrl,
-        width: width,
-        height: height,
-        fit: fit,
-        cacheManager: ImageCacheManager.instance,
-        placeholder: (context, url) =>
-            placeholder ??
-            Container(
-              width: width,
-              height: height,
-              color: placeholderColor ?? const Color(0xFF2C2C2E),
-              child: const Center(
-                child: CupertinoActivityIndicator(
-                  color: CupertinoColors.systemGrey,
-                ),
-              ),
-            ),
-        errorWidget: (context, url, error) =>
-            errorWidget ??
-            Container(
-              width: width,
-              height: height,
-              color: const Color(0xFF2C2C2E),
-              child: const Icon(
-                CupertinoIcons.photo,
-                color: CupertinoColors.systemGrey,
-                size: 32,
-              ),
-            ),
-      );
-    }
-
-    if (borderRadius != null) {
-      return ClipRRect(borderRadius: borderRadius!, child: image);
-    }
-
-    return image;
+    return CachedImage(
+      imageUrl: imageUrl,
+      width: width,
+      height: height,
+      fit: fit,
+      placeholder: placeholder,
+      errorWidget: errorWidget,
+      borderRadius: borderRadius,
+      placeholderColor: placeholderColor ?? const Color(0xFF2C2C2E),
+    );
   }
 }
 

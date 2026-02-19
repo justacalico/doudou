@@ -7,6 +7,10 @@ import 'package:http/http.dart' as http;
 /// Local HTTP proxy for streaming URLs that require custom headers (e.g. googlevideo.com).
 /// MPV does not reliably apply http-header-fields from media_kit, so we proxy requests
 /// and add headers server-side.
+///
+/// Currently no other file in the repo imports or calls this service. If you start using it
+/// (e.g. from unified_audio_handler or a player), ensure [stop] is called on app shutdown
+/// or when switching server so the HttpServer does not leak.
 class StreamProxyService {
   StreamProxyService._();
   static final StreamProxyService instance = StreamProxyService._();

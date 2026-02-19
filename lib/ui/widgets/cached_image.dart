@@ -2,19 +2,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:doudou/services/image_cache_manager.dart';
-
-/// Helper to check if a URL is a local file path
-bool _isLocalFilePath(String url) {
-  return url.startsWith('file://') || url.startsWith('/');
-}
-
-/// Helper to get the actual file path from a URL
-String _getFilePath(String url) {
-  if (url.startsWith('file://')) {
-    return url.substring(7); // Remove 'file://' prefix
-  }
-  return url;
-}
+import 'package:doudou/utils/path_utils.dart';
 
 class CachedImage extends StatelessWidget {
   final String imageUrl;
@@ -24,6 +12,8 @@ class CachedImage extends StatelessWidget {
   final Widget? placeholder;
   final Widget? errorWidget;
   final BorderRadius? borderRadius;
+  /// Optional background color for placeholder/error containers. Defaults to 0xFF1C1C1E when null.
+  final Color? placeholderColor;
 
   const CachedImage({
     super.key,
@@ -34,14 +24,16 @@ class CachedImage extends StatelessWidget {
     this.placeholder,
     this.errorWidget,
     this.borderRadius,
+    this.placeholderColor,
   });
 
   @override
   Widget build(BuildContext context) {
     Widget image;
 
-    if (_isLocalFilePath(imageUrl)) {
-      final filePath = _getFilePath(imageUrl);
+    final fallbackColor = placeholderColor ?? const Color(0xFF1C1C1E);
+    if (isLocalFilePath(imageUrl)) {
+      final filePath = getFilePath(imageUrl);
       final file = File(filePath);
 
       image = FutureBuilder<bool>(
@@ -52,7 +44,7 @@ class CachedImage extends StatelessWidget {
                 Container(
                   width: width,
                   height: height,
-                  color: const Color(0xFF1C1C1E),
+                  color: fallbackColor,
                   child: const Center(
                     child: CupertinoActivityIndicator(
                       color: CupertinoColors.systemGrey,
@@ -71,7 +63,7 @@ class CachedImage extends StatelessWidget {
                     Container(
                       width: width,
                       height: height,
-                      color: const Color(0xFF1C1C1E),
+                      color: fallbackColor,
                       child: const Icon(
                         CupertinoIcons.photo,
                         color: CupertinoColors.systemGrey2,
@@ -86,7 +78,7 @@ class CachedImage extends StatelessWidget {
               Container(
                 width: width,
                 height: height,
-                color: const Color(0xFF1C1C1E),
+                color: fallbackColor,
                 child: const Icon(
                   CupertinoIcons.photo,
                   color: CupertinoColors.systemGrey2,
@@ -107,7 +99,7 @@ class CachedImage extends StatelessWidget {
             Container(
               width: width,
               height: height,
-              color: const Color(0xFF1C1C1E),
+              color: fallbackColor,
               child: const Center(
                 child: CupertinoActivityIndicator(
                   color: CupertinoColors.systemGrey,
@@ -119,7 +111,7 @@ class CachedImage extends StatelessWidget {
             Container(
               width: width,
               height: height,
-              color: const Color(0xFF1C1C1E),
+              color: fallbackColor,
               child: const Icon(
                 CupertinoIcons.photo,
                 color: CupertinoColors.systemGrey2,

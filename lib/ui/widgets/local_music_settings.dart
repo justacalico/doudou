@@ -143,7 +143,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
         await appState.mediaServiceManager.addLocalMusicDirectory(
           selectedDirectory,
         );
-        setState(() {});
+        if (mounted) setState(() {});
 
         // Show success dialog
         if (mounted) {
@@ -196,7 +196,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
     if (confirmed == true && mounted) {
       final appState = context.read<AppState>();
       await appState.mediaServiceManager.removeLocalMusicDirectory(dirPath);
-      setState(() {});
+      if (mounted) setState(() {});
     }
   }
 
@@ -710,7 +710,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                               service.fetchOnlineArtwork,
                               (value) async {
                                 await service.setFetchOnlineArtwork(value);
-                                setState(() {});
+                                if (mounted) setState(() {});
                               },
                             ),
                             const SizedBox(height: 12),

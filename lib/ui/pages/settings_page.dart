@@ -1348,7 +1348,7 @@ String _getPlatformInfo() {
       final r = Process.runSync('uname', ['-m']);
       if (r.exitCode == 0) return '${Platform.operatingSystem} (${r.stdout.toString().trim()})';
     }
-  } catch (_) {}
+  } catch (_) { /* fallback to Platform.operatingSystem */ }
   return Platform.operatingSystem;
 }
 
@@ -1368,7 +1368,7 @@ String _getOSVersion() {
       final r = Process.runSync('sw_vers', ['-productVersion']);
       if (r.exitCode == 0) return 'macOS ${r.stdout.toString().trim()}';
     }
-  } catch (_) {}
+  } catch (_) { /* fallback to Platform.operatingSystemVersion */ }
   return Platform.operatingSystemVersion;
 }
 

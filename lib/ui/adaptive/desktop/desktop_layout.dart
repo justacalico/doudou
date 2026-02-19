@@ -1735,14 +1735,14 @@ class _NowPlayingProgress extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _formatDuration(position),
+                        formatDuration(position),
                         style: TextStyle(
                           fontSize: 12,
                           color: DesktopTheme.textSecondary,
                         ),
                       ),
                       Text(
-                        _formatDuration(duration),
+                        formatDuration(duration),
                         style: TextStyle(
                           fontSize: 12,
                           color: DesktopTheme.textSecondary,
@@ -1757,12 +1757,6 @@ class _NowPlayingProgress extends StatelessWidget {
         );
       },
     );
-  }
-
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 }
 
@@ -2211,7 +2205,7 @@ class _QueueItemState extends State<_QueueItem> {
               ),
               // Duration
               Text(
-                _formatDuration(widget.track.duration),
+                formatDurationMs(widget.track.duration),
                 style: TextStyle(
                   fontSize: 12,
                   color: DesktopTheme.textTertiary,
@@ -2222,14 +2216,6 @@ class _QueueItemState extends State<_QueueItem> {
         ),
       ),
     );
-  }
-
-  String _formatDuration(int? durationMs) {
-    if (durationMs == null) return '--:--';
-    final totalSeconds = durationMs ~/ 1000;
-    final minutes = totalSeconds ~/ 60;
-    final seconds = totalSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 }
 
@@ -3712,14 +3698,6 @@ class _TrackRow extends StatefulWidget {
 class _TrackRowState extends State<_TrackRow> {
   bool _isHovered = false;
 
-  String _formatDuration(int? durationMs) {
-    if (durationMs == null) return '--:--';
-    final totalSeconds = durationMs ~/ 1000;
-    final minutes = totalSeconds ~/ 60;
-    final seconds = totalSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
-  }
-
   void _handleDownload(BuildContext context) async {
     final appState = context.read<AppState>();
     final downloadService = appState.downloadService;
@@ -3954,7 +3932,7 @@ class _TrackRowState extends State<_TrackRow> {
               SizedBox(
                 width: 60,
                 child: Text(
-                  _formatDuration(widget.track.duration),
+                  formatDurationMs(widget.track.duration),
                   style: TextStyle(
                     fontSize: 14,
                     color: DesktopTheme.textTertiary,

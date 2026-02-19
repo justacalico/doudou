@@ -385,7 +385,7 @@ class YouTubeMusicService implements BaseMediaService {
           list.add(Artist(id: artistId, name: name, imageUrl: imageUrl));
         }
       }
-    } catch (_) {}
+    } catch (_) { /* API or parse failure; use fallback */ }
     return list;
   }
 
@@ -407,7 +407,7 @@ class YouTubeMusicService implements BaseMediaService {
           tracks = await _enrichDurations(tracks, maxEnrich: 20);
           return tracks;
         }
-      } catch (_) {}
+      } catch (_) { /* API or parse failure; use fallback */ }
       return getPlaylistTracks(parentId);
     }
     // No random search: only show tracks from followed artists, favorites, and local playlists (like getAllTracks).
@@ -521,7 +521,7 @@ class YouTubeMusicService implements BaseMediaService {
           seen.add(t.id);
           merged.add(t);
         }
-      } catch (_) {}
+      } catch (_) { /* API or parse failure; use fallback */ }
     }
     // Add tracks from playlists
     for (final entry in _localPlaylistTracks.entries) {
@@ -617,7 +617,7 @@ class YouTubeMusicService implements BaseMediaService {
         } else if (_hasVideoId(item)) {
           tracks.add(_trackFromSongDetailed(item));
         }
-      } catch (_) {}
+      } catch (_) { /* API or parse failure; use fallback */ }
     }
     return YTMHomeSection(title: title, albums: albums, playlists: playlists, tracks: tracks);
   }
@@ -905,7 +905,7 @@ class YouTubeMusicService implements BaseMediaService {
         if (results.isNotEmpty) {
           return _trackFromSongDetailed(results.first);
         }
-      } catch (_) {}
+      } catch (_) { /* API or parse failure; use fallback */ }
     }
     return null;
   }
@@ -1032,7 +1032,7 @@ class YouTubeMusicService implements BaseMediaService {
       if (last is Map && last['url'] != null) return last['url'] as String;
       final url = (last as dynamic).url;
       if (url is String) return url;
-    } catch (_) {}
+    } catch (_) { /* API or parse failure; use fallback */ }
     return '';
   }
 

@@ -203,7 +203,7 @@ class AlbumArtService {
           }
         }
       }
-    } catch (_) {}
+    } catch (_) { /* ignore fetch/cache error */ }
     
     return null;
   }

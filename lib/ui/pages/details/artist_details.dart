@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doudou/ui/templates/page_template.dart';
@@ -74,9 +75,9 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
         _selectedTab = 'albums';
       }
     } catch (e) {
-      // Handle error
+      if (kDebugMode) debugPrint('[ArtistDetails] _loadArtistData failed: $e');
     } finally {
-      setState(() {
+      if (mounted) setState(() {
         _isLoading = false;
       });
     }

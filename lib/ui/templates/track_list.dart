@@ -9,6 +9,7 @@ import 'package:doudou/models/download_models.dart';
 import 'package:doudou/ui/widgets/apple_design/apple_theme.dart';
 import 'package:doudou/ui/components/universal_image.dart';
 import 'package:doudou/ui/adaptive/desktop/desktop_layout.dart';
+import 'package:doudou/utils/display_utils.dart';
 
 class TrackListTemplate extends StatelessWidget {
   final List<Track> tracks;
@@ -586,9 +587,7 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
               SizedBox(
                 width: 80,
                 child: Text(
-                  widget.track.duration != null
-                      ? _formatDuration(widget.track.duration!)
-                      : '--:--',
+                  formatDurationMs(widget.track.duration),
                   style: TextStyle(
                     fontFamily: AppleDesignSystem.fontFamily,
                     fontSize: AppleDesignSystem.typeScaleSubheadline,
@@ -622,7 +621,13 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
                   onPressed: () async {
                     try {
                       await appState.toggleFavorite(widget.track);
-                    } catch (_) {}
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Could not update favorite: $e')),
+                        );
+                      }
+                    }
                   },
                   style: IconButton.styleFrom(
                     padding: EdgeInsets.zero,
@@ -725,7 +730,7 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
           Padding(
             padding: const EdgeInsets.only(left: 8),
             child: Text(
-              _formatDuration(widget.track.duration!),
+              formatDurationMs(widget.track.duration),
               style: TextStyle(
                 fontFamily: AppleDesignSystem.fontFamily,
                 fontSize: AppleDesignSystem.typeScaleSubheadline,
@@ -751,7 +756,13 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
           onPressed: () async {
             try {
               await appState.toggleFavorite(widget.track);
-            } catch (_) {}
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Could not update favorite: $e')),
+                );
+              }
+            }
           },
           style: IconButton.styleFrom(
             padding: EdgeInsets.zero,
@@ -768,13 +779,6 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
         ),
       ],
     );
-  }
-
-  String _formatDuration(int milliseconds) {
-    final duration = Duration(milliseconds: milliseconds);
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 }
 

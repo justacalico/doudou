@@ -7,6 +7,7 @@ import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/services/base_service.dart';
 import 'package:doudou/l10n/app_localizations.dart';
+import 'package:doudou/utils/display_utils.dart';
 
 enum MediaType { playlist, album }
 
@@ -792,7 +793,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             SizedBox(
               width: 60,
               child: Text(
-                track.duration != null ? _formatDuration(track.duration!) : '--:--',
+                formatDurationMs(track.duration),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -844,13 +845,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         ),
       ),
     );
-  }
-
-  String _formatDuration(int milliseconds) {
-    final duration = Duration(milliseconds: milliseconds);
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
   String _getTotalDuration() {
