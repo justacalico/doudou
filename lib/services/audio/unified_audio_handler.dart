@@ -251,7 +251,14 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             .throttleTime(const Duration(milliseconds: 100))
             .listen((pos) {
               try {
-                if (!shouldIgnore()) _stateController.updatePosition(pos);
+                if (!shouldIgnore()) {
+                  if (kDebugMode) {
+                    final state = capturedPlayer.playerState;
+                    final duration = capturedPlayer.duration;
+                    debugPrint('[Linux Debug] positionStream (throttled): position=${pos.inMilliseconds}ms, duration=${duration?.inMilliseconds ?? "null"}ms, playing=${state.playing}, processingState=${state.processingState}');
+                  }
+                  _stateController.updatePosition(pos);
+                }
               } catch (e) {
                 // Ignore - callback may have fired after disposal
               }
@@ -259,7 +266,14 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       );
     } else {
       _subscriptions.add(
-        _player.positionStream.listen(_stateController.updatePosition),
+        _player.positionStream.listen((position) {
+          if (kDebugMode && _isDesktop) {
+            final state = _player.playerState;
+            final duration = _player.duration;
+            debugPrint('[Linux Debug] positionStream: position=${position.inMilliseconds}ms, duration=${duration?.inMilliseconds ?? "null"}ms, playing=${state.playing}, processingState=${state.processingState}');
+          }
+          _stateController.updatePosition(position);
+        }),
       );
     }
 
@@ -271,6 +285,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             .listen((duration) {
               try {
                 if (!shouldIgnore()) {
+                  if (kDebugMode) {
+                    final state = capturedPlayer.playerState;
+                    final position = capturedPlayer.position;
+                    debugPrint('[Linux Debug] durationStream (debounced): duration=${duration?.inMilliseconds ?? "null"}ms, position=${position.inMilliseconds}ms, playing=${state.playing}, processingState=${state.processingState}');
+                  }
                   _stateController.updateDuration(duration ?? Duration.zero);
                 }
               } catch (e) {
@@ -281,6 +300,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     } else {
       _subscriptions.add(
         _player.durationStream.listen((duration) {
+          if (kDebugMode && _isDesktop) {
+            final state = _player.playerState;
+            final position = _player.position;
+            debugPrint('[Linux Debug] durationStream: duration=${duration?.inMilliseconds ?? "null"}ms, position=${position.inMilliseconds}ms, playing=${state.playing}, processingState=${state.processingState}');
+          }
           _stateController.updateDuration(duration ?? Duration.zero);
         }),
       );
@@ -350,7 +374,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       );
     } else {
       _subscriptions.add(
-        _player.volumeStream.listen(_stateController.updateVolume),
+        _player.volumeStream.listen((volume) {
+          if (kDebugMode && _isDesktop) {
+            debugPrint('[Linux Debug] volumeStream: volume=$volume');
+          }
+          _stateController.updateVolume(volume);
+        }),
       );
       _subscriptions.add(
         _player.speedStream.listen(_stateController.updateSpeed),
@@ -403,13 +432,27 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   void _handlePlayerStateChange(PlayerState playerState) {
     if (_disposed) return;
 
+    if (kDebugMode && _isDesktop) {
+      final position = _player.position;
+      final duration = _player.duration;
+      final volume = _player.volume;
+      debugPrint('[Linux Debug] _handlePlayerStateChange: processingState=${playerState.processingState}, playing=${playerState.playing}, position=${position.inMilliseconds}ms, duration=${duration?.inMilliseconds ?? "null"}ms, volume=$volume');
+      debugPrint('[Linux Debug] _handlePlayerStateChange: currentState=${_stateController.currentState}, userIntendedPlaying=${_stateController.userIntendedPlaying}');
+    }
+
     switch (playerState.processingState) {
       case ProcessingState.idle:
+        if (kDebugMode && _isDesktop) {
+          debugPrint('[Linux Debug] _handlePlayerStateChange: setting state to IDLE');
+        }
         _stateController.updateState(AudioPlayerState.idle);
         if (_isMobile) _foregroundServiceActive = false;
         break;
       case ProcessingState.loading:
       case ProcessingState.buffering:
+        if (kDebugMode && _isDesktop) {
+          debugPrint('[Linux Debug] _handlePlayerStateChange: setting state to LOADING (processingState=${playerState.processingState})');
+        }
         _stateController.updateState(AudioPlayerState.loading);
         if (_isMobile && _stateController.userIntendedPlaying) {
           _attemptForegroundService();
@@ -417,30 +460,52 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         break;
       case ProcessingState.ready:
         if (playerState.playing) {
+          if (kDebugMode && _isDesktop) {
+            debugPrint('[Linux Debug] _handlePlayerStateChange: setting state to PLAYING (ready + playing=true)');
+          }
           _stateController.updateState(AudioPlayerState.playing);
           if (_isMobile) {
             _attemptForegroundService();
             _ensureWakeLock();
           }
         } else {
+          if (kDebugMode && _isDesktop) {
+            debugPrint('[Linux Debug] _handlePlayerStateChange: ready but not playing, checking auto-continue');
+          }
           // Check if we should auto-continue playback
           if (_stateController.userIntendedPlaying &&
               _stateController.currentState == AudioPlayerState.loading) {
+            if (kDebugMode && _isDesktop) {
+              debugPrint('[Linux Debug] _handlePlayerStateChange: auto-continuing playback');
+            }
             Future.microtask(() async {
               try {
                 if (_isMobile) await _attemptForegroundService();
                 await _player.play();
+                if (kDebugMode && _isDesktop) {
+                  debugPrint('[Linux Debug] _handlePlayerStateChange: auto-continue play() succeeded');
+                }
               } catch (e) {
-                // Auto-continue failed
+                if (kDebugMode && _isDesktop) {
+                  debugPrint('[Linux Debug] _handlePlayerStateChange: auto-continue play() failed: $e');
+                }
               }
             });
+          }
+          if (kDebugMode && _isDesktop) {
+            debugPrint('[Linux Debug] _handlePlayerStateChange: setting state to PAUSED');
           }
           _stateController.updateState(AudioPlayerState.paused);
         }
         break;
       case ProcessingState.completed:
+        if (kDebugMode && _isDesktop) {
+          debugPrint('[Linux Debug] _handlePlayerStateChange: COMPLETED - calling _handleTrackCompletion');
+        }
         _stateController.updateState(AudioPlayerState.completed);
         if (_isMobile) _foregroundServiceActive = false;
+        // Trigger completion handling
+        _handleTrackCompletion();
         break;
     }
 
@@ -463,12 +528,27 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   /// Handle track completion
   Future<void> _handleTrackCompletion() async {
     if (_disposed) return;
-    if (_isHandlingCompletion) return;
+    if (_isHandlingCompletion) {
+      if (kDebugMode && _isDesktop) {
+        debugPrint('[Linux Debug] _handleTrackCompletion: already handling completion, ignoring');
+      }
+      return;
+    }
+
+    if (kDebugMode && _isDesktop) {
+      debugPrint('[Linux Debug] _handleTrackCompletion: START');
+    }
 
     // Check with provider handler if completion should be handled
     final state = _player.playerState;
     final position = _player.position;
     final duration = _player.duration;
+    
+    if (kDebugMode && _isDesktop) {
+      debugPrint('[Linux Debug] _handleTrackCompletion: state.playing=${state.playing}, state.processingState=${state.processingState}, position=${position.inMilliseconds}ms, duration=${duration?.inMilliseconds ?? "null"}ms');
+      debugPrint('[Linux Debug] _handleTrackCompletion: currentIndex=${_stateController.currentIndex}, queueLength=${_stateController.queue.length}, repeatMode=${_stateController.repeatMode}');
+      debugPrint('[Linux Debug] _handleTrackCompletion: loadStartedAt=$_lastLoadStartedAt, lastCompletionHandledAt=$_lastCompletionHandledAt');
+    }
     
     if (_currentProviderHandler != null) {
       final shouldHandle = _currentProviderHandler!.shouldHandleCompletion(
@@ -478,6 +558,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         loadStartedAt: _lastLoadStartedAt,
         lastCompletionHandledAt: _lastCompletionHandledAt,
       );
+      
+      if (kDebugMode && _isDesktop) {
+        debugPrint('[Linux Debug] _handleTrackCompletion: provider handler shouldHandle=$shouldHandle');
+      }
       
       if (!shouldHandle) {
         if (kDebugMode) {
@@ -505,22 +589,43 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       // Normal mode - advance to next track (or repeat same if repeat one)
       final currentIndex = _stateController.currentIndex;
       final nextIndex = _queueManager.getNextTrackIndex();
+      
+      if (kDebugMode && _isDesktop) {
+        debugPrint('[Linux Debug] _handleTrackCompletion: currentIndex=$currentIndex, nextIndex=$nextIndex, repeatMode=${_stateController.repeatMode}');
+      }
+      
       if (nextIndex != null) {
         final isRepeatOne = _stateController.repeatMode == RepeatMode.one;
         if (nextIndex == currentIndex && isRepeatOne) {
+          if (kDebugMode && _isDesktop) {
+            debugPrint('[Linux Debug] _handleTrackCompletion: repeat-one mode, seeking to start');
+          }
           // Repeat one: seek to start and play (avoid full reload)
           try {
             await _player.seek(Duration.zero);
             if (_stateController.userIntendedPlaying) await _player.play();
-          } catch (_) { /* ignore seek/play on repeat-one */ }
+            if (kDebugMode && _isDesktop) {
+              debugPrint('[Linux Debug] _handleTrackCompletion: repeat-one seek/play succeeded');
+            }
+          } catch (e) {
+            if (kDebugMode && _isDesktop) {
+              debugPrint('[Linux Debug] _handleTrackCompletion: repeat-one seek/play failed: $e');
+            }
+          }
           return;
         }
         if (_isDesktop) {
+          if (kDebugMode) {
+            debugPrint('[Linux Debug] _handleTrackCompletion: advancing to next track (index $nextIndex)');
+          }
           await _playNextTrackWithRetry(nextIndex);
         } else {
           await _performSkipToQueueItem(nextIndex);
         }
       } else {
+        if (kDebugMode && _isDesktop) {
+          debugPrint('[Linux Debug] _handleTrackCompletion: queue ended, autoplay=$_autoplayEnabled');
+        }
         // Queue ended - check if autoplay is enabled
         if (_autoplayEnabled) {
           await _handleAutoplayNext();
@@ -1101,11 +1206,31 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   /// (e.g. on desktop the player is recreated and defaults to 1.0).
   Future<void> _applyVolumeAndSpeedToPlayer() async {
     if (_disposed) return;
+    
+    final volume = _stateController.volume;
+    final speed = _stateController.speed;
+
+    if (kDebugMode && _isDesktop) {
+      final currentVolume = _player.volume;
+      final currentSpeed = _player.speed;
+      final state = _player.playerState;
+      debugPrint('[Linux Debug] _applyVolumeAndSpeedToPlayer: setting volume=$volume (current=$currentVolume), speed=$speed (current=$currentSpeed), playing=${state.playing}');
+    }
+
     try {
-      await _player.setVolume(_stateController.volume);
-      await _player.setSpeed(_stateController.speed);
+      await _player.setVolume(volume);
+      await _player.setSpeed(speed);
+      
+      if (kDebugMode && _isDesktop) {
+        final afterVolume = _player.volume;
+        final afterSpeed = _player.speed;
+        final afterState = _player.playerState;
+        debugPrint('[Linux Debug] _applyVolumeAndSpeedToPlayer: after set - volume=$afterVolume, speed=$afterSpeed, playing=${afterState.playing}, processingState=${afterState.processingState}');
+      }
     } catch (e) {
-      // Ignore
+      if (kDebugMode && _isDesktop) {
+        debugPrint('[Linux Debug] _applyVolumeAndSpeedToPlayer: FAILED - $e');
+      }
     }
   }
 
@@ -1377,10 +1502,20 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           final finalPlayerState = _player.playerState;
           final finalDuration = _player.duration;
           final finalPosition = _player.position;
+          final finalVolume = _player.volume;
           final streamReady = finalDuration != null && finalDuration > Duration.zero;
           final positionAdvancing = finalPosition.inMilliseconds > 100;
           
+          if (kDebugMode && _isDesktop) {
+            debugPrint('[Linux Debug] _loadAndPlayTrack: final state check - playing=${finalPlayerState.playing}, processingState=${finalPlayerState.processingState}, position=${finalPosition.inMilliseconds}ms, duration=${finalDuration?.inMilliseconds ?? "null"}ms, volume=$finalVolume');
+            debugPrint('[Linux Debug] _loadAndPlayTrack: streamReady=$streamReady, positionAdvancing=$positionAdvancing');
+            debugPrint('[Linux Debug] _loadAndPlayTrack: currentState=${_stateController.currentState}, userIntendedPlaying=${_stateController.userIntendedPlaying}');
+          }
+          
           if (finalPlayerState.playing || streamReady || positionAdvancing) {
+            if (kDebugMode && _isDesktop) {
+              debugPrint('[Linux Debug] _loadAndPlayTrack: setting state to PLAYING');
+            }
             _stateController.updateState(AudioPlayerState.playing);
           } else {
             if (kDebugMode) {

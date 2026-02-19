@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../base_service.dart';

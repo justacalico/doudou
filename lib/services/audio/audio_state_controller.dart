@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import '../../models/jellyfin_models.dart';
 import 'unified_audio_handler.dart';
@@ -140,6 +141,12 @@ class AudioStateController {
   
   // State update methods
   void updateState(AudioPlayerState state) {
+    if (kDebugMode && !kIsWeb && (defaultTargetPlatform == TargetPlatform.linux)) {
+      final oldState = _stateSubject.value;
+      if (oldState != state) {
+        debugPrint('[Linux Debug] AudioStateController.updateState: $oldState -> $state');
+      }
+    }
     if (_stateSubject.value != state) {
       _stateSubject.add(state);
     }

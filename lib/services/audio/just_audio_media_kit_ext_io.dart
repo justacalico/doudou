@@ -89,9 +89,7 @@ class PlatformAudioConfig {
                 existingContent.contains('referrer'));
         if (hasRequired) {
           // Already has required options, but store original if we haven't yet
-          if (_originalConfigContent == null) {
-            _originalConfigContent = existingContent;
-          }
+          _originalConfigContent ??= existingContent;
           return;
         }
         // Add missing options (Linux: ao=pulse for Navidrome/non-YT audio; all: user-agent/referrer)
