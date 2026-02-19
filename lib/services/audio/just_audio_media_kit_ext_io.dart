@@ -91,6 +91,7 @@ class PlatformAudioConfig {
         final hasRequired = Platform.isWindows
             ? (existingContent.contains('audio-exclusive'))
             : (Platform.isLinux && existingContent.contains('cache=no') &&
+                existingContent.contains('ao=') &&
                 (forYouTubeMusic
                     ? (existingContent.contains('user-agent') && existingContent.contains('referrer'))
                     : true));
