@@ -61,6 +61,13 @@ void main() async {
               mode: FileMode.write,
             );
             debugPrint('Test: Created MPV config with ao=pulse');
+            // #region agent log
+            _log('MPV config written', {'path': configFile.path, 'content': await configFile.readAsString()}, hypothesisId: 'F');
+            // #endregion
+          } else {
+            // #region agent log
+            _log('MPV config already exists', {'path': configFile.path, 'hasAo': existingContent.contains('ao=')}, hypothesisId: 'F');
+            // #endregion
           }
         }
       } catch (e) {
