@@ -1124,12 +1124,6 @@ class _ServerSectionState extends State<_ServerSection> {
                         subtitle: const Text('Streaming only – playlists, favorites & followed artists are stored locally'),
                         leading: const Icon(Icons.music_video),
                       ),
-                      ListTile(
-                        title: const Text('Custom stream instances'),
-                        subtitle: const Text('Optional Invidious or Piped instance URL (used first when set)'),
-                        leading: const Icon(Icons.settings_ethernet),
-                        onTap: () => widget.onShowYtmStreamInstancesDialog?.call(context),
-                      ),
                     ] else ...[
                       FutureBuilder<Map<String, String?>>(
                         future: _getServerInfo(appState),
