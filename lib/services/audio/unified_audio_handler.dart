@@ -74,14 +74,14 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   // YouTube Music: ignore completion events for this long after handling one (clear()+add() can emit spurious completed)
   DateTime? _lastYtCompletionHandledAt;
-  static const Duration _ytCompletionCooldown = Duration(seconds: 5);
+  static const Duration _ytCompletionCooldown = Duration(seconds: 3);
   // YouTube Music: ignore completion for this long after we started loading a track (clear()+add() emits spurious completed)
   DateTime? _lastYtLoadStartedAt;
-  static const Duration _ytCompletionIgnoreAfterLoad = Duration(seconds: 15);
+  static const Duration _ytCompletionIgnoreAfterLoad = Duration(seconds: 5);
   // Minimum play position before we accept completion (reject very early "completed" from concat source)
-  static const Duration _ytMinPositionBeforeCompletion = Duration(seconds: 10);
+  static const Duration _ytMinPositionBeforeCompletion = Duration(seconds: 5);
   // If we've been playing this long, trust completion without position/duration (player may reset them on complete)
-  static const Duration _ytTrustCompletionAfterPlaying = Duration(seconds: 20);
+  static const Duration _ytTrustCompletionAfterPlaying = Duration(seconds: 5);
 
   // Radio mode state
   bool _radioModeEnabled = false;
