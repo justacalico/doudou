@@ -77,7 +77,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   bool _isRecreatingPlayer = false;
 
   // Stream subscriptions for proper cleanup
-  final List<StreamSubscription> _subscriptions = [];
+  List<StreamSubscription> _subscriptions = [];
 
   // Disposed flag to prevent callbacks after cleanup
   bool _disposed = false;
@@ -179,8 +179,31 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
+  /// Initialize mobile audio session
+  Future<void> _initializeMobileSession() async {
+    // Audio session is automatically handled by audio_service package
+  }
+
+  /// Initialize provider handlers registry
+  void _initializeProviderHandlers() {
+    _providerHandlers[ServerType.youtubeMusic] = YouTubeMusicHandler();
+    _providerHandlers[ServerType.soundcloud] = SoundCloudHandler();
+    _providerHandlers[ServerType.subsonic] = NavidromeHandler();
+    _providerHandlers[ServerType.jellyfin] = JellyfinHandler();
+    _providerHandlers[ServerType.plex] = PlexHandler();
+    _providerHandlers[ServerType.local] = LocalMusicHandler();
+  }
+
+  /// Update current provider handler based on active service
+  void _updateProviderHandler() {
+    final currentService = _mediaServiceManager.currentService;
+    _currentProviderHandler = currentService != null
+        ? _providerHandlers[currentService.serverType]
+        : null;
+  }
+
   /// Recreate player instance (desktop only) to prevent native callback crashes
-  /// This matches v14 behavior where player is recreated for each track
+  /// This matches v14's approach for non-YouTube tracks
   Future<void> _recreatePlayer() async {
     if (!_isDesktop || _isRecreatingPlayer) return;
     _isRecreatingPlayer = true;
@@ -191,16 +214,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final oldPlayer = _player;
       final oldSubscriptions = List<StreamSubscription>.from(_subscriptions);
 
-      // Clear subscriptions list (will be repopulated by _setupPlayerListeners)
-      for (final sub in _subscriptions) {
-        try {
-          await sub.cancel();
-        } catch (e) {
-          // Ignore
-        }
-      }
       _subscriptions.clear();
-      _player = AudioPlayer();
+      _player = _createPlayer();
       _setupPlayerListeners();
 
       // Dispose old resources in background
@@ -224,29 +239,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     } finally {
       _isRecreatingPlayer = false;
     }
-  }
-
-  /// Initialize mobile audio session
-  Future<void> _initializeMobileSession() async {
-    // Audio session is automatically handled by audio_service package
-  }
-
-  /// Initialize provider handlers registry
-  void _initializeProviderHandlers() {
-    _providerHandlers[ServerType.youtubeMusic] = YouTubeMusicHandler();
-    _providerHandlers[ServerType.soundcloud] = SoundCloudHandler();
-    _providerHandlers[ServerType.subsonic] = NavidromeHandler();
-    _providerHandlers[ServerType.jellyfin] = JellyfinHandler();
-    _providerHandlers[ServerType.plex] = PlexHandler();
-    _providerHandlers[ServerType.local] = LocalMusicHandler();
-  }
-
-  /// Update current provider handler based on active service
-  void _updateProviderHandler() {
-    final currentService = _mediaServiceManager.currentService;
-    _currentProviderHandler = currentService != null
-        ? _providerHandlers[currentService.serverType]
-        : null;
   }
 
   /// Initialize power management (mobile only)
@@ -291,11 +283,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     final capturedPlayer = _player;
 
     // Helper to check if callback should be ignored (desktop only)
-    bool shouldIgnore() {
-      if (_disposed) return true;
-      if (_isDesktop && capturedGeneration != _playerGeneration) return true;
-      return false;
-    }
+    bool shouldIgnore() =>
+        _disposed || (_isDesktop && capturedGeneration != _playerGeneration);
 
     // Position stream - throttle on desktop for performance
     if (_isDesktop) {
@@ -1290,89 +1279,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
-  /// Configure Linux audio output explicitly via MPV properties
-  /// This ensures MPV uses the correct audio output driver
-  Future<void> _configureLinuxAudioOutput() async {
-    if (_disposed) return;
-    
-    try {
-      // Access NativePlayer to set MPV properties
-      final player = _player;
-      // Use dynamic to avoid import issues - just_audio_media_kit wraps media_kit
-      final platform = (player as dynamic).platform;
-      
-      if (platform != null) {
-        // Try to get the audio output property
-        try {
-          final ao = await platform.getProperty('ao');
-          if (kDebugMode) {
-            debugPrint('[Linux Debug] _configureLinuxAudioOutput: current ao=$ao');
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            debugPrint('[Linux Debug] _configureLinuxAudioOutput: failed to get ao property: $e');
-          }
-        }
-        
-        // Try to explicitly set audio output to auto (will try pulse, alsa, etc.)
-        try {
-          await platform.setProperty('ao', 'auto');
-          if (kDebugMode) {
-            debugPrint('[Linux Debug] _configureLinuxAudioOutput: set ao=auto via MPV property');
-          }
-          
-          // Verify it was set
-          await Future.delayed(const Duration(milliseconds: 100));
-          final aoAfter = await platform.getProperty('ao');
-          if (kDebugMode) {
-            debugPrint('[Linux Debug] _configureLinuxAudioOutput: ao after set=$aoAfter');
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            debugPrint('[Linux Debug] _configureLinuxAudioOutput: failed to set ao property: $e');
-          }
-        }
-        
-        // Check audio device status
-        try {
-          final audioDevice = await platform.getProperty('audio-device');
-          if (kDebugMode) {
-            debugPrint('[Linux Debug] _configureLinuxAudioOutput: audio-device=$audioDevice');
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            debugPrint('[Linux Debug] _configureLinuxAudioOutput: failed to get audio-device: $e');
-          }
-        }
-        
-        // Check if audio is muted
-        try {
-          final mute = await platform.getProperty('mute');
-          if (kDebugMode) {
-            debugPrint('[Linux Debug] _configureLinuxAudioOutput: mute=$mute');
-          }
-          if (mute == true) {
-            if (kDebugMode) {
-              debugPrint('[Linux Debug] _configureLinuxAudioOutput: WARNING - MPV is muted! Unmuting...');
-            }
-            await platform.setProperty('mute', false);
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            debugPrint('[Linux Debug] _configureLinuxAudioOutput: failed to check mute: $e');
-          }
-        }
-      } else {
-        if (kDebugMode) {
-          debugPrint('[Linux Debug] _configureLinuxAudioOutput: platform is null, cannot configure MPV');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[Linux Debug] _configureLinuxAudioOutput: ERROR - $e');
-      }
-    }
-  }
 
   /// Wait until the stream has actually loaded (duration > 0, ready or buffering).
   /// Used for YT (throws on timeout so fallback URLs are tried) and optionally for desktop non-YT (don't throw).
@@ -1484,16 +1390,18 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       _providerAudioSource = null;
     }
 
-    // Desktop: Recreate player for non-YouTube providers (like v14) to ensure clean state
-    // YouTube Music uses ConcatenatingAudioSource which is reused
+    // Desktop playback logic
     if (_isDesktop) {
       final currentOperationId = ++_loadOperationId;
+
+      // YouTube Music: reuse ConcatenatingAudioSource (no player recreation)
+      // Non-YouTube: recreate player for each track (like v14) to ensure clean state
+      final isYouTubeMusic = audioSource is ConcatenatingAudioSource;
       
-      // For non-YouTube providers, recreate player (like v14) to ensure clean state
-      // YouTube Music reuses ConcatenatingAudioSource so we don't recreate
-      if (!(audioSource is ConcatenatingAudioSource)) {
+      if (!isYouTubeMusic) {
+        // Non-YouTube: recreate player like v14 for reliable playback
         if (kDebugMode) {
-          debugPrint('[Playback] _loadAndPlayTrack: recreating player for non-YouTube provider (desktop)');
+          debugPrint('[Playback] _loadAndPlayTrack: recreating player for non-YT track (desktop)');
         }
         await _recreatePlayer();
         await Future.delayed(const Duration(milliseconds: 50));
@@ -1515,175 +1423,83 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           }
           // Source is already attached, just play (content was updated via clear+add)
         } else {
-          await _player.setAudioSource(audioSource).timeout(const Duration(seconds: 10));
+          // Non-YouTube: set source on fresh player
+          await _player.setAudioSource(audioSource).timeout(const Duration(seconds: 8));
           _providerAudioSourceAttached = false;
         }
 
         if (_disposed || currentOperationId != _loadOperationId) return;
 
-        // Give the player a moment to initialize the source
-        await Future.delayed(const Duration(milliseconds: 200));
-        if (_disposed || currentOperationId != _loadOperationId) return;
-        
-        if (kDebugMode) {
-          debugPrint('[Playback] _loadAndPlayTrack: calling play() (desktop)');
-        }
-
-        // Play and wait for stream to be ready if provider requires it
+        // Non-YouTube: simple play() like v14 (player was just recreated, so it's clean)
+        // YouTube Music: wait for stream ready
         if (_stateController.userIntendedPlaying) {
-          try {
-            await _player.play().timeout(const Duration(seconds: 3));
-          } catch (e) {
+          if (isYouTubeMusic) {
+            // YouTube Music: wait for stream ready
             if (kDebugMode) {
-              debugPrint('[Playback] _loadAndPlayTrack: play() failed: $e');
-            }
-          }
-          
-          if (_disposed || currentOperationId != _loadOperationId) return;
-          
-          // Wait for stream ready if provider requires it
-          if (_currentProviderHandler != null && _currentProviderHandler!.shouldWaitForStreamReady()) {
-            final timeout = _currentProviderHandler!.getStreamReadyTimeout() ?? const Duration(seconds: 5);
-            final throwOnTimeout = _currentProviderHandler!.throwOnStreamReadyTimeout();
-            try {
-              await _waitForStreamReady(
-                timeout: timeout,
-                operationId: currentOperationId,
-                throwOnTimeout: throwOnTimeout,
-              );
-            } catch (e) {
-              if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: waitForStreamReady failed: $e');
-              }
-              if (throwOnTimeout) {
-                rethrow;
-              }
-            }
-          }
-          
-          if (_disposed || currentOperationId != _loadOperationId) return;
-          
-          // If stream is ready but not playing, try play() again
-          final playerState = _player.playerState;
-          final duration = _player.duration;
-          if ((duration != null && duration > Duration.zero) && !playerState.playing) {
-            if (kDebugMode) {
-              debugPrint('[Playback] _loadAndPlayTrack: stream ready but not playing, retrying play()');
+              debugPrint('[Playback] _loadAndPlayTrack: calling play() (desktop, YT)');
             }
             try {
-              await _player.play().timeout(const Duration(seconds: 2));
-              await Future.delayed(const Duration(milliseconds: 300));
+              await _player.play().timeout(const Duration(seconds: 3));
             } catch (e) {
               if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: retry play() failed: $e');
+                debugPrint('[Playback] _loadAndPlayTrack: play() failed: $e');
               }
             }
-          }
-        }
-        
-        if (_disposed || currentOperationId != _loadOperationId) return;
-        if (kDebugMode) {
-          debugPrint('[Playback] _loadAndPlayTrack: play() succeeded (desktop)');
-        }
-        
-        await _applyVolumeAndSpeedToPlayer();
-        
-        // Linux: Check and configure MPV audio output explicitly
-        if (_isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-          await _configureLinuxAudioOutput();
-        }
-        
-        if (_disposed || currentOperationId != _loadOperationId) return;
-        
-        // For non-YouTube providers (e.g., Navidrome), wait a bit for position to start advancing
-        // since duration may not be reported immediately and audio might take a moment to start
-        if (_currentProviderHandler != null && !_currentProviderHandler!.shouldWaitForStreamReady()) {
-          if (kDebugMode) {
-            debugPrint('[Playback] _loadAndPlayTrack: waiting for position to advance (non-YT provider)');
-          }
-          
-          // Wait up to 2 seconds for position to advance (indicates audio is actually playing)
-          int waitCount = 0;
-          bool positionAdvanced = false;
-          while (waitCount < 20) { // 20 * 100ms = 2 seconds max
-            await Future.delayed(const Duration(milliseconds: 100));
+            
             if (_disposed || currentOperationId != _loadOperationId) return;
             
-            final currentPosition = _player.position;
-            final currentState = _player.playerState;
-            
-            if (kDebugMode && waitCount % 5 == 0) {
-              debugPrint('[Playback] _loadAndPlayTrack: wait check ${waitCount * 100}ms - position=${currentPosition.inMilliseconds}ms, playing=${currentState.playing}');
-            }
-            
-            // If position is advancing or player is playing, we're good
-            if (currentPosition.inMilliseconds > 100 || currentState.playing) {
-              positionAdvanced = true;
-              if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: position advanced or playing=true after ${waitCount * 100}ms');
+            // Wait for stream ready if provider requires it
+            if (_currentProviderHandler != null && _currentProviderHandler!.shouldWaitForStreamReady()) {
+              final timeout = _currentProviderHandler!.getStreamReadyTimeout() ?? const Duration(seconds: 5);
+              final throwOnTimeout = _currentProviderHandler!.throwOnStreamReadyTimeout();
+              try {
+                await _waitForStreamReady(
+                  timeout: timeout,
+                  operationId: currentOperationId,
+                  throwOnTimeout: throwOnTimeout,
+                );
+              } catch (e) {
+                if (kDebugMode) {
+                  debugPrint('[Playback] _loadAndPlayTrack: waitForStreamReady failed: $e');
+                }
+                if (throwOnTimeout) {
+                  rethrow;
+                }
               }
-              break;
             }
-            waitCount++;
-          }
-          
-          // If still not playing/advancing after wait, try play() again
-          if (!positionAdvanced) {
-            final checkState = _player.playerState;
-            final checkPosition = _player.position;
+          } else {
+            // Non-YouTube: simple play() like v14
             if (kDebugMode) {
-              debugPrint('[Playback] _loadAndPlayTrack: position not advancing after wait (position=${checkPosition.inMilliseconds}ms, playing=${checkState.playing}), retrying play()');
+              debugPrint('[Playback] _loadAndPlayTrack: calling play() (desktop, non-YT)');
             }
             try {
-              await _player.play().timeout(const Duration(seconds: 2));
-              await Future.delayed(const Duration(milliseconds: 500));
-              
-              // Check again after retry
-              final afterRetryState = _player.playerState;
-              final afterRetryPosition = _player.position;
-              if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: after retry - position=${afterRetryPosition.inMilliseconds}ms, playing=${afterRetryState.playing}');
-              }
+              await _player.play().timeout(const Duration(seconds: 3));
             } catch (e) {
               if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: retry play() failed: $e');
+                debugPrint('[Playback] _loadAndPlayTrack: play() failed: $e');
               }
+              _stateController.updateState(AudioPlayerState.error);
+              _stateController.updateUserIntent(false);
+              _stateController.updateError('Failed to load track: $e');
+              rethrow;
             }
           }
         }
         
         if (_disposed || currentOperationId != _loadOperationId) return;
         
-        // Set state to playing
-        if (_stateController.userIntendedPlaying) {
-          final finalPlayerState = _player.playerState;
-          final finalDuration = _player.duration;
-          final finalPosition = _player.position;
-          final finalVolume = _player.volume;
-          final streamReady = finalDuration != null && finalDuration > Duration.zero;
-          final positionAdvancing = finalPosition.inMilliseconds > 100;
-          
-          if (kDebugMode && _isDesktop) {
-            debugPrint('[Linux Debug] _loadAndPlayTrack: final state check - playing=${finalPlayerState.playing}, processingState=${finalPlayerState.processingState}, position=${finalPosition.inMilliseconds}ms, duration=${finalDuration?.inMilliseconds ?? "null"}ms, volume=$finalVolume');
-            debugPrint('[Linux Debug] _loadAndPlayTrack: streamReady=$streamReady, positionAdvancing=$positionAdvancing');
-            debugPrint('[Linux Debug] _loadAndPlayTrack: currentState=${_stateController.currentState}, userIntendedPlaying=${_stateController.userIntendedPlaying}');
-          }
-          
-          if (finalPlayerState.playing || streamReady || positionAdvancing) {
-            if (kDebugMode && _isDesktop) {
-              debugPrint('[Linux Debug] _loadAndPlayTrack: setting state to PLAYING');
+        // Apply volume and speed (v14 doesn't do this, but we should for consistency)
+        await _applyVolumeAndSpeedToPlayer();
+        
+        // Set state to playing (v14 relies on state change handler)
+        if (_stateController.userIntendedPlaying && !isYouTubeMusic) {
+          // For non-YouTube, state will be set by _handlePlayerStateChange
+          // But ensure it's set if auto-continue doesn't fire
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (!_disposed && _player.playerState.playing) {
+              _stateController.updateState(AudioPlayerState.playing);
             }
-            _stateController.updateState(AudioPlayerState.playing);
-          } else {
-            if (kDebugMode) {
-              debugPrint('[Playback] _loadAndPlayTrack: ERROR - stream not ready and player not playing');
-              debugPrint('[Playback] _loadAndPlayTrack: playing=${finalPlayerState.playing}, duration=$finalDuration, position=$finalPosition');
-            }
-            _stateController.updateState(AudioPlayerState.error);
-            _stateController.updateUserIntent(false);
-            _stateController.updateError('Failed to start playback: stream did not load');
-            return;
-          }
+          });
         }
         // Set duration from track metadata so progress bar shows correctly if player doesn't report duration immediately.
         final track = _stateController.currentTrack;
