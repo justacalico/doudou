@@ -1187,8 +1187,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           timeout: const Duration(seconds: 5),
           operationId: currentOperationId,
         );
+        if (_disposed || currentOperationId != _loadOperationId) return;
         if (_isMobile) _cancelLoadingTimeout();
         await _applyVolumeAndSpeedToPlayer();
+        // Ensure we leave "loading" so real track completion is not ignored (desktop/media_kit may not emit ready→playing).
+        if (_stateController.userIntendedPlaying) {
+          _stateController.updateState(AudioPlayerState.playing);
+        }
         if (kDebugMode) {
           debugPrint('[Playback] _loadAndPlayTrack: play() succeeded (YT concat)');
         }
