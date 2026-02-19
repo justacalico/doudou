@@ -1253,10 +1253,21 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (_disposed || currentOperationId != _loadOperationId) return;
 
         await _player.play().timeout(const Duration(seconds: 3));
+        if (_disposed || currentOperationId != _loadOperationId) return;
         if (kDebugMode) {
           debugPrint('[Playback] _loadAndPlayTrack: play() succeeded (desktop)');
         }
         await _applyVolumeAndSpeedToPlayer();
+        if (_disposed || currentOperationId != _loadOperationId) return;
+        // Ensure we leave "loading" so UI shows playing and position/duration update (media_kit may not emit ready→playing on Linux).
+        if (_stateController.userIntendedPlaying) {
+          _stateController.updateState(AudioPlayerState.playing);
+        }
+        // Set duration from track metadata so progress bar shows correctly if player doesn't report duration immediately.
+        final track = _stateController.currentTrack;
+        if (track?.duration != null && track!.duration! > 0) {
+          _stateController.updateDuration(Duration(milliseconds: track.duration!));
+        }
       } catch (e, st) {
         if (kDebugMode) {
           debugPrint('[Playback] _loadAndPlayTrack: FAILED (desktop): $e');
