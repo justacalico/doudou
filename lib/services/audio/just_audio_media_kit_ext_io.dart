@@ -47,12 +47,13 @@ class PlatformAudioConfig {
               '# Doudou: avoid lavf "Failed to create file cache" (blocks playback on server switch)\ncache=no\n';
         } else {
           // Minimal config for non-YouTube (Navidrome, etc.): ensure cache=no and audio output
-          // so new MPV instances get consistent options and audio actually plays
-          // Use ao=pulse (works with PipeWire via PulseAudio compatibility API)
+          // so new MPV instances get consistent options and audio actually plays.
+          // Use ao=auto so MPV auto-detects the best available driver (pulse, alsa, pipewire, etc.);
+          // ao=pulse can leave no sound on some Linux setups (e.g. PipeWire-only or ALSA-only).
           optionsToAdd =
               '# Doudou: minimal options for non-YouTube playback (Navidrome, etc.)\n'
               'cache=no\n'
-              '# Doudou: use PulseAudio API (works with PipeWire)\nao=pulse\n';
+              '# Doudou: auto-detect audio output so audio actually plays\nao=auto\n';
         }
       } else {
         return;
@@ -67,6 +68,12 @@ class PlatformAudioConfig {
       String existingContent = '';
       if (await configFile.exists()) {
         existingContent = await configFile.readAsString();
+        // #region agent log
+        try {
+          final logFile = File('/mnt/FUCKICE/Code/gitlab/Openlyst/doudou/.cursor/debug-374c17.log');
+          await logFile.writeAsString('{"sessionId":"374c17","location":"just_audio_media_kit_ext_io.dart:69","message":"Reading existing mpv.conf","data":{"exists":true,"contentLength":existingContent.length,"hasAo":existingContent.contains("ao="),"hasCacheNo":existingContent.contains("cache=no")},"timestamp":${DateTime.now().millisecondsSinceEpoch},"runId":"run1","hypothesisId":"A"}\n', mode: FileMode.append);
+        } catch (_) {}
+        // #endregion
         // Store original content for cleanup
         _originalConfigContent = existingContent;
         
@@ -96,6 +103,12 @@ class PlatformAudioConfig {
                 (forYouTubeMusic
                     ? (existingContent.contains('user-agent') && existingContent.contains('referrer'))
                     : true));
+        // #region agent log
+        try {
+          final logFile2 = File('/mnt/FUCKICE/Code/gitlab/Openlyst/doudou/.cursor/debug-374c17.log');
+          await logFile2.writeAsString('{"sessionId":"374c17","location":"just_audio_media_kit_ext_io.dart:99","message":"Checking if config has required options","data":{"hasRequired":hasRequired,"hasCacheNo":existingContent.contains("cache=no"),"hasAo":existingContent.contains("ao="),"forYouTubeMusic":forYouTubeMusic},"timestamp":${DateTime.now().millisecondsSinceEpoch},"runId":"run1","hypothesisId":"A"}\n', mode: FileMode.append);
+        } catch (_) {}
+        // #endregion
         if (hasRequired) {
           // Already has required options, but store original if we haven't yet
           _originalConfigContent ??= existingContent;
@@ -108,6 +121,15 @@ class PlatformAudioConfig {
             toAppend += forYouTubeMusic
                 ? '# Doudou: avoid lavf "Failed to create file cache"\ncache=no\n'
                 : '# Doudou: minimal options for non-YouTube playback\ncache=no\n';
+          }
+          if (!forYouTubeMusic && !existingContent.contains('ao=')) {
+            // #region agent log
+            try {
+              final logFile3 = File('/mnt/FUCKICE/Code/gitlab/Openlyst/doudou/.cursor/debug-374c17.log');
+              await logFile3.writeAsString('{"sessionId":"374c17","location":"just_audio_media_kit_ext_io.dart:121","message":"Adding ao=auto to config","data":{"forYouTubeMusic":forYouTubeMusic},"timestamp":${DateTime.now().millisecondsSinceEpoch},"runId":"run1","hypothesisId":"A"}\n', mode: FileMode.append);
+            } catch (_) {}
+            // #endregion
+            toAppend += '# Doudou: auto-detect audio output\nao=auto\n';
           }
           if (forYouTubeMusic) {
             if (!existingContent.contains('user-agent')) {
@@ -132,18 +154,37 @@ class PlatformAudioConfig {
           if (!existingContent.contains('referrer')) toAppend += referrerLine;
         }
         if (toAppend.isNotEmpty) {
-          await configFile.writeAsString('$existingContent\n$toAppend');
+          final finalContent = '$existingContent\n$toAppend';
+          await configFile.writeAsString(finalContent);
+          // #region agent log
+          try {
+            final logFile4 = File('/mnt/FUCKICE/Code/gitlab/Openlyst/doudou/.cursor/debug-374c17.log');
+            await logFile4.writeAsString('{"sessionId":"374c17","location":"just_audio_media_kit_ext_io.dart:145","message":"Wrote config file with appended options","data":{"toAppendLength":toAppend.length,"finalContentLength":finalContent.length,"hasAo":finalContent.contains("ao="),"hasCacheNo":finalContent.contains("cache=no")},"timestamp":${DateTime.now().millisecondsSinceEpoch},"runId":"run1","hypothesisId":"A"}\n', mode: FileMode.append);
+          } catch (_) {}
+          // #endregion
           debugPrint('PlatformAudioConfig: added options to mpv.conf');
           return;
         }
       } else {
         // No existing file, store empty as original
         _originalConfigContent = '';
+        // #region agent log
+        try {
+          final logFile5 = File('/mnt/FUCKICE/Code/gitlab/Openlyst/doudou/.cursor/debug-374c17.log');
+          await logFile5.writeAsString('{"sessionId":"374c17","location":"just_audio_media_kit_ext_io.dart:150","message":"No existing mpv.conf file","data":{"forYouTubeMusic":forYouTubeMusic},"timestamp":${DateTime.now().millisecondsSinceEpoch},"runId":"run1","hypothesisId":"A"}\n', mode: FileMode.append);
+        } catch (_) {}
+        // #endregion
       }
 
       final newContent =
           existingContent.isEmpty ? optionsToAdd : '$existingContent\n$optionsToAdd';
       await configFile.writeAsString(newContent);
+      // #region agent log
+      try {
+        final logFile6 = File('/mnt/FUCKICE/Code/gitlab/Openlyst/doudou/.cursor/debug-374c17.log');
+        await logFile6.writeAsString('{"sessionId":"374c17","location":"just_audio_media_kit_ext_io.dart:155","message":"Wrote new config file","data":{"newContentLength":newContent.length,"hasAo":newContent.contains("ao="),"hasCacheNo":newContent.contains("cache=no"),"optionsToAddLength":optionsToAdd.length},"timestamp":${DateTime.now().millisecondsSinceEpoch},"runId":"run1","hypothesisId":"A"}\n', mode: FileMode.append);
+      } catch (_) {}
+      // #endregion
       debugPrint('PlatformAudioConfig: mpv.conf at $configDir');
       
       // Log final config contents for debugging

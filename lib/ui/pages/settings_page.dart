@@ -1416,6 +1416,8 @@ class _AboutCardSection extends StatelessWidget {
                     const Text('A beautiful music player for anyone anywhere.', textAlign: TextAlign.center),
                     SizedBox(height: isSmall ? 12 : 24),
                     _UpdateCheckButton(theme: theme),
+                    SizedBox(height: isSmall ? 12 : 16),
+                    _FactoryResetButton(appState: appState),
                   ],
                 ),
               ),
@@ -1469,7 +1471,111 @@ class _AboutSectionWithSystemInfo extends StatelessWidget {
         children: [
           _AboutCardSection(appState: appState),
           _SystemInfoSection(),
+          _FactoryResetSection(appState: appState),
         ],
+      ),
+    );
+  }
+}
+
+class _FactoryResetButton extends StatelessWidget {
+  final AppState appState;
+
+  const _FactoryResetButton({required this.appState});
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Factory Reset'),
+            content: const Text(
+              'This will completely reset the app to its initial state. All data will be permanently deleted:\n\n'
+              '• All servers and credentials\n'
+              '• All preferences and settings\n'
+              '• All cached data\n'
+              '• All downloaded tracks\n'
+              '• All local music data\n\n'
+              'This action cannot be undone. Are you sure you want to continue?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  try {
+                    await appState.factoryReset();
+                    if (context.mounted) {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Factory reset failed: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
+                child: const Text('Reset Everything'),
+              ),
+            ],
+          ),
+        );
+      },
+      icon: const Icon(Icons.restart_alt, size: 18),
+      label: const Text('Factory Reset'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.red,
+        side: BorderSide(color: Colors.red.withOpacity(0.5)),
+      ),
+    );
+  }
+}
+
+class _FactoryResetSection extends StatelessWidget {
+  final AppState appState;
+
+  const _FactoryResetSection({required this.appState});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isSmall = MediaQuery.sizeOf(context).width < _kSettingsBreakpoint;
+    return Padding(
+      padding: EdgeInsets.all(isSmall ? DesktopTheme.spacingMd : DesktopTheme.spacingLg),
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.all(isSmall ? 12 : 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Factory Reset',
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: isSmall ? 12 : 16),
+              const Text(
+                'Completely reset the app to its initial state. This will permanently delete all data including servers, preferences, cache, downloads, and local music.',
+              ),
+              SizedBox(height: isSmall ? 12 : 16),
+              SizedBox(
+                width: double.infinity,
+                child: _FactoryResetButton(appState: appState),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

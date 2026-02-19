@@ -1346,6 +1346,79 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Factory reset: completely reset the app to initial state.
+  /// Clears all data: preferences, cache, downloads, servers, audio state, etc.
+  /// This is irreversible and will log the user out.
+  Future<void> factoryReset() async {
+    try {
+      // 1. Clear all SharedPreferences (get all keys and remove them)
+      final prefs = await SharedPreferences.getInstance();
+      final allKeys = prefs.getKeys();
+      for (final key in allKeys) {
+        await prefs.remove(key);
+      }
+
+      // 2. Clear all cache (database and files)
+      await _cacheService.initialize();
+      await _cacheService.clearAllCache();
+      await ImageCacheManager.clearCache();
+      _clearFlutterImageCache();
+
+      // 3. Clear all downloads
+      await _downloadService.clearAllDownloads();
+
+      // 4. Clear local music data
+      final localService = _mediaServiceManager.localMusicService;
+      if (localService != null) {
+        await localService.fullLogout();
+      }
+
+      // 5. Clear media service manager state
+      _mediaServiceManager.clearAuth();
+
+      // 6. Dispose and clear audio handler
+      try {
+        await _audioHandler?.dispose();
+      } catch (_) {
+        // Ignore dispose errors
+      }
+      _audioHandler = null;
+      _clearAudioHandlerListeners();
+
+      // 7. Clear all in-memory state
+      _configuredServers = [];
+      _activeServerId = null;
+      _isLoggedIn = false;
+      _isInitialized = false;
+      _albums.clear();
+      _artists.clear();
+      _tracks.clear();
+      _playlists.clear();
+      _recentTracks.clear();
+      _youtubeMusicHomeSections = [];
+      _clearError();
+
+      // 8. Clean up MPV config file (if created by app)
+      try {
+        await PlatformAudioConfig.cleanupMpvConfig();
+      } catch (_) {
+        // Ignore cleanup errors
+      }
+
+      // 9. Reset user settings to defaults (they'll be reloaded on next init)
+      _themeMode = ThemeMode.system;
+      _accentColor = Colors.purple;
+      _locale = null;
+      _oledDarkModeEnabled = false;
+
+      notifyListeners();
+    } catch (e) {
+      // If factory reset fails, at least try to clear what we can
+      _clearError();
+      rethrow;
+    }
+  }
+
   Future<bool> _attemptTokenRefresh() async {
     if (!_isLoggedIn) return false;
 

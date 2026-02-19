@@ -1327,28 +1327,17 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final currentOperationId = ++_loadOperationId;
       final isYouTubeMusic = audioSource is ConcatenatingAudioSource;
 
-      // Non-YouTube on desktop: anandnet just_audio_media_kit fork never opens
-      // single-URI in load(); only concatenatingInsertAll calls _player.open().
-      // Use a single-item ConcatenatingAudioSource so the platform opens the stream.
+      // Non-YouTube on desktop: match v14 exactly — use AudioSource.uri() directly and
+      // do NOT write to mpv.conf on Linux. v14 used just_audio_media_kit 2.1.0 from pub.dev
+      // with AudioSource.uri() and never touched mpv.conf on Linux, and audio worked.
       if (!isYouTubeMusic) {
         try {
-          // On Linux, create MPV config with audio output (ao=auto) so audio actually plays
-          if (defaultTargetPlatform == TargetPlatform.linux) {
-            try {
-              await PlatformAudioConfig.createMpvConfig(forYouTubeMusic: false);
-            } catch (e) {
-              // Ignore - config creation is best-effort
-            }
-          }
           await _recreatePlayer();
           await Future.delayed(const Duration(milliseconds: 50));
           if (_disposed || currentOperationId != _loadOperationId) return;
 
-          final singleItemSource = ConcatenatingAudioSource(
-            children: [AudioSource.uri(Uri.parse(url))],
-          );
           await _player
-              .setAudioSource(singleItemSource)
+              .setAudioSource(AudioSource.uri(Uri.parse(url)))
               .timeout(const Duration(seconds: 8));
           if (_disposed || currentOperationId != _loadOperationId) return;
 
@@ -1724,6 +1713,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _providerAudioSource = null;
     _providerAudioSourceAttached = false;
     _updateProviderHandler();
+    // On desktop, recreate the player so the native backend (e.g. MPV) fully releases
+    // the previous stream. Otherwise YT audio can keep playing and the new server's
+    // playback may not output sound.
+    if (_isDesktop) {
+      await _recreatePlayer();
+    }
   }
 
   // === Playback Modes ===
