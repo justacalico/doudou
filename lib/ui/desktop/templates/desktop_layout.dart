@@ -46,30 +46,123 @@ class DesktopLayout {
     }
   }
 
-  /// Show add to playlist dialog
+  /// Show add to playlist dialog (playlist list + Create New Playlist), like mobile.
   static Future<void> showAddToPlaylistDialog(
     BuildContext context,
     Track track,
   ) async {
-    final l10n = AppLocalizations.of(context);
     final appState = context.read<AppState>();
     final playlists = appState.playlists;
-
-    if (playlists.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.noPlaylistsAvailable),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
 
     await showDialog<void>(
       context: context,
       builder: (context) =>
           _AddToPlaylistDialog(track: track, playlists: playlists),
     );
+  }
+
+  /// Show dialog to create a new playlist and add [track] to it (like mobile).
+  static Future<void> showCreatePlaylistNameDialog(
+    BuildContext context,
+    Track track,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final appState = context.read<AppState>();
+    final controller = TextEditingController();
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: DesktopTheme.backgroundSecondary,
+        title: Text(l10n.newPlaylist),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: l10n.playlistName,
+            hintText: l10n.newPlaylist,
+          ),
+          autofocus: true,
+          onSubmitted: (name) async {
+            if (name.trim().isEmpty) return;
+            Navigator.pop(dialogContext);
+            await _doCreatePlaylistAndAdd(context, track, name.trim(), appState);
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final name = controller.text.trim();
+              if (name.isEmpty) return;
+              Navigator.pop(dialogContext);
+              await _doCreatePlaylistAndAdd(context, track, name, appState);
+            },
+            child: Text(l10n.createPlaylist),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Future<void> _doCreatePlaylistAndAdd(
+    BuildContext context,
+    Track track,
+    String playlistName,
+    AppState appState,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+
+    try {
+      final success = await appState.createPlaylist(playlistName);
+      if (!context.mounted) return;
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.failedToCreatePlaylist(playlistName)),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+      final idx =
+          appState.playlists.indexWhere((p) => p.name == playlistName);
+      if (idx < 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.failedToCreatePlaylist(playlistName)),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+      final newPlaylist = appState.playlists[idx];
+      final addSuccess =
+          await appState.addToPlaylist(newPlaylist.id, track.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              addSuccess
+                  ? l10n.createdPlaylistAndAdded(playlistName, track.name)
+                  : l10n.createdPlaylistButFailed(playlistName),
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.failedToCreatePlaylist(playlistName)),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -2481,21 +2574,41 @@ class _AddToPlaylistDialog extends StatelessWidget {
             ),
             // Divider
             Container(height: 1, color: DesktopTheme.glassBorder),
-            // Playlist list
+            // Playlist list + Create New Playlist (like mobile)
             Flexible(
-              child: ListView.builder(
+              child: ListView(
                 shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(
                   vertical: DesktopTheme.spacingSm,
                 ),
-                itemCount: playlists.length,
-                itemBuilder: (context, index) {
-                  final playlist = playlists[index];
-                  return _PlaylistItem(
-                    playlist: playlist,
-                    onTap: () => _addToPlaylist(context, playlist),
-                  );
-                },
+                children: [
+                  if (playlists.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+                      child: Text(
+                        l10n.noPlaylistsAvailable,
+                        style: TextStyle(
+                          color: DesktopTheme.textSecondary,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ...playlists.map(
+                    (playlist) => _PlaylistItem(
+                      playlist: playlist,
+                      onTap: () => _addToPlaylist(context, playlist),
+                    ),
+                  ),
+                  _CreateNewPlaylistTile(
+                    onTap: () {
+                      Navigator.pop(context);
+                      DesktopLayout.showCreatePlaylistNameDialog(
+                        context,
+                        track,
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
           ],
@@ -2611,6 +2724,76 @@ class _PlaylistItemState extends State<_PlaylistItem> {
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "Create New Playlist" tile in add to playlist dialog (like mobile).
+class _CreateNewPlaylistTile extends StatefulWidget {
+  final VoidCallback onTap;
+
+  const _CreateNewPlaylistTile({required this.onTap});
+
+  @override
+  State<_CreateNewPlaylistTile> createState() => _CreateNewPlaylistTileState();
+}
+
+class _CreateNewPlaylistTileState extends State<_CreateNewPlaylistTile> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: DesktopTheme.durationFast,
+          margin: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingSm,
+            vertical: 2,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingMd,
+            vertical: DesktopTheme.spacingSm,
+          ),
+          decoration: BoxDecoration(
+            color: _isHovered ? DesktopTheme.glassOverlay : Colors.transparent,
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color: DesktopTheme.backgroundElevated,
+                ),
+                child: Icon(
+                  Icons.add_rounded,
+                  size: 24,
+                  color: DesktopTheme.accentPrimary,
+                ),
+              ),
+              const SizedBox(width: DesktopTheme.spacingMd),
+              Expanded(
+                child: Text(
+                  l10n.createPlaylist,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: DesktopTheme.accentPrimary,
+                  ),
                 ),
               ),
             ],
