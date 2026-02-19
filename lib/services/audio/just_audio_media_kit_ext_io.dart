@@ -46,11 +46,12 @@ class PlatformAudioConfig {
               'referrer="https://www.youtube.com/"\n'
               '# Doudou: avoid lavf "Failed to create file cache" (blocks playback on server switch)\ncache=no\n';
         } else {
-          // Minimal config for non-YouTube (Navidrome, etc.): ensure cache=no so new MPV
-          // instances get consistent options and avoid "Failed to create file cache"
+          // Minimal config for non-YouTube (Navidrome, etc.): ensure cache=no and audio output
+          // so new MPV instances get consistent options and audio actually plays
           optionsToAdd =
               '# Doudou: minimal options for non-YouTube playback (Navidrome, etc.)\n'
-              'cache=no\n';
+              'cache=no\n'
+              '# Doudou: auto-detect audio output (pulse, alsa, etc.)\nao=auto\n';
         }
       } else {
         return;

@@ -1332,6 +1332,14 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       // Use a single-item ConcatenatingAudioSource so the platform opens the stream.
       if (!isYouTubeMusic) {
         try {
+          // On Linux, create MPV config with audio output (ao=auto) so audio actually plays
+          if (defaultTargetPlatform == TargetPlatform.linux) {
+            try {
+              await PlatformAudioConfig.createMpvConfig(forYouTubeMusic: false);
+            } catch (e) {
+              // Ignore - config creation is best-effort
+            }
+          }
           await _recreatePlayer();
           await Future.delayed(const Duration(milliseconds: 50));
           if (_disposed || currentOperationId != _loadOperationId) return;
