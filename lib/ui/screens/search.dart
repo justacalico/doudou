@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../../models/jellyfin_models.dart';
 import '../../providers/app_state.dart';
 import '../../services/base_service.dart' show ServerType, SearchResults;
 import '../layout/navigation_service.dart';
 import '../theme.dart';
-import '../widgets/horizontal_card_scroll.dart';
 import '../widgets/music_card.dart';
 import '../widgets/page_template.dart';
 import '../widgets/section_header.dart';
@@ -94,7 +92,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       fillColor: AppTheme.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                        borderSide: Border.none,
+                        borderSide: BorderSide.none,
                       ),
                     ),
                   ),

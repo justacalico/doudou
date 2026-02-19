@@ -28,10 +28,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _notificationColor = color;
     });
     Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) setState(() {
-        _notificationMessage = null;
-        _notificationColor = null;
-      });
+      if (mounted) {
+        setState(() {
+          _notificationMessage = null;
+          _notificationColor = null;
+        });
+      }
     });
   }
 

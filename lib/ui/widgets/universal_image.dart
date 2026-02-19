@@ -35,8 +35,8 @@ class UniversalImage extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        placeholder: (_, __) => _placeholderOrError(context, placeholder ?? _defaultPlaceholder()),
-        errorWidget: (_, __, ___) => _placeholderOrError(context, errorWidget ?? _defaultPlaceholder()),
+        placeholder: (_, _) => _placeholderOrError(context, placeholder ?? _defaultPlaceholder()),
+        errorWidget: (_, _, _) => _placeholderOrError(context, errorWidget ?? _defaultPlaceholder()),
       );
     }
     return _placeholderOrError(context, errorWidget ?? _defaultPlaceholder());

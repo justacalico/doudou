@@ -72,7 +72,7 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
                     fillColor: AppTheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                      borderSide: Border.none,
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),

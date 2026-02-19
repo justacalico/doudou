@@ -263,7 +263,7 @@ class _DownloadTrackPlaceholder extends StatelessWidget {
                 width: 44,
                 height: 44,
                 child: imageUrl != null && imageUrl.isNotEmpty
-                    ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _placeholder())
+                    ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, _, _) => _placeholder())
                     : _placeholder(),
               ),
             ),
