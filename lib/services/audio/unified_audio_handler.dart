@@ -78,8 +78,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   // Lock to prevent concurrent player recreation (desktop)
   bool _isRecreatingPlayer = false;
 
-  // Stream subscriptions for proper cleanup
-  List<StreamSubscription> _subscriptions = [];
+  // Stream subscriptions for proper cleanup (list is mutated, not reassigned)
+  final List<StreamSubscription> _subscriptions = [];
 
   // Disposed flag to prevent callbacks after cleanup
   bool _disposed = false;

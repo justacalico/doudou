@@ -9,7 +9,7 @@ class PlatformAudioConfig {
   static bool get isWindows => false;
 
   /// No-op for web platform
-  static Future<void> createMpvConfig() async {
+  static Future<void> createMpvConfig({bool forYouTubeMusic = false}) async {
     debugPrint('PlatformAudioConfig: Stub - no mpv config on web');
   }
   
