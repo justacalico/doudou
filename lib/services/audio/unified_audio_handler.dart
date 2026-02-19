@@ -10,6 +10,7 @@ import 'audio_state_controller.dart';
 import 'queue_manager.dart';
 import '../../models/jellyfin_models.dart';
 import '../media_service_manager.dart';
+import '../base_service.dart';
 import 'providers/base_provider_handler.dart';
 import 'providers/youtube_music_handler.dart';
 import 'providers/soundcloud_handler.dart';
@@ -1068,7 +1069,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       orElse: () => Track(
         id: trackId,
         name: '',
-        artists: [],
         duration: 0,
       ),
     );
@@ -1129,7 +1129,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }
       final state = _player.playerState;
       final duration = _player.duration;
-      final position = _player.position;
       // Accept ready or buffering (stream has started); duration > 0 means URL opened successfully.
       final hasDuration = duration != null && duration > Duration.zero;
       final canPlay = state.processingState == ProcessingState.ready ||
@@ -1609,7 +1608,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       orElse: () => Track(
         id: trackId,
         name: '',
-        artists: [],
         duration: 0,
       ),
     );

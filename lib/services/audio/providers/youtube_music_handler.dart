@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
-import '../../models/jellyfin_models.dart';
+import '../../../models/jellyfin_models.dart';
 import '../../base_service.dart';
 import '../../media_service_manager.dart';
 import 'base_provider_handler.dart';
@@ -128,7 +128,7 @@ class YouTubeMusicHandler extends BaseProviderHandler {
     // Ignore if we're loading and load started recently
     final loadingAndRecentLoad = state.processingState == ProcessingState.loading &&
         loadStartedAt != null &&
-        DateTime.now().difference(loadStartedAt!) < _completionIgnoreAfterLoad;
+        DateTime.now().difference(loadStartedAt) < _completionIgnoreAfterLoad;
     if (loadingAndRecentLoad) {
       if (kDebugMode) {
         debugPrint('[YouTubeMusicHandler] shouldHandleCompletion: ignoring YT completion while loading');
@@ -138,7 +138,7 @@ class YouTubeMusicHandler extends BaseProviderHandler {
 
     // Ignore if within cooldown period
     if (lastCompletionHandledAt != null &&
-        DateTime.now().difference(lastCompletionHandledAt!) < _completionCooldown) {
+        DateTime.now().difference(lastCompletionHandledAt) < _completionCooldown) {
       if (kDebugMode) {
         debugPrint('[YouTubeMusicHandler] shouldHandleCompletion: ignoring YT completion (cooldown)');
       }
@@ -147,7 +147,7 @@ class YouTubeMusicHandler extends BaseProviderHandler {
 
     // Ignore if load started recently
     if (loadStartedAt != null &&
-        DateTime.now().difference(loadStartedAt!) < _completionIgnoreAfterLoad) {
+        DateTime.now().difference(loadStartedAt) < _completionIgnoreAfterLoad) {
       if (kDebugMode) {
         debugPrint('[YouTubeMusicHandler] shouldHandleCompletion: ignoring YT completion (recent load)');
       }
@@ -158,7 +158,7 @@ class YouTubeMusicHandler extends BaseProviderHandler {
     // (player may reset them at end). On desktop/media_kit state may stay "loading"
     // (e.g. buffering), so do not require state==playing.
     final playingLongEnough = loadStartedAt != null &&
-        DateTime.now().difference(loadStartedAt!) >= _trustCompletionAfterPlaying;
+        DateTime.now().difference(loadStartedAt) >= _trustCompletionAfterPlaying;
     if (!playingLongEnough) {
       // Reject if we don't have a real duration (spurious from clear/add)
       if (duration == null || duration <= Duration.zero) {
