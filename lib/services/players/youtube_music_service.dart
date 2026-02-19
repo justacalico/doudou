@@ -403,26 +403,60 @@ class YouTubeMusicService implements BaseMediaService {
         )).toList();
       }
     }
-    // Always use local data for playlists and favorites (even when logged in).
+    // Favorites (Liked Music) always from local.
     await _loadLocalData();
     if (playlistId == 'VLM') {
       return _localFavorites.map(_trackFromStoredJson).toList();
     }
+    // Local/saved playlists: use stored tracks.
     final list = _localPlaylistTracks[playlistId];
-    if (list == null) return [];
-    return list.map((j) {
-      final t = _trackFromStoredJson(j);
-      return Track(
-        id: t.id,
-        name: t.name,
-        artistName: t.artistName,
-        albumName: t.albumName,
-        albumId: playlistId,
-        duration: t.duration,
-        imageUrl: t.imageUrl,
-        isFavorite: t.isFavorite,
-      );
-    }).toList();
+    if (list != null) {
+      return list.map((j) {
+        final t = _trackFromStoredJson(j);
+        return Track(
+          id: t.id,
+          name: t.name,
+          artistName: t.artistName,
+          albumName: t.albumName,
+          albumId: playlistId,
+          duration: t.duration,
+          imageUrl: t.imageUrl,
+          isFavorite: t.isFavorite,
+        );
+      }).toList();
+    }
+    // Remote playlists (e.g. from home sections like "70s Rock Essentials"):
+    // fetch tracks from YouTube Music API (Harmony-Music style).
+    if (!_isReady) return [];
+    try {
+      final browseId = playlistId.startsWith('VL')
+          ? playlistId
+          : playlistId.startsWith('PL')
+              ? 'VL$playlistId'
+              : playlistId;
+      final videos = await _ytMusic.getPlaylistVideos(browseId);
+      final tracks = <Track>[];
+      for (final v in videos) {
+        final t = _trackFromVideoDetailed(v);
+        tracks.add(Track(
+          id: t.id,
+          name: t.name,
+          artistName: t.artistName,
+          artistId: t.artistId,
+          albumName: t.albumName,
+          albumId: playlistId,
+          duration: t.duration,
+          imageUrl: t.imageUrl,
+          isFavorite: t.isFavorite,
+        ));
+      }
+      return tracks;
+    } catch (e) {
+      if (kDebugMode) {
+        print('[YouTubeMusic] getPlaylistTracks($playlistId) API failed: $e');
+      }
+      return [];
+    }
   }
 
   @override
