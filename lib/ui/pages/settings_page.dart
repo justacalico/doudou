@@ -556,19 +556,31 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showClearCacheDialog(String cacheType) {
+    final l10n = AppLocalizations.of(context);
+    final typeLabel = cacheType == 'all' ? l10n.allCachedData : l10n.cachedImages;
+    final dialogTitle = cacheType == 'all' ? l10n.clearAllCache : l10n.clearImageCache;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Clear ${cacheType == 'all' ? 'All' : 'Image'} Cache'),
-        content: Text(
-          'This will remove ${cacheType == 'all' ? 'all cached data' : 'cached images'} and may slow down the app temporarily. Continue?',
-        ),
+        title: Text(dialogTitle),
+        content: Text(l10n.clearCacheConfirm(typeLabel)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
               final appState = context.read<AppState>();
+              // Show loading overlay
+              if (mounted) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (c) => const Center(child: CircularProgressIndicator()),
+                );
+              }
               try {
                 if (cacheType == 'all') {
                   await appState.clearAllCache();
@@ -576,16 +588,23 @@ class _SettingsPageState extends State<SettingsPage> {
                   await appState.clearImageCache();
                 }
                 if (mounted) {
-                  _showNotification('${cacheType == 'all' ? 'All' : 'Image'} cache cleared');
+                  Navigator.of(context, rootNavigator: true).pop(); // dismiss loading
+                  _showNotification(
+                    l10n.cacheCleared(cacheType == 'all' ? 'All' : 'Image'),
+                  );
                 }
               } catch (e) {
                 if (mounted) {
-                  _showNotification('Failed: $e', color: Colors.red);
+                  Navigator.of(context, rootNavigator: true).pop(); // dismiss loading
+                  _showNotification(
+                    l10n.failedToClearCache(cacheType == 'all' ? 'all' : 'image'),
+                    color: Colors.red,
+                  );
                 }
               }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Clear'),
+            child: Text(l10n.clear),
           ),
         ],
       ),
@@ -1182,8 +1201,8 @@ class _ServerSectionState extends State<_ServerSection> {
                     Text('Cache', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                     SizedBox(height: isSmall ? 12 : 16),
                     ListTile(
-                      title: const Text('Clear image cache'),
-                      subtitle: const Text('Free up storage space'),
+                      title: Text(AppLocalizations.of(context).clearImageCache),
+                      subtitle: Text(AppLocalizations.of(context).freeUpStorage),
                       trailing: const Icon(Icons.clear),
                       onTap: () => widget.onClearCache('images'),
                     ),
@@ -1200,8 +1219,8 @@ class _ServerSectionState extends State<_ServerSection> {
                         },
                       ),
                     ListTile(
-                      title: const Text('Clear all cache'),
-                      subtitle: const Text('Remove all cached data'),
+                      title: Text(AppLocalizations.of(context).clearAllCache),
+                      subtitle: Text(AppLocalizations.of(context).removeAllCachedData),
                       trailing: const Icon(Icons.delete_sweep),
                       onTap: () => widget.onClearCache('all'),
                     ),

@@ -2569,35 +2569,34 @@ class AppState extends ChangeNotifier {
 
   // Cache management methods
   Future<void> clearAllCache() async {
-    try {
-      await _cacheService.clearAllCache();
-      await ImageCacheManager.clearCache();
-    } catch (e) {
-      // Error clearing cache
-    }
+    await _cacheService.initialize();
+    await _cacheService.clearAllCache();
+    await ImageCacheManager.clearCache();
+    _clearFlutterImageCache();
   }
 
   Future<void> clearDataCache() async {
-    try {
-      await _cacheService.clearAllCache();
-    } catch (e) {
-      // Error clearing data cache
-    }
+    await _cacheService.initialize();
+    await _cacheService.clearAllCache();
   }
 
   Future<void> clearImageCache() async {
+    await ImageCacheManager.clearCache();
+    _clearFlutterImageCache();
+  }
+
+  static void _clearFlutterImageCache() {
     try {
-      await ImageCacheManager.clearCache();
-    } catch (e) {
-      // Error clearing image cache
-    }
+      PaintingBinding.instance.imageCache.clear();
+      PaintingBinding.instance.imageCache.clearLiveImages();
+    } catch (_) {}
   }
 
   Future<Map<String, dynamic>> getCacheStats() async {
     try {
+      await _cacheService.initialize();
       final dataStats = await _cacheService.getCacheStats();
       final imageSize = await ImageCacheManager.getCacheSize();
-
       return {'data_cache': dataStats, 'image_cache_size': imageSize};
     } catch (e) {
       return {};
