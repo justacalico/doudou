@@ -169,46 +169,6 @@ class _AddServerFormState extends State<AddServerForm> {
                   ),
                 ),
 
-              if (_selectedServerType == 'youtubeMusic') ...[
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    'No login required. Leave cookie empty to stream without an account. For a personalized library, paste cookies from music.youtube.com (e.g. export with a browser extension). Not available on web.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark
-                          ? Colors.white.withOpacity(0.6)
-                          : Colors.black.withOpacity(0.5),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        CupertinoIcons.info_circle_fill,
-                        size: 16,
-                        color: AppleColors.systemBlue.withOpacity(0.9),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'YouTube Music uses InnerTube and fallbacks (Piped, Invidious, youtube_explode). Optional cookies enable home sections and saved playlists.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark
-                                ? Colors.white.withOpacity(0.6)
-                                : Colors.black.withOpacity(0.5),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-
               if (_selectedServerType != 'soundcloud' && _selectedServerType != 'youtubeMusic')
                 SizedBox(height: isDesktop ? 16 : 12),
 
@@ -517,7 +477,7 @@ class _AddServerFormState extends State<AddServerForm> {
         ),
       ];
     } else if (_selectedServerType == 'youtubeMusic') {
-      // Cookie optional: no login required (reference: Harmony-Music no-login streaming).
+      // No login: display name only. Playlists, favorites, and followed artists are local-only.
       return [
         _buildModernTextField(
           controller: _usernameController,
@@ -525,31 +485,6 @@ class _AddServerFormState extends State<AddServerForm> {
           icon: CupertinoIcons.person,
           placeholder: 'e.g. My YouTube Music',
           isDark: isDark,
-        ),
-        SizedBox(height: isDesktop ? 16 : 12),
-        _buildModernTextField(
-          controller: _passwordController,
-          label: 'Cookie string (optional – for personalized library)',
-          icon: CupertinoIcons.lock,
-          placeholder: 'Leave empty for no login, or paste cookies from music.youtube.com',
-          obscureText: !_isPasswordVisible,
-          isDark: isDark,
-          suffixIcon: IconButton(
-            icon: Icon(
-              _isPasswordVisible
-                  ? CupertinoIcons.eye_slash
-                  : CupertinoIcons.eye,
-              size: 20,
-              color: isDark
-                  ? Colors.white.withOpacity(0.5)
-                  : Colors.black.withOpacity(0.4),
-            ),
-            onPressed: () {
-              setState(() {
-                _isPasswordVisible = !_isPasswordVisible;
-              });
-            },
-          ),
         ),
       ];
     } else if (_selectedServerType == 'plex') {
@@ -1233,7 +1168,7 @@ class _AddServerFormState extends State<AddServerForm> {
           _selectedServerType,
           'https://music.youtube.com',
           _usernameController.text.trim(),
-          _passwordController.text,
+          '', // No cookie login; playlists and favorites are local-only
           displayName: displayName,
         );
       } else if (_selectedServerType == 'plex') {

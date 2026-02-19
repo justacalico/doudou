@@ -22,11 +22,10 @@ class YouTubeMusicService implements BaseMediaService {
 
   final YTMusic _ytMusic = YTMusic();
   bool _authenticated = false;
-  /// True when user provided a cookie string (logged in). When false, playlists/favorites/subscriptions are local-only.
-  bool _hasCookies = false;
+  bool _hasCookies = false; // Cookie login removed; always false. Local data is always used.
   String? _lastAuthError;
 
-  // Local data (persisted in SharedPreferences); used only when _hasCookies is false. Keyed by server ID so each server keeps its own data when switching.
+  // Local data (persisted in SharedPreferences). Keyed by server ID so each server keeps its own data when switching.
   String? _serverId;
   String _prefsKey(String base) =>
       _serverId != null && _serverId!.isNotEmpty ? '${base}_$_serverId' : base;
@@ -42,9 +41,6 @@ class YouTubeMusicService implements BaseMediaService {
 
   String? get lastAuthError => _lastAuthError;
 
-  /// True when user set a cookie string (personalized library, synced playlists/favorites).
-  bool get hasCookies => _hasCookies;
-
   @override
   Future<bool> authenticate(
     String serverUrl,
@@ -56,20 +52,10 @@ class YouTubeMusicService implements BaseMediaService {
       return false;
     }
     _lastAuthError = null;
-    final cookies = credential.trim();
-    _hasCookies = cookies.isNotEmpty;
+    // Cookie login removed: always no-login mode. Playlists, favorites, and followed artists are local-only.
+    _hasCookies = false;
     try {
-      if (cookies.isEmpty) {
-        // No login: initialize without cookies (Harmony-Music style; no auth required).
-        // Playlists, favorites, and subscriptions stay local-only.
-        await _ytMusic.initialize();
-      } else {
-        await _ytMusic.initialize(
-          cookies: cookies,
-          gl: 'US',
-          hl: 'en',
-        );
-      }
+      await _ytMusic.initialize();
       _authenticated = true;
       return true;
     } catch (e) {
