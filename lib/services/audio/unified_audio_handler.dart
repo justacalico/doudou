@@ -1269,7 +1269,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           debugPrint('[Playback] _loadAndPlayTrack: calling play() (desktop, non-YT)');
         }
 
-        // Play and verify playback actually started
+        // Play and wait for stream to be ready (similar to YouTube path)
         if (_stateController.userIntendedPlaying) {
           try {
             await _player.play().timeout(const Duration(seconds: 3));
@@ -1279,24 +1279,39 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             }
           }
           
-          // Wait a moment for playback to start and verify
-          await Future.delayed(const Duration(milliseconds: 500));
-          final playerState = _player.playerState;
+          if (_disposed || currentOperationId != _loadOperationId) return;
           
-          if (kDebugMode) {
-            debugPrint('[Playback] _loadAndPlayTrack: playback state after play() - playing=${playerState.playing}, processingState=${playerState.processingState}, duration=${_player.duration}');
+          // Wait for stream to actually load (duration > 0) before considering playback successful.
+          // Use throwOnTimeout: false so we don't fail completely if duration isn't reported immediately.
+          try {
+            await _waitForStreamReady(
+              timeout: const Duration(seconds: 5),
+              operationId: currentOperationId,
+              throwOnTimeout: false,
+            );
+          } catch (e) {
+            if (kDebugMode) {
+              debugPrint('[Playback] _loadAndPlayTrack: waitForStreamReady failed: $e');
+            }
           }
           
-          // If not playing, try once more after a short delay
-          if (!playerState.playing) {
-            await Future.delayed(const Duration(milliseconds: 300));
+          if (_disposed || currentOperationId != _loadOperationId) return;
+          
+          final playerState = _player.playerState;
+          final duration = _player.duration;
+          
+          if (kDebugMode) {
+            debugPrint('[Playback] _loadAndPlayTrack: playback state after waitForStreamReady - playing=${playerState.playing}, processingState=${playerState.processingState}, duration=$duration');
+          }
+          
+          // If stream is ready but not playing, try play() again
+          if ((duration != null && duration > Duration.zero) && !playerState.playing) {
+            if (kDebugMode) {
+              debugPrint('[Playback] _loadAndPlayTrack: stream ready but not playing, retrying play()');
+            }
             try {
               await _player.play().timeout(const Duration(seconds: 2));
               await Future.delayed(const Duration(milliseconds: 300));
-              final retryState = _player.playerState;
-              if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: after retry - playing=${retryState.playing}, processingState=${retryState.processingState}');
-              }
             } catch (e) {
               if (kDebugMode) {
                 debugPrint('[Playback] _loadAndPlayTrack: retry play() failed: $e');
@@ -1312,21 +1327,24 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         await _applyVolumeAndSpeedToPlayer();
         
         if (_disposed || currentOperationId != _loadOperationId) return;
-        await _applyVolumeAndSpeedToPlayer();
-        if (_disposed || currentOperationId != _loadOperationId) return;
         // Ensure we leave "loading" so UI shows playing and position/duration update (media_kit may not emit ready→playing on Linux).
-        // Verify player is actually playing before setting state
+        // Only set state to playing if stream is actually ready (duration > 0) or player is playing
         if (_stateController.userIntendedPlaying) {
           final finalPlayerState = _player.playerState;
-          if (finalPlayerState.playing) {
+          final finalDuration = _player.duration;
+          final streamReady = finalDuration != null && finalDuration > Duration.zero;
+          
+          if (finalPlayerState.playing || streamReady) {
             _stateController.updateState(AudioPlayerState.playing);
           } else {
-            // Player should be playing but isn't - log warning but still set state to playing
-            // as the user intended to play and we've called play() multiple times
+            // Stream not ready and player not playing - this is an error
             if (kDebugMode) {
-              debugPrint('[Playback] _loadAndPlayTrack: warning - player state shows not playing after retries, but setting state to playing anyway');
+              debugPrint('[Playback] _loadAndPlayTrack: ERROR - stream not ready (duration=$finalDuration) and player not playing after waitForStreamReady');
             }
-            _stateController.updateState(AudioPlayerState.playing);
+            _stateController.updateState(AudioPlayerState.error);
+            _stateController.updateUserIntent(false);
+            _stateController.updateError('Failed to start playback: stream did not load');
+            return;
           }
         }
         // Set duration from track metadata so progress bar shows correctly if player doesn't report duration immediately.
