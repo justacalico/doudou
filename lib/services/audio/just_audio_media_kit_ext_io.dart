@@ -10,6 +10,12 @@ class PlatformAudioConfig {
   /// Check if we're on Windows
   static bool get isWindows => Platform.isWindows;
   
+  /// Path to the MPV config file
+  static String? _configFilePath;
+  
+  /// Original content of the MPV config file before Doudou modifications
+  static String? _originalConfigContent;
+  
   /// Create mpv.conf with platform-specific options:
   /// - Windows: audio-exclusive=no (WASAPI shared mode)
   /// - Linux: cache=no (avoids lavf "Failed to create file cache" which blocks playback)
@@ -46,15 +52,29 @@ class PlatformAudioConfig {
       if (!await dir.exists()) await dir.create(recursive: true);
 
       final configFile = File('$configDir/mpv.conf');
+      _configFilePath = configFile.path;
+      
       String existingContent = '';
       if (await configFile.exists()) {
         existingContent = await configFile.readAsString();
+        // Store original content for cleanup
+        _originalConfigContent = existingContent;
         
-        // Remove any existing ao= lines to avoid duplicates (ao=pulse, ao=alsa, etc.)
-        // Use regex to match ao= followed by any value (including quoted values)
+        // Remove any existing Doudou-added lines to avoid duplicates
+        // Remove ao= lines (ao=pulse, ao=alsa, etc.)
         existingContent = existingContent.replaceAll(RegExp(r'^ao=.*$', multiLine: true), '');
-        // Also remove any comment lines about audio output (Doudou-added comments)
+        // Remove Doudou-added comment lines about audio output
         existingContent = existingContent.replaceAll(RegExp(r'^# Doudou:.*audio output.*$', multiLine: true), '');
+        // Remove Doudou-added cache=no
+        existingContent = existingContent.replaceAll(RegExp(r'^# Doudou:.*cache.*$', multiLine: true), '');
+        existingContent = existingContent.replaceAll(RegExp(r'^cache=no$', multiLine: true), '');
+        // Remove Doudou-added user-agent and referrer
+        existingContent = existingContent.replaceAll(RegExp(r'^# Doudou:.*User-Agent.*$', multiLine: true), '');
+        existingContent = existingContent.replaceAll(RegExp(r'^user-agent=.*$', multiLine: true), '');
+        existingContent = existingContent.replaceAll(RegExp(r'^referrer=.*$', multiLine: true), '');
+        // Remove Doudou-added audio-exclusive (Windows)
+        existingContent = existingContent.replaceAll(RegExp(r'^# Doudou:.*WASAPI.*$', multiLine: true), '');
+        existingContent = existingContent.replaceAll(RegExp(r'^audio-exclusive=no$', multiLine: true), '');
         // Clean up multiple consecutive newlines (but preserve single blank lines)
         existingContent = existingContent.replaceAll(RegExp(r'\n{3,}'), '\n\n');
         existingContent = existingContent.trim();
@@ -68,6 +88,10 @@ class PlatformAudioConfig {
                 existingContent.contains('user-agent') &&
                 existingContent.contains('referrer'));
         if (hasRequired) {
+          // Already has required options, but store original if we haven't yet
+          if (_originalConfigContent == null) {
+            _originalConfigContent = existingContent;
+          }
           return;
         }
         // Add missing options (Linux: ao=pulse for Navidrome/non-YT audio; all: user-agent/referrer)
@@ -93,6 +117,9 @@ class PlatformAudioConfig {
           debugPrint('PlatformAudioConfig: added options to mpv.conf');
           return;
         }
+      } else {
+        // No existing file, store empty as original
+        _originalConfigContent = '';
       }
 
       final newContent =
@@ -101,6 +128,51 @@ class PlatformAudioConfig {
       debugPrint('PlatformAudioConfig: mpv.conf at $configDir');
     } catch (e) {
       debugPrint('PlatformAudioConfig: $e');
+    }
+  }
+  
+  /// Clean up MPV config by removing Doudou-added options and restoring original content
+  /// This should be called when the app closes to avoid leaving temporary config changes
+  static Future<void> cleanupMpvConfig() async {
+    if (_configFilePath == null || _originalConfigContent == null) {
+      return; // Nothing to clean up
+    }
+    
+    try {
+      final configFile = File(_configFilePath!);
+      if (!await configFile.exists()) {
+        return;
+      }
+      
+      String currentContent = await configFile.readAsString();
+      
+      // Remove all Doudou-added lines
+      currentContent = currentContent.replaceAll(RegExp(r'^ao=.*$', multiLine: true), '');
+      currentContent = currentContent.replaceAll(RegExp(r'^# Doudou:.*$', multiLine: true), '');
+      currentContent = currentContent.replaceAll(RegExp(r'^cache=no$', multiLine: true), '');
+      currentContent = currentContent.replaceAll(RegExp(r'^user-agent=.*$', multiLine: true), '');
+      currentContent = currentContent.replaceAll(RegExp(r'^referrer=.*$', multiLine: true), '');
+      currentContent = currentContent.replaceAll(RegExp(r'^audio-exclusive=no$', multiLine: true), '');
+      // Clean up multiple consecutive newlines
+      currentContent = currentContent.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+      currentContent = currentContent.trim();
+      
+      // Restore original content (which didn't have Doudou additions)
+      // If original was empty and current is now empty after removal, delete the file
+      if (_originalConfigContent!.isEmpty && currentContent.isEmpty) {
+        await configFile.delete();
+        debugPrint('PlatformAudioConfig: removed temporary mpv.conf (was empty)');
+      } else {
+        // Restore original content
+        await configFile.writeAsString(_originalConfigContent!);
+        debugPrint('PlatformAudioConfig: restored original mpv.conf');
+      }
+      
+      // Clear stored values
+      _configFilePath = null;
+      _originalConfigContent = null;
+    } catch (e) {
+      debugPrint('PlatformAudioConfig: cleanup failed: $e');
     }
   }
 }

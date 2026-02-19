@@ -17,6 +17,7 @@ import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
 import '../services/logging_service.dart';
+import '../services/audio/just_audio_media_kit_ext.dart' show PlatformAudioConfig;
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
@@ -182,6 +183,15 @@ class AppState extends ChangeNotifier {
   void dispose() {
     _clearAudioHandlerListeners();
     _downloadService.removeListener(_onDownloadServiceChanged);
+    // Clean up temporary MPV config
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.linux ||
+            defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.macOS)) {
+      PlatformAudioConfig.cleanupMpvConfig().catchError((e) {
+        debugPrint('AppState: Failed to cleanup MPV config: $e');
+      });
+    }
     super.dispose();
   }
 
