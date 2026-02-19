@@ -1277,11 +1277,51 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           // Ignore; we'll still set state and duration below
         }
         if (_disposed || currentOperationId != _loadOperationId) return;
+        
+        // Ensure player is actually playing - media_kit may need a moment to start playback
+        // Check if player is playing, and if not, try play() again
+        if (_stateController.userIntendedPlaying) {
+          int retryCount = 0;
+          const maxRetries = 3;
+          while (retryCount < maxRetries && !_disposed && currentOperationId == _loadOperationId) {
+            await Future.delayed(const Duration(milliseconds: 200));
+            final playerState = _player.playerState;
+            if (playerState.playing) {
+              break;
+            }
+            retryCount++;
+            if (retryCount < maxRetries) {
+              if (kDebugMode) {
+                debugPrint('[Playback] _loadAndPlayTrack: player not playing, retrying play() (attempt $retryCount/$maxRetries)');
+              }
+              try {
+                await _player.play().timeout(const Duration(seconds: 2));
+              } catch (e) {
+                if (kDebugMode) {
+                  debugPrint('[Playback] _loadAndPlayTrack: retry play() failed: $e');
+                }
+              }
+            }
+          }
+        }
+        
+        if (_disposed || currentOperationId != _loadOperationId) return;
         await _applyVolumeAndSpeedToPlayer();
         if (_disposed || currentOperationId != _loadOperationId) return;
         // Ensure we leave "loading" so UI shows playing and position/duration update (media_kit may not emit ready→playing on Linux).
+        // Verify player is actually playing before setting state
         if (_stateController.userIntendedPlaying) {
-          _stateController.updateState(AudioPlayerState.playing);
+          final finalPlayerState = _player.playerState;
+          if (finalPlayerState.playing) {
+            _stateController.updateState(AudioPlayerState.playing);
+          } else {
+            // Player should be playing but isn't - log warning but still set state to playing
+            // as the user intended to play and we've called play() multiple times
+            if (kDebugMode) {
+              debugPrint('[Playback] _loadAndPlayTrack: warning - player state shows not playing after retries, but setting state to playing anyway');
+            }
+            _stateController.updateState(AudioPlayerState.playing);
+          }
         }
         // Set duration from track metadata so progress bar shows correctly if player doesn't report duration immediately.
         final track = _stateController.currentTrack;
