@@ -47,9 +47,31 @@ class _LibraryPageState extends State<LibraryPage> {
         final artistsIndex = showAlbums ? 4 : 3;
         final songsIndex = showAlbums ? 5 : 4;
         final playlistsIndex = showAlbums ? 6 : 5;
+        final showLibraryLoading = appState.isLoading &&
+            appState.albums.isEmpty &&
+            appState.artists.isEmpty &&
+            appState.tracks.isEmpty &&
+            appState.playlists.isEmpty;
+
         return PageTemplate(
           title: l10n.navLibrary,
-          child: SingleChildScrollView(
+          child: showLibraryLoading
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: DesktopTheme.spacingMd),
+                      Text(
+                        l10n.loadingYourMusicLibrary,
+                        style: TextStyle(
+                            fontSize: 16,
+                            color: DesktopTheme.textSecondary),
+                      ),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

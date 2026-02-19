@@ -47,6 +47,19 @@ class CachedImage extends StatelessWidget {
       image = FutureBuilder<bool>(
         future: file.exists(),
         builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return placeholder ??
+                Container(
+                  width: width,
+                  height: height,
+                  color: const Color(0xFF1C1C1E),
+                  child: const Center(
+                    child: CupertinoActivityIndicator(
+                      color: CupertinoColors.systemGrey,
+                    ),
+                  ),
+                );
+          }
           if (snapshot.data == true) {
             return Image.file(
               file,

@@ -53,23 +53,40 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
               ),
             ),
           ],
-          child: playlists.isEmpty
+          child: appState.isLoading && playlists.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.queue_music_outlined,
-                          size: 64, color: DesktopTheme.textMuted),
+                      const CircularProgressIndicator(),
                       const SizedBox(height: DesktopTheme.spacingMd),
                       Text(
-                        l10n.noPlaylistsAvailable,
+                        l10n.loadingPlaylists,
                         style: TextStyle(
-                            fontSize: 16, color: DesktopTheme.textSecondary),
+                            fontSize: 16,
+                            color: DesktopTheme.textSecondary),
                       ),
                     ],
                   ),
                 )
-              : GridView.builder(
+              : playlists.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.queue_music_outlined,
+                              size: 64, color: DesktopTheme.textMuted),
+                          const SizedBox(height: DesktopTheme.spacingMd),
+                          Text(
+                            l10n.noPlaylistsAvailable,
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: DesktopTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    )
+                  : GridView.builder(
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 200,
                     childAspectRatio: 0.72,

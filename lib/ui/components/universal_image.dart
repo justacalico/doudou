@@ -128,8 +128,22 @@ class UniversalImage extends StatelessWidget {
   }
 }
 
+Widget _defaultErrorWidget(double? width, double? height) {
+  return Container(
+    width: width,
+    height: height,
+    color: const Color(0xFF2C2C2E),
+    child: const Icon(
+      Icons.music_note,
+      color: Colors.grey,
+      size: 32,
+    ),
+  );
+}
+
 /// Smart image widget that automatically builds the appropriate image
-/// based on whether it's a local file or network URL
+/// based on whether it's a local file or network URL.
+/// Shows a loading indicator (spinner) while network or local file is loading.
 Widget buildSmartImage({
   required String? imageUrl,
   double? width,
@@ -138,57 +152,45 @@ Widget buildSmartImage({
   Widget Function()? errorBuilder,
 }) {
   if (imageUrl == null || imageUrl.isEmpty) {
-    return errorBuilder?.call() ??
-        Container(
-          width: width,
-          height: height,
-          color: const Color(0xFF2C2C2E),
-          child: const Icon(
-            Icons.music_note,
-            color: Colors.grey,
-            size: 32,
-          ),
-        );
+    return errorBuilder?.call() ?? _defaultErrorWidget(width, height);
   }
 
   if (isLocalFilePath(imageUrl)) {
     final filePath = getFilePath(imageUrl);
-    return Image.file(
-      File(filePath),
-      width: width,
-      height: height,
-      fit: fit,
-      errorBuilder: (_, _, _) =>
-          errorBuilder?.call() ??
-          Container(
+    return FutureBuilder<bool>(
+      future: File(filePath).exists(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
             width: width,
             height: height,
             color: const Color(0xFF2C2C2E),
-            child: const Icon(
-              Icons.music_note,
-              color: Colors.grey,
-              size: 32,
+            child: const Center(
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
             ),
-          ),
+          );
+        }
+        if (snapshot.data != true) {
+          return errorBuilder?.call() ?? _defaultErrorWidget(width, height);
+        }
+        return Image.file(
+          File(filePath),
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (_, _, _) =>
+              errorBuilder?.call() ?? _defaultErrorWidget(width, height),
+        );
+      },
     );
   }
 
-  return Image.network(
-    imageUrl,
+  // Network: use UniversalImage so we get loading placeholder (spinner)
+  return UniversalImage(
+    imageUrl: imageUrl,
     width: width,
     height: height,
     fit: fit,
-    errorBuilder: (_, _, _) =>
-        errorBuilder?.call() ??
-        Container(
-          width: width,
-          height: height,
-          color: const Color(0xFF2C2C2E),
-          child: const Icon(
-            Icons.music_note,
-            color: Colors.grey,
-            size: 32,
-          ),
-        ),
+    errorWidget: errorBuilder?.call() ?? _defaultErrorWidget(width, height),
   );
 }

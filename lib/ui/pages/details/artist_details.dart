@@ -99,7 +99,22 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
           title: widget.artist.name,
           onBackPressed: () => Navigator.of(context).pop(),
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.loading,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
               : SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),

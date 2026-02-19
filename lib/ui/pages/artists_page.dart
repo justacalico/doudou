@@ -53,23 +53,40 @@ class _ArtistsPageState extends State<ArtistsPage> {
               ),
             ),
           ],
-          child: artists.isEmpty
+          child: appState.isLoading && artists.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.person_outline_rounded,
-                          size: 64, color: DesktopTheme.textMuted),
+                      const CircularProgressIndicator(),
                       const SizedBox(height: DesktopTheme.spacingMd),
                       Text(
-                        l10n.noArtistsFound,
+                        l10n.loadingArtists,
                         style: TextStyle(
-                            fontSize: 16, color: DesktopTheme.textSecondary),
+                            fontSize: 16,
+                            color: DesktopTheme.textSecondary),
                       ),
                     ],
                   ),
                 )
-              : GridView.builder(
+              : artists.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.person_outline_rounded,
+                              size: 64, color: DesktopTheme.textMuted),
+                          const SizedBox(height: DesktopTheme.spacingMd),
+                          Text(
+                            l10n.noArtistsFound,
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: DesktopTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    )
+                  : GridView.builder(
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 200,
                     childAspectRatio: 0.75,

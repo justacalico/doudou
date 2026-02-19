@@ -95,23 +95,39 @@ class _AlbumsPageState extends State<AlbumsPage> {
               ),
             ),
           ],
-          child: albums.isEmpty
+          child: appState.isLoading && albums.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.album_outlined,
-                          size: 64, color: DesktopTheme.textMuted),
+                      const CircularProgressIndicator(),
                       const SizedBox(height: DesktopTheme.spacingMd),
                       Text(
-                        l10n.noAlbumsFound,
+                        l10n.loadingAlbums,
                         style: TextStyle(
                             fontSize: 16, color: DesktopTheme.textSecondary),
                       ),
                     ],
                   ),
                 )
-              : GridView.builder(
+              : albums.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.album_outlined,
+                              size: 64, color: DesktopTheme.textMuted),
+                          const SizedBox(height: DesktopTheme.spacingMd),
+                          Text(
+                            l10n.noAlbumsFound,
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: DesktopTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    )
+                  : GridView.builder(
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 200,
                     childAspectRatio: 0.75,
