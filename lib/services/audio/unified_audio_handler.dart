@@ -1258,73 +1258,50 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
         if (_disposed || currentOperationId != _loadOperationId) return;
 
-        // Wait for stream to be ready (has duration, ready/buffering) before playing
-        // This ensures the stream is actually loaded before we try to play
-        if (kDebugMode) {
-          debugPrint('[Playback] _loadAndPlayTrack: waiting for stream ready (desktop)');
-        }
-        try {
-          await _waitForStreamReady(
-            timeout: const Duration(seconds: 10),
-            operationId: currentOperationId,
-            throwOnTimeout: false,
-          );
-        } catch (_) {
-          // Ignore timeout; we'll still try to play
-        }
+        // For non-YT providers (Navidrome/Jellyfin), duration may not be reported immediately.
+        // Give the player a moment to initialize the source, then call play() immediately.
+        // The player will handle buffering. YouTube Music path waits for stream ready because
+        // YT URLs can fail and we need to try fallbacks.
+        await Future.delayed(const Duration(milliseconds: 200));
         if (_disposed || currentOperationId != _loadOperationId) return;
+        
+        if (kDebugMode) {
+          debugPrint('[Playback] _loadAndPlayTrack: calling play() (desktop, non-YT)');
+        }
 
-        // Now that stream is ready, play and verify playback actually started
+        // Play and verify playback actually started
         if (_stateController.userIntendedPlaying) {
-          int retryCount = 0;
-          const maxRetries = 5;
-          bool playbackStarted = false;
-          
-          while (retryCount < maxRetries && !_disposed && currentOperationId == _loadOperationId && !playbackStarted) {
-            if (retryCount > 0) {
-              await Future.delayed(const Duration(milliseconds: 300));
-            }
-            
-            try {
-              await _player.play().timeout(const Duration(seconds: 2));
-            } catch (e) {
-              if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: play() failed (attempt ${retryCount + 1}/$maxRetries): $e');
-              }
-            }
-            
-            // Wait a bit and verify playback actually started
-            await Future.delayed(const Duration(milliseconds: 500));
-            final playerState = _player.playerState;
-            final hasDuration = _player.duration != null && _player.duration! > Duration.zero;
-            final isReady = playerState.processingState == ProcessingState.ready || 
-                           playerState.processingState == ProcessingState.buffering;
-            
+          try {
+            await _player.play().timeout(const Duration(seconds: 3));
+          } catch (e) {
             if (kDebugMode) {
-              debugPrint('[Playback] _loadAndPlayTrack: checking playback state (attempt ${retryCount + 1}) - playing=${playerState.playing}, isReady=$isReady, hasDuration=$hasDuration, processingState=${playerState.processingState}');
-            }
-            
-            // For non-YT providers (Navidrome/Jellyfin), duration may not be reported immediately.
-            // Accept playback if player is playing (duration and ready state are nice-to-have but not required).
-            // Duration will come later or we'll use track metadata duration.
-            if (playerState.playing) {
-              playbackStarted = true;
-              if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: playback verified (desktop, attempt ${retryCount + 1}) - playing=true, hasDuration=$hasDuration, isReady=$isReady, state=${playerState.processingState}');
-              }
-              break;
-            }
-            
-            retryCount++;
-            if (retryCount < maxRetries && !playbackStarted) {
-              if (kDebugMode) {
-                debugPrint('[Playback] _loadAndPlayTrack: playback not started, retrying (attempt $retryCount/$maxRetries) - playing=${playerState.playing}, isReady=$isReady, hasDuration=$hasDuration, state=${playerState.processingState}');
-              }
+              debugPrint('[Playback] _loadAndPlayTrack: play() failed: $e');
             }
           }
           
-          if (!playbackStarted && kDebugMode) {
-            debugPrint('[Playback] _loadAndPlayTrack: warning - playback may not have started after $maxRetries attempts');
+          // Wait a moment for playback to start and verify
+          await Future.delayed(const Duration(milliseconds: 500));
+          final playerState = _player.playerState;
+          
+          if (kDebugMode) {
+            debugPrint('[Playback] _loadAndPlayTrack: playback state after play() - playing=${playerState.playing}, processingState=${playerState.processingState}, duration=${_player.duration}');
+          }
+          
+          // If not playing, try once more after a short delay
+          if (!playerState.playing) {
+            await Future.delayed(const Duration(milliseconds: 300));
+            try {
+              await _player.play().timeout(const Duration(seconds: 2));
+              await Future.delayed(const Duration(milliseconds: 300));
+              final retryState = _player.playerState;
+              if (kDebugMode) {
+                debugPrint('[Playback] _loadAndPlayTrack: after retry - playing=${retryState.playing}, processingState=${retryState.processingState}');
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                debugPrint('[Playback] _loadAndPlayTrack: retry play() failed: $e');
+              }
+            }
           }
         }
         
