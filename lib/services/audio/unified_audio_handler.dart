@@ -230,31 +230,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       _setupPlayerListeners();
       
       if (kDebugMode && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-        debugPrint('[Linux Debug] _recreatePlayer: listeners set up, MPV should read ~/.config/mpv/mpv.conf');
-        // Verify MPV config file exists and log its contents
-        try {
-          final home = Platform.environment['HOME'];
-          if (home != null) {
-            final configPath = '$home/.config/mpv/mpv.conf';
-            final configFile = File(configPath);
-            if (await configFile.exists()) {
-              final configContent = await configFile.readAsString();
-              debugPrint('[Linux Debug] _recreatePlayer: MPV config file exists at $configPath');
-              debugPrint('[Linux Debug] _recreatePlayer: MPV config contents:');
-              configContent.split('\n').forEach((line) {
-                if (line.trim().isNotEmpty) {
-                  debugPrint('[Linux Debug] _recreatePlayer:   $line');
-                }
-              });
-            } else {
-              debugPrint('[Linux Debug] _recreatePlayer: WARNING - MPV config file NOT found at $configPath');
-            }
-          }
-          final newPlayerState = _player.playerState;
-          debugPrint('[Linux Debug] _recreatePlayer: new player initial state - playing=${newPlayerState.playing}, processingState=${newPlayerState.processingState}');
-        } catch (e) {
-          debugPrint('[Linux Debug] _recreatePlayer: error checking MPV config or player state: $e');
-        }
+        final newPlayerState = _player.playerState;
+        debugPrint('[Linux Debug] _recreatePlayer: new player created - playing=${newPlayerState.playing}, processingState=${newPlayerState.processingState}');
       }
 
       // Dispose old resources in background
@@ -1487,20 +1464,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           }
           // Source is already attached, just play (content was updated via clear+add)
         } else {
-          // Non-YouTube: Clean up MPV config (restore original) on Linux
-          if (_isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-            try {
-              await PlatformAudioConfig.cleanupMpvConfig();
-              if (kDebugMode) {
-                debugPrint('[Linux Debug] _loadAndPlayTrack: Cleaned up MPV config for non-YouTube');
-              }
-            } catch (e) {
-              if (kDebugMode) {
-                debugPrint('[Linux Debug] _loadAndPlayTrack: Failed to cleanup MPV config: $e');
-              }
-            }
-          }
-          // Non-YouTube: set source on fresh player
+          // Non-YouTube: set source on fresh player (no MPV config - like v14)
           if (kDebugMode && _isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
             debugPrint('[Linux Debug] _loadAndPlayTrack: setting AudioSource.uri() for non-YT track');
             debugPrint('[Linux Debug] _loadAndPlayTrack: URL=$url');
