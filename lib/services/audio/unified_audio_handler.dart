@@ -58,10 +58,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   }
 
   // Player generation ID for desktop callback invalidation
-  final int _playerGeneration = 0;
+  int _playerGeneration = 0;
 
   // Stream subscriptions for proper cleanup
-  final List<StreamSubscription> _subscriptions = [];
+  List<StreamSubscription> _subscriptions = [];
 
   // Disposed flag to prevent callbacks after cleanup
   bool _disposed = false;

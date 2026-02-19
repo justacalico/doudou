@@ -27,7 +27,7 @@ List<Album> albumsFromTracks(List<Track> tracks, {String? artistName, String? ar
     String id = first.albumId ?? 'album_${name.hashCode.abs()}';
     if (first.albumId == null && artistId != null && name != 'Unknown Album') {
       final safeName = name.replaceAll(':', '_');
-      id = '$virtualAlbumIdPrefix$artistId:$safeName';
+      id = '${virtualAlbumIdPrefix}$artistId:$safeName';
     }
     albums.add(Album(
       id: id,

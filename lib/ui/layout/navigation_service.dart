@@ -14,6 +14,7 @@ class DetailPageData {
 }
 
 /// App-wide navigation: main page index and detail overlay stack.
+/// Used by shell and pages for sidebar/bottom nav and album/artist/playlist details.
 class NavigationService {
   static final NavigationService _instance = NavigationService._internal();
   factory NavigationService() => _instance;
@@ -21,6 +22,7 @@ class NavigationService {
 
   ValueNotifier<int> selectedPageIndex = ValueNotifier<int>(0);
 
+  /// Stack of detail pages (for back navigation)
   ValueNotifier<List<DetailPageData>> detailPageStack =
       ValueNotifier<List<DetailPageData>>([]);
 

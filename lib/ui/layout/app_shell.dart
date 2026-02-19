@@ -1,26 +1,34 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:audio_service/audio_service.dart';
 
-import '../../l10n/app_localizations.dart';
-import '../../providers/app_state.dart';
-import '../../services/base_service.dart';
-import 'breakpoint.dart';
-import 'navigation_service.dart';
-import '../screens/collection_detail.dart';
-import '../screens/albums.dart';
-import '../screens/artists.dart';
-import '../screens/downloads.dart';
-import '../screens/home.dart';
-import '../screens/library.dart';
-import '../screens/now_playing.dart';
-import '../screens/playlists.dart';
-import '../screens/search.dart';
-import '../screens/settings.dart';
-import '../screens/tracks.dart';
-import '../theme.dart';
-import '../widgets/now_playing_bar.dart';
+import 'package:doudou/l10n/app_localizations.dart';
+import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/services/base_service.dart';
+import 'package:doudou/ui/layout/navigation_service.dart';
+import 'package:doudou/ui/desktop/templates/desktop_theme.dart';
+import 'package:doudou/ui/desktop/templates/desktop_layout.dart'
+    show DesktopLayout, DesktopPlayerBar;
+import 'package:doudou/ui/desktop/widgets/universal_image.dart'
+    show buildSmartImage;
+import 'package:doudou/ui/layout/breakpoint.dart';
+import 'package:doudou/ui/layout/responsive_now_playing.dart';
 
-/// Single responsive shell: sidebar on desktop (>= 600px), bottom navbar on mobile.
+import 'package:doudou/ui/pages/home_page.dart';
+import 'package:doudou/ui/pages/search_page.dart';
+import 'package:doudou/ui/pages/library_page.dart';
+import 'package:doudou/ui/pages/albums_page.dart';
+import 'package:doudou/ui/pages/artists_page.dart';
+import 'package:doudou/ui/pages/tracks_page.dart';
+import 'package:doudou/ui/pages/playlists_page.dart';
+import 'package:doudou/ui/pages/downloads_page.dart';
+import 'package:doudou/ui/pages/settings_page.dart';
+
+/// Single responsive shell: sidebar on desktop, bottom navbar on mobile.
+/// Uses one [selectedIndex] and one set of pages so resizing never reloads or loses state.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -61,11 +69,13 @@ class _AppShellState extends State<AppShell> {
 
   void _onDetailChanged() => setState(() {});
 
+  /// Downloads page: show for Jellyfin/Plex/Subsonic; hide for Local and SoundCloud.
   bool get _showDownloads {
     final st = context.read<AppState>().mediaServiceManager.currentServerType;
     return st != ServerType.local && st != ServerType.soundcloud && st != ServerType.youtubeMusic;
   }
 
+  /// Albums page: hide only for SoundCloud (no albums support). YouTube Music has albums.
   bool get _showAlbums {
     final st = context.read<AppState>().mediaServiceManager.currentServerType;
     return st != ServerType.soundcloud;
@@ -76,6 +86,8 @@ class _AppShellState extends State<AppShell> {
     _libraryItems = _buildLibraryItems();
     _pages = _buildPages();
     _settingsIndex = _pages.length - 1;
+    // Clamp _selectedIndex when page list changes (e.g. Downloads shown/hidden)
+    // to avoid wrong nav icon being highlighted
     if (_selectedIndex >= _pages.length) {
       _selectedIndex = _pages.length - 1;
       _nav.selectedPageIndex.value = _selectedIndex;
@@ -85,31 +97,41 @@ class _AppShellState extends State<AppShell> {
   List<_NavItem> _buildNavItems() => [
         const _NavItem(Icons.home_outlined, Icons.home_rounded, 'Home'),
         const _NavItem(Icons.search_outlined, Icons.search_rounded, 'Search'),
-        const _NavItem(Icons.library_music_outlined, Icons.library_music_rounded, 'Library'),
+        const _NavItem(
+          Icons.library_music_outlined,
+          Icons.library_music_rounded,
+          'Library',
+        ),
       ];
 
   List<_NavItem> _buildLibraryItems() {
     return [
-      if (_showAlbums) const _NavItem(Icons.album_outlined, Icons.album_rounded, 'Albums'),
+      if (_showAlbums)
+        const _NavItem(Icons.album_outlined, Icons.album_rounded, 'Albums'),
       const _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Artists'),
       const _NavItem(Icons.music_note_outlined, Icons.music_note_rounded, 'Tracks'),
-      const _NavItem(Icons.queue_music_outlined, Icons.queue_music_rounded, 'Playlists'),
-      if (_showDownloads) const _NavItem(Icons.download_outlined, Icons.download_rounded, 'Downloads'),
+      const _NavItem(
+        Icons.queue_music_outlined,
+        Icons.queue_music_rounded,
+        'Playlists',
+      ),
+      if (_showDownloads)
+        const _NavItem(Icons.download_outlined, Icons.download_rounded, 'Downloads'),
     ];
   }
 
   List<Widget> _buildPages() {
     final list = <Widget>[
-      const HomeScreen(),
-      const SearchScreen(),
-      const LibraryScreen(),
-      if (_showAlbums) const AlbumsScreen(),
-      const ArtistsScreen(),
-      const TracksScreen(),
-      const PlaylistsScreen(),
+      const HomePage(),
+      const SearchPage(),
+      const LibraryPage(),
+      if (_showAlbums) const AlbumsPage(),
+      const ArtistsPage(),
+      const TracksPage(),
+      const PlaylistsPage(),
     ];
-    if (_showDownloads) list.add(const DownloadsScreen());
-    list.add(const SettingsScreen());
+    if (_showDownloads) list.add(const DownloadsPage());
+    list.add(const SettingsPage());
     return list;
   }
 
@@ -120,32 +142,22 @@ class _AppShellState extends State<AppShell> {
     }
   }
 
-  void _openNowPlaying() {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        opaque: false,
-        barrierColor: Colors.black54,
-        pageBuilder: (context, animation, secondaryAnimation) {
-          return FadeTransition(
-            opacity: animation,
-            child: const NowPlayingScreen(),
-          );
-        },
-      ),
-    );
-  }
-
   Widget? _buildDetailOverlay() {
-    final detail = _nav.currentDetailPage;
-    if (detail == null) return null;
-    return Container(
-      color: AppTheme.background,
-      child: SafeArea(
-        child: CollectionDetailScreen(
-          type: detail.type,
-          data: detail.data,
-        ),
-      ),
+    final content = DesktopLayout.buildDetailOverlay(context, _nav);
+    if (content == null) return null;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < kLayoutBreakpoint;
+        if (isNarrow) {
+          return Material(
+            color: Colors.transparent,
+            child: SafeArea(
+              child: content,
+            ),
+          );
+        }
+        return content;
+      },
     );
   }
 
@@ -171,51 +183,72 @@ class _AppShellState extends State<AppShell> {
             LayoutBuilder(
               builder: (context, constraints) {
                 final isDesktop = constraints.maxWidth >= kLayoutBreakpoint;
-                return Scaffold(
-                  backgroundColor: AppTheme.background,
-                  body: Column(
+                void openNowPlaying() {
+          Navigator.of(context).push(
+            PageRouteBuilder(
+              opaque: false,
+              barrierColor: Colors.black54,
+              pageBuilder: (context, animation, secondaryAnimation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: const ResponsiveNowPlaying(),
+                );
+              },
+            ),
+          );
+        }
+        return KeyboardListener(
+          focusNode: FocusNode(),
+          autofocus: true,
+          onKeyEvent: _handleKeyEvent,
+          child: Scaffold(
+            backgroundColor: DesktopTheme.backgroundDeep,
+            body: Column(
+              children: [
+                Expanded(
+                  child: Row(
                     children: [
+                      if (isDesktop)
+                        _Sidebar(
+                          currentIndex: _selectedIndex,
+                          navItems: _navItems,
+                          libraryItems: _libraryItems,
+                          showAlbums: _showAlbums,
+                          settingsIndex: _settingsIndex,
+                          onTap: _navigateTo,
+                        ),
                       Expanded(
-                        child: Row(
+                        child: Stack(
                           children: [
-                            if (isDesktop)
-                              _Sidebar(
-                                currentIndex: _selectedIndex,
-                                navItems: _navItems,
-                                libraryItems: _libraryItems,
-                                showAlbums: _showAlbums,
-                                settingsIndex: _settingsIndex,
-                                onTap: _navigateTo,
-                              ),
-                            Expanded(
-                              child: Stack(
-                                children: [
-                                  IndexedStack(
-                                    index: _selectedIndex.clamp(0, _pages.length - 1),
-                                    children: _pages,
-                                  ),
-                                  if (_buildDetailOverlay() != null)
-                                    Positioned.fill(child: _buildDetailOverlay()!),
-                                ],
-                              ),
+                            IndexedStack(
+                              index: _selectedIndex.clamp(0, _pages.length - 1),
+                              children: _pages,
                             ),
+                            if (_buildDetailOverlay() != null)
+                              Positioned.fill(child: _buildDetailOverlay()!),
                           ],
                         ),
                       ),
-                      NowPlayingBar(onTap: _openNowPlaying),
                     ],
                   ),
-                  bottomNavigationBar: isDesktop
-                      ? null
-                      : _BottomNavBar(
-                          currentIndex: _selectedIndex,
-                          onTap: _navigateTo,
-                          settingsIndex: _settingsIndex,
-                          showDownloads: _showDownloads,
-                          downloadsIndex: _showAlbums ? 7 : 6,
-                        ),
-                );
-              },
+                ),
+                isDesktop
+                    ? DesktopPlayerBar(onNowPlayingTap: openNowPlaying)
+                    : _NarrowPlayerBar(onNowPlayingTap: openNowPlaying),
+              ],
+            ),
+            bottomNavigationBar: isDesktop
+                ? null
+                  : _NarrowNavBar(
+                    currentIndex: _selectedIndex,
+                    onTap: _navigateTo,
+                    itemCount: _pages.length,
+                    settingsIndex: _settingsIndex,
+                    isLocalMusic: !_showDownloads,
+                  ),
+          ),
+        );
+      },
             ),
             if (!appState.isLoggedIn && _selectedIndex != _settingsIndex)
               _AddServerOverlay(
@@ -224,6 +257,77 @@ class _AppShellState extends State<AppShell> {
           ],
         );
       },
+    );
+  }
+
+  void _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return;
+    final appState = context.read<AppState>();
+    if (event.logicalKey == LogicalKeyboardKey.space) {
+      appState.playPause();
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowRight &&
+        HardwareKeyboard.instance.isControlPressed) {
+      appState.skipToNext();
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft &&
+        HardwareKeyboard.instance.isControlPressed) {
+      appState.skipToPrevious();
+    }
+  }
+}
+
+class _AddServerOverlay extends StatelessWidget {
+  final VoidCallback onOpenSettings;
+
+  const _AddServerOverlay({
+    required this.onOpenSettings,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Positioned.fill(
+      child: Material(
+        color: DesktopTheme.backgroundDeep,
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(DesktopTheme.spacingXl * 2),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.settings_rounded,
+                    size: 80,
+                    color: DesktopTheme.textMuted,
+                  ),
+                  const SizedBox(height: DesktopTheme.spacingXl),
+                  Text(
+                    'Add a server from Settings to get started',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: DesktopTheme.textSecondary,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: DesktopTheme.spacingXl * 2),
+                  FilledButton.icon(
+                    onPressed: onOpenSettings,
+                    icon: const Icon(Icons.settings_rounded),
+                    label: Text(l10n.settings),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesktopTheme.spacingXl,
+                        vertical: DesktopTheme.spacingMd,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -255,12 +359,13 @@ class _Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     return Container(
-      width: 260,
-      decoration: const BoxDecoration(
-        color: AppTheme.surface,
-        border: Border(right: BorderSide(color: AppTheme.textMuted, width: 1)),
+      width: DesktopTheme.sidebarWidth,
+      decoration: BoxDecoration(
+        color: DesktopTheme.backgroundPrimary,
+        border: Border(
+          right: BorderSide(color: DesktopTheme.glassBorder, width: 1),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -271,25 +376,29 @@ class _Sidebar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(AppTheme.spacingLg),
+                    padding: const EdgeInsets.all(DesktopTheme.spacingLg),
                     child: Row(
                       children: [
                         Container(
                           width: 32,
                           height: 32,
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary,
+                            gradient: DesktopTheme.accentGradient,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(Icons.music_note_rounded, color: Colors.white, size: 18),
+                          child: const Icon(
+                            Icons.music_note_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ),
-                        const SizedBox(width: AppTheme.spacingSm),
-                        const Text(
+                        const SizedBox(width: DesktopTheme.spacingSm),
+                        Text(
                           'Doudou',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
+                            color: DesktopTheme.textPrimary,
                           ),
                         ),
                       ],
@@ -302,23 +411,28 @@ class _Sidebar extends StatelessWidget {
                         selected: currentIndex == e.key,
                         onTap: () => onTap(e.key),
                       )),
-                  const SizedBox(height: AppTheme.spacingMd),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
-                    child: Container(height: 1, color: AppTheme.textMuted),
-                  ),
-                  const SizedBox(height: AppTheme.spacingMd),
+                  const SizedBox(height: DesktopTheme.spacingMd),
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.spacingLg,
-                      vertical: AppTheme.spacingSm,
+                      horizontal: DesktopTheme.spacingMd,
+                    ),
+                    child: Container(
+                      height: 1,
+                      color: DesktopTheme.glassBorder,
+                    ),
+                  ),
+                  const SizedBox(height: DesktopTheme.spacingMd),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesktopTheme.spacingLg,
+                      vertical: DesktopTheme.spacingSm,
                     ),
                     child: Text(
                       l10n.library.toUpperCase(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.textTertiary,
+                        color: DesktopTheme.textTertiary,
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -344,7 +458,7 @@ class _Sidebar extends StatelessWidget {
             selected: currentIndex == settingsIndex,
             onTap: () => onTap(settingsIndex),
           ),
-          const SizedBox(height: AppTheme.spacingMd),
+          const SizedBox(height: DesktopTheme.spacingMd),
         ],
       ),
     );
@@ -395,7 +509,7 @@ class _Sidebar extends StatelessWidget {
   }
 }
 
-class _SidebarTile extends StatelessWidget {
+class _SidebarTile extends StatefulWidget {
   final IconData icon;
   final IconData activeIcon;
   final String label;
@@ -411,44 +525,68 @@ class _SidebarTile extends StatelessWidget {
   });
 
   @override
+  State<_SidebarTile> createState() => _SidebarTileState();
+}
+
+class _SidebarTileState extends State<_SidebarTile> {
+  bool _hover = false;
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spacingSm,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: DesktopTheme.durationFast,
+          margin: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingSm,
             vertical: 2,
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spacingMd,
-              vertical: 10,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  selected ? activeIcon : icon,
-                  size: 20,
-                  color: selected ? accent : AppTheme.textSecondary,
-                ),
-                const SizedBox(width: AppTheme.spacingMd),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                      color: selected ? accent : AppTheme.textSecondary,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingMd,
+            vertical: DesktopTheme.spacingSm + 2,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+            color: widget.selected
+                ? accent.withOpacity(0.15)
+                : _hover
+                    ? DesktopTheme.glassOverlay
+                    : Colors.transparent,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                widget.selected ? widget.activeIcon : widget.icon,
+                color: widget.selected
+                    ? accent
+                    : _hover
+                        ? DesktopTheme.textPrimary
+                        : DesktopTheme.textSecondary,
+                size: 20,
+              ),
+              const SizedBox(width: DesktopTheme.spacingMd),
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: widget.selected ? FontWeight.w600 : FontWeight.w500,
+                    color: widget.selected
+                        ? accent
+                        : _hover
+                            ? DesktopTheme.textPrimary
+                            : DesktopTheme.textSecondary,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -456,86 +594,150 @@ class _SidebarTile extends StatelessWidget {
   }
 }
 
-class _BottomNavBar extends StatelessWidget {
+class _NarrowNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
+  final int itemCount;
   final int settingsIndex;
-  final bool showDownloads;
-  final int downloadsIndex;
+  final bool isLocalMusic;
 
-  const _BottomNavBar({
+  const _NarrowNavBar({
     required this.currentIndex,
     required this.onTap,
+    required this.itemCount,
     required this.settingsIndex,
-    required this.showDownloads,
-    required this.downloadsIndex,
+    required this.isLocalMusic,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final indices = showDownloads
-        ? [0, 1, 2, downloadsIndex, settingsIndex]
-        : [0, 1, 2, settingsIndex];
-    final labels = showDownloads
-        ? [l10n.navHome, l10n.search, l10n.library, l10n.downloads, l10n.settings]
-        : [l10n.navHome, l10n.search, l10n.library, l10n.settings];
-    final icons = [
-      Icons.home_outlined,
-      Icons.search_outlined,
-      Icons.library_music_outlined,
-      if (showDownloads) Icons.download_outlined,
-      Icons.settings_outlined,
-    ];
-    final activeIcons = [
-      Icons.home_rounded,
-      Icons.search_rounded,
-      Icons.library_music_rounded,
-      if (showDownloads) Icons.download_rounded,
-      Icons.settings_rounded,
-    ];
-    return Container(
-      color: AppTheme.surface,
+    // Mobile: Home(0), Search(1), Library(2), [Downloads(7) if !isLocalMusic], Settings(8)
+    final indices = isLocalMusic
+        ? [0, 1, 2, settingsIndex]
+        : [0, 1, 2, 7, settingsIndex];
+    final labels = isLocalMusic
+        ? [l10n.navHome, l10n.search, l10n.library, l10n.settings]
+        : [
+            l10n.navHome,
+            l10n.search,
+            l10n.library,
+            l10n.downloads,
+            l10n.settings
+          ];
+    final icons = isLocalMusic
+        ? [
+            Icons.home_outlined,
+            Icons.search_outlined,
+            Icons.library_music_outlined,
+            Icons.settings_outlined,
+          ]
+        : [
+            Icons.home_outlined,
+            Icons.search_outlined,
+            Icons.library_music_outlined,
+            Icons.download_outlined,
+            Icons.settings_outlined,
+          ];
+    final activeIcons = isLocalMusic
+        ? [
+            Icons.home_rounded,
+            Icons.search_rounded,
+            Icons.library_music_rounded,
+            Icons.settings_rounded,
+          ]
+        : [
+            Icons.home_rounded,
+            Icons.search_rounded,
+            Icons.library_music_rounded,
+            Icons.download_rounded,
+            Icons.settings_rounded,
+          ];
+
+    final isDark = theme.brightness == Brightness.dark;
+    const double barRadius = 28;
+    const double barHeight = 64;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: SafeArea(
         top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(indices.length, (i) {
-              final idx = indices[i];
-              final selected = currentIndex == idx;
-              return InkWell(
-                onTap: () {
-                  onTap(idx);
-                },
-                borderRadius: BorderRadius.circular(16),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        selected ? activeIcons[i] : icons[i],
-                        size: 24,
-                        color: selected ? theme.colorScheme.primary : AppTheme.textSecondary,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        labels[i],
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                          color: selected ? theme.colorScheme.primary : AppTheme.textSecondary,
+        child: RepaintBoundary(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(barRadius),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+              child: Container(
+                height: barHeight,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(barRadius),
+                  color: (isDark ? Colors.white : Colors.black)
+                      .withOpacity(isDark ? 0.12 : 0.06),
+                  border: Border.all(
+                    color: (isDark ? Colors.white : Colors.black)
+                        .withOpacity(0.15),
+                    width: 0.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(indices.length, (i) {
+                    final idx = indices[i];
+                    final selected = currentIndex == idx;
+                    return InkWell(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        onTap(idx);
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              selected ? activeIcons[i] : icons[i],
+                              size: 24,
+                              color: selected
+                                  ? theme.colorScheme.primary
+                                  : (isDark
+                                      ? Colors.white.withOpacity(0.6)
+                                      : Colors.black.withOpacity(0.5)),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              labels[i],
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight:
+                                    selected ? FontWeight.w600 : FontWeight.w500,
+                                color: selected
+                                    ? theme.colorScheme.primary
+                                    : (isDark
+                                        ? Colors.white.withOpacity(0.5)
+                                        : Colors.black.withOpacity(0.4)),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  }),
                 ),
-              );
-            }),
+              ),
+            ),
           ),
         ),
       ),
@@ -543,46 +745,247 @@ class _BottomNavBar extends StatelessWidget {
   }
 }
 
-class _AddServerOverlay extends StatelessWidget {
-  final VoidCallback onOpenSettings;
+/// Narrow layout play bar (bottom bar when width < breakpoint).
+class _NarrowPlayerBar extends StatelessWidget {
+  const _NarrowPlayerBar({required this.onNowPlayingTap});
 
-  const _AddServerOverlay({required this.onOpenSettings});
+  final VoidCallback onNowPlayingTap;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Positioned.fill(
-      child: Material(
-        color: AppTheme.background,
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.spacingXl * 2),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.settings_rounded, size: 80, color: AppTheme.textMuted),
-                  const SizedBox(height: AppTheme.spacingXl),
-                  const Text(
-                    'Add a server from Settings to get started',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: AppTheme.textSecondary,
-                      height: 1.4,
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final onNowPlayingTap = this.onNowPlayingTap;
+
+    return Consumer<AppState>(
+      builder: (context, appState, _) {
+        final handler = appState.audioHandler;
+        if (handler == null) return const SizedBox.shrink();
+        return StreamBuilder<MediaItem?>(
+          stream: handler.mediaItem,
+          builder: (context, snap) {
+            final mediaItem = snap.data;
+            if (mediaItem == null) return const SizedBox.shrink();
+            return StreamBuilder<PlaybackState>(
+              stream: handler.playbackState,
+              builder: (context, playSnap) {
+                final playing = playSnap.data?.playing ?? false;
+                return GestureDetector(
+                  onTap: onNowPlayingTap,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                            sigmaX: 30, sigmaY: 30),
+                        child: Container(
+                          height: 72,
+                          decoration: BoxDecoration(
+                            borderRadius:
+                                BorderRadius.circular(22),
+                            color: (isDark
+                                    ? Colors.white
+                                    : Colors.black)
+                                .withOpacity(
+                                    isDark ? 0.15 : 0.08),
+                            border: Border.all(
+                              color: (isDark
+                                      ? Colors.white
+                                      : Colors.black)
+                                  .withOpacity(0.12),
+                              width: 0.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black
+                                    .withOpacity(0.25),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets
+                                .symmetric(
+                                horizontal: 14,
+                                vertical: 10),
+                            child: Row(
+                              children: [
+                                _albumArt(mediaItem),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment
+                                            .start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment
+                                            .center,
+                                    children: [
+                                      Text(
+                                        mediaItem.title,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight:
+                                              FontWeight.w600,
+                                          color: isDark
+                                              ? Colors
+                                                  .white
+                                              : Colors
+                                                  .black,
+                                        ),
+                                        maxLines: 1,
+                                        overflow:
+                                            TextOverflow
+                                                .ellipsis,
+                                      ),
+                                      const SizedBox(
+                                          height: 2),
+                                      Text(
+                                        mediaItem.artist ??
+                                            'Unknown Artist',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: (isDark
+                                                  ? Colors
+                                                      .white
+                                                  : Colors
+                                                      .black)
+                                              .withOpacity(0.6),
+                                        ),
+                                        maxLines: 1,
+                                        overflow:
+                                            TextOverflow
+                                                .ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisSize:
+                                      MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: AnimatedSwitcher(
+                                        duration: const Duration(milliseconds: 200),
+                                        transitionBuilder: (Widget child, Animation<double> animation) {
+                                          return ScaleTransition(
+                                            scale: animation,
+                                            child: FadeTransition(opacity: animation, child: child),
+                                          );
+                                        },
+                                        child: Icon(
+                                          key: ValueKey(playing),
+                                          playing
+                                              ? Icons.pause_rounded
+                                              : Icons.play_arrow_rounded,
+                                          color: theme.colorScheme.primary,
+                                          size: 28,
+                                        ),
+                                      ),
+                                      onPressed: () =>
+                                          appState
+                                              .playPause(),
+                                      style: IconButton
+                                          .styleFrom(
+                                        minimumSize:
+                                            const Size(
+                                                40, 40),
+                                              ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons
+                                            .skip_next_rounded,
+                                        size: 24,
+                                        color: handler
+                                                .hasNext ==
+                                            true
+                                            ? (isDark
+                                                ? Colors
+                                                    .white
+                                                : Colors
+                                                    .black)
+                                            : Colors.grey,
+                                      ),
+                                      onPressed: handler
+                                              .hasNext ==
+                                          true
+                                          ? () => appState
+                                              .skipToNext()
+                                          : null,
+                                      style: IconButton
+                                          .styleFrom(
+                                        minimumSize:
+                                            const Size(
+                                                36, 36),
+                                              ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: AppTheme.spacingXl * 2),
-                  FilledButton.icon(
-                    onPressed: onOpenSettings,
-                    icon: const Icon(Icons.settings_rounded),
-                    label: Text(l10n.settings),
-                  ),
-                ],
-              ),
-            ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _albumArt(MediaItem mediaItem) {
+    String? imageUrl = mediaItem.artUri?.toString();
+    if (imageUrl == null || imageUrl.isEmpty) {
+      imageUrl = mediaItem.extras?['localImageUrl'] as String?;
+    }
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        borderRadius:
+            BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black
+                .withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-        ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius:
+            BorderRadius.circular(12),
+        child: imageUrl != null &&
+                imageUrl.isNotEmpty
+            ? buildSmartImage(
+                imageUrl: imageUrl,
+                width: 52,
+                height: 52,
+                errorBuilder: () =>
+                    _placeholder(),
+              )
+            : _placeholder(),
+      ),
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      width: 52,
+      height: 52,
+      color: DesktopTheme.backgroundElevated,
+      child: Icon(
+        Icons.music_note_rounded,
+        color: DesktopTheme.textTertiary,
+        size: 24,
       ),
     );
   }

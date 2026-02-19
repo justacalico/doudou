@@ -1,0 +1,606 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'package:doudou/l10n/app_localizations.dart';
+import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/services/base_service.dart';
+import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/ui/layout/navigation_service.dart';
+
+import 'package:doudou/ui/theme.dart';
+import 'package:doudou/ui/templates/page_template.dart';
+import 'package:doudou/ui/templates/music_card.dart';
+
+/// Home page built from reusable templates (page, section header, music cards, list tiles).
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppState>().loadLibraryData();
+    });
+  }
+
+  String? _imageUrl(AppState appState, String? imageId) {
+    return imageId != null ? appState.getImageUrl(imageId) : null;
+  }
+
+  /// Search bar for YouTube Music home (navigates to search page).
+  Widget _ytMusicSearchBar(BuildContext context, AppLocalizations l10n) {
+    return GestureDetector(
+      onTap: () => NavigationService().selectPage(1),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesktopTheme.spacingMd,
+          vertical: DesktopTheme.spacingSm + 4,
+        ),
+        decoration: BoxDecoration(
+          color: DesktopTheme.glassSurface.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+          border: Border.all(color: DesktopTheme.glassBorder, width: 1),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.search_rounded,
+              size: 22,
+              color: DesktopTheme.textSecondary,
+            ),
+            const SizedBox(width: DesktopTheme.spacingMd),
+            Text(
+              'Songs, Playlist, Album or Artist',
+              style: TextStyle(
+                fontSize: 14,
+                color: DesktopTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// YouTube Music home sections: Quick Picks grid + mood/album rows.
+  List<Widget> _ytMusicHomeSections(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
+    final sections = appState.youtubeMusicHomeSections;
+    if (sections.isEmpty) return [];
+
+    // First section with tracks becomes "Quick Picks"
+    YTMHomeSection? quickPicksSection;
+    for (final s in sections) {
+      if (s.tracks.isNotEmpty) {
+        quickPicksSection = s;
+        break;
+      }
+    }
+
+    final list = <Widget>[];
+
+    if (quickPicksSection != null && quickPicksSection.tracks.isNotEmpty) {
+      list.add(
+        SectionHeader(
+          title: quickPicksSection.title.isNotEmpty
+              ? quickPicksSection.title
+              : 'Quick Picks',
+        ),
+      );
+      list.add(const SizedBox(height: DesktopTheme.spacingMd));
+      list.add(_quickPicksGrid(context, appState, quickPicksSection.tracks));
+      list.add(const SizedBox(height: DesktopTheme.spacingXl));
+    }
+
+    for (final section in sections) {
+      if (section.playlists.isNotEmpty) {
+        list.add(
+          SectionHeader(
+            title: section.title.isNotEmpty ? section.title : 'Playlists',
+          ),
+        );
+        list.add(const SizedBox(height: DesktopTheme.spacingMd));
+        list.add(_ytMusicPlaylistRow(context, appState, section.playlists));
+        list.add(const SizedBox(height: DesktopTheme.spacingXl));
+      }
+      if (section.albums.isNotEmpty) {
+        list.add(
+          SectionHeader(
+            title: section.title.isNotEmpty
+                ? section.title
+                : 'Albums for you',
+          ),
+        );
+        list.add(const SizedBox(height: DesktopTheme.spacingMd));
+        list.add(_ytMusicAlbumRow(context, appState, section.albums, l10n));
+        list.add(const SizedBox(height: DesktopTheme.spacingXl));
+      }
+      // Sections that have only tracks and weren't used as Quick Picks
+      if (section.tracks.isNotEmpty && section != quickPicksSection) {
+        list.add(
+          SectionHeader(
+            title: section.title.isNotEmpty ? section.title : 'Songs',
+          ),
+        );
+        list.add(const SizedBox(height: DesktopTheme.spacingMd));
+        list.add(_quickPicksGrid(context, appState, section.tracks));
+        list.add(const SizedBox(height: DesktopTheme.spacingXl));
+      }
+    }
+
+    return list;
+  }
+
+  Widget _quickPicksGrid(
+    BuildContext context,
+    AppState appState,
+    List<Track> tracks,
+  ) {
+    const crossAxisCount = 3;
+    const childAspectRatio = 0.85;
+    final list = tracks.take(crossAxisCount * 4).toList(); // 3x4 = 12 items
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        childAspectRatio: childAspectRatio,
+        crossAxisSpacing: DesktopTheme.spacingMd,
+        mainAxisSpacing: DesktopTheme.spacingMd,
+      ),
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        final track = list[index];
+        final subtitle = track.artistName ?? '';
+        final playCountText = track.playCount != null
+            ? ' • ${_formatPlayCount(track.playCount!)} plays'
+            : '';
+        return MusicCard(
+          title: track.name,
+          subtitle: subtitle + playCountText,
+          imageUrl: _imageUrl(appState, track.imageUrl),
+          size: 140,
+          onTap: () => appState.playPlaylist(list, index),
+        );
+      },
+    );
+  }
+
+  Widget _ytMusicPlaylistRow(
+    BuildContext context,
+    AppState appState,
+    List<Playlist> playlists,
+  ) {
+    final list = playlists.take(10).toList();
+    return SizedBox(
+      height: 230,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: list.length,
+        itemBuilder: (context, index) {
+          final playlist = list[index];
+          return Padding(
+            padding: EdgeInsets.only(
+              right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
+            child: MusicCard(
+              title: playlist.name,
+              subtitle: playlist.trackCount > 0
+                  ? '${playlist.trackCount} ${playlist.trackCount == 1 ? 'song' : 'songs'}'
+                  : '',
+              imageUrl: _imageUrl(appState, playlist.imageUrl),
+              size: 180,
+              onTap: () => NavigationService().navigateToPlaylist(playlist),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _ytMusicAlbumRow(
+    BuildContext context,
+    AppState appState,
+    List<Album> albums,
+    AppLocalizations l10n,
+  ) {
+    final list = albums.take(10).toList();
+    return SizedBox(
+      height: 230,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: list.length,
+        itemBuilder: (context, index) {
+          final album = list[index];
+          return Padding(
+            padding: EdgeInsets.only(
+              right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
+            child: MusicCard(
+              title: album.name,
+              subtitle: album.artistName ?? l10n.unknownArtist,
+              imageUrl: _imageUrl(appState, album.imageUrl),
+              size: 180,
+              onTap: () => NavigationService().navigateToAlbum(album),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _formatPlayCount(int n) {
+    if (n >= 1000000000) return '${(n / 1000000000).toStringAsFixed(1)}B';
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+    return '$n';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final isYtMusicHome = appState.mediaServiceManager.currentServerType ==
+                ServerType.youtubeMusic &&
+            appState.youtubeMusicHomeSections.isNotEmpty;
+
+        return PageTemplate(
+          title: l10n.navHome,
+          subtitle: _greeting(l10n),
+          showGradientHeader: true,
+          child: appState.isLoading
+              ? _loading(Theme.of(context))
+              : SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: DesktopTheme.spacingMd),
+                      if (isYtMusicHome) ...[
+                        _ytMusicSearchBar(context, l10n),
+                        const SizedBox(height: DesktopTheme.spacingXl),
+                        ..._ytMusicHomeSections(context, appState, l10n),
+                      ] else ...[
+                        _quickAccess(context, appState, l10n),
+                        const SizedBox(height: DesktopTheme.spacingXl),
+                        // SoundCloud has no albums; show album sections for YouTube Music and others
+                        if (appState.mediaServiceManager.currentServerType !=
+                            ServerType.soundcloud) ...[
+                          if (_albumsForHomeSection(appState).isNotEmpty) ...[
+                            SectionHeader(
+                              title: l10n.recentlyAddedAlbums,
+                              subtitle: l10n.yourNewestAdditions,
+                              useGradient: true,
+                              onSeeAllPressed: () =>
+                                  NavigationService().selectPage(3),
+                            ),
+                            const SizedBox(height: DesktopTheme.spacingMd),
+                            _recentlyAddedAlbumRow(context, appState, l10n),
+                            const SizedBox(height: DesktopTheme.spacingXl),
+                          ],
+                          if (appState.recentlyPlayedAlbums.isNotEmpty) ...[
+                            SectionHeader(
+                              title: l10n.continueListening,
+                              subtitle: l10n.recentlyPlayedSection,
+                              onSeeAllPressed: () =>
+                                  NavigationService().selectPage(3),
+                            ),
+                            const SizedBox(height: DesktopTheme.spacingMd),
+                            _continueListeningRow(context, appState, l10n),
+                            const SizedBox(height: DesktopTheme.spacingXl),
+                          ],
+                        ],
+                        if (appState.artists.isNotEmpty) ...[
+                          SectionHeader(
+                            title: l10n.yourArtists,
+                            subtitle: l10n.browseByArtist,
+                            onSeeAllPressed: () =>
+                                NavigationService().selectPage(4),
+                          ),
+                          const SizedBox(height: DesktopTheme.spacingMd),
+                          _artistRow(context, appState, l10n),
+                          const SizedBox(height: DesktopTheme.spacingXl),
+                        ],
+                        if (appState.mediaServiceManager.currentServerType !=
+                                ServerType.soundcloud &&
+                            appState.mediaServiceManager.currentServerType !=
+                                ServerType.youtubeMusic &&
+                            appState.tracks.isNotEmpty) ...[
+                          SectionHeader(
+                            title: l10n.recentTracks,
+                            subtitle: l10n.yourMusicCollection,
+                          ),
+                          const SizedBox(height: DesktopTheme.spacingMd),
+                          _recentTracks(context, appState, l10n),
+                        ],
+                        if ((appState.mediaServiceManager.currentServerType ==
+                                    ServerType.soundcloud ||
+                                appState.mediaServiceManager.currentServerType ==
+                                    ServerType.youtubeMusic) &&
+                            appState.artists.isEmpty) ...[
+                          const SizedBox(height: DesktopTheme.spacingXl * 2),
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(
+                                  DesktopTheme.spacingXl),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.person_add_rounded,
+                                    size: 64,
+                                    color: DesktopTheme.textMuted,
+                                  ),
+                                  const SizedBox(
+                                      height: DesktopTheme.spacingMd),
+                                  Text(
+                                    l10n.soundcloudFollowPrompt,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: DesktopTheme.textSecondary,
+                                      height: 1.4,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(
+                                      height: DesktopTheme.spacingMd),
+                                  TextButton.icon(
+                                    onPressed: () =>
+                                        NavigationService().selectPage(1),
+                                    icon: const Icon(Icons.search_rounded),
+                                    label: Text(l10n.search),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                      const SizedBox(height: 120),
+                    ],
+                  ),
+                ),
+        );
+      },
+    );
+  }
+
+  String _greeting(AppLocalizations l10n) {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  Widget _loading(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: DesktopTheme.spacingMd),
+          Text(
+            'Loading your music...',
+            style: TextStyle(fontSize: 16, color: DesktopTheme.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _quickAccess(
+      BuildContext context, AppState appState, AppLocalizations l10n) {
+    const narrowBreakpoint = 500.0;
+    final isNarrow = MediaQuery.sizeOf(context).width < narrowBreakpoint;
+    final shuffleAll = QuickAccessCard(
+      title: 'Shuffle All',
+      subtitle: l10n.countSongs(appState.tracks.length),
+      icon: Icons.shuffle_rounded,
+      color: DesktopTheme.playButtonGreen,
+      onTap: () => appState.shuffleAllTracks(),
+    );
+    final shuffleFavorites = QuickAccessCard(
+      title: 'Shuffle Favorites',
+      subtitle: l10n.countSongs(
+          appState.tracks.where((t) => t.isFavorite).length),
+      icon: Icons.favorite_rounded,
+      color: DesktopTheme.heartRed,
+      onTap: () => appState.shuffleFavoriteTracks(),
+    );
+    if (isNarrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          shuffleAll,
+          const SizedBox(height: DesktopTheme.spacingMd),
+          shuffleFavorites,
+        ],
+      );
+    }
+    return Row(
+      children: [
+        Expanded(child: shuffleAll),
+        const SizedBox(width: DesktopTheme.spacingMd),
+        Expanded(child: shuffleFavorites),
+      ],
+    );
+  }
+
+  /// Albums to show in the home "Recently Added" section: all albums, or only from followed artists (YT Music/SoundCloud).
+  List<Album> _albumsForHomeSection(AppState appState) {
+    final isFollowBased = appState.mediaServiceManager.currentServerType ==
+            ServerType.youtubeMusic ||
+        appState.mediaServiceManager.currentServerType == ServerType.soundcloud;
+    if (!isFollowBased) return List<Album>.from(appState.albums);
+    final artistNames = appState.artists.map((a) => a.name.toLowerCase()).toSet();
+    return appState.albums
+        .where((a) =>
+            a.artistName != null &&
+            artistNames.contains(a.artistName!.toLowerCase()))
+        .toList();
+  }
+
+  /// Recently added albums (sorted by date added, newest first).
+  /// For YouTube Music (and SoundCloud), only albums from followed artists are shown.
+  Widget _recentlyAddedAlbumRow(
+      BuildContext context, AppState appState, AppLocalizations l10n) {
+    final albums = _albumsForHomeSection(appState);
+    final sorted = List<Album>.from(albums)
+      ..sort((a, b) {
+        final da = a.dateCreated;
+        final db = b.dateCreated;
+        if (da == null && db == null) return 0;
+        if (da == null) return 1;
+        if (db == null) return -1;
+        return db.compareTo(da);
+      });
+    final list = sorted.take(10).toList();
+    return SizedBox(
+      height: 230,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: list.length,
+        itemBuilder: (context, index) {
+          final album = list[index];
+          return Padding(
+            padding: EdgeInsets.only(
+                right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
+            child: MusicCard(
+              title: album.name,
+              subtitle: album.artistName ?? l10n.unknownArtist,
+              imageUrl: _imageUrl(appState, album.imageUrl),
+              size: 180,
+              onTap: () => NavigationService().navigateToAlbum(album),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Continue listening: albums from recent playback.
+  Widget _continueListeningRow(
+      BuildContext context, AppState appState, AppLocalizations l10n) {
+    final list = appState.recentlyPlayedAlbums.take(8).toList();
+    return SizedBox(
+      height: 230,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: list.length,
+        itemBuilder: (context, index) {
+          final album = list[index];
+          return Padding(
+            padding: EdgeInsets.only(
+                right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
+            child: MusicCard(
+              title: album.name,
+              subtitle: album.artistName ?? l10n.unknownArtist,
+              imageUrl: _imageUrl(appState, album.imageUrl),
+              size: 180,
+              onTap: () => NavigationService().navigateToAlbum(album),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _artistRow(
+      BuildContext context, AppState appState, AppLocalizations l10n) {
+    final list = appState.artists.take(10).toList();
+    return SizedBox(
+      height: 230,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: list.length,
+        itemBuilder: (context, index) {
+          final artist = list[index];
+          return Padding(
+            padding: EdgeInsets.only(
+                right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
+            child: MusicCard(
+              title: artist.name,
+              subtitle: l10n.artist,
+              imageUrl: _imageUrl(appState, artist.imageUrl),
+              size: 180,
+              placeholderIcon: Icons.person_rounded,
+              onTap: () => NavigationService().navigateToArtist(artist),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _recentTracks(
+      BuildContext context, AppState appState, AppLocalizations l10n) {
+    final tracks = appState.tracks.take(8).toList();
+    return Column(
+      children: tracks
+          .map(
+            (track) => Padding(
+              padding: const EdgeInsets.only(bottom: DesktopTheme.spacingSm),
+              child: MusicListTile(
+                title: track.name,
+                subtitle:
+                    '${track.artistName ?? l10n.unknownArtist} • ${track.albumName ?? l10n.unknownAlbum}',
+                imageUrl: _imageUrl(appState, track.imageUrl),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (track.duration != null)
+                      Text(
+                        _formatDuration(track.duration!),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: DesktopTheme.textTertiary,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    const SizedBox(width: DesktopTheme.spacingSm),
+                    DesktopIconButton(
+                      icon: Icons.more_horiz_rounded,
+                      onPressed: () {},
+                      size: 18,
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  final i = appState.tracks.indexOf(track);
+                  if (i >= 0) appState.playPlaylist(appState.tracks, i);
+                },
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  String _formatDuration(int ms) {
+    final d = Duration(milliseconds: ms);
+    return '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
+  }
+}

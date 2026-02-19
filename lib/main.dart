@@ -14,7 +14,8 @@ import 'services/logging_service.dart';
 import 'services/players/jellyfin_service.dart';
 import 'services/voice_command_handler.dart';
 import 'l10n/app_localizations.dart';
-import 'ui/theme.dart';
+import 'ui/mobile/widgets/apple_design/apple_theme.dart';
+import 'ui/desktop/templates/desktop_theme.dart';
 import 'ui/layout/app_shell.dart';
 
 void main() async {
@@ -75,11 +76,20 @@ class DoudouApp extends StatelessWidget {
         VoiceCommandHandler(
           child: Consumer<AppState>(
             builder: (context, appState, child) {
+              final systemBrightness =
+                  WidgetsBinding.instance.platformDispatcher.platformBrightness;
+              final brightness = appState.themeMode == ThemeMode.dark
+                  ? Brightness.dark
+                  : appState.themeMode == ThemeMode.light
+                      ? Brightness.light
+                      : systemBrightness;
+              DesktopTheme.updateBrightness(brightness, oled: appState.oledDarkModeEnabled);
+
               return MaterialApp(
                 title: 'Doudou - Jellyfin Music Player',
-                theme: AppTheme.dark(appState.accentColor),
-                darkTheme: AppTheme.dark(appState.accentColor),
-                themeMode: ThemeMode.dark,
+                theme: AppleTheme.light(accentColor: appState.accentColor),
+                darkTheme: AppleTheme.dark(accentColor: appState.accentColor, oled: appState.oledDarkModeEnabled),
+                themeMode: appState.themeMode,
                 localizationsDelegates: const [
                   AppLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,
