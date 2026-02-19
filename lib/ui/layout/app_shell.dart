@@ -9,10 +9,10 @@ import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/base_service.dart';
 import 'package:doudou/ui/layout/navigation_service.dart';
-import 'package:doudou/ui/desktop/templates/desktop_theme.dart';
-import 'package:doudou/ui/desktop/templates/desktop_layout.dart'
+import 'package:doudou/ui/theme.dart';
+import 'package:doudou/ui/adaptive/desktop/desktop_layout.dart'
     show DesktopLayout, DesktopPlayerBar;
-import 'package:doudou/ui/desktop/widgets/universal_image.dart'
+import 'package:doudou/ui/components/universal_image.dart'
     show buildSmartImage;
 import 'package:doudou/ui/layout/breakpoint.dart';
 import 'package:doudou/ui/layout/responsive_now_playing.dart';

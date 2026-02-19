@@ -2,9 +2,9 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../providers/app_state.dart';
-import '../../../../models/jellyfin_models.dart';
-import '../../widgets/cached_image_widget.dart';
+import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/ui/widgets/cached_image_widget.dart';
 
 /// Shows the queue overlay with glass-morphism design
 void showQueueOverlay(BuildContext context) {

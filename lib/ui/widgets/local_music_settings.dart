@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../../../providers/app_state.dart';
-import '../widgets/apple_design/apple_theme.dart';
-import '../widgets/apple_design/liquid_glass.dart';
-import '../../../services/players/local_music_service.dart';
+import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/ui/widgets/apple_design/apple_theme.dart';
+import 'package:doudou/ui/widgets/apple_design/liquid_glass.dart';
+import 'package:doudou/services/players/local_music_service.dart';
 
 class LocalMusicSettingsScreen extends StatefulWidget {
   final bool isInitialSetup;

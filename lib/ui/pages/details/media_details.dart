@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../templates/page_template.dart';
-
-import 'artist_details.dart';
-
-import '../../../../providers/app_state.dart';
-import '../../../../models/jellyfin_models.dart';
-import '../../../../l10n/app_localizations.dart';
+import 'package:doudou/ui/templates/page_template.dart';
+import 'package:doudou/ui/pages/details/artist_details.dart';
+import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/l10n/app_localizations.dart';
 
 enum MediaType { playlist, album }
 

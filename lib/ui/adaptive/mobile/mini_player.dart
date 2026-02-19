@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import 'dart:ui';
-import '../../../../providers/app_state.dart';
-import '../../../../models/jellyfin_models.dart';
-import '../../../../utils/display_utils.dart';
+import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/utils/display_utils.dart';
 import 'package:doudou/ui/layout/breakpoint.dart';
-import '../../playing/now_playing.dart';
-import '../../widgets/cached_image_widget.dart';
-import '../../widgets/apple_design/apple_theme.dart';
+import 'package:doudou/ui/adaptive/mobile/now_playing.dart';
+import 'package:doudou/ui/widgets/cached_image_widget.dart';
+import 'package:doudou/ui/widgets/apple_design/apple_theme.dart';
 
 // Cached blur filter for mini player
 final _miniPlayerBlurFilter = ImageFilter.blur(sigmaX: 30, sigmaY: 30);

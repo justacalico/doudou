@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
-import '../../../providers/app_state.dart';
-import '../widgets/apple_design/apple_theme.dart';
-import '../../../services/players/jellyfin_service.dart';
-import '../settings/local_music_settings.dart';
+import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/ui/widgets/apple_design/apple_theme.dart';
+import 'package:doudou/services/players/jellyfin_service.dart';
+import 'package:doudou/ui/widgets/local_music_settings.dart';
 
 // Auth method enum for Jellyfin
 enum JellyfinAuthMethod { account, apiKey, quickConnect }

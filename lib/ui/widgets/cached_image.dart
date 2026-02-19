@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../services/image_cache_manager.dart';
+import 'package:doudou/services/image_cache_manager.dart';
 
 /// Helper to check if a URL is a local file path
 bool _isLocalFilePath(String url) {

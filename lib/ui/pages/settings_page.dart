@@ -14,7 +14,7 @@ import 'package:doudou/services/update_service.dart';
 
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
-import 'package:doudou/ui/mobile/login/add_server_form.dart';
+import 'package:doudou/ui/widgets/add_server_form.dart';
 
 /// Breakpoint: below this width use single-column layout (all sections stacked) instead of sidebar.
 const double _kSettingsBreakpoint = 768.0;

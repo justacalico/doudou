@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../models/jellyfin_models.dart';
-import '../../../models/download_models.dart';
-import '../../../providers/app_state.dart';
-import '../../../services/download_service.dart';
+import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/models/download_models.dart';
+import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/services/download_service.dart';
 
 class DownloadButton extends StatelessWidget {
   final Track track;

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../templates/page_template.dart';
-import '../../templates/track_list_template.dart';
-import '../../../../providers/app_state.dart';
-import '../../../../models/jellyfin_models.dart';
-import '../../../../services/base_service.dart';
-import '../../../../l10n/app_localizations.dart';
-import '../../../../utils/display_utils.dart';
-import 'media_details.dart';
+import 'package:doudou/ui/templates/page_template.dart';
+import 'package:doudou/ui/templates/track_list.dart';
+import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/services/base_service.dart';
+import 'package:doudou/l10n/app_localizations.dart';
+import 'package:doudou/utils/display_utils.dart';
+import 'package:doudou/ui/pages/details/media_details.dart';
 
 class ArtistDetailsPage extends StatefulWidget {
   final Artist artist;

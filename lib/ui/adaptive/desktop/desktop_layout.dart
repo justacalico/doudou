@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
-import '../../../l10n/app_localizations.dart';
-import '../../../providers/app_state.dart';
-import '../../../models/jellyfin_models.dart';
-import '../../../models/download_models.dart';
-import '../../../services/album_art_color_service.dart';
-import '../../../services/audio/unified_audio_handler.dart';
-import '../../../services/base_service.dart';
-import '../../../services/lyrics_service.dart';
-import '../../layout/navigation_service.dart';
-import '../pages/details/media_details.dart';
-import '../pages/details/artist_details.dart';
-import '../widgets/universal_image.dart';
-import '../../../utils/display_utils.dart';
-import 'desktop_theme.dart';
+import 'package:doudou/l10n/app_localizations.dart';
+import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/models/download_models.dart';
+import 'package:doudou/services/album_art_color_service.dart';
+import 'package:doudou/services/audio/unified_audio_handler.dart';
+import 'package:doudou/services/base_service.dart';
+import 'package:doudou/services/lyrics_service.dart';
+import 'package:doudou/ui/layout/navigation_service.dart';
+import 'package:doudou/ui/pages/details/media_details.dart';
+import 'package:doudou/ui/pages/details/artist_details.dart';
+import 'package:doudou/ui/components/universal_image.dart';
+import 'package:doudou/utils/display_utils.dart';
+import 'package:doudou/ui/theme.dart';
 
 /// Static helpers for detail overlay and dialogs (main shell is [AppShell]).
 class DesktopLayout {
