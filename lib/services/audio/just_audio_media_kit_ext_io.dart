@@ -48,10 +48,11 @@ class PlatformAudioConfig {
         } else {
           // Minimal config for non-YouTube (Navidrome, etc.): ensure cache=no and audio output
           // so new MPV instances get consistent options and audio actually plays
+          // Use ao=pulse (works with PipeWire via PulseAudio compatibility API)
           optionsToAdd =
               '# Doudou: minimal options for non-YouTube playback (Navidrome, etc.)\n'
               'cache=no\n'
-              '# Doudou: auto-detect audio output (pulse, alsa, etc.)\nao=auto\n';
+              '# Doudou: use PulseAudio API (works with PipeWire)\nao=pulse\n';
         }
       } else {
         return;

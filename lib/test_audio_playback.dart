@@ -54,13 +54,13 @@ void main() async {
           if (await configFile.exists()) {
             existingContent = await configFile.readAsString();
           }
-          // Add ao=auto if not present
+          // Add ao=pulse if not present (works with PipeWire via PulseAudio compatibility)
           if (!existingContent.contains('ao=')) {
             await configFile.writeAsString(
-              '${existingContent.isEmpty ? '' : '$existingContent\n'}# Test: auto-detect audio output\nao=auto\n',
+              '${existingContent.isEmpty ? '' : '$existingContent\n'}# Test: use PulseAudio API (works with PipeWire)\nao=pulse\n',
               mode: FileMode.write,
             );
-            debugPrint('Test: Created MPV config with ao=auto');
+            debugPrint('Test: Created MPV config with ao=pulse');
           }
         }
       } catch (e) {
