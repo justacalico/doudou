@@ -32,6 +32,8 @@ class JustAudioMediaKitExt {
     bool macOS = false,
     String? libmpv,
   }) async {
+    // Only create MPV config for Windows (audio-exclusive=no)
+    // Linux MPV config is created dynamically only for YouTube Music
     if (isWindows && !audioExclusive) {
       await PlatformAudioConfig.createMpvConfig();
     }
@@ -48,6 +50,8 @@ class JustAudioMediaKitExt {
     bool macOS = false,
     String? libmpv,
   }) {
+    // Only create MPV config for Windows (audio-exclusive=no)
+    // Linux MPV config is created dynamically only for YouTube Music
     if (isWindows && !audioExclusive) {
       PlatformAudioConfig.createMpvConfig().catchError((e) {
         debugPrint('JustAudioMediaKitExt: Failed to create mpv config: $e');

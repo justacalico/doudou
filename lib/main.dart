@@ -48,7 +48,11 @@ Future<void> _runApp() async {
       (defaultTargetPlatform == TargetPlatform.linux ||
           defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.macOS)) {
-    await PlatformAudioConfig.createMpvConfig();
+    // Only create MPV config for Windows (audio-exclusive=no)
+    // Linux MPV config is created dynamically only for YouTube Music
+    if (defaultTargetPlatform == TargetPlatform.windows) {
+      await PlatformAudioConfig.createMpvConfig();
+    }
     JustAudioMediaKitExt.ensureInitialized();
   }
 

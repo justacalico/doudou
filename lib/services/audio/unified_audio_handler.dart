@@ -18,6 +18,7 @@ import 'providers/soundcloud_handler.dart';
 import 'providers/navidrome_handler.dart';
 import 'providers/plex_handler.dart';
 import 'providers/local_music_handler.dart';
+import 'just_audio_media_kit_ext.dart' show PlatformAudioConfig;
 
 // Platform detection
 bool get _isMobile =>
@@ -1437,29 +1438,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final isYouTubeMusic = audioSource is ConcatenatingAudioSource;
       
       if (!isYouTubeMusic) {
-        // Non-YouTube: recreate player like v14 for reliable playback
-        if (kDebugMode && _isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-          debugPrint('[Linux Debug] _loadAndPlayTrack: recreating player for non-YT track');
-          debugPrint('[Linux Debug] _loadAndPlayTrack: URL=$url');
-          debugPrint('[Linux Debug] _loadAndPlayTrack: audioSource type=${audioSource.runtimeType}');
-        }
+        // Non-YouTube: recreate player like v14 for reliable playback (no MPV config)
         await _recreatePlayer();
         await Future.delayed(const Duration(milliseconds: 50));
         
         if (_disposed || currentOperationId != _loadOperationId) return;
-        
-        // After recreating player, ensure MPV config is applied
-        if (kDebugMode && _isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-          debugPrint('[Linux Debug] _loadAndPlayTrack: player recreated, checking MPV config');
-          // MPV config should be read automatically, but let's verify
-          try {
-            final playerState = _player.playerState;
-            final playerVolume = _player.volume;
-            debugPrint('[Linux Debug] _loadAndPlayTrack: new player state - playing=${playerState.playing}, processingState=${playerState.processingState}, volume=$playerVolume');
-          } catch (e) {
-            debugPrint('[Linux Debug] _loadAndPlayTrack: error checking new player: $e');
-          }
-        }
       }
 
       try {
@@ -1477,6 +1460,20 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         // Check if provider source needs to be attached
         // ConcatenatingAudioSource (YouTube Music) is reused and only attached once
         if (audioSource is ConcatenatingAudioSource) {
+          // YouTube Music: Create MPV config for Linux (user-agent, referrer, cache=no)
+          if (_isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+            try {
+              await PlatformAudioConfig.createMpvConfig(forYouTubeMusic: true);
+              if (kDebugMode) {
+                debugPrint('[Linux Debug] _loadAndPlayTrack: Created MPV config for YouTube Music');
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                debugPrint('[Linux Debug] _loadAndPlayTrack: Failed to create MPV config for YT: $e');
+              }
+            }
+          }
+          
           if (!_providerAudioSourceAttached) {
             if (kDebugMode && _isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
               debugPrint('[Linux Debug] _loadAndPlayTrack: attaching ConcatenatingAudioSource (YT)');
@@ -1490,6 +1487,19 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           }
           // Source is already attached, just play (content was updated via clear+add)
         } else {
+          // Non-YouTube: Clean up MPV config (restore original) on Linux
+          if (_isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+            try {
+              await PlatformAudioConfig.cleanupMpvConfig();
+              if (kDebugMode) {
+                debugPrint('[Linux Debug] _loadAndPlayTrack: Cleaned up MPV config for non-YouTube');
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                debugPrint('[Linux Debug] _loadAndPlayTrack: Failed to cleanup MPV config: $e');
+              }
+            }
+          }
           // Non-YouTube: set source on fresh player
           if (kDebugMode && _isDesktop && !kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
             debugPrint('[Linux Debug] _loadAndPlayTrack: setting AudioSource.uri() for non-YT track');

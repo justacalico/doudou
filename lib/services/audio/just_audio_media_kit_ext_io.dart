@@ -18,8 +18,10 @@ class PlatformAudioConfig {
   
   /// Create mpv.conf with platform-specific options:
   /// - Windows: audio-exclusive=no (WASAPI shared mode)
-  /// - Linux: cache=no (avoids lavf "Failed to create file cache" which blocks playback)
-  static Future<void> createMpvConfig() async {
+  /// - Linux: Only for YouTube Music (user-agent, referrer, cache=no)
+  /// 
+  /// [forYouTubeMusic] - If true (Linux only), creates config with YouTube-specific options
+  static Future<void> createMpvConfig({bool forYouTubeMusic = false}) async {
     try {
       String configDir;
       String optionsToAdd;
@@ -34,16 +36,18 @@ class PlatformAudioConfig {
             'user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n'
             'referrer="https://www.youtube.com/"\n';
       } else if (Platform.isLinux) {
+        // Linux: Only create MPV config for YouTube Music
+        if (!forYouTubeMusic) {
+          return; // Don't create config for non-YouTube playback (like v14)
+        }
         final home = Platform.environment['HOME'];
         if (home == null) return;
         configDir = '$home/.config/mpv';
         optionsToAdd =
-            '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (pipewire for PipeWire systems)\n'
-            'ao=pipewire\n'
-            '# Doudou: avoid lavf "Failed to create file cache" (blocks playback on server switch)\ncache=no\n'
             '# Doudou: User-Agent and Referrer for googlevideo.com (YouTube Music)\n'
             'user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n'
-            'referrer="https://www.youtube.com/"\n';
+            'referrer="https://www.youtube.com/"\n'
+            '# Doudou: avoid lavf "Failed to create file cache" (blocks playback on server switch)\ncache=no\n';
       } else {
         return;
       }
@@ -80,25 +84,31 @@ class PlatformAudioConfig {
         existingContent = existingContent.trim();
         
         final hasRequired = Platform.isWindows
-            ? (existingContent.contains('audio-exclusive') &&
+            ? (existingContent.contains('audio-exclusive'))
+            : (forYouTubeMusic && 
                 existingContent.contains('user-agent') &&
-                existingContent.contains('referrer'))
-            : ((existingContent.contains('ao=pulse') || existingContent.contains('ao=auto') || existingContent.contains('ao=alsa') || existingContent.contains('ao=pipewire')) &&
-                existingContent.contains('cache=no') &&
-                existingContent.contains('user-agent') &&
-                existingContent.contains('referrer'));
+                existingContent.contains('referrer') &&
+                existingContent.contains('cache=no'));
         if (hasRequired) {
           // Already has required options, but store original if we haven't yet
           _originalConfigContent ??= existingContent;
           return;
         }
-        // Add missing options (Linux: ao=pipewire/auto for Navidrome/non-YT audio; all: user-agent/referrer)
+        // Add missing options (Linux: only for YouTube Music)
         var toAppend = '';
-        if (Platform.isLinux && !existingContent.contains('ao=pulse') && !existingContent.contains('ao=auto') && !existingContent.contains('ao=alsa') && !existingContent.contains('ao=pipewire')) {
-          toAppend += '# Doudou: explicit audio output so Navidrome/Jellyfin etc. have sound (pipewire for PipeWire systems)\n'
-              'ao=pipewire\n';
+        if (Platform.isLinux && forYouTubeMusic) {
+          if (!existingContent.contains('user-agent')) {
+            toAppend += '# Doudou: User-Agent for googlevideo.com (YouTube Music)\n'
+                'user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n';
+          }
+          if (!existingContent.contains('referrer')) {
+            toAppend += 'referrer="https://www.youtube.com/"\n';
+          }
+          if (!existingContent.contains('cache=no')) {
+            toAppend += '# Doudou: avoid lavf "Failed to create file cache"\ncache=no\n';
+          }
         }
-        if (!existingContent.contains('user-agent') || !existingContent.contains('referrer')) {
+        if (Platform.isWindows && (!existingContent.contains('user-agent') || !existingContent.contains('referrer'))) {
           const uaLinux =
               '# Doudou: User-Agent for googlevideo.com (YouTube Music)\n'
               'user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n';
