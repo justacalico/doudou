@@ -172,10 +172,37 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           builder: (context, constraints) {
             final isNarrow = constraints.maxWidth < (widget.mediaType == MediaType.playlist ? 500 : 600);
             
+            final isYtMusic = appState.mediaServiceManager.currentServerType == ServerType.youtubeMusic;
+            final isAlbumFollowed = widget.mediaType == MediaType.album && isYtMusic && appState.isAlbumFollowed(widget.album!.id);
+
             return Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
+                // YouTube Music: Follow/Unfollow album first so it's always visible
+                if (widget.mediaType == MediaType.album && isYtMusic)
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      if (isAlbumFollowed) {
+                        await appState.unfollowAlbum(widget.album!.id);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.unfollowAlbum)),
+                          );
+                        }
+                      } else {
+                        await appState.followAlbum(widget.album!);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.followAlbum)),
+                          );
+                        }
+                      }
+                      if (context.mounted) setState(() {});
+                    },
+                    icon: Icon(isAlbumFollowed ? Icons.library_add_check : Icons.add_circle_outline),
+                    label: Text(isAlbumFollowed ? l10n.unfollowAlbum : l10n.followAlbum),
+                  ),
                 // Play button
                 ElevatedButton.icon(
                   onPressed: _tracks.isNotEmpty ? () async {
@@ -193,55 +220,23 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   icon: const Icon(Icons.shuffle),
                   label: Text(l10n.shuffle),
                 ),
-                // Conditional buttons based on media type
-                if (widget.mediaType == MediaType.album) ...[
-                  // YouTube Music: Follow/Unfollow album (saves to library)
-                  if (appState.mediaServiceManager.currentServerType == ServerType.youtubeMusic)
-                    Builder(
-                      builder: (context) {
-                        final isFollowed = appState.isAlbumFollowed(widget.album!.id);
-                        return OutlinedButton.icon(
-                          onPressed: () async {
-                            if (isFollowed) {
-                              await appState.unfollowAlbum(widget.album!.id);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(l10n.unfollowAlbum)),
-                                );
-                              }
-                            } else {
-                              await appState.followAlbum(widget.album!);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(l10n.followAlbum)),
-                                );
-                              }
-                            }
-                            if (context.mounted) setState(() {});
-                          },
-                          icon: Icon(isFollowed ? Icons.library_add_check : Icons.add_circle_outline),
-                          label: Text(isFollowed ? l10n.unfollowAlbum : l10n.followAlbum),
-                        );
-                      },
-                    )
-                  else
-                    // Other providers: favorite not implemented
-                    IconButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.albumFavoritesNotImplemented),
-                            backgroundColor: Colors.orange,
-                          ),
-                        );
-                      },
-                      icon: Icon(
-                        widget.album!.isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: widget.album!.isFavorite ? Colors.red : null,
-                      ),
-                      tooltip: widget.album!.isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
+                // Other providers: favorite not implemented (no Follow on YT Music here; we show it above)
+                if (widget.mediaType == MediaType.album && !isYtMusic)
+                  IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l10n.albumFavoritesNotImplemented),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      widget.album!.isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: widget.album!.isFavorite ? Colors.red : null,
                     ),
-                ],
+                    tooltip: widget.album!.isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
+                  ),
                 // Refresh button (for debugging when tracks are empty)
                 if (_tracks.isEmpty && !_isLoading)
                   IconButton(
@@ -261,8 +256,26 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   Widget _buildMoreOptionsMenu(AppLocalizations l10n) {
     return PopupMenuButton<String>(
-      onSelected: (value) {
+      onSelected: (value) async {
         switch (value) {
+          case 'follow_album':
+            if (widget.mediaType == MediaType.album && widget.album != null) {
+              final appState = context.read<AppState>();
+              final followed = appState.isAlbumFollowed(widget.album!.id);
+              if (followed) {
+                await appState.unfollowAlbum(widget.album!.id);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.unfollowAlbum)));
+                }
+              } else {
+                await appState.followAlbum(widget.album!);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.followAlbum)));
+                }
+              }
+              if (context.mounted) setState(() {});
+            }
+            break;
           case 'add_playlist':
             _showAddToPlaylistDialog(l10n);
             break;
@@ -293,7 +306,22 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       },
       itemBuilder: (context) {
         List<PopupMenuEntry<String>> items = [];
-        
+        final appState = context.watch<AppState>();
+        final isYtMusic = appState.mediaServiceManager.currentServerType == ServerType.youtubeMusic;
+
+        // YouTube Music: Follow/Unfollow album at top of menu
+        if (widget.mediaType == MediaType.album && isYtMusic) {
+          final followed = appState.isAlbumFollowed(widget.album!.id);
+          items.add(PopupMenuItem(
+            value: 'follow_album',
+            child: ListTile(
+              leading: Icon(followed ? Icons.library_add_check : Icons.add_circle_outline),
+              title: Text(followed ? l10n.unfollowAlbum : l10n.followAlbum),
+              contentPadding: EdgeInsets.zero,
+            ),
+          ));
+        }
+
         // Common items
         if (widget.mediaType == MediaType.album) {
           items.add(PopupMenuItem(
