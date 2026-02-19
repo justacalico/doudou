@@ -1,2 +1,2 @@
-/// Breakpoint used for responsive layout: width >= this = desktop (sidebar, etc.).
-const double kLayoutBreakpoint = 768.0;
+/// Breakpoint for responsive layout: width >= this = desktop (sidebar). Below = mobile (bottom nav).
+const double kLayoutBreakpoint = 600.0;
