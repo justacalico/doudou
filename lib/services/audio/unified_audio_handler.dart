@@ -1360,15 +1360,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         return;
       }
 
-      // YouTube Music only: separate path (concat source + MPV config)
-      try {
-        if (defaultTargetPlatform == TargetPlatform.linux) {
-          try {
-            await PlatformAudioConfig.createMpvConfig(forYouTubeMusic: true);
-          } catch (e) {
-            // Ignore
-          }
-        }
+      // YouTube Music only: separate path (concat source). v14 never touches mpv.conf on Linux.
+        try {
         if (!_providerAudioSourceAttached) {
           await _player.setAudioSource(audioSource);
           _providerAudioSourceAttached = true;
