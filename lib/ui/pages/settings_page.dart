@@ -214,13 +214,27 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Choose Theme'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _themeRadio(ctx, appState, 'system', current, ThemeMode.system),
-            _themeRadio(ctx, appState, 'light', current, ThemeMode.light),
-            _themeRadio(ctx, appState, 'dark', current, ThemeMode.dark),
-          ],
+        content: StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _themeRadio(ctx, appState, 'system', current, ThemeMode.system),
+                _themeRadio(ctx, appState, 'light', current, ThemeMode.light),
+                _themeRadio(ctx, appState, 'dark', current, ThemeMode.dark),
+                const Divider(),
+                SwitchListTile(
+                  title: const Text('OLED dark mode'),
+                  subtitle: const Text('Pure black backgrounds'),
+                  value: appState.oledDarkModeEnabled,
+                  onChanged: (v) {
+                    appState.toggleOledDarkMode(v);
+                    setDialogState(() {});
+                  },
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -759,7 +773,7 @@ class _AppearanceSection extends StatelessWidget {
                       SizedBox(height: isSmall ? 8 : 12),
                       ListTile(
                         title: Text(l10n.appTheme),
-                        subtitle: Text(_themeDisplayName(appState.themeMode)),
+                        subtitle: Text(_themeDisplayName(appState.themeMode, appState.oledDarkModeEnabled)),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: onTheme,
                       ),
@@ -780,13 +794,6 @@ class _AppearanceSection extends StatelessWidget {
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: onLanguage,
                       ),
-                      const Divider(),
-                      SwitchListTile(
-                        title: const Text('OLED dark mode'),
-                        subtitle: const Text('Pure black backgrounds'),
-                        value: appState.oledDarkModeEnabled,
-                        onChanged: appState.toggleOledDarkMode,
-                      ),
                     ],
                   ),
                 ),
@@ -798,12 +805,13 @@ class _AppearanceSection extends StatelessWidget {
     );
   }
 
-  static String _themeDisplayName(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.light: return 'Light';
-      case ThemeMode.dark: return 'Dark';
-      case ThemeMode.system: return 'System default';
-    }
+  static String _themeDisplayName(ThemeMode mode, bool oledEnabled) {
+    final base = switch (mode) {
+      ThemeMode.light => 'Light',
+      ThemeMode.dark => 'Dark',
+      ThemeMode.system => 'System default',
+    };
+    return oledEnabled ? '$base · OLED' : base;
   }
 
   static String _colorDisplayName(Color color) {
