@@ -12,13 +12,31 @@ import 'package:doudou/services/base_service.dart';
 import 'package:doudou/services/update_service.dart';
 
 import 'package:doudou/ui/theme.dart';
-import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/settings/server_connection_section.dart';
 
-/// Breakpoint: below this width use single-column layout (dropdown) instead of sidebar.
+/// Breakpoint: below this width use mobile list → detail; above use sidebar + detail.
 const double _kSettingsBreakpoint = 768.0;
 
-/// Settings page: all sections ported from UI/desktop/pages/settings.dart.
+/// Menu item for iOS-style settings list.
+class _SettingsMenuItem {
+  final String id;
+  final String label;
+  final IconData icon;
+  final Color iconColor;
+  final String section;
+  final String? Function(AppState)? valueText;
+
+  const _SettingsMenuItem({
+    required this.id,
+    required this.label,
+    required this.icon,
+    required this.iconColor,
+    required this.section,
+    this.valueText,
+  });
+}
+
+/// Settings page: iOS-style grouped list and sub-pages (one content area per item).
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -27,59 +45,155 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String _category = 'appearance';
+  /// null on mobile = show list; on desktop we default to first item.
+  String? _selectedId;
+
+  List<_SettingsMenuItem> _menuItems(AppLocalizations l10n, bool isLocalMusic) {
+    final items = <_SettingsMenuItem>[
+      _SettingsMenuItem(
+        id: 'audio',
+        label: l10n.audioSettings,
+        icon: Icons.volume_up_rounded,
+        iconColor: const Color(0xFFEC4899),
+        section: 'Playback',
+      ),
+      _SettingsMenuItem(
+        id: 'appearance',
+        label: l10n.appearanceSettings,
+        icon: Icons.palette_rounded,
+        iconColor: const Color(0xFF8B5CF6),
+        section: 'Appearance',
+      ),
+      _SettingsMenuItem(
+        id: 'server',
+        label: isLocalMusic ? 'Local Music' : l10n.server,
+        icon: isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded,
+        iconColor: const Color(0xFF3B82F6),
+        section: 'Server',
+        valueText: (a) => a.isLoggedIn ? (isLocalMusic ? 'Active' : (a.jellyfinService.username ?? 'Connected')) : null,
+      ),
+      _SettingsMenuItem(
+        id: 'about',
+        label: l10n.aboutDoudou,
+        icon: Icons.info_rounded,
+        iconColor: const Color(0xFF6B7280),
+        section: 'About',
+      ),
+    ];
+    if (isLocalMusic) return items.where((e) => e.id != 'server').toList();
+    return items;
+  }
+
+  static const List<String> _sectionOrder = ['Playback', 'Appearance', 'Server', 'About'];
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final isLocal =
-            appState.mediaServiceManager.currentServerType == ServerType.local;
-        return PageTemplate(
-          title: l10n.settings,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final useSidebar = constraints.maxWidth >= _kSettingsBreakpoint;
-              if (useSidebar) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        final isLocal = appState.mediaServiceManager.currentServerType == ServerType.local;
+        final items = _menuItems(l10n, isLocal);
+        final sections = _sectionOrder.where((s) => items.any((i) => i.section == s)).toList();
+        final isDesktop = MediaQuery.sizeOf(context).width >= _kSettingsBreakpoint;
+        // Desktop: default to first item when none selected
+        final effectiveSelected = _selectedId ?? (isDesktop ? items.first.id : null);
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final useSidebar = constraints.maxWidth >= _kSettingsBreakpoint;
+
+            if (useSidebar) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final bg = isDark ? const Color(0xFF000000) : const Color(0xFFF2F2F7);
+              return Scaffold(
+                backgroundColor: bg,
+                body: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _Sidebar(
-                      selected: _category,
-                      onSelect: (v) => setState(() => _category = v),
-                      l10n: l10n,
-                      isLocalMusic: isLocal,
+                    _SettingsListSidebar(
+                      sections: sections,
+                      items: items,
+                      appState: appState,
+                      selectedId: effectiveSelected,
+                      onSelect: (id) => setState(() => _selectedId = id),
                     ),
-                    const SizedBox(width: DesktopTheme.spacingLg),
-                    Expanded(child: _buildContent(appState)),
+                    Expanded(
+                      child: Container(
+                        color: bg,
+                        child: effectiveSelected != null
+                            ? _buildDetailContent(context, appState, effectiveSelected)
+                            : const Center(child: Text('Select a setting')),
+                      ),
+                    ),
                   ],
-                );
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _MobileCategorySelector(
-                    selected: _category,
-                    onSelect: (v) => setState(() => _category = v),
-                    l10n: l10n,
-                    isLocalMusic: isLocal,
-                  ),
-                  const SizedBox(height: DesktopTheme.spacingMd),
-                  Expanded(
-                    child: _buildContent(appState),
-                  ),
-                ],
+                ),
               );
-            },
-          ),
+            }
+
+            // Mobile: list or detail with back
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final mobileBg = isDark ? const Color(0xFF000000) : const Color(0xFFF2F2F7);
+            final mobileTitleColor = isDark ? Colors.white : Colors.black;
+
+            if (effectiveSelected == null) {
+              return Scaffold(
+                backgroundColor: mobileBg,
+                body: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                        child: Text(
+                          l10n.settings,
+                          style: TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
+                            color: mobileTitleColor,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: _SettingsListMobile(
+                          sections: sections,
+                          items: items,
+                          appState: appState,
+                          onSelect: (id) => setState(() => _selectedId = id),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return Scaffold(
+              backgroundColor: mobileBg,
+              appBar: AppBar(
+                title: Text(
+                  items.firstWhere((e) => e.id == effectiveSelected, orElse: () => items.first).label,
+                  style: TextStyle(color: mobileTitleColor, fontSize: 17, fontWeight: FontWeight.w600),
+                ),
+                leading: IconButton(
+                  icon: const Icon(Icons.chevron_left, size: 28),
+                  onPressed: () => setState(() => _selectedId = null),
+                ),
+                backgroundColor: isDark ? const Color(0xFF1C1C1E).withOpacity(0.9) : Colors.white.withOpacity(0.9),
+                foregroundColor: mobileTitleColor,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+              ),
+              body: _buildDetailContent(context, appState, effectiveSelected),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildContent(AppState appState) {
-    switch (_category) {
+  Widget _buildDetailContent(BuildContext context, AppState appState, String id) {
+    switch (id) {
       case 'audio':
         return _AudioSection(appState: appState);
       case 'appearance':
@@ -469,182 +583,236 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-// --- Sidebar ---
-class _Sidebar extends StatelessWidget {
-  final String selected;
+// --- iOS-style list: sidebar (desktop) ---
+class _SettingsListSidebar extends StatelessWidget {
+  final List<String> sections;
+  final List<_SettingsMenuItem> items;
+  final AppState appState;
+  final String? selectedId;
   final ValueChanged<String> onSelect;
-  final AppLocalizations l10n;
-  final bool isLocalMusic;
 
-  const _Sidebar({required this.selected, required this.onSelect, required this.l10n, required this.isLocalMusic});
+  const _SettingsListSidebar({
+    required this.sections,
+    required this.items,
+    required this.appState,
+    required this.selectedId,
+    required this.onSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final categories = [
-      {'id': 'audio', 'label': l10n.audioSettings.split(' ').first, 'icon': Icons.volume_up_rounded},
-      {'id': 'appearance', 'label': l10n.appearanceSettings.split(' ').first, 'icon': Icons.palette_rounded},
-      {'id': 'server', 'label': isLocalMusic ? 'Local' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
-      {'id': 'about', 'label': l10n.aboutDoudou.split(' ').first, 'icon': Icons.info_rounded},
-    ];
-    final filtered = isLocalMusic
-        ? categories.where((c) => c['id'] != 'server').toList()
-        : categories;
-
-    return SizedBox(
-      width: 200,
+    final isDark = theme.brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFE5E5EA);
+    return Container(
+      width: 280,
+      color: bg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: filtered.map((c) {
-          final id = c['id'] as String;
-          final isSelected = selected == id;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Material(
-              color: isSelected ? DesktopTheme.glassOverlay : Colors.transparent,
-              borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-              child: InkWell(
-                onTap: () => onSelect(id),
-                borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingMd, vertical: DesktopTheme.spacingSm + 4),
-                  child: Row(
-                    children: [
-                      Icon(c['icon'] as IconData, size: 20, color: isSelected ? theme.colorScheme.primary : DesktopTheme.textSecondary),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          c['label'] as String,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                            color: isSelected ? theme.colorScheme.primary : DesktopTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+            child: Text(
+              'Settings',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black,
               ),
             ),
-          );
-        }).toList(),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: sections.map((section) {
+                  final sectionItems = items.where((i) => i.section == section).toList();
+                  if (sectionItems.isEmpty) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12, bottom: 6),
+                          child: Text(
+                            section.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                              color: isDark ? Colors.white54 : Colors.black54,
+                            ),
+                          ),
+                        ),
+                        Material(
+                          color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          child: Column(
+                            children: sectionItems.asMap().entries.map((e) {
+                              final item = e.value;
+                              final isSelected = selectedId == item.id;
+                              final value = item.valueText?.call(appState);
+                              return InkWell(
+                                onTap: () => onSelect(item.id),
+                                borderRadius: BorderRadius.circular(10),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: isSelected ? Colors.white24 : item.iconColor,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Icon(item.icon, size: 16, color: Colors.white),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          item.label,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: isDark ? Colors.white : Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                      if (value != null && value.isNotEmpty)
+                                        Text(
+                                          value,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: isDark ? Colors.white54 : Colors.black45,
+                                          ),
+                                        ),
+                                      const SizedBox(width: 4),
+                                      Icon(
+                                        Icons.chevron_right,
+                                        size: 18,
+                                        color: isDark ? Colors.white38 : Colors.black38,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-// --- Mobile category selector (dropdown on small screens) ---
-class _MobileCategorySelector extends StatelessWidget {
-  final String selected;
+// --- iOS-style list: full list (mobile) ---
+class _SettingsListMobile extends StatelessWidget {
+  final List<String> sections;
+  final List<_SettingsMenuItem> items;
+  final AppState appState;
   final ValueChanged<String> onSelect;
-  final AppLocalizations l10n;
-  final bool isLocalMusic;
 
-  const _MobileCategorySelector({
-    required this.selected,
+  const _SettingsListMobile({
+    required this.sections,
+    required this.items,
+    required this.appState,
     required this.onSelect,
-    required this.l10n,
-    required this.isLocalMusic,
   });
-
-  List<Map<String, dynamic>> _categories(AppLocalizations l10n, bool isLocalMusic) {
-    final list = [
-      {'id': 'audio', 'label': l10n.audioSettings, 'icon': Icons.volume_up_rounded},
-      {'id': 'appearance', 'label': l10n.appearanceSettings, 'icon': Icons.palette_rounded},
-      {'id': 'server', 'label': isLocalMusic ? 'Local' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
-      {'id': 'about', 'label': l10n.aboutDoudou, 'icon': Icons.info_rounded},
-    ];
-    if (isLocalMusic) return list.where((c) => c['id'] != 'server').toList();
-    return list;
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final categories = _categories(l10n, isLocalMusic);
-    final current = categories.cast<Map<String, dynamic>>().firstWhere(
-          (c) => c['id'] == selected,
-          orElse: () => categories.first,
-        );
-    return Material(
-      color: DesktopTheme.backgroundSecondary,
-      borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-      child: InkWell(
-        onTap: () => _showPicker(context, theme, categories),
-        borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingMd, vertical: DesktopTheme.spacingSm + 4),
-          child: Row(
+    final isDark = theme.brightness == Brightness.dark;
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      itemCount: sections.length,
+      itemBuilder: (context, idx) {
+        final section = sections[idx];
+        final sectionItems = items.where((i) => i.section == section).toList();
+        if (sectionItems.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(current['icon'] as IconData, size: 22, color: theme.colorScheme.primary),
-              const SizedBox(width: 12),
-              Expanded(
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 8),
                 child: Text(
-                  current['label'] as String,
+                  section.toUpperCase(),
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: DesktopTheme.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
+                    color: isDark ? Colors.white54 : Colors.black54,
                   ),
                 ),
               ),
-              Icon(Icons.arrow_drop_down, color: DesktopTheme.textSecondary, size: 28),
+              Material(
+                color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                child: Column(
+                  children: sectionItems.map((item) {
+                    final value = item.valueText?.call(appState);
+                    return InkWell(
+                      onTap: () => onSelect(item.id),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: item.iconColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(item.icon, size: 20, color: Colors.white),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                item.label,
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w400,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ),
+                            if (value != null && value.isNotEmpty)
+                              Text(
+                                value,
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  color: isDark ? Colors.white54 : Colors.black45,
+                                ),
+                              ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.chevron_right,
+                              size: 20,
+                              color: isDark ? Colors.white38 : Colors.black38,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  void _showPicker(BuildContext context, ThemeData theme, List<Map<String, dynamic>> categories) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: DesktopTheme.backgroundSecondary,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(DesktopTheme.radiusMd)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(DesktopTheme.spacingMd),
-              child: Text(
-                l10n.settings,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: DesktopTheme.textPrimary,
-                ),
-              ),
-            ),
-            ...categories.map((c) {
-              final id = c['id'] as String;
-              final isSelected = selected == id;
-              return ListTile(
-                leading: Icon(
-                  c['icon'] as IconData,
-                  size: 22,
-                  color: isSelected ? theme.colorScheme.primary : DesktopTheme.textSecondary,
-                ),
-                title: Text(
-                  c['label'] as String,
-                  style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected ? theme.colorScheme.primary : DesktopTheme.textPrimary,
-                  ),
-                ),
-                trailing: isSelected ? Icon(Icons.check, size: 20, color: theme.colorScheme.primary) : null,
-                onTap: () {
-                  Navigator.pop(ctx);
-                  onSelect(id);
-                },
-              );
-            }),
-            const SizedBox(height: DesktopTheme.spacingMd),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
