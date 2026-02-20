@@ -43,7 +43,6 @@ class AppState extends ChangeNotifier {
   bool _oledDarkModeEnabled = true;
   bool _showAlbumArtEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
-  bool _useDynamicIsle = false; // Disabled by default
   bool _smartBackToStartEnabled = true;
 
   // Debouncing for play/pause to prevent rapid-fire clicking deadlocks
@@ -121,7 +120,6 @@ class AppState extends ChangeNotifier {
     );
   }
 
-  bool get useDynamicIsle => _useDynamicIsle;
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get showAlbumArtEnabled => _showAlbumArtEnabled;
   bool get loggingEnabled => _loggingEnabled;
@@ -1873,13 +1871,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> toggleDynamicIsle(bool enabled) async {
-    _useDynamicIsle = enabled;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('use_dynamic_isle', enabled);
-    notifyListeners();
-  }
-
   Future<void> toggleSmartBackToStart(bool enabled) async {
     _smartBackToStartEnabled = enabled;
 
@@ -1949,8 +1940,6 @@ class AppState extends ChangeNotifier {
     _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
     _loggingEnabled =
         prefs.getBool('logging_enabled') ?? false; // Disabled by default
-    _useDynamicIsle =
-        prefs.getBool('use_dynamic_isle') ?? false; // Disabled by default
     _smartBackToStartEnabled =
         prefs.getBool('smart_back_to_start_enabled') ?? true;
 
