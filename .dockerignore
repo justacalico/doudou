@@ -1,0 +1,66 @@
+# Dockerignore for Doudou Flutter Web App
+
+# Build outputs
+build/
+dist/
+.dart_tool/
+.packages
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation that's not needed in container
+README.md
+docs/
+changelog/
+
+# Development scripts
+scripts/
+Makefile
+
+# Platform-specific directories not needed for web
+android/
+ios/
+linux/
+macos/
+windows/
+
+# Packaging
+packaging/
+builds/
+
+# Docker files (don't include other docker files)
+docker-compose.yml
+docker-compose.yaml
+
+# Logs
+*.log
+
+# Test files
+test/
+integration_test/
+
+# Development keys and configs
+*.env
+*.pem
+*.p12
+*.jks
+key.properties
+*.keystore
+
+# Cache
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/

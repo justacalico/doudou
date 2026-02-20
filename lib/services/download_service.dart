@@ -13,25 +13,13 @@ class DownloadService extends ChangeNotifier {
   final MediaServiceManager _mediaServiceManager;
   final Map<String, DownloadTask> _downloadTasks = {};
   final Map<String, DownloadedTrack> _downloadedTracks = {};
-  final Map<String, DownloadedAlbumMetadata> _downloadedAlbumMetadata = {};
   final List<String> _downloadQueue = [];
   bool _isDownloading = false;
   final int _maxConcurrentDownloads = 3;
   int _activeDownloads = 0;
-  
-  // Throttle progress updates to avoid excessive UI rebuilds
-  DateTime? _lastProgressNotification;
-  static const Duration _progressThrottleDuration = Duration(milliseconds: 200);
-  Timer? _progressThrottleTimer;
 
   DownloadService(this._mediaServiceManager) {
     _loadDownloadData();
-  }
-  
-  @override
-  void dispose() {
-    _progressThrottleTimer?.cancel();
-    super.dispose();
   }
 
   // Getters
@@ -85,87 +73,6 @@ class DownloadService extends ChangeNotifier {
     return _downloadedTracks[trackId]?.filePath;
   }
 
-  // Get favorite status for a downloaded track
-  bool? getDownloadedTrackFavoriteStatus(String trackId) {
-    return _downloadedTracks[trackId]?.isFavorite;
-  }
-
-  /// Albums that have at least one downloaded track (metadata stored for showing all tracks).
-  List<DownloadedAlbumMetadata> get downloadedAlbums {
-    return _downloadedAlbumMetadata.values
-        .where((album) =>
-            album.tracks.any((t) => _downloadedTracks.containsKey(t.id)))
-        .toList();
-  }
-  
-  /// Get all albums that have downloaded tracks, including those without metadata.
-  /// Requires access to the full tracks list to get album information.
-  List<DownloadedAlbumMetadata> getDownloadedAlbumsFromTracks(List<Track> allTracks) {
-    // Group downloaded tracks by album
-    final albumMap = <String, DownloadedAlbumMetadata>{};
-    final tracksByAlbum = <String, List<Track>>{};
-    
-    // First, add albums with stored metadata that have downloaded tracks
-    for (final album in _downloadedAlbumMetadata.values) {
-      final hasDownloadedTracks = album.tracks.any((t) => _downloadedTracks.containsKey(t.id));
-      if (hasDownloadedTracks) {
-        albumMap[album.albumId] = album;
-      }
-    }
-    
-    // Then, group all downloaded tracks by albumId
-    for (final track in allTracks) {
-      if (!_downloadedTracks.containsKey(track.id)) continue;
-      
-      final albumId = track.albumId;
-      if (albumId == null || albumId.isEmpty) {
-        // Track without albumId - create a virtual album using albumName + artistName
-        // Use a consistent format for grouping
-        final albumName = track.albumName ?? 'Unknown Album';
-        final artistName = track.artistName ?? 'Unknown Artist';
-        final virtualAlbumId = 'virtual_${albumName}_$artistName';
-        tracksByAlbum.putIfAbsent(virtualAlbumId, () => []).add(track);
-      } else {
-        // Track with albumId - group by albumId
-        tracksByAlbum.putIfAbsent(albumId, () => []).add(track);
-      }
-    }
-    
-    // Create DownloadedAlbumMetadata for albums without stored metadata
-    for (final entry in tracksByAlbum.entries) {
-      final albumId = entry.key;
-      final tracks = entry.value;
-      
-      // Skip if we already have metadata for this album
-      if (albumMap.containsKey(albumId)) continue;
-      
-      if (tracks.isNotEmpty) {
-        final firstTrack = tracks.first;
-        final minimalTracks = tracks.map((t) => MinimalTrackInfo(
-          id: t.id,
-          name: t.name,
-          artistName: t.artistName,
-          albumName: t.albumName,
-          duration: t.duration,
-          trackNumber: t.trackNumber,
-        )).toList();
-        
-        albumMap[albumId] = DownloadedAlbumMetadata(
-          albumId: albumId,
-          name: firstTrack.albumName ?? 'Unknown Album',
-          artistName: firstTrack.artistName,
-          imageUrl: firstTrack.imageUrl,
-          tracks: minimalTracks,
-        );
-      }
-    }
-    
-    return albumMap.values.toList();
-  }
-
-  DownloadedAlbumMetadata? getAlbumMetadata(String albumId) =>
-      _downloadedAlbumMetadata[albumId];
-
   // Download a track
   Future<void> downloadTrack(Track track) async {
     if (isTrackDownloaded(track.id)) {
@@ -197,10 +104,8 @@ class DownloadService extends ChangeNotifier {
       _downloadTasks.remove(track.id);
       _downloadQueue.remove(track.id);
 
-      // Save state after cleanup (non-blocking)
-      _saveDownloadData().catchError((e) {
-        debugPrint('Error saving download data: $e');
-      });
+      // Save state after cleanup
+      await _saveDownloadData();
       notifyListeners();
     }
 
@@ -209,7 +114,7 @@ class DownloadService extends ChangeNotifier {
       final downloadUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
 
       if (downloadUrl.isEmpty) {
-        throw Exception('Could not get download URL for track. Make sure you are connected to the server.');
+        return;
       }
 
       // Create downloads directory
@@ -235,58 +140,18 @@ class DownloadService extends ChangeNotifier {
         filePath: filePath,
         status: DownloadStatus.downloading,
         startTime: DateTime.now(),
-        isFavorite: track.isFavorite,
       );
 
       _downloadTasks[track.id] = task;
       _downloadQueue.add(track.id);
 
-      // Ensure we have album metadata for this track's album (for showing all tracks in Downloads)
-      if (track.albumId != null && track.albumId!.isNotEmpty) {
-        await _ensureAlbumMetadata(track);
-      }
-
       notifyListeners();
-      // Save asynchronously without blocking download start
-      _saveDownloadData().catchError((e) {
-        debugPrint('Error saving download data: $e');
-      });
+      await _saveDownloadData();
 
       // Start downloading if not at max concurrent downloads
       _processDownloadQueue();
     } catch (e) {
       debugPrint('Error starting download for ${track.name}: $e');
-    }
-  }
-
-  Future<void> _ensureAlbumMetadata(Track track) async {
-    final albumId = track.albumId!;
-    if (_downloadedAlbumMetadata.containsKey(albumId)) return;
-    try {
-      final tracks = await _mediaServiceManager.getTracks(parentId: albumId);
-      final minimal = tracks
-          .map((t) => MinimalTrackInfo(
-                id: t.id,
-                name: t.name,
-                artistName: t.artistName,
-                albumName: t.albumName,
-                duration: t.duration,
-                trackNumber: t.trackNumber,
-              ))
-          .toList();
-      _downloadedAlbumMetadata[albumId] = DownloadedAlbumMetadata(
-        albumId: albumId,
-        name: track.albumName ?? track.name,
-        artistName: track.artistName,
-        imageUrl: track.imageUrl,
-        tracks: minimal,
-      );
-      // Save asynchronously without blocking
-      _saveDownloadData().catchError((e) {
-        debugPrint('Error saving download data: $e');
-      });
-    } catch (e) {
-      debugPrint('Could not fetch album metadata for ${track.albumId}: $e');
     }
   }
 
@@ -332,10 +197,7 @@ class DownloadService extends ChangeNotifier {
     }
 
     _activeDownloads--;
-    // Save asynchronously without blocking queue processing
-    _saveDownloadData().catchError((e) {
-      debugPrint('Error saving download data: $e');
-    });
+    await _saveDownloadData();
     notifyListeners();
 
     // Continue processing queue
@@ -380,14 +242,13 @@ class DownloadService extends ChangeNotifier {
                 ? downloadedBytes / totalBytes
                 : 0.0;
 
-            // Update progress (always update the task, but throttle UI notifications)
+            // Update progress
             _downloadTasks[task.trackId] = task.copyWith(
               progress: progress,
               downloadedBytes: downloadedBytes,
             );
 
-            // Throttle progress notifications to avoid excessive UI rebuilds
-            _throttledNotifyListeners();
+            notifyListeners();
           },
           onDone: () async {
             try {
@@ -401,7 +262,6 @@ class DownloadService extends ChangeNotifier {
                 filePath: task.filePath,
                 downloadedAt: DateTime.now(),
                 fileSize: fileSize,
-                isFavorite: task.isFavorite,
               );
 
               _downloadedTracks[task.trackId] = downloadedTrack;
@@ -420,10 +280,7 @@ class DownloadService extends ChangeNotifier {
               }
 
               notifyListeners();
-              // Save asynchronously without blocking
-              _saveDownloadData().catchError((e) {
-                debugPrint('Error saving download data: $e');
-              });
+              await _saveDownloadData();
 
               completer.complete();
             } catch (e) {
@@ -437,10 +294,7 @@ class DownloadService extends ChangeNotifier {
                 endTime: DateTime.now(),
               );
               notifyListeners();
-              // Save asynchronously without blocking
-              _saveDownloadData().catchError((e) {
-                debugPrint('Error saving download data: $e');
-              });
+              await _saveDownloadData();
               completer.completeError(e);
             }
           },
@@ -514,7 +368,6 @@ class DownloadService extends ChangeNotifier {
             imagePath: imagePath,
             downloadedAt: downloadedTrack.downloadedAt,
             fileSize: downloadedTrack.fileSize,
-            isFavorite: downloadedTrack.isFavorite,
           );
         }
       }
@@ -544,10 +397,7 @@ class DownloadService extends ChangeNotifier {
     }
 
     notifyListeners();
-    // Save asynchronously without blocking
-    _saveDownloadData().catchError((e) {
-      debugPrint('Error saving download data: $e');
-    });
+    _saveDownloadData();
   }
 
   // Delete a downloaded track
@@ -575,10 +425,7 @@ class DownloadService extends ChangeNotifier {
       _downloadTasks.remove(trackId);
 
       notifyListeners();
-      // Save asynchronously without blocking
-      _saveDownloadData().catchError((e) {
-        debugPrint('Error saving download data: $e');
-      });
+      _saveDownloadData();
     } catch (e) {
       debugPrint('Error deleting download for $trackId: $e');
     }
@@ -609,33 +456,15 @@ class DownloadService extends ChangeNotifier {
     }
   }
 
-  // Throttled notifyListeners for progress updates
-  void _throttledNotifyListeners() {
-    final now = DateTime.now();
-    if (_lastProgressNotification == null ||
-        now.difference(_lastProgressNotification!) >= _progressThrottleDuration) {
-      _lastProgressNotification = now;
-      notifyListeners();
-    } else {
-      // Schedule a delayed notification if one isn't already scheduled
-      _progressThrottleTimer?.cancel();
-      _progressThrottleTimer = Timer(_progressThrottleDuration, () {
-        _lastProgressNotification = DateTime.now();
-        notifyListeners();
-      });
-    }
-  }
-
   // Check if downloading is complete
   void _checkDownloadComplete() {
     if (_activeDownloads == 0 && _downloadQueue.isEmpty) {
       _isDownloading = false;
-      _progressThrottleTimer?.cancel();
       notifyListeners();
     }
   }
 
-  // Save download data to persistent storage (runs asynchronously, non-blocking)
+  // Save download data to persistent storage
   Future<void> _saveDownloadData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -652,12 +481,6 @@ class DownloadService extends ChangeNotifier {
           .map((track) => track.toJson())
           .toList();
       await prefs.setString('downloaded_tracks', jsonEncode(tracksJson));
-
-      // Save downloaded album metadata
-      final albumsJson = _downloadedAlbumMetadata.values
-          .map((a) => a.toJson())
-          .toList();
-      await prefs.setString('downloaded_album_metadata', jsonEncode(albumsJson));
     } catch (e) {
       debugPrint('Error saving download data: $e');
     }
@@ -705,16 +528,6 @@ class DownloadService extends ChangeNotifier {
           if (await file.exists()) {
             _downloadedTracks[track.trackId] = track;
           }
-        }
-      }
-
-      // Load downloaded album metadata
-      final albumsJsonString = prefs.getString('downloaded_album_metadata');
-      if (albumsJsonString != null) {
-        final albumsList = jsonDecode(albumsJsonString) as List;
-        for (final albumJson in albumsList) {
-          final meta = DownloadedAlbumMetadata.fromJson(albumJson);
-          _downloadedAlbumMetadata[meta.albumId] = meta;
         }
       }
 

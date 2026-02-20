@@ -22,8 +22,13 @@ class JustAudioMediaKitExt {
   /// Set to false to disable exclusive mode (recommended)
   static bool audioExclusive = false;
   
-  /// Initialize JustAudioMediaKit with Windows audio fix.
-  /// Anandnet fork (Harmony) has no ensureInitialized; we only set protocolWhitelist and title.
+  /// Initialize JustAudioMediaKit with Windows audio fix
+  /// 
+  /// This method:
+  /// 1. Creates mpv.conf with audio-exclusive=no on Windows
+  /// 2. Calls the standard JustAudioMediaKit.ensureInitialized()
+  /// 
+  /// Call this instead of JustAudioMediaKit.ensureInitialized() in your main()
   static Future<void> ensureInitializedAsync({
     bool linux = true,
     bool windows = true,
@@ -32,16 +37,29 @@ class JustAudioMediaKitExt {
     bool macOS = false,
     String? libmpv,
   }) async {
-    // Only create MPV config for Windows (audio-exclusive=no)
-    // Linux MPV config is created dynamically only for YouTube Music
+    // On Windows, create mpv config to disable exclusive mode
     if (isWindows && !audioExclusive) {
       await PlatformAudioConfig.createMpvConfig();
     }
-    _setHarmonyConfig(linux: linux, windows: windows, macOS: macOS, android: android, iOS: iOS);
+    
+    // Standard initialization
+    JustAudioMediaKit.ensureInitialized(
+      linux: linux,
+      windows: windows,
+      android: android,
+      iOS: iOS,
+      macOS: macOS,
+      libmpv: libmpv,
+    );
+    
+    // Set the title to show in Windows volume mixer
+    JustAudioMediaKit.title = 'Doudou';
+    
     debugPrint('JustAudioMediaKitExt: Initialized with audioExclusive=$audioExclusive');
   }
   
-  /// Synchronous version (anandnet fork has no ensureInitialized; set protocolWhitelist + title only).
+  /// Synchronous version of initialization
+  /// Note: mpv config creation happens asynchronously in background
   static void ensureInitialized({
     bool linux = true,
     bool windows = true,
@@ -50,28 +68,27 @@ class JustAudioMediaKitExt {
     bool macOS = false,
     String? libmpv,
   }) {
-    // Only create MPV config for Windows (audio-exclusive=no)
-    // Linux MPV config is created dynamically only for YouTube Music
+    // On Windows, create mpv config to disable exclusive mode (async, fire and forget)
     if (isWindows && !audioExclusive) {
       PlatformAudioConfig.createMpvConfig().catchError((e) {
         debugPrint('JustAudioMediaKitExt: Failed to create mpv config: $e');
       });
     }
-    _setHarmonyConfig(linux: linux, windows: windows, macOS: macOS, android: android, iOS: iOS);
-    debugPrint('JustAudioMediaKitExt: Initialized with audioExclusive=$audioExclusive');
-  }
-
-  static void _setHarmonyConfig({
-    bool linux = true,
-    bool windows = true,
-    bool macOS = false,
-    bool android = false,
-    bool iOS = false,
-  }) {
-    if ((linux || windows || macOS) && !android && !iOS) {
-      JustAudioMediaKit.protocolWhitelist = const ['http', 'https', 'file'];
-    }
+    
+    // Standard initialization
+    JustAudioMediaKit.ensureInitialized(
+      linux: linux,
+      windows: windows,
+      android: android,
+      iOS: iOS,
+      macOS: macOS,
+      libmpv: libmpv,
+    );
+    
+    // Set the title to show in Windows volume mixer
     JustAudioMediaKit.title = 'Doudou';
+    
+    debugPrint('JustAudioMediaKitExt: Initialized with audioExclusive=$audioExclusive');
   }
   
   /// Check if we're on Windows

@@ -1,3 +1,2 @@
-// Re-exports app theme and Apple design theme.
-export 'package:doudou/ui/theme/app_theme.dart';
-export 'package:doudou/ui/widgets/apple_design/apple_theme.dart';
+// Re-exports app theme. When UI/ is removed, replace with local theme definition.
+export 'package:doudou/ui/desktop/templates/desktop_theme.dart';

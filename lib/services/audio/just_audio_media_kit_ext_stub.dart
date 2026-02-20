@@ -7,16 +7,10 @@ class PlatformAudioConfig {
   
   /// Always false on web
   static bool get isWindows => false;
-
-  /// No-op for web platform
-  static Future<void> createMpvConfig({bool forYouTubeMusic = false}) async {
-    debugPrint('PlatformAudioConfig: Stub - no mpv config on web');
-  }
   
-  /// Clean up MPV config by removing Doudou-added options and restoring original content
-  /// This should be called when the app closes to avoid leaving temporary config changes
-  static Future<void> cleanupMpvConfig() async {
-    // No-op on web/stub
+  /// No-op for web platform
+  static Future<void> createMpvConfig() async {
+    debugPrint('PlatformAudioConfig: Stub - no mpv config on web');
   }
 }
 

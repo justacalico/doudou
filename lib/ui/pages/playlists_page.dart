@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
-import 'package:doudou/ui/layout/navigation_service.dart';
+import 'package:doudou/ui/desktop/services/navigation_service.dart';
 
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
@@ -53,40 +53,23 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
               ),
             ),
           ],
-          child: appState.isLoading && playlists.isEmpty
+          child: playlists.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const CircularProgressIndicator(),
+                      Icon(Icons.queue_music_outlined,
+                          size: 64, color: DesktopTheme.textMuted),
                       const SizedBox(height: DesktopTheme.spacingMd),
                       Text(
-                        l10n.loadingPlaylists,
+                        l10n.noPlaylistsAvailable,
                         style: TextStyle(
-                            fontSize: 16,
-                            color: DesktopTheme.textSecondary),
+                            fontSize: 16, color: DesktopTheme.textSecondary),
                       ),
                     ],
                   ),
                 )
-              : playlists.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.queue_music_outlined,
-                              size: 64, color: DesktopTheme.textMuted),
-                          const SizedBox(height: DesktopTheme.spacingMd),
-                          Text(
-                            l10n.noPlaylistsAvailable,
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: DesktopTheme.textSecondary),
-                          ),
-                        ],
-                      ),
-                    )
-                  : GridView.builder(
+              : GridView.builder(
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 200,
                     childAspectRatio: 0.72,

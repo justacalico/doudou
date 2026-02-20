@@ -1,4 +1,5 @@
-import 'dart:ui' show ImageFilter;
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -7,14 +8,14 @@ import 'package:audio_service/audio_service.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/base_service.dart';
-import 'package:doudou/ui/layout/navigation_service.dart';
-import 'package:doudou/ui/theme.dart';
-import 'package:doudou/ui/adaptive/desktop/desktop_layout.dart'
+import 'package:doudou/ui/desktop/services/navigation_service.dart';
+import 'package:doudou/ui/desktop/templates/desktop_theme.dart';
+import 'package:doudou/ui/desktop/templates/desktop_layout.dart'
     show DesktopLayout, DesktopPlayerBar;
-import 'package:doudou/ui/components/universal_image.dart'
+import 'package:doudou/ui/desktop/widgets/universal_image.dart'
     show buildSmartImage;
-import 'package:doudou/ui/layout/breakpoint.dart';
-import 'package:doudou/ui/layout/responsive_now_playing.dart';
+import 'package:doudou/ui/mobile/playing/now_playing.dart'
+    show NowPlayingScreen;
 
 import 'package:doudou/ui/pages/home_page.dart';
 import 'package:doudou/ui/pages/search_page.dart';
@@ -25,6 +26,9 @@ import 'package:doudou/ui/pages/tracks_page.dart';
 import 'package:doudou/ui/pages/playlists_page.dart';
 import 'package:doudou/ui/pages/downloads_page.dart';
 import 'package:doudou/ui/pages/settings_page.dart';
+
+/// Breakpoint: above = sidebar (desktop), below = bottom nav (mobile).
+const double kLayoutBreakpoint = 768.0;
 
 /// Single responsive shell: sidebar on desktop, bottom navbar on mobile.
 /// Uses one [selectedIndex] and one set of pages so resizing never reloads or loses state.
@@ -68,16 +72,9 @@ class _AppShellState extends State<AppShell> {
 
   void _onDetailChanged() => setState(() {});
 
-  /// Downloads page: show for Jellyfin/Plex/Subsonic; hide for Local and SoundCloud.
-  bool get _showDownloads {
-    final st = context.read<AppState>().mediaServiceManager.currentServerType;
-    return st != ServerType.local && st != ServerType.soundcloud && st != ServerType.youtubeMusic;
-  }
-
-  /// Albums page: hide only for SoundCloud (no albums support). YouTube Music has albums.
-  bool get _showAlbums {
-    final st = context.read<AppState>().mediaServiceManager.currentServerType;
-    return st != ServerType.soundcloud;
+  bool get _isLocalMusic {
+    return context.read<AppState>().mediaServiceManager.currentServerType ==
+        ServerType.local;
   }
 
   void _rebuildPageLists() {
@@ -85,12 +82,6 @@ class _AppShellState extends State<AppShell> {
     _libraryItems = _buildLibraryItems();
     _pages = _buildPages();
     _settingsIndex = _pages.length - 1;
-    // Clamp _selectedIndex when page list changes (e.g. Downloads shown/hidden)
-    // to avoid wrong nav icon being highlighted
-    if (_selectedIndex >= _pages.length) {
-      _selectedIndex = _pages.length - 1;
-      _nav.selectedPageIndex.value = _selectedIndex;
-    }
   }
 
   List<_NavItem> _buildNavItems() => [
@@ -105,8 +96,7 @@ class _AppShellState extends State<AppShell> {
 
   List<_NavItem> _buildLibraryItems() {
     return [
-      if (_showAlbums)
-        const _NavItem(Icons.album_outlined, Icons.album_rounded, 'Albums'),
+      const _NavItem(Icons.album_outlined, Icons.album_rounded, 'Albums'),
       const _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Artists'),
       const _NavItem(Icons.music_note_outlined, Icons.music_note_rounded, 'Tracks'),
       const _NavItem(
@@ -114,7 +104,7 @@ class _AppShellState extends State<AppShell> {
         Icons.queue_music_rounded,
         'Playlists',
       ),
-      if (_showDownloads)
+      if (!_isLocalMusic)
         const _NavItem(Icons.download_outlined, Icons.download_rounded, 'Downloads'),
     ];
   }
@@ -124,12 +114,12 @@ class _AppShellState extends State<AppShell> {
       const HomePage(),
       const SearchPage(),
       const LibraryPage(),
-      if (_showAlbums) const AlbumsPage(),
+      const AlbumsPage(),
       const ArtistsPage(),
       const TracksPage(),
       const PlaylistsPage(),
     ];
-    if (_showDownloads) list.add(const DownloadsPage());
+    if (!_isLocalMusic) list.add(const DownloadsPage());
     list.add(const SettingsPage());
     return list;
   }
@@ -142,60 +132,23 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget? _buildDetailOverlay() {
-    final content = DesktopLayout.buildDetailOverlay(context, _nav);
-    if (content == null) return null;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < kLayoutBreakpoint;
-        if (isNarrow) {
-          return Material(
-            color: Colors.transparent,
-            child: SafeArea(
-              child: content,
-            ),
-          );
-        }
-        return content;
-      },
-    );
+    return DesktopLayout.buildDetailOverlay(context, _nav);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final showDownloads = _showDownloads;
-    final showAlbums = _showAlbums;
-    final prevCount = _libraryItems.length;
-    final expectedCount = (showAlbums ? 1 : 0) + 3 + (showDownloads ? 1 : 0);
-    if (prevCount != expectedCount) _rebuildPageLists();
+    final isLocal = context.read<AppState>().mediaServiceManager.currentServerType ==
+        ServerType.local;
+    final wasLocal = _libraryItems.length == 4;
+    if (isLocal != wasLocal) _rebuildPageLists();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        appState.setCloseNowPlayingOverlay(() {
-          if (context.mounted) Navigator.of(context).maybePop();
-        });
-        return Stack(
-          children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isDesktop = constraints.maxWidth >= kLayoutBreakpoint;
-                void openNowPlaying() {
-          Navigator.of(context).push(
-            PageRouteBuilder(
-              opaque: false,
-              barrierColor: Colors.black54,
-              pageBuilder: (context, animation, secondaryAnimation) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: const ResponsiveNowPlaying(),
-                );
-              },
-            ),
-          );
-        }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isDesktop = constraints.maxWidth >= kLayoutBreakpoint;
         return KeyboardListener(
           focusNode: FocusNode(),
           autofocus: true,
@@ -212,7 +165,6 @@ class _AppShellState extends State<AppShell> {
                           currentIndex: _selectedIndex,
                           navItems: _navItems,
                           libraryItems: _libraryItems,
-                          showAlbums: _showAlbums,
                           settingsIndex: _settingsIndex,
                           onTap: _navigateTo,
                         ),
@@ -232,28 +184,20 @@ class _AppShellState extends State<AppShell> {
                   ),
                 ),
                 isDesktop
-                    ? DesktopPlayerBar(onNowPlayingTap: openNowPlaying)
-                    : _NarrowPlayerBar(onNowPlayingTap: openNowPlaying),
+                    ? const DesktopPlayerBar()
+                    : const _MobilePlayerBar(),
               ],
             ),
             bottomNavigationBar: isDesktop
                 ? null
-                  : _NarrowNavBar(
+                : _MobileNavBar(
                     currentIndex: _selectedIndex,
                     onTap: _navigateTo,
                     itemCount: _pages.length,
                     settingsIndex: _settingsIndex,
-                    isLocalMusic: !_showDownloads,
+                    isLocalMusic: _isLocalMusic,
                   ),
           ),
-        );
-      },
-            ),
-            if (!appState.isLoggedIn && _selectedIndex != _settingsIndex)
-              _AddServerOverlay(
-                onOpenSettings: () => _navigateTo(_settingsIndex),
-              ),
-          ],
         );
       },
     );
@@ -274,63 +218,6 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
-class _AddServerOverlay extends StatelessWidget {
-  final VoidCallback onOpenSettings;
-
-  const _AddServerOverlay({
-    required this.onOpenSettings,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Positioned.fill(
-      child: Material(
-        color: DesktopTheme.backgroundDeep,
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(DesktopTheme.spacingXl * 2),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.settings_rounded,
-                    size: 80,
-                    color: DesktopTheme.textMuted,
-                  ),
-                  const SizedBox(height: DesktopTheme.spacingXl),
-                  Text(
-                    'Add a server from Settings to get started',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: DesktopTheme.textSecondary,
-                      height: 1.4,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: DesktopTheme.spacingXl * 2),
-                  FilledButton.icon(
-                    onPressed: onOpenSettings,
-                    icon: const Icon(Icons.settings_rounded),
-                    label: Text(l10n.settings),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: DesktopTheme.spacingXl,
-                        vertical: DesktopTheme.spacingMd,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _NavItem {
   final IconData icon;
   final IconData activeIcon;
@@ -342,7 +229,6 @@ class _Sidebar extends StatelessWidget {
   final int currentIndex;
   final List<_NavItem> navItems;
   final List<_NavItem> libraryItems;
-  final bool showAlbums;
   final int settingsIndex;
   final ValueChanged<int> onTap;
 
@@ -350,7 +236,6 @@ class _Sidebar extends StatelessWidget {
     required this.currentIndex,
     required this.navItems,
     required this.libraryItems,
-    required this.showAlbums,
     required this.settingsIndex,
     required this.onTap,
   });
@@ -441,7 +326,7 @@ class _Sidebar extends StatelessWidget {
                     return _SidebarTile(
                       icon: e.value.icon,
                       activeIcon: e.value.activeIcon,
-                      label: _libraryLabel(l10n, e.key, showAlbums),
+                      label: _libraryLabel(l10n, e.key),
                       selected: currentIndex == idx,
                       onTap: () => onTap(idx),
                     );
@@ -476,31 +361,17 @@ class _Sidebar extends StatelessWidget {
     }
   }
 
-  String _libraryLabel(AppLocalizations l10n, int index, bool showAlbums) {
-    if (showAlbums) {
-      switch (index) {
-        case 0:
-          return l10n.albums;
-        case 1:
-          return l10n.artists;
-        case 2:
-          return l10n.songs;
-        case 3:
-          return l10n.playlists;
-        case 4:
-          return l10n.downloads;
-        default:
-          return '';
-      }
-    }
+  String _libraryLabel(AppLocalizations l10n, int index) {
     switch (index) {
       case 0:
-        return l10n.artists;
+        return l10n.albums;
       case 1:
-        return l10n.songs;
+        return l10n.artists;
       case 2:
-        return l10n.playlists;
+        return l10n.songs;
       case 3:
+        return l10n.playlists;
+      case 4:
         return l10n.downloads;
       default:
         return '';
@@ -593,14 +464,14 @@ class _SidebarTileState extends State<_SidebarTile> {
   }
 }
 
-class _NarrowNavBar extends StatelessWidget {
+class _MobileNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   final int itemCount;
   final int settingsIndex;
   final bool isLocalMusic;
 
-  const _NarrowNavBar({
+  const _MobileNavBar({
     required this.currentIndex,
     required this.onTap,
     required this.itemCount,
@@ -744,17 +615,14 @@ class _NarrowNavBar extends StatelessWidget {
   }
 }
 
-/// Narrow layout play bar (bottom bar when width < breakpoint).
-class _NarrowPlayerBar extends StatelessWidget {
-  const _NarrowPlayerBar({required this.onNowPlayingTap});
-
-  final VoidCallback onNowPlayingTap;
+/// Mobile playbar: old mini-player style (rounded liquid glass, album art, play/next).
+class _MobilePlayerBar extends StatelessWidget {
+  const _MobilePlayerBar();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final onNowPlayingTap = this.onNowPlayingTap;
 
     return Consumer<AppState>(
       builder: (context, appState, _) {
@@ -770,7 +638,31 @@ class _NarrowPlayerBar extends StatelessWidget {
               builder: (context, playSnap) {
                 final playing = playSnap.data?.playing ?? false;
                 return GestureDetector(
-                  onTap: onNowPlayingTap,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      PageRouteBuilder(
+                        pageBuilder: (_, __, ___) =>
+                            const NowPlayingScreen(),
+                        transitionDuration:
+                            const Duration(milliseconds: 300),
+                        reverseTransitionDuration:
+                            const Duration(milliseconds: 300),
+                        transitionsBuilder:
+                            (_, animation, __, child) {
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 1),
+                              end: Offset.zero,
+                            ).animate(CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
+                            )),
+                            child: child,
+                          );
+                        },
+                      ),
+                    );
+                  },
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: ClipRRect(
@@ -866,22 +758,16 @@ class _NarrowPlayerBar extends StatelessWidget {
                                       MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: AnimatedSwitcher(
-                                        duration: const Duration(milliseconds: 200),
-                                        transitionBuilder: (Widget child, Animation<double> animation) {
-                                          return ScaleTransition(
-                                            scale: animation,
-                                            child: FadeTransition(opacity: animation, child: child),
-                                          );
-                                        },
-                                        child: Icon(
-                                          key: ValueKey(playing),
-                                          playing
-                                              ? Icons.pause_rounded
-                                              : Icons.play_arrow_rounded,
-                                          color: theme.colorScheme.primary,
-                                          size: 28,
-                                        ),
+                                      icon: Icon(
+                                        playing
+                                            ? Icons
+                                                .pause_rounded
+                                            : Icons
+                                                .play_arrow_rounded,
+                                        color: theme
+                                            .colorScheme
+                                            .primary,
+                                        size: 28,
                                       ),
                                       onPressed: () =>
                                           appState

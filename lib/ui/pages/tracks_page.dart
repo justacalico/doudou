@@ -50,31 +50,15 @@ class _TracksPageState extends State<TracksPage> {
               ),
             ),
           ],
-          child: appState.isLoading && appState.tracks.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: DesktopTheme.spacingMd),
-                      Text(
-                        l10n.loadingTracks,
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: DesktopTheme.textSecondary),
-                      ),
-                    ],
-                  ),
-                )
-              : TrackListTemplate(
-                  tracks: appState.tracks,
-                  emptyStateTitle: l10n.noSongsFound,
-                  emptyStateMessage: l10n.yourMusicCollection,
-                  showTrackNumber: true,
-                  showArtist: true,
-                  showAlbum: true,
-                  showArtwork: true,
-                ),
+          child: TrackListTemplate(
+            tracks: appState.tracks,
+            emptyStateTitle: l10n.noSongsFound,
+            emptyStateMessage: l10n.yourMusicCollection,
+            showTrackNumber: true,
+            showArtist: true,
+            showAlbum: true,
+            showArtwork: true,
+          ),
         );
       },
     );

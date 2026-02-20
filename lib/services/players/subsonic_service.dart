@@ -88,12 +88,6 @@ class SubsonicService implements BaseMediaService {
   }
 
   @override
-  void setServerId(String? serverId) {}
-
-  @override
-  Future<void> persistLocalDataIfAny() async {}
-
-  @override
   void setServer(String serverUrl) {
     _serverUrl = serverUrl.endsWith('/')
         ? serverUrl.substring(0, serverUrl.length - 1)

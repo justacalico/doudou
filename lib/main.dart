@@ -2,19 +2,20 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:kib_debug_print/kib_debug_print.dart';
 // DO NOT REMOVE THIS IMPORT - needed for localization
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'providers/app_state.dart';
-import 'services/audio/just_audio_media_kit_ext.dart';
 import 'services/logging_service.dart';
 import 'services/players/jellyfin_service.dart';
 import 'services/voice_command_handler.dart';
 import 'l10n/app_localizations.dart';
-import 'ui/theme.dart';
+import 'ui/mobile/login/login.dart';
+import 'ui/mobile/widgets/apple_design/apple_theme.dart';
+import 'ui/desktop/templates/desktop_theme.dart';
 import 'ui/layout/app_shell.dart';
 
 void main() async {
@@ -24,9 +25,6 @@ void main() async {
 
 Future<void> _runApp() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kDebugMode) {
-    DebugPrintService.initialize();
-  }
   await JellyfinService.initializeVersion();
 
   try {
@@ -48,16 +46,7 @@ Future<void> _runApp() async {
       (defaultTargetPlatform == TargetPlatform.linux ||
           defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.macOS)) {
-    // Only create MPV config for Windows (audio-exclusive=no)
-    if (defaultTargetPlatform == TargetPlatform.windows) {
-      await PlatformAudioConfig.createMpvConfig();
-    }
-    // Linux: use just_audio's native GStreamer backend (no media_kit/MPV)
-    JustAudioMediaKitExt.ensureInitialized(
-      linux: !Platform.isLinux,
-      windows: defaultTargetPlatform == TargetPlatform.windows,
-      macOS: defaultTargetPlatform == TargetPlatform.macOS,
-    );
+    JustAudioMediaKit.ensureInitialized();
   }
 
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
@@ -90,12 +79,12 @@ class DoudouApp extends StatelessWidget {
                   : appState.themeMode == ThemeMode.light
                       ? Brightness.light
                       : systemBrightness;
-              DesktopTheme.updateBrightness(brightness, oled: appState.oledDarkModeEnabled);
+              DesktopTheme.updateBrightness(brightness);
 
               return MaterialApp(
                 title: 'Doudou - Jellyfin Music Player',
                 theme: AppleTheme.light(accentColor: appState.accentColor),
-                darkTheme: AppleTheme.dark(accentColor: appState.accentColor, oled: appState.oledDarkModeEnabled),
+                darkTheme: AppleTheme.dark(accentColor: appState.accentColor),
                 themeMode: appState.themeMode,
                 localizationsDelegates: const [
                   AppLocalizations.delegate,
@@ -122,7 +111,11 @@ class DoudouApp extends StatelessWidget {
                       );
                     }
 
-                    return const AppShell();
+                    if (appState.isLoggedIn) {
+                      return const AppShell();
+                    } else {
+                      return const LoginScreen();
+                    }
                   },
                 ),
                 debugShowCheckedModeBanner: false,
@@ -136,17 +129,14 @@ class DoudouApp extends StatelessWidget {
 
   /// Wraps the app with platform-specific services
   Widget _buildAppWithPlatformServices(Widget app) {
-    // Use AudioServiceWidget wherever we use AudioService (mobile + desktop) so the
-    // handler stays bound and playback works (fixes Linux/Windows no audio).
+    // On Android and macOS, use AudioServiceWidget for background audio support
     if (!kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.macOS ||
-            defaultTargetPlatform == TargetPlatform.linux ||
-            defaultTargetPlatform == TargetPlatform.windows)) {
+            defaultTargetPlatform == TargetPlatform.macOS)) {
       return AudioServiceWidget(child: app);
     }
 
+    // On other platforms (including web), return the app directly
     return app;
   }
 }

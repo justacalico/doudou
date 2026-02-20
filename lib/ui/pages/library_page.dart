@@ -3,13 +3,14 @@ import 'package:provider/provider.dart';
 
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
-import 'package:doudou/services/base_service.dart';
-import 'package:doudou/ui/layout/navigation_service.dart';
+import 'package:doudou/ui/desktop/services/navigation_service.dart';
 
-import 'package:doudou/ui/layout/breakpoint.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/templates/music_card.dart';
+
+/// Breakpoint: below this use 2-column responsive tiles on library overview.
+const double _kLibraryBreakpoint = 768.0;
 
 /// Library hub: quick links to Albums, Artists, Tracks, Playlists using shared templates.
 class LibraryPage extends StatefulWidget {
@@ -38,40 +39,22 @@ class _LibraryPageState extends State<LibraryPage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final st = appState.mediaServiceManager.currentServerType;
-        final showAlbums = st != ServerType.soundcloud;
-        final isFollowBasedProvider =
-            st == ServerType.soundcloud || st == ServerType.youtubeMusic;
-        // Page indices match app_shell: when Albums is hidden (SoundCloud only), indices shift by 1.
-        final albumsIndex = 3;
-        final artistsIndex = showAlbums ? 4 : 3;
-        final songsIndex = showAlbums ? 5 : 4;
-        final playlistsIndex = showAlbums ? 6 : 5;
-        final showLibraryLoading = appState.isLoading &&
-            appState.albums.isEmpty &&
-            appState.artists.isEmpty &&
-            appState.tracks.isEmpty &&
-            appState.playlists.isEmpty;
-
         return PageTemplate(
           title: l10n.navLibrary,
-          child: showLibraryLoading
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: DesktopTheme.spacingMd),
-                      Text(
-                        l10n.loadingYourMusicLibrary,
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: DesktopTheme.textSecondary),
-                      ),
-                    ],
-                  ),
-                )
-              : SingleChildScrollView(
+          actions: [
+            DesktopGlassButton(
+              onPressed: () => appState.loadLibraryData(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.refresh_rounded, size: 18),
+                  const SizedBox(width: DesktopTheme.spacingSm),
+                  Text(l10n.refresh),
+                ],
+              ),
+            ),
+          ],
+          child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -83,7 +66,7 @@ class _LibraryPageState extends State<LibraryPage> {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final isNarrow =
-                        constraints.maxWidth < kLayoutBreakpoint;
+                        constraints.maxWidth < _kLibraryBreakpoint;
                     final spacing = DesktopTheme.spacingMd;
                     final tileWidth = isNarrow
                         ? (constraints.maxWidth - spacing) / 2
@@ -92,21 +75,20 @@ class _LibraryPageState extends State<LibraryPage> {
                       spacing: spacing,
                       runSpacing: spacing,
                       children: [
-                        if (showAlbums)
-                          _LibraryTile(
-                            icon: Icons.album_rounded,
-                            label: l10n.albums,
-                            count: appState.albums.length,
-                            onTap: () =>
-                                NavigationService().selectPage(albumsIndex),
-                            width: tileWidth,
-                          ),
+                        _LibraryTile(
+                          icon: Icons.album_rounded,
+                          label: l10n.albums,
+                          count: appState.albums.length,
+                          onTap: () =>
+                              NavigationService().selectPage(3),
+                          width: tileWidth,
+                        ),
                         _LibraryTile(
                           icon: Icons.person_rounded,
                           label: l10n.artists,
                           count: appState.artists.length,
                           onTap: () =>
-                              NavigationService().selectPage(artistsIndex),
+                              NavigationService().selectPage(4),
                           width: tileWidth,
                         ),
                         _LibraryTile(
@@ -114,7 +96,7 @@ class _LibraryPageState extends State<LibraryPage> {
                           label: l10n.songs,
                           count: appState.tracks.length,
                           onTap: () =>
-                              NavigationService().selectPage(songsIndex),
+                              NavigationService().selectPage(5),
                           width: tileWidth,
                         ),
                         _LibraryTile(
@@ -122,19 +104,18 @@ class _LibraryPageState extends State<LibraryPage> {
                           label: l10n.playlists,
                           count: appState.playlists.length,
                           onTap: () =>
-                              NavigationService().selectPage(playlistsIndex),
+                              NavigationService().selectPage(6),
                           width: tileWidth,
                         ),
                       ],
                     );
                   },
                 ),
-                if (showAlbums && appState.albums.isNotEmpty) ...[
+                if (appState.albums.isNotEmpty) ...[
                   const SizedBox(height: DesktopTheme.spacingXl),
                   SectionHeader(
                     title: l10n.recentlyAddedAlbums,
-                    onSeeAllPressed: () =>
-                        NavigationService().selectPage(albumsIndex),
+                    onSeeAllPressed: () => NavigationService().selectPage(3),
                   ),
                   const SizedBox(height: DesktopTheme.spacingMd),
                   SizedBox(
@@ -160,43 +141,6 @@ class _LibraryPageState extends State<LibraryPage> {
                           ),
                         );
                       },
-                    ),
-                  ),
-                ],
-                if (isFollowBasedProvider &&
-                    appState.artists.isEmpty &&
-                    appState.tracks.isEmpty) ...[
-                  const SizedBox(height: DesktopTheme.spacingXl * 2),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(DesktopTheme.spacingXl),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.person_add_rounded,
-                            size: 64,
-                            color: DesktopTheme.textMuted,
-                          ),
-                          const SizedBox(height: DesktopTheme.spacingMd),
-                          Text(
-                            l10n.soundcloudFollowPrompt,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: DesktopTheme.textSecondary,
-                              height: 1.4,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: DesktopTheme.spacingMd),
-                          TextButton.icon(
-                            onPressed: () =>
-                                NavigationService().selectPage(1),
-                            icon: const Icon(Icons.search_rounded),
-                            label: Text(l10n.search),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 ],

@@ -321,6 +321,11 @@
     "description": "Sign out button label"
   },
 
+  "tryDemo": "Try Demo",
+  "@tryDemo": {
+    "description": "Try demo button label"
+  },
+
   "useOfflineMode": "Use Offline Mode",
   "@useOfflineMode": {
     "description": "Use offline mode button label"
@@ -1054,11 +1059,6 @@
   "noSongsFound": "No songs found",
   "@noSongsFound": {
     "description": "No songs found message"
-  },
-
-  "soundcloudFollowPrompt": "Follow artists using the Search page to see their content here.",
-  "@soundcloudFollowPrompt": {
-    "description": "SoundCloud empty state - user needs to follow artists"
   },
 
   "noContentFound": "No content found for {name}",
@@ -2752,14 +2752,6 @@
   "followArtist": "Follow Artist",
   "@followArtist": {
     "description": "Follow artist menu item"
-  },
-  "followAlbum": "Follow Album",
-  "@followAlbum": {
-    "description": "Follow album button (YouTube Music)"
-  },
-  "unfollowAlbum": "Unfollow Album",
-  "@unfollowAlbum": {
-    "description": "Unfollow album button (YouTube Music)"
   },
 
   "startRadio": "Start Radio",

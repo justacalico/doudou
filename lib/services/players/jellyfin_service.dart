@@ -226,12 +226,6 @@ class JellyfinService implements BaseMediaService {
   }
 
   @override
-  void setServerId(String? serverId) {}
-
-  @override
-  Future<void> persistLocalDataIfAny() async {}
-
-  @override
   void setServer(String serverUrl) {
     _server = JellyfinServer(serverUrl: serverUrl);
     _dio.options.baseUrl = serverUrl;

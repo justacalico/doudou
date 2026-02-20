@@ -350,7 +350,7 @@ class LocalMusicService implements BaseMediaService {
           }
         }
       }
-    } catch (_) { /* skip unreadable cache entry */ }
+    } catch (_) {}
 
     return null;
   }
@@ -596,12 +596,6 @@ class LocalMusicService implements BaseMediaService {
     await initialize();
     return _musicDirectories.isNotEmpty;
   }
-
-  @override
-  void setServerId(String? serverId) {}
-
-  @override
-  Future<void> persistLocalDataIfAny() async {}
 
   @override
   void setServer(String serverUrl) {

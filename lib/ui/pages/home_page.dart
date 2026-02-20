@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:doudou/l10n/app_localizations.dart';
-import 'package:doudou/models/jellyfin_models.dart';
-import 'package:doudou/services/base_service.dart';
 import 'package:doudou/providers/app_state.dart';
-import 'package:doudou/ui/layout/navigation_service.dart';
+import 'package:doudou/ui/desktop/services/navigation_service.dart';
 
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/templates/music_card.dart';
-import 'package:doudou/utils/display_utils.dart';
 
 /// Home page built from reusable templates (page, section header, music cards, list tiles).
 class HomePage extends StatefulWidget {
@@ -46,6 +43,19 @@ class _HomePageState extends State<HomePage> {
           title: l10n.navHome,
           subtitle: _greeting(l10n),
           showGradientHeader: true,
+          actions: [
+            DesktopGlassButton(
+              onPressed: () => appState.loadLibraryData(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.refresh_rounded, size: 18),
+                  const SizedBox(width: DesktopTheme.spacingSm),
+                  Text(l10n.refresh),
+                ],
+              ),
+            ),
+          ],
           child: appState.isLoading
               ? _loading(Theme.of(context))
               : SingleChildScrollView(
@@ -56,32 +66,17 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: DesktopTheme.spacingMd),
                       _quickAccess(context, appState, l10n),
                       const SizedBox(height: DesktopTheme.spacingXl),
-                      // SoundCloud has no albums; show album sections for YouTube Music and others
-                      if (appState.mediaServiceManager.currentServerType !=
-                          ServerType.soundcloud) ...[
-                        if (_albumsForHomeSection(appState).isNotEmpty) ...[
-                          SectionHeader(
-                            title: l10n.recentlyAddedAlbums,
-                            subtitle: l10n.yourNewestAdditions,
-                            useGradient: true,
-                            onSeeAllPressed: () =>
-                                NavigationService().selectPage(3),
-                          ),
-                          const SizedBox(height: DesktopTheme.spacingMd),
-                          _recentlyAddedAlbumRow(context, appState, l10n),
-                          const SizedBox(height: DesktopTheme.spacingXl),
-                        ],
-                        if (appState.recentlyPlayedAlbums.isNotEmpty) ...[
-                          SectionHeader(
-                            title: l10n.continueListening,
-                            subtitle: l10n.recentlyPlayedSection,
-                            onSeeAllPressed: () =>
-                                NavigationService().selectPage(3),
-                          ),
-                          const SizedBox(height: DesktopTheme.spacingMd),
-                          _continueListeningRow(context, appState, l10n),
-                          const SizedBox(height: DesktopTheme.spacingXl),
-                        ],
+                      if (appState.albums.isNotEmpty) ...[
+                        SectionHeader(
+                          title: l10n.recentlyAddedAlbums,
+                          subtitle: l10n.yourNewestAdditions,
+                          useGradient: true,
+                          onSeeAllPressed: () =>
+                              NavigationService().selectPage(3),
+                        ),
+                        const SizedBox(height: DesktopTheme.spacingMd),
+                        _albumRow(context, appState, l10n),
+                        const SizedBox(height: DesktopTheme.spacingXl),
                       ],
                       if (appState.artists.isNotEmpty) ...[
                         SectionHeader(
@@ -94,59 +89,13 @@ class _HomePageState extends State<HomePage> {
                         _artistRow(context, appState, l10n),
                         const SizedBox(height: DesktopTheme.spacingXl),
                       ],
-                      if (appState.mediaServiceManager.currentServerType !=
-                              ServerType.soundcloud &&
-                          appState.mediaServiceManager.currentServerType !=
-                              ServerType.youtubeMusic &&
-                          appState.tracks.isNotEmpty) ...[
+                      if (appState.tracks.isNotEmpty) ...[
                         SectionHeader(
                           title: l10n.recentTracks,
                           subtitle: l10n.yourMusicCollection,
                         ),
                         const SizedBox(height: DesktopTheme.spacingMd),
                         _recentTracks(context, appState, l10n),
-                      ],
-                      if ((appState.mediaServiceManager.currentServerType ==
-                                  ServerType.soundcloud ||
-                              appState.mediaServiceManager.currentServerType ==
-                                  ServerType.youtubeMusic) &&
-                          appState.artists.isEmpty) ...[
-                        const SizedBox(height: DesktopTheme.spacingXl * 2),
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(
-                                DesktopTheme.spacingXl),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.person_add_rounded,
-                                  size: 64,
-                                  color: DesktopTheme.textMuted,
-                                ),
-                                const SizedBox(
-                                    height: DesktopTheme.spacingMd),
-                                Text(
-                                  l10n.soundcloudFollowPrompt,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: DesktopTheme.textSecondary,
-                                    height: 1.4,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(
-                                    height: DesktopTheme.spacingMd),
-                                TextButton.icon(
-                                  onPressed: () =>
-                                      NavigationService().selectPage(1),
-                                  icon: const Icon(Icons.search_rounded),
-                                  label: Text(l10n.search),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
                       ],
                       const SizedBox(height: 120),
                     ],
@@ -189,99 +138,35 @@ class _HomePageState extends State<HomePage> {
 
   Widget _quickAccess(
       BuildContext context, AppState appState, AppLocalizations l10n) {
-    const narrowBreakpoint = 500.0;
-    final isNarrow = MediaQuery.sizeOf(context).width < narrowBreakpoint;
-    final shuffleAll = QuickAccessCard(
-      title: 'Shuffle All',
-      subtitle: l10n.countSongs(appState.tracks.length),
-      icon: Icons.shuffle_rounded,
-      color: DesktopTheme.playButtonGreen,
-      onTap: () => appState.shuffleAllTracks(),
-    );
-    final shuffleFavorites = QuickAccessCard(
-      title: 'Shuffle Favorites',
-      subtitle: l10n.countSongs(
-          appState.tracks.where((t) => t.isFavorite).length),
-      icon: Icons.favorite_rounded,
-      color: DesktopTheme.heartRed,
-      onTap: () => appState.shuffleFavoriteTracks(),
-    );
-    if (isNarrow) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          shuffleAll,
-          const SizedBox(height: DesktopTheme.spacingMd),
-          shuffleFavorites,
-        ],
-      );
-    }
     return Row(
       children: [
-        Expanded(child: shuffleAll),
+        Expanded(
+          child: QuickAccessCard(
+            title: 'Shuffle All',
+            subtitle: l10n.countSongs(appState.tracks.length),
+            icon: Icons.shuffle_rounded,
+            color: DesktopTheme.playButtonGreen,
+            onTap: () => appState.shuffleAllTracks(),
+          ),
+        ),
         const SizedBox(width: DesktopTheme.spacingMd),
-        Expanded(child: shuffleFavorites),
+        Expanded(
+          child: QuickAccessCard(
+            title: 'Shuffle Favorites',
+            subtitle: l10n.countSongs(
+                appState.tracks.where((t) => t.isFavorite).length),
+            icon: Icons.favorite_rounded,
+            color: DesktopTheme.heartRed,
+            onTap: () => appState.shuffleFavoriteTracks(),
+          ),
+        ),
       ],
     );
   }
 
-  /// Albums to show in the home "Recently Added" section: all albums, or only from followed artists (YT Music/SoundCloud).
-  List<Album> _albumsForHomeSection(AppState appState) {
-    final isFollowBased = appState.mediaServiceManager.currentServerType ==
-            ServerType.youtubeMusic ||
-        appState.mediaServiceManager.currentServerType == ServerType.soundcloud;
-    if (!isFollowBased) return List<Album>.from(appState.albums);
-    final artistNames = appState.artists.map((a) => a.name.toLowerCase()).toSet();
-    return appState.albums
-        .where((a) =>
-            a.artistName != null &&
-            artistNames.contains(a.artistName!.toLowerCase()))
-        .toList();
-  }
-
-  /// Recently added albums (sorted by date added, newest first).
-  /// For YouTube Music (and SoundCloud), only albums from followed artists are shown.
-  Widget _recentlyAddedAlbumRow(
+  Widget _albumRow(
       BuildContext context, AppState appState, AppLocalizations l10n) {
-    final albums = _albumsForHomeSection(appState);
-    final sorted = List<Album>.from(albums)
-      ..sort((a, b) {
-        final da = a.dateCreated;
-        final db = b.dateCreated;
-        if (da == null && db == null) return 0;
-        if (da == null) return 1;
-        if (db == null) return -1;
-        return db.compareTo(da);
-      });
-    final list = sorted.take(10).toList();
-    return SizedBox(
-      height: 230,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: list.length,
-        itemBuilder: (context, index) {
-          final album = list[index];
-          return Padding(
-            padding: EdgeInsets.only(
-                right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
-            child: MusicCard(
-              title: album.name,
-              subtitle: album.artistName ?? l10n.unknownArtist,
-              imageUrl: _imageUrl(appState, album.imageUrl),
-              size: 180,
-              onTap: () => NavigationService().navigateToAlbum(album),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// Continue listening: albums from recent playback.
-  Widget _continueListeningRow(
-      BuildContext context, AppState appState, AppLocalizations l10n) {
-    final list = appState.recentlyPlayedAlbums.take(8).toList();
+    final list = appState.albums.take(10).toList();
     return SizedBox(
       height: 230,
       child: ListView.builder(
@@ -325,7 +210,6 @@ class _HomePageState extends State<HomePage> {
               subtitle: l10n.artist,
               imageUrl: _imageUrl(appState, artist.imageUrl),
               size: 180,
-              placeholderIcon: Icons.person_rounded,
               onTap: () => NavigationService().navigateToArtist(artist),
             ),
           );
@@ -352,7 +236,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     if (track.duration != null)
                       Text(
-                        formatDurationMs(track.duration),
+                        _formatDuration(track.duration!),
                         style: TextStyle(
                           fontSize: 12,
                           color: DesktopTheme.textTertiary,
@@ -376,5 +260,10 @@ class _HomePageState extends State<HomePage> {
           )
           .toList(),
     );
+  }
+
+  String _formatDuration(int ms) {
+    final d = Duration(milliseconds: ms);
+    return '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
   }
 }

@@ -3,8 +3,6 @@ import 'base_service.dart';
 import 'players/jellyfin_service.dart';
 import 'players/plex_service.dart';
 import 'players/subsonic_service.dart';
-import 'players/soundcloud_service.dart';
-import 'players/youtube_music_service.dart';
 import 'players/local_music_service.dart';
 
 class MediaServiceManager {
@@ -16,9 +14,6 @@ class MediaServiceManager {
   ServerType get currentServerType => _currentServerType;
   BaseMediaService? get currentService => _currentService;
   LocalMusicService? get localMusicService => _sharedLocalMusicService;
-
-  /// True when current service is YouTube Music (used to skip URL caching – YT URLs expire quickly).
-  bool get isYouTubeMusic => _currentService is YouTubeMusicService;
 
   /// Constructor that uses a shared JellyfinService instance
   MediaServiceManager.withJellyfinService(JellyfinService jellyfinService) {
@@ -46,12 +41,6 @@ class MediaServiceManager {
         break;
       case ServerType.subsonic:
         _currentService = SubsonicService();
-        break;
-      case ServerType.soundcloud:
-        _currentService = SoundCloudService();
-        break;
-      case ServerType.youtubeMusic:
-        _currentService = YouTubeMusicService();
         break;
       case ServerType.local:
         _sharedLocalMusicService ??= LocalMusicService();
@@ -111,27 +100,9 @@ class MediaServiceManager {
     );
   }
 
-  /// Last auth error from the current service (e.g. SoundCloud invalid_client). Null if not supported or none.
-  String? get lastAuthError {
-    final s = _currentService;
-    if (s is SoundCloudService) return s.lastAuthError;
-    if (s is YouTubeMusicService) return s.lastAuthError;
-    return null;
-  }
-
   /// Set server URL for the current service
   void setServer(String serverUrl) {
     _currentService?.setServer(serverUrl);
-  }
-
-  /// Set server ID so services can scope local data (followed, favorites, playlists) per server.
-  void setServerId(String? serverId) {
-    _currentService?.setServerId(serverId);
-  }
-
-  /// Persist current service's local data before disconnect (e.g. when switching servers).
-  Future<void> persistLocalDataIfAny() async {
-    await _currentService?.persistLocalDataIfAny();
   }
 
   /// Validate credentials with the current service
@@ -241,13 +212,6 @@ class MediaServiceManager {
     return playlists;
   }
 
-  /// YouTube Music home sections (recommendations, quick picks). Empty when not YTM.
-  Future<List<YTMHomeSection>> getYouTubeMusicHomeSections() async {
-    final s = _currentService;
-    if (s is! YouTubeMusicService) return [];
-    return s.getHomeSectionsForApp();
-  }
-
   /// Get tracks from a playlist
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
     if (_currentService == null) return [];
@@ -288,11 +252,6 @@ class MediaServiceManager {
       return subsonicService.getDirectStreamUrl(trackId);
     }
 
-    // YouTube Music: stream URL is resolved async via getAlternativeStreamUrlsAsync
-    if (_currentService is YouTubeMusicService) {
-      return '';
-    }
-
     // For other services, fallback to regular stream URL
     return _currentService!.getStreamUrl(trackId);
   }
@@ -307,11 +266,6 @@ class MediaServiceManager {
   Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
     if (_currentService == null) return [];
     return await _currentService!.getAlternativeStreamUrlsAsync(trackId);
-  }
-
-  /// HTTP headers to pass when loading a stream URL (e.g. User-Agent for googlevideo.com)
-  Map<String, String>? getStreamHeaders(String url) {
-    return YouTubeMusicService.getStreamHeaders(url);
   }
 
   /// Get image URL from the current service
@@ -403,76 +357,6 @@ class MediaServiceManager {
     _currentService = null;
   }
 
-  /// Follow an artist (SoundCloud and YouTube Music). They show on home and library.
-  Future<bool> followArtist(Artist artist) async {
-    if (_currentService is SoundCloudService) {
-      return await (_currentService! as SoundCloudService).followArtist(artist);
-    }
-    if (_currentService is YouTubeMusicService) {
-      return await (_currentService! as YouTubeMusicService).followArtist(artist);
-    }
-    return false;
-  }
-
-  /// Unfollow an artist (SoundCloud and YouTube Music)
-  Future<bool> unfollowArtist(String userId) async {
-    if (_currentService is SoundCloudService) {
-      return await (_currentService! as SoundCloudService).unfollowArtist(userId);
-    }
-    if (_currentService is YouTubeMusicService) {
-      return await (_currentService! as YouTubeMusicService).unfollowArtist(userId);
-    }
-    return false;
-  }
-
-  /// Check if following an artist (SoundCloud and YouTube Music)
-  bool isFollowingArtist(String userId) {
-    if (_currentService is SoundCloudService) {
-      return (_currentService! as SoundCloudService).isFollowingArtist(userId);
-    }
-    if (_currentService is YouTubeMusicService) {
-      return (_currentService! as YouTubeMusicService).isFollowingArtist(userId);
-    }
-    return false;
-  }
-
-  /// Follow an album (YouTube Music only). Album appears in the Albums library tab.
-  Future<bool> followAlbum(Album album) async {
-    if (_currentService is YouTubeMusicService) {
-      return await (_currentService! as YouTubeMusicService).followAlbum(album);
-    }
-    return false;
-  }
-
-  /// Unfollow an album (YouTube Music only)
-  Future<bool> unfollowAlbum(String albumId) async {
-    if (_currentService is YouTubeMusicService) {
-      return await (_currentService! as YouTubeMusicService).unfollowAlbum(albumId);
-    }
-    return false;
-  }
-
-  /// Check if following an album (YouTube Music only)
-  bool isAlbumFollowed(String albumId) {
-    if (_currentService is YouTubeMusicService) {
-      return (_currentService! as YouTubeMusicService).isAlbumFollowed(albumId);
-    }
-    return false;
-  }
-
-  /// Get tracks for an artist (SoundCloud only - /users/{id}/tracks)
-  Future<List<Track>> getArtistTracks(String artistId, {String? artistName}) async {
-    if (_currentService is SoundCloudService) {
-      return await (_currentService! as SoundCloudService)
-          .getArtistTracks(artistId, artistName: artistName);
-    }
-    if (_currentService is YouTubeMusicService) {
-      return await (_currentService! as YouTubeMusicService)
-          .getArtistTracks(artistId, artistName: artistName);
-    }
-    return [];
-  }
-
   /// Service-specific playlist management methods (not in base interface)
   Future<Playlist?> createPlaylist(String name) async {
     // Dynamic dispatch based on service type
@@ -491,16 +375,6 @@ class MediaServiceManager {
         break;
       case ServerType.plex:
         // Plex playlist creation not yet implemented
-        break;
-      case ServerType.soundcloud:
-        if (_currentService is SoundCloudService) {
-          return await (_currentService as SoundCloudService).createPlaylist(name);
-        }
-        break;
-      case ServerType.youtubeMusic:
-        if (_currentService is YouTubeMusicService) {
-          return await (_currentService as YouTubeMusicService).createPlaylist(name);
-        }
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -532,22 +406,6 @@ class MediaServiceManager {
         break;
       case ServerType.plex:
         // Plex add to playlist not yet implemented
-        break;
-      case ServerType.soundcloud:
-        if (_currentService is SoundCloudService) {
-          return await (_currentService as SoundCloudService).addToPlaylist(
-            playlistId,
-            trackId,
-          );
-        }
-        break;
-      case ServerType.youtubeMusic:
-        if (_currentService is YouTubeMusicService) {
-          return await (_currentService as YouTubeMusicService).addToPlaylist(
-            playlistId,
-            trackId,
-          );
-        }
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -601,22 +459,6 @@ class MediaServiceManager {
       case ServerType.plex:
         // Plex remove track from playlist not yet implemented
         break;
-      case ServerType.soundcloud:
-        if (_currentService is SoundCloudService) {
-          return await (_currentService as SoundCloudService).removeTrackFromPlaylist(
-            playlistId,
-            trackId,
-          );
-        }
-        break;
-      case ServerType.youtubeMusic:
-        if (_currentService is YouTubeMusicService) {
-          return await (_currentService as YouTubeMusicService).removeTrackFromPlaylist(
-            playlistId,
-            trackId,
-          );
-        }
-        break;
     }
     return false;
   }
@@ -641,17 +483,6 @@ class MediaServiceManager {
         break;
       case ServerType.plex:
         // Plex rename playlist not yet implemented
-        break;
-      case ServerType.soundcloud:
-        if (_currentService is SoundCloudService) {
-          return await (_currentService as SoundCloudService).renamePlaylist(
-            playlistId,
-            newName,
-          );
-        }
-        break;
-      case ServerType.youtubeMusic:
-        // Rename playlist not implemented for YTM
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -680,16 +511,6 @@ class MediaServiceManager {
         break;
       case ServerType.plex:
         // Plex remove playlist not yet implemented
-        break;
-      case ServerType.soundcloud:
-        if (_currentService is SoundCloudService) {
-          return await (_currentService as SoundCloudService).removePlaylist(
-            playlistId,
-          );
-        }
-        break;
-      case ServerType.youtubeMusic:
-        // Remove playlist not implemented for YTM
         break;
       case ServerType.local:
         if (_currentService is LocalMusicService) {
@@ -723,12 +544,6 @@ class JellyfinServiceAdapter implements BaseMediaService {
       credential,
     );
   }
-
-  @override
-  void setServerId(String? serverId) {}
-
-  @override
-  Future<void> persistLocalDataIfAny() async {}
 
   @override
   void setServer(String serverUrl) {

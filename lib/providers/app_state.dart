@@ -17,7 +17,6 @@ import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
 import '../services/logging_service.dart';
-import '../services/audio/just_audio_media_kit_ext.dart' show PlatformAudioConfig;
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
@@ -26,12 +25,6 @@ class AppState extends ChangeNotifier {
   late final DownloadService _downloadService;
   AudioServiceIntegration? _audioHandler;
   final List<StreamSubscription<dynamic>> _audioHandlerSubscriptions = [];
-
-  /// Called by the shell to close the desktop Now Playing overlay. Used on server switch.
-  void Function()? _closeNowPlayingOverlay;
-  void setCloseNowPlayingOverlay(void Function()? fn) {
-    _closeNowPlayingOverlay = fn;
-  }
 
   bool get _isLinux => !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
 
@@ -46,11 +39,11 @@ class AppState extends ChangeNotifier {
   List<Track> _tracks = [];
   List<Playlist> _playlists = [];
   List<Track> _recentTracks = [];
-  List<YTMHomeSection> _youtubeMusicHomeSections = [];
 
   bool _oledDarkModeEnabled = true;
   bool _showAlbumArtEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
+  bool _useDynamicIsle = false; // Disabled by default
   bool _smartBackToStartEnabled = true;
 
   // Debouncing for play/pause to prevent rapid-fire clicking deadlocks
@@ -64,13 +57,7 @@ class AppState extends ChangeNotifier {
   // Locale settings
   Locale? _locale; // null means use system locale
 
-  /// Configured servers for multi-server support. Each map: {id, type, url, displayName?}.
-  List<Map<String, String>> _configuredServers = [];
-  String? _activeServerId;
-
   // Getters
-  List<Map<String, String>> get configuredServers => List.unmodifiable(_configuredServers);
-  String? get activeServerId => _activeServerId;
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
@@ -82,25 +69,6 @@ class AppState extends ChangeNotifier {
   List<Track> get tracks => _tracks;
   List<Playlist> get playlists => _playlists;
   List<Track> get recentTracks => _recentTracks;
-  List<YTMHomeSection> get youtubeMusicHomeSections =>
-      List.unmodifiable(_youtubeMusicHomeSections);
-
-  /// Albums from recently played tracks (unique, order preserved), for "Continue listening".
-  List<Album> get recentlyPlayedAlbums {
-    final seen = <String>{};
-    final result = <Album>[];
-    for (final t in _recentTracks) {
-      final id = t.albumId;
-      if (id == null || id.isEmpty || seen.contains(id)) continue;
-      try {
-        final album = _albums.firstWhere((a) => a.id == id);
-        seen.add(id);
-        result.add(album);
-      } catch (_) { /* skip missing album */ }
-    }
-    return result;
-  }
-
   JellyfinService get jellyfinService => _jellyfinService;
   MediaServiceManager get mediaServiceManager => _mediaServiceManager;
   DownloadService get downloadService => _downloadService;
@@ -153,6 +121,7 @@ class AppState extends ChangeNotifier {
     );
   }
 
+  bool get useDynamicIsle => _useDynamicIsle;
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get showAlbumArtEnabled => _showAlbumArtEnabled;
   bool get loggingEnabled => _loggingEnabled;
@@ -183,15 +152,6 @@ class AppState extends ChangeNotifier {
   void dispose() {
     _clearAudioHandlerListeners();
     _downloadService.removeListener(_onDownloadServiceChanged);
-    // Clean up temporary MPV config
-    if (!kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.linux ||
-            defaultTargetPlatform == TargetPlatform.windows ||
-            defaultTargetPlatform == TargetPlatform.macOS)) {
-      PlatformAudioConfig.cleanupMpvConfig().catchError((e) {
-        debugPrint('AppState: Failed to cleanup MPV config: $e');
-      });
-    }
     super.dispose();
   }
 
@@ -214,11 +174,10 @@ class AppState extends ChangeNotifier {
 
   void _setupAudioHandlerListeners() {
     _clearAudioHandlerListeners();
-    final handler = _audioHandler;
-    if (handler == null) return;
+    if (_audioHandler == null) return;
 
     // Listen to media item changes (track changes)
-    final mediaItemStream = handler.mediaItem;
+    final mediaItemStream = _audioHandler!.mediaItem;
     if (mediaItemStream != null) {
       _audioHandlerSubscriptions.add(
         mediaItemStream.listen((_) {
@@ -228,7 +187,7 @@ class AppState extends ChangeNotifier {
     }
 
     // Listen to current track stream changes (more reliable)
-    final currentTrackStream = handler.currentTrackStream;
+    final currentTrackStream = _audioHandler!.currentTrackStream;
     if (currentTrackStream != null) {
       _audioHandlerSubscriptions.add(
         currentTrackStream.listen((_) {
@@ -238,7 +197,7 @@ class AppState extends ChangeNotifier {
     }
 
     // Listen to playback state changes (for playing/paused status)
-    final playbackStateStream = handler.playbackState;
+    final playbackStateStream = _audioHandler!.playbackState;
     if (playbackStateStream != null) {
       _audioHandlerSubscriptions.add(
         playbackStateStream.listen((_) {
@@ -255,29 +214,9 @@ class AppState extends ChangeNotifier {
     _audioHandlerSubscriptions.clear();
   }
 
-  static const String _keyConfiguredServers = 'configured_servers';
-  static const String _keyActiveServerId = 'active_server_id';
-
   Future<void> _loadSavedServer() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      _configuredServers = await _loadConfiguredServers();
-      _activeServerId = prefs.getString(_keyActiveServerId);
-
-      if (_configuredServers.isNotEmpty && _activeServerId != null) {
-        final server = _configuredServers.where((s) => s['id'] == _activeServerId).firstOrNull;
-        if (server != null) {
-          // YouTube Music is not available on web; do not activate
-          if (server['type'] == 'youtubeMusic' && kIsWeb) {
-            // Leave user logged out of YTM on web; they can switch to another server
-          } else {
-            final success = await _connectToServer(server);
-            if (success) return;
-          }
-        }
-      }
-
-      // Fall back to legacy single-server format and migrate
+      // Try to load saved credentials for any server type
       final credentials = await _loadServerCredentials();
 
       if (credentials != null) {
@@ -295,12 +234,6 @@ class AppState extends ChangeNotifier {
           }
         }
 
-        // YouTube Music is not available on web; skip restoring
-        if (serverType == 'youtubeMusic' && kIsWeb) {
-          _setLoading(false);
-          return;
-        }
-
         // Initialize the appropriate service
         ServerType type;
         switch (serverType) {
@@ -309,12 +242,6 @@ class AppState extends ChangeNotifier {
             break;
           case 'subsonic':
             type = ServerType.subsonic;
-            break;
-          case 'soundcloud':
-            type = ServerType.soundcloud;
-            break;
-          case 'youtubeMusic':
-            type = ServerType.youtubeMusic;
             break;
           default:
             type = ServerType.jellyfin;
@@ -345,24 +272,6 @@ class AppState extends ChangeNotifier {
             _isLoggedIn = true;
             _isConnected = true;
             _isOfflineMode = false;
-
-            // Migrate to multi-server format
-            final serverId = 'srv_${DateTime.now().millisecondsSinceEpoch}_${serverUrl.hashCode.abs()}';
-            final serverConfig = <String, String>{
-              'id': serverId,
-              'type': serverType,
-              'url': serverUrl,
-              'authMethod': authMethod,
-              if (authMethod == 'api_key' && credentials['apiKey'] != null)
-                'apiKey': credentials['apiKey']!,
-              if (authMethod == 'password') ...{
-                'identifier': credentials['identifier']!,
-                'credential': credentials['credential']!,
-              },
-            };
-            _configuredServers = [serverConfig];
-            _activeServerId = serverId;
-            await _saveConfiguredServers();
 
             // Initialize cache service first
             await _cacheService.initialize();
@@ -630,11 +539,7 @@ class AppState extends ChangeNotifier {
   }
 
   /// Login to Jellyfin using an API key instead of username/password
-  Future<bool> loginWithApiKey(
-    String serverUrl,
-    String apiKey, {
-    String? displayName,
-  }) async {
+  Future<bool> loginWithApiKey(String serverUrl, String apiKey) async {
     _setLoading(true);
     _clearError();
 
@@ -655,20 +560,6 @@ class AppState extends ChangeNotifier {
 
       if (success) {
         _isLoggedIn = true;
-
-        // Add to configured servers
-        final serverId = 'srv_${DateTime.now().millisecondsSinceEpoch}_${serverUrl.hashCode.abs()}';
-        final serverConfig = <String, String>{
-          'id': serverId,
-          'type': 'jellyfin',
-          'url': serverUrl,
-          'authMethod': 'api_key',
-          'apiKey': apiKey,
-          if (displayName != null && displayName.isNotEmpty) 'displayName': displayName,
-        };
-        _configuredServers = [..._configuredServers, serverConfig];
-        _activeServerId = serverId;
-        await _saveConfiguredServers();
 
         // Initialize cache service
         await _cacheService.initialize();
@@ -720,9 +611,8 @@ class AppState extends ChangeNotifier {
 
   /// Login to Jellyfin using Quick Connect (already authenticated service)
   Future<bool> loginWithQuickConnect(
-    JellyfinService authenticatedService, {
-    String? displayName,
-  }) async {
+    JellyfinService authenticatedService,
+  ) async {
     _setLoading(true);
     _clearError();
 
@@ -733,21 +623,6 @@ class AppState extends ChangeNotifier {
       );
 
       _isLoggedIn = true;
-
-      final serverUrl = authenticatedService.serverUrl ?? '';
-      // Add to configured servers (Quick Connect - credentials from jellyfinService)
-      final serverId = 'srv_${DateTime.now().millisecondsSinceEpoch}_${serverUrl.hashCode.abs()}';
-      final serverConfig = <String, String>{
-        'id': serverId,
-        'type': 'jellyfin',
-        'url': serverUrl,
-        'authMethod': 'quick_connect',
-        'identifier': authenticatedService.userId ?? '',
-        if (displayName != null && displayName.isNotEmpty) 'displayName': displayName,
-      };
-      _configuredServers = [..._configuredServers, serverConfig];
-      _activeServerId = serverId;
-      await _saveConfiguredServers();
 
       // Initialize cache service
       await _cacheService.initialize();
@@ -835,18 +710,6 @@ class AppState extends ChangeNotifier {
 
       _isLoggedIn = true;
 
-      // Add to configured servers
-      final serverId = 'srv_local_${DateTime.now().millisecondsSinceEpoch}';
-      final serverConfig = <String, String>{
-        'id': serverId,
-        'type': 'local',
-        'url': 'local',
-        'authMethod': 'local',
-      };
-      _configuredServers = [..._configuredServers, serverConfig];
-      _activeServerId = serverId;
-      await _saveConfiguredServers();
-
       // Initialize cache service
       await _cacheService.initialize();
 
@@ -893,9 +756,8 @@ class AppState extends ChangeNotifier {
     String serverType,
     String serverUrl,
     String identifier,
-    String credential, {
-    String? displayName,
-  }) async {
+    String credential,
+  ) async {
     _setLoading(true);
     _clearError();
 
@@ -909,12 +771,6 @@ class AppState extends ChangeNotifier {
         case 'subsonic':
           type = ServerType.subsonic;
           break;
-        case 'soundcloud':
-          type = ServerType.soundcloud;
-          break;
-        case 'youtubeMusic':
-          type = ServerType.youtubeMusic;
-          break;
         case 'local':
           type = ServerType.local;
           break;
@@ -927,26 +783,12 @@ class AppState extends ChangeNotifier {
       // Initialize the appropriate service
       _mediaServiceManager.initializeService(type);
 
-      // Ensure serverUrl has protocol for non-Plex, non-local, non-SoundCloud, and non-YouTube Music services
+      // Ensure serverUrl has protocol for non-Plex and non-local services
       if (type != ServerType.plex &&
           type != ServerType.local &&
-          type != ServerType.soundcloud &&
-          type != ServerType.youtubeMusic &&
           !serverUrl.startsWith('http://') &&
           !serverUrl.startsWith('https://')) {
         serverUrl = 'http://$serverUrl';
-      }
-
-      // SoundCloud uses client_id/secret; use fixed API base as serverUrl if empty
-      if (type == ServerType.soundcloud &&
-          (serverUrl.isEmpty || !serverUrl.startsWith('http'))) {
-        serverUrl = 'https://api.soundcloud.com';
-      }
-
-      // YouTube Music uses fixed URL
-      if (type == ServerType.youtubeMusic &&
-          (serverUrl.isEmpty || !serverUrl.startsWith('http'))) {
-        serverUrl = 'https://music.youtube.com';
       }
 
       final success = await _mediaServiceManager.authenticate(
@@ -957,21 +799,6 @@ class AppState extends ChangeNotifier {
 
       if (success) {
         _isLoggedIn = true;
-
-        // Add to configured servers
-        final serverId = 'srv_${DateTime.now().millisecondsSinceEpoch}_${serverUrl.hashCode.abs()}';
-        final serverConfig = <String, String>{
-          'id': serverId,
-          'type': serverType,
-          'url': serverUrl,
-          'authMethod': 'password',
-          'identifier': identifier,
-          'credential': credential,
-          if (displayName != null && displayName.isNotEmpty) 'displayName': displayName,
-        };
-        _configuredServers = [..._configuredServers, serverConfig];
-        _activeServerId = serverId;
-        await _saveConfiguredServers();
 
         // Initialize cache service
         await _cacheService.initialize();
@@ -1005,14 +832,7 @@ class AppState extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        final detail = (serverType == 'soundcloud' || serverType == 'youtubeMusic')
-            ? _mediaServiceManager.lastAuthError
-            : null;
-        _setError(
-          detail != null && detail.isNotEmpty
-              ? 'Authentication failed. $detail'
-              : 'Authentication failed. Please check your credentials.',
-        );
+        _setError('Authentication failed. Please check your credentials.');
         _setLoading(false);
         return false;
       }
@@ -1050,205 +870,6 @@ class AppState extends ChangeNotifier {
     await prefs.setString('server_url', serverUrl);
     await prefs.setString('server_identifier', identifier);
     await prefs.setString('server_credential', credential);
-  }
-
-  Future<List<Map<String, String>>> _loadConfiguredServers() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final json = prefs.getString(_keyConfiguredServers);
-      if (json == null) return [];
-      final list = jsonDecode(json) as List<dynamic>? ?? [];
-      return list
-          .map((e) => (e as Map<String, dynamic>).map(
-                (k, v) => MapEntry(k, v?.toString() ?? ''),
-              ))
-          .toList();
-    } catch (e) {
-      return [];
-    }
-  }
-
-  Future<void> _saveConfiguredServers() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyConfiguredServers, jsonEncode(_configuredServers));
-    if (_activeServerId != null) {
-      await prefs.setString(_keyActiveServerId, _activeServerId!);
-    } else {
-      await prefs.remove(_keyActiveServerId);
-    }
-  }
-
-  /// Connect to a server config (from configured_servers with full credentials).
-  Future<bool> _connectToServer(Map<String, String> server) async {
-    final serverType = server['type'] ?? 'jellyfin';
-    var serverUrl = server['url'] ?? '';
-    final authMethod = server['authMethod'] ?? 'password';
-
-    if (serverType == 'local') {
-      return await loginWithLocalMusic();
-    }
-
-    // YouTube Music is not available on web
-    if (serverType == 'youtubeMusic' && kIsWeb) {
-      return false;
-    }
-
-    ServerType type;
-    switch (serverType) {
-      case 'plex':
-        type = ServerType.plex;
-        break;
-      case 'subsonic':
-        type = ServerType.subsonic;
-        break;
-      case 'soundcloud':
-        type = ServerType.soundcloud;
-        break;
-      case 'youtubeMusic':
-        type = ServerType.youtubeMusic;
-        break;
-      default:
-        type = ServerType.jellyfin;
-    }
-
-    _mediaServiceManager.initializeService(type);
-    _mediaServiceManager.setServerId(server['id']);
-    if (type != ServerType.plex &&
-        type != ServerType.local &&
-        type != ServerType.soundcloud &&
-        type != ServerType.youtubeMusic &&
-        !serverUrl.startsWith('http://') &&
-        !serverUrl.startsWith('https://')) {
-      serverUrl = 'http://$serverUrl';
-    }
-    if (type == ServerType.soundcloud &&
-        (serverUrl.isEmpty || !serverUrl.startsWith('http'))) {
-      serverUrl = 'https://api.soundcloud.com';
-    }
-    if (type == ServerType.youtubeMusic &&
-        (serverUrl.isEmpty || !serverUrl.startsWith('http'))) {
-      serverUrl = 'https://music.youtube.com';
-    }
-    _mediaServiceManager.setServer(serverUrl);
-
-    try {
-      bool isValid = false;
-      if (authMethod == 'api_key' && server['apiKey'] != null) {
-        isValid = await _jellyfinService
-            .authenticateWithApiKey(serverUrl, server['apiKey']!)
-            .timeout(const Duration(seconds: 10));
-      } else {
-        final identifier = server['identifier'] ?? '';
-        final credential = server['credential'] ?? '';
-        isValid = await _mediaServiceManager
-            .authenticate(serverUrl, identifier, credential)
-            .timeout(const Duration(seconds: 10));
-      }
-
-      if (isValid) {
-        _isLoggedIn = true;
-        _isConnected = true;
-        _isOfflineMode = false;
-        await _cacheService.initialize();
-        try {
-          if (_audioHandler == null) {
-            final audioService = AudioServiceIntegration.instance;
-            await audioService.initialize(_mediaServiceManager);
-            _audioHandler = audioService;
-          }
-          _setupAudioHandlerListeners();
-          _audioHandler?.audioHandler?.setSmartBackToStartEnabled(_smartBackToStartEnabled);
-        } catch (e) {
-          if (_audioHandler == null) rethrow;
-          _setupAudioHandlerListeners();
-        }
-        await loadLibraryData();
-        return true;
-      }
-    } catch (_) { /* connection or setup failed */ }
-    return false;
-  }
-
-  /// Switch to a different configured server.
-  Future<bool> switchToServer(String serverId) async {
-    _setLoading(true);
-    _clearError();
-    try {
-      final servers = await _loadConfiguredServers();
-      final server = servers.where((s) => s['id'] == serverId).firstOrNull;
-      if (server == null) {
-        _setLoading(false);
-        return false;
-      }
-
-      _closeNowPlayingOverlay?.call();
-
-      // Keep audio handler alive so AudioService does not need re-init (not supported)
-      await _disconnectWithoutClearingServers(disposeAudio: false);
-      _activeServerId = serverId;
-      _configuredServers = servers;
-      await _saveConfiguredServers();
-      final success = await _connectToServer(server);
-      _setLoading(false);
-      notifyListeners();
-      return success;
-    } catch (e) {
-      _setLoading(false);
-      notifyListeners();
-      return false;
-    }
-  }
-
-  /// Disconnect from current server without clearing configured servers.
-  /// When [disposeAudio] is false (e.g. server switch), the audio handler is
-  /// reset but not disposed so audio works after reconnecting.
-  Future<void> _disconnectWithoutClearingServers({bool disposeAudio = true}) async {
-    await _mediaServiceManager.persistLocalDataIfAny();
-    _mediaServiceManager.clearAuth();
-    _clearAudioHandlerListeners();
-    if (disposeAudio) {
-      try {
-        await _audioHandler?.dispose();
-      } catch (_) { /* ignore dispose error */ }
-      _audioHandler = null;
-    } else {
-      try {
-        await _audioHandler?.resetForServerSwitch();
-      } catch (_) { /* ignore reset error */ }
-    }
-    _isLoggedIn = false;
-    _albums.clear();
-    _artists.clear();
-    _tracks.clear();
-    _playlists.clear();
-    _recentTracks.clear();
-    _youtubeMusicHomeSections = [];
-    // Clear library cache so loadLibraryData fetches fresh data from new server
-    try {
-      await _cacheService.clearAlbumsCache();
-      await _cacheService.clearArtistsCache();
-      await _cacheService.clearTracksCache();
-      await _cacheService.clearPlaylistsCache();
-    } catch (_) { /* ignore cache clear error */ }
-    _clearError();
-  }
-
-  /// Remove a server from the list. If it was active, switch to another.
-  Future<void> removeServer(String serverId) async {
-    _configuredServers = _configuredServers.where((s) => s['id'] != serverId).toList();
-    if (_activeServerId == serverId) {
-      _activeServerId = _configuredServers.isNotEmpty ? _configuredServers.first['id'] : null;
-      if (_activeServerId != null) {
-        await switchToServer(_activeServerId!);
-      } else {
-        await _disconnectWithoutClearingServers();
-        await _saveConfiguredServers();
-        notifyListeners();
-      }
-    } else {
-      await _saveConfiguredServers();
-      notifyListeners();
-    }
   }
 
   Future<Map<String, String>?> _loadServerCredentials() async {
@@ -1298,20 +919,14 @@ class AppState extends ChangeNotifier {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Clear all server credentials and multi-server data
+    // Clear all server credentials
     await prefs.remove('jellyfin_server'); // Legacy Jellyfin
     await prefs.remove('jellyfin_credentials');
     await prefs.remove('subsonic_credentials');
     await prefs.remove('plex_credentials');
-    await prefs.remove('server_type');
-    await prefs.remove('server_url');
-    await prefs.remove('server_identifier');
-    await prefs.remove('server_credential');
-    await prefs.remove(_keyConfiguredServers);
-    await prefs.remove(_keyActiveServerId);
+
+    // Clear saved server type
     await prefs.remove('saved_server_type');
-    _configuredServers = [];
-    _activeServerId = null;
 
     // Clear local music data if using local service
     final localService = _mediaServiceManager.localMusicService;
@@ -1340,83 +955,9 @@ class AppState extends ChangeNotifier {
     _artists.clear();
     _tracks.clear();
     _playlists.clear();
-    _youtubeMusicHomeSections = [];
     _clearError();
 
     notifyListeners();
-  }
-
-  /// Factory reset: completely reset the app to initial state.
-  /// Clears all data: preferences, cache, downloads, servers, audio state, etc.
-  /// This is irreversible and will log the user out.
-  Future<void> factoryReset() async {
-    try {
-      // 1. Clear all SharedPreferences (get all keys and remove them)
-      final prefs = await SharedPreferences.getInstance();
-      final allKeys = prefs.getKeys();
-      for (final key in allKeys) {
-        await prefs.remove(key);
-      }
-
-      // 2. Clear all cache (database and files)
-      await _cacheService.initialize();
-      await _cacheService.clearAllCache();
-      await ImageCacheManager.clearCache();
-      _clearFlutterImageCache();
-
-      // 3. Clear all downloads
-      await _downloadService.clearAllDownloads();
-
-      // 4. Clear local music data
-      final localService = _mediaServiceManager.localMusicService;
-      if (localService != null) {
-        await localService.fullLogout();
-      }
-
-      // 5. Clear media service manager state
-      _mediaServiceManager.clearAuth();
-
-      // 6. Dispose and clear audio handler
-      try {
-        await _audioHandler?.dispose();
-      } catch (_) {
-        // Ignore dispose errors
-      }
-      _audioHandler = null;
-      _clearAudioHandlerListeners();
-
-      // 7. Clear all in-memory state
-      _configuredServers = [];
-      _activeServerId = null;
-      _isLoggedIn = false;
-      _isInitialized = false;
-      _albums.clear();
-      _artists.clear();
-      _tracks.clear();
-      _playlists.clear();
-      _recentTracks.clear();
-      _youtubeMusicHomeSections = [];
-      _clearError();
-
-      // 8. Clean up MPV config file (if created by app)
-      try {
-        await PlatformAudioConfig.cleanupMpvConfig();
-      } catch (_) {
-        // Ignore cleanup errors
-      }
-
-      // 9. Reset user settings to defaults (they'll be reloaded on next init)
-      _themeMode = ThemeMode.system;
-      _accentColor = Colors.purple;
-      _locale = null;
-      _oledDarkModeEnabled = false;
-
-      notifyListeners();
-    } catch (e) {
-      // If factory reset fails, at least try to clear what we can
-      _clearError();
-      rethrow;
-    }
   }
 
   Future<bool> _attemptTokenRefresh() async {
@@ -1484,64 +1025,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Restore favorite status from downloaded tracks
-  void _restoreFavoriteStatusFromDownloads() {
-    final downloadedTracks = _downloadService.downloadedTracks;
-    for (int i = 0; i < _tracks.length; i++) {
-      final track = _tracks[i];
-      final downloadedTrack = downloadedTracks[track.id];
-      if (downloadedTrack != null && downloadedTrack.isFavorite != track.isFavorite) {
-        _tracks[i] = Track(
-          id: track.id,
-          name: track.name,
-          albumName: track.albumName,
-          artistName: track.artistName,
-          albumId: track.albumId,
-          playlistItemId: track.playlistItemId,
-          duration: track.duration,
-          trackNumber: track.trackNumber,
-          imageUrl: track.imageUrl,
-          isFavorite: downloadedTrack.isFavorite,
-          playCount: track.playCount,
-        );
-      }
-    }
-  }
-
-  /// Restore favorite status from service local storage (YouTube Music / SoundCloud).
-  /// Call after loading from cache so favorites persist across app restarts.
-  Future<void> _restoreFavoriteStatusFromService() async {
-    if (_mediaServiceManager.currentServerType != ServerType.youtubeMusic &&
-        _mediaServiceManager.currentServerType != ServerType.soundcloud) {
-      return;
-    }
-    try {
-      final starred = await _mediaServiceManager.getStarredTracks();
-      final favoriteIds = starred.map((t) => t.id).toSet();
-      for (int i = 0; i < _tracks.length; i++) {
-        final track = _tracks[i];
-        final shouldBeFavorite = favoriteIds.contains(track.id);
-        if (track.isFavorite != shouldBeFavorite) {
-          _tracks[i] = Track(
-            id: track.id,
-            name: track.name,
-            albumName: track.albumName,
-            artistName: track.artistName,
-            albumId: track.albumId,
-            playlistItemId: track.playlistItemId,
-            duration: track.duration,
-            trackNumber: track.trackNumber,
-            imageUrl: track.imageUrl,
-            isFavorite: shouldBeFavorite,
-            playCount: track.playCount,
-          );
-        }
-      }
-    } catch (_) {
-      // Ignore; service may not be ready
-    }
-  }
-
   Future<void> loadLibraryData() async {
     if (!_isLoggedIn) {
       return;
@@ -1568,12 +1051,6 @@ class AppState extends ChangeNotifier {
         _artists = cachedArtists;
         _tracks = cachedTracks;
         _playlists = cachedPlaylists;
-
-        // Restore favorite status from downloaded tracks
-        _restoreFavoriteStatusFromDownloads();
-
-        // Restore favorite status from service (YouTube Music / SoundCloud local storage)
-        await _restoreFavoriteStatusFromService();
 
         try {
           _audioHandler?.updateMediaLibrary(
@@ -1728,21 +1205,6 @@ class AppState extends ChangeNotifier {
       _artists = results[1] as List<Artist>;
       _tracks = results[2] as List<Track>;
       _playlists = results[3] as List<Playlist>;
-
-      // YouTube Music: load home sections (Quick Picks, moods, Albums for you, etc.)
-      if (_mediaServiceManager.currentServerType == ServerType.youtubeMusic) {
-        try {
-          _youtubeMusicHomeSections =
-              await _mediaServiceManager.getYouTubeMusicHomeSections();
-        } catch (_) {
-          _youtubeMusicHomeSections = [];
-        }
-      } else {
-        _youtubeMusicHomeSections = [];
-      }
-
-      // Restore favorite status from downloaded tracks
-      _restoreFavoriteStatusFromDownloads();
 
       try {
         _audioHandler?.updateMediaLibrary(
@@ -1918,32 +1380,19 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  /// Get tracks for an artist (SoundCloud only - fetches from API)
-  Future<List<Track>> getArtistTracks(Artist artist) async {
-    try {
-      return await _mediaServiceManager.getArtistTracks(
-        artist.id,
-        artistName: artist.name,
-      );
-    } catch (e) {
-      _setError('Failed to load artist tracks: ${e.toString()}');
-      return [];
+  Future<void> playTrack(Track track) async {
+    if (_audioHandler != null) {
+      await _audioHandler!.playTrack(track);
+      _addToRecentTracks(track);
+      notifyListeners();
     }
   }
 
-  Future<void> playTrack(Track track) async {
-    final handler = _audioHandler;
-    if (handler == null) return;
-    await handler.playTrack(track);
-    _addToRecentTracks(track);
-    notifyListeners();
-  }
-
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
-    final handler = _audioHandler;
-    if (handler == null) return;
-    await handler.playPlaylist(tracks, startIndex);
-    notifyListeners();
+    if (_audioHandler != null) {
+      await _audioHandler!.playPlaylist(tracks, startIndex);
+      notifyListeners();
+    }
   }
 
   Future<void> playPause() async {
@@ -1954,15 +1403,14 @@ class AppState extends ChangeNotifier {
     }
     _lastPlayPauseCommand = now;
 
-    final handler = _audioHandler;
-    if (handler != null) {
-      final userIntendedPlaying = handler.userIntendedPlaying;
+    if (_audioHandler != null) {
+      final userIntendedPlaying = _audioHandler!.userIntendedPlaying;
 
       try {
         if (userIntendedPlaying) {
-          await handler.pause();
+          await _audioHandler!.pause();
         } else {
-          await handler.play();
+          await _audioHandler!.play();
         }
       } catch (e) {
         // Try to recover by notifying listeners anyway
@@ -1973,30 +1421,30 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> skipToNext() async {
-    final handler = _audioHandler;
-    if (handler == null) return;
-    await handler.skipToNext();
-    notifyListeners();
+    if (_audioHandler != null) {
+      await _audioHandler!.skipToNext();
+      notifyListeners();
+    }
   }
 
   Future<void> skipToPrevious() async {
-    final handler = _audioHandler;
-    if (handler == null) return;
-    await handler.skipToPrevious();
-    notifyListeners();
+    if (_audioHandler != null) {
+      await _audioHandler!.skipToPrevious();
+      notifyListeners();
+    }
   }
 
   Future<void> skipToIndex(int index) async {
-    final handler = _audioHandler;
-    if (handler == null) return;
-    await handler.skipToQueueItem(index);
-    notifyListeners();
+    if (_audioHandler != null) {
+      await _audioHandler!.skipToQueueItem(index);
+      notifyListeners();
+    }
   }
 
   Future<void> seekTo(Duration position) async {
-    final handler = _audioHandler;
-    if (handler == null) return;
-    await handler.seek(position);
+    if (_audioHandler != null) {
+      await _audioHandler!.seek(position);
+    }
   }
 
   void addToQueue(Track track) {
@@ -2090,11 +1538,8 @@ class AppState extends ChangeNotifier {
       final shuffledTracks = List<Track>.from(allTracks);
       shuffledTracks.shuffle();
 
-      final handler = _audioHandler;
-      if (handler != null) {
-        await handler.playPlaylist(shuffledTracks, 0);
-        await handler.shuffle(); // Enable shuffle mode
-      }
+      await _audioHandler!.playPlaylist(shuffledTracks, 0);
+      await _audioHandler!.shuffle(); // Enable shuffle mode
     } catch (e) {
       // Error in shuffleAllTracks
     } finally {
@@ -2136,11 +1581,8 @@ class AppState extends ChangeNotifier {
       final shuffledFavorites = List<Track>.from(favoriteTracks);
       shuffledFavorites.shuffle();
 
-      final handler = _audioHandler;
-      if (handler != null) {
-        await handler.playPlaylist(shuffledFavorites, 0);
-        await handler.shuffle(); // Enable shuffle mode
-      }
+      await _audioHandler!.playPlaylist(shuffledFavorites, 0);
+      await _audioHandler!.shuffle(); // Enable shuffle mode
     } catch (e) {
       // Error in shuffleFavoriteTracks
     } finally {
@@ -2248,72 +1690,6 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       _setError('Failed to toggle album favorite: ${e.toString()}');
     }
-  }
-
-  /// Follow an artist (SoundCloud only). Their tracks show up on home/library.
-  Future<bool> followArtist(Artist artist) async {
-    try {
-      final success = await _mediaServiceManager.followArtist(artist);
-      if (success) {
-        await loadLibraryData();
-      }
-      return success;
-    } catch (e) {
-      _setError('Failed to follow artist: ${e.toString()}');
-      return false;
-    }
-  }
-
-  /// Unfollow an artist (SoundCloud only)
-  Future<bool> unfollowArtist(String artistId) async {
-    try {
-      final success = await _mediaServiceManager.unfollowArtist(artistId);
-      if (success) {
-        await loadLibraryData();
-      }
-      return success;
-    } catch (e) {
-      _setError('Failed to unfollow artist: ${e.toString()}');
-      return false;
-    }
-  }
-
-  /// Check if following an artist (SoundCloud only)
-  bool isFollowingArtist(String artistId) {
-    return _mediaServiceManager.isFollowingArtist(artistId);
-  }
-
-  /// Follow an album (YouTube Music only). Album appears in the Albums library tab.
-  Future<bool> followAlbum(Album album) async {
-    try {
-      final success = await _mediaServiceManager.followAlbum(album);
-      if (success) {
-        await loadLibraryData();
-      }
-      return success;
-    } catch (e) {
-      _setError('Failed to follow album: ${e.toString()}');
-      return false;
-    }
-  }
-
-  /// Unfollow an album (YouTube Music only)
-  Future<bool> unfollowAlbum(String albumId) async {
-    try {
-      final success = await _mediaServiceManager.unfollowAlbum(albumId);
-      if (success) {
-        await loadLibraryData();
-      }
-      return success;
-    } catch (e) {
-      _setError('Failed to unfollow album: ${e.toString()}');
-      return false;
-    }
-  }
-
-  /// Check if following an album (YouTube Music only)
-  bool isAlbumFollowed(String albumId) {
-    return _mediaServiceManager.isAlbumFollowed(albumId);
   }
 
   Future<bool> createPlaylist(String name) async {
@@ -2497,6 +1873,13 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> toggleDynamicIsle(bool enabled) async {
+    _useDynamicIsle = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('use_dynamic_isle', enabled);
+    notifyListeners();
+  }
+
   Future<void> toggleSmartBackToStart(bool enabled) async {
     _smartBackToStartEnabled = enabled;
 
@@ -2566,6 +1949,8 @@ class AppState extends ChangeNotifier {
     _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
     _loggingEnabled =
         prefs.getBool('logging_enabled') ?? false; // Disabled by default
+    _useDynamicIsle =
+        prefs.getBool('use_dynamic_isle') ?? false; // Disabled by default
     _smartBackToStartEnabled =
         prefs.getBool('smart_back_to_start_enabled') ?? true;
 
@@ -2658,106 +2043,37 @@ class AppState extends ChangeNotifier {
     return _locale ?? ui.PlatformDispatcher.instance.locale;
   }
 
-  /// Export all SharedPreferences as a JSON-serializable map. Version and keys are
-  /// taken from prefs.getKeys() so new keys need no code changes.
-  Future<Map<String, dynamic>> exportAllPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    final keys = prefs.getKeys();
-    final prefsMap = <String, dynamic>{};
-    for (final key in keys) {
-      final list = prefs.getStringList(key);
-      if (list != null) {
-        prefsMap[key] = list;
-      } else {
-        final i = prefs.getInt(key);
-        if (i != null) {
-          prefsMap[key] = i;
-        } else {
-          final b = prefs.getBool(key);
-          if (b != null) {
-            prefsMap[key] = b;
-          } else {
-            final d = prefs.getDouble(key);
-            if (d != null) {
-              prefsMap[key] = d;
-            } else {
-              final s = prefs.getString(key);
-              if (s != null) prefsMap[key] = s;
-            }
-          }
-        }
-      }
-    }
-    return {
-      'version': 1,
-      'exportedAt': DateTime.now().toIso8601String(),
-      'prefs': prefsMap,
-    };
-  }
-
-  /// Import preferences from a map (e.g. from exportAllPreferences). Applies all
-  /// keys, then reloads user settings and server config so the app state updates.
-  Future<void> importAllPreferences(Map<String, dynamic> payload) async {
-    final prefsMap = payload['prefs'] as Map<String, dynamic>?;
-    if (prefsMap == null || prefsMap.isEmpty) return;
-    final prefs = await SharedPreferences.getInstance();
-    for (final entry in prefsMap.entries) {
-      final key = entry.key;
-      final value = entry.value;
-      if (value is List) {
-        await prefs.setStringList(key, value.map((e) => e.toString()).toList());
-      } else if (value is int) {
-        await prefs.setInt(key, value);
-      } else if (value is bool) {
-        await prefs.setBool(key, value);
-      } else if (value is double) {
-        await prefs.setDouble(key, value);
-      } else if (value is String) {
-        await prefs.setString(key, value);
-      }
-    }
-    await _loadUserSettings();
-    _configuredServers = await _loadConfiguredServers();
-    _activeServerId = prefs.getString(_keyActiveServerId);
-    if (_configuredServers.isNotEmpty && _activeServerId != null) {
-      final server = _configuredServers.where((s) => s['id'] == _activeServerId).firstOrNull;
-      if (server != null && (server['type'] != 'youtubeMusic' || !kIsWeb)) {
-        await _connectToServer(server);
-      }
-    }
-    notifyListeners();
-  }
-
   // Cache management methods
   Future<void> clearAllCache() async {
-    await _cacheService.initialize();
-    await _cacheService.clearAllCache();
-    await ImageCacheManager.clearCache();
-    _clearFlutterImageCache();
+    try {
+      await _cacheService.clearAllCache();
+      await ImageCacheManager.clearCache();
+    } catch (e) {
+      // Error clearing cache
+    }
   }
 
   Future<void> clearDataCache() async {
-    await _cacheService.initialize();
-    await _cacheService.clearAllCache();
+    try {
+      await _cacheService.clearAllCache();
+    } catch (e) {
+      // Error clearing data cache
+    }
   }
 
   Future<void> clearImageCache() async {
-    await ImageCacheManager.clearCache();
-    _clearFlutterImageCache();
-  }
-
-  static void _clearFlutterImageCache() {
     try {
-      PaintingBinding.instance.imageCache.clear();
-      PaintingBinding.instance.imageCache.clearLiveImages();
-    } catch (_) { /* ignore image cache clear error */ }
+      await ImageCacheManager.clearCache();
+    } catch (e) {
+      // Error clearing image cache
+    }
   }
 
   Future<Map<String, dynamic>> getCacheStats() async {
     try {
-      await _cacheService.initialize();
       final dataStats = await _cacheService.getCacheStats();
       final imageSize = await ImageCacheManager.getCacheSize();
+
       return {'data_cache': dataStats, 'image_cache_size': imageSize};
     } catch (e) {
       return {};
@@ -2943,18 +2259,17 @@ class AppState extends ChangeNotifier {
 
   /// Cycle through repeat modes: none -> all -> one -> none
   Future<void> _cycleRepeatMode() async {
-    final handler = _audioHandler;
-    if (handler == null) return;
+    if (_audioHandler == null) return;
 
-    final currentMode = handler.repeatMode;
+    final currentMode = _audioHandler!.repeatMode;
 
     // Cycle: none -> all -> one -> none
     if (currentMode == RepeatMode.none) {
-      await handler.setRepeatMode(RepeatMode.all);
+      await _audioHandler!.setRepeatMode(RepeatMode.all);
     } else if (currentMode == RepeatMode.all) {
-      await handler.setRepeatMode(RepeatMode.one);
+      await _audioHandler!.setRepeatMode(RepeatMode.one);
     } else {
-      await handler.setRepeatMode(RepeatMode.none);
+      await _audioHandler!.setRepeatMode(RepeatMode.none);
     }
     notifyListeners();
   }
@@ -2962,9 +2277,8 @@ class AppState extends ChangeNotifier {
   /// Handle general "play music" command - plays recently played or shuffles all
   Future<void> _handleVoicePlayGeneral() async {
     // If there's something in the queue, resume playback
-    final handler = _audioHandler;
-    if (handler != null && queue.isNotEmpty) {
-      await handler.play();
+    if (_audioHandler != null && queue.isNotEmpty) {
+      await _audioHandler!.play();
       return;
     }
 
@@ -3064,15 +2378,6 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       // Error in searchAndPlay
     }
-  }
-
-  /// Run server-side search (e.g. SoundCloud, Jellyfin). Used by the Search page.
-  Future<SearchResults> searchMedia(String query, {int? limit}) async {
-    if (!_isLoggedIn) return SearchResults();
-    return await _mediaServiceManager.search(
-      query.trim(),
-      limit: limit ?? 50,
-    );
   }
 
   /// Search for and play music by a specific artist
@@ -3295,9 +2600,6 @@ class AppState extends ChangeNotifier {
     _tracks = _tracks
         .where((track) => downloadedTrackIds.contains(track.id))
         .toList();
-
-    // Restore favorite status from downloaded tracks
-    _restoreFavoriteStatusFromDownloads();
 
     // Filter albums to only show those with downloaded tracks
     _albums = _albums

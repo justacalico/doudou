@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
-import 'package:doudou/ui/layout/navigation_service.dart';
+import 'package:doudou/ui/desktop/services/navigation_service.dart';
 
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
@@ -53,40 +53,23 @@ class _ArtistsPageState extends State<ArtistsPage> {
               ),
             ),
           ],
-          child: appState.isLoading && artists.isEmpty
+          child: artists.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const CircularProgressIndicator(),
+                      Icon(Icons.person_outline_rounded,
+                          size: 64, color: DesktopTheme.textMuted),
                       const SizedBox(height: DesktopTheme.spacingMd),
                       Text(
-                        l10n.loadingArtists,
+                        l10n.noArtistsFound,
                         style: TextStyle(
-                            fontSize: 16,
-                            color: DesktopTheme.textSecondary),
+                            fontSize: 16, color: DesktopTheme.textSecondary),
                       ),
                     ],
                   ),
                 )
-              : artists.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.person_outline_rounded,
-                              size: 64, color: DesktopTheme.textMuted),
-                          const SizedBox(height: DesktopTheme.spacingMd),
-                          Text(
-                            l10n.noArtistsFound,
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: DesktopTheme.textSecondary),
-                          ),
-                        ],
-                      ),
-                    )
-                  : GridView.builder(
+              : GridView.builder(
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 200,
                     childAspectRatio: 0.75,

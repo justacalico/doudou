@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' if (dart.library.html) 'dart:html';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
@@ -11,14 +10,6 @@ import 'audio_state_controller.dart';
 import 'queue_manager.dart';
 import '../../models/jellyfin_models.dart';
 import '../media_service_manager.dart';
-import '../base_service.dart';
-import 'providers/base_provider_handler.dart';
-import 'providers/youtube_music_handler.dart';
-import 'providers/soundcloud_handler.dart';
-import 'providers/navidrome_handler.dart';
-import 'providers/plex_handler.dart';
-import 'providers/local_music_handler.dart';
-import 'just_audio_media_kit_ext.dart' show PlatformAudioConfig;
 
 // Platform detection
 bool get _isMobile =>
@@ -45,41 +36,18 @@ enum RepeatMode { none, one, all }
 /// - Desktop: media_kit backend, player recreation
 /// - Web: CORS handling, simplified streams
 class UnifiedAudioHandler extends BaseAudioHandler {
-  UnifiedAudioHandler(this._mediaServiceManager) {
-    _player = _createPlayer();
-    _initializeAudio();
-  }
-
   final MediaServiceManager _mediaServiceManager;
   final AudioStateController _stateController = AudioStateController();
   final AudioQueueManager _queueManager = AudioQueueManager();
 
-  // Provider handler registry
-  final Map<ServerType, BaseProviderHandler> _providerHandlers = {};
-  BaseProviderHandler? _currentProviderHandler;
-  DateTime? _lastLoadStartedAt;
-  DateTime? _lastCompletionHandledAt;
-
-  // Harmony-Music uses simple AudioPlayer() without userAgent/proxy config
-  // User-Agent is set via mpv.conf (PlatformAudioConfig) instead
-
   // Player instance - may be recreated on desktop to prevent native callback crashes
-  late AudioPlayer _player;
-
-  AudioPlayer _createPlayer() {
-    // Harmony-Music uses simple AudioPlayer() without headers/proxy
-    // They use AudioSource.uri() without headers - just_audio handles googlevideo.com natively
-    return AudioPlayer();
-  }
+  AudioPlayer _player = AudioPlayer();
 
   // Player generation ID for desktop callback invalidation
   int _playerGeneration = 0;
-  
-  // Lock to prevent concurrent player recreation (desktop)
-  bool _isRecreatingPlayer = false;
 
-  // Stream subscriptions for proper cleanup (list is mutated, not reassigned)
-  final List<StreamSubscription> _subscriptions = [];
+  // Stream subscriptions for proper cleanup
+  List<StreamSubscription> _subscriptions = [];
 
   // Disposed flag to prevent callbacks after cleanup
   bool _disposed = false;
@@ -87,8 +55,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   // Loading operation management
   int _loadOperationId = 0;
 
-  // Guard against multiple rapid completion events (prevents skipping many tracks)
-  bool _isHandlingCompletion = false;
+  // Lock to prevent concurrent player recreation (desktop)
+  bool _isRecreatingPlayer = false;
 
   // Radio mode state
   bool _radioModeEnabled = false;
@@ -126,27 +94,19 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     'app.channel/battery',
   );
 
-  // Provider-specific audio source (e.g., ConcatenatingAudioSource for YouTube Music)
-  AudioSource? _providerAudioSource;
-  bool _providerAudioSourceAttached = false;
-
   // === Desktop-specific state ===
   // Preloading system for faster skips
   String? _preloadedNextUrl;
   String? _preloadedPreviousUrl;
-  // Resolved stream URL cache (e.g. SoundCloud) for gapless / instant play
-  final Map<String, String> _resolvedUrlCache = {};
-  static const int _maxResolvedUrlCacheSize = 40;
-  // Track IDs we're currently preloading (avoid duplicate work)
-  final Set<String> _preloadingTrackIds = {};
+
+  // Constructor
+  UnifiedAudioHandler(this._mediaServiceManager) {
+    _initializeAudio();
+  }
 
   /// Initialize audio system based on platform
   Future<void> _initializeAudio() async {
     try {
-      // Initialize provider handlers
-      _initializeProviderHandlers();
-      _updateProviderHandler();
-
       // Desktop: Initialize media_kit backend
       if (_isDesktop) {
         await _initializeDesktopBackend();
@@ -184,67 +144,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   /// Initialize mobile audio session
   Future<void> _initializeMobileSession() async {
     // Audio session is automatically handled by audio_service package
-  }
-
-  /// Initialize provider handlers registry
-  void _initializeProviderHandlers() {
-    _providerHandlers[ServerType.youtubeMusic] = YouTubeMusicHandler();
-    _providerHandlers[ServerType.soundcloud] = SoundCloudHandler();
-    _providerHandlers[ServerType.subsonic] = NavidromeHandler();
-    _providerHandlers[ServerType.jellyfin] = JellyfinHandler();
-    _providerHandlers[ServerType.plex] = PlexHandler();
-    _providerHandlers[ServerType.local] = LocalMusicHandler();
-  }
-
-  /// Update current provider handler based on active service
-  void _updateProviderHandler() {
-    final currentService = _mediaServiceManager.currentService;
-    _currentProviderHandler = currentService != null
-        ? _providerHandlers[currentService.serverType]
-        : null;
-  }
-
-  /// Recreate player instance (desktop only) to prevent native callback crashes
-  /// This matches v14's approach for non-YouTube tracks
-  Future<void> _recreatePlayer() async {
-    if (!_isDesktop || _isRecreatingPlayer) return;
-    _isRecreatingPlayer = true;
-
-    try {
-      if (kDebugMode) {
-        debugPrint('[Playback] Recreating player (desktop)');
-      }
-      
-      _playerGeneration++;
-
-      final oldPlayer = _player;
-      final oldSubscriptions = List<StreamSubscription>.from(_subscriptions);
-
-      _subscriptions.clear();
-      _player = _createPlayer();
-      _setupPlayerListeners();
-
-      // Dispose old resources in background
-      Future.microtask(() async {
-        for (final sub in oldSubscriptions) {
-          try {
-            await sub.cancel();
-          } catch (e) {
-            // Ignore
-          }
-        }
-      });
-
-      Future.delayed(const Duration(milliseconds: 200), () async {
-        try {
-          await oldPlayer.dispose();
-        } catch (e) {
-          // Ignore
-        }
-      });
-    } finally {
-      _isRecreatingPlayer = false;
-    }
   }
 
   /// Initialize power management (mobile only)
@@ -299,9 +198,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             .throttleTime(const Duration(milliseconds: 100))
             .listen((pos) {
               try {
-                if (!shouldIgnore()) {
-                  _stateController.updatePosition(pos);
-                }
+                if (!shouldIgnore()) _stateController.updatePosition(pos);
               } catch (e) {
                 // Ignore - callback may have fired after disposal
               }
@@ -309,9 +206,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       );
     } else {
       _subscriptions.add(
-        _player.positionStream.listen((position) {
-          _stateController.updatePosition(position);
-        }),
+        _player.positionStream.listen(_stateController.updatePosition),
       );
     }
 
@@ -323,20 +218,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             .listen((duration) {
               try {
                 if (!shouldIgnore()) {
-                  if (duration != null && duration > Duration.zero) {
-                    if (kDebugMode) {
-                      debugPrint('[Playback] Duration detected: ${duration.inSeconds}s');
-                    }
-                    _stateController.updateDuration(duration);
-                  } else {
-                    // Linux/Navidrome: player often never reports duration. Use track metadata.
-                    final track = _stateController.currentTrack;
-                    if (track?.duration != null && track!.duration! > 0) {
-                      _stateController.updateDuration(Duration(milliseconds: track.duration!));
-                    } else {
-                      _stateController.updateDuration(Duration.zero);
-                    }
-                  }
+                  _stateController.updateDuration(duration ?? Duration.zero);
                 }
               } catch (e) {
                 // Ignore
@@ -375,13 +257,16 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }),
     );
 
-    // Player completion - only listen, don't handle here (handled in _handlePlayerStateChange)
-    // This prevents double-handling of completion events
+    // Player completion
     _subscriptions.add(
       (_isDesktop ? capturedPlayer : _player).playbackEventStream
           .where((event) => event.processingState == ProcessingState.completed)
-          .listen((event) {
-            // Completion is handled in _handlePlayerStateChange to avoid double-handling
+          .listen((_) {
+            try {
+              if (!shouldIgnore()) _handleTrackCompletion();
+            } catch (e) {
+              // Ignore
+            }
           }),
     );
 
@@ -412,9 +297,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       );
     } else {
       _subscriptions.add(
-        _player.volumeStream.listen((volume) {
-          _stateController.updateVolume(volume);
-        }),
+        _player.volumeStream.listen(_stateController.updateVolume),
       );
       _subscriptions.add(
         _player.speedStream.listen(_stateController.updateSpeed),
@@ -463,6 +346,44 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     );
   }
 
+  /// Recreate player instance (desktop only) to prevent native callback crashes
+  Future<void> _recreatePlayer() async {
+    if (!_isDesktop || _isRecreatingPlayer) return;
+    _isRecreatingPlayer = true;
+
+    try {
+      _playerGeneration++;
+
+      final oldPlayer = _player;
+      final oldSubscriptions = _subscriptions;
+
+      _subscriptions = [];
+      _player = AudioPlayer();
+      _setupPlayerListeners();
+
+      // Dispose old resources in background
+      Future.microtask(() async {
+        for (final sub in oldSubscriptions) {
+          try {
+            await sub.cancel();
+          } catch (e) {
+            // Ignore
+          }
+        }
+      });
+
+      Future.delayed(const Duration(milliseconds: 200), () async {
+        try {
+          await oldPlayer.dispose();
+        } catch (e) {
+          // Ignore
+        }
+      });
+    } finally {
+      _isRecreatingPlayer = false;
+    }
+  }
+
   /// Handle player state changes
   void _handlePlayerStateChange(PlayerState playerState) {
     if (_disposed) return;
@@ -481,9 +402,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         break;
       case ProcessingState.ready:
         if (playerState.playing) {
-          if (kDebugMode) {
-            debugPrint('[Playback] Playing: ${_stateController.currentTrack?.name ?? "?"}');
-          }
           _stateController.updateState(AudioPlayerState.playing);
           if (_isMobile) {
             _attemptForegroundService();
@@ -498,9 +416,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
                 if (_isMobile) await _attemptForegroundService();
                 await _player.play();
               } catch (e) {
-                if (kDebugMode) {
-                  debugPrint('[Playback] Auto-continue play() failed: $e');
-                }
+                // Auto-continue failed
               }
             });
           }
@@ -508,13 +424,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         }
         break;
       case ProcessingState.completed:
-        if (kDebugMode) {
-          debugPrint('[Playback] Track completed: ${_stateController.currentTrack?.name ?? "?"}');
-        }
         _stateController.updateState(AudioPlayerState.completed);
         if (_isMobile) _foregroundServiceActive = false;
-        // Trigger completion handling
-        _handleTrackCompletion();
         break;
     }
 
@@ -537,120 +448,79 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   /// Handle track completion
   Future<void> _handleTrackCompletion() async {
     if (_disposed) return;
-    if (_isHandlingCompletion) {
+
+    if (_isMobile) _cancelLoadingTimeout();
+
+    // In radio mode, fetch and play similar tracks
+    if (_radioModeEnabled) {
+      await _handleRadioModeNext();
       return;
     }
 
-    // Check with provider handler if completion should be handled
-    final state = _player.playerState;
-    final position = _player.position;
-    final duration = _player.duration;
-    
-    if (_currentProviderHandler != null) {
-      final shouldHandle = _currentProviderHandler!.shouldHandleCompletion(
-        state: state,
-        position: position,
-        duration: duration,
-        loadStartedAt: _lastLoadStartedAt,
-        lastCompletionHandledAt: _lastCompletionHandledAt,
-      );
-      
-      if (!shouldHandle) {
-        if (kDebugMode) {
-          debugPrint('[Playback] Completion rejected by provider handler');
-        }
-        return;
-      }
-    }
-
-    _isHandlingCompletion = true;
-    try {
-      if (_isMobile) _cancelLoadingTimeout();
-
-      // Call provider-specific completion handling if needed
-      if (_currentProviderHandler != null) {
-        await _currentProviderHandler!.handleCompletion();
-      }
-
-      // In radio mode, fetch and play similar tracks
-      if (_radioModeEnabled) {
-        await _handleRadioModeNext();
-        return;
-      }
-
-      // Normal mode - advance to next track (or repeat same if repeat one)
-      final currentIndex = _stateController.currentIndex;
-      final nextIndex = _queueManager.getNextTrackIndex();
-      
-      if (nextIndex != null) {
-        final isRepeatOne = _stateController.repeatMode == RepeatMode.one;
-        if (nextIndex == currentIndex && isRepeatOne) {
-          if (kDebugMode) {
-            debugPrint('[Playback] Repeat one: restarting track');
-          }
-          // Repeat one: seek to start and play (avoid full reload)
-          try {
-            await _player.seek(Duration.zero);
-            if (_stateController.userIntendedPlaying) await _player.play();
-          } catch (e) {
-            if (kDebugMode) {
-              debugPrint('[Playback] Repeat one failed: $e');
-            }
-          }
-          return;
-        }
-        if (kDebugMode) {
-          debugPrint('[Playback] Advancing to next track (index $nextIndex)');
-        }
-        if (_isDesktop) {
-          await _playNextTrackWithRetry(nextIndex);
-        } else {
-          await _performSkipToQueueItem(nextIndex);
-        }
+    // Normal mode - advance to next track
+    final nextIndex = _queueManager.getNextTrackIndex();
+    if (nextIndex != null) {
+      if (_isDesktop) {
+        await _playNextTrackWithRetry(nextIndex);
       } else {
-        if (kDebugMode) {
-          debugPrint('[Playback] Queue ended, autoplay=$_autoplayEnabled');
-        }
-        // Queue ended - check if autoplay is enabled
-        if (_autoplayEnabled) {
-          await _handleAutoplayNext();
-        } else {
-          _stateController.updateState(AudioPlayerState.completed);
-          _stateController.updateUserIntent(false);
-        }
+        await _performSkipToQueueItem(nextIndex);
       }
-    } finally {
-      _isHandlingCompletion = false;
-      _lastCompletionHandledAt = DateTime.now();
+    } else {
+      // Queue ended - check if autoplay is enabled
+      if (_autoplayEnabled) {
+        await _handleAutoplayNext();
+      } else {
+        _stateController.updateState(AudioPlayerState.completed);
+        _stateController.updateUserIntent(false);
+      }
     }
   }
 
-  /// Play next track with retry logic (desktop).
-  /// Retries the same track up to maxRetries; does NOT skip to next track on
-  /// failure, to avoid silently jumping over multiple tracks (e.g. SoundCloud).
+  /// Play next track with retry logic (desktop)
   Future<void> _playNextTrackWithRetry(
     int startIndex, {
     int maxRetries = 3,
   }) async {
+    int currentIndex = startIndex;
     int retryCount = 0;
 
-    while (retryCount < maxRetries) {
+    while (retryCount < maxRetries &&
+        currentIndex < _stateController.queue.length) {
       try {
-        await skipToQueueItem(startIndex);
+        await skipToQueueItem(currentIndex);
         return;
       } catch (e) {
         retryCount++;
         if (retryCount >= maxRetries) {
-          _stateController.updateError('Failed to play track: $e');
-          _stateController.updateState(AudioPlayerState.error);
-          _stateController.updateUserIntent(false);
-          return;
+          retryCount = 0;
+          currentIndex = _getNextAvailableTrackIndex(currentIndex);
+          if (currentIndex == -1) {
+            _stateController.updateState(AudioPlayerState.completed);
+            _stateController.updateUserIntent(false);
+            return;
+          }
+        } else {
+          await Future.delayed(const Duration(milliseconds: 500));
         }
-        await Future.delayed(const Duration(milliseconds: 500));
       }
     }
+
+    _stateController.updateState(AudioPlayerState.completed);
+    _stateController.updateUserIntent(false);
   }
 
+  int _getNextAvailableTrackIndex(int currentIndex) {
+    final queue = _stateController.queue;
+    final nextIndex = currentIndex + 1;
+
+    if (nextIndex < queue.length) return nextIndex;
+
+    if (_stateController.repeatMode == RepeatMode.all && queue.isNotEmpty) {
+      return 0;
+    }
+
+    return -1;
+  }
 
   /// Handle radio mode - fetch similar tracks
   Future<void> _handleRadioModeNext() async {
@@ -873,8 +743,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       try {
         await _player.stop();
         _stateController.updateState(AudioPlayerState.idle);
-        // Reset provider audio source attachment on stop
-        _providerAudioSourceAttached = false;
       } catch (e) {
         _stateController.updateError('Stop failed: $e');
       }
@@ -924,13 +792,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _updatePlaybackStateStream();
 
     try {
-      final urls = await _getStreamUrls(track);
-      if (urls.isEmpty) {
-        _stateController.updateError('No stream URL available for this track');
-        _stateController.updateState(AudioPlayerState.error);
-        return;
-      }
-      await _loadAndPlayTrackWithFallbacks(urls);
+      final streamUrl = await _getStreamUrl(track);
+      await _loadAndPlayTrack(streamUrl);
     } catch (e) {
       _stateController.updateError('Failed to play track: $e');
       _stateController.updateState(AudioPlayerState.error);
@@ -949,12 +812,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _queueManager.setQueue(tracks, startIndex: validStartIndex);
     _stateController.updateCurrentTrack(tracks[validStartIndex]);
     _stateController.updateState(AudioPlayerState.loading);
-
-    // Preload first track (and next) for providers that need async resolution (e.g. SoundCloud)
-    preloadStreamUrl(tracks[validStartIndex].id);
-    if (validStartIndex + 1 < tracks.length) {
-      preloadStreamUrl(tracks[validStartIndex + 1].id);
-    }
 
     // Update UI streams for all platforms
     _updateMediaItem(tracks[validStartIndex]);
@@ -1077,7 +934,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     } catch (e) {
       _stateController.updateError('Skip failed: $e');
       _stateController.updateState(AudioPlayerState.error);
-      rethrow;
     }
   }
 
@@ -1088,184 +944,41 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _stateController.updateCurrentIndex(index);
     _stateController.updateCurrentTrack(track);
 
-    final urls = await _getStreamUrls(track);
-    if (urls.isEmpty) {
-      _stateController.updateError('No stream URL available for this track');
-      _stateController.updateState(AudioPlayerState.error);
-      return;
-    }
-    await _loadAndPlayTrackWithFallbacks(urls);
+    final streamUrl = await _getStreamUrl(track);
+    await _loadAndPlayTrack(streamUrl);
 
-    // Preload adjacent tracks for faster skips (desktop uses preloaded URLs; mobile/web use cache)
-    _preloadAdjacentTracks(index);
+    // Desktop: Preload adjacent tracks for faster skips
+    if (_isDesktop) {
+      _preloadAdjacentTracks(index);
+    }
   }
 
-  /// Preload adjacent tracks (desktop + async for SoundCloud etc.)
+  /// Preload adjacent tracks (desktop only)
   void _preloadAdjacentTracks(int currentIndex) {
+    if (!_isDesktop) return;
+
     final queue = _stateController.queue;
 
     if (currentIndex + 1 < queue.length) {
       final nextTrack = queue[currentIndex + 1];
-      final direct = _mediaServiceManager.getDirectStreamUrl(nextTrack.id);
-      if (direct.isNotEmpty) {
-        _preloadedNextUrl = direct;
-      } else {
-        _preloadedNextUrl = null;
-        _preloadStreamUrlIntoNextPrev(nextTrack.id, isNext: true);
-      }
+      _preloadedNextUrl = _mediaServiceManager.getDirectStreamUrl(nextTrack.id);
     } else {
       _preloadedNextUrl = null;
     }
 
     if (currentIndex - 1 >= 0) {
       final previousTrack = queue[currentIndex - 1];
-      final direct = _mediaServiceManager.getDirectStreamUrl(previousTrack.id);
-      if (direct.isNotEmpty) {
-        _preloadedPreviousUrl = direct;
-      } else {
-        _preloadedPreviousUrl = null;
-        _preloadStreamUrlIntoNextPrev(previousTrack.id, isNext: false);
-      }
+      _preloadedPreviousUrl = _mediaServiceManager.getDirectStreamUrl(
+        previousTrack.id,
+      );
     } else {
       _preloadedPreviousUrl = null;
-    }
-  }
-
-  void _preloadStreamUrlIntoNextPrev(String trackId, {required bool isNext}) {
-    if (trackId.isEmpty || _preloadingTrackIds.contains(trackId)) return;
-    
-    _updateProviderHandler();
-    
-    // Check if provider supports preloading
-    if (_currentProviderHandler == null || !_currentProviderHandler!.supportsPreloading()) {
-      return;
-    }
-    
-    if (_resolvedUrlCache.containsKey(trackId)) {
-      final url = _resolvedUrlCache[trackId]!;
-      if (isNext) {
-        _preloadedNextUrl = url;
-      } else {
-        _preloadedPreviousUrl = url;
-      }
-      return;
-    }
-    
-    // Find track in queue
-    final queue = _stateController.queue;
-    final track = queue.firstWhere(
-      (t) => t.id == trackId,
-      orElse: () => Track(
-        id: trackId,
-        name: '',
-        duration: 0,
-      ),
-    );
-    
-    if (track.id.isEmpty) return;
-    
-    _preloadingTrackIds.add(trackId);
-    _currentProviderHandler!.preloadStreamUrl(
-      track,
-      _mediaServiceManager,
-      (id, url) {
-        _preloadingTrackIds.remove(id);
-        if (_disposed) return;
-        _cacheResolvedUrl(id, url);
-        if (isNext) {
-          _preloadedNextUrl = url;
-        } else {
-          _preloadedPreviousUrl = url;
-        }
-      },
-    ).catchError((e) {
-      if (kDebugMode) {
-        debugPrint('[Playback] preloadStreamUrl: failed for trackId=$trackId: $e');
-      }
-      _preloadingTrackIds.remove(trackId);
-    });
-  }
-
-  /// Apply current volume and speed from state to the player.
-  /// Needed after loading a new track so the new stream respects user settings
-  /// (e.g. on desktop the player is recreated and defaults to 1.0).
-  Future<void> _applyVolumeAndSpeedToPlayer() async {
-    if (_disposed) return;
-    
-    final volume = _stateController.volume;
-    final speed = _stateController.speed;
-
-    try {
-      await _player.setVolume(volume);
-      await _player.setSpeed(speed);
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[Playback] Failed to apply volume/speed: $e');
-      }
-    }
-  }
-
-
-  /// Wait until the stream has actually loaded (duration > 0, ready or buffering).
-  /// Used for YT (throws on timeout so fallback URLs are tried) and optionally for desktop non-YT (don't throw).
-  Future<void> _waitForStreamReady({
-    required Duration timeout,
-    required int operationId,
-    bool throwOnTimeout = true,
-  }) async {
-    final completer = Completer<void>();
-    StreamSubscription<PlayerState>? subState;
-    StreamSubscription<Duration?>? subDuration;
-    Timer? timeoutTimer;
-
-    void check() {
-      if (_disposed || _loadOperationId != operationId) {
-        if (!completer.isCompleted) completer.complete();
-        return;
-      }
-      final state = _player.playerState;
-      final duration = _player.duration;
-      // Accept ready or buffering (stream has started); duration > 0 means URL opened successfully.
-      final hasDuration = duration != null && duration > Duration.zero;
-      final canPlay = state.processingState == ProcessingState.ready ||
-          state.processingState == ProcessingState.buffering;
-      
-      if (hasDuration && canPlay) {
-        if (!completer.isCompleted) completer.complete();
-      }
-    }
-
-    subState = _player.playerStateStream.listen((_) => check());
-    subDuration = _player.durationStream.listen((_) => check());
-    check();
-
-    timeoutTimer = Timer(timeout, () {
-      if (!completer.isCompleted) {
-        if (throwOnTimeout) {
-          completer.completeError(
-            TimeoutException('YT stream did not become ready within ${timeout.inSeconds}s', timeout),
-          );
-        } else {
-          completer.complete();
-        }
-      }
-    });
-
-    try {
-      await completer.future;
-    } finally {
-      await subState.cancel();
-      await subDuration.cancel();
-      timeoutTimer.cancel();
     }
   }
 
   /// Load and play track from URL
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
-
-    // Harmony 1:1: no proxy; direct googlevideo.com URL for YT on mobile and desktop.
-    final isYouTube = url.contains('googlevideo.com');
 
     _stateController.updateState(AudioPlayerState.loading);
     _stateController.updateUserIntent(true);
@@ -1281,119 +994,24 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }
     }
 
-    // Update provider handler if service changed
-    _updateProviderHandler();
-    
-    if (kDebugMode) {
-      final track = _stateController.currentTrack;
-      final uri = Uri.tryParse(url);
-      debugPrint('[Playback] Loading: ${track?.name ?? "?"}');
-      debugPrint('[Playback] Stream URL: $url');
-      debugPrint('[Playback] URL host: ${uri?.host ?? "?"}, isYouTube: $isYouTube, provider: ${_currentProviderHandler?.runtimeType.toString().replaceFirst('Handler', '') ?? "none"}');
-      if (track != null) {
-        debugPrint('[Playback] Track id: ${track.id}, duration: ${track.duration != null ? "${track.duration}ms" : "?"}');
-      }
-    }
-    
-    // Create audio source using provider handler
-    _lastLoadStartedAt = DateTime.now();
-    final currentOperationId = ++_loadOperationId;
-    
-    AudioSource audioSource;
-    try {
-      if (_currentProviderHandler != null) {
-        // Use provider-specific audio source (e.g., ConcatenatingAudioSource for YouTube Music)
-        audioSource = await _currentProviderHandler!.createAudioSource(
-          url,
-          existingSource: _providerAudioSource,
-        );
-        // Store provider-specific source for reuse
-        if (audioSource is ConcatenatingAudioSource) {
-          _providerAudioSource = audioSource;
-        }
-      } else {
-        // Default: standard AudioSource.uri()
-        audioSource = AudioSource.uri(Uri.parse(url));
-        _providerAudioSource = null;
-      }
-    } catch (e) {
-      // Fallback to standard source if provider handler fails
-      audioSource = AudioSource.uri(Uri.parse(url));
-      _providerAudioSource = null;
-    }
-
-    // Desktop playback logic
+    // Desktop: Recreate player to prevent native callback crashes
     if (_isDesktop) {
       final currentOperationId = ++_loadOperationId;
-      final isYouTubeMusic = audioSource is ConcatenatingAudioSource;
 
-      // Non-YouTube on desktop: match v14 exactly — use AudioSource.uri() directly and
-      // do NOT write to mpv.conf on Linux. v14 used just_audio_media_kit 2.1.0 from pub.dev
-      // with AudioSource.uri() and never touched mpv.conf on Linux, and audio worked.
-      if (!isYouTubeMusic) {
-        try {
-          await _recreatePlayer();
-          await Future.delayed(const Duration(milliseconds: 50));
-          if (_disposed || currentOperationId != _loadOperationId) return;
+      await _recreatePlayer();
+      await Future.delayed(const Duration(milliseconds: 50));
 
-          await _player
-              .setAudioSource(AudioSource.uri(Uri.parse(url)))
-              .timeout(const Duration(seconds: 8));
-          if (_disposed || currentOperationId != _loadOperationId) return;
+      if (_disposed || currentOperationId != _loadOperationId) return;
 
-          if (_stateController.userIntendedPlaying) {
-            await _player.play().timeout(const Duration(seconds: 3));
-          }
+      try {
+        await _player
+            .setAudioSource(AudioSource.uri(Uri.parse(url)))
+            .timeout(const Duration(seconds: 8));
 
-          final track = _stateController.currentTrack;
-          if (track?.duration != null && track!.duration! > 0) {
-            final metaDuration = Duration(milliseconds: track.duration!);
-            if (_player.duration == null || _player.duration == Duration.zero) {
-              _stateController.updateDuration(metaDuration);
-            }
-          }
-        } catch (e, st) {
-          if (kDebugMode) debugPrint('[Playback] Failed to load track: $e');
-          _stateController.updateState(AudioPlayerState.error);
-          _stateController.updateUserIntent(false);
-          _stateController.updateError('Failed to load track: $e');
-          rethrow;
-        }
-        return;
-      }
-
-      // YouTube Music only: separate path (concat source). v14 never touches mpv.conf on Linux.
-        try {
-        if (!_providerAudioSourceAttached) {
-          await _player.setAudioSource(audioSource);
-          _providerAudioSourceAttached = true;
-        }
         if (_disposed || currentOperationId != _loadOperationId) return;
-        if (_stateController.userIntendedPlaying) {
-          try {
-            await _player.play().timeout(const Duration(seconds: 3));
-          } catch (e) {
-            // Ignore
-          }
-          if (_currentProviderHandler != null &&
-              _currentProviderHandler!.shouldWaitForStreamReady()) {
-            final timeout = _currentProviderHandler!.getStreamReadyTimeout() ??
-                const Duration(seconds: 5);
-            final throwOnTimeout =
-                _currentProviderHandler!.throwOnStreamReadyTimeout();
-            try {
-              await _waitForStreamReady(
-                timeout: timeout,
-                operationId: currentOperationId,
-                throwOnTimeout: throwOnTimeout,
-              );
-            } catch (e) {
-              if (throwOnTimeout) rethrow;
-            }
-          }
-        }
-      } catch (e, st) {
-        if (kDebugMode) debugPrint('[Playback] Failed to load track: $e');
+
+        await _player.play().timeout(const Duration(seconds: 3));
+      } catch (e) {
         _stateController.updateState(AudioPlayerState.error);
         _stateController.updateUserIntent(false);
         _stateController.updateError('Failed to load track: $e');
@@ -1405,52 +1023,16 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (kIsWeb) {
           await _tryLoadWithFallbacks(url);
         } else {
-          // Handle ConcatenatingAudioSource on mobile (YouTube Music)
-          if (audioSource is ConcatenatingAudioSource) {
-            if (!_providerAudioSourceAttached) {
-              await _player.setAudioSource(audioSource);
-              _providerAudioSourceAttached = true;
-            }
-          } else {
-            await _player.setAudioSource(audioSource);
-            _providerAudioSourceAttached = false;
-          }
+          await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
 
           if (_stateController.userIntendedPlaying) {
             if (_isMobile) await _attemptForegroundService();
             await _player.play();
           }
-          
-          // Wait for stream ready if provider requires it (mobile)
-          if (_currentProviderHandler != null && _currentProviderHandler!.shouldWaitForStreamReady()) {
-            final timeout = _currentProviderHandler!.getStreamReadyTimeout() ?? const Duration(seconds: 5);
-            final throwOnTimeout = _currentProviderHandler!.throwOnStreamReadyTimeout();
-            try {
-              await _waitForStreamReady(
-                timeout: timeout,
-                operationId: currentOperationId,
-                throwOnTimeout: throwOnTimeout,
-              );
-            } catch (e) {
-              if (throwOnTimeout) {
-                rethrow;
-              }
-            }
-          }
         }
 
         if (_isMobile) _cancelLoadingTimeout();
-        await _applyVolumeAndSpeedToPlayer();
-        
-        // Set state to playing
-        if (_stateController.userIntendedPlaying) {
-          _stateController.updateState(AudioPlayerState.playing);
-        }
-      } catch (e, st) {
-        if (kDebugMode) {
-          debugPrint('[Playback] _loadAndPlayTrack: FAILED (mobile): $e');
-          debugPrint('[Playback] stackTrace: $st');
-        }
+      } catch (e) {
         if (_isMobile) _cancelLoadingTimeout();
         _stateController.updateState(AudioPlayerState.error);
         _stateController.updateUserIntent(false);
@@ -1476,10 +1058,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
     for (int i = 0; i < urlsToTry.length; i++) {
       final url = urlsToTry[i];
-      // Harmony-style: no headers (just_audio handles URLs natively)
-      final source = AudioSource.uri(Uri.parse(url));
       try {
-        await _player.setAudioSource(source);
+        await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
         await _player.play();
         return;
       } catch (e) {
@@ -1501,173 +1081,36 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         errorString.contains('access-control');
   }
 
-  /// True if a YouTube (googlevideo.com) URL is expired or within 60s of expiry.
+  /// Get stream URL for track
+  Future<String> _getStreamUrl(Track track) async {
+    // Check preloaded URLs (desktop)
+    if (_isDesktop) {
+      final currentIndex = _stateController.currentIndex;
+      final queue = _stateController.queue;
 
-  /// Load and play track, trying each URL until one succeeds (fallback support)
-  Future<void> _loadAndPlayTrackWithFallbacks(List<String> urls) async {
-    if (urls.isEmpty) return;
-    
-    _updateProviderHandler();
-    
-    // Filter URLs using provider handler
-    List<String> validUrls = urls;
-    if (_currentProviderHandler != null) {
-      validUrls = _currentProviderHandler!.filterStreamUrls(urls);
-    } else {
-      // Default filtering
-      validUrls = urls.where((url) {
-        if (url.isEmpty) return false;
-        final lower = url.toLowerCase();
-        return lower.startsWith('http://') || lower.startsWith('https://');
-      }).toList();
-    }
-    
-    if (validUrls.isEmpty) {
-      throw Exception('No valid stream URLs after filtering');
-    }
-    
-    Object? lastError;
-    for (var i = 0; i < validUrls.length; i++) {
-      final url = validUrls[i];
-      try {
-        await _loadAndPlayTrack(url);
-        final track = _stateController.currentTrack;
-        // Cache successful URL if provider supports caching
-        if (track != null && 
-            _currentProviderHandler != null && 
-            _currentProviderHandler!.supportsCaching()) {
-          _cacheResolvedUrl(track.id, url);
+      if (currentIndex != null) {
+        if (currentIndex + 1 < queue.length &&
+            queue[currentIndex + 1].id == track.id &&
+            _preloadedNextUrl != null) {
+          return _preloadedNextUrl!;
         }
-        if (kDebugMode && i > 0) {
-          debugPrint('[Playback] _loadAndPlayTrackWithFallbacks: succeeded with URL #${i + 1} of ${validUrls.length}');
-        }
-        return;
-      } catch (e) {
-        lastError = e;
-        if (kDebugMode) {
-          debugPrint('[Playback] _loadAndPlayTrackWithFallbacks: URL #${i + 1} failed: $e, trying next');
-        }
-        // Don't wait between attempts - try next URL immediately
-      }
-    }
-    throw lastError ?? Exception('All stream URLs failed to load');
-  }
 
-  /// Get stream URLs for track (list for fallback support; single URL for others)
-  /// Delegates to provider handler for URL resolution
-  Future<List<String>> _getStreamUrls(Track track) async {
-    _updateProviderHandler();
-    
-    // Get cached and preloaded URLs
-    final cachedUrl = _resolvedUrlCache[track.id];
-    final currentIndex = _stateController.currentIndex;
-    final queue = _stateController.queue;
-    String? preloadedNextUrl;
-    String? preloadedPreviousUrl;
-    
-    if (_isDesktop && currentIndex != null) {
-      if (currentIndex + 1 < queue.length &&
-          queue[currentIndex + 1].id == track.id) {
-        preloadedNextUrl = _preloadedNextUrl;
-      }
-      if (currentIndex - 1 >= 0 &&
-          queue[currentIndex - 1].id == track.id) {
-        preloadedPreviousUrl = _preloadedPreviousUrl;
+        if (currentIndex - 1 >= 0 &&
+            queue[currentIndex - 1].id == track.id &&
+            _preloadedPreviousUrl != null) {
+          return _preloadedPreviousUrl!;
+        }
       }
     }
-    
-    // Delegate to provider handler
-    if (_currentProviderHandler != null) {
-      final urls = await _currentProviderHandler!.getStreamUrls(
-        track,
-        _mediaServiceManager,
-        cachedUrl: cachedUrl,
-        preloadedNextUrl: preloadedNextUrl,
-        preloadedPreviousUrl: preloadedPreviousUrl,
-      );
-      
-      // Remove from cache if used
-      if (cachedUrl != null && urls.contains(cachedUrl)) {
-        _resolvedUrlCache.remove(track.id);
-      }
-      
-      // Clear preloaded URLs if used
-      if (preloadedNextUrl != null && urls.contains(preloadedNextUrl)) {
-        _preloadedNextUrl = null;
-      }
-      if (preloadedPreviousUrl != null && urls.contains(preloadedPreviousUrl)) {
-        _preloadedPreviousUrl = null;
-      }
-      
-      // Cache first URL if provider supports caching
-      if (urls.isNotEmpty && _currentProviderHandler!.supportsCaching()) {
-        _cacheResolvedUrl(track.id, urls.first);
-      }
-      
-      return urls;
-    }
-    
-    // Fallback: try direct stream URL
+
+    // Try direct stream first
     final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
     if (directUrl.isNotEmpty) {
-      return [directUrl];
+      return directUrl;
     }
-    
-    // Fallback: transcoded stream URL
-    final streamUrl = _mediaServiceManager.getStreamUrl(track.id);
-    if (streamUrl.isNotEmpty) {
-      return [streamUrl];
-    }
-    
-    return [];
-  }
 
-  void _cacheResolvedUrl(String trackId, String url) {
-    if (_resolvedUrlCache.length >= _maxResolvedUrlCacheSize) {
-      final firstKey = _resolvedUrlCache.keys.first;
-      _resolvedUrlCache.remove(firstKey);
-    }
-    _resolvedUrlCache[trackId] = url;
-  }
-
-  /// Preload stream URL for a track (e.g. SoundCloud). Call when queue is set or user is about to play.
-  /// Delegates to provider handler if preloading is supported.
-  void preloadStreamUrl(String trackId) {
-    if (trackId.isEmpty || _preloadingTrackIds.contains(trackId)) return;
-    if (_resolvedUrlCache.containsKey(trackId)) return;
-    
-    _updateProviderHandler();
-    
-    // Check if provider supports preloading
-    if (_currentProviderHandler == null || !_currentProviderHandler!.supportsPreloading()) {
-      return;
-    }
-    
-    // Find track in queue
-    final queue = _stateController.queue;
-    final track = queue.firstWhere(
-      (t) => t.id == trackId,
-      orElse: () => Track(
-        id: trackId,
-        name: '',
-        duration: 0,
-      ),
-    );
-    
-    if (track.id.isEmpty) return;
-    
-    _preloadingTrackIds.add(trackId);
-    _currentProviderHandler!.preloadStreamUrl(
-      track,
-      _mediaServiceManager,
-      (id, url) {
-        _preloadingTrackIds.remove(id);
-        if (_disposed) return;
-        _cacheResolvedUrl(id, url);
-      },
-    ).catchError((_) {
-      _preloadingTrackIds.remove(trackId);
-    });
+    // Fallback to transcoded stream
+    return _mediaServiceManager.getStreamUrl(track.id);
   }
 
   // === Queue Management ===
@@ -1690,35 +1133,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   void clearQueue() {
     _queueManager.clearQueue();
-  }
-
-  /// Reset playback state for server switch. Keeps handler alive (no dispose)
-  /// so AudioService does not need to be re-initialized.
-  Future<void> resetForServerSwitch() async {
-    if (_disposed) return;
-    await stop();
-    clearQueue();
-    _stateController.updateCurrentTrack(null);
-    _stateController.updateState(AudioPlayerState.idle);
-    _stateController.updatePosition(Duration.zero);
-    _stateController.updateDuration(Duration.zero);
-    _stateController.updateQueue([], currentIndex: null);
-    _updateMediaItem(null);
-    _updatePlaybackStateStream();
-    _preloadedNextUrl = null;
-    _preloadedPreviousUrl = null;
-    _resolvedUrlCache.clear();
-    _preloadingTrackIds.clear();
-    // Reset provider audio source when switching servers
-    _providerAudioSource = null;
-    _providerAudioSourceAttached = false;
-    _updateProviderHandler();
-    // On desktop, recreate the player so the native backend (e.g. MPV) fully releases
-    // the previous stream. Otherwise YT audio can keep playing and the new server's
-    // playback may not output sound.
-    if (_isDesktop) {
-      await _recreatePlayer();
-    }
   }
 
   // === Playback Modes ===
@@ -2114,20 +1528,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   }
 
   MediaItem _trackToMediaItem(Track track) {
-    // Prefer track.imageUrl when it's already a full URL (SoundCloud, Plex, Subsonic)
-    String imageUrl = '';
-    if (track.imageUrl != null &&
-        (track.imageUrl!.startsWith('http://') ||
-            track.imageUrl!.startsWith('https://'))) {
-      imageUrl = track.imageUrl!;
-    }
-    if (imageUrl.isEmpty) {
-      imageUrl = _mediaServiceManager.getImageUrl(
-        track.albumId ?? track.id,
-        width: 512,
-        height: 512,
-      );
-    }
+    // Get the image URL
+    final imageUrl = _mediaServiceManager.getImageUrl(
+      track.albumId ?? track.id,
+      width: 512,
+      height: 512,
+    );
 
     // Only use artUri if it's a valid HTTP/HTTPS URL
     // file:// URIs cause errors with SMTC/flutter_cache_manager on Windows
@@ -2191,10 +1597,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   Future<void> dispose() async {
     _disposed = true;
 
-    // Reset provider audio source
-    _providerAudioSource = null;
-    _providerAudioSourceAttached = false;
-
     // Cancel all subscriptions
     for (final subscription in _subscriptions) {
       try {
@@ -2218,11 +1620,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       _foregroundServiceActive = false;
     }
 
-    // Clear preloaded URLs and cache
+    // Clear preloaded URLs
     _preloadedNextUrl = null;
     _preloadedPreviousUrl = null;
-    _resolvedUrlCache.clear();
-    _preloadingTrackIds.clear();
 
     // Stop and dispose player
     try {

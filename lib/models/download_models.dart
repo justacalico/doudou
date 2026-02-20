@@ -1,84 +1,5 @@
 enum DownloadStatus { notDownloaded, downloading, downloaded, failed, paused }
 
-/// Minimal track info stored with downloaded album metadata (for showing all tracks in an album).
-class MinimalTrackInfo {
-  final String id;
-  final String name;
-  final String? artistName;
-  final String? albumName;
-  final int? duration;
-  final int? trackNumber;
-
-  MinimalTrackInfo({
-    required this.id,
-    required this.name,
-    this.artistName,
-    this.albumName,
-    this.duration,
-    this.trackNumber,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'artistName': artistName,
-        'albumName': albumName,
-        'duration': duration,
-        'trackNumber': trackNumber,
-      };
-
-  factory MinimalTrackInfo.fromJson(Map<String, dynamic> json) =>
-      MinimalTrackInfo(
-        id: json['id'],
-        name: json['name'],
-        artistName: json['artistName'],
-        albumName: json['albumName'],
-        duration: json['duration'],
-        trackNumber: json['trackNumber'],
-      );
-}
-
-/// Album metadata stored when at least one track from that album is downloaded.
-class DownloadedAlbumMetadata {
-  final String albumId;
-  final String name;
-  final String? artistName;
-  final String? imageUrl;
-  final String? imagePath;
-  final List<MinimalTrackInfo> tracks;
-
-  DownloadedAlbumMetadata({
-    required this.albumId,
-    required this.name,
-    this.artistName,
-    this.imageUrl,
-    this.imagePath,
-    required this.tracks,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'albumId': albumId,
-        'name': name,
-        'artistName': artistName,
-        'imageUrl': imageUrl,
-        'imagePath': imagePath,
-        'tracks': tracks.map((t) => t.toJson()).toList(),
-      };
-
-  factory DownloadedAlbumMetadata.fromJson(Map<String, dynamic> json) =>
-      DownloadedAlbumMetadata(
-        albumId: json['albumId'],
-        name: json['name'],
-        artistName: json['artistName'],
-        imageUrl: json['imageUrl'],
-        imagePath: json['imagePath'],
-        tracks: (json['tracks'] as List<dynamic>?)
-                ?.map((e) => MinimalTrackInfo.fromJson(e as Map<String, dynamic>))
-                .toList() ??
-            [],
-      );
-}
-
 class DownloadTask {
   final String id;
   final String trackId;
@@ -95,7 +16,6 @@ class DownloadTask {
   DateTime? startTime;
   DateTime? endTime;
   String? errorMessage;
-  final bool isFavorite;
 
   DownloadTask({
     required this.id,
@@ -113,7 +33,6 @@ class DownloadTask {
     this.startTime,
     this.endTime,
     this.errorMessage,
-    this.isFavorite = false,
   });
 
   DownloadTask copyWith({
@@ -132,7 +51,6 @@ class DownloadTask {
     DateTime? startTime,
     DateTime? endTime,
     String? errorMessage,
-    bool? isFavorite,
   }) {
     return DownloadTask(
       id: id ?? this.id,
@@ -150,7 +68,6 @@ class DownloadTask {
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
       errorMessage: errorMessage ?? this.errorMessage,
-      isFavorite: isFavorite ?? this.isFavorite,
     );
   }
 
@@ -171,7 +88,6 @@ class DownloadTask {
       'startTime': startTime?.toIso8601String(),
       'endTime': endTime?.toIso8601String(),
       'errorMessage': errorMessage,
-      'isFavorite': isFavorite,
     };
   }
 
@@ -197,7 +113,6 @@ class DownloadTask {
           : null,
       endTime: json['endTime'] != null ? DateTime.parse(json['endTime']) : null,
       errorMessage: json['errorMessage'],
-      isFavorite: json['isFavorite'] ?? false,
     );
   }
 }
@@ -208,7 +123,6 @@ class DownloadedTrack {
   final String? imagePath;
   final DateTime downloadedAt;
   final int fileSize;
-  final bool isFavorite;
 
   DownloadedTrack({
     required this.trackId,
@@ -216,7 +130,6 @@ class DownloadedTrack {
     this.imagePath,
     required this.downloadedAt,
     required this.fileSize,
-    this.isFavorite = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -226,7 +139,6 @@ class DownloadedTrack {
       'imagePath': imagePath,
       'downloadedAt': downloadedAt.toIso8601String(),
       'fileSize': fileSize,
-      'isFavorite': isFavorite,
     };
   }
 
@@ -237,7 +149,6 @@ class DownloadedTrack {
       imagePath: json['imagePath'],
       downloadedAt: DateTime.parse(json['downloadedAt']),
       fileSize: json['fileSize'],
-      isFavorite: json['isFavorite'] ?? false,
     );
   }
 }
