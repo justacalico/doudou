@@ -124,6 +124,13 @@ class _SettingsPageState extends State<SettingsPage> {
             _themeRadio(ctx, appState, 'system', current, ThemeMode.system),
             _themeRadio(ctx, appState, 'light', current, ThemeMode.light),
             _themeRadio(ctx, appState, 'dark', current, ThemeMode.dark),
+            const Divider(),
+            SwitchListTile(
+              title: const Text('OLED dark mode'),
+              subtitle: const Text('Pure black backgrounds'),
+              value: appState.oledDarkModeEnabled,
+              onChanged: appState.toggleOledDarkMode,
+            ),
           ],
         ),
       ),
@@ -732,34 +739,6 @@ class _AppearanceSection extends StatelessWidget {
                         subtitle: Text(_languageDisplayName(appState)),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: onLanguage,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: 520,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Display', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 12),
-                      SwitchListTile(
-                        title: const Text('Show album art'),
-                        subtitle: const Text('Display artwork in lists and now playing views'),
-                        value: appState.showAlbumArtEnabled,
-                        onChanged: appState.toggleShowAlbumArt,
-                      ),
-                      SwitchListTile(
-                        title: const Text('OLED dark mode'),
-                        subtitle: const Text('Pure black backgrounds'),
-                        value: appState.oledDarkModeEnabled,
-                        onChanged: appState.toggleOledDarkMode,
                       ),
                     ],
                   ),

@@ -41,7 +41,6 @@ class AppState extends ChangeNotifier {
   List<Track> _recentTracks = [];
 
   bool _oledDarkModeEnabled = true;
-  bool _showAlbumArtEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
   bool _smartBackToStartEnabled = true;
 
@@ -121,7 +120,6 @@ class AppState extends ChangeNotifier {
   }
 
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
-  bool get showAlbumArtEnabled => _showAlbumArtEnabled;
   bool get loggingEnabled => _loggingEnabled;
   bool get smartBackToStartEnabled => _smartBackToStartEnabled;
 
@@ -1848,16 +1846,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> toggleShowAlbumArt(bool enabled) async {
-    _showAlbumArtEnabled = enabled;
-
-    // Save the setting to preferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('show_album_art_enabled', enabled);
-
-    notifyListeners();
-  }
-
   Future<void> toggleLogging(bool enabled) async {
     _loggingEnabled = enabled;
 
@@ -1937,7 +1925,6 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
 
     _oledDarkModeEnabled = prefs.getBool('oled_dark_mode_enabled') ?? true;
-    _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
     _loggingEnabled =
         prefs.getBool('logging_enabled') ?? false; // Disabled by default
     _smartBackToStartEnabled =
