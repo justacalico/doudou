@@ -27,7 +27,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String _category = 'general';
+  String _category = 'appearance';
 
   @override
   Widget build(BuildContext context) {
@@ -80,13 +80,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildContent(AppState appState) {
     switch (_category) {
-      case 'general':
-        return _GeneralSection(
-          appState: appState,
-          onTheme: _showThemeDialog,
-          onColor: _showColorDialog,
-          onLanguage: () => _showLanguageDialog(appState),
-        );
       case 'audio':
         return _AudioSection(appState: appState);
       case 'appearance':
@@ -109,7 +102,7 @@ class _SettingsPageState extends State<SettingsPage> {
       case 'about':
         return _AboutSection(appState: appState);
       default:
-        return _GeneralSection(
+        return _AppearanceSection(
           appState: appState,
           onTheme: _showThemeDialog,
           onColor: _showColorDialog,
@@ -472,7 +465,6 @@ class _Sidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final categories = [
-      {'id': 'general', 'label': l10n.generalSettings.split(' ').first, 'icon': Icons.settings_rounded},
       {'id': 'audio', 'label': l10n.audioSettings.split(' ').first, 'icon': Icons.volume_up_rounded},
       {'id': 'appearance', 'label': l10n.appearanceSettings.split(' ').first, 'icon': Icons.palette_rounded},
       {'id': 'server', 'label': isLocalMusic ? 'Local' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
@@ -541,7 +533,6 @@ class _MobileCategorySelector extends StatelessWidget {
 
   List<Map<String, dynamic>> _categories(AppLocalizations l10n, bool isLocalMusic) {
     final list = [
-      {'id': 'general', 'label': l10n.generalSettings, 'icon': Icons.settings_rounded},
       {'id': 'audio', 'label': l10n.audioSettings, 'icon': Icons.volume_up_rounded},
       {'id': 'appearance', 'label': l10n.appearanceSettings, 'icon': Icons.palette_rounded},
       {'id': 'server', 'label': isLocalMusic ? 'Local' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
@@ -634,68 +625,6 @@ class _MobileCategorySelector extends StatelessWidget {
               );
             }),
             const SizedBox(height: DesktopTheme.spacingMd),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// --- General ---
-class _GeneralSection extends StatelessWidget {
-  final AppState appState;
-  final VoidCallback onTheme;
-  final VoidCallback onColor;
-  final VoidCallback onLanguage;
-
-  const _GeneralSection({required this.appState, required this.onTheme, required this.onColor, required this.onLanguage});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      child: Padding(
-        padding: const EdgeInsets.all(DesktopTheme.spacingLg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.generalSettings, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: [
-                SizedBox(
-                  width: 520,
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Playback & visuals', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 12),
-                          SwitchListTile(
-                            title: const Text('Show album art'),
-                            subtitle: const Text('Display artwork in lists and now playing views'),
-                            value: appState.showAlbumArtEnabled,
-                            onChanged: appState.toggleShowAlbumArt,
-                          ),
-                          SwitchListTile(
-                            title: const Text('OLED dark mode'),
-                            subtitle: const Text('Pure black backgrounds'),
-                            value: appState.oledDarkModeEnabled,
-                            onChanged: appState.toggleOledDarkMode,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -803,6 +732,34 @@ class _AppearanceSection extends StatelessWidget {
                         subtitle: Text(_languageDisplayName(appState)),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: onLanguage,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: 520,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Display', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 12),
+                      SwitchListTile(
+                        title: const Text('Show album art'),
+                        subtitle: const Text('Display artwork in lists and now playing views'),
+                        value: appState.showAlbumArtEnabled,
+                        onChanged: appState.toggleShowAlbumArt,
+                      ),
+                      SwitchListTile(
+                        title: const Text('OLED dark mode'),
+                        subtitle: const Text('Pure black backgrounds'),
+                        value: appState.oledDarkModeEnabled,
+                        onChanged: appState.toggleOledDarkMode,
                       ),
                     ],
                   ),
