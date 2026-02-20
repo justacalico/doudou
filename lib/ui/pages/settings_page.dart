@@ -13,6 +13,7 @@ import 'package:doudou/services/update_service.dart';
 
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
+import 'package:doudou/ui/settings/server_connection_section.dart';
 
 /// Breakpoint: below this width use single-column layout (dropdown) instead of sidebar.
 const double _kSettingsBreakpoint = 768.0;
@@ -961,12 +962,29 @@ class _ServerSection extends StatelessWidget {
                       ),
                     ],
                     ListTile(
-                      title: const Text('Sign Out'),
-                      leading: const Icon(Icons.logout),
+                      title: const Text('Disconnect'),
+                      leading: const Icon(Icons.link_off_rounded),
                       textColor: Colors.red,
                       iconColor: Colors.red,
                       onTap: () => onSignOut(appState),
                     ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      appState.isLoggedIn ? 'Switch server' : 'Connect to a server',
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 16),
+                    const ServerConnectionSection(),
                   ],
                 ),
               ),

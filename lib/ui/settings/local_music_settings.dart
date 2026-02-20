@@ -291,8 +291,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
     final success = await appState.loginWithLocalMusic();
 
     if (success && mounted) {
-      // Pop back to login screen, which will then show home since isLoggedIn is true
-      // Use canPop check since the widget tree may already be rebuilding
+      // Pop back to Settings (or previous screen); app will show home since isLoggedIn is true
       if (Navigator.canPop(context)) {
         Navigator.pop(context);
       }
@@ -869,11 +868,11 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Back to login
+                        // Back to Settings
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
                           child: Text(
-                            'Back to Server Selection',
+                            'Back to Settings',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.6),
                               fontSize: 14,

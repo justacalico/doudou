@@ -69,7 +69,11 @@ class _VoiceCommandHandlerState extends State<VoiceCommandHandler> {
 
     // Check if user is logged in (required for most commands)
     if (!appState.isLoggedIn && command.type != VoiceCommandType.unknown) {
-      // Could show a notification or navigate to login
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Add a server in Settings to use voice commands')),
+        );
+      }
       return;
     }
 

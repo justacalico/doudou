@@ -14,7 +14,6 @@ import 'services/players/jellyfin_service.dart';
 import 'services/voice_command_handler.dart';
 import 'l10n/app_localizations.dart';
 import 'ui/theme.dart';
-import 'ui/login.dart';
 import 'ui/layout/app_shell.dart';
 
 void main() async {
@@ -110,11 +109,7 @@ class DoudouApp extends StatelessWidget {
                       );
                     }
 
-                    if (appState.isLoggedIn) {
-                      return const AppShell();
-                    } else {
-                      return const LoginScreen();
-                    }
+                    return const AppShell();
                   },
                 ),
                 debugShowCheckedModeBanner: false,
