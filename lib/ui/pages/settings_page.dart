@@ -111,9 +111,20 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  String _effectiveThemeSelection(AppState appState) {
+    if (appState.themeMode == ThemeMode.dark && appState.oledDarkModeEnabled) {
+      return 'oled';
+    }
+    switch (appState.themeMode) {
+      case ThemeMode.system: return 'system';
+      case ThemeMode.light: return 'light';
+      case ThemeMode.dark: return 'dark';
+    }
+  }
+
   void _showThemeDialog() {
     final appState = context.read<AppState>();
-    final current = _themeModeToString(appState.themeMode);
+    final current = _effectiveThemeSelection(appState);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -121,42 +132,41 @@ class _SettingsPageState extends State<SettingsPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _themeRadio(ctx, appState, 'system', current, ThemeMode.system),
-            _themeRadio(ctx, appState, 'light', current, ThemeMode.light),
-            _themeRadio(ctx, appState, 'dark', current, ThemeMode.dark),
-            const Divider(),
-            SwitchListTile(
-              title: const Text('OLED dark mode'),
-              subtitle: const Text('Pure black backgrounds'),
-              value: appState.oledDarkModeEnabled,
-              onChanged: appState.toggleOledDarkMode,
-            ),
+            _themeRadio(ctx, appState, 'system', current, 'System Default', () {
+              Navigator.pop(ctx);
+              appState.setThemeMode(ThemeMode.system);
+              appState.toggleOledDarkMode(false);
+            }),
+            _themeRadio(ctx, appState, 'light', current, 'Light', () {
+              Navigator.pop(ctx);
+              appState.setThemeMode(ThemeMode.light);
+              appState.toggleOledDarkMode(false);
+            }),
+            _themeRadio(ctx, appState, 'dark', current, 'Dark', () {
+              Navigator.pop(ctx);
+              appState.setThemeMode(ThemeMode.dark);
+              appState.toggleOledDarkMode(false);
+            }),
+            _themeRadio(ctx, appState, 'oled', current, 'OLED', () {
+              Navigator.pop(ctx);
+              appState.setThemeMode(ThemeMode.dark);
+              appState.toggleOledDarkMode(true);
+            }),
           ],
         ),
       ),
     );
   }
 
-  Widget _themeRadio(BuildContext ctx, AppState appState, String label, String current, ThemeMode mode) {
+  Widget _themeRadio(BuildContext ctx, AppState appState, String value, String groupValue, String label, VoidCallback onSelect) {
     return ListTile(
-      title: Text(label == 'system' ? 'System Default' : label == 'light' ? 'Light' : 'Dark'),
+      title: Text(label),
       leading: Radio<String>(
-        value: label,
-        groupValue: current,
-        onChanged: (_) {
-          Navigator.pop(ctx);
-          appState.setThemeMode(mode);
-        },
+        value: value,
+        groupValue: groupValue,
+        onChanged: (_) => onSelect(),
       ),
     );
-  }
-
-  String _themeModeToString(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.light: return 'light';
-      case ThemeMode.dark: return 'dark';
-      case ThemeMode.system: return 'system';
-    }
   }
 
   void _showColorDialog() {
@@ -719,7 +729,7 @@ class _AppearanceSection extends StatelessWidget {
                       const SizedBox(height: 12),
                       ListTile(
                         title: Text(l10n.appTheme),
-                        subtitle: Text(_themeDisplayName(appState.themeMode)),
+                        subtitle: Text(_themeDisplayName(appState)),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: onTheme,
                       ),
@@ -751,8 +761,11 @@ class _AppearanceSection extends StatelessWidget {
     );
   }
 
-  static String _themeDisplayName(ThemeMode mode) {
-    switch (mode) {
+  static String _themeDisplayName(AppState appState) {
+    if (appState.themeMode == ThemeMode.dark && appState.oledDarkModeEnabled) {
+      return 'OLED';
+    }
+    switch (appState.themeMode) {
       case ThemeMode.light: return 'Light';
       case ThemeMode.dark: return 'Dark';
       case ThemeMode.system: return 'System default';
