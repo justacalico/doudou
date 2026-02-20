@@ -67,6 +67,7 @@ class PageTemplate extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         color: DesktopTheme.textPrimary,
                         letterSpacing: -0.5,
+                        decoration: TextDecoration.none,
                       ),
                     ),
                     if (subtitle != null) ...[
@@ -113,6 +114,7 @@ class PageTemplate extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: DesktopTheme.textPrimary,
                           letterSpacing: -0.5,
+                          decoration: TextDecoration.none,
                         ),
                       ),
                       if (subtitle != null) ...[
