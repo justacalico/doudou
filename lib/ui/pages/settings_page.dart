@@ -66,7 +66,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     isLocalMusic: isLocal,
                   ),
                   const SizedBox(height: DesktopTheme.spacingMd),
-                  Expanded(child: _buildContent(appState)),
+                  Expanded(
+                    child: _buildContent(appState),
+                  ),
                 ],
               );
             },
@@ -653,6 +655,7 @@ class _GeneralSection extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.all(DesktopTheme.spacingLg),
         child: Column(
@@ -716,6 +719,7 @@ class _AudioSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.all(DesktopTheme.spacingLg),
         child: Column(
@@ -765,6 +769,7 @@ class _AppearanceSection extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.all(DesktopTheme.spacingLg),
         child: Column(
@@ -877,6 +882,7 @@ class _ServerSection extends StatelessWidget {
     final localService = appState.mediaServiceManager.localMusicService;
 
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.all(DesktopTheme.spacingLg),
         child: Column(
@@ -1043,6 +1049,7 @@ class _AboutSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.all(DesktopTheme.spacingLg),
         child: Column(

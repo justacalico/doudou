@@ -169,13 +169,16 @@ class PageTemplate extends StatelessWidget {
           ),
         ),
         
-        // Page content
+        // Page content (minHeight: 0 so Expanded allows SingleChildScrollView to scroll)
         Expanded(
-          child: Padding(
-            padding: padding ?? const EdgeInsets.symmetric(
-              horizontal: DesktopTheme.spacingLg,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 0),
+            child: Padding(
+              padding: padding ?? const EdgeInsets.symmetric(
+                horizontal: DesktopTheme.spacingLg,
+              ),
+              child: child,
             ),
-            child: child,
           ),
         ),
       ],

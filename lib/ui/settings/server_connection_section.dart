@@ -51,6 +51,18 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
     super.dispose();
   }
 
+  static const String _unsupportedUrlMessage =
+      'This app supports Jellyfin, Plex, Subsonic, and Local music only. YouTube Music and similar services are not supported.';
+
+  String? _validateServerUrl(String? value) {
+    final url = (value ?? '').trim().toLowerCase();
+    if (url.isEmpty) return 'Enter server URL';
+    if (url.contains('youtube') || url.contains('music.youtube')) {
+      return _unsupportedUrlMessage;
+    }
+    return null;
+  }
+
   String _getServerPlaceholder() {
     switch (_selectedServerType) {
       case 'jellyfin':
@@ -236,8 +248,7 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
                 labelText: 'Server URL',
                 hintText: 'https://server:8096',
               ),
-              validator: (v) =>
-                  (v == null || v.toString().trim().isEmpty) ? 'Enter server URL' : null,
+              validator: _validateServerUrl,
               onChanged: (_) {
                 if (_selectedServerType == 'jellyfin') setState(() {});
               },
