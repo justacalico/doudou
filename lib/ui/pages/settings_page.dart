@@ -900,7 +900,11 @@ class _ServerSection extends StatelessWidget {
                       ),
                       ListTile(
                         title: const Text('Username'),
-                        subtitle: Text(appState.jellyfinService.username ?? 'Not logged in'),
+                        subtitle: Text(
+                          appState.jellyfinService.username?.trim().isNotEmpty == true
+                              ? appState.jellyfinService.username!
+                              : (appState.isLoggedIn ? 'Logged in' : 'Not logged in'),
+                        ),
                         trailing: const Icon(Icons.person),
                       ),
                       const Divider(),

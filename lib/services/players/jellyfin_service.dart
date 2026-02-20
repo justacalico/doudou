@@ -273,11 +273,13 @@ class JellyfinService implements BaseMediaService {
 
       if (response.statusCode == 200) {
         final data = response.data;
+        // Use server-returned user name for display when available (Connection section)
+        final displayName = data['User']?['Name']?.toString() ?? username;
         _server = JellyfinServer(
           serverUrl: serverUrl,
           userId: data['User']['Id'],
           accessToken: data['AccessToken'],
-          username: username,
+          username: displayName,
           password: password,
         );
 
