@@ -285,108 +285,33 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _showColorDialog() {
     final appState = context.read<AppState>();
-    final presets = [
-      {'name': 'Purple', 'color': Colors.purple},
-      {'name': 'Blue', 'color': Colors.blue},
-      {'name': 'Green', 'color': Colors.green},
-      {'name': 'Orange', 'color': Colors.orange},
-      {'name': 'Red', 'color': Colors.red},
-      {'name': 'Teal', 'color': Colors.teal},
-    ];
-    final isCustom = !presets.any((e) => (e['color'] as Color).value == appState.accentColor.value);
-    showDialog(
+    final l10n = AppLocalizations.of(context);
+    showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Choose Accent Color'),
-        content: SizedBox(
-          width: 300,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: presets.map((e) {
-                  final c = e['color'] as Color;
-                  final sel = c.value == appState.accentColor.value;
-                  return InkWell(
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      appState.setAccentColor(c);
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: c,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: sel ? Colors.white : Theme.of(context).colorScheme.outline,
-                          width: sel ? 3 : 1,
-                        ),
-                      ),
-                      child: Center(
-                        child: sel
-                            ? const Icon(Icons.check, color: Colors.white, size: 16)
-                            : Text(
-                                e['name'] as String,
-                                style: const TextStyle(color: Colors.white, fontSize: 9),
-                              ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _showCustomColorPicker(appState);
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: isCustom ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
-                      width: isCustom ? 2 : 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: isCustom ? appState.accentColor : Colors.grey,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Theme.of(context).colorScheme.outline),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text('Custom Color'),
-                      const Spacer(),
-                      const Icon(Icons.arrow_forward_ios, size: 16),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+      builder: (ctx) => _AccentColorDialog(
+        currentColor: appState.accentColor,
+        onColorSelected: (c) {
+          Navigator.pop(ctx);
+          appState.setAccentColor(c);
+        },
+        onCustomTap: () {
+          Navigator.pop(ctx);
+          _showCustomColorPicker(appState);
+        },
+        chooseTitle: l10n.chooseAccentColor,
+        customLabel: l10n.customColor,
       ),
     );
   }
 
   void _showCustomColorPicker(AppState appState) {
-    showDialog(
+    final l10n = AppLocalizations.of(context);
+    showDialog<void>(
       context: context,
       builder: (ctx) => _CustomColorPickerDialog(
         initialColor: appState.accentColor,
         onColorSelected: (c) => appState.setAccentColor(c),
+        title: l10n.customColor,
       ),
     );
   }
@@ -1321,11 +1246,158 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
   }
 }
 
+/// Preset accent colors for the accent color picker.
+const List<({String name, Color color})> _kAccentPresets = [
+  (name: 'Purple', color: Colors.purple),
+  (name: 'Blue', color: Colors.blue),
+  (name: 'Green', color: Colors.green),
+  (name: 'Orange', color: Colors.orange),
+  (name: 'Red', color: Colors.red),
+  (name: 'Teal', color: Colors.teal),
+];
+
+class _AccentColorDialog extends StatelessWidget {
+  const _AccentColorDialog({
+    required this.currentColor,
+    required this.onColorSelected,
+    required this.onCustomTap,
+    required this.chooseTitle,
+    required this.customLabel,
+  });
+
+  final Color currentColor;
+  final ValueChanged<Color> onColorSelected;
+  final VoidCallback onCustomTap;
+  final String chooseTitle;
+  final String customLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    const swatchSize = 52.0;
+    const spacing = 16.0;
+    const ringWidth = 2.5;
+
+    return AlertDialog(
+      title: Text(chooseTitle),
+      content: SizedBox(
+        width: 280,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Preset grid: 3x2 circular swatches
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 3,
+              mainAxisSpacing: spacing,
+              crossAxisSpacing: spacing,
+              childAspectRatio: 1,
+              children: _kAccentPresets.map((preset) {
+                final selected = preset.color.value == currentColor.value;
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => onColorSelected(preset.color),
+                    borderRadius: BorderRadius.circular(swatchSize / 2 + ringWidth),
+                    child: Center(
+                      child: Container(
+                        width: swatchSize,
+                        height: swatchSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: preset.color,
+                          border: Border.all(
+                            color: selected
+                                ? (isDark ? Colors.white : theme.colorScheme.primary)
+                                : theme.colorScheme.outline.withValues(alpha: 0.5),
+                            width: selected ? ringWidth : 1,
+                          ),
+                          boxShadow: [
+                            if (selected)
+                              BoxShadow(
+                                color: (isDark ? Colors.white : theme.colorScheme.primary)
+                                    .withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                spreadRadius: 0,
+                              ),
+                          ],
+                        ),
+                        child: selected
+                            ? Icon(
+                                Icons.check_rounded,
+                                color: preset.color.computeLuminance() > 0.4
+                                    ? Colors.black87
+                                    : Colors.white,
+                                size: 26,
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: spacing + 4),
+            // Custom color row
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onCustomTap,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: currentColor,
+                          border: Border.all(
+                            color: theme.colorScheme.outline.withValues(alpha: 0.6),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Text(
+                        customLabel,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 22,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _CustomColorPickerDialog extends StatefulWidget {
+  const _CustomColorPickerDialog({
+    required this.initialColor,
+    required this.onColorSelected,
+    required this.title,
+  });
+
   final Color initialColor;
   final ValueChanged<Color> onColorSelected;
-
-  const _CustomColorPickerDialog({required this.initialColor, required this.onColorSelected});
+  final String title;
 
   @override
   State<_CustomColorPickerDialog> createState() => _CustomColorPickerDialogState();
@@ -1358,50 +1430,68 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final textColor = _color.computeLuminance() > 0.4 ? Colors.black87 : Colors.white;
+
     return AlertDialog(
-      title: const Text('Custom Accent Color'),
+      title: Text(widget.title),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              height: 60,
-              decoration: BoxDecoration(color: _color, borderRadius: BorderRadius.circular(8), border: Border.all(color: theme.colorScheme.outline)),
+              height: 56,
+              decoration: BoxDecoration(
+                color: _color,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
+              ),
               child: Center(
                 child: Text(
-                  'Preview',
-                  style: TextStyle(color: _color.computeLuminance() > 0.5 ? Colors.black : Colors.white, fontWeight: FontWeight.w600),
+                  '#${_hex.text.toUpperCase()}',
+                  style: TextStyle(
+                    color: textColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    fontFamily: 'monospace',
+                  ),
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+            _slider(context, 'Red', _color.red.toDouble(), Colors.red, (v) => _update(Color.fromARGB(255, v.round(), _color.green, _color.blue))),
+            const SizedBox(height: 8),
+            _slider(context, 'Green', _color.green.toDouble(), Colors.green, (v) => _update(Color.fromARGB(255, _color.red, v.round(), _color.blue))),
+            const SizedBox(height: 8),
+            _slider(context, 'Blue', _color.blue.toDouble(), Colors.blue, (v) => _update(Color.fromARGB(255, _color.red, _color.green, v.round()))),
             const SizedBox(height: 16),
-            _slider('Red', _color.red.toDouble(), Colors.red, (v) => _update(Color.fromARGB(255, v.round(), _color.green, _color.blue))),
-            _slider('Green', _color.green.toDouble(), Colors.green, (v) => _update(Color.fromARGB(255, _color.red, v.round(), _color.blue))),
-            _slider('Blue', _color.blue.toDouble(), Colors.blue, (v) => _update(Color.fromARGB(255, _color.red, _color.green, v.round()))),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Text('Hex: #'),
-                Expanded(
-                  child: TextField(
-                    controller: _hex,
-                    maxLength: 6,
-                    onChanged: (s) {
-                      if (s.length == 6) {
-                        try {
-                          setState(() => _color = Color(int.parse('FF$s', radix: 16)));
-                        } catch (_) {}
-                      }
-                    },
-                  ),
-                ),
-              ],
+            TextField(
+              controller: _hex,
+              maxLength: 6,
+              decoration: InputDecoration(
+                labelText: 'Hex',
+                prefixText: '# ',
+                border: const OutlineInputBorder(),
+                isDense: true,
+                counterText: '',
+              ),
+              style: const TextStyle(fontFamily: 'monospace', letterSpacing: 1.2),
+              onChanged: (s) {
+                if (s.length == 6) {
+                  try {
+                    setState(() => _color = Color(int.parse('FF${s.toUpperCase()}', radix: 16)));
+                  } catch (_) {}
+                }
+              },
             ),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
         FilledButton(
           onPressed: () {
             Navigator.pop(context);
@@ -1413,15 +1503,31 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
     );
   }
 
-  Widget _slider(String label, double value, Color color, ValueChanged<double> onChanged) {
+  Widget _slider(BuildContext context, String label, double value, Color color, ValueChanged<double> onChanged) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ${value.round()}', style: Theme.of(context).textTheme.bodySmall),
+        Text(
+          '$label: ${value.round()}',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
         const SizedBox(height: 4),
-        SizedBox(
-          height: 30,
-          child: Slider(value: value, min: 0, max: 255, divisions: 255, activeColor: color, onChanged: onChanged),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            activeTrackColor: color,
+            thumbColor: color,
+            overlayColor: color.withValues(alpha: 0.2),
+          ),
+          child: Slider(
+            value: value,
+            min: 0,
+            max: 255,
+            divisions: 255,
+            onChanged: onChanged,
+          ),
         ),
       ],
     );
