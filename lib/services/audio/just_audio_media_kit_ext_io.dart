@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:media_kit/media_kit.dart';
-import 'package:path_provider/path_provider.dart';
 
 /// Platform-specific implementation for desktop/mobile
 /// This file contains Windows and Linux mpv configuration
@@ -52,29 +51,13 @@ class PlatformAudioConfig {
 
       final List<String> linesToAppend = [];
 
-      // Windows: disable WASAPI exclusive mode for system volume integration
+      // Windows: disable WASAPI exclusive mode for system volume integration.
+      // Linux does not use mpv (uses audioplayers/GStreamer), so no Linux mpv config.
       if (Platform.isWindows &&
           !existingContent.contains('audio-exclusive')) {
         linesToAppend.add(
             '# Doudou: Disable WASAPI exclusive mode for system volume integration');
         linesToAppend.add('audio-exclusive=no');
-      }
-
-      // Linux: explicit audio driver and cache dir to fix "ao not found" and lavf cache errors
-      if (Platform.isLinux) {
-        if (!existingContent.contains('ao=')) {
-          linesToAppend.add('# Doudou: Explicit audio driver (fixes "Audio output auto not found")');
-          linesToAppend.add('ao=pulse,pipewire,alsa');
-        }
-        if (!existingContent.contains('cache-dir=')) {
-          final cacheDir = await getTemporaryDirectory();
-          final mpvCacheDir = Directory('${cacheDir.path}/mpv');
-          if (!await mpvCacheDir.exists()) {
-            await mpvCacheDir.create(recursive: true);
-          }
-          linesToAppend.add('# Doudou: Writable cache dir (fixes "Failed to create file cache")');
-          linesToAppend.add('cache-dir=${mpvCacheDir.path}');
-        }
       }
 
       if (linesToAppend.isEmpty) {

@@ -40,9 +40,9 @@ Future<void> _runApp() async {
     databaseFactory = databaseFactoryFfi;
   }
 
+  // Desktop audio: just_audio_media_kit (mpv) on Windows/macOS only; Linux uses audioplayers (GStreamer)
   if (!kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.linux ||
-          defaultTargetPlatform == TargetPlatform.windows ||
+      (defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.macOS)) {
     await JustAudioMediaKitExt.ensureInitializedAsync();
   }

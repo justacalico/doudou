@@ -5,7 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:rxdart/rxdart.dart';
 
-// Conditional imports for platform-specific features
+import 'app_audio_player.dart';
 import 'audio_state_controller.dart';
 import 'queue_manager.dart';
 import '../../models/jellyfin_models.dart';
@@ -40,8 +40,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   final AudioStateController _stateController = AudioStateController();
   final AudioQueueManager _queueManager = AudioQueueManager();
 
-  // Player instance - may be recreated on desktop to prevent native callback crashes
-  AudioPlayer _player = AudioPlayer();
+  // Player instance - JustAudio (Windows/macOS/mobile/web) or Audioplayers (Linux)
+  late AppAudioPlayer _player;
 
   // Player generation ID for desktop callback invalidation
   int _playerGeneration = 0;
@@ -107,7 +107,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   /// Initialize audio system based on platform
   Future<void> _initializeAudio() async {
     try {
-      // Desktop: Initialize media_kit backend
+      _player = createAppAudioPlayer();
+
+      // Desktop: Initialize media_kit backend (Windows/macOS only; Linux uses audioplayers)
       if (_isDesktop) {
         await _initializeDesktopBackend();
       }
@@ -346,7 +348,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     );
   }
 
-  /// Recreate player instance (desktop only) to prevent native callback crashes
+  /// Recreate player instance (Windows/macOS only) to prevent native callback crashes. No-op on Linux.
   Future<void> _recreatePlayer() async {
     if (!_isDesktop || _isRecreatingPlayer) return;
     _isRecreatingPlayer = true;
@@ -354,14 +356,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     try {
       _playerGeneration++;
 
-      final oldPlayer = _player;
       final oldSubscriptions = _subscriptions;
-
       _subscriptions = [];
-      _player = AudioPlayer();
+
+      await _player.recreate();
       _setupPlayerListeners();
 
-      // Dispose old resources in background
+      // Cancel old subscriptions in background
       Future.microtask(() async {
         for (final sub in oldSubscriptions) {
           try {
@@ -369,14 +370,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           } catch (e) {
             // Ignore
           }
-        }
-      });
-
-      Future.delayed(const Duration(milliseconds: 200), () async {
-        try {
-          await oldPlayer.dispose();
-        } catch (e) {
-          // Ignore
         }
       });
     } finally {
@@ -1005,7 +998,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
       try {
         await _player
-            .setAudioSource(AudioSource.uri(Uri.parse(url)))
+            .setSource(url)
             .timeout(const Duration(seconds: 8));
 
         if (_disposed || currentOperationId != _loadOperationId) return;
@@ -1023,7 +1016,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (kIsWeb) {
           await _tryLoadWithFallbacks(url);
         } else {
-          await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+          await _player.setSource(url);
 
           if (_stateController.userIntendedPlaying) {
             if (_isMobile) await _attemptForegroundService();
@@ -1059,7 +1052,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     for (int i = 0; i < urlsToTry.length; i++) {
       final url = urlsToTry[i];
       try {
-        await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+        await _player.setSource(url);
         await _player.play();
         return;
       } catch (e) {

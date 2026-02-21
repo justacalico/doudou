@@ -30,21 +30,21 @@ class JustAudioMediaKitExt {
   /// 
   /// Call this instead of JustAudioMediaKit.ensureInitialized() in your main()
   static Future<void> ensureInitializedAsync({
-    bool linux = true,
+    bool linux = false,
     bool windows = true,
     bool android = false,
     bool iOS = false,
     bool macOS = false,
     String? libmpv,
   }) async {
-    // On Windows or Linux, create mpv config (WASAPI fix / audio+cache)
-    if ((isWindows && !audioExclusive) || isLinux) {
+    // On Windows only, create mpv config (WASAPI fix). Linux uses audioplayers, not mpv.
+    if (isWindows && !audioExclusive) {
       await PlatformAudioConfig.createMpvConfig();
     }
     
-    // Standard initialization
+    // Standard initialization (linux: false — Linux uses audioplayers/GStreamer, not media_kit)
     JustAudioMediaKit.ensureInitialized(
-      linux: linux,
+      linux: false,
       windows: windows,
       android: android,
       iOS: iOS,
@@ -61,23 +61,23 @@ class JustAudioMediaKitExt {
   /// Synchronous version of initialization
   /// Note: mpv config creation happens asynchronously in background
   static void ensureInitialized({
-    bool linux = true,
+    bool linux = false,
     bool windows = true,
     bool android = false,
     bool iOS = false,
     bool macOS = false,
     String? libmpv,
   }) {
-    // On Windows or Linux, create mpv config (async, fire and forget)
-    if ((isWindows && !audioExclusive) || isLinux) {
+    // On Windows only, create mpv config (async, fire and forget). Linux uses audioplayers.
+    if (isWindows && !audioExclusive) {
       PlatformAudioConfig.createMpvConfig().catchError((e) {
         debugPrint('JustAudioMediaKitExt: Failed to create mpv config: $e');
       });
     }
     
-    // Standard initialization
+    // Standard initialization (linux: false — Linux uses audioplayers, not media_kit)
     JustAudioMediaKit.ensureInitialized(
-      linux: linux,
+      linux: false,
       windows: windows,
       android: android,
       iOS: iOS,

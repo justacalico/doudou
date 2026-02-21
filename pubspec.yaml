@@ -23,7 +23,6 @@ dependencies:
   media_kit: ^1.2.6
   media_kit_libs_windows_audio: ^1.0.9
   media_kit_libs_macos_audio: ^1.0.10+1
-  media_kit_libs_linux: ^1.1.4
   media_kit_libs_ios_audio: ^1.0.1+5
   media_kit_libs_android_audio: ^1.0.2
   audio_service: ^0.18.18
@@ -31,6 +30,7 @@ dependencies:
   wakelock_plus: ^1.4.0
   
   # Desktop system media controls (taskbar/system tray)
+  audioplayers: ^6.0.0              # Linux audio (GStreamer via audioplayers_linux)
   audio_service_mpris: ^0.2.0       # Linux MPRIS (D-Bus media controls)
   audio_service_win: ^0.0.2         # Windows System Media Transport Controls
   

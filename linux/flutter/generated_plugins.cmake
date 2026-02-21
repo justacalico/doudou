@@ -3,7 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  media_kit_libs_linux
+  audioplayers_linux
   url_launcher_linux
 )
 
