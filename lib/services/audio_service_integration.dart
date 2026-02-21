@@ -93,6 +93,17 @@ class AudioServiceIntegration {
     }
   }
 
+  /// Stop playback and clear current track
+  Future<void> stop() async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      await _audioHandler!.stop();
+    } catch (e) {
+      // Error stopping
+    }
+  }
+
   /// Play/pause toggle
   Future<void> playPause() async {
     if (!_initialized || _audioHandler == null) return;

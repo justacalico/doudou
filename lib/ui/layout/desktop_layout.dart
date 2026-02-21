@@ -215,6 +215,7 @@ class _PlayerBarContent extends StatelessWidget {
                     child: _PlayerExtras(
                       audioHandler: audioHandler,
                       onQueueTap: () => _showNowPlaying(context),
+                      onClose: () => appState.closePlayerAndClearQueue(),
                     ),
                   ),
                 ],
@@ -764,12 +765,17 @@ class _PlayPauseButtonState extends State<_PlayPauseButton> {
   }
 }
 
-/// Player extras (volume, queue)
+/// Player extras (volume, queue, close)
 class _PlayerExtras extends StatefulWidget {
   final dynamic audioHandler;
   final VoidCallback onQueueTap;
+  final VoidCallback? onClose;
 
-  const _PlayerExtras({required this.audioHandler, required this.onQueueTap});
+  const _PlayerExtras({
+    required this.audioHandler,
+    required this.onQueueTap,
+    this.onClose,
+  });
 
   @override
   State<_PlayerExtras> createState() => _PlayerExtrasState();
@@ -800,6 +806,14 @@ class _PlayerExtrasState extends State<_PlayerExtras> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
+        if (widget.onClose != null) ...[
+          DesktopIconButton(
+            icon: Icons.close_rounded,
+            tooltip: 'Close and clear queue',
+            onPressed: widget.onClose,
+          ),
+          const SizedBox(width: DesktopTheme.spacingSm),
+        ],
         // Queue button
         DesktopIconButton(
           icon: Icons.queue_music_rounded,

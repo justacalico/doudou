@@ -1473,7 +1473,16 @@ class AppState extends ChangeNotifier {
   }
 
   void clearQueue() {
-    // Clear queue functionality would need to be added to the handler
+    _audioHandler?.clearQueue();
+    notifyListeners();
+  }
+
+  /// Close the player bar: stop playback and clear the queue.
+  Future<void> closePlayerAndClearQueue() async {
+    final h = _audioHandler;
+    if (h == null) return;
+    await h.clearQueue();
+    await h.stop();
     notifyListeners();
   }
 

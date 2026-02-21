@@ -863,6 +863,25 @@ class _MobilePlayerBar extends StatelessWidget {
                                                 36, 36),
                                               ),
                                     ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.close_rounded,
+                                        size: 22,
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
+                                      onPressed: () =>
+                                          appState
+                                              .closePlayerAndClearQueue(),
+                                      tooltip: 'Close and clear queue',
+                                      style: IconButton
+                                          .styleFrom(
+                                        minimumSize:
+                                            const Size(
+                                                36, 36),
+                                              ),
+                                    ),
                                   ],
                                 ),
                               ],
