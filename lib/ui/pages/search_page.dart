@@ -47,7 +47,8 @@ class _SearchPageState extends State<SearchPage> {
         return PageTemplate(
           title: l10n.search,
           actions: [
-            Expanded(
+            SizedBox(
+              width: 320,
               child: TextField(
                 controller: _controller,
                 decoration: InputDecoration(
