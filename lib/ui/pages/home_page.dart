@@ -39,23 +39,13 @@ class _HomePageState extends State<HomePage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        return PageTemplate(
-          title: l10n.navHome,
-          subtitle: _greeting(l10n),
-          showGradientHeader: true,
-          actions: [
-            DesktopGlassButton(
-              onPressed: () => appState.loadLibraryData(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.refresh_rounded, size: 18),
-                  const SizedBox(width: DesktopTheme.spacingSm),
-                  Text(l10n.refresh),
-                ],
-              ),
-            ),
-          ],
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+            DesktopTheme.spacingLg,
+            DesktopTheme.spacingMd,
+            DesktopTheme.spacingLg,
+            0,
+          ),
           child: appState.isLoading
               ? _loading(Theme.of(context))
               : SingleChildScrollView(
@@ -104,13 +94,6 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
-  }
-
-  String _greeting(AppLocalizations l10n) {
-    final h = DateTime.now().hour;
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
   }
 
   Widget _loading(ThemeData theme) {
