@@ -44,7 +44,7 @@ class JustAudioMediaKitExt {
     
     // Standard initialization
     JustAudioMediaKit.ensureInitialized(
-      linux: linux,w
+      linux: linux,
       windows: windows,
       android: android,
       iOS: iOS,
