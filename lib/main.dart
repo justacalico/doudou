@@ -11,7 +11,6 @@ import 'services/audio/just_audio_media_kit_ext.dart';
 import 'providers/app_state.dart';
 import 'services/logging_service.dart';
 import 'services/players/jellyfin_service.dart';
-import 'services/voice_command_handler.dart';
 import 'l10n/app_localizations.dart';
 import 'ui/theme.dart';
 import 'ui/layout/app_shell.dart';
@@ -67,8 +66,7 @@ class DoudouApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => AppState(),
       child: _buildAppWithPlatformServices(
-        VoiceCommandHandler(
-          child: Consumer<AppState>(
+        Consumer<AppState>(
             builder: (context, appState, child) {
               final systemBrightness =
                   WidgetsBinding.instance.platformDispatcher.platformBrightness;
@@ -116,7 +114,6 @@ class DoudouApp extends StatelessWidget {
               );
             },
           ),
-        ),
       ),
     );
   }
