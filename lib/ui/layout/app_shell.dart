@@ -693,14 +693,14 @@ class _MobilePlayerBar extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).push(
                       PageRouteBuilder(
-                        pageBuilder: (_, __, ___) =>
+                        pageBuilder: (_, _, _) =>
                             const NowPlayingScreen(),
                         transitionDuration:
                             const Duration(milliseconds: 300),
                         reverseTransitionDuration:
                             const Duration(milliseconds: 300),
                         transitionsBuilder:
-                            (_, animation, __, child) {
+                            (_, animation, _, child) {
                           return SlideTransition(
                             position: Tween<Offset>(
                               begin: const Offset(0, 1),
