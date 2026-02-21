@@ -54,8 +54,14 @@ class AppState extends ChangeNotifier {
   // Locale settings
   Locale? _locale; // null means use system locale
 
+  // Display values for settings (server URL and username for any server type)
+  String? _displayServerUrl;
+  String? _displayUsername;
+
   // Getters
   bool get isLoggedIn => _isLoggedIn;
+  String? get displayServerUrl => _displayServerUrl;
+  String? get displayUsername => _displayUsername;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   bool get isOfflineMode => _isOfflineMode;
@@ -267,6 +273,10 @@ class AppState extends ChangeNotifier {
             _isLoggedIn = true;
             _isConnected = true;
             _isOfflineMode = false;
+            _displayServerUrl = serverUrl;
+            _displayUsername = authMethod == 'api_key'
+                ? null
+                : credentials['identifier'];
 
             // Initialize cache service first
             await _cacheService.initialize();
@@ -433,6 +443,8 @@ class AppState extends ChangeNotifier {
       if (success) {
         try {
           _isLoggedIn = true;
+          _displayServerUrl = _jellyfinService.serverUrl;
+          _displayUsername = _jellyfinService.username;
 
           await _cacheService.initialize();
 
@@ -555,6 +567,8 @@ class AppState extends ChangeNotifier {
 
       if (success) {
         _isLoggedIn = true;
+        _displayServerUrl = serverUrl;
+        _displayUsername = _jellyfinService.username;
 
         // Initialize cache service
         await _cacheService.initialize();
@@ -618,6 +632,8 @@ class AppState extends ChangeNotifier {
       );
 
       _isLoggedIn = true;
+      _displayServerUrl = authenticatedService.serverUrl;
+      _displayUsername = authenticatedService.username;
 
       // Initialize cache service
       await _cacheService.initialize();
@@ -794,6 +810,8 @@ class AppState extends ChangeNotifier {
 
       if (success) {
         _isLoggedIn = true;
+        _displayServerUrl = serverUrl;
+        _displayUsername = identifier;
 
         // Initialize cache service
         await _cacheService.initialize();
@@ -946,6 +964,8 @@ class AppState extends ChangeNotifier {
     _audioHandler = null;
 
     _isLoggedIn = false;
+    _displayServerUrl = null;
+    _displayUsername = null;
     _albums.clear();
     _artists.clear();
     _tracks.clear();

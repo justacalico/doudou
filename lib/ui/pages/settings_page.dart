@@ -982,15 +982,22 @@ class _ServerSection extends StatelessWidget {
                     ] else ...[
                       ListTile(
                         title: const Text('Server URL'),
-                        subtitle: Text(appState.jellyfinService.serverUrl ?? 'Not set'),
+                        subtitle: Text(
+                          appState.displayServerUrl ??
+                              appState.jellyfinService.serverUrl ??
+                              'Not set',
+                        ),
                         trailing: const Icon(Icons.edit),
                       ),
                       ListTile(
                         title: const Text('Username'),
                         subtitle: Text(
-                          appState.jellyfinService.username?.trim().isNotEmpty == true
-                              ? appState.jellyfinService.username!
-                              : (appState.isLoggedIn ? 'Logged in' : 'Not logged in'),
+                          (appState.displayUsername?.trim().isNotEmpty == true
+                                  ? appState.displayUsername
+                                  : appState.jellyfinService.username?.trim().isNotEmpty == true
+                                      ? appState.jellyfinService.username
+                                      : null) ??
+                              (appState.isLoggedIn ? 'Logged in' : 'Not logged in'),
                         ),
                         trailing: const Icon(Icons.person),
                       ),
