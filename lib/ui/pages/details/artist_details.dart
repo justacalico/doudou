@@ -388,47 +388,88 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
 
   Widget _buildTabSelector(ThemeData theme, AppLocalizations l10n) {
     final hasAlbums = _artistAlbums.isNotEmpty;
+    const radius = 20.0;
+    final unselectedBg = theme.colorScheme.surfaceContainerHighest;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+        ),
+        color: unselectedBg,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (hasAlbums) ...[
-              _buildTabButton('albums', l10n.albums, theme),
-              const SizedBox(width: 8),
-            ],
-            _buildTabButton('songs', l10n.popularSongs, theme),
+            if (hasAlbums)
+              _buildSegment(
+                'albums',
+                l10n.albums,
+                theme,
+                isFirst: true,
+                isLast: false,
+                radius: radius,
+              ),
+            _buildSegment(
+              'songs',
+              l10n.popularSongs,
+              theme,
+              isFirst: !hasAlbums,
+              isLast: true,
+              radius: radius,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTabButton(String tabId, String title, ThemeData theme) {
+  Widget _buildSegment(
+    String tabId,
+    String title,
+    ThemeData theme, {
+    required bool isFirst,
+    required bool isLast,
+    required double radius,
+  }) {
     final isSelected = _selectedTab == tabId;
+    BorderRadius? borderRadius;
+    if (isFirst && isLast) {
+      borderRadius = BorderRadius.circular(radius);
+    } else if (isFirst) {
+      borderRadius = BorderRadius.horizontal(
+        left: Radius.circular(radius),
+      );
+    } else if (isLast) {
+      borderRadius = BorderRadius.horizontal(
+        right: Radius.circular(radius),
+      );
+    }
 
-    return Expanded(
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          setState(() {
-            _selectedTab = tabId;
-          });
-        },
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        onTap: () => setState(() => _selectedTab = tabId),
+        borderRadius: borderRadius,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
           decoration: BoxDecoration(
-            color: isSelected ? theme.colorScheme.primaryContainer : null,
-            borderRadius: BorderRadius.circular(8),
+            color: isSelected
+                ? theme.colorScheme.primary
+                : Colors.transparent,
+            borderRadius: borderRadius,
           ),
           child: Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
               color: isSelected
-                  ? theme.colorScheme.primary
+                  ? theme.colorScheme.onPrimary
                   : theme.colorScheme.onSurfaceVariant,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
           ),

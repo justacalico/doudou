@@ -2539,22 +2539,12 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
                   horizontal: DesktopTheme.spacingLg,
                   vertical: DesktopTheme.spacingSm,
                 ),
-                child: Row(
-                  children: [
-                    if (_albums.isNotEmpty) ...[
-                      _TabChip(
-                        label: l10n.albums,
-                        isSelected: _selectedTab == 'albums',
-                        onTap: () => setState(() => _selectedTab = 'albums'),
-                      ),
-                      const SizedBox(width: DesktopTheme.spacingSm),
-                    ],
-                    _TabChip(
-                      label: l10n.songs,
-                      isSelected: _selectedTab == 'songs',
-                      onTap: () => setState(() => _selectedTab = 'songs'),
-                    ),
-                  ],
+                child: _ArtistTabSegmentedControl(
+                  showAlbums: _albums.isNotEmpty,
+                  selectedTab: _selectedTab,
+                  onTabChanged: (tab) => setState(() => _selectedTab = tab),
+                  albumsLabel: l10n.albums,
+                  songsLabel: l10n.songs,
                 ),
               ),
               // Content
@@ -2824,6 +2814,144 @@ class _DetailHeader extends StatelessWidget {
         isCircular ? Icons.person_rounded : Icons.album_rounded,
         size: 64,
         color: DesktopTheme.textTertiary,
+      ),
+    );
+  }
+}
+
+/// Segmented control for artist detail: Songs / Albums as a single pill.
+class _ArtistTabSegmentedControl extends StatelessWidget {
+  final bool showAlbums;
+  final String selectedTab;
+  final ValueChanged<String> onTabChanged;
+  final String albumsLabel;
+  final String songsLabel;
+
+  const _ArtistTabSegmentedControl({
+    required this.showAlbums,
+    required this.selectedTab,
+    required this.onTabChanged,
+    required this.albumsLabel,
+    required this.songsLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final radius = 20.0;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: DesktopTheme.glassBorder),
+        color: DesktopTheme.backgroundTertiary,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showAlbums)
+              _Segment(
+                label: albumsLabel,
+                isSelected: selectedTab == 'albums',
+                onTap: () => onTabChanged('albums'),
+                theme: theme,
+                isFirst: true,
+                isLast: false,
+              ),
+            if (showAlbums)
+              _Segment(
+                label: songsLabel,
+                isSelected: selectedTab == 'songs',
+                onTap: () => onTabChanged('songs'),
+                theme: theme,
+                isFirst: !showAlbums,
+                isLast: true,
+              )
+            else
+              _Segment(
+                label: songsLabel,
+                isSelected: true,
+                onTap: () => onTabChanged('songs'),
+                theme: theme,
+                isFirst: true,
+                isLast: true,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Segment extends StatefulWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final ThemeData theme;
+  final bool isFirst;
+  final bool isLast;
+
+  const _Segment({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    required this.theme,
+    required this.isFirst,
+    required this.isLast,
+  });
+
+  @override
+  State<_Segment> createState() => _SegmentState();
+}
+
+class _SegmentState extends State<_Segment> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = 20.0;
+    BorderRadius? borderRadius;
+    if (widget.isFirst && widget.isLast) {
+      borderRadius = BorderRadius.circular(radius);
+    } else if (widget.isFirst) {
+      borderRadius = BorderRadius.horizontal(left: Radius.circular(radius));
+    } else if (widget.isLast) {
+      borderRadius = BorderRadius.horizontal(right: Radius.circular(radius));
+    }
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: DesktopTheme.durationFast,
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingLg,
+            vertical: DesktopTheme.spacingSm + 2,
+          ),
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? widget.theme.colorScheme.primary
+                : _hover
+                    ? DesktopTheme.glassOverlay
+                    : Colors.transparent,
+            borderRadius: borderRadius,
+          ),
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: widget.isSelected
+                  ? Colors.white
+                  : DesktopTheme.textSecondary,
+            ),
+          ),
+        ),
       ),
     );
   }
