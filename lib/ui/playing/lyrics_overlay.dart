@@ -373,6 +373,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                                   color: Colors.white,
                                                   fontSize: 24,
                                                   fontWeight: FontWeight.bold,
+                                                  decoration: TextDecoration.none,
                                                 ),
                                               ),
                                               if (_lyricsResult?.hasSyncedLyrics == true) ...[
@@ -390,6 +391,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                                       color: Colors.green,
                                                       fontSize: 10,
                                                       fontWeight: FontWeight.bold,
+                                                      decoration: TextDecoration.none,
                                                     ),
                                                   ),
                                                 ),
@@ -402,6 +404,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                             style: TextStyle(
                                               color: Colors.white.withOpacity(0.8),
                                               fontSize: 16,
+                                              decoration: TextDecoration.none,
                                             ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
@@ -453,6 +456,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 16,
+                                            decoration: TextDecoration.none,
                                           ),
                                         ),
                                       ],
@@ -467,6 +471,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                             color: Colors.white,
                                             fontSize: 16,
                                             height: 1.6,
+                                            decoration: TextDecoration.none,
                                           ),
                                           textAlign: TextAlign.center,
                                         ),
@@ -571,6 +576,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                         fontSize: isCurrentLine ? 20 : 16, // Larger font for current line
                         fontWeight: isCurrentLine ? FontWeight.w700 : FontWeight.normal,
                         height: 1.4,
+                        decoration: TextDecoration.none,
                         shadows: isCurrentLine
                             ? [
                                 Shadow(
@@ -610,6 +616,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
           fontSize: 16,
           height: 1.8,
           letterSpacing: 0.2,
+          decoration: TextDecoration.none,
         ),
         textAlign: TextAlign.left,
       ),

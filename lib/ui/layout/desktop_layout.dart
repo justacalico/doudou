@@ -2037,7 +2037,11 @@ class _LyricsViewState extends State<_LyricsView> {
             const SizedBox(height: DesktopTheme.spacingMd),
             Text(
               'Loading lyrics...',
-              style: TextStyle(fontSize: 13, color: DesktopTheme.textSecondary),
+              style: TextStyle(
+                fontSize: 13,
+                color: DesktopTheme.textSecondary,
+                decoration: TextDecoration.none,
+              ),
             ),
           ],
         ),
@@ -2062,6 +2066,7 @@ class _LyricsViewState extends State<_LyricsView> {
                 style: TextStyle(
                   fontSize: 14,
                   color: DesktopTheme.textTertiary,
+                  decoration: TextDecoration.none,
                 ),
               ),
             ],
@@ -2144,6 +2149,7 @@ class _LyricsViewState extends State<_LyricsView> {
                             ? FontWeight.w600
                             : FontWeight.normal,
                         height: 1.5,
+                        decoration: TextDecoration.none,
                       ),
                       child: Text(line.text, textAlign: TextAlign.center),
                     ),
@@ -2167,6 +2173,7 @@ class _LyricsViewState extends State<_LyricsView> {
           color: DesktopTheme.textSecondary,
           fontSize: 13,
           height: 1.8,
+          decoration: TextDecoration.none,
         ),
         textAlign: TextAlign.center,
       ),
