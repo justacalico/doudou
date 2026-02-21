@@ -7,6 +7,9 @@ class PlatformAudioConfig {
   
   /// Always false on web
   static bool get isWindows => false;
+
+  /// Always false on web
+  static bool get isLinux => false;
   
   /// No-op for web platform
   static Future<void> createMpvConfig() async {

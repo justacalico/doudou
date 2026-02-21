@@ -37,14 +37,14 @@ class JustAudioMediaKitExt {
     bool macOS = false,
     String? libmpv,
   }) async {
-    // On Windows, create mpv config to disable exclusive mode
-    if (isWindows && !audioExclusive) {
+    // On Windows or Linux, create mpv config (WASAPI fix / audio+cache)
+    if ((isWindows && !audioExclusive) || isLinux) {
       await PlatformAudioConfig.createMpvConfig();
     }
     
     // Standard initialization
     JustAudioMediaKit.ensureInitialized(
-      linux: linux,
+      linux: linux,w
       windows: windows,
       android: android,
       iOS: iOS,
@@ -68,8 +68,8 @@ class JustAudioMediaKitExt {
     bool macOS = false,
     String? libmpv,
   }) {
-    // On Windows, create mpv config to disable exclusive mode (async, fire and forget)
-    if (isWindows && !audioExclusive) {
+    // On Windows or Linux, create mpv config (async, fire and forget)
+    if ((isWindows && !audioExclusive) || isLinux) {
       PlatformAudioConfig.createMpvConfig().catchError((e) {
         debugPrint('JustAudioMediaKitExt: Failed to create mpv config: $e');
       });
@@ -93,6 +93,9 @@ class JustAudioMediaKitExt {
   
   /// Check if we're on Windows
   static bool get isWindows => PlatformAudioConfig.isWindows;
+
+  /// Check if we're on Linux
+  static bool get isLinux => PlatformAudioConfig.isLinux;
   
   /// Check if exclusive mode should be disabled
   static bool get shouldDisableExclusiveMode => isWindows && !audioExclusive;

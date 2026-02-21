@@ -1,20 +1,24 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Platform-specific implementation for desktop/mobile
-/// This file contains Windows audio configuration that uses Platform APIs
+/// This file contains Windows and Linux mpv configuration
 class PlatformAudioConfig {
   PlatformAudioConfig._();
-  
+
   /// Check if we're on Windows
   static bool get isWindows => Platform.isWindows;
-  
-  /// Create mpv.conf file with audio-exclusive=no
+
+  /// Check if we're on Linux
+  static bool get isLinux => Platform.isLinux;
+
+  /// Create mpv.conf with platform-specific options (WASAPI on Windows, ao+cache on Linux)
   static Future<void> createMpvConfig() async {
     try {
       String configDir;
-      
+
       if (Platform.isWindows) {
         // On Windows, mpv reads from %APPDATA%/mpv/
         final appData = Platform.environment['APPDATA'];
@@ -32,33 +36,60 @@ class PlatformAudioConfig {
         }
         configDir = '$home/.config/mpv';
       }
-      
+
       final dir = Directory(configDir);
       if (!await dir.exists()) {
         await dir.create(recursive: true);
       }
-      
+
       final configFile = File('$configDir/mpv.conf');
-      
+
       // Read existing config if present
       String existingContent = '';
       if (await configFile.exists()) {
         existingContent = await configFile.readAsString();
-        
-        // Check if audio-exclusive is already set
-        if (existingContent.contains('audio-exclusive')) {
-          debugPrint('PlatformAudioConfig: audio-exclusive already in mpv.conf');
-          return;
+      }
+
+      final List<String> linesToAppend = [];
+
+      // Windows: disable WASAPI exclusive mode for system volume integration
+      if (Platform.isWindows &&
+          !existingContent.contains('audio-exclusive')) {
+        linesToAppend.add(
+            '# Doudou: Disable WASAPI exclusive mode for system volume integration');
+        linesToAppend.add('audio-exclusive=no');
+      }
+
+      // Linux: explicit audio driver and cache dir to fix "ao not found" and lavf cache errors
+      if (Platform.isLinux) {
+        if (!existingContent.contains('ao=')) {
+          linesToAppend.add('# Doudou: Explicit audio driver (fixes "Audio output auto not found")');
+          linesToAppend.add('ao=pulse,pipewire,alsa');
+        }
+        if (!existingContent.contains('cache-dir=')) {
+          final cacheDir = await getTemporaryDirectory();
+          final mpvCacheDir = Directory('${cacheDir.path}/mpv');
+          if (!await mpvCacheDir.exists()) {
+            await mpvCacheDir.create(recursive: true);
+          }
+          linesToAppend.add('# Doudou: Writable cache dir (fixes "Failed to create file cache")');
+          linesToAppend.add('cache-dir=${mpvCacheDir.path}');
         }
       }
-      
-      // Append audio-exclusive=no
-      final newContent = existingContent.isEmpty 
-          ? '# Doudou: Disable WASAPI exclusive mode for system volume integration\naudio-exclusive=no\n'
-          : '$existingContent\n# Doudou: Disable WASAPI exclusive mode for system volume integration\naudio-exclusive=no\n';
-      
+
+      if (linesToAppend.isEmpty) {
+        if (Platform.isWindows && existingContent.contains('audio-exclusive')) {
+          debugPrint('PlatformAudioConfig: audio-exclusive already in mpv.conf');
+        }
+        return;
+      }
+
+      final newContent = existingContent.isEmpty
+          ? '${linesToAppend.join('\n')}\n'
+          : '$existingContent\n${linesToAppend.join('\n')}\n';
+
       await configFile.writeAsString(newContent);
-      debugPrint('PlatformAudioConfig: Created mpv.conf with audio-exclusive=no at $configDir');
+      debugPrint('PlatformAudioConfig: Updated mpv.conf at $configDir');
     } catch (e) {
       debugPrint('PlatformAudioConfig: Error creating mpv config: $e');
     }

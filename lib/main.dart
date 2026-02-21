@@ -7,7 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'services/audio/just_audio_media_kit_ext.dart';
 import 'providers/app_state.dart';
 import 'services/logging_service.dart';
 import 'services/players/jellyfin_service.dart';
@@ -44,7 +44,7 @@ Future<void> _runApp() async {
       (defaultTargetPlatform == TargetPlatform.linux ||
           defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.macOS)) {
-    JustAudioMediaKit.ensureInitialized();
+    await JustAudioMediaKitExt.ensureInitializedAsync();
   }
 
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
