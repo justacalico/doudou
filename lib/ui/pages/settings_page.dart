@@ -11,6 +11,7 @@ import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/base_service.dart';
 import 'package:doudou/services/update_service.dart';
 
+import 'package:doudou/models/saved_server.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/settings/server_connection_section.dart';
 
@@ -891,6 +892,37 @@ const Map<String, String> _languageNames = {
 };
 
 // --- Server ---
+
+void _showServerConnectionDialog(
+  BuildContext context,
+  AppState appState, {
+  SavedServer? initialServer,
+}) {
+  showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(initialServer != null ? 'Edit server' : 'Add server'),
+      content: SizedBox(
+        width: 400,
+        child: SingleChildScrollView(
+          child: ServerConnectionSection(
+            initialServer: initialServer,
+            onConnectSuccess: (server) {
+              appState.setCurrentServerAndSave(server);
+            },
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
+        ),
+      ],
+    ),
+  );
+}
+
 class _ServerSection extends StatelessWidget {
   final AppState appState;
   final Future<void> Function(AppState) onAddDir;
@@ -1027,11 +1059,92 @@ class _ServerSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      appState.isLoggedIn ? 'Switch server' : 'Connect to a server',
+                      'Servers',
                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                     ),
-                    const SizedBox(height: 16),
-                    const ServerConnectionSection(),
+                    const SizedBox(height: 12),
+                    if (appState.savedServers.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          'No servers yet. Add one to connect.',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.textTheme.bodySmall?.color,
+                          ),
+                        ),
+                      ),
+                    ...appState.savedServers.map((server) {
+                      final isCurrent = appState.currentServerId == server.id;
+                      return ListTile(
+                        title: Text(server.displayLabel),
+                        subtitle: Text(
+                          '${server.serverType} • ${server.serverUrl.replaceFirst(RegExp(r'^https?://'), '').split('/').first}',
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!isCurrent)
+                              TextButton(
+                                onPressed: () async {
+                                  final ok = await appState.switchToServer(server.id);
+                                  if (context.mounted && !ok && appState.errorMessage != null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(appState.errorMessage!)),
+                                    );
+                                  }
+                                },
+                                child: const Text('Switch'),
+                              ),
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined),
+                              onPressed: () => _showServerConnectionDialog(
+                                context,
+                                appState,
+                                initialServer: server,
+                              ),
+                              tooltip: 'Edit',
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('Remove server?'),
+                                    content: Text(
+                                      'Remove "${server.displayLabel}" from your saved servers?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(ctx, false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(ctx, true),
+                                        child: const Text('Remove', style: TextStyle(color: Colors.red)),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirm == true && context.mounted) {
+                                  await appState.removeServer(server.id);
+                                }
+                              },
+                              tooltip: 'Remove',
+                            ),
+                          ],
+                        ),
+                        leading: isCurrent
+                            ? const Icon(Icons.check_circle, color: Colors.green, size: 22)
+                            : null,
+                      );
+                    }),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: () => _showServerConnectionDialog(context, appState),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add server'),
+                    ),
                   ],
                 ),
               ),

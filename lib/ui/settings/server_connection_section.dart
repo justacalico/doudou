@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:doudou/models/saved_server.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/services/players/jellyfin_service.dart';
@@ -9,8 +10,16 @@ import 'package:doudou/ui/settings/local_music_settings.dart';
 enum JellyfinAuthMethod { account, apiKey, quickConnect }
 
 /// Server connection form for use in Settings. Connect or switch server without leaving the app.
+/// [initialServer] pre-fills the form for editing. [onConnectSuccess] is called with the saved server data after a successful connect (so the parent can persist it in the list).
 class ServerConnectionSection extends StatefulWidget {
-  const ServerConnectionSection({super.key});
+  const ServerConnectionSection({
+    super.key,
+    this.initialServer,
+    this.onConnectSuccess,
+  });
+
+  final SavedServer? initialServer;
+  final void Function(SavedServer server)? onConnectSuccess;
 
   @override
   State<ServerConnectionSection> createState() => _ServerConnectionSectionState();
@@ -36,7 +45,23 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
   @override
   void initState() {
     super.initState();
-    _serverController.text = _getServerPlaceholder();
+    final s = widget.initialServer;
+    if (s != null) {
+      _selectedServerType = s.serverType;
+      _serverController.text = s.serverUrl;
+      if (s.authMethod == 'api_key') {
+        _jellyfinAuthMethod = JellyfinAuthMethod.apiKey;
+        _apiKeyController.text = s.apiKey ?? '';
+      } else if (s.authMethod == 'quick_connect') {
+        _jellyfinAuthMethod = JellyfinAuthMethod.quickConnect;
+      } else {
+        _usernameController.text = s.identifier ?? '';
+        _passwordController.text = s.credential ?? '';
+        if (s.serverType == 'plex') _plexTokenController.text = s.credential ?? '';
+      }
+    } else {
+      _serverController.text = _getServerPlaceholder();
+    }
   }
 
   @override
@@ -113,8 +138,33 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
     }
 
     if (success && mounted) {
+      final server = _buildSavedServerFromForm();
+      widget.onConnectSuccess?.call(server);
       if (Navigator.canPop(context)) Navigator.pop(context);
     }
+  }
+
+  SavedServer _buildSavedServerFromForm() {
+    final id = widget.initialServer?.id ?? 's_${DateTime.now().millisecondsSinceEpoch}';
+    final url = _serverController.text.trim();
+    final authMethod = _selectedServerType == 'plex'
+        ? 'password'
+        : _jellyfinAuthMethod == JellyfinAuthMethod.apiKey
+            ? 'api_key'
+            : _jellyfinAuthMethod == JellyfinAuthMethod.quickConnect
+                ? 'quick_connect'
+                : 'password';
+    return SavedServer(
+      id: id,
+      name: widget.initialServer?.name,
+      serverType: _selectedServerType,
+      serverUrl: url,
+      authMethod: authMethod,
+      identifier: _selectedServerType == 'plex' ? null : _usernameController.text.trim().isEmpty ? null : _usernameController.text.trim(),
+      credential: _selectedServerType == 'plex' ? _plexTokenController.text : _passwordController.text,
+      apiKey: _jellyfinAuthMethod == JellyfinAuthMethod.apiKey ? _apiKeyController.text.trim() : null,
+      userId: null,
+    );
   }
 
   Future<void> _startQuickConnect() async {
@@ -173,6 +223,16 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
       if (success) {
         await context.read<AppState>().loginWithQuickConnect(jellyfinService);
         if (mounted) {
+          final userId = status['userId'] as String?;
+          final server = SavedServer(
+            id: widget.initialServer?.id ?? 's_${DateTime.now().millisecondsSinceEpoch}',
+            name: widget.initialServer?.name,
+            serverType: 'jellyfin',
+            serverUrl: serverUrl,
+            authMethod: 'quick_connect',
+            userId: userId,
+          );
+          widget.onConnectSuccess?.call(server);
           setState(() {
             _isQuickConnectActive = false;
             _quickConnectCode = null;

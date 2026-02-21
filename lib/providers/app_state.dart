@@ -8,6 +8,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
 import '../models/jellyfin_models.dart';
+import '../models/saved_server.dart';
 import '../services/players/jellyfin_service.dart';
 import '../services/media_service_manager.dart';
 import '../services/base_service.dart';
@@ -58,10 +59,16 @@ class AppState extends ChangeNotifier {
   String? _displayServerUrl;
   String? _displayUsername;
 
+  // Multiple saved servers and current active server id
+  List<SavedServer> _savedServers = [];
+  String? _currentServerId;
+
   // Getters
   bool get isLoggedIn => _isLoggedIn;
   String? get displayServerUrl => _displayServerUrl;
   String? get displayUsername => _displayUsername;
+  List<SavedServer> get savedServers => List.unmodifiable(_savedServers);
+  String? get currentServerId => _currentServerId;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   bool get isOfflineMode => _isOfflineMode;
@@ -217,9 +224,31 @@ class AppState extends ChangeNotifier {
 
   Future<void> _loadSavedServer() async {
     try {
-      // Try to load saved credentials for any server type
+      await _loadSavedServersList();
       final credentials = await _loadServerCredentials();
 
+      // Prefer connecting from saved servers list
+      if (_savedServers.isNotEmpty && _currentServerId != null) {
+        final idx = _savedServers.indexWhere((s) => s.id == _currentServerId);
+        if (idx >= 0) {
+          final ok = await _connectToSavedServer(_savedServers[idx]);
+          if (ok) return;
+        }
+      }
+
+      // Migrate legacy single-server prefs into saved list once
+      if (_savedServers.isEmpty && credentials != null) {
+        await _migrateLegacyToSavedServers(credentials);
+        if (_savedServers.isNotEmpty && _currentServerId != null) {
+          final server = _savedServers.firstWhere(
+            (s) => s.id == _currentServerId,
+          );
+          final ok = await _connectToSavedServer(server);
+          if (ok) return;
+        }
+      }
+
+      // Legacy path: restore from flat credentials
       if (credentials != null) {
         final serverType = credentials['serverType']!;
         final serverUrl = credentials['serverUrl']!;
@@ -929,17 +958,229 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  static const String _savedServersKey = 'saved_servers';
+  static const String _currentServerIdKey = 'current_server_id';
+
+  Future<void> _loadSavedServersList() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_savedServersKey);
+      if (json != null) {
+        final list = jsonDecode(json) as List<dynamic>?;
+        _savedServers = (list ?? [])
+            .map((e) => SavedServer.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        _savedServers = [];
+      }
+      _currentServerId = prefs.getString(_currentServerIdKey);
+    } catch (_) {
+      _savedServers = [];
+      _currentServerId = null;
+    }
+  }
+
+  Future<void> _saveSavedServersList() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _savedServersKey,
+      jsonEncode(_savedServers.map((s) => s.toJson()).toList()),
+    );
+    if (_currentServerId != null) {
+      await prefs.setString(_currentServerIdKey, _currentServerId!);
+    } else {
+      await prefs.remove(_currentServerIdKey);
+    }
+  }
+
+  Future<void> _migrateLegacyToSavedServers(Map<String, String> credentials) async {
+    final serverType = credentials['serverType']!;
+    final serverUrl = credentials['serverUrl']!;
+    final authMethod = credentials['authMethod'] ?? 'password';
+    final id = 'legacy_${DateTime.now().millisecondsSinceEpoch}';
+    SavedServer server;
+    if (serverType == 'local') {
+      server = SavedServer(
+        id: id,
+        serverType: 'local',
+        serverUrl: '',
+        authMethod: 'local',
+      );
+    } else if (authMethod == 'api_key' && credentials['apiKey'] != null) {
+      server = SavedServer(
+        id: id,
+        serverType: serverType,
+        serverUrl: serverUrl,
+        authMethod: 'api_key',
+        apiKey: credentials['apiKey'],
+      );
+    } else if (authMethod == 'quick_connect' && credentials['userId'] != null) {
+      server = SavedServer(
+        id: id,
+        serverType: serverType,
+        serverUrl: serverUrl,
+        authMethod: 'quick_connect',
+        userId: credentials['userId'],
+      );
+    } else {
+      server = SavedServer(
+        id: id,
+        serverType: serverType,
+        serverUrl: serverUrl,
+        authMethod: 'password',
+        identifier: credentials['identifier'],
+        credential: credentials['credential'],
+      );
+    }
+    _savedServers = [server];
+    _currentServerId = id;
+    await _saveSavedServersList();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('server_type');
+    await prefs.remove('server_url');
+    await prefs.remove('server_identifier');
+    await prefs.remove('server_credential');
+    await prefs.remove('server_api_key');
+    await prefs.remove('auth_method');
+    await prefs.remove('user_id');
+  }
+
+  Future<bool> _connectToSavedServer(SavedServer s) async {
+    _setLoading(true);
+    _clearError();
+    try {
+      if (s.serverType == 'local') {
+        final ok = await loginWithLocalMusic();
+        if (ok) {
+          _currentServerId = s.id;
+          await _saveSavedServersList();
+        }
+        return ok;
+      }
+      if (s.serverType == 'jellyfin' && s.authMethod == 'api_key' && s.apiKey != null) {
+        final ok = await loginWithApiKey(s.serverUrl, s.apiKey!);
+        if (ok) {
+          _currentServerId = s.id;
+          await _saveSavedServersList();
+        }
+        return ok;
+      }
+      if (s.serverType == 'plex' && s.credential != null) {
+        final ok = await loginWithServerType('plex', s.serverUrl, '', s.credential!);
+        if (ok) {
+          _currentServerId = s.id;
+          await _saveSavedServersList();
+        }
+        return ok;
+      }
+      if (s.serverType == 'subsonic' && s.identifier != null && s.credential != null) {
+        final ok = await loginWithServerType(
+          'subsonic', s.serverUrl, s.identifier!, s.credential!,
+        );
+        if (ok) {
+          _currentServerId = s.id;
+          await _saveSavedServersList();
+        }
+        return ok;
+      }
+      if (s.serverType == 'jellyfin' && s.authMethod == 'password' &&
+          s.identifier != null && s.credential != null) {
+        final ok = await loginWithServerType(
+          'jellyfin', s.serverUrl, s.identifier!, s.credential!,
+        );
+        if (ok) {
+          _currentServerId = s.id;
+          await _saveSavedServersList();
+        }
+        return ok;
+      }
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> addServer(SavedServer server) async {
+    _savedServers = List.from(_savedServers)..add(server);
+    await _saveSavedServersList();
+    notifyListeners();
+  }
+
+  Future<void> updateServer(SavedServer server) async {
+    final idx = _savedServers.indexWhere((s) => s.id == server.id);
+    if (idx >= 0) {
+      _savedServers = List.from(_savedServers)..[idx] = server;
+      await _saveSavedServersList();
+      notifyListeners();
+    }
+  }
+
+  Future<void> removeServer(String id) async {
+    final wasCurrent = _currentServerId == id;
+    _savedServers = _savedServers.where((s) => s.id != id).toList();
+    if (wasCurrent) {
+      _currentServerId = null;
+      await logout();
+    }
+    await _saveSavedServersList();
+    notifyListeners();
+  }
+
+  Future<bool> switchToServer(String id) async {
+    final idx = _savedServers.indexWhere((s) => s.id == id);
+    if (idx < 0) return false;
+    _currentServerId = id;
+    await _saveSavedServersList();
+    return _connectToSavedServer(_savedServers[idx]);
+  }
+
+  Future<bool> addServerAndConnect(SavedServer server) async {
+    await addServer(server);
+    _currentServerId = server.id;
+    await _saveSavedServersList();
+    return _connectToSavedServer(server);
+  }
+
+  Future<bool> updateServerAndConnect(SavedServer server) async {
+    await updateServer(server);
+    if (_currentServerId == server.id) {
+      return _connectToSavedServer(server);
+    }
+    return true;
+  }
+
+  /// After connecting via the form, persist this server as current (add or update by id).
+  Future<void> setCurrentServerAndSave(SavedServer server) async {
+    final idx = _savedServers.indexWhere((s) => s.id == server.id);
+    if (idx >= 0) {
+      _savedServers = List.from(_savedServers)..[idx] = server;
+    } else {
+      _savedServers = List.from(_savedServers)..add(server);
+    }
+    _currentServerId = server.id;
+    await _saveSavedServersList();
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Clear all server credentials
-    await prefs.remove('jellyfin_server'); // Legacy Jellyfin
+    _currentServerId = null;
+    await _saveSavedServersList();
+
+    // Clear all server credentials (legacy flat keys and type-specific)
+    await prefs.remove('jellyfin_server');
     await prefs.remove('jellyfin_credentials');
     await prefs.remove('subsonic_credentials');
     await prefs.remove('plex_credentials');
-
-    // Clear saved server type
     await prefs.remove('saved_server_type');
+    await prefs.remove('server_type');
+    await prefs.remove('server_url');
+    await prefs.remove('server_identifier');
+    await prefs.remove('server_credential');
+    await prefs.remove('server_api_key');
+    await prefs.remove('auth_method');
+    await prefs.remove('user_id');
 
     // Clear local music data if using local service
     final localService = _mediaServiceManager.localMusicService;
