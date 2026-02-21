@@ -41,19 +41,6 @@ class _LibraryPageState extends State<LibraryPage> {
       builder: (context, appState, child) {
         return PageTemplate(
           title: l10n.navLibrary,
-          actions: [
-            DesktopGlassButton(
-              onPressed: () => appState.loadLibraryData(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.refresh_rounded, size: 18),
-                  const SizedBox(width: DesktopTheme.spacingSm),
-                  Text(l10n.refresh),
-                ],
-              ),
-            ),
-          ],
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

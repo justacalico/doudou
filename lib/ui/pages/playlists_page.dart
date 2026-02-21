@@ -40,19 +40,6 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         return PageTemplate(
           title: l10n.playlists,
-          actions: [
-            DesktopGlassButton(
-              onPressed: () => appState.loadLibraryData(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.refresh_rounded, size: 18),
-                  const SizedBox(width: DesktopTheme.spacingSm),
-                  Text(l10n.refresh),
-                ],
-              ),
-            ),
-          ],
           child: playlists.isEmpty
               ? Center(
                   child: Column(

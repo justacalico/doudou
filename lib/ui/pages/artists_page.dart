@@ -40,19 +40,6 @@ class _ArtistsPageState extends State<ArtistsPage> {
           ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         return PageTemplate(
           title: l10n.artists,
-          actions: [
-            DesktopGlassButton(
-              onPressed: () => appState.loadLibraryData(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.refresh_rounded, size: 18),
-                  const SizedBox(width: DesktopTheme.spacingSm),
-                  Text(l10n.refresh),
-                ],
-              ),
-            ),
-          ],
           child: artists.isEmpty
               ? Center(
                   child: Column(

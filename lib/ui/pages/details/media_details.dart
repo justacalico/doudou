@@ -199,14 +199,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                     tooltip: widget.album!.isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
                   ),
                 ],
-                // Refresh button (for debugging when tracks are empty)
-                if (_tracks.isEmpty && !_isLoading)
-                  IconButton(
-                    onPressed: _refreshTracks,
-                    icon: const Icon(Icons.refresh),
-                    tooltip: l10n.reloadTracks,
-                  ),
-                // More options
                 _buildMoreOptionsMenu(l10n),
               ],
             );
@@ -499,10 +491,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               label: Text(l10n.addSongs),
             )
           else
-            ElevatedButton.icon(
+            ElevatedButton(
               onPressed: _refreshTracks,
-              icon: const Icon(Icons.refresh),
-              label: Text(l10n.retry),
+              child: Text(l10n.retry),
             ),
         ],
       );

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 
-import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/templates/track_list.dart';
 
@@ -37,19 +36,6 @@ class _TracksPageState extends State<TracksPage> {
       builder: (context, appState, child) {
         return PageTemplate(
           title: l10n.songs,
-          actions: [
-            DesktopGlassButton(
-              onPressed: () => appState.loadLibraryData(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.refresh_rounded, size: 18),
-                  const SizedBox(width: DesktopTheme.spacingSm),
-                  Text(l10n.refresh),
-                ],
-              ),
-            ),
-          ],
           child: TrackListTemplate(
             tracks: appState.tracks,
             emptyStateTitle: l10n.noSongsFound,

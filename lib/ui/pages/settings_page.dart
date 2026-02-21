@@ -1045,12 +1045,6 @@ class _ServerSection extends StatelessWidget {
                       )),
                       const Divider(),
                       ListTile(title: const Text('Add Directory'), leading: const Icon(Icons.create_new_folder), onTap: () => onAddDir(appState)),
-                      ListTile(
-                        title: const Text('Rescan Library'),
-                        leading: const Icon(Icons.refresh),
-                        subtitle: const Text('Scan directories for new music'),
-                        onTap: () => onRescan(appState),
-                      ),
                       const Divider(),
                       SwitchListTile(
                         title: const Text('Fetch Online Artwork'),
