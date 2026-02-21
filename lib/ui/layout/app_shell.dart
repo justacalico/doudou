@@ -727,16 +727,20 @@ class _MobilePlayerBar extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius:
                                 BorderRadius.circular(22),
-                            color: (isDark
-                                    ? Colors.white
-                                    : Colors.black)
-                                .withOpacity(
-                                    isDark ? 0.15 : 0.08),
+                            color: DesktopTheme.isOled
+                                ? DesktopTheme.backgroundElevated
+                                : (isDark
+                                        ? Colors.white
+                                        : Colors.black)
+                                    .withOpacity(
+                                        isDark ? 0.15 : 0.08),
                             border: Border.all(
-                              color: (isDark
-                                      ? Colors.white
-                                      : Colors.black)
-                                  .withOpacity(0.12),
+                              color: DesktopTheme.isOled
+                                  ? DesktopTheme.glassBorder
+                                  : (isDark
+                                          ? Colors.white
+                                          : Colors.black)
+                                      .withOpacity(0.12),
                               width: 0.5,
                             ),
                             boxShadow: [

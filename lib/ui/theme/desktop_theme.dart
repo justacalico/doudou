@@ -7,47 +7,53 @@ import 'package:flutter/material.dart';
 class DesktopTheme {
   DesktopTheme._();
 
-  static bool _isDark = true;
+  static const Color _oledBlack = Color(0xFF000000);
 
-  static void updateBrightness(Brightness brightness) {
+  static bool _isDark = true;
+  static bool _isOled = false;
+
+  static void updateBrightness(Brightness brightness, {bool oled = false}) {
     _isDark = brightness == Brightness.dark;
+    _isOled = oled && _isDark;
   }
 
+  static bool get isOled => _isOled;
+
   // ============================================
-  // COLOR PALETTE - Dual Mode
+  // COLOR PALETTE - Dual Mode (+ OLED)
   // ============================================
 
   /// Deep background colors
   static const Color backgroundDeepDark = Color(0xFF0A0A0C);
   static const Color backgroundDeepLight = Color(0xFFF5F6FA);
   static Color get backgroundDeep =>
-      _isDark ? backgroundDeepDark : backgroundDeepLight;
+      _isOled ? _oledBlack : (_isDark ? backgroundDeepDark : backgroundDeepLight);
 
   static const Color backgroundPrimaryDark = Color(0xFF0F0F12);
   static const Color backgroundPrimaryLight = Color(0xFFFFFFFF);
   static Color get backgroundPrimary =>
-      _isDark ? backgroundPrimaryDark : backgroundPrimaryLight;
+      _isOled ? _oledBlack : (_isDark ? backgroundPrimaryDark : backgroundPrimaryLight);
 
   static const Color backgroundSecondaryDark = Color(0xFF161619);
   static const Color backgroundSecondaryLight = Color(0xFFF0F1F5);
   static Color get backgroundSecondary =>
-      _isDark ? backgroundSecondaryDark : backgroundSecondaryLight;
+      _isOled ? _oledBlack : (_isDark ? backgroundSecondaryDark : backgroundSecondaryLight);
 
   static const Color backgroundTertiaryDark = Color(0xFF1E1E23);
   static const Color backgroundTertiaryLight = Color(0xFFE6E7EE);
   static Color get backgroundTertiary =>
-      _isDark ? backgroundTertiaryDark : backgroundTertiaryLight;
+      _isOled ? _oledBlack : (_isDark ? backgroundTertiaryDark : backgroundTertiaryLight);
 
   static const Color backgroundElevatedDark = Color(0xFF252529);
   static const Color backgroundElevatedLight = Color(0xFFEEF0F6);
   static Color get backgroundElevated =>
-      _isDark ? backgroundElevatedDark : backgroundElevatedLight;
+      _isOled ? _oledBlack : (_isDark ? backgroundElevatedDark : backgroundElevatedLight);
 
   /// Glass surface colors
   static const Color glassSurfaceDark = Color(0xFF1A1A1E);
   static const Color glassSurfaceLight = Color(0xFFFFFFFF);
   static Color get glassSurface =>
-      _isDark ? glassSurfaceDark : glassSurfaceLight;
+      _isOled ? _oledBlack : (_isDark ? glassSurfaceDark : glassSurfaceLight);
 
   static const Color glassOverlayDark = Color(0x15FFFFFF);
   static const Color glassOverlayLight = Color(0x15000000);

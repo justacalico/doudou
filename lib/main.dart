@@ -75,12 +75,16 @@ class DoudouApp extends StatelessWidget {
                   : appState.themeMode == ThemeMode.light
                       ? Brightness.light
                       : systemBrightness;
-              DesktopTheme.updateBrightness(brightness);
+              final oled = appState.themeMode == ThemeMode.dark && appState.oledDarkModeEnabled;
+              DesktopTheme.updateBrightness(brightness, oled: oled);
 
               return MaterialApp(
                 title: 'Doudou - Jellyfin Music Player',
                 theme: AppleTheme.light(accentColor: appState.accentColor),
-                darkTheme: AppleTheme.dark(accentColor: appState.accentColor),
+                darkTheme: AppleTheme.dark(
+                  accentColor: appState.accentColor,
+                  oled: appState.oledDarkModeEnabled,
+                ),
                 themeMode: appState.themeMode,
                 localizationsDelegates: const [
                   AppLocalizations.delegate,

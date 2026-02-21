@@ -103,8 +103,8 @@ class _SettingsPageState extends State<SettingsPage> {
             final useSidebar = constraints.maxWidth >= _kSettingsBreakpoint;
 
             if (useSidebar) {
-              final isDark = Theme.of(context).brightness == Brightness.dark;
-              final bg = isDark ? const Color(0xFF000000) : const Color(0xFFF2F2F7);
+              final theme = Theme.of(context);
+              final bg = theme.scaffoldBackgroundColor;
               return Scaffold(
                 backgroundColor: bg,
                 body: Row(
@@ -131,9 +131,9 @@ class _SettingsPageState extends State<SettingsPage> {
             }
 
             // Mobile: list or detail with back
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            final mobileBg = isDark ? const Color(0xFF000000) : const Color(0xFFF2F2F7);
-            final mobileTitleColor = isDark ? Colors.white : Colors.black;
+            final theme = Theme.of(context);
+            final mobileBg = theme.scaffoldBackgroundColor;
+            final mobileTitleColor = theme.colorScheme.onSurface;
 
             if (effectiveSelected == null) {
               return Scaffold(
@@ -179,7 +179,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   icon: const Icon(Icons.chevron_left, size: 28),
                   onPressed: () => setState(() => _selectedId = null),
                 ),
-                backgroundColor: isDark ? const Color(0xFF1C1C1E).withOpacity(0.9) : Colors.white.withOpacity(0.9),
+                backgroundColor: theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
                 foregroundColor: mobileTitleColor,
                 elevation: 0,
                 scrolledUnderElevation: 0,

@@ -564,9 +564,16 @@ class AppleTheme {
     );
   }
 
-  /// Creates a Dark Theme following Apple HIG
-  static ThemeData dark({Color? accentColor}) {
+  /// Pure black for OLED mode.
+  static const Color _oledBlack = Color(0xFF000000);
+
+  /// Creates a Dark Theme following Apple HIG. When [oled] is true, all surfaces use pure black (#000000).
+  static ThemeData dark({Color? accentColor, bool oled = false}) {
     final primaryColor = accentColor ?? AppleColors.systemPurpleDark;
+    final bgPrimary = oled ? _oledBlack : AppleColors.backgroundPrimaryDark;
+    final bgSecondary = oled ? _oledBlack : AppleColors.backgroundSecondaryDark;
+    final bgTertiary = oled ? _oledBlack : AppleColors.backgroundTertiaryDark;
+    final elevated = oled ? _oledBlack : AppleColors.elevatedPrimaryDark;
 
     return ThemeData(
       useMaterial3: true,
@@ -578,8 +585,8 @@ class AppleTheme {
         primaryContainer: primaryColor.withOpacity(0.24),
         secondary: AppleColors.systemGrayDark,
         secondaryContainer: AppleColors.systemGray4Dark,
-        surface: AppleColors.backgroundSecondaryDark,
-        surfaceContainerHighest: AppleColors.backgroundTertiaryDark,
+        surface: bgSecondary,
+        surfaceContainerHighest: bgTertiary,
         error: AppleColors.systemRedDark,
         onPrimary: Colors.white,
         onSecondary: AppleColors.labelPrimaryDark,
@@ -589,20 +596,20 @@ class AppleTheme {
         outlineVariant: AppleColors.separatorOpaqueDark,
         shadow: Colors.black,
         inverseSurface: AppleColors.labelPrimaryDark,
-        onInverseSurface: AppleColors.backgroundPrimaryDark,
+        onInverseSurface: bgPrimary,
       ),
-      scaffoldBackgroundColor: AppleColors.backgroundPrimaryDark,
+      scaffoldBackgroundColor: bgPrimary,
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
         ),
-        color: AppleColors.elevatedPrimaryDark,
+        color: elevated,
       ),
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: AppleColors.backgroundPrimaryDark.withOpacity(0.8),
+        backgroundColor: oled ? _oledBlack : AppleColors.backgroundPrimaryDark.withOpacity(0.8),
         foregroundColor: AppleColors.labelPrimaryDark,
         titleTextStyle: AppleTextStyles.headline(
           color: AppleColors.labelPrimaryDark,
@@ -610,10 +617,24 @@ class AppleTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
-        backgroundColor: AppleColors.backgroundSecondaryDark.withOpacity(0.8),
+        backgroundColor: oled ? _oledBlack : AppleColors.backgroundSecondaryDark.withOpacity(0.8),
         indicatorColor: primaryColor.withOpacity(0.24),
         labelTextStyle: WidgetStateProperty.all(
           AppleTextStyles.caption2(color: AppleColors.labelSecondaryDark),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: oled ? _oledBlack : AppleColors.elevatedPrimaryDark,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppleDesignSystem.radiusLarge),
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: oled ? _oledBlack : AppleColors.elevatedPrimaryDark,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppleDesignSystem.radiusLarge)),
         ),
       ),
       iconTheme: const IconThemeData(
