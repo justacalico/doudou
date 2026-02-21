@@ -20,7 +20,6 @@ Stream your music collection from your own media server with a beautiful, modern
 
 📱 WORKS EVERYWHERE
 • All platforms - Android, iOS, macOS, Linux, Windows
-• Car integration - Android Auto support
 • Background playback - Music continues while you use other apps
 • Offline listening - Download your favorites for offline playback
 

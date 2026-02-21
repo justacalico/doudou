@@ -167,7 +167,7 @@ class VoiceCommandService {
     }
   }
 
-  /// Handle MEDIA_PLAY_FROM_SEARCH intent (from Android Auto / voice search)
+  /// Handle MEDIA_PLAY_FROM_SEARCH intent (from voice search)
   void _handleMediaPlayFromSearch(Map<dynamic, dynamic> args) {
     final query = args['query'] as String?;
     final mediaFocus = args['mediaFocus'] as String?;

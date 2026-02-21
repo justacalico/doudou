@@ -1103,7 +1103,7 @@ class AppState extends ChangeNotifier {
       _setError(userMessage);
       _setLoading(false);
 
-      // For Android Auto safety, ensure we have empty but valid collections
+      // Ensure we have empty but valid collections
       if (_albums.isEmpty &&
           _artists.isEmpty &&
           _tracks.isEmpty &&
@@ -1228,7 +1228,7 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       _setLoading(false);
 
-      // Ensure we have safe empty collections for Android Auto
+      // Ensure we have safe empty collections
       if (_albums.isEmpty &&
           _artists.isEmpty &&
           _tracks.isEmpty &&

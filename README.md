@@ -31,7 +31,6 @@ A privacy-focused music player for your media server. Stream your music collecti
 
 ### Platforms
 - Android, iOS, macOS, Linux, Windows
-- Android Auto integration
 - Background playback
 - Offline listening with downloads
 

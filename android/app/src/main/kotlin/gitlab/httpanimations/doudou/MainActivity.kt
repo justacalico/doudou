@@ -104,7 +104,7 @@ class MainActivity : AudioServiceActivity() {
                 }
             }
             
-            // Handle voice search from Android Auto or "Play X on Doudou" commands
+            // Handle voice search / "Play X on Doudou" commands
             MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH -> {
                 handleMediaPlayFromSearch(intent)
             }
