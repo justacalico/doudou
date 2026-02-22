@@ -576,6 +576,11 @@
     }
   },
 
+  "communityPlaylists": "Community playlists",
+  "@communityPlaylists": {
+    "description": "Search section title for YouTube Music community playlists"
+  },
+
   "collections": "Collections",
   "@collections": {
     "description": "Collections label"

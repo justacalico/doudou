@@ -99,7 +99,27 @@ class YoutubeMusicService implements BaseMediaService {
 
   @override
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
-    return [];
+    try {
+      final tracks = <Track>[];
+      await for (final video in _client.playlists.getVideos(playlistId)) {
+        tracks.add(Track(
+          id: video.id.value,
+          name: video.title,
+          artistName: video.author,
+          albumName: null,
+          albumId: null,
+          playlistItemId: null,
+          duration: video.duration?.inMilliseconds,
+          trackNumber: null,
+          imageUrl: video.id.value,
+          isFavorite: false,
+          playCount: null,
+        ));
+      }
+      return tracks;
+    } catch (_) {
+      return [];
+    }
   }
 
   /// Sync getStreamUrl returns cached URL or empty. Use getStreamUrlAsync for resolution.
@@ -154,34 +174,74 @@ class YoutubeMusicService implements BaseMediaService {
     return 'https://img.youtube.com/vi/$itemId/mqdefault.jpg';
   }
 
+  /// Parse YouTube duration string (e.g. "4:21", "1:05:30") to milliseconds.
+  static int? _durationStringToMs(String? s) {
+    if (s == null || s.trim().isEmpty) return null;
+    final parts = s.trim().split(':');
+    if (parts.length == 1) {
+      final sec = int.tryParse(parts[0]);
+      return sec != null ? sec * 1000 : null;
+    }
+    if (parts.length == 2) {
+      final m = int.tryParse(parts[0]);
+      final sec = int.tryParse(parts[1]);
+      if (m != null && sec != null) return (m * 60 + sec) * 1000;
+      return null;
+    }
+    if (parts.length == 3) {
+      final h = int.tryParse(parts[0]);
+      final m = int.tryParse(parts[1]);
+      final sec = int.tryParse(parts[2]);
+      if (h != null && m != null && sec != null) {
+        return (h * 3600 + m * 60 + sec) * 1000;
+      }
+      return null;
+    }
+    return null;
+  }
+
   @override
   Future<SearchResults> search(
     String query, {
     List<String>? includeItemTypes,
     int? limit,
   }) async {
-    final maxResults = limit ?? 20;
+    final maxTracks = limit ?? 25;
+    final maxPlaylists = 12;
     try {
-      final searchList = await _client.search.search(query);
+      final searchList = await _client.search.searchContent(query);
       final tracks = <Track>[];
-      for (final video in searchList) {
-        if (tracks.length >= maxResults) break;
-        final duration = video.duration;
-        tracks.add(Track(
-          id: video.id.value,
-          name: video.title,
-          artistName: video.author,
-          albumName: null,
-          albumId: null,
-          playlistItemId: null,
-          duration: duration?.inMilliseconds,
-          trackNumber: null,
-          imageUrl: video.id.value,
-          isFavorite: false,
-          playCount: null,
-        ));
+      final playlists = <Playlist>[];
+      for (final r in searchList) {
+        if (r is SearchVideo) {
+          if (tracks.length >= maxTracks) continue;
+          tracks.add(Track(
+            id: r.id.value,
+            name: r.title,
+            artistName: r.author,
+            albumName: null,
+            albumId: null,
+            playlistItemId: null,
+            duration: _durationStringToMs(r.duration),
+            trackNumber: null,
+            imageUrl: r.id.value,
+            isFavorite: false,
+            playCount: null,
+          ));
+        } else if (r is SearchPlaylist) {
+          if (playlists.length >= maxPlaylists) continue;
+          final thumbUrl = r.thumbnails.isNotEmpty
+              ? r.thumbnails.first.url.toString()
+              : null;
+          playlists.add(Playlist(
+            id: r.id.value,
+            name: r.title,
+            imageUrl: thumbUrl,
+            trackCount: r.videoCount,
+          ));
+        }
       }
-      return SearchResults(tracks: tracks);
+      return SearchResults(tracks: tracks, playlists: playlists);
     } catch (_) {
       return SearchResults();
     }

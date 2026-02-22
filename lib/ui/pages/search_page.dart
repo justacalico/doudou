@@ -87,7 +87,7 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 );
               }
-              // YouTube Music: remote search
+              // YouTube Music: remote search (community playlists + songs)
               if (appState.mediaServiceManager.currentServerType ==
                   ServerType.youtubeMusic) {
                 return FutureBuilder(
@@ -110,8 +110,9 @@ class _SearchPageState extends State<SearchPage> {
                       );
                     }
                     final results = snapshot.data!;
+                    final playlists = results.playlists;
                     final tracks = results.tracks;
-                    if (tracks.isEmpty) {
+                    if (playlists.isEmpty && tracks.isEmpty) {
                       return Center(
                         child: Padding(
                           padding: const EdgeInsets.all(DesktopTheme.spacingXl),
@@ -128,18 +129,50 @@ class _SearchPageState extends State<SearchPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SectionHeader(title: l10n.songs),
-                          const SizedBox(height: DesktopTheme.spacingSm),
-                          SizedBox(
-                            height: 320,
-                            child: TrackListTemplate(
-                              tracks: tracks,
-                              showTrackNumber: false,
-                              showArtist: true,
-                              showAlbum: true,
-                              showArtwork: true,
+                          if (playlists.isNotEmpty) ...[
+                            SectionHeader(
+                                title: l10n.communityPlaylists),
+                            const SizedBox(height: DesktopTheme.spacingSm),
+                            SizedBox(
+                              height: 220,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: playlists.length,
+                                itemBuilder: (context, i) {
+                                  final playlist = playlists[i];
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                        right: i < playlists.length - 1
+                                            ? DesktopTheme.spacingMd
+                                            : 0),
+                                    child: MusicCard(
+                                      title: playlist.name,
+                                      subtitle: l10n.playlists,
+                                      imageUrl: playlist.imageUrl,
+                                      size: 160,
+                                      onTap: () => NavigationService()
+                                          .navigateToPlaylist(playlist),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: DesktopTheme.spacingLg),
+                          ],
+                          if (tracks.isNotEmpty) ...[
+                            SectionHeader(title: l10n.songs),
+                            const SizedBox(height: DesktopTheme.spacingSm),
+                            SizedBox(
+                              height: 320,
+                              child: TrackListTemplate(
+                                tracks: tracks,
+                                showTrackNumber: false,
+                                showArtist: true,
+                                showAlbum: true,
+                                showArtwork: true,
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 120),
                         ],
                       ),
