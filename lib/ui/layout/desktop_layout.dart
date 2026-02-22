@@ -1567,27 +1567,30 @@ class _DetailHeader extends StatelessWidget {
                     ],
                     const SizedBox(height: DesktopTheme.spacingLg),
                     // Action buttons
-                    Row(
-                      children: [
-                        if (onPlay != null)
-                          DesktopPlayButton(
-                            isPlaying: false,
-                            onPressed: onPlay!,
-                          ),
-                        const SizedBox(width: DesktopTheme.spacingMd),
-                        if (onShuffle != null)
-                          DesktopGlassButton(
-                            onPressed: onShuffle!,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.shuffle_rounded, size: 18),
-                                const SizedBox(width: 8),
-                                Text(l10n.shuffle),
-                              ],
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          if (onPlay != null)
+                            DesktopPlayButton(
+                              isPlaying: false,
+                              onPressed: onPlay!,
                             ),
-                          ),
-                      ],
+                          const SizedBox(width: DesktopTheme.spacingMd),
+                          if (onShuffle != null)
+                            DesktopGlassButton(
+                              onPressed: onShuffle!,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.shuffle_rounded, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(l10n.shuffle),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

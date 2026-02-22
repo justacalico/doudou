@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Doudou
 Comment=A media player application
-Exec=doudou
+Exec=env LC_ALL=C doudou
 Icon=io.gitlab.Openlyst.doudou
 Terminal=false
 Type=Application
