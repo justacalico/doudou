@@ -98,16 +98,16 @@ class DesktopLayout {
           ),
         ],
       ),
-      actions: [
+      actionsBuilder: (dialogContext) => [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: () async {
             final name = nameController.text.trim();
             if (name.isEmpty) return;
-            Navigator.of(context).pop();
+            Navigator.of(dialogContext).pop();
             try {
               final created = await appState.createPlaylist(name);
               if (!context.mounted) return;
@@ -638,14 +638,14 @@ class _TrackInfo extends StatelessWidget {
             '"${track.name}" is already downloaded.',
             style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
-          actions: [
+          actionsBuilder: (dialogContext) => [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(l10n.ok),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
                 appState.downloadService.deleteDownload(track.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -669,14 +669,14 @@ class _TrackInfo extends StatelessWidget {
             '"${track.name}" is currently downloading.',
             style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
-          actions: [
+          actionsBuilder: (dialogContext) => [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(l10n.ok),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
                 appState.downloadService.cancelDownload(track.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -1929,11 +1929,11 @@ class _TrackRowState extends State<_TrackRow> {
         '"${widget.track.name}" is already downloaded.',
         style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.ok)),
+      actionsBuilder: (dialogContext) => [
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(l10n.ok)),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(dialogContext).pop();
             appState.downloadService.deleteDownload(widget.track.id);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -1963,11 +1963,11 @@ class _TrackRowState extends State<_TrackRow> {
         '"${widget.track.name}" is downloading ($progressPercent%)',
         style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.ok)),
+      actionsBuilder: (dialogContext) => [
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(l10n.ok)),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(dialogContext).pop();
             appState.downloadService.cancelDownload(widget.track.id);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

@@ -800,14 +800,14 @@ class _AppleTrackMenu extends StatelessWidget {
         '"${track.name}" is already downloaded.',
         style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
-      actions: [
+      actionsBuilder: (dialogContext) => [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: const Text('OK'),
         ),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(dialogContext).pop();
             appState.downloadService.deleteDownload(track.id);
             _showSnackBar(context, 'Deleted download for "${track.name}"');
           },
@@ -829,14 +829,14 @@ class _AppleTrackMenu extends StatelessWidget {
         '"${track.name}" is downloading ($progressPercent%)',
         style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
-      actions: [
+      actionsBuilder: (dialogContext) => [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: const Text('OK'),
         ),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(dialogContext).pop();
             appState.downloadService.cancelDownload(track.id);
             _showSnackBar(context, 'Cancelled download for "${track.name}"');
           },

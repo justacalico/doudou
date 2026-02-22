@@ -949,9 +949,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             ),
         ],
       ),
-      actions: [
+      actionsBuilder: (dialogContext) => [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: Text(l10n.cancel),
         ),
       ],
@@ -971,15 +971,15 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         ),
         autofocus: true,
       ),
-      actions: [
+      actionsBuilder: (dialogContext) => [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: () {
             if (nameController.text.trim().isNotEmpty) {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(l10n.createdPlaylistWithTracks(nameController.text, widget.mediaType == MediaType.album ? l10n.album : '')),
@@ -1020,14 +1020,14 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           ),
         ],
       ),
-      actions: [
+      actionsBuilder: (dialogContext) => [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(dialogContext).pop();
             // Save playlist changes
           },
           child: Text(l10n.save),

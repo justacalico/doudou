@@ -1768,9 +1768,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         trackInfo,
         style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
-      actions: [
+      actionsBuilder: (dialogContext) => [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: const Text('OK'),
         ),
       ],
@@ -1866,9 +1866,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         message,
         style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
-      actions: [
+      actionsBuilder: (dialogContext) => [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: const Text('OK'),
         ),
       ],

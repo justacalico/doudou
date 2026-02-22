@@ -211,9 +211,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
           'Downloading ${_artistTracks.length} tracks by ${widget.artist.name}',
           style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
         ),
-        actions: [
+        actionsBuilder: (dialogContext) => [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('OK'),
           ),
         ],
@@ -235,9 +235,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
           'Added ${_artistTracks.length} tracks by ${widget.artist.name} to your queue',
           style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
         ),
-        actions: [
+        actionsBuilder: (dialogContext) => [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('OK'),
           ),
         ],
@@ -261,9 +261,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
             'Started ${widget.artist.name} radio station with infinite playback',
             style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
-          actions: [
+          actionsBuilder: (dialogContext) => [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('OK'),
             ),
           ],
@@ -284,9 +284,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
         artistInfo,
         style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
-      actions: [
+      actionsBuilder: (dialogContext) => [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: const Text('OK'),
         ),
       ],

@@ -227,9 +227,9 @@ class _DetailTrackViewState extends State<DetailTrackView> {
         'Failed to remove "${track.name}" from this playlist.',
         style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
-      actions: [
+      actionsBuilder: (dialogContext) => [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: const Text('OK'),
         ),
       ],

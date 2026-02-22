@@ -1371,11 +1371,11 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
             'Current: ${info.currentVersion}\nLatest: ${info.latestVersion}',
             style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Later')),
+          actionsBuilder: (dialogContext) => [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Later')),
             FilledButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
                 launchUrl(Uri.parse('https://openlyst.ink/apps/doudou'), mode: LaunchMode.externalApplication);
               },
               child: const Text('View Update'),
@@ -1390,8 +1390,8 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
             'Doudou ${info.currentVersion} is the latest version.',
             style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
+          actionsBuilder: (dialogContext) => [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('OK')),
           ],
         );
       }
@@ -1405,8 +1405,8 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
             'Unable to check for updates. Please try again later.',
             style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
+          actionsBuilder: (dialogContext) => [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('OK')),
           ],
         );
       }
