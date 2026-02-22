@@ -65,6 +65,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   // Autoplay mode - automatically queue similar tracks when queue ends
   bool _autoplayEnabled = true;
 
+  // Prevent double-firing completion (e.g. from stream + position fallback)
+  bool _trackCompletionHandled = false;
+
   // Smart back-to-start behavior
   bool _smartBackToStartEnabled = true;
   DateTime? _lastBackPress;
@@ -210,6 +213,29 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       _subscriptions.add(
         _player.positionStream.listen(_stateController.updatePosition),
       );
+      // Position-based completion fallback (streaming URLs may not emit completed)
+      if (_isMobile) {
+        _subscriptions.add(
+          _player.positionStream
+              .throttleTime(const Duration(milliseconds: 800))
+              .listen((_) {
+                try {
+                  if (_disposed || _trackCompletionHandled) return;
+                  final duration = _player.duration;
+                  if (duration == null ||
+                      duration.inMilliseconds < 2000) return;
+                  final position = _player.position;
+                  if (position >= duration - const Duration(seconds: 1) &&
+                      _stateController.currentState ==
+                          AudioPlayerState.playing) {
+                    _handleTrackCompletion();
+                  }
+                } catch (e) {
+                  // Ignore
+                }
+              }),
+        );
+      }
     }
 
     // Duration stream
@@ -474,6 +500,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   /// Handle track completion
   Future<void> _handleTrackCompletion() async {
     if (_disposed) return;
+    if (_trackCompletionHandled) return;
+    _trackCompletionHandled = true;
 
     if (_isMobile) _cancelLoadingTimeout();
 
@@ -1006,6 +1034,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
 
+    _trackCompletionHandled = false;
     _stateController.updateState(AudioPlayerState.loading);
     _stateController.updateUserIntent(true);
 

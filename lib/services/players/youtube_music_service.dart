@@ -129,6 +129,7 @@ class YoutubeMusicService implements BaseMediaService {
   }
 
   /// Resolves stream URL via youtube_explode_dart and caches it.
+  /// Prefers a medium bitrate stream (~96–128 kbps) for faster initial buffer and quicker start.
   @override
   Future<String> getStreamUrlAsync(String trackId) async {
     final cached = _streamUrlCache[trackId];
@@ -139,10 +140,18 @@ class YoutubeMusicService implements BaseMediaService {
       final audioOnly = manifest.audioOnly;
       if (audioOnly.isEmpty) return '';
 
-      // Prefer highest bitrate (Harmony-style: prefer itag 251/140 for opus/mp4a).
-      final sorted = List<AudioOnlyStreamInfo>.from(audioOnly)
-        ..sort((a, b) => b.bitrate.bitsPerSecond.compareTo(a.bitrate.bitsPerSecond));
-      final best = sorted.first;
+      // Prefer a stream in the 96-160 kbps range for faster start; fallback to highest.
+      const int preferredMinBps = 96000;
+      const int preferredMaxBps = 160000;
+      final inRange = audioOnly.where((s) {
+        final bps = s.bitrate.bitsPerSecond;
+        return bps >= preferredMinBps && bps <= preferredMaxBps;
+      }).toList();
+      final list = inRange.isNotEmpty
+          ? List<AudioOnlyStreamInfo>.from(inRange)
+          : List<AudioOnlyStreamInfo>.from(audioOnly);
+      list.sort((a, b) => b.bitrate.bitsPerSecond.compareTo(a.bitrate.bitsPerSecond));
+      final best = list.first;
       final url = best.url.toString();
       _streamUrlCache[trackId] = url;
       return url;
