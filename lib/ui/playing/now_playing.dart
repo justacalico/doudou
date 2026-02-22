@@ -16,6 +16,8 @@ import 'package:doudou/ui/widgets/marquee_text.dart';
 import 'package:doudou/ui/widgets/detail_track_view.dart';
 import 'package:doudou/ui/pages/details/artist_detail.dart';
 import 'package:doudou/services/lyrics_service.dart';
+import 'package:doudou/ui/theme.dart';
+import 'package:doudou/ui/widgets/apple_dialog.dart';
 
 class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({super.key});
@@ -1491,18 +1493,19 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
     // For now, just show the track info in a dialog
     // In a real app, you would use a share plugin like share_plus
-    showCupertinoDialog(
+    showAppleDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Share Track'),
-        content: Text(trackInfo),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
+      title: 'Share Track',
+      content: Text(
+        trackInfo,
+        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('OK'),
+        ),
+      ],
     );
   }
 
@@ -1512,64 +1515,49 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     AppState appState,
   ) {
     final playlists = appState.playlists;
-
-    showCupertinoModalPopup(
+    showAppleDialog(
       context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: const Text('Add to Playlist'),
-        message: Text('Select a playlist to add "${currentTrack.name}" to:'),
-        actions: [
-          // Show existing playlists
-          ...playlists.map(
-            (playlist) => CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(context);
-                _addToExistingPlaylist(
-                  context,
-                  playlist,
-                  currentTrack,
-                  appState,
-                );
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    CupertinoIcons.music_note_list,
-                    color: CupertinoColors.activeBlue,
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(playlist.name, overflow: TextOverflow.ellipsis),
-                  ),
-                ],
-              ),
+      title: 'Add to Playlist',
+      width: 320,
+      maxHeight: 420,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              'Select a playlist to add "${currentTrack.name}" to:',
+              style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
             ),
           ),
-          // Create new playlist option
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
+          ListTile(
+            leading: const Icon(Icons.add_circle_outline),
+            title: const Text('Create New Playlist'),
+            onTap: () {
+              Navigator.of(context).pop();
               _createNewPlaylist(context, currentTrack, appState);
             },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  CupertinoIcons.add_circled,
-                  color: CupertinoColors.activeBlue,
-                ),
-                SizedBox(width: 8),
-                Text('Create New Playlist'),
-              ],
+          ),
+          const Divider(),
+          ...playlists.map(
+            (playlist) => ListTile(
+              leading: const Icon(Icons.playlist_play),
+              title: Text(playlist.name, overflow: TextOverflow.ellipsis),
+              onTap: () {
+                Navigator.of(context).pop();
+                _addToExistingPlaylist(context, playlist, currentTrack, appState);
+              },
             ),
           ),
         ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(context),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-      ),
+      ],
     );
   }
 
@@ -1587,53 +1575,52 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
       if (context.mounted) {
         if (success) {
-          showCupertinoDialog(
+          showAppleDialog(
             context: context,
-            builder: (context) => CupertinoAlertDialog(
-              title: const Text('Success'),
-              content: Text(
-                'Added "${currentTrack.name}" to "${playlist.name}".',
-              ),
-              actions: [
-                CupertinoDialogAction(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
-                ),
-              ],
+            title: 'Success',
+            content: Text(
+              'Added "${currentTrack.name}" to "${playlist.name}".',
+              style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
           );
         } else {
-          showCupertinoDialog(
+          showAppleDialog(
             context: context,
-            builder: (context) => CupertinoAlertDialog(
-              title: const Text('Error'),
-              content: Text(
-                'Failed to add "${currentTrack.name}" to "${playlist.name}".',
-              ),
-              actions: [
-                CupertinoDialogAction(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
-                ),
-              ],
+            title: 'Error',
+            content: Text(
+              'Failed to add "${currentTrack.name}" to "${playlist.name}".',
+              style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
           );
         }
       }
     } catch (e) {
       if (context.mounted) {
-        showCupertinoDialog(
+        showAppleDialog(
           context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('Error'),
-            content: Text('An error occurred: ${e.toString()}'),
-            actions: [
-              CupertinoDialogAction(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
+          title: 'Error',
+          content: Text(
+            'An error occurred: ${e.toString()}',
+            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
         );
       }
     }
@@ -1645,44 +1632,48 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     AppState appState,
   ) {
     final TextEditingController controller = TextEditingController();
-
-    showCupertinoDialog(
+    showAppleDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('New Playlist'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Enter a name for your new playlist:'),
-            const SizedBox(height: 16),
-            CupertinoTextField(
-              controller: controller,
-              placeholder: 'Playlist name',
-              autofocus: true,
-            ),
-          ],
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      title: 'New Playlist',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Enter a name for your new playlist:',
+            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
-          CupertinoDialogAction(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                Navigator.pop(context);
-                _addToNewPlaylist(
-                  context,
-                  controller.text.trim(),
-                  currentTrack,
-                  appState,
-                );
-              }
-            },
-            child: const Text('Create'),
+          const SizedBox(height: 16),
+          TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: 'Playlist name',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
           ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (controller.text.trim().isNotEmpty) {
+              Navigator.of(context).pop();
+              _addToNewPlaylist(
+                context,
+                controller.text.trim(),
+                currentTrack,
+                appState,
+              );
+            }
+          },
+          child: const Text('Create'),
+        ),
+      ],
     );
   }
 
@@ -1711,68 +1702,68 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
         if (context.mounted) {
           if (addSuccess) {
-            showCupertinoDialog(
+            showAppleDialog(
               context: context,
-              builder: (context) => CupertinoAlertDialog(
-                title: const Text('Success'),
-                content: Text(
-                  'Created playlist "$playlistName" and added "${currentTrack.name}" to it.',
-                ),
-                actions: [
-                  CupertinoDialogAction(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('OK'),
-                  ),
-                ],
+              title: 'Success',
+              content: Text(
+                'Created playlist "$playlistName" and added "${currentTrack.name}" to it.',
+                style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
               ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
             );
           } else {
-            showCupertinoDialog(
+            showAppleDialog(
               context: context,
-              builder: (context) => CupertinoAlertDialog(
-                title: const Text('Partial Success'),
-                content: Text(
-                  'Created playlist "$playlistName" but failed to add the song. You can add it manually from the playlists screen.',
-                ),
-                actions: [
-                  CupertinoDialogAction(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('OK'),
-                  ),
-                ],
+              title: 'Partial Success',
+              content: Text(
+                'Created playlist "$playlistName" but failed to add the song. You can add it manually from the playlists screen.',
+                style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
               ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
             );
           }
         }
       } else if (context.mounted) {
-        showCupertinoDialog(
+        showAppleDialog(
           context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to create playlist "$playlistName".'),
-            actions: [
-              CupertinoDialogAction(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
+          title: 'Error',
+          content: Text(
+            'Failed to create playlist "$playlistName".',
+            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
         );
       }
     } catch (e) {
       if (context.mounted) {
-        showCupertinoDialog(
+        showAppleDialog(
           context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('Error'),
-            content: Text('An error occurred: ${e.toString()}'),
-            actions: [
-              CupertinoDialogAction(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
+          title: 'Error',
+          content: Text(
+            'An error occurred: ${e.toString()}',
+            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
         );
       }
     }
@@ -1860,22 +1851,19 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
   }
 
   void _showErrorSnackBar(BuildContext context, String message) {
-    showCupertinoDialog(
+    showAppleDialog(
       context: context,
-      builder: (BuildContext context) {
-        return CupertinoAlertDialog(
-          title: const Text('Navigation Error'),
-          content: Text(message),
-          actions: [
-            CupertinoDialogAction(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+      title: 'Navigation Error',
+      content: Text(
+        message,
+        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('OK'),
+        ),
+      ],
     );
   }
 }

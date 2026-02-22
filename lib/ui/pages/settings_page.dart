@@ -387,16 +387,12 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _removeLocalDirectory(AppState appState, String directory) async {
-    final ok = await showDialog<bool>(
+    final ok = await showAppleConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Remove Directory'),
-        content: Text('Remove "${directory.split('/').last}" from your music sources?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Remove', style: TextStyle(color: Colors.red))),
-        ],
-      ),
+      title: 'Remove Directory',
+      message: 'Remove "${directory.split('/').last}" from your music sources?',
+      confirmLabel: 'Remove',
+      isDestructive: true,
     );
     if (ok == true) {
       await appState.mediaServiceManager.localMusicService?.removeDirectory(directory);
@@ -410,22 +406,20 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _rescanLocalLibrary(AppState appState) async {
     final local = appState.mediaServiceManager.localMusicService;
     if (local == null) return;
-    showDialog(
+    showAppleDialog(
       context: context,
+      title: 'Scanning Library',
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Scanning Library'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            StreamBuilder<String>(
-              stream: Stream.periodic(const Duration(milliseconds: 500), (_) => local.isScanning ? 'Scanning...' : 'Complete'),
-              builder: (_, snap) => Text(snap.data ?? 'Starting...'),
-            ),
-          ],
-        ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          StreamBuilder<String>(
+            stream: Stream.periodic(const Duration(milliseconds: 500), (_) => local.isScanning ? 'Scanning...' : 'Complete'),
+            builder: (_, snap) => Text(snap.data ?? 'Starting...', style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none)),
+          ),
+        ],
       ),
     );
     try {
@@ -452,64 +446,46 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showSignOutDialog(AppState appState) {
-    showDialog(
+  void _showSignOutDialog(AppState appState) async {
+    final ok = await showAppleConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out? You\'ll need to log in again to access your music.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              appState.logout();
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Sign Out'),
-          ),
-        ],
-      ),
+      title: 'Sign Out',
+      message: 'Are you sure you want to sign out? You\'ll need to log in again to access your music.',
+      confirmLabel: 'Sign Out',
+      isDestructive: true,
     );
+    if (ok == true) {
+      appState.logout();
+    }
   }
 
-  void _showClearCacheDialog(String cacheType) {
-    showDialog(
+  void _showClearCacheDialog(String cacheType) async {
+    final ok = await showAppleConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Clear ${cacheType == 'all' ? 'All' : 'Image'} Cache'),
-        content: Text(
-          'This will remove ${cacheType == 'all' ? 'all cached data' : 'cached images'} and may slow down the app temporarily. Continue?',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              final appState = context.read<AppState>();
-              try {
-                if (cacheType == 'all') {
-                  await appState.clearAllCache();
-                } else {
-                  await appState.clearImageCache();
-                }
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${cacheType == 'all' ? 'All' : 'Image'} cache cleared')),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                }
-              }
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Clear'),
-          ),
-        ],
-      ),
+      title: 'Clear ${cacheType == 'all' ? 'All' : 'Image'} Cache',
+      message: 'This will remove ${cacheType == 'all' ? 'all cached data' : 'cached images'} and may slow down the app temporarily. Continue?',
+      confirmLabel: 'Clear',
+      isDestructive: true,
     );
+    if (ok == true) {
+      final appState = context.read<AppState>();
+      try {
+        if (cacheType == 'all') {
+          await appState.clearAllCache();
+        } else {
+          await appState.clearImageCache();
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${cacheType == 'all' ? 'All' : 'Image'} cache cleared')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        }
+      }
+    }
   }
 }
 
@@ -984,28 +960,22 @@ void _showServerConnectionDialog(
   AppState appState, {
   SavedServer? initialServer,
 }) {
-  showDialog<void>(
+  showAppleDialog(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(initialServer != null ? 'Edit server' : 'Add server'),
-      content: SizedBox(
-        width: 400,
-        child: SingleChildScrollView(
-          child: ServerConnectionSection(
-            initialServer: initialServer,
-            onConnectSuccess: (server) {
-              appState.setCurrentServerAndSave(server);
-            },
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx),
-          child: const Text('Cancel'),
-        ),
-      ],
+    title: initialServer != null ? 'Edit server' : 'Add server',
+    width: 420,
+    content: ServerConnectionSection(
+      initialServer: initialServer,
+      onConnectSuccess: (server) {
+        appState.setCurrentServerAndSave(server);
+      },
     ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('Cancel'),
+      ),
+    ],
   );
 }
 
@@ -1193,24 +1163,12 @@ class _ServerSection extends StatelessWidget {
                             IconButton(
                               icon: const Icon(Icons.delete_outline),
                               onPressed: () async {
-                                final confirm = await showDialog<bool>(
+                                final confirm = await showAppleConfirmDialog(
                                   context: context,
-                                  builder: (ctx) => AlertDialog(
-                                    title: const Text('Remove server?'),
-                                    content: Text(
-                                      'Remove "${server.displayLabel}" from your saved servers?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(ctx, false),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(ctx, true),
-                                        child: const Text('Remove', style: TextStyle(color: Colors.red)),
-                                      ),
-                                    ],
-                                  ),
+                                  title: 'Remove server?',
+                                  message: 'Remove "${server.displayLabel}" from your saved servers?',
+                                  confirmLabel: 'Remove',
+                                  isDestructive: true,
                                 );
                                 if (confirm == true && context.mounted) {
                                   await appState.removeServer(server.id);
@@ -1400,43 +1358,50 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
       if (!mounted) return;
       setState(() => _checking = false);
       if (info.updateAvailable) {
-        showDialog(
+        showAppleDialog(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Update Available'),
-            content: Text('Current: ${info.currentVersion}\nLatest: ${info.latestVersion}'),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Later')),
-              FilledButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  launchUrl(Uri.parse('https://openlyst.ink/apps/doudou'), mode: LaunchMode.externalApplication);
-                },
-                child: const Text('View Update'),
-              ),
-            ],
+          title: 'Update Available',
+          content: Text(
+            'Current: ${info.currentVersion}\nLatest: ${info.latestVersion}',
+            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Later')),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                launchUrl(Uri.parse('https://openlyst.ink/apps/doudou'), mode: LaunchMode.externalApplication);
+              },
+              child: const Text('View Update'),
+            ),
+          ],
         );
       } else {
-        showDialog(
+        showAppleDialog(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Up to Date'),
-            content: Text('Doudou ${info.currentVersion} is the latest version.'),
-            actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+          title: 'Up to Date',
+          content: Text(
+            'Doudou ${info.currentVersion} is the latest version.',
+            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
+          ],
         );
       }
     } catch (e) {
       if (mounted) {
         setState(() => _checking = false);
-        showDialog(
+        showAppleDialog(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Update Check Failed'),
-            content: const Text('Unable to check for updates. Please try again later.'),
-            actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+          title: 'Update Check Failed',
+          content: Text(
+            'Unable to check for updates. Please try again later.',
+            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
+          ],
         );
       }
     }

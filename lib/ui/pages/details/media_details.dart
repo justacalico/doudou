@@ -5,6 +5,7 @@ import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/l10n/app_localizations.dart';
+import 'package:doudou/ui/widgets/apple_dialog.dart';
 
 import 'artist_details.dart';
 
@@ -856,22 +857,11 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     }
 
     // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppleConfirmDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.downloadAlbum),
-        content: Text(l10n.downloadAlbumConfirmation(_tracks.length, widget.album!.name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.downloadAllTracks),
-          ),
-        ],
-      ),
+      title: l10n.downloadAlbum,
+      message: l10n.downloadAlbumConfirmation(_tracks.length, widget.album!.name),
+      confirmLabel: l10n.downloadAllTracks,
     );
 
     if (confirmed != true || !mounted) return;
@@ -919,170 +909,146 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   void _showAddToPlaylistDialog(AppLocalizations l10n) {
     final appState = context.read<AppState>();
-    
-    showDialog(
+    showAppleDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(widget.mediaType == MediaType.album ? l10n.addAlbumToPlaylist : l10n.addTracksToPlaylist),
-        content: SizedBox(
-          width: 300,
-          height: 400,
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.add),
-                title: Text(l10n.createNewPlaylist),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showCreatePlaylistDialog(l10n);
-                },
-              ),
-              const Divider(),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: appState.playlists.length,
-                  itemBuilder: (context, index) {
-                    final playlist = appState.playlists[index];
-                    return ListTile(
-                      leading: const Icon(Icons.playlist_play),
-                      title: Text(playlist.name),
-                      subtitle: Text(l10n.countSongs(playlist.trackCount)),
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Add tracks to playlist
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.addedToPlaylist(widget.mediaType == MediaType.album ? l10n.album : 'tracks', playlist.name, _title)),
-                          ),
-                        );
-                      },
+      title: widget.mediaType == MediaType.album ? l10n.addAlbumToPlaylist : l10n.addTracksToPlaylist,
+      width: 320,
+      maxHeight: 420,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.add),
+            title: Text(l10n.createNewPlaylist),
+            onTap: () {
+              Navigator.of(context).pop();
+              _showCreatePlaylistDialog(l10n);
+            },
+          ),
+          const Divider(),
+          ListView.builder(
+            shrinkWrap: true,
+            itemCount: appState.playlists.length,
+              itemBuilder: (context, index) {
+                final playlist = appState.playlists[index];
+                return ListTile(
+                  leading: const Icon(Icons.playlist_play),
+                  title: Text(playlist.name),
+                  subtitle: Text(l10n.countSongs(playlist.trackCount)),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.addedToPlaylist(widget.mediaType == MediaType.album ? l10n.album : 'tracks', playlist.name, _title)),
+                      ),
                     );
                   },
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
+                );
+              },
+            ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+      ],
     );
   }
 
   void _showCreatePlaylistDialog(AppLocalizations l10n) {
     final nameController = TextEditingController();
-    
-    showDialog(
+    showAppleDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.createPlaylist),
-        content: TextField(
-          controller: nameController,
-          decoration: InputDecoration(
-            labelText: l10n.playlistName,
-            border: const OutlineInputBorder(),
-          ),
-          autofocus: true,
+      title: l10n.createPlaylist,
+      content: TextField(
+        controller: nameController,
+        decoration: InputDecoration(
+          labelText: l10n.playlistName,
+          border: const OutlineInputBorder(),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (nameController.text.trim().isNotEmpty) {
-                Navigator.pop(context);
-                // Create playlist with tracks
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(l10n.createdPlaylistWithTracks(nameController.text, widget.mediaType == MediaType.album ? l10n.album : '')),
-                  ),
-                );
-              }
-            },
-            child: Text(l10n.create),
-          ),
-        ],
+        autofocus: true,
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (nameController.text.trim().isNotEmpty) {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.createdPlaylistWithTracks(nameController.text, widget.mediaType == MediaType.album ? l10n.album : '')),
+                ),
+              );
+            }
+          },
+          child: Text(l10n.create),
+        ),
+      ],
     );
   }
 
   // Playlist-specific methods
   void _showEditPlaylistDialog(AppLocalizations l10n) {
     if (widget.mediaType != MediaType.playlist) return;
-    
-    showDialog(
+    showAppleDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.editPlaylist),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: l10n.playlistName,
-                border: const OutlineInputBorder(),
-              ),
-              controller: TextEditingController(text: widget.playlist!.name),
+      title: l10n.editPlaylist,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              labelText: l10n.playlistName,
+              border: const OutlineInputBorder(),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: InputDecoration(
-                labelText: l10n.descriptionOptional,
-                border: const OutlineInputBorder(),
-              ),
-              controller: TextEditingController(text: ''),
-              maxLines: 3,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
+            controller: TextEditingController(text: widget.playlist!.name),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Save playlist changes
-            },
-            child: Text(l10n.save),
+          const SizedBox(height: 16),
+          TextField(
+            decoration: InputDecoration(
+              labelText: l10n.descriptionOptional,
+              border: const OutlineInputBorder(),
+            ),
+            controller: TextEditingController(text: ''),
+            maxLines: 3,
           ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            // Save playlist changes
+          },
+          child: Text(l10n.save),
+        ),
+      ],
     );
   }
 
-  void _showDeletePlaylistDialog(AppLocalizations l10n) {
+  void _showDeletePlaylistDialog(AppLocalizations l10n) async {
     if (widget.mediaType != MediaType.playlist) return;
-    
-    showDialog(
+    final ok = await showAppleConfirmDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deletePlaylist),
-        content: Text(l10n.deletePlaylistConfirmation(widget.playlist!.name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); // Go back to playlists page
-              // Delete playlist
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+      title: l10n.deletePlaylist,
+      message: l10n.deletePlaylistConfirmation(widget.playlist!.name),
+      confirmLabel: l10n.delete,
+      isDestructive: true,
     );
+    if (ok == true) {
+      Navigator.of(context).pop(); // Go back to playlists page
+      // Delete playlist
+    }
   }
 
   void _removeTrackFromPlaylist(Track track, AppLocalizations l10n) {

@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Colors, Material, MaterialType;
+import 'package:flutter/material.dart' show Colors, Material, MaterialType, Text, TextButton, TextStyle, TextDecoration;
 import 'package:provider/provider.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/providers/app_state.dart';
@@ -8,6 +8,8 @@ import 'package:doudou/services/album_art_color_service.dart';
 import 'package:doudou/ui/widgets/cached_image_widget.dart';
 import 'package:doudou/ui/widgets/apple_design/liquid_glass.dart';
 import 'package:doudou/ui/widgets/track_list_item.dart';
+import 'package:doudou/ui/theme.dart';
+import 'package:doudou/ui/widgets/apple_dialog.dart';
 import 'package:doudou/ui/widgets/player/mini_player.dart';
 
 enum DetailViewType { album, playlist }
@@ -218,18 +220,19 @@ class _DetailTrackViewState extends State<DetailTrackView> {
       return;
     }
 
-    showCupertinoDialog(
+    showAppleDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Unable to remove track'),
-        content: Text('Failed to remove "${track.name}" from this playlist.'),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
+      title: 'Unable to remove track',
+      content: Text(
+        'Failed to remove "${track.name}" from this playlist.',
+        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('OK'),
+        ),
+      ],
     );
   }
 

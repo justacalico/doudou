@@ -3,6 +3,130 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:doudou/ui/theme.dart';
 
+/// Apple-style two-choice dialog. Returns true for [primaryLabel], false for [secondaryLabel], null if dismissed.
+Future<bool?> showAppleChoiceDialog({
+  required BuildContext context,
+  required String title,
+  required String message,
+  required String secondaryLabel,
+  required String primaryLabel,
+  bool primaryIsDestructive = false,
+}) async {
+  return showGeneralDialog<bool?>(
+    context: context,
+    barrierDismissible: true,
+    barrierColor: Colors.black54,
+    barrierLabel: title,
+    transitionDuration: const Duration(milliseconds: 250),
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.92, end: 1).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+          ),
+          child: child,
+        ),
+      );
+    },
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: _AppleDialogContent(
+            title: title,
+            content: Text(
+              message,
+              style: TextStyle(
+                color: DesktopTheme.textSecondary,
+                decoration: TextDecoration.none,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(secondaryLabel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: primaryIsDestructive
+                    ? FilledButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      )
+                    : null,
+                child: Text(primaryLabel),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+/// Apple-style confirmation dialog. Returns true if confirmed, false if cancelled, null if dismissed.
+Future<bool?> showAppleConfirmDialog({
+  required BuildContext context,
+  required String title,
+  required String message,
+  String cancelLabel = 'Cancel',
+  required String confirmLabel,
+  bool isDestructive = false,
+}) async {
+  return showGeneralDialog<bool?>(
+    context: context,
+    barrierDismissible: true,
+    barrierColor: Colors.black54,
+    barrierLabel: title,
+    transitionDuration: const Duration(milliseconds: 250),
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.92, end: 1).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+          ),
+          child: child,
+        ),
+      );
+    },
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: _AppleDialogContent(
+            title: title,
+            content: Text(
+              message,
+              style: TextStyle(
+                color: DesktopTheme.textSecondary,
+                decoration: TextDecoration.none,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(cancelLabel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: isDestructive
+                    ? FilledButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      )
+                    : null,
+                child: Text(confirmLabel),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
 /// Apple-style dialog: frosted glass, large radius, soft shadow.
 /// Use [showAppleDialog] to present with barrier blur.
 void showAppleDialog({
@@ -12,10 +136,11 @@ void showAppleDialog({
   List<Widget>? actions,
   double? width,
   double? maxHeight,
+  bool barrierDismissible = true,
 }) {
   showGeneralDialog<void>(
     context: context,
-    barrierDismissible: true,
+    barrierDismissible: barrierDismissible,
     barrierColor: Colors.black54,
     barrierLabel: title,
     transitionDuration: const Duration(milliseconds: 250),

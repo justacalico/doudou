@@ -5,6 +5,7 @@ import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/models/download_models.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/download_service.dart';
+import 'package:doudou/ui/widgets/apple_dialog.dart';
 
 class DownloadButton extends StatelessWidget {
   final Track track;
@@ -212,27 +213,16 @@ class DownloadButton extends StatelessWidget {
   void _confirmDeleteDownload(
     BuildContext context,
     DownloadService downloadService,
-  ) {
-    showCupertinoDialog(
+  ) async {
+    final ok = await showAppleConfirmDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Delete Download'),
-        content: Text('Delete "${track.name}" from your device?'),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.pop(context),
-          ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            child: const Text('Delete'),
-            onPressed: () {
-              Navigator.pop(context);
-              downloadService.deleteDownload(track.id);
-            },
-          ),
-        ],
-      ),
+      title: 'Delete Download',
+      message: 'Delete "${track.name}" from your device?',
+      confirmLabel: 'Delete',
+      isDestructive: true,
     );
+    if (ok == true) {
+      downloadService.deleteDownload(track.id);
+    }
   }
 }

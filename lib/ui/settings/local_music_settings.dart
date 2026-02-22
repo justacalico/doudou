@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/widgets/apple_design/liquid_glass.dart';
+import 'package:doudou/ui/widgets/apple_dialog.dart';
 import 'package:doudou/services/players/local_music_service.dart';
 
 class LocalMusicSettingsScreen extends StatefulWidget {
@@ -85,26 +86,13 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
     if (await Permission.audio.isPermanentlyDenied ||
         await Permission.storage.isPermanentlyDenied) {
       if (mounted) {
-        final shouldOpenSettings = await showCupertinoDialog<bool>(
+        final shouldOpenSettings = await showAppleChoiceDialog(
           context: context,
-          builder: (ctx) => CupertinoAlertDialog(
-            title: const Text('Permission Required'),
-            content: const Text(
-              'Storage permission is required to access your music files. '
+          title: 'Permission Required',
+          message: 'Storage permission is required to access your music files. '
               'Please enable it in app settings.',
-            ),
-            actions: [
-              CupertinoDialogAction(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel'),
-              ),
-              CupertinoDialogAction(
-                isDefaultAction: true,
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Open Settings'),
-              ),
-            ],
-          ),
+          secondaryLabel: 'Cancel',
+          primaryLabel: 'Open Settings',
         );
 
         if (shouldOpenSettings == true) {
@@ -147,19 +135,19 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
 
         // Show success dialog
         if (mounted) {
-          showCupertinoDialog(
+          showAppleDialog(
             context: context,
-            builder: (ctx) => CupertinoAlertDialog(
-              title: const Text('Folder Added'),
-              content: Text('Added: ${selectedDirectory.split('/').last}'),
-              actions: [
-                CupertinoDialogAction(
-                  isDefaultAction: true,
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('OK'),
-                ),
-              ],
+            title: 'Folder Added',
+            content: Text(
+              'Added: ${selectedDirectory.split('/').last}',
+              style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
           );
         }
       }
@@ -173,24 +161,12 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
   }
 
   Future<void> _removeDirectory(String dirPath) async {
-    final confirmed = await showCupertinoDialog<bool>(
+    final confirmed = await showAppleConfirmDialog(
       context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: const Text('Remove Directory?'),
-        content: Text('Remove "$dirPath" from your music sources?'),
-        actions: [
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Remove'),
-          ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
+      title: 'Remove Directory?',
+      message: 'Remove "$dirPath" from your music sources?',
+      confirmLabel: 'Remove',
+      isDestructive: true,
     );
 
     if (confirmed == true && mounted) {
@@ -719,28 +695,12 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                               CupertinoIcons.trash,
                               AppleColors.systemRed,
                               () async {
-                                final confirmed = await showCupertinoDialog<bool>(
+                                final confirmed = await showAppleConfirmDialog(
                                   context: context,
-                                  builder: (ctx) => CupertinoAlertDialog(
-                                    title: const Text('Clear Cache?'),
-                                    content: const Text(
-                                      'This will remove all cached online artwork. Your local album art files will not be affected.',
-                                    ),
-                                    actions: [
-                                      CupertinoDialogAction(
-                                        isDestructiveAction: true,
-                                        onPressed: () =>
-                                            Navigator.pop(ctx, true),
-                                        child: const Text('Clear'),
-                                      ),
-                                      CupertinoDialogAction(
-                                        isDefaultAction: true,
-                                        onPressed: () =>
-                                            Navigator.pop(ctx, false),
-                                        child: const Text('Cancel'),
-                                      ),
-                                    ],
-                                  ),
+                                  title: 'Clear Cache?',
+                                  message: 'This will remove all cached online artwork. Your local album art files will not be affected.',
+                                  confirmLabel: 'Clear',
+                                  isDestructive: true,
                                 );
 
                                 if (confirmed == true && mounted) {

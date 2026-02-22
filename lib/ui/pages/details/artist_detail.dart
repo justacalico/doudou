@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Colors, Material, MaterialType;
+import 'package:flutter/material.dart' show Colors, Material, MaterialType, Text, TextButton, TextStyle, TextDecoration;
 import 'package:provider/provider.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
@@ -9,6 +9,8 @@ import 'package:doudou/ui/widgets/apple_design/liquid_glass.dart';
 import 'package:doudou/ui/widgets/player/mini_player.dart';
 import 'package:doudou/ui/widgets/track_list_item.dart';
 import 'package:doudou/ui/widgets/cached_image_widget.dart';
+import 'package:doudou/ui/theme.dart';
+import 'package:doudou/ui/widgets/apple_dialog.dart';
 import 'package:doudou/ui/widgets/detail_track_view.dart';
 
 class ArtistDetailScreen extends StatefulWidget {
@@ -199,20 +201,19 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
     // Show confirmation
     if (mounted) {
-      showCupertinoDialog(
+      showAppleDialog(
         context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: const Text('Download Started'),
-          content: Text(
-            'Downloading ${_artistTracks.length} tracks by ${widget.artist.name}',
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
+        title: 'Download Started',
+        content: Text(
+          'Downloading ${_artistTracks.length} tracks by ${widget.artist.name}',
+          style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       );
     }
   }
@@ -224,20 +225,19 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
     // Show confirmation
     if (mounted) {
-      showCupertinoDialog(
+      showAppleDialog(
         context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: const Text('Added to Queue'),
-          content: Text(
-            'Added ${_artistTracks.length} tracks by ${widget.artist.name} to your queue',
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
+        title: 'Added to Queue',
+        content: Text(
+          'Added ${_artistTracks.length} tracks by ${widget.artist.name} to your queue',
+          style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       );
     }
   }
@@ -251,20 +251,19 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
       // Show confirmation
       if (mounted) {
-        showCupertinoDialog(
+        showAppleDialog(
           context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('Radio Station Created'),
-            content: Text(
-              'Started ${widget.artist.name} radio station with infinite playback',
-            ),
-            actions: [
-              CupertinoDialogAction(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
+          title: 'Radio Station Created',
+          content: Text(
+            'Started ${widget.artist.name} radio station with infinite playback',
+            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
         );
       }
     }
@@ -275,18 +274,19 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
     // For now, just show the artist info in a dialog
     // In a real app, you would use a share plugin like share_plus
-    showCupertinoDialog(
+    showAppleDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Share Artist'),
-        content: Text(artistInfo),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
+      title: 'Share Artist',
+      content: Text(
+        artistInfo,
+        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('OK'),
+        ),
+      ],
     );
   }
 

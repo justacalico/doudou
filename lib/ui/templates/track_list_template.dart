@@ -7,6 +7,7 @@ import 'package:doudou/models/download_models.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/widgets/universal_image.dart';
 import 'package:doudou/ui/layout/desktop_layout.dart';
+import 'package:doudou/ui/widgets/apple_dialog.dart';
 
 class TrackListTemplate extends StatelessWidget {
   final List<Track> tracks;
@@ -792,27 +793,28 @@ class _AppleTrackMenu extends StatelessWidget {
   }
 
   void _showDownloadedOptions(BuildContext context, AppState appState) {
-    showDialog(
+    showAppleDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Downloaded'),
-        content: Text('"${track.name}" is already downloaded.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              appState.downloadService.deleteDownload(track.id);
-              _showSnackBar(context, 'Deleted download for "${track.name}"');
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete Download'),
-          ),
-        ],
+      title: 'Downloaded',
+      content: Text(
+        '"${track.name}" is already downloaded.',
+        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('OK'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            appState.downloadService.deleteDownload(track.id);
+            _showSnackBar(context, 'Deleted download for "${track.name}"');
+          },
+          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          child: const Text('Delete Download'),
+        ),
+      ],
     );
   }
 
@@ -820,27 +822,28 @@ class _AppleTrackMenu extends StatelessWidget {
     final progress = appState.downloadService.getDownloadProgress(track.id);
     final progressPercent = (progress * 100).toInt();
 
-    showDialog(
+    showAppleDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Downloading'),
-        content: Text('"${track.name}" is downloading ($progressPercent%)'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              appState.downloadService.cancelDownload(track.id);
-              _showSnackBar(context, 'Cancelled download for "${track.name}"');
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Cancel Download'),
-          ),
-        ],
+      title: 'Downloading',
+      content: Text(
+        '"${track.name}" is downloading ($progressPercent%)',
+        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('OK'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            appState.downloadService.cancelDownload(track.id);
+            _showSnackBar(context, 'Cancelled download for "${track.name}"');
+          },
+          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          child: const Text('Cancel Download'),
+        ),
+      ],
     );
   }
 

@@ -13,6 +13,7 @@ import 'package:doudou/ui/pages/details/media_details.dart';
 import 'package:doudou/ui/pages/details/artist_details.dart';
 import 'package:doudou/ui/widgets/universal_image.dart';
 import 'package:doudou/ui/theme.dart';
+import 'package:doudou/ui/widgets/apple_dialog.dart';
 
 /// Static helpers for detail overlay and dialogs (main shell is [AppShell]).
 class DesktopLayout {
@@ -63,10 +64,12 @@ class DesktopLayout {
       return;
     }
 
-    await showDialog<void>(
+    showAppleDialog(
       context: context,
-      builder: (context) =>
-          _AddToPlaylistDialog(track: track, playlists: playlists),
+      title: l10n.addToPlaylist,
+      width: 400,
+      maxHeight: 500,
+      content: _AddToPlaylistDialogContent(track: track, playlists: playlists),
     );
   }
 }
@@ -545,60 +548,64 @@ class _TrackInfo extends StatelessWidget {
     switch (downloadStatus) {
       case DownloadStatus.downloaded:
         // Show option to delete
-        showDialog(
+        showAppleDialog(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Downloaded'),
-            content: Text('"${track.name}" is already downloaded.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l10n.ok),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  appState.downloadService.deleteDownload(track.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.deleteDownload),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                },
-                child: Text(l10n.deleteDownload),
-              ),
-            ],
+          title: 'Downloaded',
+          content: Text(
+            '"${track.name}" is already downloaded.',
+            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.ok),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                appState.downloadService.deleteDownload(track.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.deleteDownload),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(l10n.deleteDownload),
+            ),
+          ],
         );
         break;
       case DownloadStatus.downloading:
         // Show option to cancel
-        showDialog(
+        showAppleDialog(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(l10n.downloading),
-            content: Text('"${track.name}" is currently downloading.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l10n.ok),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  appState.downloadService.cancelDownload(track.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.cancelDownload),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                },
-                child: Text(l10n.cancelDownload),
-              ),
-            ],
+          title: l10n.downloading,
+          content: Text(
+            '"${track.name}" is currently downloading.',
+            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.ok),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                appState.downloadService.cancelDownload(track.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.cancelDownload),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(l10n.cancelDownload),
+            ),
+          ],
         );
         break;
       case DownloadStatus.paused:
@@ -2181,74 +2188,26 @@ class _LyricsViewState extends State<_LyricsView> {
   }
 }
 
-/// Add to playlist dialog
-class _AddToPlaylistDialog extends StatelessWidget {
+/// Add to playlist dialog content (used inside [showAppleDialog]).
+class _AddToPlaylistDialogContent extends StatelessWidget {
   final Track track;
   final List<Playlist> playlists;
 
-  const _AddToPlaylistDialog({required this.track, required this.playlists});
+  const _AddToPlaylistDialogContent({required this.track, required this.playlists});
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return Dialog(
-      backgroundColor: DesktopTheme.backgroundSecondary,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
-      ),
-      child: Container(
-        width: 400,
-        constraints: const BoxConstraints(maxHeight: 500),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(DesktopTheme.spacingLg),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.addToPlaylist,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: DesktopTheme.textPrimary,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 20),
-                    onPressed: () => Navigator.pop(context),
-                    color: DesktopTheme.textSecondary,
-                  ),
-                ],
-              ),
-            ),
-            // Divider
-            Container(height: 1, color: DesktopTheme.glassBorder),
-            // Playlist list
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(
-                  vertical: DesktopTheme.spacingSm,
-                ),
-                itemCount: playlists.length,
-                itemBuilder: (context, index) {
-                  final playlist = playlists[index];
-                  return _PlaylistItem(
-                    playlist: playlist,
-                    onTap: () => _addToPlaylist(context, playlist),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+    return ListView.builder(
+      shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(vertical: DesktopTheme.spacingSm),
+      itemCount: playlists.length,
+      itemBuilder: (context, index) {
+        final playlist = playlists[index];
+        return _PlaylistItem(
+          playlist: playlist,
+          onTap: () => _addToPlaylist(context, playlist),
+        );
+      },
     );
   }
 
@@ -3151,29 +3110,30 @@ class _TrackRowState extends State<_TrackRow> {
 
   void _showDownloadedOptions(BuildContext context, AppState appState) {
     final l10n = AppLocalizations.of(context);
-    showDialog(
+    showAppleDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Downloaded'),
-        content: Text('"${widget.track.name}" is already downloaded.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.ok)),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              appState.downloadService.deleteDownload(widget.track.id);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Deleted download for "${widget.track.name}"'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(l10n.deleteDownload),
-          ),
-        ],
+      title: 'Downloaded',
+      content: Text(
+        '"${widget.track.name}" is already downloaded.',
+        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.ok)),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            appState.downloadService.deleteDownload(widget.track.id);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Deleted download for "${widget.track.name}"'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          },
+          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          child: Text(l10n.deleteDownload),
+        ),
+      ],
     );
   }
 
@@ -3184,33 +3144,32 @@ class _TrackRowState extends State<_TrackRow> {
     );
     final progressPercent = (progress * 100).toInt();
 
-    showDialog(
+    showAppleDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.downloading),
-        content: Text(
-          '"${widget.track.name}" is downloading ($progressPercent%)',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.ok)),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              appState.downloadService.cancelDownload(widget.track.id);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Cancelled download for "${widget.track.name}"',
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(l10n.cancelDownload),
-          ),
-        ],
+      title: l10n.downloading,
+      content: Text(
+        '"${widget.track.name}" is downloading ($progressPercent%)',
+        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
       ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.ok)),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            appState.downloadService.cancelDownload(widget.track.id);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Cancelled download for "${widget.track.name}"',
+                ),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          },
+          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          child: Text(l10n.cancelDownload),
+        ),
+      ],
     );
   }
 
