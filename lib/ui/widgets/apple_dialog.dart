@@ -157,17 +157,15 @@ void showAppleDialog({
         ),
       );
     },
-    pageBuilder: (dialogContext, animation, secondaryAnimation) {
-      final effectiveActions = actionsBuilder != null
-          ? actionsBuilder(dialogContext)
-          : actions;
+    pageBuilder: (context, animation, secondaryAnimation) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: _AppleDialogContent(
             title: title,
             content: content,
-            actions: effectiveActions,
+            actions: actions,
+            actionsBuilder: actionsBuilder,
             width: width,
             maxHeight: maxHeight,
           ),
@@ -182,6 +180,7 @@ class _AppleDialogContent extends StatelessWidget {
     required this.title,
     required this.content,
     this.actions,
+    this.actionsBuilder,
     this.width,
     this.maxHeight,
   });
@@ -189,6 +188,7 @@ class _AppleDialogContent extends StatelessWidget {
   final String title;
   final Widget content;
   final List<Widget>? actions;
+  final List<Widget> Function(BuildContext dialogContext)? actionsBuilder;
   final double? width;
   final double? maxHeight;
 
@@ -202,6 +202,9 @@ class _AppleDialogContent extends StatelessWidget {
     final bgColor = isDark
         ? Colors.white.withOpacity(0.08)
         : Colors.black.withOpacity(0.04);
+    final effectiveActions = actionsBuilder != null
+        ? actionsBuilder!(context)
+        : actions;
 
     return Material(
       color: Colors.transparent,
@@ -257,7 +260,7 @@ class _AppleDialogContent extends StatelessWidget {
                     child: content,
                   ),
                 ),
-                if (actions != null && actions!.isNotEmpty) ...[
+                if (effectiveActions != null && effectiveActions.isNotEmpty) ...[
                   Divider(
                     height: 1,
                     color: isDark
@@ -268,7 +271,7 @@ class _AppleDialogContent extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
-                      children: actions!
+                      children: effectiveActions
                           .map((a) => Padding(
                                 padding: const EdgeInsets.only(left: 12),
                                 child: a,
