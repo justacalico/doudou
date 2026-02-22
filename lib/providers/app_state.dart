@@ -56,6 +56,9 @@ class AppState extends ChangeNotifier {
   // Locale settings
   Locale? _locale; // null means use system locale
 
+  // Onboarding: show welcome + language when not logged in (first launch)
+  bool _onboardingCompleted = false;
+
   // Display values for settings (server URL and username for any server type)
   String? _displayServerUrl;
   String? _displayUsername;
@@ -66,6 +69,7 @@ class AppState extends ChangeNotifier {
 
   // Getters
   bool get isLoggedIn => _isLoggedIn;
+  bool get onboardingCompleted => _onboardingCompleted;
   String? get displayServerUrl => _displayServerUrl;
   String? get displayUsername => _displayUsername;
   List<SavedServer> get savedServers => List.unmodifiable(_savedServers);
@@ -2234,6 +2238,8 @@ class AppState extends ChangeNotifier {
         prefs.getInt('accent_color') ?? Colors.purple.value;
     _accentColor = Color(accentColorValue);
 
+    _onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+
     // Load locale settings
     final localeCode = prefs.getString('locale');
     if (localeCode != null && localeCode.isNotEmpty) {
@@ -2313,6 +2319,15 @@ class AppState extends ChangeNotifier {
   /// Get the effective locale (user preference or system default)
   Locale get effectiveLocale {
     return _locale ?? ui.PlatformDispatcher.instance.locale;
+  }
+
+  /// Mark onboarding as completed (welcome + language screen).
+  Future<void> setOnboardingCompleted() async {
+    if (_onboardingCompleted) return;
+    _onboardingCompleted = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_completed', true);
+    notifyListeners();
   }
 
   // Cache management methods

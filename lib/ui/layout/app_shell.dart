@@ -26,6 +26,7 @@ import 'package:doudou/ui/pages/tracks_page.dart';
 import 'package:doudou/ui/pages/playlists_page.dart';
 import 'package:doudou/ui/pages/downloads_page.dart';
 import 'package:doudou/ui/pages/settings_page.dart';
+import 'package:doudou/ui/onboarding/onboarding_screen.dart';
 
 /// Breakpoint: above = sidebar (desktop), below = bottom nav (mobile).
 const double kLayoutBreakpoint = 768.0;
@@ -156,6 +157,9 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     if (!appState.isLoggedIn) {
+      if (!appState.onboardingCompleted) {
+        return const OnboardingScreen();
+      }
       return Scaffold(
         backgroundColor: DesktopTheme.backgroundDeep,
         body: Center(
