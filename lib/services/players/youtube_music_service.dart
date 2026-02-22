@@ -109,6 +109,7 @@ class YoutubeMusicService implements BaseMediaService {
   }
 
   /// Resolves stream URL via youtube_explode_dart and caches it.
+  @override
   Future<String> getStreamUrlAsync(String trackId) async {
     final cached = _streamUrlCache[trackId];
     if (cached != null && cached.isNotEmpty) return cached;
@@ -173,7 +174,7 @@ class YoutubeMusicService implements BaseMediaService {
           albumName: null,
           albumId: null,
           playlistItemId: null,
-          duration: duration != null ? duration.inMilliseconds : null,
+          duration: duration?.inMilliseconds,
           trackNumber: null,
           imageUrl: video.id.value,
           isFavorite: false,

@@ -761,6 +761,10 @@ class JellyfinService implements BaseMediaService {
     return streamUrl;
   }
 
+  @override
+  Future<String> getStreamUrlAsync(String itemId) async =>
+      getDirectStreamUrl(itemId);
+
   String getDirectStreamUrl(String itemId) {
     if (!_isServerConfigurationValid() || itemId.isEmpty) {
       return '';
