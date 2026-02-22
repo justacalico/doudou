@@ -457,6 +457,7 @@ class _SettingsPageState extends State<SettingsPage> {
       isDestructive: true,
     );
     if (ok == true) {
+      if (!mounted) return;
       final appState = context.read<AppState>();
       try {
         if (cacheType == 'all') {

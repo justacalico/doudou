@@ -2319,8 +2319,11 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
     final lines = _result!.syncedLyrics!;
     int newIndex = -1;
     for (int i = 0; i < lines.length; i++) {
-      if (position >= lines[i].timestamp) newIndex = i;
-      else break;
+      if (position >= lines[i].timestamp) {
+        newIndex = i;
+      } else {
+        break;
+      }
     }
     if (newIndex != _currentLineIndex && newIndex >= 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

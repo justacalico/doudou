@@ -1045,7 +1045,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       confirmLabel: l10n.delete,
       isDestructive: true,
     );
-    if (ok == true) {
+    if (ok == true && mounted) {
       Navigator.of(context).pop(); // Go back to playlists page
       // Delete playlist
     }
