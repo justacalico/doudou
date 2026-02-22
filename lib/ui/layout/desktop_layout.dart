@@ -1744,7 +1744,7 @@ class _DetailHeaderState extends State<_DetailHeader>
   }
 }
 
-/// Segmented control for artist detail: Songs / Albums as a single pill.
+/// Segmented control for artist detail: Songs / Albums with animated sliding pill.
 class _ArtistTabSegmentedControl extends StatelessWidget {
   final bool showAlbums;
   final String selectedTab;
@@ -1772,44 +1772,80 @@ class _ArtistTabSegmentedControl extends StatelessWidget {
         color: DesktopTheme.backgroundTertiary,
       ),
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            if (showAlbums)
-              Expanded(
-                child: _Segment(
-                  label: albumsLabel,
-                  isSelected: selectedTab == 'albums',
-                  onTap: () => onTabChanged('albums'),
-                  theme: theme,
-                  isFirst: true,
-                  isLast: false,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final w = constraints.maxWidth;
+          final segmentCount = showAlbums ? 2 : 1;
+          final segmentWidth = w / segmentCount;
+          final selectedIndex = selectedTab == 'albums' ? 0 : 1;
+          final pillLeft = segmentCount == 1 ? 0.0 : selectedIndex * segmentWidth;
+
+          return IntrinsicHeight(
+            child: Stack(
+              children: [
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeInOut,
+                  left: pillLeft,
+                  top: 0,
+                  bottom: 0,
+                  width: segmentWidth,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      borderRadius: selectedIndex == 0
+                          ? (segmentCount == 1
+                              ? BorderRadius.circular(radius)
+                              : BorderRadius.horizontal(
+                                  left: Radius.circular(radius),
+                                ))
+                          : BorderRadius.horizontal(
+                              right: Radius.circular(radius),
+                            ),
+                    ),
+                  ),
                 ),
-              ),
-            if (showAlbums)
-              Expanded(
-                child: _Segment(
-                  label: songsLabel,
-                  isSelected: selectedTab == 'songs',
-                  onTap: () => onTabChanged('songs'),
-                  theme: theme,
-                  isFirst: !showAlbums,
-                  isLast: true,
+                Row(
+                  children: [
+                    if (showAlbums)
+                      Expanded(
+                        child: _Segment(
+                          label: albumsLabel,
+                          isSelected: selectedTab == 'albums',
+                          onTap: () => onTabChanged('albums'),
+                          theme: theme,
+                          isFirst: true,
+                          isLast: false,
+                        ),
+                      ),
+                    if (showAlbums)
+                      Expanded(
+                        child: _Segment(
+                          label: songsLabel,
+                          isSelected: selectedTab == 'songs',
+                          onTap: () => onTabChanged('songs'),
+                          theme: theme,
+                          isFirst: false,
+                          isLast: true,
+                        ),
+                      )
+                    else
+                      Expanded(
+                        child: _Segment(
+                          label: songsLabel,
+                          isSelected: true,
+                          onTap: () => onTabChanged('songs'),
+                          theme: theme,
+                          isFirst: true,
+                          isLast: true,
+                        ),
+                      ),
+                  ],
                 ),
-              )
-            else
-              Expanded(
-                child: _Segment(
-                  label: songsLabel,
-                  isSelected: true,
-                  onTap: () => onTabChanged('songs'),
-                  theme: theme,
-                  isFirst: true,
-                  isLast: true,
-                ),
-              ),
-          ],
-        ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -1865,7 +1901,7 @@ class _SegmentState extends State<_Segment> {
           ),
           decoration: BoxDecoration(
             color: widget.isSelected
-                ? widget.theme.colorScheme.primary
+                ? Colors.transparent
                 : _hover
                     ? DesktopTheme.glassOverlay
                     : Colors.transparent,
