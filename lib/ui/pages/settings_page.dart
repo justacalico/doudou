@@ -970,9 +970,9 @@ void _showServerConnectionDialog(
         appState.setCurrentServerAndSave(server);
       },
     ),
-    actions: [
+    actionsBuilder: (dialogContext) => [
       TextButton(
-        onPressed: () => Navigator.of(context).pop(),
+        onPressed: () => Navigator.of(dialogContext).pop(),
         child: const Text('Cancel'),
       ),
     ],

@@ -129,11 +129,13 @@ Future<bool?> showAppleConfirmDialog({
 
 /// Apple-style dialog: frosted glass, large radius, soft shadow.
 /// Use [showAppleDialog] to present with barrier blur.
+/// Prefer [actionsBuilder] over [actions] so buttons can use the dialog context for Navigator.pop (avoids deactivated context errors).
 void showAppleDialog({
   required BuildContext context,
   required String title,
   required Widget content,
   List<Widget>? actions,
+  List<Widget> Function(BuildContext dialogContext)? actionsBuilder,
   double? width,
   double? maxHeight,
   bool barrierDismissible = true,
@@ -155,14 +157,17 @@ void showAppleDialog({
         ),
       );
     },
-    pageBuilder: (context, animation, secondaryAnimation) {
+    pageBuilder: (dialogContext, animation, secondaryAnimation) {
+      final effectiveActions = actionsBuilder != null
+          ? actionsBuilder(dialogContext)
+          : actions;
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: _AppleDialogContent(
             title: title,
             content: content,
-            actions: actions,
+            actions: effectiveActions,
             width: width,
             maxHeight: maxHeight,
           ),
