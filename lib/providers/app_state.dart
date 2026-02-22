@@ -273,6 +273,9 @@ class AppState extends ChangeNotifier {
           case 'subsonic':
             type = ServerType.subsonic;
             break;
+          case 'youtubeMusic':
+            type = ServerType.youtubeMusic;
+            break;
           default:
             type = ServerType.jellyfin;
         }
@@ -807,6 +810,9 @@ class AppState extends ChangeNotifier {
         case 'local':
           type = ServerType.local;
           break;
+        case 'youtubeMusic':
+          type = ServerType.youtubeMusic;
+          break;
         case 'jellyfin':
         default:
           type = ServerType.jellyfin;
@@ -816,9 +822,10 @@ class AppState extends ChangeNotifier {
       // Initialize the appropriate service
       _mediaServiceManager.initializeService(type);
 
-      // Ensure serverUrl has protocol for non-Plex and non-local services
+      // Ensure serverUrl has protocol for non-Plex, non-local, and non-YouTube Music services
       if (type != ServerType.plex &&
           type != ServerType.local &&
+          type != ServerType.youtubeMusic &&
           !serverUrl.startsWith('http://') &&
           !serverUrl.startsWith('https://')) {
         serverUrl = 'http://$serverUrl';
@@ -1044,6 +1051,14 @@ class AppState extends ChangeNotifier {
     try {
       if (s.serverType == 'local') {
         final ok = await loginWithLocalMusic();
+        if (ok) {
+          _currentServerId = s.id;
+          await _saveSavedServersList();
+        }
+        return ok;
+      }
+      if (s.serverType == 'youtubeMusic') {
+        final ok = await loginWithServerType('youtubeMusic', '', '', '');
         if (ok) {
           _currentServerId = s.id;
           await _saveSavedServersList();

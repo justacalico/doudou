@@ -552,6 +552,10 @@ class PlexService implements BaseMediaService {
     return getDownloadUrl(trackId);
   }
 
+  @override
+  Future<String> getStreamUrlAsync(String trackId) async =>
+      getStreamUrl(trackId);
+
   Future<String> getBestStreamUrl(String trackId, {int? bitrate}) async {
     // Try to get metadata for better URLs
     final partKey = await _getTrackPartKey(trackId);

@@ -4,6 +4,7 @@ import 'players/jellyfin_service.dart';
 import 'players/plex_service.dart';
 import 'players/subsonic_service.dart';
 import 'players/local_music_service.dart';
+import 'players/youtube_music_service.dart';
 
 class MediaServiceManager {
   BaseMediaService? _currentService;
@@ -45,6 +46,9 @@ class MediaServiceManager {
       case ServerType.local:
         _sharedLocalMusicService ??= LocalMusicService();
         _currentService = _sharedLocalMusicService;
+        break;
+      case ServerType.youtubeMusic:
+        _currentService = YoutubeMusicService();
         break;
     }
   }
@@ -252,8 +256,19 @@ class MediaServiceManager {
       return subsonicService.getDirectStreamUrl(trackId);
     }
 
+    // YouTube Music: no transcoding; same as stream URL (sync returns cached or '')
+    if (_currentService is YoutubeMusicService) {
+      return _currentService!.getStreamUrl(trackId);
+    }
+
     // For other services, fallback to regular stream URL
     return _currentService!.getStreamUrl(trackId);
+  }
+
+  /// Get stream URL asynchronously. Use for playback when provider may need to resolve URL (e.g. YouTube Music).
+  Future<String> getStreamUrlAsync(String trackId) async {
+    if (_currentService == null) return '';
+    return _currentService!.getStreamUrlAsync(trackId);
   }
 
   /// Get alternative stream URLs for fallback from the current service
@@ -382,6 +397,8 @@ class MediaServiceManager {
           return await localMusicService.createPlaylist(name);
         }
         break;
+      case ServerType.youtubeMusic:
+        break;
     }
     return null;
   }
@@ -415,6 +432,8 @@ class MediaServiceManager {
             trackId,
           );
         }
+        break;
+      case ServerType.youtubeMusic:
         break;
     }
     return false;
@@ -459,6 +478,8 @@ class MediaServiceManager {
       case ServerType.plex:
         // Plex remove track from playlist not yet implemented
         break;
+      case ServerType.youtubeMusic:
+        break;
     }
     return false;
   }
@@ -490,6 +511,8 @@ class MediaServiceManager {
           return await localMusicService.renamePlaylist(playlistId, newName);
         }
         break;
+      case ServerType.youtubeMusic:
+        break;
     }
     return false;
   }
@@ -517,6 +540,8 @@ class MediaServiceManager {
           final localMusicService = _currentService as LocalMusicService;
           return await localMusicService.deletePlaylist(playlistId);
         }
+        break;
+      case ServerType.youtubeMusic:
         break;
     }
     return false;
@@ -655,6 +680,10 @@ class JellyfinServiceAdapter implements BaseMediaService {
   String getDirectStreamUrl(String trackId) {
     return _jellyfinService.getDirectStreamUrl(trackId);
   }
+
+  @override
+  Future<String> getStreamUrlAsync(String trackId) async =>
+      getDirectStreamUrl(trackId);
 
   /// Get authentication headers for HTTP requests
   Future<Map<String, String>> getAuthHeaders() async {

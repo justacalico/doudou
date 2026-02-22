@@ -74,15 +74,12 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
     super.dispose();
   }
 
-  static const String _unsupportedUrlMessage =
-      'This app supports Jellyfin, Plex, Subsonic, and Local music only. YouTube Music and similar services are not supported.';
-
   String? _validateServerUrl(String? value) {
+    if (_selectedServerType == 'youtubeMusic' || _selectedServerType == 'local') {
+      return null;
+    }
     final url = (value ?? '').trim().toLowerCase();
     if (url.isEmpty) return 'Enter server URL';
-    if (url.contains('youtube') || url.contains('music.youtube')) {
-      return _unsupportedUrlMessage;
-    }
     return null;
   }
 
@@ -94,6 +91,9 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
         return 'http://your-plex-server:32400';
       case 'subsonic':
         return 'http://your-subsonic-server:4533';
+      case 'youtubeMusic':
+      case 'local':
+        return '';
       default:
         return 'http://your-server:port';
     }
@@ -104,6 +104,18 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
       if (!mounted) return;
       final appState = context.read<AppState>();
       final success = await appState.loginWithLocalMusic();
+      if (success && mounted) {
+        final server = _buildSavedServerFromForm();
+        await widget.onConnectSuccess?.call(server);
+        if (mounted && Navigator.canPop(context)) Navigator.pop(context);
+      }
+      return;
+    }
+
+    if (_selectedServerType == 'youtubeMusic') {
+      if (!mounted) return;
+      final appState = context.read<AppState>();
+      final success = await appState.loginWithServerType('youtubeMusic', '', '', '');
       if (success && mounted) {
         final server = _buildSavedServerFromForm();
         await widget.onConnectSuccess?.call(server);
@@ -155,19 +167,28 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
 
   SavedServer _buildSavedServerFromForm() {
     final id = widget.initialServer?.id ?? 's_${DateTime.now().millisecondsSinceEpoch}';
-    final url = _selectedServerType == 'local' ? '' : _serverController.text.trim();
+    final url = (_selectedServerType == 'local' || _selectedServerType == 'youtubeMusic')
+        ? ''
+        : _serverController.text.trim();
     final authMethod = _selectedServerType == 'local'
         ? 'local'
-        : _selectedServerType == 'plex'
-            ? 'password'
-            : _jellyfinAuthMethod == JellyfinAuthMethod.apiKey
-                ? 'api_key'
-                : _jellyfinAuthMethod == JellyfinAuthMethod.quickConnect
-                    ? 'quick_connect'
-                    : 'password';
+        : _selectedServerType == 'youtubeMusic'
+            ? 'none'
+            : _selectedServerType == 'plex'
+                ? 'password'
+                : _jellyfinAuthMethod == JellyfinAuthMethod.apiKey
+                    ? 'api_key'
+                    : _jellyfinAuthMethod == JellyfinAuthMethod.quickConnect
+                        ? 'quick_connect'
+                        : 'password';
+    final defaultName = _selectedServerType == 'local'
+        ? 'Local Music'
+        : _selectedServerType == 'youtubeMusic'
+            ? 'YouTube Music'
+            : null;
     return SavedServer(
       id: id,
-      name: widget.initialServer?.name ?? (_selectedServerType == 'local' ? 'Local Music' : null),
+      name: widget.initialServer?.name ?? defaultName,
       serverType: _selectedServerType,
       serverUrl: url,
       authMethod: authMethod,
@@ -288,6 +309,7 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
               DropdownMenuItem(value: 'jellyfin', child: Text('Jellyfin')),
               DropdownMenuItem(value: 'plex', child: Text('Plex')),
               DropdownMenuItem(value: 'subsonic', child: Text('Subsonic')),
+              DropdownMenuItem(value: 'youtubeMusic', child: Text('YouTube Music')),
               DropdownMenuItem(value: 'local', child: Text('Local')),
             ],
             onChanged: (String? type) {
@@ -311,6 +333,41 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                 'Connect to use local music. Add folders and scan in Settings > Local Music after connecting.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: DesktopTheme.textSecondary,
+                ),
+              ),
+            ),
+            if (context.watch<AppState>().errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  context.read<AppState>().errorMessage!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: context.watch<AppState>().isLoading ? null : _connect,
+              icon: context.watch<AppState>().isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.link_rounded),
+              label: Text(
+                context.watch<AppState>().isLoading ? 'Connecting...' : 'Connect',
+              ),
+            ),
+          ] else if (_selectedServerType == 'youtubeMusic') ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                'Stream from YouTube Music. No login required. Use search to find and play tracks.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: DesktopTheme.textSecondary,
                 ),

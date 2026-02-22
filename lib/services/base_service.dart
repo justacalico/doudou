@@ -1,6 +1,6 @@
 import '../models/jellyfin_models.dart';
 
-enum ServerType { jellyfin, plex, subsonic, local }
+enum ServerType { jellyfin, plex, subsonic, local, youtubeMusic }
 
 /// Base interface for all media server services
 abstract class BaseMediaService {
@@ -77,6 +77,11 @@ abstract class BaseMediaService {
 
   /// Get stream URL for a track
   String getStreamUrl(String trackId, {int? bitrate});
+
+  /// Get stream URL asynchronously (for providers that need to resolve URLs, e.g. YouTube Music).
+  /// Default returns sync getStreamUrl; override to perform async resolution.
+  Future<String> getStreamUrlAsync(String trackId) async =>
+      getStreamUrl(trackId);
 
   /// Get alternative stream URLs for fallback (optional implementation)
   List<String> getAlternativeStreamUrls(String trackId) => [];

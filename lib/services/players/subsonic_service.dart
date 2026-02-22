@@ -499,6 +499,10 @@ class SubsonicService implements BaseMediaService {
     return '$_serverUrl/rest/stream?${Uri(queryParameters: params).query}';
   }
 
+  @override
+  Future<String> getStreamUrlAsync(String trackId) async =>
+      getStreamUrl(trackId);
+
   /// Get direct download URL (no transcoding)
   String getDirectStreamUrl(String trackId) {
     final params = Map<String, dynamic>.from(_baseParams);

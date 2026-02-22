@@ -80,6 +80,9 @@ dependencies:
   # Audio metadata reading (ID3 tags) - pure Dart, no native code
   audio_metadata_reader: ^1.4.2
 
+  # YouTube Music provider - stream URL resolution only (isolated from audio stack)
+  youtube_explode_dart: ^2.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

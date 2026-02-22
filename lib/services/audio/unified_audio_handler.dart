@@ -1096,13 +1096,17 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }
     }
 
-    // Try direct stream first
+    // Try direct stream first (sync; works for Jellyfin, Plex, Subsonic, Local)
     final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
     if (directUrl.isNotEmpty) {
       return directUrl;
     }
 
-    // Fallback to transcoded stream
+    // Async resolution (e.g. YouTube Music); same path for all providers
+    final asyncUrl = await _mediaServiceManager.getStreamUrlAsync(track.id);
+    if (asyncUrl.isNotEmpty) return asyncUrl;
+
+    // Fallback to sync stream URL
     return _mediaServiceManager.getStreamUrl(track.id);
   }
 

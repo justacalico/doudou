@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/services/base_service.dart';
 import 'package:doudou/services/navigation_service.dart';
 
 import 'package:doudou/ui/theme.dart';
@@ -68,7 +69,7 @@ class _SearchPageState extends State<SearchPage> {
           child: ValueListenableBuilder<String>(
             valueListenable: _query,
             builder: (context, q, _) {
-              final query = q.trim().toLowerCase();
+              final query = q.trim();
               if (query.isEmpty) {
                 return Center(
                   child: Column(
@@ -86,21 +87,82 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 );
               }
+              // YouTube Music: remote search
+              if (appState.mediaServiceManager.currentServerType ==
+                  ServerType.youtubeMusic) {
+                return FutureBuilder(
+                  future: appState.mediaServiceManager.search(query, limit: 25),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(DesktopTheme.spacingXl),
+                          child: snapshot.connectionState ==
+                                  ConnectionState.waiting
+                              ? const CircularProgressIndicator()
+                              : Text(
+                                  l10n.noSongsFound,
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: DesktopTheme.textSecondary),
+                                ),
+                        ),
+                      );
+                    }
+                    final results = snapshot.data!;
+                    final tracks = results.tracks;
+                    if (tracks.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(DesktopTheme.spacingXl),
+                          child: Text(
+                            l10n.noSongsFound,
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: DesktopTheme.textSecondary),
+                          ),
+                        ),
+                      );
+                    }
+                    return SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SectionHeader(title: l10n.songs),
+                          const SizedBox(height: DesktopTheme.spacingSm),
+                          SizedBox(
+                            height: 320,
+                            child: TrackListTemplate(
+                              tracks: tracks,
+                              showTrackNumber: false,
+                              showArtist: true,
+                              showAlbum: true,
+                              showArtwork: true,
+                            ),
+                          ),
+                          const SizedBox(height: 120),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              }
+              final queryLower = query.toLowerCase();
               final albums = appState.albums
                   .where((a) =>
-                      a.name.toLowerCase().contains(query) ||
-                      (a.artistName?.toLowerCase().contains(query) ?? false))
+                      a.name.toLowerCase().contains(queryLower) ||
+                      (a.artistName?.toLowerCase().contains(queryLower) ?? false))
                   .take(6)
                   .toList();
               final artists = appState.artists
-                  .where((a) => a.name.toLowerCase().contains(query))
+                  .where((a) => a.name.toLowerCase().contains(queryLower))
                   .take(6)
                   .toList();
               final tracks = appState.tracks
                   .where((t) =>
-                      t.name.toLowerCase().contains(query) ||
-                      (t.artistName?.toLowerCase().contains(query) ?? false) ||
-                      (t.albumName?.toLowerCase().contains(query) ?? false))
+                      t.name.toLowerCase().contains(queryLower) ||
+                      (t.artistName?.toLowerCase().contains(queryLower) ?? false) ||
+                      (t.albumName?.toLowerCase().contains(queryLower) ?? false))
                   .toList();
 
               return SingleChildScrollView(

@@ -1030,6 +1030,10 @@ class LocalMusicService implements BaseMediaService {
     return '';
   }
 
+  @override
+  Future<String> getStreamUrlAsync(String trackId) async =>
+      getStreamUrl(trackId);
+
   /// Convert a file path to a proper file:// URI
   /// On Windows, paths like C:\path need to become file:///C:/path
   /// On Unix, paths like /path need to become file:///path
