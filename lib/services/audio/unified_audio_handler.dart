@@ -1007,8 +1007,16 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       } catch (e) {
         _stateController.updateState(AudioPlayerState.error);
         _stateController.updateUserIntent(false);
-        _stateController.updateError('Failed to load track: $e');
-        rethrow;
+        // On Linux, YouTube streams (googlevideo.com) fail with GStreamer; show a clear message and do not rethrow.
+        if (defaultTargetPlatform == TargetPlatform.linux &&
+            url.contains('googlevideo.com')) {
+          _stateController.updateError(
+            'YouTube Music playback is not supported on Linux (GStreamer cannot play this stream).',
+          );
+        } else {
+          _stateController.updateError('Failed to load track: $e');
+          rethrow;
+        }
       }
     } else {
       // Mobile and Web
