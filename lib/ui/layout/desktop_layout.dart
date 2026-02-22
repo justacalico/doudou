@@ -1525,7 +1525,6 @@ class _DetailHeaderState extends State<_DetailHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
     final gradientColors = _headerColors != null && _headerColors!.length >= 2
@@ -1535,7 +1534,7 @@ class _DetailHeaderState extends State<_DetailHeader> {
             DesktopTheme.backgroundPrimary,
           ]
         : [
-            theme.colorScheme.primary.withOpacity(0.15),
+            DesktopTheme.backgroundPrimary,
             DesktopTheme.backgroundPrimary,
           ];
     final gradientStops = _headerColors != null && _headerColors!.length >= 2
