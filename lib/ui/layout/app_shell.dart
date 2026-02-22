@@ -207,6 +207,7 @@ class _AppShellState extends State<AppShell> {
           onKeyEvent: _handleKeyEvent,
           child: Scaffold(
             backgroundColor: DesktopTheme.backgroundDeep,
+            extendBody: !isDesktop,
             body: Column(
               children: [
                 Expanded(
@@ -803,20 +804,16 @@ class _MobilePlayerBar extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius:
                                 BorderRadius.circular(22),
-                            color: DesktopTheme.isOled
-                                ? DesktopTheme.backgroundElevated
-                                : (isDark
-                                        ? Colors.white
-                                        : Colors.black)
-                                    .withOpacity(
-                                        isDark ? 0.15 : 0.08),
+                            color: (isDark
+                                    ? Colors.white
+                                    : Colors.black)
+                                .withOpacity(
+                                    isDark ? 0.12 : 0.06),
                             border: Border.all(
-                              color: DesktopTheme.isOled
-                                  ? DesktopTheme.glassBorder
-                                  : (isDark
-                                          ? Colors.white
-                                          : Colors.black)
-                                      .withOpacity(0.12),
+                              color: (isDark
+                                      ? Colors.white
+                                      : Colors.black)
+                                  .withOpacity(0.12),
                               width: 0.5,
                             ),
                             boxShadow: [
