@@ -377,6 +377,39 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
+  /// On Linux, use just_audio (media_kit) for YouTube streams so playback works;
+  /// use audioplayers (GStreamer) for other URLs to avoid system audio issues.
+  Future<void> _ensureLinuxPlayerForUrl(String url) async {
+    if (defaultTargetPlatform != TargetPlatform.linux || _disposed || _isRecreatingPlayer) return;
+    final isYtStream = url.contains('googlevideo.com');
+    final needJustAudio = isYtStream;
+    final currentlyJustAudio = _player is JustAudioAppPlayer;
+    if (needJustAudio == currentlyJustAudio) return;
+
+    _isRecreatingPlayer = true;
+    try {
+      _playerGeneration++;
+      final oldSubscriptions = _subscriptions;
+      _subscriptions = [];
+
+      await _player.dispose();
+      _player = needJustAudio ? JustAudioAppPlayer() : AudioplayersAppPlayer();
+      _setupPlayerListeners();
+
+      Future.microtask(() async {
+        for (final sub in oldSubscriptions) {
+          try {
+            await sub.cancel();
+          } catch (e) {
+            // Ignore
+          }
+        }
+      });
+    } finally {
+      _isRecreatingPlayer = false;
+    }
+  }
+
   /// Handle player state changes
   void _handlePlayerStateChange(PlayerState playerState) {
     if (_disposed) return;
@@ -987,11 +1020,15 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }
     }
 
-    // Desktop: Recreate player to prevent native callback crashes
+    // Desktop: Recreate player (Windows/macOS); on Linux swap to just_audio for YouTube URLs only.
     if (_isDesktop) {
       final currentOperationId = ++_loadOperationId;
 
-      await _recreatePlayer();
+      if (defaultTargetPlatform == TargetPlatform.linux) {
+        await _ensureLinuxPlayerForUrl(url);
+      } else {
+        await _recreatePlayer();
+      }
       await Future.delayed(const Duration(milliseconds: 50));
 
       if (_disposed || currentOperationId != _loadOperationId) return;
@@ -1007,11 +1044,11 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       } catch (e) {
         _stateController.updateState(AudioPlayerState.error);
         _stateController.updateUserIntent(false);
-        // On Linux, YouTube streams (googlevideo.com) fail with GStreamer; show a clear message and do not rethrow.
+        // On Linux, if YT stream still fails (e.g. mpv unavailable), show clear message and do not rethrow.
         if (defaultTargetPlatform == TargetPlatform.linux &&
             url.contains('googlevideo.com')) {
           _stateController.updateError(
-            'YouTube Music playback is not supported on Linux (GStreamer cannot play this stream).',
+            'YouTube Music playback failed on Linux.',
           );
         } else {
           _stateController.updateError('Failed to load track: $e');

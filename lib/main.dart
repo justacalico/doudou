@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'services/audio/just_audio_media_kit_ext.dart';
+import 'services/audio/linux_locale_fix_stub.dart' if (dart.library.io) 'services/audio/linux_locale_fix.dart' as linux_locale;
 import 'providers/app_state.dart';
 import 'services/logging_service.dart';
 import 'services/players/jellyfin_service.dart';
@@ -39,11 +40,18 @@ Future<void> _runApp() async {
     databaseFactory = databaseFactoryFfi;
   }
 
-  // Desktop audio: just_audio_media_kit (mpv) on Windows/macOS only; Linux uses audioplayers (GStreamer)
+  // Desktop audio: just_audio_media_kit (mpv) for Windows/macOS and for Linux (YouTube only).
+  // On Linux, set LC_NUMERIC=C before loading mpv to avoid "Non-C locale" crash.
   if (!kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.windows ||
-          defaultTargetPlatform == TargetPlatform.macOS)) {
-    await JustAudioMediaKitExt.ensureInitializedAsync();
+          defaultTargetPlatform == TargetPlatform.macOS ||
+          defaultTargetPlatform == TargetPlatform.linux)) {
+    if (defaultTargetPlatform == TargetPlatform.linux) {
+      await linux_locale.ensureNumericLocaleC();
+    }
+    await JustAudioMediaKitExt.ensureInitializedAsync(
+      linux: defaultTargetPlatform == TargetPlatform.linux,
+    );
   }
 
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
