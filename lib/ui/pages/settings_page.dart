@@ -14,6 +14,7 @@ import 'package:doudou/services/update_service.dart';
 import 'package:doudou/models/saved_server.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/settings/server_connection_section.dart';
+import 'package:doudou/ui/widgets/apple_dialog.dart';
 
 /// Breakpoint: below this width use mobile list → detail; above use sidebar + detail.
 const double _kSettingsBreakpoint = 768.0;
@@ -240,46 +241,50 @@ class _SettingsPageState extends State<SettingsPage> {
   void _showThemeDialog() {
     final appState = context.read<AppState>();
     final current = _effectiveThemeSelection(appState);
-    showDialog(
+    showAppleDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Choose Theme'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _themeRadio(ctx, appState, 'system', current, 'System Default', () {
-              Navigator.pop(ctx);
+      title: 'Choose Theme',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppleDialogOption(
+            label: 'System Default',
+            selected: current == 'system',
+            onTap: () {
+              Navigator.pop(context);
               appState.setThemeMode(ThemeMode.system);
               appState.toggleOledDarkMode(false);
-            }),
-            _themeRadio(ctx, appState, 'light', current, 'Light', () {
-              Navigator.pop(ctx);
+            },
+          ),
+          AppleDialogOption(
+            label: 'Light',
+            selected: current == 'light',
+            onTap: () {
+              Navigator.pop(context);
               appState.setThemeMode(ThemeMode.light);
               appState.toggleOledDarkMode(false);
-            }),
-            _themeRadio(ctx, appState, 'dark', current, 'Dark', () {
-              Navigator.pop(ctx);
+            },
+          ),
+          AppleDialogOption(
+            label: 'Dark',
+            selected: current == 'dark',
+            onTap: () {
+              Navigator.pop(context);
               appState.setThemeMode(ThemeMode.dark);
               appState.toggleOledDarkMode(false);
-            }),
-            _themeRadio(ctx, appState, 'oled', current, 'OLED', () {
-              Navigator.pop(ctx);
+            },
+          ),
+          AppleDialogOption(
+            label: 'OLED',
+            selected: current == 'oled',
+            onTap: () {
+              Navigator.pop(context);
               appState.setThemeMode(ThemeMode.dark);
               appState.toggleOledDarkMode(true);
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _themeRadio(BuildContext ctx, AppState appState, String value, String groupValue, String label, VoidCallback onSelect) {
-    return ListTile(
-      title: Text(label),
-      leading: Radio<String>(
-        value: value,
-        groupValue: groupValue,
-        onChanged: (_) => onSelect(),
+            },
+          ),
+        ],
       ),
     );
   }
@@ -287,19 +292,19 @@ class _SettingsPageState extends State<SettingsPage> {
   void _showColorDialog() {
     final appState = context.read<AppState>();
     final l10n = AppLocalizations.of(context);
-    showDialog<void>(
+    showAppleDialog(
       context: context,
-      builder: (ctx) => _AccentColorDialog(
+      title: l10n.chooseAccentColor,
+      content: _AccentColorDialog(
         currentColor: appState.accentColor,
         onColorSelected: (c) {
-          Navigator.pop(ctx);
+          Navigator.pop(context);
           appState.setAccentColor(c);
         },
         onCustomTap: () {
-          Navigator.pop(ctx);
+          Navigator.pop(context);
           _showCustomColorPicker(appState);
         },
-        chooseTitle: l10n.chooseAccentColor,
         customLabel: l10n.customColor,
       ),
     );
@@ -307,12 +312,16 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _showCustomColorPicker(AppState appState) {
     final l10n = AppLocalizations.of(context);
-    showDialog<void>(
+    showAppleDialog(
       context: context,
-      builder: (ctx) => _CustomColorPickerDialog(
+      title: l10n.customColor,
+      width: 320,
+      content: _CustomColorPickerDialog(
         initialColor: appState.accentColor,
-        onColorSelected: (c) => appState.setAccentColor(c),
-        title: l10n.customColor,
+        onColorSelected: (c) {
+          appState.setAccentColor(c);
+          Navigator.pop(context);
+        },
       ),
     );
   }
@@ -327,37 +336,32 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _showLanguageDialog(AppState appState) {
     final current = appState.locale;
-    showDialog(
+    showAppleDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Select Language'),
-        content: SizedBox(
-          width: 300,
-          height: 400,
-          child: ListView(
-            children: [
-              RadioListTile<Locale?>(
-                title: const Text('System default'),
-                value: null,
-                groupValue: current,
-                onChanged: (v) {
-                  Navigator.pop(ctx);
-                  appState.setLocale(null);
-                },
-              ),
-              const Divider(),
-              ...AppLocalizations.supportedLocales.map((locale) => RadioListTile<Locale?>(
-                title: Text(_getLanguageNameForLocale(locale)),
-                value: locale,
-                groupValue: current,
-                onChanged: (v) {
-                  Navigator.pop(ctx);
+      title: 'Select Language',
+      width: 320,
+      maxHeight: 440,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppleDialogOption(
+            label: 'System default',
+            selected: current == null,
+            onTap: () {
+              Navigator.pop(context);
+              appState.setLocale(null);
+            },
+          ),
+          ...AppLocalizations.supportedLocales.map((locale) => AppleDialogOption(
+                label: _getLanguageNameForLocale(locale),
+                selected: current == locale,
+                onTap: () {
+                  Navigator.pop(context);
                   appState.setLocale(locale);
                 },
               )),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -1463,14 +1467,12 @@ class _AccentColorDialog extends StatelessWidget {
     required this.currentColor,
     required this.onColorSelected,
     required this.onCustomTap,
-    required this.chooseTitle,
     required this.customLabel,
   });
 
   final Color currentColor;
   final ValueChanged<Color> onColorSelected;
   final VoidCallback onCustomTap;
-  final String chooseTitle;
   final String customLabel;
 
   @override
@@ -1481,14 +1483,10 @@ class _AccentColorDialog extends StatelessWidget {
     const spacing = 16.0;
     const ringWidth = 2.5;
 
-    return AlertDialog(
-      title: Text(chooseTitle),
-      content: SizedBox(
-        width: 280,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
             // Preset grid: 3x2 circular swatches
             GridView.count(
               shrinkWrap: true,
@@ -1584,8 +1582,6 @@ class _AccentColorDialog extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
     );
   }
 }
@@ -1594,12 +1590,10 @@ class _CustomColorPickerDialog extends StatefulWidget {
   const _CustomColorPickerDialog({
     required this.initialColor,
     required this.onColorSelected,
-    required this.title,
   });
 
   final Color initialColor;
   final ValueChanged<Color> onColorSelected;
-  final String title;
 
   @override
   State<_CustomColorPickerDialog> createState() => _CustomColorPickerDialogState();
@@ -1634,74 +1628,73 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
     final theme = Theme.of(context);
     final textColor = _color.computeLuminance() > 0.4 ? Colors.black87 : Colors.white;
 
-    return AlertDialog(
-      title: Text(widget.title),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              height: 56,
-              decoration: BoxDecoration(
-                color: _color,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
-              ),
-              child: Center(
-                child: Text(
-                  '#${_hex.text.toUpperCase()}',
-                  style: TextStyle(
-                    color: textColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    fontFamily: 'monospace',
-                  ),
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            height: 56,
+            decoration: BoxDecoration(
+              color: _color,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
+            ),
+            child: Center(
+              child: Text(
+                '#${_hex.text.toUpperCase()}',
+                style: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  fontFamily: 'monospace',
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            _slider(context, 'Red', _color.red.toDouble(), Colors.red, (v) => _update(Color.fromARGB(255, v.round(), _color.green, _color.blue))),
-            const SizedBox(height: 8),
-            _slider(context, 'Green', _color.green.toDouble(), Colors.green, (v) => _update(Color.fromARGB(255, _color.red, v.round(), _color.blue))),
-            const SizedBox(height: 8),
-            _slider(context, 'Blue', _color.blue.toDouble(), Colors.blue, (v) => _update(Color.fromARGB(255, _color.red, _color.green, v.round()))),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _hex,
-              maxLength: 6,
-              decoration: InputDecoration(
-                labelText: 'Hex',
-                prefixText: '# ',
-                border: const OutlineInputBorder(),
-                isDense: true,
-                counterText: '',
-              ),
-              style: const TextStyle(fontFamily: 'monospace', letterSpacing: 1.2),
-              onChanged: (s) {
-                if (s.length == 6) {
-                  try {
-                    setState(() => _color = Color(int.parse('FF${s.toUpperCase()}', radix: 16)));
-                  } catch (_) {}
-                }
-              },
+          ),
+          const SizedBox(height: 20),
+          _slider(context, 'Red', _color.red.toDouble(), Colors.red, (v) => _update(Color.fromARGB(255, v.round(), _color.green, _color.blue))),
+          const SizedBox(height: 8),
+          _slider(context, 'Green', _color.green.toDouble(), Colors.green, (v) => _update(Color.fromARGB(255, _color.red, v.round(), _color.blue))),
+          const SizedBox(height: 8),
+          _slider(context, 'Blue', _color.blue.toDouble(), Colors.blue, (v) => _update(Color.fromARGB(255, _color.red, _color.green, v.round()))),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _hex,
+            maxLength: 6,
+            decoration: InputDecoration(
+              labelText: 'Hex',
+              prefixText: '# ',
+              border: const OutlineInputBorder(),
+              isDense: true,
+              counterText: '',
             ),
-          ],
-        ),
+            style: const TextStyle(fontFamily: 'monospace', letterSpacing: 1.2),
+            onChanged: (s) {
+              if (s.length == 6) {
+                try {
+                  setState(() => _color = Color(int.parse('FF${s.toUpperCase()}', radix: 16)));
+                } catch (_) {}
+              }
+            },
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 12),
+              FilledButton(
+                onPressed: () => widget.onColorSelected(_color),
+                child: const Text('Apply'),
+              ),
+            ],
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () {
-            Navigator.pop(context);
-            widget.onColorSelected(_color);
-          },
-          child: const Text('Apply'),
-        ),
-      ],
     );
   }
 
