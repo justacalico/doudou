@@ -82,7 +82,6 @@ class _SettingsPageState extends State<SettingsPage> {
         section: 'About',
       ),
     ];
-    if (isLocalMusic) return items.where((e) => e.id != 'server').toList();
     return items;
   }
 
@@ -1058,6 +1057,13 @@ class _ServerSection extends StatelessWidget {
                       )),
                       const Divider(),
                       ListTile(title: const Text('Add Directory'), leading: const Icon(Icons.create_new_folder), onTap: () => onAddDir(appState)),
+                      const Divider(),
+                      ListTile(
+                        title: const Text('Scan for Music'),
+                        subtitle: const Text('Rescan folders and update library'),
+                        leading: const Icon(Icons.refresh_rounded),
+                        onTap: () => onRescan(appState),
+                      ),
                       const Divider(),
                       SwitchListTile(
                         title: const Text('Fetch Online Artwork'),

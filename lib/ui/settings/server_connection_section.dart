@@ -5,7 +5,6 @@ import 'package:doudou/models/saved_server.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/services/players/jellyfin_service.dart';
-import 'package:doudou/ui/settings/local_music_settings.dart';
 
 enum JellyfinAuthMethod { account, apiKey, quickConnect }
 
@@ -101,7 +100,17 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
   }
 
   Future<void> _connect() async {
-    if (_selectedServerType == 'local') return;
+    if (_selectedServerType == 'local') {
+      if (!mounted) return;
+      final appState = context.read<AppState>();
+      final success = await appState.loginWithLocalMusic();
+      if (success && mounted) {
+        final server = _buildSavedServerFromForm();
+        widget.onConnectSuccess?.call(server);
+        if (Navigator.canPop(context)) Navigator.pop(context);
+      }
+      return;
+    }
 
     if (_selectedServerType == 'jellyfin' &&
         _jellyfinAuthMethod == JellyfinAuthMethod.quickConnect) {
@@ -146,17 +155,19 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
 
   SavedServer _buildSavedServerFromForm() {
     final id = widget.initialServer?.id ?? 's_${DateTime.now().millisecondsSinceEpoch}';
-    final url = _serverController.text.trim();
-    final authMethod = _selectedServerType == 'plex'
-        ? 'password'
-        : _jellyfinAuthMethod == JellyfinAuthMethod.apiKey
-            ? 'api_key'
-            : _jellyfinAuthMethod == JellyfinAuthMethod.quickConnect
-                ? 'quick_connect'
-                : 'password';
+    final url = _selectedServerType == 'local' ? '' : _serverController.text.trim();
+    final authMethod = _selectedServerType == 'local'
+        ? 'local'
+        : _selectedServerType == 'plex'
+            ? 'password'
+            : _jellyfinAuthMethod == JellyfinAuthMethod.apiKey
+                ? 'api_key'
+                : _jellyfinAuthMethod == JellyfinAuthMethod.quickConnect
+                    ? 'quick_connect'
+                    : 'password';
     return SavedServer(
       id: id,
-      name: widget.initialServer?.name,
+      name: widget.initialServer?.name ?? (_selectedServerType == 'local' ? 'Local Music' : null),
       serverType: _selectedServerType,
       serverUrl: url,
       authMethod: authMethod,
@@ -256,15 +267,6 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
     });
   }
 
-  void _openLocalMusicSettings() {
-    Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (_) => const LocalMusicSettingsScreen(isInitialSetup: true),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -288,10 +290,6 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
             ],
             onChanged: (String? type) {
               if (type == null) return;
-              if (type == 'local') {
-                _openLocalMusicSettings();
-                return;
-              }
               setState(() {
                 _selectedServerType = type;
                 _serverController.text = _getServerPlaceholder();
@@ -307,10 +305,39 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
           const SizedBox(height: 20),
 
           if (_selectedServerType == 'local') ...[
-            OutlinedButton.icon(
-              onPressed: _openLocalMusicSettings,
-              icon: const Icon(Icons.folder_rounded),
-              label: const Text('Configure local music'),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                'Connect to use local music. Add folders and scan in Settings > Local Music after connecting.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: DesktopTheme.textSecondary,
+                ),
+              ),
+            ),
+            if (context.watch<AppState>().errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  context.read<AppState>().errorMessage!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: context.watch<AppState>().isLoading ? null : _connect,
+              icon: context.watch<AppState>().isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.link_rounded),
+              label: Text(
+                context.watch<AppState>().isLoading ? 'Connecting...' : 'Connect',
+              ),
             ),
           ] else ...[
             TextFormField(

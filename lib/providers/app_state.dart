@@ -740,14 +740,7 @@ class AppState extends ChangeNotifier {
         return false;
       }
 
-      // Check if we have any music
-      final tracks = await localService.getTracks();
-      if (tracks.isEmpty) {
-        _setError('No music found. Please add directories and scan for music.');
-        _setLoading(false);
-        return false;
-      }
-
+      // Allow connecting with empty library; user adds directories in Settings > Local Music
       _isLoggedIn = true;
 
       // Initialize cache service
