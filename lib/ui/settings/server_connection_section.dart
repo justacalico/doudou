@@ -268,29 +268,41 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'Server type',
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: DesktopTheme.textSecondary,
+          DropdownButtonFormField<String>(
+            value: _selectedServerType,
+            decoration: const InputDecoration(
+              labelText: 'Server type',
+              border: OutlineInputBorder(),
             ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _serverTypeChip('jellyfin', 'Jellyfin', AppleColors.systemPurple, isDark),
-              _serverTypeChip('plex', 'Plex', AppleColors.systemOrange, isDark),
-              _serverTypeChip('subsonic', 'Subsonic', AppleColors.systemBlue, isDark),
-              _serverTypeChip('local', 'Local', AppleColors.systemGreen, isDark),
+            items: const [
+              DropdownMenuItem(value: 'jellyfin', child: Text('Jellyfin')),
+              DropdownMenuItem(value: 'plex', child: Text('Plex')),
+              DropdownMenuItem(value: 'subsonic', child: Text('Subsonic')),
+              DropdownMenuItem(value: 'local', child: Text('Local')),
             ],
+            onChanged: (String? type) {
+              if (type == null) return;
+              if (type == 'local') {
+                _openLocalMusicSettings();
+                return;
+              }
+              setState(() {
+                _selectedServerType = type;
+                _serverController.text = _getServerPlaceholder();
+                if (type == 'plex') {
+                  _usernameController.clear();
+                  _passwordController.clear();
+                } else {
+                  _plexTokenController.clear();
+                }
+              });
+            },
           ),
           const SizedBox(height: 20),
 
@@ -439,37 +451,6 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
           ],
         ],
       ),
-    );
-  }
-
-  Widget _serverTypeChip(
-    String type,
-    String label,
-    Color color,
-    bool isDark,
-  ) {
-    final isSelected = _selectedServerType == type;
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) async {
-        if (type == 'local') {
-          _openLocalMusicSettings();
-          return;
-        }
-        setState(() {
-          _selectedServerType = type;
-          _serverController.text = _getServerPlaceholder();
-          if (type == 'plex') {
-            _usernameController.clear();
-            _passwordController.clear();
-          } else {
-            _plexTokenController.clear();
-          }
-        });
-      },
-      selectedColor: color.withOpacity(isDark ? 0.3 : 0.2),
-      checkmarkColor: color,
     );
   }
 
