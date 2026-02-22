@@ -1,13 +1,18 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:doudou/l10n/app_localizations.dart';
+import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/navigation_service.dart';
 
+import 'package:doudou/ui/layout/desktop_layout.dart';
+import 'package:doudou/ui/pages/details/artist_detail.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/templates/music_card.dart';
+import 'package:doudou/ui/widgets/detail_track_view.dart';
 
 /// Home page built from reusable templates (page, section header, music cards, list tiles).
 class HomePage extends StatefulWidget {
@@ -229,7 +234,8 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(width: DesktopTheme.spacingSm),
                     DesktopIconButton(
                       icon: Icons.more_horiz_rounded,
-                      onPressed: () {},
+                      onPressed: () =>
+                          _showTrackMoreMenu(context, track, appState),
                       size: 18,
                     ),
                   ],
@@ -248,5 +254,94 @@ class _HomePageState extends State<HomePage> {
   String _formatDuration(int ms) {
     final d = Duration(milliseconds: ms);
     return '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
+  }
+
+  void _showTrackMoreMenu(
+      BuildContext context, Track track, AppState appState) {
+    final l10n = AppLocalizations.of(context);
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              DesktopLayout.showAddToPlaylistDialog(context, track);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  CupertinoIcons.add_circled,
+                  color: CupertinoColors.activeBlue,
+                ),
+                const SizedBox(width: 8),
+                Text(l10n.addToPlaylist),
+              ],
+            ),
+          ),
+          if (track.albumId != null)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                try {
+                  final album = appState.albums.firstWhere(
+                    (a) => a.id == track.albumId,
+                    orElse: () => throw StateError('not found'),
+                  );
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => DetailTrackView.album(album),
+                    ),
+                  );
+                } catch (_) {}
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    CupertinoIcons.music_albums,
+                    color: CupertinoColors.activeBlue,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(l10n.goToAlbum),
+                ],
+              ),
+            ),
+          if (track.artistName != null)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                try {
+                  final artist = appState.artists.firstWhere(
+                    (a) => a.name == track.artistName,
+                    orElse: () => throw StateError('not found'),
+                  );
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => ArtistDetailScreen(artist: artist),
+                    ),
+                  );
+                } catch (_) {}
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    CupertinoIcons.person,
+                    color: CupertinoColors.activeBlue,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(l10n.goToArtist),
+                ],
+              ),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+      ),
+    );
   }
 }

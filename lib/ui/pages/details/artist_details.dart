@@ -8,6 +8,9 @@ import 'package:doudou/l10n/app_localizations.dart';
 
 import 'media_details.dart';
 
+/// Artist detail used in the desktop layout overlay and from media details (album/playlist).
+/// Uses templates (PageTemplate, TrackListTemplate) and tabs (albums/songs).
+/// See [ArtistDetailScreen] in artist_detail.dart for the full-screen variant used from now-playing.
 class ArtistDetailsPage extends StatefulWidget {
   final Artist artist;
 

@@ -13,6 +13,9 @@ import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/widgets/apple_dialog.dart';
 import 'package:doudou/ui/widgets/detail_track_view.dart';
 
+/// Full-screen artist detail used when navigating from now-playing (e.g. "Go to Artist").
+/// See [ArtistDetailsPage] in artist_details.dart for the overlay/list-style variant used
+/// by the desktop detail overlay and media details.
 class ArtistDetailScreen extends StatefulWidget {
   final Artist artist;
 

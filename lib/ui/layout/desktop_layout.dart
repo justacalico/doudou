@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
@@ -44,7 +45,7 @@ class DesktopLayout {
     }
   }
 
-  /// Show add to playlist dialog
+  /// Show add to playlist dialog (single track). Includes "Create New Playlist" and list of playlists.
   static Future<void> showAddToPlaylistDialog(
     BuildContext context,
     Track track,
@@ -53,22 +54,108 @@ class DesktopLayout {
     final appState = context.read<AppState>();
     final playlists = appState.playlists;
 
-    if (playlists.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.noPlaylistsAvailable),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
     showAppleDialog(
       context: context,
       title: l10n.addToPlaylist,
       width: 400,
       maxHeight: 500,
       content: _AddToPlaylistDialogContent(track: track, playlists: playlists),
+    );
+  }
+
+  /// Show create-playlist dialog then add [track] to the new playlist.
+  static Future<void> showCreatePlaylistAndAddTrack(
+    BuildContext context,
+    Track track,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final appState = context.read<AppState>();
+    final nameController = TextEditingController();
+
+    showAppleDialog(
+      context: context,
+      title: l10n.newPlaylist,
+      width: 320,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.enterPlaylistName,
+            style: TextStyle(
+              color: DesktopTheme.textSecondary,
+              decoration: TextDecoration.none,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: nameController,
+            decoration: InputDecoration(
+              hintText: l10n.playlistName,
+              border: const OutlineInputBorder(),
+            ),
+            autofocus: true,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () async {
+            final name = nameController.text.trim();
+            if (name.isEmpty) return;
+            Navigator.of(context).pop();
+            try {
+              final created = await appState.createPlaylist(name);
+              if (!context.mounted) return;
+              if (created) {
+                final list =
+                    appState.playlists.where((p) => p.name == name).toList();
+                if (list.isNotEmpty) {
+                  final newPlaylist = list.first;
+                  await appState.addToPlaylist(newPlaylist.id, track.id);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          l10n.addedToPlaylist(
+                            'track',
+                            newPlaylist.name,
+                            track.name,
+                          ),
+                        ),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                }
+              } else {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.errorCreatingPlaylist(name)),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
+            }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.errorAddingToPlaylist(e.toString())),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            }
+          },
+          child: Text(l10n.create),
+        ),
+      ],
     );
   }
 }
@@ -893,17 +980,46 @@ class _AddToPlaylistDialogContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      shrinkWrap: true,
-      padding: const EdgeInsets.symmetric(vertical: DesktopTheme.spacingSm),
-      itemCount: playlists.length,
-      itemBuilder: (context, index) {
-        final playlist = playlists[index];
-        return _PlaylistItem(
-          playlist: playlist,
-          onTap: () => _addToPlaylist(context, playlist),
-        );
-      },
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.add_circle_outline, color: CupertinoColors.activeBlue),
+          title: Text(l10n.createNewPlaylist),
+          onTap: () {
+            Navigator.of(context).pop();
+            DesktopLayout.showCreatePlaylistAndAddTrack(context, track);
+          },
+        ),
+        if (playlists.isNotEmpty) const Divider(),
+        if (playlists.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              l10n.noPlaylistsAvailable,
+              style: TextStyle(
+                fontSize: 13,
+                color: DesktopTheme.textTertiary,
+                decoration: TextDecoration.none,
+              ),
+            ),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            padding: const EdgeInsets.symmetric(vertical: DesktopTheme.spacingSm),
+            itemCount: playlists.length,
+            itemBuilder: (context, index) {
+              final playlist = playlists[index];
+              return _PlaylistItem(
+                playlist: playlist,
+                onTap: () => _addToPlaylist(context, playlist),
+              );
+            },
+          ),
+      ],
     );
   }
 
