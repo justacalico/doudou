@@ -1630,14 +1630,9 @@ class _DetailHeaderState extends State<_DetailHeader> {
                           if (widget.onShuffle != null)
                             DesktopGlassButton(
                               onPressed: widget.onShuffle!,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.shuffle_rounded, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text(l10n.shuffle),
-                                ],
-                              ),
+                              borderRadius: 28,
+                              padding: const EdgeInsets.all(16),
+                              child: const Icon(Icons.shuffle_rounded, size: 24),
                             ),
                         ],
                       ),
