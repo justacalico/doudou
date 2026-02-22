@@ -53,6 +53,14 @@ class _SettingsPageState extends State<SettingsPage> {
   List<_SettingsMenuItem> _menuItems(AppLocalizations l10n, bool isLocalMusic) {
     final items = <_SettingsMenuItem>[
       _SettingsMenuItem(
+        id: 'server',
+        label: isLocalMusic ? 'Local Music' : l10n.server,
+        icon: isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded,
+        iconColor: const Color(0xFF3B82F6),
+        section: 'Server',
+        valueText: (a) => a.isLoggedIn ? (isLocalMusic ? 'Active' : (a.jellyfinService.username ?? 'Connected')) : null,
+      ),
+      _SettingsMenuItem(
         id: 'audio',
         label: l10n.audioSettings,
         icon: Icons.volume_up_rounded,
@@ -67,14 +75,6 @@ class _SettingsPageState extends State<SettingsPage> {
         section: 'Appearance',
       ),
       _SettingsMenuItem(
-        id: 'server',
-        label: isLocalMusic ? 'Local Music' : l10n.server,
-        icon: isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded,
-        iconColor: const Color(0xFF3B82F6),
-        section: 'Server',
-        valueText: (a) => a.isLoggedIn ? (isLocalMusic ? 'Active' : (a.jellyfinService.username ?? 'Connected')) : null,
-      ),
-      _SettingsMenuItem(
         id: 'about',
         label: l10n.aboutDoudou,
         icon: Icons.info_rounded,
@@ -85,7 +85,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return items;
   }
 
-  static const List<String> _sectionOrder = ['Playback', 'Appearance', 'Server', 'About'];
+  static const List<String> _sectionOrder = ['Server', 'Playback', 'Appearance', 'About'];
 
   @override
   Widget build(BuildContext context) {
