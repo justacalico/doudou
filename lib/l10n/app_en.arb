@@ -2277,6 +2277,11 @@
     "description": "Onboarding get started button"
   },
 
+  "onboardingContinue": "Continue",
+  "@onboardingContinue": {
+    "description": "Onboarding continue to next step button"
+  },
+
   "libraryOverview": "Overview",
   "@libraryOverview": {
     "description": "Library overview tab"

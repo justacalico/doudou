@@ -448,6 +448,7 @@
   "onboardingWelcome": "Добро пожаловать в Doudou",
   "onboardingDescription": "Слушайте музыку с удобством и стилем. Подключитесь к Jellyfin, Plex, Subsonic или используйте локальные файлы и YouTube Music.",
   "getStarted": "Начать",
+  "onboardingContinue": "Далее",
 
   "libraryOverview": "Обзор",
   "libraryRecent": "Недавние",
