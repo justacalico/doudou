@@ -1196,6 +1196,8 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
     return Consumer<AppState>(
       builder: (context, appState, _) {
         final imageUrl = _getImageUrl(appState, widget.album.imageUrl);
+        final navigationService = NavigationService();
+        final artistName = widget.album.artistName;
 
         return Container(
           color: DesktopTheme.backgroundPrimary,
@@ -1205,7 +1207,7 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
               _DetailHeader(
                 onBack: widget.onBack,
                 title: widget.album.name,
-                subtitle: widget.album.artistName,
+                subtitle: artistName,
                 imageUrl: imageUrl,
                 year: widget.album.year?.toString(),
                 trackCount: _tracks.length,
@@ -1214,6 +1216,15 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
                   final shuffled = List<Track>.from(_tracks)..shuffle();
                   appState.playPlaylist(shuffled, 0);
                 },
+                onSubtitleTap: artistName != null && artistName.isNotEmpty
+                    ? () {
+                        final match = appState.artists
+                            .where((a) => a.name == artistName);
+                        if (match.isNotEmpty) {
+                          navigationService.navigateToArtist(match.first);
+                        }
+                      }
+                    : null,
               ),
               // Track list
               Expanded(
@@ -1459,6 +1470,8 @@ class _DetailHeader extends StatefulWidget {
   final bool isCircular;
   final VoidCallback? onPlay;
   final VoidCallback? onShuffle;
+  /// When set, subtitle is tappable (e.g. to open artist from album header).
+  final VoidCallback? onSubtitleTap;
 
   const _DetailHeader({
     required this.onBack,
@@ -1470,6 +1483,7 @@ class _DetailHeader extends StatefulWidget {
     this.isCircular = false,
     this.onPlay,
     this.onShuffle,
+    this.onSubtitleTap,
   });
 
   @override
@@ -1597,13 +1611,29 @@ class _DetailHeaderState extends State<_DetailHeader> {
                     ),
                     if (widget.subtitle != null) ...[
                       const SizedBox(height: DesktopTheme.spacingSm),
-                      Text(
-                        widget.subtitle!,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: DesktopTheme.textSecondary,
-                        ),
-                      ),
+                      widget.onSubtitleTap != null
+                          ? MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: widget.onSubtitleTap,
+                                child: Text(
+                                  widget.subtitle!,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: DesktopTheme.textSecondary,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: DesktopTheme.textSecondary.withOpacity(0.7),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Text(
+                              widget.subtitle!,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: DesktopTheme.textSecondary,
+                              ),
+                            ),
                     ],
                     if (widget.year != null || widget.trackCount != null) ...[
                       const SizedBox(height: DesktopTheme.spacingSm),
@@ -1934,6 +1964,35 @@ class _TrackRowState extends State<_TrackRow> {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
+  Widget _buildArtistName(BuildContext context) {
+    final name = widget.track.artistName ?? '';
+    final text = Text(
+      name,
+      style: TextStyle(
+        fontSize: 12,
+        color: DesktopTheme.textTertiary,
+        decoration: name.isEmpty ? null : TextDecoration.underline,
+        decorationColor: DesktopTheme.textTertiary.withOpacity(0.7),
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+    if (name.isEmpty) return text;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          final appState = context.read<AppState>();
+          final match = appState.artists.where((a) => a.name == name);
+          if (match.isNotEmpty) {
+            NavigationService().navigateToArtist(match.first);
+          }
+        },
+        child: text,
+      ),
+    );
+  }
+
   void _handleDownload(BuildContext context) async {
     final appState = context.read<AppState>();
     final downloadService = appState.downloadService;
@@ -2130,15 +2189,7 @@ class _TrackRowState extends State<_TrackRow> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      widget.track.artistName ?? '',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: DesktopTheme.textTertiary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    _buildArtistName(context),
                   ],
                 ),
               ),
