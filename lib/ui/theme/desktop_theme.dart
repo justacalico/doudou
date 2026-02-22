@@ -23,34 +23,47 @@ class DesktopTheme {
   // COLOR PALETTE - Dual Mode (+ OLED)
   // ============================================
 
-  /// Deep background colors (dark mode = dark gray; OLED = pure black)
-  static const Color backgroundDeepDark = Color(0xFF1A1A1E);
+  /// Deep background colors (Gemini redesign: dark gray; OLED = pure black)
+  static const Color backgroundDeepDark = Color(0xFF0A0A0C);
   static const Color backgroundDeepLight = Color(0xFFF5F6FA);
   static Color get backgroundDeep =>
       _isOled ? _oledBlack : (_isDark ? backgroundDeepDark : backgroundDeepLight);
 
-  static const Color backgroundPrimaryDark = Color(0xFF1C1C1E);
+  /// Sidebar background (slightly lighter than deep for dark mode)
+  static const Color backgroundSidebarDark = Color(0xFF0E0E11);
+  static Color get backgroundSidebar =>
+      _isOled ? _oledBlack : (_isDark ? backgroundSidebarDark : backgroundPrimaryLight);
+
+  static const Color backgroundPrimaryDark = Color(0xFF121216);
   static const Color backgroundPrimaryLight = Color(0xFFFFFFFF);
   static Color get backgroundPrimary =>
       _isOled ? _oledBlack : (_isDark ? backgroundPrimaryDark : backgroundPrimaryLight);
 
-  static const Color backgroundSecondaryDark = Color(0xFF1C1C1E);
+  static const Color backgroundSecondaryDark = Color(0xFF121216);
   static const Color backgroundSecondaryLight = Color(0xFFF0F1F5);
   static Color get backgroundSecondary =>
       _isOled ? _oledBlack : (_isDark ? backgroundSecondaryDark : backgroundSecondaryLight);
 
-  static const Color backgroundTertiaryDark = Color(0xFF2C2C2E);
+  static const Color backgroundTertiaryDark = Color(0xFF16161C);
   static const Color backgroundTertiaryLight = Color(0xFFE6E7EE);
   static Color get backgroundTertiary =>
       _isOled ? _oledBlack : (_isDark ? backgroundTertiaryDark : backgroundTertiaryLight);
 
-  static const Color backgroundElevatedDark = Color(0xFF2C2C2E);
+  static const Color backgroundElevatedDark = Color(0xFF16161C);
   static const Color backgroundElevatedLight = Color(0xFFEEF0F6);
   static Color get backgroundElevated =>
       _isOled ? _oledBlack : (_isDark ? backgroundElevatedDark : backgroundElevatedLight);
 
+  /// Nav active/hover (Gemini: white/10, white/5)
+  static const Color sidebarActiveDark = Color(0x1AFFFFFF);
+  static const Color sidebarHoverDark = Color(0x0DFFFFFF);
+  static Color get sidebarActive =>
+      _isDark ? sidebarActiveDark : const Color(0x1A000000);
+  static Color get sidebarHover =>
+      _isDark ? sidebarHoverDark : const Color(0x0D000000);
+
   /// Glass surface colors
-  static const Color glassSurfaceDark = Color(0xFF1C1C1E);
+  static const Color glassSurfaceDark = Color(0xFF121216);
   static const Color glassSurfaceLight = Color(0xFFFFFFFF);
   static Color get glassSurface =>
       _isOled ? _oledBlack : (_isDark ? glassSurfaceDark : glassSurfaceLight);
@@ -60,7 +73,7 @@ class DesktopTheme {
   static Color get glassOverlay =>
       _isDark ? glassOverlayDark : glassOverlayLight;
 
-  static const Color glassBorderDark = Color(0x20FFFFFF);
+  static const Color glassBorderDark = Color(0x0DFFFFFF); // white/5 (Gemini)
   static const Color glassBorderLight = Color(0x1A000000);
   static Color get glassBorder => _isDark ? glassBorderDark : glassBorderLight;
 

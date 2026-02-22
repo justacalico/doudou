@@ -221,15 +221,18 @@ class _AppShellState extends State<AppShell> {
                           onTap: _navigateTo,
                         ),
                       Expanded(
-                        child: Stack(
-                          children: [
-                            IndexedStack(
-                              index: _selectedIndex.clamp(0, _pages.length - 1),
-                              children: _pages,
-                            ),
-                            if (_buildDetailOverlay() != null)
-                              Positioned.fill(child: _buildDetailOverlay()!),
-                          ],
+                        child: Container(
+                          color: DesktopTheme.backgroundPrimary,
+                          child: Stack(
+                            children: [
+                              IndexedStack(
+                                index: _selectedIndex.clamp(0, _pages.length - 1),
+                                children: _pages,
+                              ),
+                              if (_buildDetailOverlay() != null)
+                                Positioned.fill(child: _buildDetailOverlay()!),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -295,10 +298,12 @@ class _Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
     return Container(
       width: DesktopTheme.sidebarWidth,
       decoration: BoxDecoration(
-        color: DesktopTheme.backgroundPrimary,
+        color: DesktopTheme.backgroundSidebar,
         border: Border(
           right: BorderSide(color: DesktopTheme.glassBorder, width: 1),
         ),
@@ -316,85 +321,106 @@ class _Sidebar extends StatelessWidget {
                     child: Row(
                       children: [
                         Container(
-                          width: 32,
-                          height: 32,
+                          width: 40,
+                          height: 40,
                           decoration: BoxDecoration(
-                            gradient: DesktopTheme.accentGradient,
-                            borderRadius: BorderRadius.circular(8),
+                            color: accent,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accent.withOpacity(0.35),
+                                blurRadius: 12,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: const Icon(
                             Icons.music_note_rounded,
                             color: Colors.white,
-                            size: 18,
+                            size: 20,
                           ),
                         ),
-                        const SizedBox(width: DesktopTheme.spacingSm),
+                        const SizedBox(width: 12),
                         Text(
                           'Doudou',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
                             color: DesktopTheme.textPrimary,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  ...navItems.asMap().entries.map((e) => _SidebarTile(
-                        icon: e.value.icon,
-                        activeIcon: e.value.activeIcon,
-                        label: _navLabel(l10n, e.key),
-                        selected: currentIndex == e.key,
-                        onTap: () => onTap(e.key),
-                      )),
-                  const SizedBox(height: DesktopTheme.spacingMd),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: DesktopTheme.spacingMd,
-                    ),
-                    child: Container(
-                      height: 1,
-                      color: DesktopTheme.glassBorder,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: navItems.asMap().entries.map((e) => _SidebarTile(
+                            icon: e.value.icon,
+                            activeIcon: e.value.activeIcon,
+                            label: _navLabel(l10n, e.key),
+                            selected: currentIndex == e.key,
+                            onTap: () => onTap(e.key),
+                            isSettings: false,
+                          )).toList(),
                     ),
                   ),
-                  const SizedBox(height: DesktopTheme.spacingMd),
+                  const SizedBox(height: 32),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: DesktopTheme.spacingLg,
-                      vertical: DesktopTheme.spacingSm,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       l10n.library.toUpperCase(),
                       style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
                         color: DesktopTheme.textTertiary,
-                        letterSpacing: 1.2,
+                        letterSpacing: 1.5,
                       ),
                     ),
                   ),
-                  ...libraryItems.asMap().entries.map((e) {
-                    final idx = navItems.length + e.key;
-                    return _SidebarTile(
-                      icon: e.value.icon,
-                      activeIcon: e.value.activeIcon,
-                      label: _libraryLabel(l10n, e.key),
-                      selected: currentIndex == idx,
-                      onTap: () => onTap(idx),
-                    );
-                  }),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: libraryItems.asMap().entries.map((e) {
+                        final idx = navItems.length + e.key;
+                        return _SidebarTile(
+                          icon: e.value.icon,
+                          activeIcon: e.value.activeIcon,
+                          label: _libraryLabel(l10n, e.key),
+                          selected: currentIndex == idx,
+                          onTap: () => onTap(idx),
+                          isSettings: false,
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
-          _SidebarTile(
-            icon: Icons.settings_outlined,
-            activeIcon: Icons.settings_rounded,
-            label: l10n.settings,
-            selected: currentIndex == settingsIndex,
-            onTap: () => onTap(settingsIndex),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: DesktopTheme.glassBorder, width: 1),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: _SidebarTile(
+                  icon: Icons.settings_outlined,
+                  activeIcon: Icons.settings_rounded,
+                  label: l10n.settings,
+                  selected: currentIndex == settingsIndex,
+                  onTap: () => onTap(settingsIndex),
+                  isSettings: true,
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: DesktopTheme.spacingMd),
         ],
       ),
     );
@@ -437,6 +463,7 @@ class _SidebarTile extends StatefulWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final bool isSettings;
 
   const _SidebarTile({
     required this.icon,
@@ -444,6 +471,7 @@ class _SidebarTile extends StatefulWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.isSettings = false,
   });
 
   @override
@@ -457,6 +485,60 @@ class _SidebarTileState extends State<_SidebarTile> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
+    if (widget.isSettings) {
+      return MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: DesktopTheme.durationFast,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: widget.selected
+                  ? accent.withOpacity(0.15)
+                  : accent.withOpacity(0.1),
+              border: Border.all(
+                color: accent.withOpacity(0.2),
+                width: 1,
+              ),
+              boxShadow: widget.selected
+                  ? [
+                      BoxShadow(
+                        color: accent.withOpacity(0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  widget.selected ? widget.activeIcon : widget.icon,
+                  color: accent,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: accent,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -465,20 +547,14 @@ class _SidebarTileState extends State<_SidebarTile> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: DesktopTheme.durationFast,
-          margin: const EdgeInsets.symmetric(
-            horizontal: DesktopTheme.spacingSm,
-            vertical: 2,
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesktopTheme.spacingMd,
-            vertical: DesktopTheme.spacingSm + 2,
-          ),
+          margin: const EdgeInsets.only(bottom: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+            borderRadius: BorderRadius.circular(12),
             color: widget.selected
-                ? accent.withOpacity(0.15)
+                ? DesktopTheme.sidebarActive
                 : _hover
-                    ? DesktopTheme.glassOverlay
+                    ? DesktopTheme.sidebarHover
                     : Colors.transparent,
           ),
           child: Row(
@@ -486,13 +562,13 @@ class _SidebarTileState extends State<_SidebarTile> {
               Icon(
                 widget.selected ? widget.activeIcon : widget.icon,
                 color: widget.selected
-                    ? accent
+                    ? DesktopTheme.textPrimary
                     : _hover
                         ? DesktopTheme.textPrimary
                         : DesktopTheme.textSecondary,
                 size: 20,
               ),
-              const SizedBox(width: DesktopTheme.spacingMd),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   widget.label,
@@ -500,7 +576,7 @@ class _SidebarTileState extends State<_SidebarTile> {
                     fontSize: 14,
                     fontWeight: widget.selected ? FontWeight.w600 : FontWeight.w500,
                     color: widget.selected
-                        ? accent
+                        ? DesktopTheme.textPrimary
                         : _hover
                             ? DesktopTheme.textPrimary
                             : DesktopTheme.textSecondary,
