@@ -210,7 +210,6 @@ class _SettingsPageState extends State<SettingsPage> {
           onAddDir: _addLocalDirectory,
           onRemoveDir: _removeLocalDirectory,
           onRescan: _rescanLocalLibrary,
-          onTestConnection: _testConnection,
           onSignOut: _showSignOutDialog,
           onClearCache: _showClearCacheDialog,
         );
@@ -434,15 +433,6 @@ class _SettingsPageState extends State<SettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Scan error: $e')));
       }
     }
-  }
-
-  void _testConnection(AppState appState) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(appState.isLoggedIn ? 'Connection successful!' : 'Connection failed. Please check your settings.'),
-        backgroundColor: appState.isLoggedIn ? Colors.green : Colors.red,
-      ),
-    );
   }
 
   void _showSignOutDialog(AppState appState) async {
@@ -983,7 +973,6 @@ class _ServerSection extends StatelessWidget {
   final Future<void> Function(AppState) onAddDir;
   final Future<void> Function(AppState, String) onRemoveDir;
   final Future<void> Function(AppState) onRescan;
-  final void Function(AppState) onTestConnection;
   final void Function(AppState) onSignOut;
   final void Function(String) onClearCache;
 
@@ -992,7 +981,6 @@ class _ServerSection extends StatelessWidget {
     required this.onAddDir,
     required this.onRemoveDir,
     required this.onRescan,
-    required this.onTestConnection,
     required this.onSignOut,
     required this.onClearCache,
   });
@@ -1003,7 +991,6 @@ class _ServerSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final serverType = appState.mediaServiceManager.currentServerType;
     final isLocal = serverType == ServerType.local;
-    final isYouTubeMusic = serverType == ServerType.youtubeMusic;
     final localService = appState.mediaServiceManager.localMusicService;
 
     return SingleChildScrollView(
@@ -1018,119 +1005,6 @@ class _ServerSection extends StatelessWidget {
               style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          isLocal ? 'Music Source' : (isYouTubeMusic ? 'Provider' : l10n.connection),
-                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: appState.isLoggedIn ? Colors.green : Colors.red,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            appState.isLoggedIn
-                                ? (isLocal ? 'Active' : (isYouTubeMusic ? 'Active' : l10n.authenticated))
-                                : 'Disconnected',
-                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    if (isLocal && localService != null) ...[
-                      ListTile(
-                        title: const Text('Music Directories'),
-                        subtitle: Text('${localService.musicDirectories.length} folder(s) configured'),
-                        trailing: const Icon(Icons.folder),
-                      ),
-                      ...localService.musicDirectories.map((dir) => ListTile(
-                        leading: const Icon(Icons.folder_open, size: 20),
-                        title: Text(dir.split('/').last, style: const TextStyle(fontSize: 14)),
-                        subtitle: Text(dir, style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                          onPressed: () => onRemoveDir(appState, dir),
-                        ),
-                      )),
-                      const Divider(),
-                      ListTile(title: const Text('Add Directory'), leading: const Icon(Icons.create_new_folder), onTap: () => onAddDir(appState)),
-                      const Divider(),
-                      ListTile(
-                        title: const Text('Scan for Music'),
-                        subtitle: const Text('Rescan folders and update library'),
-                        leading: const Icon(Icons.refresh_rounded),
-                        onTap: () => onRescan(appState),
-                      ),
-                      const Divider(),
-                      SwitchListTile(
-                        title: const Text('Fetch Online Artwork'),
-                        subtitle: const Text('Download album art from MusicBrainz'),
-                        value: localService.fetchOnlineArtwork,
-                        onChanged: (v) async {
-                          await localService.setFetchOnlineArtwork(v);
-                        },
-                      ),
-                    ] else if (isYouTubeMusic) ...[
-                      ListTile(
-                        title: const Text('YouTube Music'),
-                        subtitle: const Text('No login required. Use Search to find and play tracks.'),
-                        leading: const Icon(Icons.music_video_rounded),
-                      ),
-                    ] else ...[
-                      ListTile(
-                        title: const Text('Server URL'),
-                        subtitle: Text(
-                          appState.displayServerUrl?.trim().isNotEmpty == true
-                              ? appState.displayServerUrl!
-                              : (serverType == ServerType.jellyfin
-                                  ? (appState.jellyfinService.serverUrl ?? 'Not set')
-                                  : 'Not set'),
-                        ),
-                        trailing: const Icon(Icons.edit),
-                      ),
-                      ListTile(
-                        title: const Text('Username'),
-                        subtitle: Text(
-                          (appState.displayUsername?.trim().isNotEmpty == true
-                                  ? appState.displayUsername
-                                  : serverType == ServerType.jellyfin
-                                      ? (appState.jellyfinService.username?.trim().isNotEmpty == true
-                                          ? appState.jellyfinService.username
-                                          : null)
-                                      : null) ??
-                              (appState.isLoggedIn ? 'Logged in' : 'Not logged in'),
-                        ),
-                        trailing: const Icon(Icons.person),
-                      ),
-                      const Divider(),
-                      ListTile(
-                        title: const Text('Test Connection'),
-                        leading: const Icon(Icons.wifi_tethering),
-                        onTap: () => onTestConnection(appState),
-                      ),
-                    ],
-                    ListTile(
-                      title: const Text('Disconnect'),
-                      leading: const Icon(Icons.link_off_rounded),
-                      textColor: Colors.red,
-                      iconColor: Colors.red,
-                      onTap: () => onSignOut(appState),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
