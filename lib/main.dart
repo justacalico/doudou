@@ -39,11 +39,15 @@ Future<void> _runApp() async {
     databaseFactory = databaseFactoryFfi;
   }
 
-  // Desktop audio: just_audio_media_kit (mpv) on Windows/macOS only; Linux uses audioplayers (GStreamer)
+  // Desktop audio: just_audio_media_kit (mpv) for Windows/macOS and for Linux when playing YouTube;
+  // Linux default is audioplayers (GStreamer) for non-YouTube to avoid system audio issues.
   if (!kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.windows ||
-          defaultTargetPlatform == TargetPlatform.macOS)) {
-    await JustAudioMediaKitExt.ensureInitializedAsync();
+          defaultTargetPlatform == TargetPlatform.macOS ||
+          defaultTargetPlatform == TargetPlatform.linux)) {
+    await JustAudioMediaKitExt.ensureInitializedAsync(
+      linux: defaultTargetPlatform == TargetPlatform.linux,
+    );
   }
 
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {

@@ -377,6 +377,39 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
+  /// On Linux, use just_audio (media_kit) for YouTube streams so playback works;
+  /// use audioplayers (GStreamer) for other URLs to avoid system audio issues.
+  Future<void> _ensureLinuxPlayerForUrl(String url) async {
+    if (defaultTargetPlatform != TargetPlatform.linux || _disposed || _isRecreatingPlayer) return;
+    final isYtStream = url.contains('googlevideo.com');
+    final needJustAudio = isYtStream;
+    final currentlyJustAudio = _player is JustAudioAppPlayer;
+    if (needJustAudio == currentlyJustAudio) return;
+
+    _isRecreatingPlayer = true;
+    try {
+      _playerGeneration++;
+      final oldSubscriptions = _subscriptions;
+      _subscriptions = [];
+
+      await _player.dispose();
+      _player = needJustAudio ? JustAudioAppPlayer() : AudioplayersAppPlayer();
+      _setupPlayerListeners();
+
+      Future.microtask(() async {
+        for (final sub in oldSubscriptions) {
+          try {
+            await sub.cancel();
+          } catch (e) {
+            // Ignore
+          }
+        }
+      });
+    } finally {
+      _isRecreatingPlayer = false;
+    }
+  }
+
   /// Handle player state changes
   void _handlePlayerStateChange(PlayerState playerState) {
     if (_disposed) return;
@@ -987,11 +1020,16 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }
     }
 
-    // Desktop: Recreate player to prevent native callback crashes
+    // Desktop: Recreate player to prevent native callback crashes (Windows/macOS);
+    // on Linux, swap to just_audio for YouTube streams so GStreamer is not used for googlevideo.com URLs.
     if (_isDesktop) {
       final currentOperationId = ++_loadOperationId;
 
-      await _recreatePlayer();
+      if (defaultTargetPlatform == TargetPlatform.linux) {
+        await _ensureLinuxPlayerForUrl(url);
+      } else {
+        await _recreatePlayer();
+      }
       await Future.delayed(const Duration(milliseconds: 50));
 
       if (_disposed || currentOperationId != _loadOperationId) return;
