@@ -23,34 +23,34 @@ class DesktopTheme {
   // COLOR PALETTE - Dual Mode (+ OLED)
   // ============================================
 
-  /// Deep background colors
-  static const Color backgroundDeepDark = Color(0xFF0A0A0C);
+  /// Deep background colors (dark mode = dark gray; OLED = pure black)
+  static const Color backgroundDeepDark = Color(0xFF1A1A1E);
   static const Color backgroundDeepLight = Color(0xFFF5F6FA);
   static Color get backgroundDeep =>
       _isOled ? _oledBlack : (_isDark ? backgroundDeepDark : backgroundDeepLight);
 
-  static const Color backgroundPrimaryDark = Color(0xFF0F0F12);
+  static const Color backgroundPrimaryDark = Color(0xFF1C1C1E);
   static const Color backgroundPrimaryLight = Color(0xFFFFFFFF);
   static Color get backgroundPrimary =>
       _isOled ? _oledBlack : (_isDark ? backgroundPrimaryDark : backgroundPrimaryLight);
 
-  static const Color backgroundSecondaryDark = Color(0xFF161619);
+  static const Color backgroundSecondaryDark = Color(0xFF1C1C1E);
   static const Color backgroundSecondaryLight = Color(0xFFF0F1F5);
   static Color get backgroundSecondary =>
       _isOled ? _oledBlack : (_isDark ? backgroundSecondaryDark : backgroundSecondaryLight);
 
-  static const Color backgroundTertiaryDark = Color(0xFF1E1E23);
+  static const Color backgroundTertiaryDark = Color(0xFF2C2C2E);
   static const Color backgroundTertiaryLight = Color(0xFFE6E7EE);
   static Color get backgroundTertiary =>
       _isOled ? _oledBlack : (_isDark ? backgroundTertiaryDark : backgroundTertiaryLight);
 
-  static const Color backgroundElevatedDark = Color(0xFF252529);
+  static const Color backgroundElevatedDark = Color(0xFF2C2C2E);
   static const Color backgroundElevatedLight = Color(0xFFEEF0F6);
   static Color get backgroundElevated =>
       _isOled ? _oledBlack : (_isDark ? backgroundElevatedDark : backgroundElevatedLight);
 
   /// Glass surface colors
-  static const Color glassSurfaceDark = Color(0xFF1A1A1E);
+  static const Color glassSurfaceDark = Color(0xFF1C1C1E);
   static const Color glassSurfaceLight = Color(0xFFFFFFFF);
   static Color get glassSurface =>
       _isOled ? _oledBlack : (_isDark ? glassSurfaceDark : glassSurfaceLight);

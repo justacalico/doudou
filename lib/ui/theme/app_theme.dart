@@ -250,11 +250,11 @@ class AppleColors {
   static const Color backgroundGrouped = Color(0xFFF2F2F7);
   static const Color backgroundGroupedSecondary = Color(0xFFFFFFFF);
 
-  // Background Colors - Dark Mode
-  static const Color backgroundPrimaryDark = Color(0xFF000000);
+  // Background Colors - Dark Mode (dark gray, not pure black; use OLED for pure black)
+  static const Color backgroundPrimaryDark = Color(0xFF1C1C1E);
   static const Color backgroundSecondaryDark = Color(0xFF1C1C1E);
   static const Color backgroundTertiaryDark = Color(0xFF2C2C2E);
-  static const Color backgroundGroupedDark = Color(0xFF000000);
+  static const Color backgroundGroupedDark = Color(0xFF1C1C1E);
   static const Color backgroundGroupedSecondaryDark = Color(0xFF1C1C1E);
 
   // Elevated Surface Colors (for Dark Mode cards/modals)
