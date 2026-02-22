@@ -16,20 +16,20 @@ class LoggingService {
   bool _initialized = false;
   bool _loggingEnabled = false;
 
-  /// Format DateTime to string
+  /// Format DateTime to string (year/month/day)
   String _formatDate(DateTime dt) {
-    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+    return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
   }
 
-  /// Format DateTime to timestamp string
+  /// Format DateTime to timestamp string (year/month/day)
   String _formatTimestamp(DateTime dt) {
-    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}_'
+    return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}_'
         '${dt.hour.toString().padLeft(2, '0')}-${dt.minute.toString().padLeft(2, '0')}-${dt.second.toString().padLeft(2, '0')}';
   }
 
-  /// Format DateTime to full timestamp with milliseconds
+  /// Format DateTime to full timestamp with milliseconds (year/month/day)
   String _formatFullTimestamp(DateTime dt) {
-    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
+    return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')} '
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}.'
         '${dt.millisecond.toString().padLeft(3, '0')}';
   }

@@ -1326,7 +1326,7 @@ class _AboutSection extends StatelessWidget {
 
   String _getBuildDate() {
     final n = DateTime.now();
-    return '${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';
+    return '${n.year}/${n.month.toString().padLeft(2, '0')}/${n.day.toString().padLeft(2, '0')}';
   }
 
   String _getOSVersion() {
