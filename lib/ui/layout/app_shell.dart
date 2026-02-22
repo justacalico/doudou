@@ -208,41 +208,48 @@ class _AppShellState extends State<AppShell> {
           child: Scaffold(
             backgroundColor: DesktopTheme.backgroundDeep,
             extendBody: !isDesktop,
-            body: Column(
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      if (isDesktop)
-                        _Sidebar(
-                          currentIndex: _selectedIndex,
-                          navItems: _navItems,
-                          libraryItems: _libraryItems,
-                          settingsIndex: _settingsIndex,
-                          onTap: _navigateTo,
-                        ),
-                      Expanded(
-                        child: Container(
-                          color: DesktopTheme.backgroundPrimary,
-                          child: Stack(
-                            children: [
-                              IndexedStack(
-                                index: _selectedIndex.clamp(0, _pages.length - 1),
-                                children: _pages,
-                              ),
-                              if (_buildDetailOverlay() != null)
-                                Positioned.fill(child: _buildDetailOverlay()!),
-                            ],
+            body: Padding(
+              padding: EdgeInsets.only(
+                bottom: isDesktop
+                    ? 0
+                    : 72 + MediaQuery.of(context).padding.bottom,
+              ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        if (isDesktop)
+                          _Sidebar(
+                            currentIndex: _selectedIndex,
+                            navItems: _navItems,
+                            libraryItems: _libraryItems,
+                            settingsIndex: _settingsIndex,
+                            onTap: _navigateTo,
+                          ),
+                        Expanded(
+                          child: Container(
+                            color: DesktopTheme.backgroundPrimary,
+                            child: Stack(
+                              children: [
+                                IndexedStack(
+                                  index: _selectedIndex.clamp(0, _pages.length - 1),
+                                  children: _pages,
+                                ),
+                                if (_buildDetailOverlay() != null)
+                                  Positioned.fill(child: _buildDetailOverlay()!),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                isDesktop
-                    ? const DesktopPlayerBar()
-                    : const _MobilePlayerBar(),
-              ],
+                  isDesktop
+                      ? const DesktopPlayerBar()
+                      : const _MobilePlayerBar(),
+                ],
+              ),
             ),
             bottomNavigationBar: isDesktop
                 ? null
