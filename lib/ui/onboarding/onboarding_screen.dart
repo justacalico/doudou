@@ -24,6 +24,7 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
+    final l10n = AppLocalizations.of(context);
     final currentLocale = appState.locale;
     final isNarrow = MediaQuery.sizeOf(context).width < 400;
 
@@ -48,7 +49,7 @@ class OnboardingScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Welcome to Doudou',
+                    l10n.onboardingWelcome,
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
@@ -58,7 +59,7 @@ class OnboardingScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Play your music with ease and style. Connect to Jellyfin, Plex, Subsonic, or use local files and YouTube Music.',
+                    l10n.onboardingDescription,
                     style: TextStyle(
                       fontSize: 16,
                       height: 1.4,
@@ -73,7 +74,7 @@ class OnboardingScreen extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(left: 4, bottom: 8),
                       child: Text(
-                        'Language',
+                        l10n.language,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -97,7 +98,7 @@ class OnboardingScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           AppleDialogOption(
-                            label: 'System default',
+                            label: l10n.systemDefault,
                             selected: currentLocale == null,
                             onTap: () => appState.setLocale(null),
                           ),
@@ -126,7 +127,7 @@ class OnboardingScreen extends StatelessWidget {
                       ),
                       minimumSize: const Size(double.infinity, 52),
                     ),
-                    child: const Text('Get Started'),
+                    child: Text(l10n.getStarted),
                   ),
                 ],
               ),

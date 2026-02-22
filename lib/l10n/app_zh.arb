@@ -445,6 +445,10 @@
   "selectLanguage": "选择语言",
   "systemLanguage": "系统语言",
 
+  "onboardingWelcome": "欢迎使用 Doudou",
+  "onboardingDescription": "轻松时尚地播放您的音乐。连接 Jellyfin、Plex、Subsonic，或使用本地文件和 YouTube Music。",
+  "getStarted": "开始使用",
+
   "libraryOverview": "概览",
   "libraryRecent": "最近",
   "libraryGenres": "流派",

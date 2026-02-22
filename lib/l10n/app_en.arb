@@ -2262,6 +2262,21 @@
     "description": "System language option"
   },
 
+  "onboardingWelcome": "Welcome to Doudou",
+  "@onboardingWelcome": {
+    "description": "Onboarding screen welcome title"
+  },
+
+  "onboardingDescription": "Play your music with ease and style. Connect to Jellyfin, Plex, Subsonic, or use local files and YouTube Music.",
+  "@onboardingDescription": {
+    "description": "Onboarding screen short app description"
+  },
+
+  "getStarted": "Get Started",
+  "@getStarted": {
+    "description": "Onboarding get started button"
+  },
+
   "libraryOverview": "Overview",
   "@libraryOverview": {
     "description": "Library overview tab"
