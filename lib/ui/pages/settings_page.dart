@@ -1001,7 +1001,9 @@ class _ServerSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final isLocal = appState.mediaServiceManager.currentServerType == ServerType.local;
+    final serverType = appState.mediaServiceManager.currentServerType;
+    final isLocal = serverType == ServerType.local;
+    final isYouTubeMusic = serverType == ServerType.youtubeMusic;
     final localService = appState.mediaServiceManager.localMusicService;
 
     return SingleChildScrollView(
@@ -1024,7 +1026,10 @@ class _ServerSection extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(isLocal ? 'Music Source' : l10n.connection, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                        Text(
+                          isLocal ? 'Music Source' : (isYouTubeMusic ? 'Provider' : l10n.connection),
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                        ),
                         const Spacer(),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1033,7 +1038,9 @@ class _ServerSection extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            appState.isLoggedIn ? (isLocal ? 'Active' : l10n.authenticated) : 'Disconnected',
+                            appState.isLoggedIn
+                                ? (isLocal ? 'Active' : (isYouTubeMusic ? 'Active' : l10n.authenticated))
+                                : 'Disconnected',
                             style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
                           ),
                         ),
@@ -1073,13 +1080,21 @@ class _ServerSection extends StatelessWidget {
                           await localService.setFetchOnlineArtwork(v);
                         },
                       ),
+                    ] else if (isYouTubeMusic) ...[
+                      ListTile(
+                        title: const Text('YouTube Music'),
+                        subtitle: const Text('No login required. Use Search to find and play tracks.'),
+                        leading: const Icon(Icons.music_video_rounded),
+                      ),
                     ] else ...[
                       ListTile(
                         title: const Text('Server URL'),
                         subtitle: Text(
-                          appState.displayServerUrl ??
-                              appState.jellyfinService.serverUrl ??
-                              'Not set',
+                          appState.displayServerUrl?.trim().isNotEmpty == true
+                              ? appState.displayServerUrl!
+                              : (serverType == ServerType.jellyfin
+                                  ? (appState.jellyfinService.serverUrl ?? 'Not set')
+                                  : 'Not set'),
                         ),
                         trailing: const Icon(Icons.edit),
                       ),
@@ -1088,8 +1103,10 @@ class _ServerSection extends StatelessWidget {
                         subtitle: Text(
                           (appState.displayUsername?.trim().isNotEmpty == true
                                   ? appState.displayUsername
-                                  : appState.jellyfinService.username?.trim().isNotEmpty == true
-                                      ? appState.jellyfinService.username
+                                  : serverType == ServerType.jellyfin
+                                      ? (appState.jellyfinService.username?.trim().isNotEmpty == true
+                                          ? appState.jellyfinService.username
+                                          : null)
                                       : null) ??
                               (appState.isLoggedIn ? 'Logged in' : 'Not logged in'),
                         ),
