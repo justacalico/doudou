@@ -52,7 +52,6 @@ class PlatformAudioConfig {
       final List<String> linesToAppend = [];
 
       // Windows: disable WASAPI exclusive mode for system volume integration.
-      // Linux does not use mpv (uses audioplayers/GStreamer), so no Linux mpv config.
       if (Platform.isWindows &&
           !existingContent.contains('audio-exclusive')) {
         linesToAppend.add(
@@ -60,9 +59,19 @@ class PlatformAudioConfig {
         linesToAppend.add('audio-exclusive=no');
       }
 
+      // Linux: explicit audio driver so mpv does not use "auto" (fixes "Audio output auto not found" for YouTube Music).
+      if (Platform.isLinux && !existingContent.contains('ao=')) {
+        linesToAppend.add(
+            '# Doudou: Explicit audio driver for YouTube Music on Linux');
+        linesToAppend.add('ao=pulse,pipewire,alsa');
+      }
+
       if (linesToAppend.isEmpty) {
         if (Platform.isWindows && existingContent.contains('audio-exclusive')) {
           debugPrint('PlatformAudioConfig: audio-exclusive already in mpv.conf');
+        }
+        if (Platform.isLinux && existingContent.contains('ao=')) {
+          debugPrint('PlatformAudioConfig: ao= already in mpv.conf');
         }
         return;
       }

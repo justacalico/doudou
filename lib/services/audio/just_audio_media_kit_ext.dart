@@ -37,8 +37,11 @@ class JustAudioMediaKitExt {
     bool macOS = false,
     String? libmpv,
   }) async {
-    // On Windows only, create mpv config (WASAPI fix). Linux uses audioplayers, not mpv.
+    // Windows: mpv.conf for WASAPI fix. Linux: mpv.conf for ao=pulse,pipewire,alsa (YT Music).
     if (isWindows && !audioExclusive) {
+      await PlatformAudioConfig.createMpvConfig();
+    }
+    if (linux && isLinux) {
       await PlatformAudioConfig.createMpvConfig();
     }
     
@@ -68,8 +71,13 @@ class JustAudioMediaKitExt {
     bool macOS = false,
     String? libmpv,
   }) {
-    // On Windows only, create mpv config (async, fire and forget). Linux uses audioplayers.
+    // Windows: mpv.conf for WASAPI fix. Linux: mpv.conf for ao= (YT Music).
     if (isWindows && !audioExclusive) {
+      PlatformAudioConfig.createMpvConfig().catchError((e) {
+        debugPrint('JustAudioMediaKitExt: Failed to create mpv config: $e');
+      });
+    }
+    if (linux && isLinux) {
       PlatformAudioConfig.createMpvConfig().catchError((e) {
         debugPrint('JustAudioMediaKitExt: Failed to create mpv config: $e');
       });
