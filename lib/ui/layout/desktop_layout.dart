@@ -1326,18 +1326,21 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
                   appState.playPlaylist(shuffled, 0);
                 },
               ),
-              // Tab selector
+              // Tab selector (full width)
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: DesktopTheme.spacingLg,
                   vertical: DesktopTheme.spacingSm,
                 ),
-                child: _ArtistTabSegmentedControl(
-                  showAlbums: _albums.isNotEmpty,
-                  selectedTab: _selectedTab,
-                  onTabChanged: (tab) => setState(() => _selectedTab = tab),
-                  albumsLabel: l10n.albums,
-                  songsLabel: l10n.songs,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: _ArtistTabSegmentedControl(
+                    showAlbums: _albums.isNotEmpty,
+                    selectedTab: _selectedTab,
+                    onTabChanged: (tab) => setState(() => _selectedTab = tab),
+                    albumsLabel: l10n.albums,
+                    songsLabel: l10n.songs,
+                  ),
                 ),
               ),
               // Content
@@ -1689,34 +1692,39 @@ class _ArtistTabSegmentedControl extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: IntrinsicHeight(
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             if (showAlbums)
-              _Segment(
-                label: albumsLabel,
-                isSelected: selectedTab == 'albums',
-                onTap: () => onTabChanged('albums'),
-                theme: theme,
-                isFirst: true,
-                isLast: false,
+              Expanded(
+                child: _Segment(
+                  label: albumsLabel,
+                  isSelected: selectedTab == 'albums',
+                  onTap: () => onTabChanged('albums'),
+                  theme: theme,
+                  isFirst: true,
+                  isLast: false,
+                ),
               ),
             if (showAlbums)
-              _Segment(
-                label: songsLabel,
-                isSelected: selectedTab == 'songs',
-                onTap: () => onTabChanged('songs'),
-                theme: theme,
-                isFirst: !showAlbums,
-                isLast: true,
+              Expanded(
+                child: _Segment(
+                  label: songsLabel,
+                  isSelected: selectedTab == 'songs',
+                  onTap: () => onTabChanged('songs'),
+                  theme: theme,
+                  isFirst: !showAlbums,
+                  isLast: true,
+                ),
               )
             else
-              _Segment(
-                label: songsLabel,
-                isSelected: true,
-                onTap: () => onTabChanged('songs'),
-                theme: theme,
-                isFirst: true,
-                isLast: true,
+              Expanded(
+                child: _Segment(
+                  label: songsLabel,
+                  isSelected: true,
+                  onTap: () => onTabChanged('songs'),
+                  theme: theme,
+                  isFirst: true,
+                  isLast: true,
+                ),
               ),
           ],
         ),
