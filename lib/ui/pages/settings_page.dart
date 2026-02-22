@@ -965,8 +965,8 @@ void _showServerConnectionDialog(
     width: 420,
     content: ServerConnectionSection(
       initialServer: initialServer,
-      onConnectSuccess: (server) {
-        appState.setCurrentServerAndSave(server);
+      onConnectSuccess: (server) async {
+        await appState.setCurrentServerAndSave(server);
       },
     ),
     actionsBuilder: (dialogContext) => [

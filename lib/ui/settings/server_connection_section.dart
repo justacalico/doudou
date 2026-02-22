@@ -18,7 +18,7 @@ class ServerConnectionSection extends StatefulWidget {
   });
 
   final SavedServer? initialServer;
-  final void Function(SavedServer server)? onConnectSuccess;
+  final Future<void> Function(SavedServer server)? onConnectSuccess;
 
   @override
   State<ServerConnectionSection> createState() => _ServerConnectionSectionState();
@@ -106,8 +106,8 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
       final success = await appState.loginWithLocalMusic();
       if (success && mounted) {
         final server = _buildSavedServerFromForm();
-        widget.onConnectSuccess?.call(server);
-        if (Navigator.canPop(context)) Navigator.pop(context);
+        await widget.onConnectSuccess?.call(server);
+        if (mounted && Navigator.canPop(context)) Navigator.pop(context);
       }
       return;
     }
@@ -148,8 +148,8 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
 
     if (success && mounted) {
       final server = _buildSavedServerFromForm();
-      widget.onConnectSuccess?.call(server);
-      if (Navigator.canPop(context)) Navigator.pop(context);
+      await widget.onConnectSuccess?.call(server);
+      if (mounted && Navigator.canPop(context)) Navigator.pop(context);
     }
   }
 
@@ -243,13 +243,15 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
             authMethod: 'quick_connect',
             userId: userId,
           );
-          widget.onConnectSuccess?.call(server);
-          setState(() {
-            _isQuickConnectActive = false;
-            _quickConnectCode = null;
-            _quickConnectSecret = null;
-          });
-          if (Navigator.canPop(context)) Navigator.pop(context);
+          await widget.onConnectSuccess?.call(server);
+          if (mounted) {
+            setState(() {
+              _isQuickConnectActive = false;
+              _quickConnectCode = null;
+              _quickConnectSecret = null;
+            });
+            if (Navigator.canPop(context)) Navigator.pop(context);
+          }
         }
       } else {
         context.read<AppState>().setErrorMessage('Quick Connect failed.');
