@@ -1621,8 +1621,6 @@ class _DetailHeaderState extends State<_DetailHeader> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: DesktopTheme.textSecondary,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor: DesktopTheme.textSecondary.withOpacity(0.7),
                                   ),
                                 ),
                               ),
@@ -1971,8 +1969,6 @@ class _TrackRowState extends State<_TrackRow> {
       style: TextStyle(
         fontSize: 12,
         color: DesktopTheme.textTertiary,
-        decoration: name.isEmpty ? null : TextDecoration.underline,
-        decorationColor: DesktopTheme.textTertiary.withOpacity(0.7),
       ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
