@@ -1135,7 +1135,9 @@ class _ServerSection extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ...appState.savedServers.map((server) {
+                    ...appState.savedServers
+                        .where((server) => !Platform.isLinux || server.serverType != 'youtubeMusic')
+                        .map((server) {
                       final isCurrent = appState.currentServerId == server.id;
                       return ListTile(
                         title: Text(server.displayLabel),

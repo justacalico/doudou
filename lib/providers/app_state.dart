@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:dio/dio.dart';
-import 'dart:convert';
 import '../models/jellyfin_models.dart';
 import '../models/saved_server.dart';
 import '../services/players/jellyfin_service.dart';
@@ -225,6 +226,16 @@ class AppState extends ChangeNotifier {
   Future<void> _loadSavedServer() async {
     try {
       await _loadSavedServersList();
+
+      // On Linux, YouTube Music is disabled; don't restore it as current server.
+      if (Platform.isLinux && _currentServerId != null) {
+        final idx = _savedServers.indexWhere((s) => s.id == _currentServerId);
+        if (idx >= 0 && _savedServers[idx].serverType == 'youtubeMusic') {
+          final nonYt = _savedServers.where((s) => s.serverType != 'youtubeMusic').toList();
+          _currentServerId = nonYt.isNotEmpty ? nonYt.first.id : null;
+        }
+      }
+
       final credentials = await _loadServerCredentials();
 
       // Prefer connecting from saved servers list

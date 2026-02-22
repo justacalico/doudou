@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doudou/models/saved_server.dart';
@@ -47,6 +48,10 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
     final s = widget.initialServer;
     if (s != null) {
       _selectedServerType = s.serverType;
+      // On Linux, YouTube Music is disabled; fall back to jellyfin if it was selected.
+      if (Platform.isLinux && _selectedServerType == 'youtubeMusic') {
+        _selectedServerType = 'jellyfin';
+      }
       _serverController.text = s.serverUrl;
       if (s.authMethod == 'api_key') {
         _jellyfinAuthMethod = JellyfinAuthMethod.apiKey;
@@ -300,17 +305,20 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DropdownButtonFormField<String>(
-            value: _selectedServerType,
+            value: (Platform.isLinux && _selectedServerType == 'youtubeMusic')
+                ? 'jellyfin'
+                : _selectedServerType,
             decoration: const InputDecoration(
               labelText: 'Server type',
               border: OutlineInputBorder(),
             ),
-            items: const [
-              DropdownMenuItem(value: 'jellyfin', child: Text('Jellyfin')),
-              DropdownMenuItem(value: 'plex', child: Text('Plex')),
-              DropdownMenuItem(value: 'subsonic', child: Text('Subsonic')),
-              DropdownMenuItem(value: 'youtubeMusic', child: Text('YouTube Music')),
-              DropdownMenuItem(value: 'local', child: Text('Local')),
+            items: [
+              const DropdownMenuItem(value: 'jellyfin', child: Text('Jellyfin')),
+              const DropdownMenuItem(value: 'plex', child: Text('Plex')),
+              const DropdownMenuItem(value: 'subsonic', child: Text('Subsonic')),
+              if (!Platform.isLinux)
+                const DropdownMenuItem(value: 'youtubeMusic', child: Text('YouTube Music')),
+              const DropdownMenuItem(value: 'local', child: Text('Local')),
             ],
             onChanged: (String? type) {
               if (type == null) return;
