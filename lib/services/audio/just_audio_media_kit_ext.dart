@@ -42,9 +42,9 @@ class JustAudioMediaKitExt {
       await PlatformAudioConfig.createMpvConfig();
     }
     
-    // When linux: true, media_kit is used for YouTube on Linux; non-YouTube still uses audioplayers (GStreamer).
+    // Standard initialization (linux: false — Linux uses audioplayers/GStreamer, not media_kit)
     JustAudioMediaKit.ensureInitialized(
-      linux: linux,
+      linux: false,
       windows: windows,
       android: android,
       iOS: iOS,
@@ -75,9 +75,9 @@ class JustAudioMediaKitExt {
       });
     }
     
-    // When linux: true, media_kit is used for YouTube on Linux.
+    // Standard initialization (linux: false — Linux uses audioplayers, not media_kit)
     JustAudioMediaKit.ensureInitialized(
-      linux: linux,
+      linux: false,
       windows: windows,
       android: android,
       iOS: iOS,
