@@ -42,8 +42,8 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   final NavigationService _nav = NavigationService();
   late int _selectedIndex;
-  late List<Widget> _pages;
-  late int _settingsIndex;
+  List<Widget> _pages = [];
+  int _settingsIndex = 0;
   late List<_NavItem> _navItems;
   late List<_NavItem> _libraryItems;
 
@@ -78,10 +78,18 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _rebuildPageLists() {
+    final oldSettingsIndex = _settingsIndex;
+    final hadPages = _pages.isNotEmpty;
     _navItems = _buildNavItems();
     _libraryItems = _buildLibraryItems();
     _pages = _buildPages();
     _settingsIndex = _pages.length - 1;
+    // Keep user on Settings when page list changes (e.g. add/switch server local ↔ remote).
+    if (hadPages && (_selectedIndex == oldSettingsIndex || _selectedIndex >= _pages.length)) {
+      _selectedIndex = _settingsIndex;
+      _nav.selectPage(_settingsIndex);
+      if (mounted) setState(() {});
+    }
   }
 
   List<_NavItem> _buildNavItems() => [
