@@ -120,7 +120,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     Expanded(
                       child: Container(
-                        color: bg,
+                        color: DesktopTheme.backgroundTertiary,
                         child: effectiveSelected != null
                             ? _buildDetailContent(context, appState, effectiveSelected)
                             : const Center(child: Text('Select a setting')),
@@ -509,7 +509,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-// --- iOS-style list: sidebar (desktop) ---
+// --- Settings sidebar (desktop, Gemini-style) ---
 class _SettingsListSidebar extends StatelessWidget {
   final List<String> sections;
   final List<_SettingsMenuItem> items;
@@ -529,104 +529,60 @@ class _SettingsListSidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFE5E5EA);
     return Container(
-      width: 280,
-      color: bg,
+      width: 288,
+      decoration: BoxDecoration(
+        color: DesktopTheme.backgroundPrimary,
+        border: Border(
+          right: BorderSide(color: DesktopTheme.glassBorder, width: 1),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
             child: Text(
               'Settings',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black,
+                color: DesktopTheme.textPrimary,
               ),
             ),
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: sections.map((section) {
                   final sectionItems = items.where((i) => i.section == section).toList();
                   if (sectionItems.isEmpty) return const SizedBox.shrink();
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.only(bottom: 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(left: 12, bottom: 6),
+                          padding: const EdgeInsets.only(left: 4, bottom: 12),
                           child: Text(
                             section.toUpperCase(),
                             style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                              color: isDark ? Colors.white54 : Colors.black54,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.5,
+                              color: DesktopTheme.textTertiary,
                             ),
                           ),
                         ),
-                        Material(
-                          color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          child: Column(
-                            children: sectionItems.asMap().entries.map((e) {
-                              final item = e.value;
-                              final isSelected = selectedId == item.id;
-                              final value = item.valueText?.call(appState);
-                              return InkWell(
-                                onTap: () => onSelect(item.id),
-                                borderRadius: BorderRadius.circular(10),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(6),
-                                        decoration: BoxDecoration(
-                                          color: isSelected ? Colors.white24 : item.iconColor,
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Icon(item.icon, size: 16, color: Colors.white),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          item.label,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                            color: isDark ? Colors.white : Colors.black87,
-                                          ),
-                                        ),
-                                      ),
-                                      if (value != null && value.isNotEmpty)
-                                        Text(
-                                          value,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: isDark ? Colors.white54 : Colors.black45,
-                                          ),
-                                        ),
-                                      const SizedBox(width: 4),
-                                      Icon(
-                                        Icons.chevron_right,
-                                        size: 18,
-                                        color: isDark ? Colors.white38 : Colors.black38,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
+                        ...sectionItems.map((item) => _SettingsSidebarTile(
+                              item: item,
+                              isSelected: selectedId == item.id,
+                              value: item.valueText?.call(appState),
+                              onTap: () => onSelect(item.id),
+                              isDark: isDark,
+                            )),
                       ],
                     ),
                   );
@@ -635,6 +591,132 @@ class _SettingsListSidebar extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SettingsSidebarTile extends StatefulWidget {
+  final _SettingsMenuItem item;
+  final bool isSelected;
+  final String? value;
+  final VoidCallback onTap;
+  final bool isDark;
+
+  const _SettingsSidebarTile({
+    required this.item,
+    required this.isSelected,
+    required this.value,
+    required this.onTap,
+    required this.isDark,
+  });
+
+  @override
+  State<_SettingsSidebarTile> createState() => _SettingsSidebarTileState();
+}
+
+class _SettingsSidebarTileState extends State<_SettingsSidebarTile> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: widget.isSelected || _hover
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.transparent,
+              border: Border.all(
+                color: widget.isSelected
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.transparent,
+                width: 1,
+              ),
+              boxShadow: widget.isSelected
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: widget.item.iconColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    widget.item.icon,
+                    size: 20,
+                    color: widget.item.iconColor,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.item.label,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: widget.isSelected
+                              ? DesktopTheme.textPrimary
+                              : DesktopTheme.textSecondary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.item.section,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: DesktopTheme.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (widget.value != null && widget.value!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      widget.value!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green.shade400,
+                      ),
+                    ),
+                  ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: widget.isSelected
+                      ? DesktopTheme.textPrimary
+                      : DesktopTheme.textTertiary,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
