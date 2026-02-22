@@ -1490,9 +1490,31 @@ class _DetailHeader extends StatefulWidget {
   State<_DetailHeader> createState() => _DetailHeaderState();
 }
 
-class _DetailHeaderState extends State<_DetailHeader> {
+class _DetailHeaderState extends State<_DetailHeader>
+    with SingleTickerProviderStateMixin {
   List<Color>? _headerColors;
   String? _lastImageUrl;
+  late final AnimationController _revealController;
+  late final Animation<double> _revealAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _revealController = AnimationController(
+      duration: const Duration(milliseconds: 280),
+      vsync: this,
+    );
+    _revealAnimation = Tween<double>(begin: 1, end: 0).animate(
+      CurvedAnimation(parent: _revealController, curve: Curves.easeOut),
+    );
+    _loadHeaderColors(widget.imageUrl);
+  }
+
+  @override
+  void dispose() {
+    _revealController.dispose();
+    super.dispose();
+  }
 
   Future<void> _loadHeaderColors(String? imageUrl) async {
     if (imageUrl == null || imageUrl.isEmpty) {
@@ -1507,18 +1529,18 @@ class _DetailHeaderState extends State<_DetailHeader> {
       _headerColors = colors;
       _lastImageUrl = imageUrl;
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadHeaderColors(widget.imageUrl);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _headerColors != null) {
+        _revealController.forward(from: 0);
+      }
+    });
   }
 
   @override
   void didUpdateWidget(_DetailHeader oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.imageUrl != widget.imageUrl) {
+      _revealController.reset();
       _loadHeaderColors(widget.imageUrl);
     }
   }
@@ -1541,17 +1563,7 @@ class _DetailHeaderState extends State<_DetailHeader> {
         ? const [0.0, 0.45, 1.0]
         : null;
 
-    return Container(
-      padding: const EdgeInsets.all(DesktopTheme.spacingLg),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: gradientColors,
-          stops: gradientStops,
-        ),
-      ),
-      child: Column(
+    final content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Back button
@@ -1673,7 +1685,50 @@ class _DetailHeaderState extends State<_DetailHeader> {
             ],
           ),
         ],
+      );
+
+    final gradientLayer = Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: gradientColors,
+          stops: gradientStops,
+        ),
       ),
+    );
+
+    final paddedContent = Padding(
+      padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+      child: content,
+    );
+
+    if (_headerColors != null && _headerColors!.length >= 2) {
+      return Stack(
+        children: [
+          Positioned.fill(child: gradientLayer),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: FadeTransition(
+                opacity: _revealAnimation,
+                child: Container(color: DesktopTheme.backgroundPrimary),
+              ),
+            ),
+          ),
+          paddedContent,
+        ],
+      );
+    }
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: gradientColors,
+          stops: gradientStops,
+        ),
+      ),
+      child: paddedContent,
     );
   }
 
