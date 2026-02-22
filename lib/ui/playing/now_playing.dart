@@ -16,8 +16,14 @@ import 'package:doudou/ui/widgets/marquee_text.dart';
 import 'package:doudou/ui/widgets/detail_track_view.dart';
 import 'package:doudou/ui/pages/details/artist_detail.dart';
 import 'package:doudou/services/lyrics_service.dart';
+import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/widgets/apple_dialog.dart';
+import 'package:doudou/ui/widgets/universal_image.dart';
+import 'package:audio_service/audio_service.dart';
+
+/// Breakpoint above which now-playing uses expanded (desktop) layout.
+const double kNowPlayingExpandedBreakpoint = 900.0;
 
 class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({super.key});
@@ -43,6 +49,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
   String? _lastCheckedTrackId; // To avoid repeated checks for the same track
   Color _albumGlowColor = const Color(0xFF8B5CF6);
   String? _lastGlowTrackId;
+  List<Color>? _gradientColors;
+  String? _lastOverlayImageUrl;
 
   @override
   void initState() {
@@ -424,7 +432,38 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
               _updateAlbumGlowColor(appState, currentTrack);
             }
 
-            return Scaffold(
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth >= kNowPlayingExpandedBreakpoint) {
+                  return _buildExpandedLayout(
+                    context,
+                    appState,
+                    audioHandler!,
+                    currentTrack,
+                  );
+                }
+                return _buildCompactLayout(
+                  context,
+                  appState,
+                  audioHandler!,
+                  currentTrack,
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Compact (mobile) layout: carousel, progress, controls, bottom bar.
+  Widget _buildCompactLayout(
+    BuildContext context,
+    AppState appState,
+    dynamic audioHandler,
+    Track currentTrack,
+  ) {
+    return Scaffold(
               backgroundColor: const Color(0xFF000000),
               body: Stack(
                 children: [
@@ -1353,13 +1392,241 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                     ),
                   ),
                 ],
-              ),
+              )
             );
-          }, // StreamBuilder builder
-        ); // StreamBuilder
-      }, // Consumer builder
-    ); // Consumer
-  } // build method
+  }
+
+  /// Expanded (desktop) layout: album + controls left, queue/lyrics right.
+  Widget _buildExpandedLayout(
+    BuildContext context,
+    AppState appState,
+    dynamic audioHandler,
+    Track currentTrack,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final overlayImageUrl = currentTrack.imageUrl != null
+        ? appState.getImageUrl(currentTrack.imageUrl!, width: 800, height: 800)
+        : null;
+    if (overlayImageUrl != null &&
+        overlayImageUrl.isNotEmpty &&
+        overlayImageUrl != _lastOverlayImageUrl) {
+      _lastOverlayImageUrl = overlayImageUrl;
+      AlbumArtColorService.getGradientColors(overlayImageUrl).then((colors) {
+        if (mounted && colors != null) {
+          setState(() => _gradientColors = colors);
+        }
+      });
+    }
+    if (overlayImageUrl == null || overlayImageUrl.isEmpty) {
+      if (_lastOverlayImageUrl != null || _gradientColors != null) {
+        _lastOverlayImageUrl = null;
+        _gradientColors = null;
+      }
+    }
+    final overlayGradientColors = _gradientColors ??
+        [
+          DesktopTheme.backgroundDeep.withOpacity(0.5),
+          DesktopTheme.backgroundDeep.withOpacity(0.85),
+          DesktopTheme.backgroundDeep.withOpacity(0.95),
+        ];
+
+    return StreamBuilder<Duration>(
+      stream: audioHandler.positionStream,
+      builder: (context, posSnapshot) {
+        final position = posSnapshot.data ?? Duration.zero;
+        final isMindElectricBackwards = _isMindElectricBackwards(
+          currentTrack.name,
+          currentTrack.artistName ?? '',
+          position,
+        );
+        Widget content = Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
+            children: [
+              if (overlayImageUrl != null && overlayImageUrl.isNotEmpty)
+                Positioned.fill(
+                  child: buildSmartImage(
+                    imageUrl: overlayImageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: () =>
+                        Container(color: DesktopTheme.backgroundDeep),
+                  ),
+                ),
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: overlayGradientColors,
+                    ),
+                  ),
+                ),
+              ),
+              SafeArea(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(DesktopTheme.spacingMd),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(Icons.more_horiz_rounded),
+                            onPressed: () => _showMoreOptions(
+                              context,
+                              currentTrack,
+                              appState,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: _ExpandedLeftColumn(
+                              appState: appState,
+                              audioHandler: audioHandler,
+                              currentTrack: currentTrack,
+                              onShowMoreOptions: () => _showMoreOptions(
+                                context,
+                                currentTrack,
+                                appState,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Container(
+                              margin: const EdgeInsets.only(
+                                right: DesktopTheme.spacingLg,
+                                bottom: DesktopTheme.spacingLg,
+                              ),
+                              decoration: BoxDecoration(
+                                color: DesktopTheme.backgroundDeep
+                                    .withOpacity(0.6),
+                                borderRadius: BorderRadius.circular(
+                                  DesktopTheme.radiusMd,
+                                ),
+                                border: Border.all(
+                                  color: DesktopTheme.glassBorder,
+                                ),
+                              ),
+                              child: DefaultTabController(
+                                length: 2,
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(
+                                        DesktopTheme.spacingMd,
+                                      ),
+                                      child: TabBar(
+                                        labelColor: DesktopTheme.textPrimary,
+                                        unselectedLabelColor:
+                                            DesktopTheme.textTertiary,
+                                        indicatorColor: Theme.of(context)
+                                            .colorScheme.primary,
+                                        tabs: [
+                                          Tab(text: l10n.upNext),
+                                          Tab(text: l10n.lyrics),
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: DesktopTheme.spacingMd,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            '${l10n.playingFrom} ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: DesktopTheme.textTertiary,
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              currentTrack.albumName ??
+                                                  l10n.unknownAlbum,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: DesktopTheme.textPrimary,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                        height: DesktopTheme.spacingSm,
+                                    ),
+                                    Expanded(
+                                      child: TabBarView(
+                                        children: [
+                                          _NowPlayingQueuePanel(
+                                            appState: appState,
+                                            audioHandler: audioHandler,
+                                          ),
+                                          _NowPlayingLyricsPanel(
+                                            trackName: currentTrack.name,
+                                            artistName:
+                                                currentTrack.artistName ?? '',
+                                            audioHandler: audioHandler,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+        if (isMindElectricBackwards) {
+          return Directionality(
+            textDirection: TextDirection.rtl,
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()..rotateY(3.14159),
+              child: content,
+            ),
+          );
+        }
+        return content;
+      },
+    );
+  }
+
+  bool _isMindElectricBackwards(
+      String title, String artist, Duration position) {
+    final t = title.toLowerCase();
+    final a = artist.toLowerCase();
+    final isMindElectric = (t.contains('mind electric') ||
+            t.contains('the mind electric')) &&
+        (a.contains('miracle musical') ||
+            a.contains('tally hall') ||
+            a.contains('joe hawley'));
+    const forwardTimestamp = Duration(minutes: 2, seconds: 50);
+    return isMindElectric && position < forwardTimestamp;
+  }
 
   void _showLyricsOverlay(BuildContext context, dynamic currentTrack) {
     showSyncedLyricsOverlay(
@@ -1864,6 +2131,547 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           child: const Text('OK'),
         ),
       ],
+    );
+  }
+}
+
+String _formatDurationForDisplay(Duration duration) {
+  final minutes = duration.inMinutes.remainder(60);
+  final seconds = duration.inSeconds.remainder(60);
+  return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+}
+
+/// Left column for expanded now-playing: album art, info, progress, controls.
+class _ExpandedLeftColumn extends StatelessWidget {
+  final AppState appState;
+  final dynamic audioHandler;
+  final Track currentTrack;
+  final VoidCallback onShowMoreOptions;
+
+  const _ExpandedLeftColumn({
+    required this.appState,
+    required this.audioHandler,
+    required this.currentTrack,
+    required this.onShowMoreOptions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final hasAlbum = currentTrack.albumName != null && currentTrack.albumName!.isNotEmpty;
+    final hasArtist = currentTrack.artistName != null && currentTrack.artistName!.isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.all(DesktopTheme.spacingXl),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.5),
+                        blurRadius: 40,
+                        offset: const Offset(0, 20),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: currentTrack.imageUrl != null
+                      ? AlbumArtWidget(
+                          imageUrl: appState.getImageUrl(
+                            currentTrack.imageUrl!,
+                            width: 800,
+                            height: 800,
+                          ),
+                          size: 400,
+                          borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+                        )
+                      : Container(
+                          color: DesktopTheme.backgroundElevated,
+                          child: Icon(
+                            Icons.music_note_rounded,
+                            size: 100,
+                            color: DesktopTheme.textTertiary,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: DesktopTheme.spacingXl),
+          Text(
+            currentTrack.name,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: DesktopTheme.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: DesktopTheme.spacingSm),
+          if (hasAlbum)
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+                _navigateToAlbumFromExpanded(context, currentTrack, appState);
+              },
+              child: Text.rich(
+                TextSpan(
+                  text: '${l10n.fromAlbum} ',
+                  style: TextStyle(fontSize: 14, color: DesktopTheme.textTertiary),
+                  children: [
+                    TextSpan(
+                      text: currentTrack.albumName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: DesktopTheme.textSecondary,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (hasArtist)
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+                _navigateToArtistFromExpanded(context, currentTrack, appState);
+              },
+              child: Text.rich(
+                TextSpan(
+                  text: '${l10n.byArtist} ',
+                  style: TextStyle(fontSize: 14, color: DesktopTheme.textTertiary),
+                  children: [
+                    TextSpan(
+                      text: currentTrack.artistName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: DesktopTheme.textSecondary,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: DesktopTheme.spacingXl),
+          StreamBuilder<Duration>(
+            stream: audioHandler.positionStream,
+            builder: (context, posSnapshot) {
+              final position = posSnapshot.data ?? Duration.zero;
+              return StreamBuilder<Duration?>(
+                stream: audioHandler.durationStream,
+                builder: (context, durSnapshot) {
+                  final duration = durSnapshot.data ?? Duration.zero;
+                  final progress = duration.inMilliseconds > 0
+                      ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
+                      : 0.0;
+                  return Column(
+                    children: [
+                      SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: 4,
+                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                          overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                          activeTrackColor: DesktopTheme.textPrimary,
+                          inactiveTrackColor: DesktopTheme.backgroundElevated,
+                          thumbColor: DesktopTheme.textPrimary,
+                        ),
+                        child: Slider(
+                          value: progress,
+                          onChanged: (value) {
+                            final newPos = Duration(
+                              milliseconds: (value * duration.inMilliseconds).round(),
+                            );
+                            audioHandler.seek(newPos);
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingMd),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _formatDurationForDisplay(position),
+                              style: TextStyle(fontSize: 12, color: DesktopTheme.textSecondary),
+                            ),
+                            Text(
+                              _formatDurationForDisplay(duration),
+                              style: TextStyle(fontSize: 12, color: DesktopTheme.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+          const SizedBox(height: DesktopTheme.spacingLg),
+          StreamBuilder<PlaybackState>(
+            stream: audioHandler.playbackState,
+            builder: (context, pbSnapshot) {
+              final isPlaying = pbSnapshot.data?.playing ?? false;
+              final isShuffled = audioHandler.shuffleEnabled ?? false;
+              final repeatMode = audioHandler.repeatMode ?? RepeatMode.none;
+              final trackId = currentTrack.id;
+              final isFavorite = appState.isFavorite(trackId);
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.shuffle_rounded,
+                      color: isShuffled ? theme.colorScheme.primary : null,
+                    ),
+                    onPressed: () {
+                      if (isShuffled) {
+                        audioHandler.unshuffle();
+                      } else {
+                        audioHandler.shuffle();
+                      }
+                    },
+                  ),
+                  const SizedBox(width: DesktopTheme.spacingXl),
+                  IconButton(
+                    icon: const Icon(Icons.skip_previous_rounded, size: 32),
+                    onPressed: appState.skipToPrevious,
+                  ),
+                  const SizedBox(width: DesktopTheme.spacingMd),
+                  GestureDetector(
+                    onTap: () => appState.playPause(),
+                    child: Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: DesktopTheme.textPrimary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                        color: DesktopTheme.backgroundDeep,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: DesktopTheme.spacingMd),
+                  IconButton(
+                    icon: const Icon(Icons.skip_next_rounded, size: 32),
+                    onPressed: appState.skipToNext,
+                  ),
+                  const SizedBox(width: DesktopTheme.spacingXl),
+                  IconButton(
+                    icon: Icon(
+                      repeatMode == RepeatMode.one
+                          ? Icons.repeat_one_rounded
+                          : Icons.repeat_rounded,
+                      color: repeatMode != RepeatMode.none ? theme.colorScheme.primary : null,
+                    ),
+                    onPressed: () {
+                      final next = repeatMode == RepeatMode.none
+                          ? RepeatMode.all
+                          : repeatMode == RepeatMode.all
+                              ? RepeatMode.one
+                              : RepeatMode.none;
+                      audioHandler.setRepeatMode(next);
+                    },
+                  ),
+                  const SizedBox(width: DesktopTheme.spacingXl),
+                  IconButton(
+                    icon: Icon(
+                      isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      color: isFavorite ? const Color(0xFFEC4899) : null,
+                    ),
+                    onPressed: () => appState.toggleFavorite(currentTrack),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: DesktopTheme.spacingLg),
+        ],
+      ),
+    );
+  }
+}
+
+void _navigateToAlbumFromExpanded(BuildContext context, Track track, AppState appState) {
+  try {
+    if (track.albumId == null) return;
+    final album = appState.albums.firstWhere(
+      (a) => a.id == track.albumId,
+      orElse: () => throw StateError('not found'),
+    );
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => DetailTrackView.album(album)),
+    );
+  } catch (_) {}
+}
+
+void _navigateToArtistFromExpanded(BuildContext context, Track track, AppState appState) {
+  try {
+    if (track.artistName == null) return;
+    final artist = appState.artists.firstWhere(
+      (a) => a.name == track.artistName,
+      orElse: () => throw StateError('not found'),
+    );
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ArtistDetailScreen(artist: artist)),
+    );
+  } catch (_) {}
+}
+
+/// Queue list for expanded now-playing panel.
+class _NowPlayingQueuePanel extends StatelessWidget {
+  final AppState appState;
+  final dynamic audioHandler;
+
+  const _NowPlayingQueuePanel({
+    required this.appState,
+    required this.audioHandler,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final queue = appState.queue;
+    final currentIndex = audioHandler?.currentIndex ?? 0;
+
+    if (queue.isEmpty) {
+      return Center(
+        child: Text(
+          'Queue is empty',
+          style: TextStyle(color: DesktopTheme.textTertiary),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingSm),
+      itemCount: queue.length,
+      itemBuilder: (context, index) {
+        final track = queue[index];
+        final isCurrent = index == currentIndex;
+
+        return ListTile(
+          dense: true,
+          leading: SizedBox(
+            width: 40,
+            height: 40,
+            child: track.imageUrl != null
+                ? AlbumArtWidget(
+                    imageUrl: appState.getImageUrl(track.imageUrl!, width: 80, height: 80),
+                    size: 40,
+                    borderRadius: BorderRadius.circular(4),
+                  )
+                : Icon(Icons.music_note_rounded, size: 20, color: DesktopTheme.textTertiary),
+          ),
+          title: Text(
+            track.name,
+            style: TextStyle(
+              fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
+              color: isCurrent ? Theme.of(context).colorScheme.primary : DesktopTheme.textPrimary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            track.artistName ?? '',
+            style: TextStyle(fontSize: 12, color: DesktopTheme.textTertiary),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          onTap: () => audioHandler?.skipToQueueItem(index),
+        );
+      },
+    );
+  }
+}
+
+/// Lyrics panel for expanded now-playing; loads and shows synced or plain lyrics.
+class _NowPlayingLyricsPanel extends StatefulWidget {
+  final String trackName;
+  final String artistName;
+  final dynamic audioHandler;
+
+  const _NowPlayingLyricsPanel({
+    required this.trackName,
+    required this.artistName,
+    required this.audioHandler,
+  });
+
+  @override
+  State<_NowPlayingLyricsPanel> createState() => _NowPlayingLyricsPanelState();
+}
+
+class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
+  LyricsResult? _result;
+  bool _loading = true;
+  int _currentLineIndex = -1;
+  final ScrollController _scrollController = ScrollController();
+  final List<GlobalKey> _lineKeys = [];
+  Duration _lastPosition = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(_NowPlayingLyricsPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.trackName != oldWidget.trackName ||
+        widget.artistName != oldWidget.artistName) {
+      _load();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _result = null;
+      _currentLineIndex = -1;
+      _lineKeys.clear();
+    });
+    try {
+      final result = await LyricsService.fetchLyrics(widget.trackName, widget.artistName);
+      if (mounted) {
+        setState(() {
+          _result = result;
+          _loading = false;
+          if (result?.syncedLyrics != null) {
+            for (int i = 0; i < result!.syncedLyrics!.length; i++) {
+              _lineKeys.add(GlobalKey());
+            }
+          }
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() { _loading = false; _result = null; });
+    }
+  }
+
+  void _updateLine(Duration position) {
+    if (_result?.syncedLyrics == null) return;
+    if ((position - _lastPosition).abs() < const Duration(milliseconds: 50)) return;
+    _lastPosition = position;
+    final lines = _result!.syncedLyrics!;
+    int newIndex = -1;
+    for (int i = 0; i < lines.length; i++) {
+      if (position >= lines[i].timestamp) newIndex = i;
+      else break;
+    }
+    if (newIndex != _currentLineIndex && newIndex >= 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _currentLineIndex != newIndex) {
+          setState(() => _currentLineIndex = newIndex);
+          _scrollToLine();
+        }
+      });
+    }
+  }
+
+  void _scrollToLine() {
+    if (_currentLineIndex < 0 || _currentLineIndex >= _lineKeys.length) return;
+    final ctx = _lineKeys[_currentLineIndex].currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(ctx, alignment: 0.4, duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2)),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            Text('Loading lyrics...', style: TextStyle(fontSize: 13, color: DesktopTheme.textSecondary)),
+          ],
+        ),
+      );
+    }
+    if (_result == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.lyrics_outlined, size: 48, color: DesktopTheme.textTertiary),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            Text('Lyrics not available', style: TextStyle(fontSize: 14, color: DesktopTheme.textTertiary)),
+          ],
+        ),
+      );
+    }
+    if (_result!.hasSyncedLyrics && _result!.syncedLyrics != null) {
+      return StreamBuilder<Duration>(
+        stream: widget.audioHandler?.positionStream,
+        builder: (context, snapshot) {
+          final position = snapshot.data ?? Duration.zero;
+          _updateLine(position);
+          return ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingMd, vertical: DesktopTheme.spacingXl),
+            itemCount: _result!.syncedLyrics!.length,
+            itemBuilder: (context, index) {
+              final line = _result!.syncedLyrics![index];
+              final isCurrent = index == _currentLineIndex;
+              final isPast = index < _currentLineIndex;
+              return Container(
+                key: _lineKeys[index],
+                margin: EdgeInsets.symmetric(vertical: isCurrent ? 8 : 4),
+                padding: EdgeInsets.symmetric(
+                  horizontal: DesktopTheme.spacingMd,
+                  vertical: isCurrent ? 12 : 8,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+                  color: isCurrent ? DesktopTheme.accentPrimary.withOpacity(0.15) : Colors.transparent,
+                ),
+                child: Text(
+                  line.text,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: isCurrent ? DesktopTheme.textPrimary : (isPast ? DesktopTheme.textTertiary : DesktopTheme.textSecondary),
+                    fontSize: isCurrent ? 15 : 13,
+                    fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(DesktopTheme.spacingMd),
+      child: SelectableText(
+        _result!.plainLyrics,
+        style: TextStyle(color: DesktopTheme.textSecondary, fontSize: 13, height: 1.8),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }
