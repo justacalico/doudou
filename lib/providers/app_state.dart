@@ -615,6 +615,8 @@ class AppState extends ChangeNotifier {
           _audioHandler = null;
         }
 
+        await closePlayerAndClearQueue();
+
         await _saveServerType('jellyfin');
         await _saveApiKeyCredentials(serverUrl, apiKey);
         await _saveServer();
@@ -679,6 +681,8 @@ class AppState extends ChangeNotifier {
       } catch (e) {
         _audioHandler = null;
       }
+
+      await closePlayerAndClearQueue();
 
       await _saveServerType('jellyfin');
       await _saveQuickConnectCredentials(
@@ -757,6 +761,8 @@ class AppState extends ChangeNotifier {
       } catch (e) {
         _audioHandler = null;
       }
+
+      await closePlayerAndClearQueue();
 
       await _saveServerType('local');
 
@@ -854,6 +860,8 @@ class AppState extends ChangeNotifier {
         } catch (e) {
           _audioHandler = null;
         }
+
+        await closePlayerAndClearQueue();
 
         await _saveServerType(serverType);
         await _saveServerCredentials(
