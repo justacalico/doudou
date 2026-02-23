@@ -99,7 +99,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
         message: Text(summary, style: const TextStyle(fontSize: 14)),
         actions: [
           // Download all tracks
-          if (_artistTracks.isNotEmpty)
+          if (_artistTracks.isNotEmpty && appState.downloadsEnabled)
             CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
@@ -1091,7 +1091,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       showAlbumArt: true,
       showTrackNumber: false,
       showDuration: true,
-      showDownloadButton: true,
+      showDownloadButton: appState.downloadsEnabled,
       showFavoriteButton: true,
     );
   }

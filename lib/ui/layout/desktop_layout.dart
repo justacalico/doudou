@@ -297,6 +297,7 @@ class _PlayerBarContent extends StatelessWidget {
                       },
                       isShuffled: audioHandler.shuffleEnabled ?? false,
                       repeatMode: audioHandler.repeatMode ?? RepeatMode.none,
+                      showShuffleRepeat: appState.showShuffleRepeatOnPlayerBar,
                     ),
                   ),
                   // Right: Volume and extras
@@ -306,6 +307,8 @@ class _PlayerBarContent extends StatelessWidget {
                       audioHandler: audioHandler,
                       onQueueTap: () => _showNowPlaying(context),
                       onClose: () => appState.closePlayerAndClearQueue(),
+                      showVolume: appState.showVolumeOnPlayerBar,
+                      showQueue: appState.showQueueOnPlayerBar,
                     ),
                   ),
                 ],
@@ -751,6 +754,7 @@ class _PlaybackControls extends StatelessWidget {
   final VoidCallback onRepeat;
   final bool isShuffled;
   final RepeatMode repeatMode;
+  final bool showShuffleRepeat;
 
   const _PlaybackControls({
     required this.isPlaying,
@@ -761,6 +765,7 @@ class _PlaybackControls extends StatelessWidget {
     required this.onRepeat,
     required this.isShuffled,
     required this.repeatMode,
+    this.showShuffleRepeat = true,
   });
 
   @override
@@ -770,15 +775,16 @@ class _PlaybackControls extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Shuffle
-        DesktopIconButton(
-          icon: Icons.shuffle_rounded,
-          isActive: isShuffled,
-          activeColor: theme.colorScheme.primary,
-          onPressed: onShuffle,
-          tooltip: 'Shuffle',
-        ),
-        const SizedBox(width: DesktopTheme.spacingMd),
+        if (showShuffleRepeat) ...[
+          DesktopIconButton(
+            icon: Icons.shuffle_rounded,
+            isActive: isShuffled,
+            activeColor: theme.colorScheme.primary,
+            onPressed: onShuffle,
+            tooltip: 'Shuffle',
+          ),
+          const SizedBox(width: DesktopTheme.spacingMd),
+        ],
         // Previous
         DesktopIconButton(
           icon: Icons.skip_previous_rounded,
@@ -797,17 +803,19 @@ class _PlaybackControls extends StatelessWidget {
           onPressed: onNext,
           tooltip: 'Next',
         ),
-        const SizedBox(width: DesktopTheme.spacingMd),
-        // Repeat
-        DesktopIconButton(
-          icon: repeatMode == RepeatMode.one
-              ? Icons.repeat_one_rounded
-              : Icons.repeat_rounded,
-          isActive: repeatMode != RepeatMode.none,
-          activeColor: theme.colorScheme.primary,
-          onPressed: onRepeat,
-          tooltip: 'Repeat',
-        ),
+        if (showShuffleRepeat) ...[
+          const SizedBox(width: DesktopTheme.spacingMd),
+          // Repeat
+          DesktopIconButton(
+            icon: repeatMode == RepeatMode.one
+                ? Icons.repeat_one_rounded
+                : Icons.repeat_rounded,
+            isActive: repeatMode != RepeatMode.none,
+            activeColor: theme.colorScheme.primary,
+            onPressed: onRepeat,
+            tooltip: 'Repeat',
+          ),
+        ],
       ],
     );
   }
@@ -861,11 +869,15 @@ class _PlayerExtras extends StatefulWidget {
   final dynamic audioHandler;
   final VoidCallback onQueueTap;
   final VoidCallback? onClose;
+  final bool showVolume;
+  final bool showQueue;
 
   const _PlayerExtras({
     required this.audioHandler,
     required this.onQueueTap,
     this.onClose,
+    this.showVolume = true,
+    this.showQueue = true,
   });
 
   @override
@@ -905,62 +917,64 @@ class _PlayerExtrasState extends State<_PlayerExtras> {
           ),
           const SizedBox(width: DesktopTheme.spacingSm),
         ],
-        // Queue button
-        DesktopIconButton(
-          icon: Icons.queue_music_rounded,
-          tooltip: 'Queue',
-          onPressed: widget.onQueueTap,
-        ),
-        const SizedBox(width: DesktopTheme.spacingSm),
-        // Volume
-        MouseRegion(
-          onEnter: (_) => setState(() => _showVolume = true),
-          onExit: (_) => setState(() => _showVolume = false),
-          child: Row(
-            children: [
-              DesktopIconButton(
-                icon: _volume == 0
-                    ? Icons.volume_off_rounded
-                    : _volume < 0.5
-                    ? Icons.volume_down_rounded
-                    : Icons.volume_up_rounded,
-                onPressed: () {
-                  final newVolume = _volume == 0 ? 1.0 : 0.0;
-                  setState(() => _volume = newVolume);
-                  widget.audioHandler?.setVolume(newVolume);
-                },
-              ),
-              AnimatedContainer(
-                duration: DesktopTheme.durationFast,
-                width: _showVolume ? 80 : 0,
-                child: _showVolume
-                    ? SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          trackHeight: 3,
-                          thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 6,
-                          ),
-                          overlayShape: const RoundSliderOverlayShape(
-                            overlayRadius: 12,
-                          ),
-                          activeTrackColor: DesktopTheme.textPrimary,
-                          inactiveTrackColor: DesktopTheme.backgroundElevated,
-                          thumbColor: DesktopTheme.textPrimary,
-                        ),
-                        child: Slider(
-                          value: _volume,
-                          onChanged: (value) {
-                            setState(() => _volume = value);
-                            widget.audioHandler?.setVolume(value);
-                          },
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
+        if (widget.showQueue) ...[
+          DesktopIconButton(
+            icon: Icons.queue_music_rounded,
+            tooltip: 'Queue',
+            onPressed: widget.onQueueTap,
           ),
-        ),
-        const SizedBox(width: DesktopTheme.spacingSm),
+          const SizedBox(width: DesktopTheme.spacingSm),
+        ],
+        if (widget.showVolume) ...[
+          MouseRegion(
+            onEnter: (_) => setState(() => _showVolume = true),
+            onExit: (_) => setState(() => _showVolume = false),
+            child: Row(
+              children: [
+                DesktopIconButton(
+                  icon: _volume == 0
+                      ? Icons.volume_off_rounded
+                      : _volume < 0.5
+                      ? Icons.volume_down_rounded
+                      : Icons.volume_up_rounded,
+                  onPressed: () {
+                    final newVolume = _volume == 0 ? 1.0 : 0.0;
+                    setState(() => _volume = newVolume);
+                    widget.audioHandler?.setVolume(newVolume);
+                  },
+                ),
+                AnimatedContainer(
+                  duration: DesktopTheme.durationFast,
+                  width: _showVolume ? 80 : 0,
+                  child: _showVolume
+                      ? SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            trackHeight: 3,
+                            thumbShape: const RoundSliderThumbShape(
+                              enabledThumbRadius: 6,
+                            ),
+                            overlayShape: const RoundSliderOverlayShape(
+                              overlayRadius: 12,
+                            ),
+                            activeTrackColor: DesktopTheme.textPrimary,
+                            inactiveTrackColor: DesktopTheme.backgroundElevated,
+                            thumbColor: DesktopTheme.textPrimary,
+                          ),
+                          child: Slider(
+                            value: _volume,
+                            onChanged: (value) {
+                              setState(() => _volume = value);
+                              widget.audioHandler?.setVolume(value);
+                            },
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: DesktopTheme.spacingSm),
+        ],
         // Fullscreen/Now Playing
         DesktopIconButton(
           icon: Icons.open_in_full_rounded,

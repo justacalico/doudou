@@ -181,7 +181,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   label: Text(l10n.shuffle),
                 ),
                 // Download album button (albums only)
-                if (widget.mediaType == MediaType.album)
+                if (widget.mediaType == MediaType.album && appState.downloadsEnabled)
                   _buildAlbumDownloadButton(appState, l10n),
                 // Conditional buttons based on media type
                 if (widget.mediaType == MediaType.album) ...[
@@ -304,14 +304,16 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               contentPadding: EdgeInsets.zero,
             ),
           ));
-          items.add(PopupMenuItem(
-            value: 'download',
-            child: ListTile(
-              leading: const Icon(Icons.download),
-              title: Text(l10n.download),
-              contentPadding: EdgeInsets.zero,
-            ),
-          ));
+          if (context.read<AppState>().downloadsEnabled) {
+            items.add(PopupMenuItem(
+              value: 'download',
+              child: ListTile(
+                leading: const Icon(Icons.download),
+                title: Text(l10n.download),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ));
+          }
         }
         
         items.add(PopupMenuItem(
@@ -796,14 +798,16 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   ));
                 }
                 
-                items.add(PopupMenuItem(
-                  value: 'download',
-                  child: ListTile(
-                    leading: const Icon(Icons.download),
-                    title: Text(l10n.download),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ));
+                if (context.read<AppState>().downloadsEnabled) {
+                  items.add(PopupMenuItem(
+                    value: 'download',
+                    child: ListTile(
+                      leading: const Icon(Icons.download),
+                      title: Text(l10n.download),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ));
+                }
                 
                 return items;
               },

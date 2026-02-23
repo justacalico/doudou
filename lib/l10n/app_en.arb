@@ -1212,6 +1212,52 @@
     "description": "General settings section header"
   },
 
+  "generalSectionSubtitle": "Features & options",
+  "@generalSectionSubtitle": {
+    "description": "General settings menu subtitle"
+  },
+
+  "settingsLyrics": "Lyrics",
+  "@settingsLyrics": {
+    "description": "Show lyrics in now playing"
+  },
+  "settingsLyricsDescription": "Show lyrics button and panel in now playing",
+  "@settingsLyricsDescription": {
+    "description": "Lyrics toggle description"
+  },
+  "settingsDownloads": "Downloads",
+  "@settingsDownloads": {
+    "description": "Show downloads feature"
+  },
+  "settingsDownloadsDescription": "Show Downloads in library and download actions",
+  "@settingsDownloadsDescription": {
+    "description": "Downloads toggle description"
+  },
+  "settingsVolumeOnPlayerBar": "Volume on player bar",
+  "@settingsVolumeOnPlayerBar": {
+    "description": "Volume control on desktop player bar"
+  },
+  "settingsVolumeOnPlayerBarDescription": "Show volume control on desktop player bar",
+  "@settingsVolumeOnPlayerBarDescription": {
+    "description": "Volume on player bar description"
+  },
+  "settingsQueueOnPlayerBar": "Queue button on player bar",
+  "@settingsQueueOnPlayerBar": {
+    "description": "Queue button on desktop player bar"
+  },
+  "settingsQueueOnPlayerBarDescription": "Show queue button on desktop player bar",
+  "@settingsQueueOnPlayerBarDescription": {
+    "description": "Queue on player bar description"
+  },
+  "settingsShuffleRepeatOnPlayerBar": "Shuffle & repeat on player bar",
+  "@settingsShuffleRepeatOnPlayerBar": {
+    "description": "Shuffle and repeat on desktop player bar"
+  },
+  "settingsShuffleRepeatOnPlayerBarDescription": "Show shuffle and repeat controls on desktop player bar",
+  "@settingsShuffleRepeatOnPlayerBarDescription": {
+    "description": "Shuffle repeat on player bar description"
+  },
+
   "audioSettings": "Audio Settings",
   "@audioSettings": {
     "description": "Audio settings section header"

@@ -75,17 +75,13 @@ class _AppShellState extends State<AppShell> {
 
   void _onDetailChanged() => setState(() {});
 
-  bool get _isLocalMusic {
-    return context.read<AppState>().mediaServiceManager.currentServerType ==
-        ServerType.local;
-  }
-
   void _rebuildPageLists() {
     final oldSettingsIndex = _settingsIndex;
     final hadPages = _pageCount > 0;
+    final appState = context.read<AppState>();
     _navItems = _buildNavItems();
-    _libraryItems = _buildLibraryItems();
-    _pageBuilders = _buildPageBuilders();
+    _libraryItems = _buildLibraryItems(appState);
+    _pageBuilders = _buildPageBuilders(appState);
     _pageCount = _pageBuilders.length;
     _settingsIndex = _pageCount - 1;
     _builtPages.clear();
@@ -96,7 +92,8 @@ class _AppShellState extends State<AppShell> {
     }
   }
 
-  List<Widget Function()> _buildPageBuilders() {
+  List<Widget Function()> _buildPageBuilders(AppState appState) {
+    final isLocal = appState.mediaServiceManager.currentServerType == ServerType.local;
     return [
       () => const HomePage(),
       () => const SearchPage(),
@@ -105,7 +102,7 @@ class _AppShellState extends State<AppShell> {
       () => const ArtistsPage(),
       () => const TracksPage(),
       () => const PlaylistsPage(),
-      if (!_isLocalMusic) () => const DownloadsPage(),
+      if (!isLocal && appState.downloadsEnabled) () => const DownloadsPage(),
       () => const SettingsPage(),
     ];
   }
@@ -127,7 +124,8 @@ class _AppShellState extends State<AppShell> {
         ),
       ];
 
-  List<_NavItem> _buildLibraryItems() {
+  List<_NavItem> _buildLibraryItems(AppState appState) {
+    final isLocal = appState.mediaServiceManager.currentServerType == ServerType.local;
     return [
       const _NavItem(Icons.album_outlined, Icons.album_rounded, 'Albums'),
       const _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Artists'),
@@ -137,7 +135,7 @@ class _AppShellState extends State<AppShell> {
         Icons.queue_music_rounded,
         'Playlists',
       ),
-      if (!_isLocalMusic)
+      if (!isLocal && appState.downloadsEnabled)
         const _NavItem(Icons.download_outlined, Icons.download_rounded, 'Downloads'),
     ];
   }
@@ -152,13 +150,16 @@ class _AppShellState extends State<AppShell> {
   /// Single source of truth for mobile bottom bar items (indices, labels, icons).
   List<_MobileNavEntry> _getMobileNavEntries(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final appState = context.read<AppState>();
+    final isLocal = appState.mediaServiceManager.currentServerType == ServerType.local;
+    final showDownloads = !isLocal && appState.downloadsEnabled;
     return [
       _MobileNavEntry(0, l10n.navHome, _navItems[0].icon, _navItems[0].activeIcon),
       _MobileNavEntry(1, l10n.search, _navItems[1].icon, _navItems[1].activeIcon),
       _MobileNavEntry(2, l10n.library, _navItems[2].icon, _navItems[2].activeIcon),
-      if (!_isLocalMusic)
+      if (showDownloads)
         _MobileNavEntry(
-          _navItems.length + 4,
+          _settingsIndex - 1,
           l10n.downloads,
           _libraryItems[4].icon,
           _libraryItems[4].activeIcon,
@@ -179,15 +180,30 @@ class _AppShellState extends State<AppShell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final isLocal = context.read<AppState>().mediaServiceManager.currentServerType ==
-        ServerType.local;
-    final wasLocal = _libraryItems.length == 4;
-    if (isLocal != wasLocal) _rebuildPageLists();
+    final appState = context.read<AppState>();
+    final isLocal = appState.mediaServiceManager.currentServerType == ServerType.local;
+    final showDownloads = !isLocal && appState.downloadsEnabled;
+    final hadDownloads = _libraryItems.length == 5;
+    if (showDownloads != hadDownloads) {
+      _rebuildPageLists();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
+    // When downloadsEnabled or server type changes, page list may need to change
+    final isLocal = appState.mediaServiceManager.currentServerType == ServerType.local;
+    final showDownloads = !isLocal && appState.downloadsEnabled;
+    final expectedCount = 7 + (showDownloads ? 1 : 0) + 1; // pages + settings
+    if (expectedCount != _pageCount && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _rebuildPageLists();
+          setState(() {});
+        }
+      });
+    }
     if (!appState.isLoggedIn) {
       if (!appState.onboardingCompleted) {
         return const OnboardingScreen();

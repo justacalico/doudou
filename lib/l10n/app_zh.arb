@@ -223,6 +223,18 @@
 
   "settings": "设置",
   "generalSettings": "通用设置",
+  "generalSectionSubtitle": "功能与选项",
+  "settingsLyrics": "歌词",
+  "settingsLyricsDescription": "在正在播放中显示歌词按钮和面板",
+  "settingsDownloads": "下载",
+  "settingsDownloadsDescription": "在媒体库中显示下载及下载相关操作",
+  "settingsVolumeOnPlayerBar": "播放栏音量",
+  "settingsVolumeOnPlayerBarDescription": "在桌面播放栏显示音量控制",
+  "settingsQueueOnPlayerBar": "播放栏队列按钮",
+  "settingsQueueOnPlayerBarDescription": "在桌面播放栏显示队列按钮",
+  "settingsShuffleRepeatOnPlayerBar": "播放栏随机与单曲循环",
+  "settingsShuffleRepeatOnPlayerBarDescription": "在桌面播放栏显示随机和单曲循环控制",
+
   "audioSettings": "音频设置",
   "appearanceSettings": "外观设置",
   "serverSettings": "服务器设置",

@@ -45,6 +45,13 @@ class AppState extends ChangeNotifier {
   bool _loggingEnabled = false; // Disabled by default
   bool _smartBackToStartEnabled = true;
 
+  // General feature toggles (all default true = current behavior)
+  bool _lyricsEnabled = true;
+  bool _downloadsEnabled = true;
+  bool _showVolumeOnPlayerBar = true;
+  bool _showQueueOnPlayerBar = true;
+  bool _showShuffleRepeatOnPlayerBar = true;
+
   // Debouncing for play/pause to prevent rapid-fire clicking deadlocks
   DateTime? _lastPlayPauseCommand;
   static const Duration _playPauseDebounceDelay = Duration(milliseconds: 300);
@@ -139,6 +146,11 @@ class AppState extends ChangeNotifier {
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get loggingEnabled => _loggingEnabled;
   bool get smartBackToStartEnabled => _smartBackToStartEnabled;
+  bool get lyricsEnabled => _lyricsEnabled;
+  bool get downloadsEnabled => _downloadsEnabled;
+  bool get showVolumeOnPlayerBar => _showVolumeOnPlayerBar;
+  bool get showQueueOnPlayerBar => _showQueueOnPlayerBar;
+  bool get showShuffleRepeatOnPlayerBar => _showShuffleRepeatOnPlayerBar;
 
   // Theme getters
   ThemeMode get themeMode => _themeMode;
@@ -2171,6 +2183,46 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setLyricsEnabled(bool enabled) async {
+    if (_lyricsEnabled == enabled) return;
+    _lyricsEnabled = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('lyrics_enabled', enabled);
+    notifyListeners();
+  }
+
+  Future<void> setDownloadsEnabled(bool enabled) async {
+    if (_downloadsEnabled == enabled) return;
+    _downloadsEnabled = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('downloads_enabled', enabled);
+    notifyListeners();
+  }
+
+  Future<void> setShowVolumeOnPlayerBar(bool enabled) async {
+    if (_showVolumeOnPlayerBar == enabled) return;
+    _showVolumeOnPlayerBar = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('show_volume_on_player_bar', enabled);
+    notifyListeners();
+  }
+
+  Future<void> setShowQueueOnPlayerBar(bool enabled) async {
+    if (_showQueueOnPlayerBar == enabled) return;
+    _showQueueOnPlayerBar = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('show_queue_on_player_bar', enabled);
+    notifyListeners();
+  }
+
+  Future<void> setShowShuffleRepeatOnPlayerBar(bool enabled) async {
+    if (_showShuffleRepeatOnPlayerBar == enabled) return;
+    _showShuffleRepeatOnPlayerBar = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('show_shuffle_repeat_on_player_bar', enabled);
+    notifyListeners();
+  }
+
   // Recent tracks management
   void _addToRecentTracks(Track track) {
     // Remove if already exists to avoid duplicates
@@ -2229,6 +2281,13 @@ class AppState extends ChangeNotifier {
         prefs.getBool('logging_enabled') ?? false; // Disabled by default
     _smartBackToStartEnabled =
         prefs.getBool('smart_back_to_start_enabled') ?? true;
+    _lyricsEnabled = prefs.getBool('lyrics_enabled') ?? true;
+    _downloadsEnabled = prefs.getBool('downloads_enabled') ?? true;
+    _showVolumeOnPlayerBar =
+        prefs.getBool('show_volume_on_player_bar') ?? true;
+    _showQueueOnPlayerBar = prefs.getBool('show_queue_on_player_bar') ?? true;
+    _showShuffleRepeatOnPlayerBar =
+        prefs.getBool('show_shuffle_repeat_on_player_bar') ?? true;
 
     // Load theme settings
     final themeModeString = prefs.getString('theme_mode') ?? 'system';

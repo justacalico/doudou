@@ -223,6 +223,18 @@
 
   "settings": "Настройки",
   "generalSettings": "Общие настройки",
+  "generalSectionSubtitle": "Функции и опции",
+  "settingsLyrics": "Тексты песен",
+  "settingsLyricsDescription": "Показывать кнопку и панель текстов в «Сейчас играет»",
+  "settingsDownloads": "Загрузки",
+  "settingsDownloadsDescription": "Показывать «Загрузки» в библиотеке и действия загрузки",
+  "settingsVolumeOnPlayerBar": "Громкость на панели плеера",
+  "settingsVolumeOnPlayerBarDescription": "Показывать регулятор громкости на панели плеера (рабочий стол)",
+  "settingsQueueOnPlayerBar": "Кнопка очереди на панели плеера",
+  "settingsQueueOnPlayerBarDescription": "Показывать кнопку очереди на панели плеера (рабочий стол)",
+  "settingsShuffleRepeatOnPlayerBar": "Перемешать и повторить на панели плеера",
+  "settingsShuffleRepeatOnPlayerBarDescription": "Показывать управление перемешиванием и повтором на панели плеера (рабочий стол)",
+
   "audioSettings": "Настройки звука",
   "appearanceSettings": "Настройки внешнего вида",
   "serverSettings": "Настройки сервера",

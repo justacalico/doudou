@@ -61,6 +61,14 @@ class _SettingsPageState extends State<SettingsPage> {
         valueText: (a) => a.isLoggedIn ? (isLocalMusic ? 'Active' : (a.jellyfinService.username ?? 'Connected')) : null,
       ),
       _SettingsMenuItem(
+        id: 'general',
+        label: l10n.generalSettings,
+        icon: Icons.tune_rounded,
+        iconColor: const Color(0xFF10B981),
+        section: 'General',
+        valueText: null,
+      ),
+      _SettingsMenuItem(
         id: 'audio',
         label: l10n.audioSettings,
         icon: Icons.volume_up_rounded,
@@ -85,7 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return items;
   }
 
-  static const List<String> _sectionOrder = ['Server', 'Playback', 'Appearance', 'About'];
+  static const List<String> _sectionOrder = ['Server', 'General', 'Playback', 'Appearance', 'About'];
 
   @override
   Widget build(BuildContext context) {
@@ -195,6 +203,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildDetailContent(BuildContext context, AppState appState, String id) {
     switch (id) {
+      case 'general':
+        return _GeneralSection(appState: appState);
       case 'audio':
         return _AudioSection(appState: appState);
       case 'appearance':
@@ -216,12 +226,7 @@ class _SettingsPageState extends State<SettingsPage> {
       case 'about':
         return _AboutSection(appState: appState);
       default:
-        return _AppearanceSection(
-          appState: appState,
-          onTheme: _showThemeDialog,
-          onColor: _showColorDialog,
-          onLanguage: () => _showLanguageDialog(appState),
-        );
+        return _GeneralSection(appState: appState);
     }
   }
 
@@ -791,6 +796,83 @@ class _SettingsListMobile extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+// --- General ---
+class _GeneralSection extends StatelessWidget {
+  final AppState appState;
+
+  const _GeneralSection({required this.appState});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.generalSettings,
+              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.generalSectionSubtitle,
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 12),
+                      SwitchListTile(
+                        title: Text(l10n.settingsLyrics),
+                        subtitle: Text(l10n.settingsLyricsDescription),
+                        value: appState.lyricsEnabled,
+                        onChanged: (v) => appState.setLyricsEnabled(v),
+                      ),
+                      SwitchListTile(
+                        title: Text(l10n.settingsDownloads),
+                        subtitle: Text(l10n.settingsDownloadsDescription),
+                        value: appState.downloadsEnabled,
+                        onChanged: (v) => appState.setDownloadsEnabled(v),
+                      ),
+                      SwitchListTile(
+                        title: Text(l10n.settingsVolumeOnPlayerBar),
+                        subtitle: Text(l10n.settingsVolumeOnPlayerBarDescription),
+                        value: appState.showVolumeOnPlayerBar,
+                        onChanged: (v) => appState.setShowVolumeOnPlayerBar(v),
+                      ),
+                      SwitchListTile(
+                        title: Text(l10n.settingsQueueOnPlayerBar),
+                        subtitle: Text(l10n.settingsQueueOnPlayerBarDescription),
+                        value: appState.showQueueOnPlayerBar,
+                        onChanged: (v) => appState.setShowQueueOnPlayerBar(v),
+                      ),
+                      SwitchListTile(
+                        title: Text(l10n.settingsShuffleRepeatOnPlayerBar),
+                        subtitle: Text(l10n.settingsShuffleRepeatOnPlayerBarDescription),
+                        value: appState.showShuffleRepeatOnPlayerBar,
+                        onChanged: (v) => appState.setShowShuffleRepeatOnPlayerBar(v),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -288,6 +288,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     String artistName,
     String trackId,
   ) async {
+    if (!mounted) return;
+    if (!context.read<AppState>().lyricsEnabled) {
+      setState(() {
+        _hasLyrics = false;
+        _lastCheckedTrackId = trackId;
+      });
+      return;
+    }
     // Avoid repeated checks for the same track
     if (_lastCheckedTrackId == trackId && _hasLyrics != null) {
       return;
@@ -1341,8 +1349,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                               },
                                             ),
                                           ),
-                                          // Lyrics button (only when lyrics available)
-                                          if (_hasLyrics == true)
+                                          // Lyrics button (only when lyrics available and enabled)
+                                          if (appState.lyricsEnabled && _hasLyrics == true)
                                             GestureDetector(
                                               onTap: () {
                                                 _showLyricsOverlay(
@@ -1513,76 +1521,131 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                   color: DesktopTheme.glassBorder,
                                 ),
                               ),
-                              child: DefaultTabController(
-                                length: 2,
-                                child: Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(
-                                        DesktopTheme.spacingMd,
-                                      ),
-                                      child: TabBar(
-                                        labelColor: DesktopTheme.textPrimary,
-                                        unselectedLabelColor:
-                                            DesktopTheme.textTertiary,
-                                        indicatorColor: Theme.of(context)
-                                            .colorScheme.primary,
-                                        tabs: [
-                                          Tab(text: l10n.upNext),
-                                          Tab(text: l10n.lyrics),
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: DesktopTheme.spacingMd,
-                                      ),
-                                      child: Row(
+                              child: appState.lyricsEnabled
+                                  ? DefaultTabController(
+                                      length: 2,
+                                      child: Column(
                                         children: [
-                                          Text(
-                                            '${l10n.playingFrom} ',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: DesktopTheme.textTertiary,
+                                          Padding(
+                                            padding: const EdgeInsets.all(
+                                              DesktopTheme.spacingMd,
                                             ),
+                                            child: TabBar(
+                                              labelColor:
+                                                  DesktopTheme.textPrimary,
+                                              unselectedLabelColor:
+                                                  DesktopTheme.textTertiary,
+                                              indicatorColor: Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
+                                              tabs: [
+                                                Tab(text: l10n.upNext),
+                                                Tab(text: l10n.lyrics),
+                                              ],
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal:
+                                                  DesktopTheme.spacingMd,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Text(
+                                                  '${l10n.playingFrom} ',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: DesktopTheme
+                                                        .textTertiary,
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Text(
+                                                    currentTrack.albumName ??
+                                                        l10n.unknownAlbum,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: DesktopTheme
+                                                          .textPrimary,
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            height: DesktopTheme.spacingSm,
                                           ),
                                           Expanded(
-                                            child: Text(
-                                              currentTrack.albumName ??
-                                                  l10n.unknownAlbum,
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                                color: DesktopTheme.textPrimary,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
+                                            child: TabBarView(
+                                              children: [
+                                                _NowPlayingQueuePanel(
+                                                  appState: appState,
+                                                  audioHandler: audioHandler,
+                                                ),
+                                                _NowPlayingLyricsPanel(
+                                                  trackName: currentTrack.name,
+                                                  artistName: currentTrack
+                                                          .artistName ??
+                                                      '',
+                                                  audioHandler: audioHandler,
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    const SizedBox(
-                                        height: DesktopTheme.spacingSm,
-                                    ),
-                                    Expanded(
-                                      child: TabBarView(
-                                        children: [
-                                          _NowPlayingQueuePanel(
+                                    )
+                                  : Column(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal:
+                                                DesktopTheme.spacingMd,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                '${l10n.playingFrom} ',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: DesktopTheme
+                                                      .textTertiary,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  currentTrack.albumName ??
+                                                      l10n.unknownAlbum,
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight:
+                                                        FontWeight.w500,
+                                                    color: DesktopTheme
+                                                        .textPrimary,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: DesktopTheme.spacingSm,
+                                        ),
+                                        Expanded(
+                                          child: _NowPlayingQueuePanel(
                                             appState: appState,
                                             audioHandler: audioHandler,
                                           ),
-                                          _NowPlayingLyricsPanel(
-                                            trackName: currentTrack.name,
-                                            artistName:
-                                                currentTrack.artistName ?? '',
-                                            audioHandler: audioHandler,
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
                             ),
                           ),
                         ],
