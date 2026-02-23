@@ -23,93 +23,108 @@ class LyricsResult {
 class LyricsService {
   static const String _baseUrl = 'https://lrclib.net/api';
 
-  /// Fetches lyrics for a given track and artist
-  /// Returns LyricsResult with both plain and synced lyrics if available
+  /// In-memory cache: normalized "artist|track" -> result. Successes only so repeat views are instant.
+  static final Map<String, LyricsResult> _cache = {};
+
+  static const Duration _timeout = Duration(seconds: 4);
+
+  /// Fetches lyrics for a given track and artist.
+  /// Uses cache for repeat requests; tries get (exact) before search; shorter timeouts for faster failure.
   static Future<LyricsResult?> fetchLyrics(
     String trackName,
     String artistName,
   ) async {
+    final cleanTrack = _cleanString(trackName);
+    final cleanArtist = _cleanString(artistName);
+    final cacheKey = '$cleanArtist|$cleanTrack';
+
+    final cached = _cache[cacheKey];
+    if (cached != null) return cached;
+
     try {
-      // Clean up the track and artist names for better API matching
-      final cleanTrack = _cleanString(trackName);
-      final cleanArtist = _cleanString(artistName);
-
-      // Try the search endpoint first
-      final searchUrl = Uri.parse('$_baseUrl/search').replace(
-        queryParameters: {'track_name': cleanTrack, 'artist_name': cleanArtist},
-      );
-
-      final response = await http
-          .get(searchUrl)
-          .timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final List<dynamic> results = json.decode(response.body);
-
-        if (results.isNotEmpty) {
-          // Get the first result that has lyrics
-          for (final result in results) {
-            final plainLyrics = result['plainLyrics']?.toString();
-            final syncedLyrics = result['syncedLyrics']?.toString();
-
-            if (plainLyrics != null && plainLyrics.trim().isNotEmpty) {
-              return LyricsResult(
-                plainLyrics: plainLyrics,
-                syncedLyrics: syncedLyrics != null
-                    ? _parseSyncedLyrics(syncedLyrics)
-                    : null,
-                hasSyncedLyrics:
-                    syncedLyrics != null && syncedLyrics.trim().isNotEmpty,
-              );
-            }
-            if (syncedLyrics != null && syncedLyrics.trim().isNotEmpty) {
-              return LyricsResult(
-                plainLyrics: _cleanSyncedLyrics(syncedLyrics),
-                syncedLyrics: _parseSyncedLyrics(syncedLyrics),
-                hasSyncedLyrics: true,
-              );
-            }
-          }
-        }
+      // Try get endpoint first (exact match, usually faster)
+      final result = await _tryGet(cleanTrack, cleanArtist);
+      if (result != null) {
+        _cache[cacheKey] = result;
+        return result;
       }
 
-      // If search fails, try the get endpoint with exact match
-      final getUrl = Uri.parse('$_baseUrl/get').replace(
-        queryParameters: {'track_name': cleanTrack, 'artist_name': cleanArtist},
-      );
-
-      final getResponse = await http
-          .get(getUrl)
-          .timeout(const Duration(seconds: 10));
-
-      if (getResponse.statusCode == 200) {
-        final data = json.decode(getResponse.body);
-        final plainLyrics = data['plainLyrics']?.toString();
-        final syncedLyrics = data['syncedLyrics']?.toString();
-
-        if (plainLyrics != null && plainLyrics.trim().isNotEmpty) {
-          return LyricsResult(
-            plainLyrics: plainLyrics,
-            syncedLyrics: syncedLyrics != null
-                ? _parseSyncedLyrics(syncedLyrics)
-                : null,
-            hasSyncedLyrics:
-                syncedLyrics != null && syncedLyrics.trim().isNotEmpty,
-          );
-        }
-        if (syncedLyrics != null && syncedLyrics.trim().isNotEmpty) {
-          return LyricsResult(
-            plainLyrics: _cleanSyncedLyrics(syncedLyrics),
-            syncedLyrics: _parseSyncedLyrics(syncedLyrics),
-            hasSyncedLyrics: true,
-          );
-        }
+      // Fallback to search
+      final searchResult = await _trySearch(cleanTrack, cleanArtist);
+      if (searchResult != null) {
+        _cache[cacheKey] = searchResult;
+        return searchResult;
       }
 
       return null;
-    } catch (e) {
+    } catch (_) {
       return null;
     }
+  }
+
+  static Future<LyricsResult?> _tryGet(String cleanTrack, String cleanArtist) async {
+    final url = Uri.parse('$_baseUrl/get').replace(
+      queryParameters: {'track_name': cleanTrack, 'artist_name': cleanArtist},
+    );
+    final response = await http.get(url).timeout(_timeout);
+    if (response.statusCode != 200) return null;
+    return _parseGetResponse(response.body);
+  }
+
+  static LyricsResult? _parseGetResponse(String body) {
+    final data = json.decode(body) as Map<String, dynamic>?;
+    if (data == null) return null;
+    final plainLyrics = data['plainLyrics']?.toString();
+    final syncedLyrics = data['syncedLyrics']?.toString();
+    if (plainLyrics != null && plainLyrics.trim().isNotEmpty) {
+      return LyricsResult(
+        plainLyrics: plainLyrics,
+        syncedLyrics: syncedLyrics != null ? _parseSyncedLyrics(syncedLyrics) : null,
+        hasSyncedLyrics: syncedLyrics != null && syncedLyrics.trim().isNotEmpty,
+      );
+    }
+    if (syncedLyrics != null && syncedLyrics.trim().isNotEmpty) {
+      return LyricsResult(
+        plainLyrics: _cleanSyncedLyrics(syncedLyrics),
+        syncedLyrics: _parseSyncedLyrics(syncedLyrics),
+        hasSyncedLyrics: true,
+      );
+    }
+    return null;
+  }
+
+  static Future<LyricsResult?> _trySearch(String cleanTrack, String cleanArtist) async {
+    final url = Uri.parse('$_baseUrl/search').replace(
+      queryParameters: {'track_name': cleanTrack, 'artist_name': cleanArtist},
+    );
+    final response = await http.get(url).timeout(_timeout);
+    if (response.statusCode != 200) return null;
+    return _parseSearchResponse(response.body);
+  }
+
+  static LyricsResult? _parseSearchResponse(String body) {
+    final list = json.decode(body);
+    if (list is! List || list.isEmpty) return null;
+    for (final result in list) {
+      if (result is! Map<String, dynamic>) continue;
+      final plainLyrics = result['plainLyrics']?.toString();
+      final syncedLyrics = result['syncedLyrics']?.toString();
+      if (plainLyrics != null && plainLyrics.trim().isNotEmpty) {
+        return LyricsResult(
+          plainLyrics: plainLyrics,
+          syncedLyrics: syncedLyrics != null ? _parseSyncedLyrics(syncedLyrics) : null,
+          hasSyncedLyrics: syncedLyrics != null && syncedLyrics.trim().isNotEmpty,
+        );
+      }
+      if (syncedLyrics != null && syncedLyrics.trim().isNotEmpty) {
+        return LyricsResult(
+          plainLyrics: _cleanSyncedLyrics(syncedLyrics),
+          syncedLyrics: _parseSyncedLyrics(syncedLyrics),
+          hasSyncedLyrics: true,
+        );
+      }
+    }
+    return null;
   }
 
   /// Parses synced lyrics into timestamped lines
@@ -144,7 +159,6 @@ class LyricsService {
 
   /// Cleans up synced lyrics by removing timing information
   static String _cleanSyncedLyrics(String syncedLyrics) {
-    // Remove timing tags like [00:12.34] from synced lyrics
     return syncedLyrics
         .replaceAll(RegExp(r'\[\d{2}:\d{2}\.\d{2}\]'), '')
         .split('\n')
