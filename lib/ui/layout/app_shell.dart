@@ -226,10 +226,12 @@ class _AppShellState extends State<AppShell> {
           focusNode: FocusNode(),
           autofocus: true,
           onKeyEvent: _handleKeyEvent,
-          child: Scaffold(
-            backgroundColor: DesktopTheme.backgroundDeep,
-            extendBody: !isDesktop,
-            body: Padding(
+          child: KeyedSubtree(
+            key: ValueKey(isDesktop),
+            child: Scaffold(
+              backgroundColor: DesktopTheme.backgroundDeep,
+              extendBody: !isDesktop,
+              body: Padding(
               padding: EdgeInsets.only(
                 bottom: isDesktop
                     ? 0
@@ -286,6 +288,7 @@ class _AppShellState extends State<AppShell> {
                     settingsIndex: _settingsIndex,
                     isLocalMusic: _isLocalMusic,
                   ),
+            ),
           ),
         );
       },
@@ -724,45 +727,50 @@ class _MobileNavBar extends StatelessWidget {
                   children: List.generate(indices.length, (i) {
                     final idx = indices[i];
                     final selected = currentIndex == idx;
-                    return InkWell(
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        onTap(idx);
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              selected ? activeIcons[i] : icons[i],
-                              size: 24,
-                              color: selected
-                                  ? theme.colorScheme.primary
-                                  : (isDark
-                                      ? Colors.white.withOpacity(0.6)
-                                      : Colors.black.withOpacity(0.5)),
+                    return Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          onTap(idx);
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  selected ? activeIcons[i] : icons[i],
+                                  size: 24,
+                                  color: selected
+                                      ? theme.colorScheme.primary
+                                      : (isDark
+                                          ? Colors.white.withOpacity(0.6)
+                                          : Colors.black.withOpacity(0.5)),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  labels[i],
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight:
+                                        selected ? FontWeight.w600 : FontWeight.w500,
+                                    color: selected
+                                        ? theme.colorScheme.primary
+                                        : (isDark
+                                            ? Colors.white.withOpacity(0.5)
+                                            : Colors.black.withOpacity(0.4)),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              labels[i],
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight:
-                                    selected ? FontWeight.w600 : FontWeight.w500,
-                                color: selected
-                                    ? theme.colorScheme.primary
-                                    : (isDark
-                                        ? Colors.white.withOpacity(0.5)
-                                        : Colors.black.withOpacity(0.4)),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     );
