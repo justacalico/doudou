@@ -2115,7 +2115,7 @@ class _ExpandedLeftColumn extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         color: DesktopTheme.textSecondary,
-                        decoration: TextDecoration.underline,
+                        decoration: TextDecoration.none,
                       ),
                     ),
                   ],
@@ -2138,7 +2138,7 @@ class _ExpandedLeftColumn extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         color: DesktopTheme.textSecondary,
-                        decoration: TextDecoration.underline,
+                        decoration: TextDecoration.none,
                       ),
                     ),
                   ],
