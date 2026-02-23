@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/models/download_models.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/ui/widgets/apple_dialog.dart';
 
@@ -179,6 +180,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   icon: const Icon(Icons.shuffle),
                   label: Text(l10n.shuffle),
                 ),
+                // Download album button (albums only)
+                if (widget.mediaType == MediaType.album)
+                  _buildAlbumDownloadButton(appState, l10n),
                 // Conditional buttons based on media type
                 if (widget.mediaType == MediaType.album) ...[
                   // Favorite button (for albums)
@@ -206,6 +210,47 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildAlbumDownloadButton(AppState appState, AppLocalizations l10n) {
+    final downloadService = appState.downloadService;
+    final toDownload = _tracks.where((t) => !downloadService.isTrackDownloaded(t.id)).toList();
+    final isAllDownloaded = toDownload.isEmpty;
+    final anyDownloading = _tracks.any((t) =>
+        downloadService.getDownloadStatus(t.id) == DownloadStatus.downloading);
+
+    String label = l10n.download;
+    if (isAllDownloaded) {
+      label = l10n.downloadedSection;
+    } else if (anyDownloading) {
+      label = l10n.downloading;
+    }
+
+    return OutlinedButton.icon(
+      onPressed: isAllDownloaded
+          ? null
+          : () async {
+              if (toDownload.isEmpty) return;
+              for (final track in toDownload) {
+                downloadService.downloadTrack(track);
+              }
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      l10n.startedDownloading(toDownload.length, l10n.songs),
+                    ),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+      icon: Icon(
+        isAllDownloaded ? Icons.download_done_rounded : Icons.download_rounded,
+        size: 20,
+      ),
+      label: Text(label),
     );
   }
 

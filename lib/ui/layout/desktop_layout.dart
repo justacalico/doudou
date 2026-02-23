@@ -1190,6 +1190,62 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
     return appState.getImageUrl(imageId);
   }
 
+  Widget? _buildAlbumDownloadButton(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
+    final downloadService = appState.downloadService;
+    final toDownload =
+        _tracks.where((t) => !downloadService.isTrackDownloaded(t.id)).toList();
+    final isAllDownloaded = toDownload.isEmpty;
+    final anyDownloading = _tracks.any((t) =>
+        downloadService.getDownloadStatus(t.id) == DownloadStatus.downloading);
+
+    String label = l10n.download;
+    if (isAllDownloaded) {
+      label = l10n.downloadedSection;
+    } else if (anyDownloading) {
+      label = l10n.downloading;
+    }
+
+    return DesktopGlassButton(
+      onPressed: isAllDownloaded
+          ? null
+          : () {
+              for (final track in toDownload) {
+                downloadService.downloadTrack(track);
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    l10n.startedDownloading(toDownload.length, l10n.songs),
+                  ),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+      borderRadius: 28,
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesktopTheme.spacingMd,
+        vertical: 16,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isAllDownloaded
+                ? Icons.download_done_rounded
+                : Icons.download_rounded,
+            size: 24,
+          ),
+          const SizedBox(width: 8),
+          Text(label),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -1226,6 +1282,7 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
                         }
                       }
                     : null,
+                extraActions: _buildAlbumDownloadButton(context, appState, l10n),
               ),
               // Track list
               Expanded(
@@ -1473,6 +1530,8 @@ class _DetailHeader extends StatefulWidget {
   final VoidCallback? onShuffle;
   /// When set, subtitle is tappable (e.g. to open artist from album header).
   final VoidCallback? onSubtitleTap;
+  /// Optional extra action(s), e.g. download album button.
+  final Widget? extraActions;
 
   const _DetailHeader({
     required this.onBack,
@@ -1485,6 +1544,7 @@ class _DetailHeader extends StatefulWidget {
     this.onPlay,
     this.onShuffle,
     this.onSubtitleTap,
+    this.extraActions,
   });
 
   @override
@@ -1677,6 +1737,10 @@ class _DetailHeaderState extends State<_DetailHeader>
                               padding: const EdgeInsets.all(16),
                               child: const Icon(Icons.shuffle_rounded, size: 24),
                             ),
+                          if (widget.extraActions != null) ...[
+                            const SizedBox(width: DesktopTheme.spacingMd),
+                            widget.extraActions!,
+                          ],
                         ],
                       ),
                     ),
