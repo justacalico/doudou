@@ -220,7 +220,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
       return;
     }
 
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: 'Unable to remove track',
       content: Text(

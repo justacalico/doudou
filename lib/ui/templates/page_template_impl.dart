@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:doudou/ui/theme.dart';
 
-/// Modern page template with gradient header and glass effects
+/// Page template with optional gradient header. Uses theme typography and tokens.
 class PageTemplate extends StatelessWidget {
   final String title;
   final Widget child;
@@ -62,11 +62,13 @@ class PageTemplate extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(
-                        fontSize: 28,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: DesktopTheme.textPrimary,
+                        decoration: TextDecoration.none,
+                      ) ?? TextStyle(
+                        fontSize: AppTokens.typeScaleTitle1,
                         fontWeight: FontWeight.bold,
                         color: DesktopTheme.textPrimary,
-                        letterSpacing: -0.5,
                         decoration: TextDecoration.none,
                       ),
                     ),
@@ -74,7 +76,9 @@ class PageTemplate extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         subtitle!,
-                        style: TextStyle(
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: DesktopTheme.textSecondary,
+                        ) ?? TextStyle(
                           fontSize: 14,
                           color: DesktopTheme.textSecondary,
                         ),
@@ -109,11 +113,13 @@ class PageTemplate extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: TextStyle(
-                          fontSize: 28,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: DesktopTheme.textPrimary,
+                          decoration: TextDecoration.none,
+                        ) ?? TextStyle(
+                          fontSize: AppTokens.typeScaleTitle1,
                           fontWeight: FontWeight.bold,
                           color: DesktopTheme.textPrimary,
-                          letterSpacing: -0.5,
                           decoration: TextDecoration.none,
                         ),
                       ),
@@ -121,7 +127,9 @@ class PageTemplate extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           subtitle!,
-                          style: TextStyle(
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: DesktopTheme.textSecondary,
+                          ) ?? TextStyle(
                             fontSize: 14,
                             color: DesktopTheme.textSecondary,
                           ),
@@ -186,7 +194,7 @@ class PageTemplate extends StatelessWidget {
   }
 }
 
-/// Modern section header with gradient text option
+/// Section header with optional gradient title. Uses theme typography.
 class SectionHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -221,7 +229,10 @@ class SectionHeader extends StatelessWidget {
                 if (useGradient)
                   DesktopGradientText(
                     text: title,
-                    style: const TextStyle(
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.3,
+                    ) ?? const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.3,
@@ -234,8 +245,10 @@ class SectionHeader extends StatelessWidget {
                 else
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 22,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: DesktopTheme.textPrimary,
+                    ) ?? TextStyle(
+                      fontSize: AppTokens.typeScaleTitle2,
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.3,
                       color: DesktopTheme.textPrimary,
@@ -245,7 +258,9 @@ class SectionHeader extends StatelessWidget {
                   const SizedBox(height: DesktopTheme.spacingXs),
                   Text(
                     subtitle!,
-                    style: TextStyle(
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: DesktopTheme.textSecondary,
+                    ) ?? TextStyle(
                       fontSize: 14,
                       color: DesktopTheme.textSecondary,
                     ),

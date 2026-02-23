@@ -160,7 +160,10 @@ class _MusicCardState extends State<MusicCard>
                   width: widget.size,
                   child: Text(
                     widget.title,
-                    style: TextStyle(
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: DesktopTheme.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ) ?? TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: DesktopTheme.textPrimary,
@@ -177,7 +180,9 @@ class _MusicCardState extends State<MusicCard>
                   width: widget.size,
                   child: Text(
                     widget.subtitle,
-                    style: TextStyle(
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: DesktopTheme.textSecondary,
+                    ) ?? TextStyle(
                       fontSize: 12,
                       color: DesktopTheme.textSecondary,
                     ),
@@ -349,7 +354,12 @@ class _MusicListTileState extends State<MusicListTile> {
                   children: [
                     Text(
                       widget.title,
-                      style: TextStyle(
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: _isHovering
+                            ? theme.colorScheme.primary
+                            : DesktopTheme.textPrimary,
+                      ) ?? TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: _isHovering
@@ -362,7 +372,9 @@ class _MusicListTileState extends State<MusicListTile> {
                     const SizedBox(height: 2),
                     Text(
                       widget.subtitle,
-                      style: TextStyle(
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: DesktopTheme.textSecondary,
+                      ) ?? TextStyle(
                         fontSize: 12,
                         color: DesktopTheme.textSecondary,
                       ),
@@ -646,7 +658,10 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
                         children: [
                           Text(
                             widget.title,
-                            style: TextStyle(
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: DesktopTheme.textPrimary,
+                            ) ?? TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                               color: DesktopTheme.textPrimary,
@@ -655,7 +670,9 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
                           const SizedBox(height: 2),
                           Text(
                             widget.subtitle,
-                            style: TextStyle(
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: DesktopTheme.textSecondary,
+                            ) ?? TextStyle(
                               fontSize: 12,
                               color: DesktopTheme.textSecondary,
                             ),

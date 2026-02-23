@@ -46,6 +46,7 @@ dependencies:
   
   # UI components
   cached_network_image: ^3.4.1
+  google_fonts: ^6.2.1
   
   # Storage and Caching
   shared_preferences: ^2.5.4

@@ -142,13 +142,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AppleDialogOption(
+          AppDialogOption(
             label: l10n.systemDefault,
             selected: currentLocale == null,
             onTap: () => appState.setLocale(null),
           ),
           ...AppLocalizations.supportedLocales.map(
-            (locale) => AppleDialogOption(
+            (locale) => AppDialogOption(
               label: _languageNameForLocale(locale),
               selected: currentLocale == locale,
               onTap: () => appState.setLocale(locale),
@@ -166,7 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AppleDialogOption(
+          AppDialogOption(
             label: l10n.systemDefault,
             selected: current == 'system',
             onTap: () {
@@ -174,7 +174,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               appState.toggleOledDarkMode(false);
             },
           ),
-          AppleDialogOption(
+          AppDialogOption(
             label: l10n.light,
             selected: current == 'light',
             onTap: () {
@@ -182,7 +182,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               appState.toggleOledDarkMode(false);
             },
           ),
-          AppleDialogOption(
+          AppDialogOption(
             label: l10n.dark,
             selected: current == 'dark',
             onTap: () {
@@ -190,7 +190,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               appState.toggleOledDarkMode(false);
             },
           ),
-          AppleDialogOption(
+          AppDialogOption(
             label: 'OLED',
             selected: current == 'oled',
             onTap: () {

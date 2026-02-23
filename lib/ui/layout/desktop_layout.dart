@@ -55,7 +55,7 @@ class DesktopLayout {
     final appState = context.read<AppState>();
     final playlists = appState.playlists;
 
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: l10n.addToPlaylist,
       width: 400,
@@ -73,7 +73,7 @@ class DesktopLayout {
     final appState = context.read<AppState>();
     final nameController = TextEditingController();
 
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: l10n.newPlaylist,
       width: 320,
@@ -632,7 +632,7 @@ class _TrackInfo extends StatelessWidget {
     switch (downloadStatus) {
       case DownloadStatus.downloaded:
         // Show option to delete
-        showAppleDialog(
+        showAppDialog(
           context: context,
           title: 'Downloaded',
           content: Text(
@@ -663,7 +663,7 @@ class _TrackInfo extends StatelessWidget {
         break;
       case DownloadStatus.downloading:
         // Show option to cancel
-        showAppleDialog(
+        showAppDialog(
           context: context,
           title: l10n.downloading,
           content: Text(
@@ -2171,7 +2171,7 @@ class _TrackRowState extends State<_TrackRow> {
 
   void _showDownloadedOptions(BuildContext context, AppState appState) {
     final l10n = AppLocalizations.of(context);
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: 'Downloaded',
       content: Text(
@@ -2205,7 +2205,7 @@ class _TrackRowState extends State<_TrackRow> {
     );
     final progressPercent = (progress * 100).toInt();
 
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: l10n.downloading,
       content: Text(

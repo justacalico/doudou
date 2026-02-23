@@ -3,8 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:doudou/ui/theme.dart';
 
-/// Apple-style two-choice dialog. Returns true for [primaryLabel], false for [secondaryLabel], null if dismissed.
-Future<bool?> showAppleChoiceDialog({
+/// Two-choice dialog. Returns true for [primaryLabel], false for [secondaryLabel], null if dismissed.
+Future<bool?> showAppChoiceDialog({
   required BuildContext context,
   required String title,
   required String message,
@@ -33,7 +33,7 @@ Future<bool?> showAppleChoiceDialog({
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: _AppleDialogContent(
+          child: _AppDialogContent(
             title: title,
             content: Text(
               message,
@@ -65,8 +65,12 @@ Future<bool?> showAppleChoiceDialog({
   );
 }
 
-/// Apple-style confirmation dialog. Returns true if confirmed, false if cancelled, null if dismissed.
-Future<bool?> showAppleConfirmDialog({
+@Deprecated('Use showAppChoiceDialog instead')
+Future<bool?> showAppleChoiceDialog({required BuildContext context, required String title, required String message, required String secondaryLabel, required String primaryLabel, bool primaryIsDestructive = false}) =>
+    showAppChoiceDialog(context: context, title: title, message: message, secondaryLabel: secondaryLabel, primaryLabel: primaryLabel, primaryIsDestructive: primaryIsDestructive);
+
+/// Confirmation dialog. Returns true if confirmed, false if cancelled, null if dismissed.
+Future<bool?> showAppConfirmDialog({
   required BuildContext context,
   required String title,
   required String message,
@@ -95,7 +99,7 @@ Future<bool?> showAppleConfirmDialog({
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: _AppleDialogContent(
+          child: _AppDialogContent(
             title: title,
             content: Text(
               message,
@@ -127,10 +131,12 @@ Future<bool?> showAppleConfirmDialog({
   );
 }
 
-/// Apple-style dialog: frosted glass, large radius, soft shadow.
-/// Use [showAppleDialog] to present with barrier blur.
-/// Prefer [actionsBuilder] over [actions] so buttons can use the dialog context for Navigator.pop (avoids deactivated context errors).
-void showAppleDialog({
+@Deprecated('Use showAppConfirmDialog instead')
+Future<bool?> showAppleConfirmDialog({required BuildContext context, required String title, required String message, String cancelLabel = 'Cancel', required String confirmLabel, bool isDestructive = false}) =>
+    showAppConfirmDialog(context: context, title: title, message: message, cancelLabel: cancelLabel, confirmLabel: confirmLabel, isDestructive: isDestructive);
+
+/// App dialog: frosted glass, rounded corners. Use [actionsBuilder] so buttons use dialog context for Navigator.pop.
+void showAppDialog({
   required BuildContext context,
   required String title,
   required Widget content,
@@ -161,7 +167,7 @@ void showAppleDialog({
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: _AppleDialogContent(
+          child: _AppDialogContent(
             title: title,
             content: content,
             actions: actions,
@@ -175,8 +181,13 @@ void showAppleDialog({
   );
 }
 
-class _AppleDialogContent extends StatelessWidget {
-  const _AppleDialogContent({
+@Deprecated('Use showAppDialog instead')
+void showAppleDialog({required BuildContext context, required String title, required Widget content, List<Widget>? actions, List<Widget> Function(BuildContext dialogContext)? actionsBuilder, double? width, double? maxHeight, bool barrierDismissible = true}) {
+  showAppDialog(context: context, title: title, content: content, actions: actions, actionsBuilder: actionsBuilder, width: width, maxHeight: maxHeight, barrierDismissible: barrierDismissible);
+}
+
+class _AppDialogContent extends StatelessWidget {
+  const _AppDialogContent({
     required this.title,
     required this.content,
     this.actions,
@@ -289,10 +300,9 @@ class _AppleDialogContent extends StatelessWidget {
   }
 }
 
-/// A single selectable row for use inside Apple-style dialogs (e.g. language or theme).
-/// Shows a checkmark or filled circle when [selected].
-class AppleDialogOption extends StatelessWidget {
-  const AppleDialogOption({
+/// Selectable row for use inside app dialogs (e.g. language or theme).
+class AppDialogOption extends StatelessWidget {
+  const AppDialogOption({
     super.key,
     required this.label,
     required this.selected,
@@ -312,7 +322,7 @@ class AppleDialogOption extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
           child: Row(
@@ -356,4 +366,14 @@ class AppleDialogOption extends StatelessWidget {
       ),
     );
   }
+}
+
+@Deprecated('Use AppDialogOption instead')
+class AppleDialogOption extends StatelessWidget {
+  const AppleDialogOption({super.key, required this.label, required this.selected, required this.onTap});
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => AppDialogOption(label: label, selected: selected, onTap: onTap);
 }

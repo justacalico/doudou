@@ -1,13 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:doudou/ui/theme/app_tokens.dart';
 
-/// Modern Desktop Theme System
-/// Combines iOS 26 Liquid Glass aesthetics with desktop-optimized layouts
-
+/// Desktop layout and glass theme. Colors delegate to [AppTokens].
 class DesktopTheme {
   DesktopTheme._();
-
-  static const Color _oledBlack = Color(0xFF000000);
 
   static bool _isDark = true;
   static bool _isOled = false;
@@ -20,72 +17,58 @@ class DesktopTheme {
   static bool get isOled => _isOled;
 
   // ============================================
-  // COLOR PALETTE - Dual Mode (+ OLED)
+  // COLOR PALETTE - from AppTokens
   // ============================================
 
-  /// Deep background colors (Gemini redesign: dark gray; OLED = pure black)
-  static const Color backgroundDeepDark = Color(0xFF0A0A0C);
-  static const Color backgroundDeepLight = Color(0xFFF5F6FA);
   static Color get backgroundDeep =>
-      _isOled ? _oledBlack : (_isDark ? backgroundDeepDark : backgroundDeepLight);
+      _isOled
+          ? AppTokens.oledBlack
+          : (_isDark ? AppTokens.backgroundDeepDark : AppTokens.backgroundDeepLight);
 
-  /// Sidebar background (slightly lighter than deep for dark mode)
-  static const Color backgroundSidebarDark = Color(0xFF0E0E11);
   static Color get backgroundSidebar =>
-      _isOled ? _oledBlack : (_isDark ? backgroundSidebarDark : backgroundPrimaryLight);
+      _isOled
+          ? AppTokens.oledBlack
+          : (_isDark ? AppTokens.backgroundSidebarDark : AppTokens.backgroundPrimaryLight);
 
-  static const Color backgroundPrimaryDark = Color(0xFF121216);
-  static const Color backgroundPrimaryLight = Color(0xFFFFFFFF);
   static Color get backgroundPrimary =>
-      _isOled ? _oledBlack : (_isDark ? backgroundPrimaryDark : backgroundPrimaryLight);
+      _isOled
+          ? AppTokens.oledBlack
+          : (_isDark ? AppTokens.backgroundPrimaryDark : AppTokens.backgroundPrimaryLight);
 
-  static const Color backgroundSecondaryDark = Color(0xFF121216);
-  static const Color backgroundSecondaryLight = Color(0xFFF0F1F5);
   static Color get backgroundSecondary =>
-      _isOled ? _oledBlack : (_isDark ? backgroundSecondaryDark : backgroundSecondaryLight);
+      _isOled
+          ? AppTokens.oledBlack
+          : (_isDark ? AppTokens.backgroundSecondaryDark : AppTokens.backgroundSecondaryLight);
 
-  static const Color backgroundTertiaryDark = Color(0xFF16161C);
-  static const Color backgroundTertiaryLight = Color(0xFFE6E7EE);
   static Color get backgroundTertiary =>
-      _isOled ? _oledBlack : (_isDark ? backgroundTertiaryDark : backgroundTertiaryLight);
+      _isOled
+          ? AppTokens.oledBlack
+          : (_isDark ? AppTokens.backgroundTertiaryDark : AppTokens.backgroundTertiaryLight);
 
-  static const Color backgroundElevatedDark = Color(0xFF16161C);
-  static const Color backgroundElevatedLight = Color(0xFFEEF0F6);
   static Color get backgroundElevated =>
-      _isOled ? _oledBlack : (_isDark ? backgroundElevatedDark : backgroundElevatedLight);
+      _isOled
+          ? AppTokens.oledBlack
+          : (_isDark ? AppTokens.surfaceElevatedDark : AppTokens.surfaceElevatedLight);
 
-  /// Nav active/hover (Gemini: white/10, white/5)
-  static const Color sidebarActiveDark = Color(0x1AFFFFFF);
-  static const Color sidebarHoverDark = Color(0x0DFFFFFF);
   static Color get sidebarActive =>
-      _isDark ? sidebarActiveDark : const Color(0x1A000000);
+      _isDark ? AppTokens.sidebarActiveDark : const Color(0x1A000000);
   static Color get sidebarHover =>
-      _isDark ? sidebarHoverDark : const Color(0x0D000000);
+      _isDark ? AppTokens.sidebarHoverDark : const Color(0x0D000000);
 
-  /// Glass surface colors
-  static const Color glassSurfaceDark = Color(0xFF121216);
-  static const Color glassSurfaceLight = Color(0xFFFFFFFF);
   static Color get glassSurface =>
-      _isOled ? _oledBlack : (_isDark ? glassSurfaceDark : glassSurfaceLight);
-
-  static const Color glassOverlayDark = Color(0x15FFFFFF);
-  static const Color glassOverlayLight = Color(0x15000000);
+      _isOled
+          ? AppTokens.oledBlack
+          : (_isDark ? AppTokens.glassSurfaceDark : AppTokens.glassSurfaceLight);
   static Color get glassOverlay =>
-      _isDark ? glassOverlayDark : glassOverlayLight;
-
-  static const Color glassBorderDark = Color(0x0DFFFFFF); // white/5 (Gemini)
-  static const Color glassBorderLight = Color(0x1A000000);
-  static Color get glassBorder => _isDark ? glassBorderDark : glassBorderLight;
-
-  static const Color glassHighlightDark = Color(0x08FFFFFF);
-  static const Color glassHighlightLight = Color(0x0D000000);
+      _isDark ? AppTokens.glassOverlayDark : AppTokens.glassOverlayLight;
+  static Color get glassBorder =>
+      _isDark ? AppTokens.glassBorderDark : AppTokens.glassBorderLight;
   static Color get glassHighlight =>
-      _isDark ? glassHighlightDark : glassHighlightLight;
+      _isDark ? AppTokens.glassHighlightDark : AppTokens.glassHighlightLight;
 
-  /// Accent gradients
   static const List<Color> accentGradientPurple = [
-    Color(0xFF8B5CF6),
-    Color(0xFFD946EF),
+    Color(0xFF0D9488),
+    Color(0xFF2DD4BF),
   ];
   static const List<Color> accentGradientPink = [
     Color(0xFFEC4899),
@@ -96,48 +79,36 @@ class DesktopTheme {
     Color(0xFF06B6D4),
   ];
 
-  /// Text colors
-  static const Color textPrimaryDark = Color(0xFFFFFFFF);
-  static const Color textPrimaryLight = Color(0xFF0F0F12);
   static Color get textPrimary =>
-      _isDark ? textPrimaryDark : textPrimaryLight;
-
-  static const Color textSecondaryDark = Color(0xB3FFFFFF);
-  static const Color textSecondaryLight = Color(0x990F0F12);
+      _isDark ? AppTokens.textPrimaryDark : AppTokens.textPrimaryLight;
   static Color get textSecondary =>
-      _isDark ? textSecondaryDark : textSecondaryLight;
-
-  static const Color textTertiaryDark = Color(0x66FFFFFF);
-  static const Color textTertiaryLight = Color(0x660F0F12);
+      _isDark ? AppTokens.textSecondaryDark : AppTokens.textSecondaryLight;
   static Color get textTertiary =>
-      _isDark ? textTertiaryDark : textTertiaryLight;
+      _isDark ? AppTokens.textTertiaryDark : AppTokens.textTertiaryLight;
+  static Color get textMuted =>
+      _isDark ? AppTokens.textMutedDark : AppTokens.textMutedLight;
 
-  static const Color textMutedDark = Color(0x33FFFFFF);
-  static const Color textMutedLight = Color(0x330F0F12);
-  static Color get textMuted => _isDark ? textMutedDark : textMutedLight;
-
-  /// Semantic colors
   static const Color success = Color(0xFF22C55E);
   static const Color warning = Color(0xFFF59E0B);
   static const Color error = Color(0xFFEF4444);
   static const Color info = Color(0xFF3B82F6);
 
-  /// Vibrant UI colors
-  static const Color playButtonGreen = Color(0xFF1DB954);
-  static const Color heartRed = Color(0xFFEF4444);
+  static Color get playButtonGreen =>
+      _isDark ? AppTokens.playGreenDark : AppTokens.playGreenLight;
+  static Color get heartRed => _isDark ? AppTokens.heartRedDark : AppTokens.heartRedLight;
   static const Color shufflePurple = Color(0xFF8B5CF6);
   static const Color repeatBlue = Color(0xFF3B82F6);
-  static const Color accentPrimary = Color(0xFF8B5CF6);
+  static Color get accentPrimary =>
+      _isDark ? AppTokens.accentDefaultDark : AppTokens.accentDefaultLight;
 
-  /// Pre-built gradient for accent styling
-  static const LinearGradient accentGradient = LinearGradient(
-    colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-  );
+  static LinearGradient get accentGradient => const LinearGradient(
+        colors: [Color(0xFF0D9488), Color(0xFF2DD4BF)],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      );
 
   // ============================================
-  // SIZING & SPACING
+  // SIZING & SPACING (layout constants)
   // ============================================
 
   static const double sidebarWidth = 260.0;
@@ -168,7 +139,7 @@ class DesktopTheme {
   static const double blurExtreme = 60.0;
 
   // ============================================
-  // ANIMATION
+  // ANIMATION (from AppTokens)
   // ============================================
 
   static const Duration durationFast = Duration(milliseconds: 150);
@@ -181,42 +152,14 @@ class DesktopTheme {
   // SHADOW PRESETS
   // ============================================
 
-  static List<BoxShadow> shadowSm = [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.2),
-      blurRadius: 8,
-      offset: const Offset(0, 2),
-    ),
-  ];
+  static List<BoxShadow> get shadowSm =>
+      AppTokens.shadowSm(_isDark ? Colors.black : const Color(0xFF1A1A1F));
+  static List<BoxShadow> get shadowMd =>
+      AppTokens.shadowMd(_isDark ? Colors.black : const Color(0xFF1A1A1F));
+  static List<BoxShadow> get shadowLg =>
+      AppTokens.shadowLg(_isDark ? Colors.black : const Color(0xFF1A1A1F));
 
-  static List<BoxShadow> shadowMd = [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.25),
-      blurRadius: 16,
-      offset: const Offset(0, 4),
-    ),
-  ];
-
-  static List<BoxShadow> shadowLg = [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.35),
-      blurRadius: 32,
-      offset: const Offset(0, 8),
-    ),
-  ];
-
-  static List<BoxShadow> shadowGlow(Color color) => [
-    BoxShadow(
-      color: color.withOpacity(0.4),
-      blurRadius: 24,
-      offset: const Offset(0, 4),
-    ),
-    BoxShadow(
-      color: color.withOpacity(0.2),
-      blurRadius: 48,
-      offset: const Offset(0, 8),
-    ),
-  ];
+  static List<BoxShadow> shadowGlow(Color color) => AppTokens.shadowGlow(color);
 }
 
 // ============================================

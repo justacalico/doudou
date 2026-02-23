@@ -45,15 +45,15 @@ class TrackListTemplate extends StatelessWidget {
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+      borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Header + divider with blur (small region only for performance)
           BackdropFilter(
             filter: ImageFilter.blur(
-              sigmaX: AppleDesignSystem.blurRegular,
-              sigmaY: AppleDesignSystem.blurRegular,
+              sigmaX: DesktopTheme.blurMedium,
+              sigmaY: DesktopTheme.blurMedium,
             ),
             child: Container(
               decoration: BoxDecoration(
@@ -175,11 +175,11 @@ class TrackListTemplate extends StatelessWidget {
   Widget _buildEmptyState(BuildContext context, bool isDark) {
     return SizedBox.expand(
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+        borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
         child: BackdropFilter(
           filter: ImageFilter.blur(
-            sigmaX: AppleDesignSystem.blurRegular,
-            sigmaY: AppleDesignSystem.blurRegular,
+            sigmaX: DesktopTheme.blurMedium,
+            sigmaY: DesktopTheme.blurMedium,
           ),
           child: Container(
             decoration: BoxDecoration(
@@ -420,11 +420,11 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
         onTap: widget.onTap,
         onSecondaryTapDown: (_) => _menuKey.currentState?.showButtonMenu(),
         child: AnimatedContainer(
-          duration: AppleDesignSystem.durationFast,
-          curve: AppleDesignSystem.springCurve,
+          duration: DesktopTheme.durationFast,
+          curve: DesktopTheme.curveSpring,
           padding: const EdgeInsets.symmetric(
-            horizontal: AppleDesignSystem.spacing16,
-            vertical: AppleDesignSystem.spacing12,
+            horizontal: DesktopTheme.spacingMd,
+            vertical: DesktopTheme.spacingSm,
           ),
           decoration: BoxDecoration(
             color: _isHovered
@@ -660,7 +660,7 @@ class _AppleTrackMenu extends StatelessWidget {
             : AppleColors.labelSecondary,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+        borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
       ),
       color: isDark
           ? AppleColors.backgroundTertiaryDark.withValues(alpha: 0.95)
@@ -838,7 +838,7 @@ class _AppleTrackMenu extends StatelessWidget {
   }
 
   void _showDownloadedOptions(BuildContext context, AppState appState) {
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: 'Downloaded',
       content: Text(
@@ -867,7 +867,7 @@ class _AppleTrackMenu extends StatelessWidget {
     final progress = appState.downloadService.getDownloadProgress(track.id);
     final progressPercent = (progress * 100).toInt();
 
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: 'Downloading',
       content: Text(

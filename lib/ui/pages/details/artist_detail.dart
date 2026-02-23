@@ -204,7 +204,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
     // Show confirmation
     if (mounted) {
-      showAppleDialog(
+      showAppDialog(
         context: context,
         title: 'Download Started',
         content: Text(
@@ -228,7 +228,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
     // Show confirmation
     if (mounted) {
-      showAppleDialog(
+      showAppDialog(
         context: context,
         title: 'Added to Queue',
         content: Text(
@@ -254,7 +254,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
       // Show confirmation
       if (mounted) {
-        showAppleDialog(
+        showAppDialog(
           context: context,
           title: 'Radio Station Created',
           content: Text(
@@ -277,7 +277,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
     // For now, just show the artist info in a dialog
     // In a real app, you would use a share plugin like share_plus
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: 'Share Artist',
       content: Text(

@@ -907,7 +907,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     }
 
     // Show confirmation dialog
-    final confirmed = await showAppleConfirmDialog(
+    final confirmed = await showAppConfirmDialog(
       context: context,
       title: l10n.downloadAlbum,
       message: l10n.downloadAlbumConfirmation(_tracks.length, widget.album!.name),
@@ -959,7 +959,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   void _showAddToPlaylistDialog(AppLocalizations l10n) {
     final appState = context.read<AppState>();
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: widget.mediaType == MediaType.album ? l10n.addAlbumToPlaylist : l10n.addTracksToPlaylist,
       width: 320,
@@ -1010,7 +1010,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   void _showCreatePlaylistDialog(AppLocalizations l10n) {
     final nameController = TextEditingController();
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: l10n.createPlaylist,
       content: TextField(
@@ -1046,7 +1046,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   // Playlist-specific methods
   void _showEditPlaylistDialog(AppLocalizations l10n) {
     if (widget.mediaType != MediaType.playlist) return;
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: l10n.editPlaylist,
       content: Column(
@@ -1088,7 +1088,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   void _showDeletePlaylistDialog(AppLocalizations l10n) async {
     if (widget.mediaType != MediaType.playlist) return;
-    final ok = await showAppleConfirmDialog(
+    final ok = await showAppConfirmDialog(
       context: context,
       title: l10n.deletePlaylist,
       message: l10n.deletePlaylistConfirmation(widget.playlist!.name),

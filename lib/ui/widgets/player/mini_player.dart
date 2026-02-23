@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
@@ -209,13 +210,13 @@ class _MiniPlayerState extends State<MiniPlayer>
                           children: [
                             Text(
                               currentTrack.name,
-                              style: TextStyle(
-                                fontFamily: AppleDesignSystem.fontFamily,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000),
+                              ) ?? TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: isDark
-                                    ? const Color(0xFFFFFFFF)
-                                    : const Color(0xFF000000),
+                                color: isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -224,14 +225,11 @@ class _MiniPlayerState extends State<MiniPlayer>
                               const SizedBox(height: 2),
                               Text(
                                 currentTrack.artistName!,
-                                style: TextStyle(
-                                  fontFamily: AppleDesignSystem.fontFamily,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: (isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000)).withOpacity(0.6),
+                                ) ?? TextStyle(
                                   fontSize: 13,
-                                  color:
-                                      (isDark
-                                              ? const Color(0xFFFFFFFF)
-                                              : const Color(0xFF000000))
-                                          .withOpacity(0.6),
+                                  color: (isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000)).withOpacity(0.6),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -302,11 +300,11 @@ class _MiniPlayerState extends State<MiniPlayer>
       child: ClipRRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(
-            sigmaX: AppleDesignSystem.blurThin,
-            sigmaY: AppleDesignSystem.blurThin,
+            sigmaX: DesktopTheme.blurLight,
+            sigmaY: DesktopTheme.blurLight,
           ),
           child: Container(
-            decoration: BoxDecoration(color: AppleColors.glassDark),
+            decoration: BoxDecoration(color: DesktopTheme.glassSurface),
             child: GestureDetector(
               onTap: () => _navigateToNowPlaying(context),
               child: Padding(
@@ -336,9 +334,14 @@ class _MiniPlayerState extends State<MiniPlayer>
                         children: [
                           Text(
                             currentTrack.name,
-                            style: AppleTextStyles.headline(
-                              color: AppleColors.labelPrimaryDark,
-                            ).copyWith(fontSize: 16),
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: DesktopTheme.textPrimary,
+                              fontSize: 16,
+                            ) ?? TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: DesktopTheme.textPrimary,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -346,8 +349,11 @@ class _MiniPlayerState extends State<MiniPlayer>
                             const SizedBox(height: 2),
                             Text(
                               currentTrack.artistName!,
-                              style: AppleTextStyles.footnote(
-                                color: AppleColors.labelSecondaryDark,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: DesktopTheme.textSecondary,
+                              ) ?? TextStyle(
+                                fontSize: 13,
+                                color: DesktopTheme.textSecondary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

@@ -149,6 +149,29 @@ class _AppShellState extends State<AppShell> {
     }
   }
 
+  /// Single source of truth for mobile bottom bar items (indices, labels, icons).
+  List<_MobileNavEntry> _getMobileNavEntries(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return [
+      _MobileNavEntry(0, l10n.navHome, _navItems[0].icon, _navItems[0].activeIcon),
+      _MobileNavEntry(1, l10n.search, _navItems[1].icon, _navItems[1].activeIcon),
+      _MobileNavEntry(2, l10n.library, _navItems[2].icon, _navItems[2].activeIcon),
+      if (!_isLocalMusic)
+        _MobileNavEntry(
+          _navItems.length + 4,
+          l10n.downloads,
+          _libraryItems[4].icon,
+          _libraryItems[4].activeIcon,
+        ),
+      _MobileNavEntry(
+        _settingsIndex,
+        l10n.settings,
+        Icons.settings_outlined,
+        Icons.settings_rounded,
+      ),
+    ];
+  }
+
   Widget? _buildDetailOverlay() {
     return DesktopLayout.buildDetailOverlay(context, _nav);
   }
@@ -282,11 +305,9 @@ class _AppShellState extends State<AppShell> {
             bottomNavigationBar: isDesktop
                 ? null
                 : _MobileNavBar(
+                    entries: _getMobileNavEntries(context),
                     currentIndex: _selectedIndex,
                     onTap: _navigateTo,
-                    itemCount: _pageCount,
-                    settingsIndex: _settingsIndex,
-                    isLocalMusic: _isLocalMusic,
                   ),
             ),
           ),
@@ -315,6 +336,15 @@ class _NavItem {
   final IconData activeIcon;
   final String label;
   const _NavItem(this.icon, this.activeIcon, this.label);
+}
+
+/// Single source for mobile bottom bar: index, label, icons.
+class _MobileNavEntry {
+  final int index;
+  final String label;
+  final IconData icon;
+  final IconData activeIcon;
+  const _MobileNavEntry(this.index, this.label, this.icon, this.activeIcon);
 }
 
 class _Sidebar extends StatelessWidget {
@@ -362,14 +392,8 @@ class _Sidebar extends StatelessWidget {
                           height: 40,
                           decoration: BoxDecoration(
                             color: accent,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: accent.withOpacity(0.35),
-                                blurRadius: 12,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                            borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                            boxShadow: DesktopTheme.shadowGlow(accent),
                           ),
                           child: const Icon(
                             Icons.music_note_rounded,
@@ -380,10 +404,12 @@ class _Sidebar extends StatelessWidget {
                         const SizedBox(width: 12),
                         Text(
                           'Doudou',
-                          style: TextStyle(
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: DesktopTheme.textPrimary,
+                          ) ?? TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            letterSpacing: -0.5,
                             color: DesktopTheme.textPrimary,
                           ),
                         ),
@@ -630,69 +656,20 @@ class _SidebarTileState extends State<_SidebarTile> {
 }
 
 class _MobileNavBar extends StatelessWidget {
+  final List<_MobileNavEntry> entries;
   final int currentIndex;
   final ValueChanged<int> onTap;
-  final int itemCount;
-  final int settingsIndex;
-  final bool isLocalMusic;
 
   const _MobileNavBar({
+    required this.entries,
     required this.currentIndex,
     required this.onTap,
-    required this.itemCount,
-    required this.settingsIndex,
-    required this.isLocalMusic,
   });
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    // Mobile: Home(0), Search(1), Library(2), [Downloads(7) if !isLocalMusic], Settings(8)
-    final indices = isLocalMusic
-        ? [0, 1, 2, settingsIndex]
-        : [0, 1, 2, 7, settingsIndex];
-    final labels = isLocalMusic
-        ? [l10n.navHome, l10n.search, l10n.library, l10n.settings]
-        : [
-            l10n.navHome,
-            l10n.search,
-            l10n.library,
-            l10n.downloads,
-            l10n.settings
-          ];
-    final icons = isLocalMusic
-        ? [
-            Icons.home_outlined,
-            Icons.search_outlined,
-            Icons.library_music_outlined,
-            Icons.settings_outlined,
-          ]
-        : [
-            Icons.home_outlined,
-            Icons.search_outlined,
-            Icons.library_music_outlined,
-            Icons.download_outlined,
-            Icons.settings_outlined,
-          ];
-    final activeIcons = isLocalMusic
-        ? [
-            Icons.home_rounded,
-            Icons.search_rounded,
-            Icons.library_music_rounded,
-            Icons.settings_rounded,
-          ]
-        : [
-            Icons.home_rounded,
-            Icons.search_rounded,
-            Icons.library_music_rounded,
-            Icons.download_rounded,
-            Icons.settings_rounded,
-          ];
-
     final isDark = theme.brightness == Brightness.dark;
-    const double barRadius = 28;
-    const double barHeight = 64;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -700,13 +677,13 @@ class _MobileNavBar extends StatelessWidget {
         top: false,
         child: RepaintBoundary(
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(barRadius),
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusXl),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
               child: Container(
-                height: barHeight,
+                height: 64,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(barRadius),
+                  borderRadius: BorderRadius.circular(DesktopTheme.radiusXl),
                   color: (isDark ? Colors.white : Colors.black)
                       .withOpacity(isDark ? 0.12 : 0.06),
                   border: Border.all(
@@ -714,26 +691,19 @@ class _MobileNavBar extends StatelessWidget {
                         .withOpacity(0.15),
                     width: 0.5,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
+                  boxShadow: DesktopTheme.shadowMd,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(indices.length, (i) {
-                    final idx = indices[i];
-                    final selected = currentIndex == idx;
+                  children: entries.map((e) {
+                    final selected = currentIndex == e.index;
                     return Expanded(
                       child: InkWell(
                         onTap: () {
                           HapticFeedback.selectionClick();
-                          onTap(idx);
+                          onTap(e.index);
                         },
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -746,7 +716,7 @@ class _MobileNavBar extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  selected ? activeIcons[i] : icons[i],
+                                  selected ? e.activeIcon : e.icon,
                                   size: 24,
                                   color: selected
                                       ? theme.colorScheme.primary
@@ -756,7 +726,7 @@ class _MobileNavBar extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  labels[i],
+                                  e.label,
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight:
@@ -774,7 +744,7 @@ class _MobileNavBar extends StatelessWidget {
                         ),
                       ),
                     );
-                  }),
+                  }).toList(),
                 ),
               ),
             ),

@@ -1809,7 +1809,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
     switch (downloadStatus) {
       case DownloadStatus.downloaded:
-        showAppleDialog(
+        showAppDialog(
           context: context,
           title: 'Downloaded',
           content: Text(
@@ -1844,7 +1844,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         );
         break;
       case DownloadStatus.downloading:
-        showAppleDialog(
+        showAppDialog(
           context: context,
           title: l10n.downloading,
           content: Text(
@@ -1900,7 +1900,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
     // For now, just show the track info in a dialog
     // In a real app, you would use a share plugin like share_plus
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: 'Share Track',
       content: Text(
@@ -1998,7 +1998,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
   }
 
   void _showErrorSnackBar(BuildContext context, String message) {
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: 'Navigation Error',
       content: Text(

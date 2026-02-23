@@ -239,14 +239,14 @@ class _SettingsPageState extends State<SettingsPage> {
   void _showThemeDialog() {
     final appState = context.read<AppState>();
     final current = _effectiveThemeSelection(appState);
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: 'Choose Theme',
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AppleDialogOption(
+          AppDialogOption(
             label: 'System Default',
             selected: current == 'system',
             onTap: () {
@@ -255,7 +255,7 @@ class _SettingsPageState extends State<SettingsPage> {
               appState.toggleOledDarkMode(false);
             },
           ),
-          AppleDialogOption(
+          AppDialogOption(
             label: 'Light',
             selected: current == 'light',
             onTap: () {
@@ -264,7 +264,7 @@ class _SettingsPageState extends State<SettingsPage> {
               appState.toggleOledDarkMode(false);
             },
           ),
-          AppleDialogOption(
+          AppDialogOption(
             label: 'Dark',
             selected: current == 'dark',
             onTap: () {
@@ -273,7 +273,7 @@ class _SettingsPageState extends State<SettingsPage> {
               appState.toggleOledDarkMode(false);
             },
           ),
-          AppleDialogOption(
+          AppDialogOption(
             label: 'OLED',
             selected: current == 'oled',
             onTap: () {
@@ -290,7 +290,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void _showColorDialog() {
     final appState = context.read<AppState>();
     final l10n = AppLocalizations.of(context);
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: l10n.chooseAccentColor,
       content: _AccentColorDialog(
@@ -310,7 +310,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _showCustomColorPicker(AppState appState) {
     final l10n = AppLocalizations.of(context);
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: l10n.customColor,
       width: 320,
@@ -334,7 +334,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _showLanguageDialog(AppState appState) {
     final current = appState.locale;
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: 'Select Language',
       width: 320,
@@ -343,7 +343,7 @@ class _SettingsPageState extends State<SettingsPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AppleDialogOption(
+          AppDialogOption(
             label: 'System default',
             selected: current == null,
             onTap: () {
@@ -351,7 +351,7 @@ class _SettingsPageState extends State<SettingsPage> {
               appState.setLocale(null);
             },
           ),
-          ...AppLocalizations.supportedLocales.map((locale) => AppleDialogOption(
+          ...AppLocalizations.supportedLocales.map((locale) => AppDialogOption(
                 label: _getLanguageNameForLocale(locale),
                 selected: current == locale,
                 onTap: () {
@@ -385,7 +385,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _removeLocalDirectory(AppState appState, String directory) async {
-    final ok = await showAppleConfirmDialog(
+    final ok = await showAppConfirmDialog(
       context: context,
       title: 'Remove Directory',
       message: 'Remove "${directory.split('/').last}" from your music sources?',
@@ -404,7 +404,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _rescanLocalLibrary(AppState appState) async {
     final local = appState.mediaServiceManager.localMusicService;
     if (local == null) return;
-    showAppleDialog(
+    showAppDialog(
       context: context,
       title: 'Scanning Library',
       barrierDismissible: false,
@@ -436,7 +436,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showSignOutDialog(AppState appState) async {
-    final ok = await showAppleConfirmDialog(
+    final ok = await showAppConfirmDialog(
       context: context,
       title: 'Sign Out',
       message: 'Are you sure you want to sign out? You\'ll need to log in again to access your music.',
@@ -449,7 +449,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showClearCacheDialog(String cacheType) async {
-    final ok = await showAppleConfirmDialog(
+    final ok = await showAppConfirmDialog(
       context: context,
       title: 'Clear ${cacheType == 'all' ? 'All' : 'Image'} Cache',
       message: 'This will remove ${cacheType == 'all' ? 'all cached data' : 'cached images'} and may slow down the app temporarily. Continue?',
@@ -950,7 +950,7 @@ void _showServerConnectionDialog(
   AppState appState, {
   SavedServer? initialServer,
 }) {
-  showAppleDialog(
+  showAppDialog(
     context: context,
     title: initialServer != null ? 'Edit server' : 'Add server',
     width: 420,
@@ -1063,7 +1063,7 @@ class _ServerSection extends StatelessWidget {
                             IconButton(
                               icon: const Icon(Icons.delete_outline),
                               onPressed: () async {
-                                final confirm = await showAppleConfirmDialog(
+                                final confirm = await showAppConfirmDialog(
                                   context: context,
                                   title: 'Remove server?',
                                   message: 'Remove "${server.displayLabel}" from your saved servers?',
@@ -1258,7 +1258,7 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
       if (!mounted) return;
       setState(() => _checking = false);
       if (info.updateAvailable) {
-        showAppleDialog(
+        showAppDialog(
           context: context,
           title: 'Update Available',
           content: Text(
@@ -1277,7 +1277,7 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
           ],
         );
       } else {
-        showAppleDialog(
+        showAppDialog(
           context: context,
           title: 'Up to Date',
           content: Text(
@@ -1292,7 +1292,7 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
     } catch (e) {
       if (mounted) {
         setState(() => _checking = false);
-        showAppleDialog(
+        showAppDialog(
           context: context,
           title: 'Update Check Failed',
           content: Text(

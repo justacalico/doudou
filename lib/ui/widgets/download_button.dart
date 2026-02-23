@@ -214,7 +214,7 @@ class DownloadButton extends StatelessWidget {
     BuildContext context,
     DownloadService downloadService,
   ) async {
-    final ok = await showAppleConfirmDialog(
+    final ok = await showAppConfirmDialog(
       context: context,
       title: 'Delete Download',
       message: 'Delete "${track.name}" from your device?',
