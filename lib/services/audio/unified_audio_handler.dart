@@ -223,7 +223,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
                   if (_disposed || _trackCompletionHandled) return;
                   final duration = _player.duration;
                   if (duration == null ||
-                      duration.inMilliseconds < 2000) return;
+                      duration.inMilliseconds < 2000) {
+                    return;
+                  }
                   final position = _player.position;
                   if (position >= duration - const Duration(seconds: 1) &&
                       _stateController.currentState ==
@@ -1204,6 +1206,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   void clearQueue() {
     _queueManager.clearQueue();
+    _stateController.updateCurrentTrack(null);
+    _updateMediaItem(null);
   }
 
   // === Playback Modes ===
