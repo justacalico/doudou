@@ -220,37 +220,42 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     final anyDownloading = _tracks.any((t) =>
         downloadService.getDownloadStatus(t.id) == DownloadStatus.downloading);
 
-    String label = l10n.download;
-    if (isAllDownloaded) {
-      label = l10n.downloadedSection;
-    } else if (anyDownloading) {
-      label = l10n.downloading;
-    }
-
-    return OutlinedButton.icon(
-      onPressed: isAllDownloaded
-          ? null
-          : () async {
-              if (toDownload.isEmpty) return;
-              for (final track in toDownload) {
-                downloadService.downloadTrack(track);
-              }
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      l10n.startedDownloading(toDownload.length, l10n.songs),
+    return Tooltip(
+      message: isAllDownloaded
+          ? l10n.downloadedSection
+          : anyDownloading
+              ? l10n.downloading
+              : l10n.download,
+      child: IconButton(
+        onPressed: isAllDownloaded
+            ? null
+            : () async {
+                if (toDownload.isEmpty) return;
+                for (final track in toDownload) {
+                  downloadService.downloadTrack(track);
+                }
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n.startedDownloading(toDownload.length, l10n.songs),
+                      ),
+                      duration: const Duration(seconds: 2),
                     ),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              }
-            },
-      icon: Icon(
-        isAllDownloaded ? Icons.download_done_rounded : Icons.download_rounded,
-        size: 20,
+                  );
+                }
+              },
+        icon: Icon(
+          isAllDownloaded ? Icons.download_done_rounded : Icons.download_rounded,
+          size: 24,
+        ),
+        style: IconButton.styleFrom(
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+          ),
+        ),
       ),
-      label: Text(label),
     );
   }
 

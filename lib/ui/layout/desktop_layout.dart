@@ -1199,15 +1199,6 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
     final toDownload =
         _tracks.where((t) => !downloadService.isTrackDownloaded(t.id)).toList();
     final isAllDownloaded = toDownload.isEmpty;
-    final anyDownloading = _tracks.any((t) =>
-        downloadService.getDownloadStatus(t.id) == DownloadStatus.downloading);
-
-    String label = l10n.download;
-    if (isAllDownloaded) {
-      label = l10n.downloadedSection;
-    } else if (anyDownloading) {
-      label = l10n.downloading;
-    }
 
     return DesktopGlassButton(
       onPressed: isAllDownloaded
@@ -1226,22 +1217,12 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
               );
             },
       borderRadius: 28,
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesktopTheme.spacingMd,
-        vertical: 16,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isAllDownloaded
-                ? Icons.download_done_rounded
-                : Icons.download_rounded,
-            size: 24,
-          ),
-          const SizedBox(width: 8),
-          Text(label),
-        ],
+      padding: const EdgeInsets.all(16),
+      child: Icon(
+        isAllDownloaded
+            ? Icons.download_done_rounded
+            : Icons.download_rounded,
+        size: 24,
       ),
     );
   }
