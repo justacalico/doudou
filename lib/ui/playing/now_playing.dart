@@ -7,6 +7,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:vibration/vibration.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/models/download_models.dart';
 import 'package:doudou/services/album_art_color_service.dart';
 import 'package:doudou/services/audio/unified_audio_handler.dart' show RepeatMode;
 import 'package:doudou/ui/playing/lyrics_overlay.dart';
@@ -1699,6 +1700,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
               ],
             ),
           ),
+          // Download
+          _buildDownloadAction(context, currentTrack, appState),
           // Share
           CupertinoActionSheetAction(
             onPressed: () {
@@ -1745,6 +1748,150 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         ),
       ),
     );
+  }
+
+  CupertinoActionSheetAction _buildDownloadAction(
+    BuildContext context,
+    dynamic currentTrack,
+    AppState appState,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final downloadService = appState.downloadService;
+    final track = currentTrack is Track ? currentTrack : null;
+    if (track == null) {
+      return CupertinoActionSheetAction(
+        onPressed: () => Navigator.pop(context),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(CupertinoIcons.cloud_download, color: CupertinoColors.activeBlue),
+            const SizedBox(width: 8),
+            Text(l10n.download),
+          ],
+        ),
+      );
+    }
+    final isDownloaded = downloadService.isTrackDownloaded(track.id);
+    final status = downloadService.getDownloadStatus(track.id);
+    final isDownloading = status == DownloadStatus.downloading;
+    IconData downloadIcon = CupertinoIcons.cloud_download;
+    String downloadLabel = l10n.download;
+    if (isDownloaded) {
+      downloadIcon = CupertinoIcons.cloud_download_fill;
+      downloadLabel = 'Downloaded';
+    } else if (isDownloading) {
+      downloadIcon = CupertinoIcons.arrow_down_circle;
+      downloadLabel = l10n.downloading;
+    }
+    return CupertinoActionSheetAction(
+      onPressed: () {
+        Navigator.pop(context);
+        _handleDownloadFromNowPlaying(context, appState, track);
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(downloadIcon, color: CupertinoColors.activeBlue),
+          const SizedBox(width: 8),
+          Text(downloadLabel),
+        ],
+      ),
+    );
+  }
+
+  void _handleDownloadFromNowPlaying(
+    BuildContext context,
+    AppState appState,
+    Track track,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final downloadStatus = appState.downloadService.getDownloadStatus(track.id);
+
+    switch (downloadStatus) {
+      case DownloadStatus.downloaded:
+        showAppleDialog(
+          context: context,
+          title: 'Downloaded',
+          content: Text(
+            '"${track.name}" is already downloaded.',
+            style: TextStyle(
+              color: DesktopTheme.textSecondary,
+              decoration: TextDecoration.none,
+            ),
+          ),
+          actionsBuilder: (dialogContext) => [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(l10n.ok),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                appState.downloadService.deleteDownload(track.id);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.deleteDownload),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(l10n.deleteDownload),
+            ),
+          ],
+        );
+        break;
+      case DownloadStatus.downloading:
+        showAppleDialog(
+          context: context,
+          title: l10n.downloading,
+          content: Text(
+            '"${track.name}" is currently downloading.',
+            style: TextStyle(
+              color: DesktopTheme.textSecondary,
+              decoration: TextDecoration.none,
+            ),
+          ),
+          actionsBuilder: (dialogContext) => [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(l10n.ok),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                appState.downloadService.cancelDownload(track.id);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.cancelDownload),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(l10n.cancelDownload),
+            ),
+          ],
+        );
+        break;
+      case DownloadStatus.paused:
+      case DownloadStatus.failed:
+      case DownloadStatus.notDownloaded:
+        appState.downloadService.downloadTrack(track);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${l10n.downloadStarted}: ${track.name}'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+        break;
+    }
   }
 
   void _shareTrack(BuildContext context, dynamic currentTrack) {
