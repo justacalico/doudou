@@ -234,6 +234,8 @@
   "settingsQueueOnPlayerBarDescription": "在桌面播放栏显示队列按钮",
   "settingsShuffleRepeatOnPlayerBar": "播放栏随机与单曲循环",
   "settingsShuffleRepeatOnPlayerBarDescription": "在桌面播放栏显示随机和单曲循环控制",
+  "settingsYoutubeMusicOnDesktop": "Windows 和 Linux 上的 YouTube Music",
+  "settingsYoutubeMusicOnDesktopDescription": "在 Windows 和 Linux 上启用 YouTube Music（可能出现播放或稳定性问题）",
 
   "audioSettings": "音频设置",
   "appearanceSettings": "外观设置",

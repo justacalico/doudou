@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doudou/models/saved_server.dart';
@@ -48,10 +49,7 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
     final s = widget.initialServer;
     if (s != null) {
       _selectedServerType = s.serverType;
-      // On Linux, YouTube Music is disabled; fall back to jellyfin if it was selected.
-      if (Platform.isLinux && _selectedServerType == 'youtubeMusic') {
-        _selectedServerType = 'jellyfin';
-      }
+      // Fallback for restricted desktop (Windows/Linux) is done in build when allowYoutubeMusicOnDesktop is false
       _serverController.text = s.serverUrl;
       if (s.authMethod == 'api_key') {
         _jellyfinAuthMethod = JellyfinAuthMethod.apiKey;
@@ -298,6 +296,21 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appState = context.watch<AppState>();
+    final isRestrictedDesktop = !kIsWeb && (Platform.isLinux || Platform.isWindows);
+    final showYoutubeMusic = !isRestrictedDesktop || appState.allowYoutubeMusicOnDesktop;
+    // If we're on restricted desktop and YT Music is disabled but form had YT selected, switch to jellyfin on first build
+    if (isRestrictedDesktop && !appState.allowYoutubeMusicOnDesktop && _selectedServerType == 'youtubeMusic') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {
+          _selectedServerType = 'jellyfin';
+          _serverController.text = _getServerPlaceholder();
+        });
+      });
+    }
+    final effectiveServerType = (isRestrictedDesktop && !appState.allowYoutubeMusicOnDesktop && _selectedServerType == 'youtubeMusic')
+        ? 'jellyfin'
+        : _selectedServerType;
 
     return Form(
       key: _formKey,
@@ -305,9 +318,7 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DropdownButtonFormField<String>(
-            value: (Platform.isLinux && _selectedServerType == 'youtubeMusic')
-                ? 'jellyfin'
-                : _selectedServerType,
+            value: effectiveServerType,
             decoration: const InputDecoration(
               labelText: 'Server type',
               border: OutlineInputBorder(),
@@ -316,7 +327,7 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
               const DropdownMenuItem(value: 'jellyfin', child: Text('Jellyfin')),
               const DropdownMenuItem(value: 'plex', child: Text('Plex')),
               const DropdownMenuItem(value: 'subsonic', child: Text('Subsonic')),
-              if (!Platform.isLinux)
+              if (showYoutubeMusic)
                 const DropdownMenuItem(value: 'youtubeMusic', child: Text('YouTube Music')),
               const DropdownMenuItem(value: 'local', child: Text('Local')),
             ],

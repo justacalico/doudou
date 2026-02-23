@@ -51,6 +51,8 @@ class AppState extends ChangeNotifier {
   bool _showVolumeOnPlayerBar = true;
   bool _showQueueOnPlayerBar = true;
   bool _showShuffleRepeatOnPlayerBar = true;
+  /// When false (default on Windows/Linux), YouTube Music is hidden due to known issues; user can re-enable in General settings.
+  bool _allowYoutubeMusicOnDesktop = false;
 
   // Debouncing for play/pause to prevent rapid-fire clicking deadlocks
   DateTime? _lastPlayPauseCommand;
@@ -151,6 +153,11 @@ class AppState extends ChangeNotifier {
   bool get showVolumeOnPlayerBar => _showVolumeOnPlayerBar;
   bool get showQueueOnPlayerBar => _showQueueOnPlayerBar;
   bool get showShuffleRepeatOnPlayerBar => _showShuffleRepeatOnPlayerBar;
+  bool get allowYoutubeMusicOnDesktop => _allowYoutubeMusicOnDesktop;
+
+  /// True on Windows/Linux where YouTube Music is optionally hidden by default.
+  bool get isDesktopWhereYoutubeMusicRestricted =>
+      !kIsWeb && (Platform.isLinux || Platform.isWindows);
 
   // Theme getters
   ThemeMode get themeMode => _themeMode;
@@ -243,8 +250,8 @@ class AppState extends ChangeNotifier {
     try {
       await _loadSavedServersList();
 
-      // On Linux, YouTube Music is disabled; don't restore it as current server.
-      if (Platform.isLinux && _currentServerId != null) {
+      // On Windows/Linux, YouTube Music is disabled by default; don't restore it as current server unless user re-enabled it.
+      if (isDesktopWhereYoutubeMusicRestricted && !_allowYoutubeMusicOnDesktop && _currentServerId != null) {
         final idx = _savedServers.indexWhere((s) => s.id == _currentServerId);
         if (idx >= 0 && _savedServers[idx].serverType == 'youtubeMusic') {
           final nonYt = _savedServers.where((s) => s.serverType != 'youtubeMusic').toList();
@@ -2223,6 +2230,14 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setAllowYoutubeMusicOnDesktop(bool enabled) async {
+    if (_allowYoutubeMusicOnDesktop == enabled) return;
+    _allowYoutubeMusicOnDesktop = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('allow_youtube_music_on_desktop', enabled);
+    notifyListeners();
+  }
+
   // Recent tracks management
   void _addToRecentTracks(Track track) {
     // Remove if already exists to avoid duplicates
@@ -2288,6 +2303,8 @@ class AppState extends ChangeNotifier {
     _showQueueOnPlayerBar = prefs.getBool('show_queue_on_player_bar') ?? true;
     _showShuffleRepeatOnPlayerBar =
         prefs.getBool('show_shuffle_repeat_on_player_bar') ?? true;
+    _allowYoutubeMusicOnDesktop =
+        prefs.getBool('allow_youtube_music_on_desktop') ?? false;
 
     // Load theme settings
     final themeModeString = prefs.getString('theme_mode') ?? 'system';

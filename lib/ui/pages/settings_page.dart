@@ -865,6 +865,13 @@ class _GeneralSection extends StatelessWidget {
                         value: appState.showShuffleRepeatOnPlayerBar,
                         onChanged: (v) => appState.setShowShuffleRepeatOnPlayerBar(v),
                       ),
+                      if (appState.isDesktopWhereYoutubeMusicRestricted)
+                        SwitchListTile(
+                          title: Text(l10n.settingsYoutubeMusicOnDesktop),
+                          subtitle: Text(l10n.settingsYoutubeMusicOnDesktopDescription),
+                          value: appState.allowYoutubeMusicOnDesktop,
+                          onChanged: (v) => appState.setAllowYoutubeMusicOnDesktop(v),
+                        ),
                     ],
                   ),
                 ),
@@ -1110,7 +1117,10 @@ class _ServerSection extends StatelessWidget {
                         ),
                       ),
                     ...appState.savedServers
-                        .where((server) => !Platform.isLinux || server.serverType != 'youtubeMusic')
+                        .where((server) =>
+                            !appState.isDesktopWhereYoutubeMusicRestricted ||
+                            appState.allowYoutubeMusicOnDesktop ||
+                            server.serverType != 'youtubeMusic')
                         .map((server) {
                       final isCurrent = appState.currentServerId == server.id;
                       return ListTile(

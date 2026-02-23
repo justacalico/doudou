@@ -234,6 +234,8 @@
   "settingsQueueOnPlayerBarDescription": "Показывать кнопку очереди на панели плеера (рабочий стол)",
   "settingsShuffleRepeatOnPlayerBar": "Перемешать и повторить на панели плеера",
   "settingsShuffleRepeatOnPlayerBarDescription": "Показывать управление перемешиванием и повтором на панели плеера (рабочий стол)",
+  "settingsYoutubeMusicOnDesktop": "YouTube Music в Windows и Linux",
+  "settingsYoutubeMusicOnDesktopDescription": "Включить YouTube Music в Windows и Linux (возможны проблемы с воспроизведением или стабильностью)",
 
   "audioSettings": "Настройки звука",
   "appearanceSettings": "Настройки внешнего вида",

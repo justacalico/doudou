@@ -1257,6 +1257,14 @@
   "@settingsShuffleRepeatOnPlayerBarDescription": {
     "description": "Shuffle repeat on player bar description"
   },
+  "settingsYoutubeMusicOnDesktop": "YouTube Music on Windows and Linux",
+  "@settingsYoutubeMusicOnDesktop": {
+    "description": "Allow YouTube Music on desktop"
+  },
+  "settingsYoutubeMusicOnDesktopDescription": "Enable YouTube Music on Windows and Linux (may have playback or stability issues)",
+  "@settingsYoutubeMusicOnDesktopDescription": {
+    "description": "YouTube Music on desktop description"
+  },
 
   "audioSettings": "Audio Settings",
   "@audioSettings": {
