@@ -4,6 +4,7 @@ import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/templates/track_list_template.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
+import 'package:doudou/services/base_service.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 
 import 'media_details.dart';
@@ -56,6 +57,19 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
           .where((track) => track.artistName == widget.artist.name)
           .take(10)
           .toList();
+
+      // YouTube Music: library is empty; search by artist name to show tracks
+      if (appState.mediaServiceManager.currentServerType ==
+              ServerType.youtubeMusic &&
+          _popularTracks.isEmpty) {
+        final results = await appState.mediaServiceManager.search(
+          widget.artist.name,
+          limit: 50,
+        );
+        if (mounted && results.tracks.isNotEmpty) {
+          _popularTracks = results.tracks;
+        }
+      }
 
       if (_artistAlbums.isEmpty) {
         _selectedTab = 'songs';
