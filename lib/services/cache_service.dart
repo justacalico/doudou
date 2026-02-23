@@ -5,6 +5,24 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/jellyfin_models.dart';
 
+// Top-level parse functions for use in compute() to avoid blocking main isolate.
+
+List<Album> _parseAlbumsList(List<dynamic> list) {
+  return list.map((e) => Album.fromJson(e as Map<String, dynamic>)).toList();
+}
+
+List<Artist> _parseArtistsList(List<dynamic> list) {
+  return list.map((e) => Artist.fromJson(e as Map<String, dynamic>)).toList();
+}
+
+List<Track> _parseTracksList(List<dynamic> list) {
+  return list.map((e) => Track.fromJson(e as Map<String, dynamic>)).toList();
+}
+
+List<Playlist> _parsePlaylistsList(List<dynamic> list) {
+  return list.map((e) => Playlist.fromJson(e as Map<String, dynamic>)).toList();
+}
+
 class CacheService {
   static CacheService? _instance;
   static CacheService get instance => _instance ??= CacheService._();
@@ -400,7 +418,7 @@ class CacheService {
     if (data == null) return null;
 
     final albumsJson = data['albums'] as List;
-    return albumsJson.map((json) => Album.fromJson(json)).toList();
+    return compute(_parseAlbumsList, albumsJson);
   }
 
   // Artists caching
@@ -423,7 +441,7 @@ class CacheService {
     if (data == null) return null;
 
     final artistsJson = data['artists'] as List;
-    return artistsJson.map((json) => Artist.fromJson(json)).toList();
+    return compute(_parseArtistsList, artistsJson);
   }
 
   // Tracks caching
@@ -446,7 +464,7 @@ class CacheService {
     if (data == null) return null;
 
     final tracksJson = data['tracks'] as List;
-    return tracksJson.map((json) => Track.fromJson(json)).toList();
+    return compute(_parseTracksList, tracksJson);
   }
 
   // Playlists caching
@@ -469,7 +487,7 @@ class CacheService {
     if (data == null) return null;
 
     final playlistsJson = data['playlists'] as List;
-    return playlistsJson.map((json) => Playlist.fromJson(json)).toList();
+    return compute(_parsePlaylistsList, playlistsJson);
   }
 
   // Album tracks caching
@@ -492,7 +510,7 @@ class CacheService {
     if (data == null) return null;
 
     final tracksJson = data['tracks'] as List;
-    return tracksJson.map((json) => Track.fromJson(json)).toList();
+    return compute(_parseTracksList, tracksJson);
   }
 
   // Playlist tracks caching
@@ -518,7 +536,7 @@ class CacheService {
     if (data == null) return null;
 
     final tracksJson = data['tracks'] as List;
-    return tracksJson.map((json) => Track.fromJson(json)).toList();
+    return compute(_parseTracksList, tracksJson);
   }
 
   // Favorites caching
@@ -541,7 +559,7 @@ class CacheService {
     if (data == null) return null;
 
     final favoritesJson = data['favorites'] as List;
-    return favoritesJson.map((json) => Track.fromJson(json)).toList();
+    return compute(_parseTracksList, favoritesJson);
   }
 
   // Preference-based caching for simple data

@@ -43,7 +43,9 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   final NavigationService _nav = NavigationService();
   late int _selectedIndex;
-  List<Widget> _pages = [];
+  List<Widget Function()> _pageBuilders = [];
+  final Map<int, Widget> _builtPages = {};
+  int _pageCount = 0;
   int _settingsIndex = 0;
   late List<_NavItem> _navItems;
   late List<_NavItem> _libraryItems;
@@ -66,7 +68,7 @@ class _AppShellState extends State<AppShell> {
 
   void _onNavChanged() {
     final idx = _nav.selectedPageIndex.value;
-    if (idx != _selectedIndex && idx >= 0 && idx < _pages.length) {
+    if (idx != _selectedIndex && idx >= 0 && idx < _pageCount) {
       setState(() => _selectedIndex = idx);
     }
   }
@@ -80,17 +82,39 @@ class _AppShellState extends State<AppShell> {
 
   void _rebuildPageLists() {
     final oldSettingsIndex = _settingsIndex;
-    final hadPages = _pages.isNotEmpty;
+    final hadPages = _pageCount > 0;
     _navItems = _buildNavItems();
     _libraryItems = _buildLibraryItems();
-    _pages = _buildPages();
-    _settingsIndex = _pages.length - 1;
-    // Keep user on Settings when page list changes (e.g. add/switch server local ↔ remote).
-    if (hadPages && (_selectedIndex == oldSettingsIndex || _selectedIndex >= _pages.length)) {
+    _pageBuilders = _buildPageBuilders();
+    _pageCount = _pageBuilders.length;
+    _settingsIndex = _pageCount - 1;
+    _builtPages.clear();
+    if (hadPages && (_selectedIndex == oldSettingsIndex || _selectedIndex >= _pageCount)) {
       _selectedIndex = _settingsIndex;
       _nav.selectPage(_settingsIndex);
       if (mounted) setState(() {});
     }
+  }
+
+  List<Widget Function()> _buildPageBuilders() {
+    return [
+      () => const HomePage(),
+      () => const SearchPage(),
+      () => const LibraryPage(),
+      () => const AlbumsPage(),
+      () => const ArtistsPage(),
+      () => const TracksPage(),
+      () => const PlaylistsPage(),
+      if (!_isLocalMusic) () => const DownloadsPage(),
+      () => const SettingsPage(),
+    ];
+  }
+
+  Widget _getOrBuildPage(int index) {
+    if (_builtPages.containsKey(index)) return _builtPages[index]!;
+    final page = _pageBuilders[index]();
+    _builtPages[index] = page;
+    return page;
   }
 
   List<_NavItem> _buildNavItems() => [
@@ -118,24 +142,9 @@ class _AppShellState extends State<AppShell> {
     ];
   }
 
-  List<Widget> _buildPages() {
-    final list = <Widget>[
-      const HomePage(),
-      const SearchPage(),
-      const LibraryPage(),
-      const AlbumsPage(),
-      const ArtistsPage(),
-      const TracksPage(),
-      const PlaylistsPage(),
-    ];
-    if (!_isLocalMusic) list.add(const DownloadsPage());
-    list.add(const SettingsPage());
-    return list;
-  }
-
   void _navigateTo(int index) {
     _nav.selectPage(index);
-    if (index != _selectedIndex && index < _pages.length) {
+    if (index != _selectedIndex && index < _pageCount) {
       setState(() => _selectedIndex = index);
     }
   }
@@ -245,8 +254,13 @@ class _AppShellState extends State<AppShell> {
                             child: Stack(
                               children: [
                                 IndexedStack(
-                                  index: _selectedIndex.clamp(0, _pages.length - 1),
-                                  children: _pages,
+                                  index: _selectedIndex.clamp(0, _pageCount - 1),
+                                  children: List.generate(
+                                    _pageCount,
+                                    (i) => i == _selectedIndex
+                                        ? _getOrBuildPage(i)
+                                        : (_builtPages[i] ?? const SizedBox.shrink()),
+                                  ),
                                 ),
                                 if (_buildDetailOverlay() != null)
                                   Positioned.fill(child: _buildDetailOverlay()!),
@@ -268,7 +282,7 @@ class _AppShellState extends State<AppShell> {
                 : _MobileNavBar(
                     currentIndex: _selectedIndex,
                     onTap: _navigateTo,
-                    itemCount: _pages.length,
+                    itemCount: _pageCount,
                     settingsIndex: _settingsIndex,
                     isLocalMusic: _isLocalMusic,
                   ),

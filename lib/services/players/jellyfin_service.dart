@@ -1,8 +1,58 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
+
+// Top-level parsers for compute() to keep JSON parsing off the main isolate.
+
+List<Album> _parseJellyfinAlbumsResponse(Uint8List bytes) {
+  final map = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+  final items = map['Items'] as List<dynamic>? ?? [];
+  return items.map((e) => Album.fromJson(e as Map<String, dynamic>)).toList();
+}
+
+List<Artist> _parseJellyfinArtistsResponse(Uint8List bytes) {
+  final map = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+  final items = map['Items'] as List<dynamic>? ?? [];
+  return items.map((e) => Artist.fromJson(e as Map<String, dynamic>)).toList();
+}
+
+List<Track> _parseJellyfinTracksResponse(Uint8List bytes) {
+  final map = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+  final items = map['Items'] as List<dynamic>? ?? [];
+  return items.map((e) => Track.fromJson(e as Map<String, dynamic>)).toList();
+}
+
+List<Playlist> _parseJellyfinPlaylistsResponse(Uint8List bytes) {
+  final map = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+  final items = map['Items'] as List<dynamic>? ?? [];
+  return items.map((e) => Playlist.fromJson(e as Map<String, dynamic>)).toList();
+}
+
+SearchResults _parseJellyfinSearchResponse(Uint8List bytes) {
+  final map = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+  final items = map['Items'] as List<dynamic>? ?? [];
+  final albums = <Album>[];
+  final artists = <Artist>[];
+  final tracks = <Track>[];
+  for (final item in items) {
+    switch (item['Type']) {
+      case 'MusicAlbum':
+        albums.add(Album.fromJson(item as Map<String, dynamic>));
+        break;
+      case 'MusicArtist':
+        artists.add(Artist.fromJson(item as Map<String, dynamic>));
+        break;
+      case 'Audio':
+        tracks.add(Track.fromJson(item as Map<String, dynamic>));
+        break;
+    }
+  }
+  return SearchResults(albums: albums, artists: artists, tracks: tracks);
+}
 
 // Only import IO adapter for non-web platforms
 
@@ -516,11 +566,14 @@ class JellyfinService implements BaseMediaService {
           'SortBy': 'DateCreated',
           'SortOrder': 'Descending',
         },
+        options: Options(responseType: ResponseType.bytes),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> items = response.data['Items'];
-        return items.map((item) => Album.fromJson(item)).toList();
+      if (response.statusCode == 200 && response.data != null) {
+        return compute(
+          _parseJellyfinAlbumsResponse,
+          Uint8List.fromList(response.data as List<int>),
+        );
       }
     } catch (e) {
       // Error fetching albums
@@ -543,11 +596,14 @@ class JellyfinService implements BaseMediaService {
           'SortBy': 'IndexNumber',
           'SortOrder': 'Ascending',
         },
+        options: Options(responseType: ResponseType.bytes),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> items = response.data['Items'];
-        return items.map((item) => Track.fromJson(item)).toList();
+      if (response.statusCode == 200 && response.data != null) {
+        return compute(
+          _parseJellyfinTracksResponse,
+          Uint8List.fromList(response.data as List<int>),
+        );
       }
     } catch (e) {
       // Error fetching album tracks
@@ -573,11 +629,14 @@ class JellyfinService implements BaseMediaService {
               maxTracks ??
               50000, // Use provided limit or high default for all tracks
         },
+        options: Options(responseType: ResponseType.bytes),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> items = response.data['Items'];
-        return items.map((item) => Track.fromJson(item)).toList();
+      if (response.statusCode == 200 && response.data != null) {
+        return compute(
+          _parseJellyfinTracksResponse,
+          Uint8List.fromList(response.data as List<int>),
+        );
       }
     } catch (e) {
       // Error fetching all tracks
@@ -617,11 +676,14 @@ class JellyfinService implements BaseMediaService {
           'SortBy': 'SortName',
           'SortOrder': 'Ascending',
         },
+        options: Options(responseType: ResponseType.bytes),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> items = response.data['Items'];
-        return items.map((item) => Artist.fromJson(item)).toList();
+      if (response.statusCode == 200 && response.data != null) {
+        return compute(
+          _parseJellyfinArtistsResponse,
+          Uint8List.fromList(response.data as List<int>),
+        );
       }
     } catch (e) {
       // Error fetching artists
@@ -643,12 +705,17 @@ class JellyfinService implements BaseMediaService {
         'SortOrder': 'Ascending',
       };
 
-      final response = await _dio.get(url, queryParameters: queryParams);
+      final response = await _dio.get(
+        url,
+        queryParameters: queryParams,
+        options: Options(responseType: ResponseType.bytes),
+      );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> items = response.data['Items'];
-        final playlists = items.map((item) => Playlist.fromJson(item)).toList();
-        return playlists;
+      if (response.statusCode == 200 && response.data != null) {
+        return compute(
+          _parseJellyfinPlaylistsResponse,
+          Uint8List.fromList(response.data as List<int>),
+        );
       }
     } catch (e) {
       // Error fetching playlists
@@ -670,11 +737,14 @@ class JellyfinService implements BaseMediaService {
           'SortBy': 'IndexNumber',
           'SortOrder': 'Ascending',
         },
+        options: Options(responseType: ResponseType.bytes),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> items = response.data['Items'];
-        return items.map((item) => Track.fromJson(item)).toList();
+      if (response.statusCode == 200 && response.data != null) {
+        return compute(
+          _parseJellyfinTracksResponse,
+          Uint8List.fromList(response.data as List<int>),
+        );
       }
     } catch (e) {
       // Error fetching playlist tracks
@@ -1194,11 +1264,14 @@ class JellyfinService implements BaseMediaService {
       final response = await _dio.get(
         '/Users/${_server!.userId}/Items',
         queryParameters: params,
+        options: Options(responseType: ResponseType.bytes),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> items = response.data['Items'];
-        return items.map((item) => Track.fromJson(item)).toList();
+      if (response.statusCode == 200 && response.data != null) {
+        return compute(
+          _parseJellyfinTracksResponse,
+          Uint8List.fromList(response.data as List<int>),
+        );
       }
     } catch (e) {
       // Error fetching tracks
@@ -1222,11 +1295,14 @@ class JellyfinService implements BaseMediaService {
           'SortBy': 'Album,IndexNumber',
           'SortOrder': 'Ascending',
         },
+        options: Options(responseType: ResponseType.bytes),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> items = response.data['Items'];
-        return items.map((item) => Track.fromJson(item)).toList();
+      if (response.statusCode == 200 && response.data != null) {
+        return compute(
+          _parseJellyfinTracksResponse,
+          Uint8List.fromList(response.data as List<int>),
+        );
       }
     } catch (e) {
       // Error fetching favorite tracks
@@ -1249,11 +1325,14 @@ class JellyfinService implements BaseMediaService {
           'SortBy': 'SortName',
           'SortOrder': 'Ascending',
         },
+        options: Options(responseType: ResponseType.bytes),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> items = response.data['Items'];
-        return items.map((item) => Album.fromJson(item)).toList();
+      if (response.statusCode == 200 && response.data != null) {
+        return compute(
+          _parseJellyfinAlbumsResponse,
+          Uint8List.fromList(response.data as List<int>),
+        );
       }
     } catch (e) {
       // Error fetching favorite albums
@@ -1276,11 +1355,14 @@ class JellyfinService implements BaseMediaService {
           'SortBy': 'SortName',
           'SortOrder': 'Ascending',
         },
+        options: Options(responseType: ResponseType.bytes),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> items = response.data['Items'];
-        return items.map((item) => Artist.fromJson(item)).toList();
+      if (response.statusCode == 200 && response.data != null) {
+        return compute(
+          _parseJellyfinArtistsResponse,
+          Uint8List.fromList(response.data as List<int>),
+        );
       }
     } catch (e) {
       // Error fetching favorite artists
@@ -1310,30 +1392,14 @@ class JellyfinService implements BaseMediaService {
       final response = await _dio.get(
         '/Users/${_server!.userId}/Items',
         queryParameters: params,
+        options: Options(responseType: ResponseType.bytes),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> items = response.data['Items'];
-
-        final albums = <Album>[];
-        final artists = <Artist>[];
-        final tracks = <Track>[];
-
-        for (final item in items) {
-          switch (item['Type']) {
-            case 'MusicAlbum':
-              albums.add(Album.fromJson(item));
-              break;
-            case 'MusicArtist':
-              artists.add(Artist.fromJson(item));
-              break;
-            case 'Audio':
-              tracks.add(Track.fromJson(item));
-              break;
-          }
-        }
-
-        return SearchResults(albums: albums, artists: artists, tracks: tracks);
+      if (response.statusCode == 200 && response.data != null) {
+        return compute(
+          _parseJellyfinSearchResponse,
+          Uint8List.fromList(response.data as List<int>),
+        );
       }
     } catch (e) {
       // Error searching

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:doudou/l10n/app_localizations.dart';
+import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/navigation_service.dart';
 
@@ -34,13 +35,14 @@ class _ArtistsPageState extends State<ArtistsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        final artists = List.from(appState.artists)
+    return Selector<AppState, List<Artist>>(
+      selector: (_, appState) => appState.artists,
+      builder: (context, artists, child) {
+        final sorted = List<Artist>.from(artists)
           ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         return PageTemplate(
           title: l10n.artists,
-          child: artists.isEmpty
+          child: sorted.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -63,13 +65,16 @@ class _ArtistsPageState extends State<ArtistsPage> {
                     crossAxisSpacing: DesktopTheme.spacingMd,
                     mainAxisSpacing: DesktopTheme.spacingMd,
                   ),
-                  itemCount: artists.length,
+                  itemCount: sorted.length,
                   itemBuilder: (context, index) {
-                    final artist = artists[index];
+                    final artist = sorted[index];
+                    final appState = context.read<AppState>();
                     final imageUrl = artist.imageUrl != null
                         ? appState.getImageUrl(artist.imageUrl!)
                         : null;
-                    return MusicCard(
+                    return KeyedSubtree(
+                      key: ValueKey(artist.id),
+                      child: MusicCard(
                       title: artist.name,
                       subtitle: l10n.artist,
                       imageUrl: imageUrl,
@@ -77,6 +82,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                       placeholderIcon: Icons.person_rounded,
                       onTap: () =>
                           NavigationService().navigateToArtist(artist),
+                    ),
                     );
                   },
                 ),

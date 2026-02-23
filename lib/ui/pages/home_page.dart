@@ -163,15 +163,18 @@ class _HomePageState extends State<HomePage> {
         itemCount: list.length,
         itemBuilder: (context, index) {
           final album = list[index];
-          return Padding(
-            padding: EdgeInsets.only(
-                right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
-            child: MusicCard(
-              title: album.name,
-              subtitle: album.artistName ?? l10n.unknownArtist,
-              imageUrl: _imageUrl(appState, album.imageUrl),
-              size: 180,
-              onTap: () => NavigationService().navigateToAlbum(album),
+          return KeyedSubtree(
+            key: ValueKey(album.id),
+            child: Padding(
+              padding: EdgeInsets.only(
+                  right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
+              child: MusicCard(
+                title: album.name,
+                subtitle: album.artistName ?? l10n.unknownArtist,
+                imageUrl: _imageUrl(appState, album.imageUrl),
+                size: 180,
+                onTap: () => NavigationService().navigateToAlbum(album),
+              ),
             ),
           );
         },
@@ -190,15 +193,18 @@ class _HomePageState extends State<HomePage> {
         itemCount: list.length,
         itemBuilder: (context, index) {
           final artist = list[index];
-          return Padding(
-            padding: EdgeInsets.only(
-                right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
-            child: MusicCard(
-              title: artist.name,
-              subtitle: l10n.artist,
-              imageUrl: _imageUrl(appState, artist.imageUrl),
-              size: 180,
-              onTap: () => NavigationService().navigateToArtist(artist),
+          return KeyedSubtree(
+            key: ValueKey(artist.id),
+            child: Padding(
+              padding: EdgeInsets.only(
+                  right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
+              child: MusicCard(
+                title: artist.name,
+                subtitle: l10n.artist,
+                imageUrl: _imageUrl(appState, artist.imageUrl),
+                size: 180,
+                onTap: () => NavigationService().navigateToArtist(artist),
+              ),
             ),
           );
         },

@@ -34,13 +34,14 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        final playlists = List<Playlist>.from(appState.playlists)
+    return Selector<AppState, List<Playlist>>(
+      selector: (_, appState) => appState.playlists,
+      builder: (context, playlists, child) {
+        final sorted = List<Playlist>.from(playlists)
           ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         return PageTemplate(
           title: l10n.playlists,
-          child: playlists.isEmpty
+          child: sorted.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -63,19 +64,23 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     crossAxisSpacing: DesktopTheme.spacingMd,
                     mainAxisSpacing: DesktopTheme.spacingMd,
                   ),
-                  itemCount: playlists.length,
+                  itemCount: sorted.length,
                   itemBuilder: (context, index) {
-                    final pl = playlists[index];
+                    final pl = sorted[index];
+                    final appState = context.read<AppState>();
                     final imageUrl = pl.imageUrl != null
                         ? appState.getImageUrl(pl.imageUrl!)
                         : null;
-                    return MusicCard(
+                    return KeyedSubtree(
+                      key: ValueKey(pl.id),
+                      child: MusicCard(
                       title: pl.name,
                       subtitle: l10n.countSongs(pl.trackCount),
                       imageUrl: imageUrl,
                       size: 180,
                       onTap: () =>
                           NavigationService().navigateToPlaylist(pl),
+                    ),
                     );
                   },
                 ),

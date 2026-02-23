@@ -1,8 +1,99 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'image_cache_manager.dart';
+
+/// Top-level function for isolate: compute dominant color from RGBA bytes.
+/// Returns ARGB value as int, or null.
+int? _dominantColorFromRgbaBytes(Uint8List pixels) {
+  double weightedR = 0;
+  double weightedG = 0;
+  double weightedB = 0;
+  double weightSum = 0;
+
+  for (int i = 0; i < pixels.length; i += 4) {
+    final r = pixels[i] / 255.0;
+    final g = pixels[i + 1] / 255.0;
+    final b = pixels[i + 2] / 255.0;
+    final a = pixels[i + 3] / 255.0;
+
+    if (a < 0.25) continue;
+
+    final maxValue = [r, g, b].reduce((x, y) => x > y ? x : y);
+    final minValue = [r, g, b].reduce((x, y) => x < y ? x : y);
+    final saturation = maxValue == 0 ? 0.0 : (maxValue - minValue) / maxValue;
+    final luminance = (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+
+    if (luminance < 0.05 || luminance > 0.95) continue;
+
+    final colorfulnessWeight = 0.35 + (saturation * 0.65);
+    final brightnessWeight = 1.0 - ((luminance - 0.5).abs() * 0.8);
+    final alphaWeight = 0.4 + (a * 0.6);
+    final weight = colorfulnessWeight * brightnessWeight * alphaWeight;
+
+    weightedR += r * weight;
+    weightedG += g * weight;
+    weightedB += b * weight;
+    weightSum += weight;
+  }
+
+  if (weightSum == 0) return null;
+
+  final baseR = ((weightedR / weightSum) * 255).round().clamp(0, 255);
+  final baseG = ((weightedG / weightSum) * 255).round().clamp(0, 255);
+  final baseB = ((weightedB / weightSum) * 255).round().clamp(0, 255);
+
+  // RGB to HSL (0-1)
+  final r = baseR / 255.0, g = baseG / 255.0, b = baseB / 255.0;
+  final maxV = r > g ? (r > b ? r : b) : (g > b ? g : b);
+  final minV = r < g ? (r < b ? r : b) : (g < b ? g : b);
+  final l = (maxV + minV) / 2;
+  double h, s;
+  if (maxV == minV) {
+    h = 0;
+    s = 0;
+  } else {
+    final d = maxV - minV;
+    s = l > 0.5 ? d / (2 - maxV - minV) : d / (maxV + minV);
+    if (maxV == r) {
+      h = (g - b) / d + (g < b ? 6 : 0);
+    } else if (maxV == g) {
+      h = (b - r) / d + 2;
+    } else {
+      h = (r - g) / d + 4;
+    }
+    h = h / 6;
+  }
+  final newS = (s + 0.18).clamp(0.25, 0.95);
+  final newL = (l + 0.03).clamp(0.22, 0.72);
+
+  // HSL to RGB (h,s,l in 0-1)
+  double tr, tg, tb;
+  if (newS == 0) {
+    tr = tg = tb = newL;
+  } else {
+    final q = newL < 0.5 ? newL * (1 + newS) : newL + newS - newL * newS;
+    final p = 2 * newL - q;
+    tr = _hueToRgb(p, q, h + 1 / 3);
+    tg = _hueToRgb(p, q, h);
+    tb = _hueToRgb(p, q, h - 1 / 3);
+  }
+  final outR = (tr * 255).round().clamp(0, 255);
+  final outG = (tg * 255).round().clamp(0, 255);
+  final outB = (tb * 255).round().clamp(0, 255);
+  return (255 << 24) | (outR << 16) | (outG << 8) | outB;
+}
+
+double _hueToRgb(double p, double q, double t) {
+  if (t < 0) t += 1;
+  if (t > 1) t -= 1;
+  if (t < 1 / 6) return p + (q - p) * 6 * t;
+  if (t < 1 / 2) return q;
+  if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+  return p;
+}
 
 class AlbumArtColorService {
   static final Map<String, Color> _colorCache = <String, Color>{};
@@ -77,6 +168,7 @@ class AlbumArtColorService {
   }
 
   static Future<Color?> _extractDominantColor(Uint8List bytes) async {
+    // Decode on main isolate (brief); pixel loop runs in background isolate.
     final codec = await ui.instantiateImageCodec(
       bytes,
       targetWidth: 36,
@@ -88,52 +180,9 @@ class AlbumArtColorService {
     if (byteData == null) return null;
 
     final pixels = byteData.buffer.asUint8List();
-    double weightedR = 0;
-    double weightedG = 0;
-    double weightedB = 0;
-    double weightSum = 0;
-
-    for (int i = 0; i < pixels.length; i += 4) {
-      final r = pixels[i] / 255.0;
-      final g = pixels[i + 1] / 255.0;
-      final b = pixels[i + 2] / 255.0;
-      final a = pixels[i + 3] / 255.0;
-
-      if (a < 0.25) continue;
-
-      final maxValue = [r, g, b].reduce((x, y) => x > y ? x : y);
-      final minValue = [r, g, b].reduce((x, y) => x < y ? x : y);
-      final saturation = maxValue == 0 ? 0.0 : (maxValue - minValue) / maxValue;
-      final luminance = (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
-
-      if (luminance < 0.05 || luminance > 0.95) continue;
-
-      final colorfulnessWeight = 0.35 + (saturation * 0.65);
-      final brightnessWeight = 1.0 - ((luminance - 0.5).abs() * 0.8);
-      final alphaWeight = 0.4 + (a * 0.6);
-      final weight = colorfulnessWeight * brightnessWeight * alphaWeight;
-
-      weightedR += r * weight;
-      weightedG += g * weight;
-      weightedB += b * weight;
-      weightSum += weight;
-    }
-
-    if (weightSum == 0) return null;
-
-    final baseColor = Color.fromARGB(
-      255,
-      ((weightedR / weightSum) * 255).round().clamp(0, 255),
-      ((weightedG / weightSum) * 255).round().clamp(0, 255),
-      ((weightedB / weightSum) * 255).round().clamp(0, 255),
-    );
-
-    final hsl = HSLColor.fromColor(baseColor);
-    final tunedColor = hsl
-        .withSaturation((hsl.saturation + 0.18).clamp(0.25, 0.95))
-        .withLightness((hsl.lightness + 0.03).clamp(0.22, 0.72))
-        .toColor();
-
-    return tunedColor;
+    final pixelsCopy = Uint8List.fromList(pixels);
+    final value = await compute(_dominantColorFromRgbaBytes, pixelsCopy);
+    if (value == null) return null;
+    return Color(value);
   }
 }

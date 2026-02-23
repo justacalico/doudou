@@ -115,7 +115,9 @@ class _LibraryPageState extends State<LibraryPage> {
                         final imageUrl = album.imageUrl != null
                             ? appState.getImageUrl(album.imageUrl!)
                             : null;
-                        return Padding(
+                        return KeyedSubtree(
+                          key: ValueKey(album.id),
+                          child: Padding(
                           padding: EdgeInsets.only(
                               right: index < 7 ? DesktopTheme.spacingMd : 0),
                           child: MusicCard(
@@ -126,6 +128,7 @@ class _LibraryPageState extends State<LibraryPage> {
                             onTap: () =>
                                 NavigationService().navigateToAlbum(album),
                           ),
+                        ),
                         );
                       },
                     ),

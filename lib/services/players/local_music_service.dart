@@ -3,10 +3,66 @@ import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
 import '../album_art_service.dart';
 import '../audio_metadata_service.dart';
+
+// Top-level parsers for compute() so cached JSON parsing doesn't block main isolate.
+
+List<Track> _parseLocalTracksList(String jsonString) {
+  final list = jsonDecode(jsonString) as List<dynamic>;
+  return list.map((e) => _trackFromLocalJsonStatic(e as Map<String, dynamic>)).toList();
+}
+
+List<Album> _parseLocalAlbumsList(String jsonString) {
+  final list = jsonDecode(jsonString) as List<dynamic>;
+  return list.map((e) => _albumFromLocalJsonStatic(e as Map<String, dynamic>)).toList();
+}
+
+List<Artist> _parseLocalArtistsList(String jsonString) {
+  final list = jsonDecode(jsonString) as List<dynamic>;
+  return list.map((e) => _artistFromLocalJsonStatic(e as Map<String, dynamic>)).toList();
+}
+
+Track _trackFromLocalJsonStatic(Map<String, dynamic> json) {
+  return Track(
+    id: json['id'] ?? json['Id'] ?? '',
+    name: json['name'] ?? json['Name'] ?? '',
+    albumName: json['albumName'] ?? json['Album'],
+    artistName:
+        json['artistName'] ??
+        (json['Artists'] is List ? json['Artists']?.join(', ') : json['Artists']),
+    albumId: json['albumId'] ?? json['AlbumId'],
+    duration:
+        json['duration'] ??
+        (json['RunTimeTicks'] != null ? (json['RunTimeTicks'] / 10000).round() : null),
+    trackNumber: json['trackNumber'] ?? json['IndexNumber'],
+    imageUrl: json['imageUrl'],
+    isFavorite: json['isFavorite'] ?? json['UserData']?['IsFavorite'] ?? false,
+    playCount: json['playCount'] ?? json['UserData']?['PlayCount'],
+  );
+}
+
+Album _albumFromLocalJsonStatic(Map<String, dynamic> json) {
+  return Album(
+    id: json['id'] ?? json['Id'] ?? '',
+    name: json['name'] ?? json['Name'] ?? '',
+    artistName: json['artistName'] ?? json['AlbumArtist'],
+    imageUrl: json['imageUrl'],
+    year: json['year'] ?? json['ProductionYear'],
+    isFavorite: json['isFavorite'] ?? json['UserData']?['IsFavorite'] ?? false,
+  );
+}
+
+Artist _artistFromLocalJsonStatic(Map<String, dynamic> json) {
+  return Artist(
+    id: json['id'] ?? json['Id'] ?? '',
+    name: json['name'] ?? json['Name'] ?? '',
+    imageUrl: json['imageUrl'],
+  );
+}
 
 /// Service for playing music from local filesystem directories
 class LocalMusicService implements BaseMediaService {
@@ -459,30 +515,22 @@ class LocalMusicService implements BaseMediaService {
   /// Load cached data from preferences
   Future<void> _loadCachedData(SharedPreferences prefs) async {
     try {
-      // Load tracks (using local-specific format)
       final tracksString = prefs.getString(_cachedTracksKey);
-      if (tracksString != null) {
-        final tracksList = jsonDecode(tracksString) as List;
-        _tracks = tracksList.map((json) => _trackFromLocalJson(json)).toList();
+      if (tracksString != null && tracksString.isNotEmpty) {
+        _tracks = await compute(_parseLocalTracksList, tracksString);
       }
 
-      // Load albums (using local-specific format)
       final albumsString = prefs.getString(_cachedAlbumsKey);
-      if (albumsString != null) {
-        final albumsList = jsonDecode(albumsString) as List;
-        _albums = albumsList.map((json) => _albumFromLocalJson(json)).toList();
+      if (albumsString != null && albumsString.isNotEmpty) {
+        _albums = await compute(_parseLocalAlbumsList, albumsString);
       }
 
-      // Load artists (using local-specific format)
       final artistsString = prefs.getString(_cachedArtistsKey);
-      if (artistsString != null) {
-        final artistsList = jsonDecode(artistsString) as List;
-        _artists = artistsList
-            .map((json) => _artistFromLocalJson(json))
-            .toList();
+      if (artistsString != null && artistsString.isNotEmpty) {
+        _artists = await compute(_parseLocalArtistsList, artistsString);
       }
 
-      // Load track ID to path mapping
+      // Load track ID to path mapping (small map, keep on main)
       final pathsString = prefs.getString(_cachedPathsKey);
       if (pathsString != null) {
         final pathsMap = jsonDecode(pathsString) as Map<String, dynamic>;
@@ -494,7 +542,6 @@ class LocalMusicService implements BaseMediaService {
 
       await _loadPlaylistData(prefs);
     } catch (_) {
-      // Clear corrupted cache
       _tracks = [];
       _albums = [];
       _artists = [];
@@ -520,31 +567,6 @@ class LocalMusicService implements BaseMediaService {
     };
   }
 
-  /// Create Track from local JSON format
-  Track _trackFromLocalJson(Map<String, dynamic> json) {
-    return Track(
-      id: json['id'] ?? json['Id'] ?? '',
-      name: json['name'] ?? json['Name'] ?? '',
-      albumName: json['albumName'] ?? json['Album'],
-      artistName:
-          json['artistName'] ??
-          (json['Artists'] is List
-              ? json['Artists']?.join(', ')
-              : json['Artists']),
-      albumId: json['albumId'] ?? json['AlbumId'],
-      duration:
-          json['duration'] ??
-          (json['RunTimeTicks'] != null
-              ? (json['RunTimeTicks'] / 10000).round()
-              : null),
-      trackNumber: json['trackNumber'] ?? json['IndexNumber'],
-      imageUrl: json['imageUrl'],
-      isFavorite:
-          json['isFavorite'] ?? json['UserData']?['IsFavorite'] ?? false,
-      playCount: json['playCount'] ?? json['UserData']?['PlayCount'],
-    );
-  }
-
   /// Convert Album to local JSON format (preserves imageUrl as-is)
   Map<String, dynamic> _albumToLocalJson(Album album) {
     return {
@@ -557,31 +579,9 @@ class LocalMusicService implements BaseMediaService {
     };
   }
 
-  /// Create Album from local JSON format
-  Album _albumFromLocalJson(Map<String, dynamic> json) {
-    return Album(
-      id: json['id'] ?? json['Id'] ?? '',
-      name: json['name'] ?? json['Name'] ?? '',
-      artistName: json['artistName'] ?? json['AlbumArtist'],
-      imageUrl: json['imageUrl'],
-      year: json['year'] ?? json['ProductionYear'],
-      isFavorite:
-          json['isFavorite'] ?? json['UserData']?['IsFavorite'] ?? false,
-    );
-  }
-
   /// Convert Artist to local JSON format (preserves imageUrl as-is)
   Map<String, dynamic> _artistToLocalJson(Artist artist) {
     return {'id': artist.id, 'name': artist.name, 'imageUrl': artist.imageUrl};
-  }
-
-  /// Create Artist from local JSON format
-  Artist _artistFromLocalJson(Map<String, dynamic> json) {
-    return Artist(
-      id: json['id'] ?? json['Id'] ?? '',
-      name: json['name'] ?? json['Name'] ?? '',
-      imageUrl: json['imageUrl'],
-    );
   }
 
   // ==================== BaseMediaService Implementation ====================

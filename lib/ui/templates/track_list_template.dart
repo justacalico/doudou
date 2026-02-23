@@ -46,59 +46,103 @@ class TrackListTemplate extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: AppleDesignSystem.blurRegular,
-          sigmaY: AppleDesignSystem.blurRegular,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isDark
-                ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.7)
-                : AppleColors.backgroundSecondary.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.black.withValues(alpha: 0.05),
-              width: 0.5,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header + divider with blur (small region only for performance)
+          BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: AppleDesignSystem.blurRegular,
+              sigmaY: AppleDesignSystem.blurRegular,
             ),
-          ),
-          child: Column(
-            children: [
-              // Track list header with Apple styling
-              _buildHeader(context, isDark),
-
-              // Subtle gradient divider
-              Container(
-                height: 0.5,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      (isDark
-                              ? AppleColors.separatorDark
-                              : AppleColors.separator)
-                          .withValues(alpha: 0),
-                      isDark
-                          ? AppleColors.separatorDark
-                          : AppleColors.separator,
-                      (isDark
-                              ? AppleColors.separatorDark
-                              : AppleColors.separator)
-                          .withValues(alpha: 0),
-                    ],
-                  ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.7)
+                    : AppleColors.backgroundSecondary.withValues(alpha: 0.8),
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppleDesignSystem.radiusMedium)),
+                border: Border(
+                  left: BorderSide(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.05),
+                      width: 0.5),
+                  right: BorderSide(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.05),
+                      width: 0.5),
+                  top: BorderSide(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.05),
+                      width: 0.5),
                 ),
               ),
-
-              // Track list with custom scroll physics
-              Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildHeader(context, isDark),
+                  Container(
+                    height: 0.5,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          (isDark
+                                  ? AppleColors.separatorDark
+                                  : AppleColors.separator)
+                              .withValues(alpha: 0),
+                          isDark
+                              ? AppleColors.separatorDark
+                              : AppleColors.separator,
+                          (isDark
+                                  ? AppleColors.separatorDark
+                                  : AppleColors.separator)
+                              .withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // List body: semi-opaque without blur to reduce GPU cost
+          Expanded(
+            child: RepaintBoundary(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.85)
+                      : AppleColors.backgroundSecondary.withValues(alpha: 0.9),
+                  borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(AppleDesignSystem.radiusMedium)),
+                  border: Border(
+                    left: BorderSide(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.black.withValues(alpha: 0.05),
+                        width: 0.5),
+                    right: BorderSide(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.black.withValues(alpha: 0.05),
+                        width: 0.5),
+                    bottom: BorderSide(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.black.withValues(alpha: 0.05),
+                        width: 0.5),
+                  ),
+                ),
                 child: ListView.builder(
                   physics: const BouncingScrollPhysics(),
                   itemCount: tracks.length,
                   itemBuilder: (context, index) {
                     final track = tracks[index];
                     return _AppleTrackListItem(
+                      key: ValueKey(track.id),
                       track: track,
                       index: index,
                       totalTracks: tracks.length,
@@ -121,9 +165,9 @@ class TrackListTemplate extends StatelessWidget {
                   },
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -339,6 +383,7 @@ class _AppleTrackListItem extends StatefulWidget {
   final VoidCallback? onRemove;
 
   const _AppleTrackListItem({
+    super.key,
     required this.track,
     required this.index,
     required this.totalTracks,

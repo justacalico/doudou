@@ -70,24 +70,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
       duration: const Duration(milliseconds: 250),
       vsync: this,
     );
-    _skipAnimationController.addListener(() {
-      if (_isAnimatingSkip) {
-        setState(() {
-          // Animate from 0 to full spacing in the skip direction
-        });
-      }
-    });
     _snapBackController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _snapBackController.addListener(() {
-      if (_isSnappingBack) {
-        setState(() {
-          _dragOffset = _snapBackStartOffset * (1 - _snapBackController.value);
-        });
-      }
-    });
   }
 
   @override
@@ -669,13 +655,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                               }
                                             },
                                             child: AnimatedBuilder(
-                                              animation:
-                                                  _skipAnimationController,
+                                              animation: Listenable.merge([
+                                                _skipAnimationController,
+                                                _snapBackController,
+                                              ]),
                                               builder: (context, child) {
-                                                // Calculate total offset including skip animation
+                                                // Calculate total offset: skip animation, snap-back, or drag
                                                 double totalOffset;
                                                 if (_isAnimatingSkip) {
-                                                  // Animate from current position to target (spacing in skip direction)
                                                   final targetOffset =
                                                       _skipDirection * spacing;
                                                   final progress = Curves
@@ -684,12 +671,17 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                         _skipAnimationController
                                                             .value,
                                                       );
-                                                  // Lerp from start position to target
                                                   totalOffset =
                                                       _animationStartOffset +
                                                       (targetOffset -
                                                               _animationStartOffset) *
                                                           progress;
+                                                } else if (_isSnappingBack) {
+                                                  totalOffset =
+                                                      _snapBackStartOffset *
+                                                          (1 -
+                                                              _snapBackController
+                                                                  .value);
                                                 } else {
                                                   totalOffset = _dragOffset;
                                                 }
@@ -2207,7 +2199,9 @@ class _NowPlayingQueuePanel extends StatelessWidget {
         final track = queue[index];
         final isCurrent = index == currentIndex;
 
-        return ListTile(
+        return KeyedSubtree(
+          key: ValueKey(track.id),
+          child: ListTile(
           dense: true,
           leading: SizedBox(
             width: 40,
@@ -2236,6 +2230,7 @@ class _NowPlayingQueuePanel extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           onTap: () => audioHandler?.skipToQueueItem(index),
+        ),
         );
       },
     );

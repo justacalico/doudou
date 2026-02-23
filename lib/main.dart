@@ -27,7 +27,6 @@ Future<void> _runApp() async {
 
   try {
     await LoggingService().initialize();
-    await _logSystemInfo('App');
   } catch (e) {
     // Logging initialization failed - continue without logging
   }
@@ -64,6 +63,10 @@ Future<void> _runApp() async {
   }
 
   runApp(const DoudouApp());
+  // Defer heavy system info logging until after first frame to avoid blocking initial paint.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _logSystemInfo('App');
+  });
 }
 
 class DoudouApp extends StatelessWidget {

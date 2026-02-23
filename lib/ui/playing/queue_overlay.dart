@@ -307,8 +307,10 @@ class _QueueOverlayState extends State<QueueOverlay>
             itemBuilder: (context, index) {
               final track = queueTracks[index];
               final isCurrentTrack = index == currentIndex;
-              
-              return _buildQueueItem(
+
+              return KeyedSubtree(
+                key: ValueKey(track.id),
+                child: _buildQueueItem(
                 track: track,
                 isCurrentTrack: isCurrentTrack,
                 appState: appState,
@@ -320,7 +322,8 @@ class _QueueOverlayState extends State<QueueOverlay>
                 onRemove: isCurrentTrack ? null : () {
                   audioHandler?.removeFromQueue(index);
                 },
-              );
+              ),
+            );
             },
           ),
         ),

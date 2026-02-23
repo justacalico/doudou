@@ -41,26 +41,27 @@ class _AlbumsPageState extends State<AlbumsPage> {
     });
   }
 
-  List<Album> _filtered(AppState appState) {
-    var list = List<Album>.from(appState.albums);
+  List<Album> _filteredFromList(List<Album> list) {
+    var result = List<Album>.from(list);
     if (_query.isNotEmpty) {
       final q = _query.toLowerCase();
-      list = list
+      result = result
           .where((a) =>
               a.name.toLowerCase().contains(q) ||
               (a.artistName?.toLowerCase().contains(q) ?? false))
           .toList();
     }
-    list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    return list;
+    result.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return result;
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        final albums = _filtered(appState);
+    return Selector<AppState, List<Album>>(
+      selector: (_, appState) => appState.albums,
+      builder: (context, albums, child) {
+        final filtered = _filteredFromList(albums);
         return PageTemplate(
           title: l10n.albums,
           actions: [
@@ -83,7 +84,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
               ),
             ),
           ],
-          child: albums.isEmpty
+          child: filtered.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -106,18 +107,22 @@ class _AlbumsPageState extends State<AlbumsPage> {
                     crossAxisSpacing: DesktopTheme.spacingMd,
                     mainAxisSpacing: DesktopTheme.spacingMd,
                   ),
-                  itemCount: albums.length,
+                  itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    final album = albums[index];
+                    final album = filtered[index];
+                    final appState = context.read<AppState>();
                     final imageUrl = album.imageUrl != null
                         ? appState.getImageUrl(album.imageUrl!)
                         : null;
-                    return MusicCard(
+                    return KeyedSubtree(
+                      key: ValueKey(album.id),
+                      child: MusicCard(
                       title: album.name,
                       subtitle: album.artistName ?? l10n.unknownArtist,
                       imageUrl: imageUrl,
                       size: 180,
                       onTap: () => NavigationService().navigateToAlbum(album),
+                    ),
                     );
                   },
                 ),

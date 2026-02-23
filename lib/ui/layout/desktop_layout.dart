@@ -1015,6 +1015,7 @@ class _AddToPlaylistDialogContent extends StatelessWidget {
             itemBuilder: (context, index) {
               final playlist = playlists[index];
               return _PlaylistItem(
+                key: ValueKey(playlist.id),
                 playlist: playlist,
                 onTap: () => _addToPlaylist(context, playlist),
               );
@@ -1059,7 +1060,7 @@ class _PlaylistItem extends StatefulWidget {
   final Playlist playlist;
   final VoidCallback onTap;
 
-  const _PlaylistItem({required this.playlist, required this.onTap});
+  const _PlaylistItem({super.key, required this.playlist, required this.onTap});
 
   @override
   State<_PlaylistItem> createState() => _PlaylistItemState();
@@ -2010,6 +2011,7 @@ class _TrackListView extends StatelessWidget {
       itemBuilder: (context, index) {
         final track = tracks[index];
         return _TrackRow(
+          key: ValueKey(track.id),
           track: track,
           index: index,
           showTrackNumber: showTrackNumber,
@@ -2030,6 +2032,7 @@ class _TrackRow extends StatefulWidget {
   final VoidCallback onAddToQueue;
 
   const _TrackRow({
+    super.key,
     required this.track,
     required this.index,
     required this.showTrackNumber,
@@ -2426,6 +2429,7 @@ class _AlbumGridView extends StatelessWidget {
           itemBuilder: (context, index) {
             final album = albums[index];
             return _AlbumCard(
+              key: ValueKey(album.id),
               album: album,
               imageUrl: album.imageUrl != null
                   ? appState.getImageUrl(album.imageUrl!)
@@ -2446,6 +2450,7 @@ class _AlbumCard extends StatefulWidget {
   final VoidCallback onTap;
 
   const _AlbumCard({
+    super.key,
     required this.album,
     required this.imageUrl,
     required this.onTap,
