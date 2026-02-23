@@ -112,7 +112,8 @@ class _SearchPageState extends State<SearchPage> {
                     final results = snapshot.data!;
                     final playlists = results.playlists;
                     final tracks = results.tracks;
-                    if (playlists.isEmpty && tracks.isEmpty) {
+                    final artists = results.artists;
+                    if (playlists.isEmpty && tracks.isEmpty && artists.isEmpty) {
                       return Center(
                         child: Padding(
                           padding: const EdgeInsets.all(DesktopTheme.spacingXl),
@@ -129,6 +130,36 @@ class _SearchPageState extends State<SearchPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (artists.isNotEmpty) ...[
+                            SectionHeader(title: l10n.artists),
+                            const SizedBox(height: DesktopTheme.spacingSm),
+                            SizedBox(
+                              height: 220,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: artists.length,
+                                itemBuilder: (context, i) {
+                                  final artist = artists[i];
+                                  final imageUrl = artist.imageUrl;
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                        right: i < artists.length - 1
+                                            ? DesktopTheme.spacingMd
+                                            : 0),
+                                    child: MusicCard(
+                                      title: artist.name,
+                                      subtitle: l10n.artist,
+                                      imageUrl: imageUrl,
+                                      size: 160,
+                                      onTap: () =>
+                                          NavigationService().navigateToArtist(artist),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: DesktopTheme.spacingLg),
+                          ],
                           if (playlists.isNotEmpty) ...[
                             SectionHeader(
                                 title: l10n.communityPlaylists),

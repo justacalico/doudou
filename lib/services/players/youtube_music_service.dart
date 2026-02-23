@@ -217,10 +217,12 @@ class YoutubeMusicService implements BaseMediaService {
   }) async {
     final maxTracks = limit ?? 25;
     final maxPlaylists = 12;
+    final maxArtists = 12;
     try {
       final searchList = await _client.search.searchContent(query);
       final tracks = <Track>[];
       final playlists = <Playlist>[];
+      final artists = <Artist>[];
       for (final r in searchList) {
         if (r is SearchVideo) {
           if (tracks.length >= maxTracks) continue;
@@ -248,9 +250,23 @@ class YoutubeMusicService implements BaseMediaService {
             imageUrl: thumbUrl,
             trackCount: r.videoCount,
           ));
+        } else if (r is SearchChannel) {
+          if (artists.length >= maxArtists) continue;
+          final thumbUrl = r.thumbnails.isNotEmpty
+              ? r.thumbnails.first.url.toString()
+              : null;
+          artists.add(Artist(
+            id: r.id.value,
+            name: r.name,
+            imageUrl: thumbUrl,
+          ));
         }
       }
-      return SearchResults(tracks: tracks, playlists: playlists);
+      return SearchResults(
+        tracks: tracks,
+        playlists: playlists,
+        artists: artists,
+      );
     } catch (_) {
       return SearchResults();
     }
