@@ -261,7 +261,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: _artGlowColor.withOpacity(0.42),
+                        color: _artGlowColor.withValues(alpha: 0.42),
                         offset: const Offset(0, 8),
                         blurRadius: 24,
                       ),
@@ -363,7 +363,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                           widget.artistName!,
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.white.withOpacity(0.7),
+                            color: Colors.white.withValues(alpha: 0.7),
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -382,7 +382,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                           ].join(' • '),
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -420,7 +420,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                             ),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               width: 1,
                             ),
                           ),
@@ -477,15 +477,15 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                   )
                                 : LinearGradient(
                                     colors: [
-                                      Colors.white.withOpacity(0.15),
-                                      Colors.white.withOpacity(0.05),
+                                      Colors.white.withValues(alpha: 0.15),
+                                      Colors.white.withValues(alpha: 0.05),
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               width: 1,
                             ),
                           ),
@@ -497,7 +497,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                 size: 18,
                                 color: _isShuffled
                                     ? Colors.white
-                                    : Colors.white.withOpacity(0.7),
+                                    : Colors.white.withValues(alpha: 0.7),
                               ),
                               const SizedBox(width: 8),
                               Text(
@@ -505,7 +505,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                 style: TextStyle(
                                   color: _isShuffled
                                       ? Colors.white
-                                      : Colors.white.withOpacity(0.7),
+                                      : Colors.white.withValues(alpha: 0.7),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -543,7 +543,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -580,7 +580,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                           child: Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
+                              color: Colors.white.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: const CupertinoActivityIndicator(
@@ -605,13 +605,13 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Colors.white.withOpacity(0.15),
-                                    Colors.white.withOpacity(0.05),
+                                    Colors.white.withValues(alpha: 0.15),
+                                    Colors.white.withValues(alpha: 0.05),
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: Colors.white.withValues(alpha: 0.2),
                                   width: 1,
                                 ),
                               ),
@@ -634,7 +634,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                         BoxShadow(
                                           color: const Color(
                                             0xFF8B5CF6,
-                                          ).withOpacity(0.4),
+                                          ).withValues(alpha: 0.4),
                                           blurRadius: 20,
                                           offset: const Offset(0, 8),
                                         ),
@@ -660,7 +660,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                     'This ${widget.viewType == DetailViewType.album ? 'album' : 'playlist'} appears to be empty',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white.withOpacity(0.6),
+                                      color: Colors.white.withValues(alpha: 0.6),
                                     ),
                                     textAlign: TextAlign.center,
                                   ),

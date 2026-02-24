@@ -221,17 +221,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                     boxShadow: isCurrent
                         ? [
                             BoxShadow(
-                              color: glowColor.withOpacity(
-                                isPlaying ? 0.3 : 0.1,
-                              ),
+                              color: glowColor.withValues(alpha: isPlaying ? 0.3 : 0.1),
                               blurRadius: 40,
                               offset: const Offset(0, 20),
                               spreadRadius: isPlaying ? 5 : 0,
                             ),
                             BoxShadow(
-                              color: secondaryGlowColor.withOpacity(
-                                isPlaying ? 0.2 : 0.05,
-                              ),
+                              color: secondaryGlowColor.withValues(alpha: isPlaying ? 0.2 : 0.05),
                               blurRadius: 60,
                               offset: const Offset(-10, 30),
                             ),
@@ -262,9 +258,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    CupertinoColors.white.withOpacity(0.1),
+                                    CupertinoColors.white.withValues(alpha: 0.1),
                                     Colors.transparent,
-                                    CupertinoColors.white.withOpacity(0.05),
+                                    CupertinoColors.white.withValues(alpha: 0.05),
                                   ],
                                 ),
                               ),
@@ -496,12 +492,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
                                       colors: [
-                                        Colors.black.withOpacity(
-                                          isPlaying ? 0.3 : 0.5,
-                                        ),
-                                        Colors.black.withOpacity(
-                                          isPlaying ? 0.6 : 0.8,
-                                        ),
+                                        Colors.black.withValues(alpha: isPlaying ? 0.3 : 0.5),
+                                        Colors.black.withValues(alpha: isPlaying ? 0.6 : 0.8),
                                       ],
                                     ),
                                   ),
@@ -542,13 +534,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                         height: 40,
                                         decoration: BoxDecoration(
                                           color: CupertinoColors.white
-                                              .withOpacity(0.15),
+                                              .withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
                                           border: Border.all(
                                             color: CupertinoColors.white
-                                                .withOpacity(0.2),
+                                                .withValues(alpha: 0.2),
                                             width: 0.5,
                                           ),
                                         ),
@@ -884,7 +876,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                     decoration: BoxDecoration(
                                                       color: CupertinoColors
                                                           .white
-                                                          .withOpacity(0.15),
+                                                          .withValues(alpha: 0.15),
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                               6),
@@ -948,7 +940,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                 _formatDuration(position),
                                                 style: TextStyle(
                                                   color: CupertinoColors.white
-                                                      .withOpacity(0.6),
+                                                      .withValues(alpha: 0.6),
                                                   fontSize: 13,
                                                   fontWeight: FontWeight.w500,
                                                 ),
@@ -957,7 +949,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                 _formatDuration(duration),
                                                 style: TextStyle(
                                                   color: CupertinoColors.white
-                                                      .withOpacity(0.6),
+                                                      .withValues(alpha: 0.6),
                                                   fontSize: 13,
                                                   fontWeight: FontWeight.w500,
                                                 ),
@@ -1022,9 +1014,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                           true
                                                       ? const Color(
                                                           0xFF8B5CF6,
-                                                        ).withOpacity(0.3)
+                                                        ).withValues(alpha: 0.3)
                                                       : CupertinoColors.white
-                                                            .withOpacity(0.1),
+                                                            .withValues(alpha: 0.1),
                                                   borderRadius:
                                                       BorderRadius.circular(12),
                                                   border: Border.all(
@@ -1034,11 +1026,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                             true
                                                         ? const Color(
                                                             0xFF8B5CF6,
-                                                          ).withOpacity(0.5)
+                                                          ).withValues(alpha: 0.5)
                                                         : CupertinoColors.white
-                                                              .withOpacity(
-                                                                0.15,
-                                                              ),
+                                                              .withValues(alpha: 0.15),
                                                     width: 0.5,
                                                   ),
                                                 ),
@@ -1050,7 +1040,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                           true
                                                       ? CupertinoColors.white
                                                       : CupertinoColors.white
-                                                            .withOpacity(0.6),
+                                                            .withValues(alpha: 0.6),
                                                   size: 20,
                                                 ),
                                               ),
@@ -1085,7 +1075,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                     true
                                                 ? CupertinoColors.white
                                                 : CupertinoColors.white
-                                                      .withOpacity(0.3),
+                                                      .withValues(alpha: 0.3),
                                           ),
                                         ),
                                         // Play/Pause button with gradient
@@ -1108,7 +1098,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                 BoxShadow(
                                                   color: const Color(
                                                     0xFF8B5CF6,
-                                                  ).withOpacity(0.4),
+                                                  ).withValues(alpha: 0.4),
                                                   blurRadius: 20,
                                                   offset: const Offset(0, 8),
                                                 ),
@@ -1154,7 +1144,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                             color: audioHandler?.hasNext == true
                                                 ? CupertinoColors.white
                                                 : CupertinoColors.white
-                                                      .withOpacity(0.3),
+                                                      .withValues(alpha: 0.3),
                                           ),
                                         ),
                                         // Repeat button with liquid glass
@@ -1212,12 +1202,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                       color: isActive
                                                           ? const Color(
                                                               0xFFEC4899,
-                                                            ).withOpacity(0.3)
+                                                            ).withValues(alpha: 0.3)
                                                           : CupertinoColors
                                                                 .white
-                                                                .withOpacity(
-                                                                  0.1,
-                                                                ),
+                                                                .withValues(alpha: 0.1),
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             12,
@@ -1226,12 +1214,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                         color: isActive
                                                             ? const Color(
                                                                 0xFFEC4899,
-                                                              ).withOpacity(0.5)
+                                                              ).withValues(alpha: 0.5)
                                                             : CupertinoColors
                                                                   .white
-                                                                  .withOpacity(
-                                                                    0.15,
-                                                                  ),
+                                                                  .withValues(alpha: 0.15),
                                                         width: 0.5,
                                                       ),
                                                     ),
@@ -1247,9 +1233,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                                 .white
                                                           : CupertinoColors
                                                                 .white
-                                                                .withOpacity(
-                                                                  0.6,
-                                                                ),
+                                                                .withValues(alpha: 0.6),
                                                       size: 20,
                                                     ),
                                                   ),
@@ -1285,11 +1269,11 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                       ),
                                       decoration: BoxDecoration(
                                         color: CupertinoColors.white
-                                            .withOpacity(0.1),
+                                            .withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(20),
                                         border: Border.all(
                                           color: CupertinoColors.white
-                                              .withOpacity(0.2),
+                                              .withValues(alpha: 0.2),
                                           width: 0.5,
                                         ),
                                       ),
@@ -1305,7 +1289,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                             child: Icon(
                                               CupertinoIcons.list_bullet,
                                               color: CupertinoColors.white
-                                                  .withOpacity(0.8),
+                                                  .withValues(alpha: 0.8),
                                               size: 22,
                                             ),
                                           ),
@@ -1342,7 +1326,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                             0xFFEC4899,
                                                           )
                                                         : CupertinoColors.white
-                                                              .withOpacity(0.8),
+                                                              .withValues(alpha: 0.8),
                                                     size: 22,
                                                   ),
                                                 );
@@ -1361,7 +1345,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                               child: Icon(
                                                 CupertinoIcons.mic_fill,
                                                 color: CupertinoColors.white
-                                                    .withOpacity(0.8),
+                                                    .withValues(alpha: 0.8),
                                                 size: 22,
                                               ),
                                             ),
@@ -1375,7 +1359,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                             child: Icon(
                                               CupertinoIcons.ellipsis,
                                               color: CupertinoColors.white
-                                                  .withOpacity(0.8),
+                                                  .withValues(alpha: 0.8),
                                               size: 22,
                                             ),
                                           ),
@@ -1427,9 +1411,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     }
     final overlayGradientColors = _gradientColors ??
         [
-          DesktopTheme.backgroundDeep.withOpacity(0.5),
-          DesktopTheme.backgroundDeep.withOpacity(0.85),
-          DesktopTheme.backgroundDeep.withOpacity(0.95),
+          DesktopTheme.backgroundDeep.withValues(alpha: 0.5),
+          DesktopTheme.backgroundDeep.withValues(alpha: 0.85),
+          DesktopTheme.backgroundDeep.withValues(alpha: 0.95),
         ];
 
     return StreamBuilder<Duration>(
@@ -1513,7 +1497,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                               ),
                               decoration: BoxDecoration(
                                 color: DesktopTheme.backgroundDeep
-                                    .withOpacity(0.6),
+                                    .withValues(alpha: 0.6),
                                 borderRadius: BorderRadius.circular(
                                   DesktopTheme.radiusMd,
                                 ),
@@ -2120,7 +2104,7 @@ class _ExpandedLeftColumn extends StatelessWidget {
                     borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         blurRadius: 40,
                         offset: const Offset(0, 20),
                       ),
@@ -2597,7 +2581,7 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-                  color: isCurrent ? DesktopTheme.accentPrimary.withOpacity(0.15) : Colors.transparent,
+                  color: isCurrent ? DesktopTheme.accentPrimary.withValues(alpha: 0.15) : Colors.transparent,
                 ),
                 child: Text(
                   line.text,

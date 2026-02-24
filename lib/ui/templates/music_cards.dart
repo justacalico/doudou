@@ -53,12 +53,11 @@ class _MusicCardState extends State<MusicCard>
           duration: DesktopTheme.durationFast,
           curve: DesktopTheme.curveSpring,
           transform: Matrix4.identity()
-            ..scale(
-              _isPressed
-                  ? 0.97
-                  : _isHovering
-                  ? 1.03
-                  : 1.0,
+            ..scaleByDouble(
+              _isPressed ? 0.97 : _isHovering ? 1.03 : 1.0,
+              _isPressed ? 0.97 : _isHovering ? 1.03 : 1.0,
+              1.0,
+              1.0,
             ),
           transformAlignment: Alignment.center,
           child: SizedBox(
@@ -78,9 +77,7 @@ class _MusicCardState extends State<MusicCard>
                       boxShadow: _isHovering
                           ? [
                               BoxShadow(
-                                color: theme.colorScheme.primary.withOpacity(
-                                  0.3,
-                                ),
+                                color: theme.colorScheme.primary.withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -116,7 +113,7 @@ class _MusicCardState extends State<MusicCard>
                                   end: Alignment.bottomCenter,
                                   colors: [
                                     Colors.transparent,
-                                    Colors.black.withOpacity(0.5),
+                                    Colors.black.withValues(alpha: 0.5),
                                   ],
                                 ),
                               ),
@@ -329,7 +326,7 @@ class _MusicListTileState extends State<MusicListTile> {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
+                            color: Colors.black.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(
                               DesktopTheme.radiusSm,
                             ),
@@ -434,7 +431,7 @@ class _FeaturedMusicCardState extends State<FeaturedMusicCard> {
         child: AnimatedContainer(
           duration: DesktopTheme.durationFast,
           height: widget.height,
-          transform: Matrix4.identity()..scale(_isHovering ? 1.02 : 1.0),
+          transform: Matrix4.identity()..scaleByDouble(_isHovering ? 1.02 : 1.0, _isHovering ? 1.02 : 1.0, 1.0, 1.0),
           transformAlignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(DesktopTheme.radiusLg),
@@ -480,7 +477,7 @@ class _FeaturedMusicCardState extends State<FeaturedMusicCard> {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.7),
+                        Colors.black.withValues(alpha: 0.7),
                       ],
                     ),
                   ),
@@ -513,7 +510,7 @@ class _FeaturedMusicCardState extends State<FeaturedMusicCard> {
                               widget.subtitle,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -588,7 +585,7 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
         child: ClipRect(
           child: AnimatedContainer(
             duration: DesktopTheme.durationFast,
-            transform: Matrix4.identity()..scale(_isHovering ? 1.02 : 1.0),
+            transform: Matrix4.identity()..scaleByDouble(_isHovering ? 1.02 : 1.0, _isHovering ? 1.02 : 1.0, 1.0, 1.0),
             transformAlignment: Alignment.center,
             child: ClipRRect(
             borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
@@ -600,11 +597,11 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
               child: Container(
                 padding: const EdgeInsets.all(DesktopTheme.spacingMd),
                 decoration: BoxDecoration(
-                  color: DesktopTheme.glassSurface.withOpacity(0.6),
+                  color: DesktopTheme.glassSurface.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
                   border: Border.all(
                     color: _isHovering
-                        ? widget.color.withOpacity(0.3)
+                        ? widget.color.withValues(alpha: 0.3)
                         : DesktopTheme.glassBorder,
                     width: 1,
                   ),
@@ -617,16 +614,12 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
                       width: 52,
                       height: 52,
                       decoration: BoxDecoration(
-                        color: widget.color.withOpacity(
-                          _isHovering ? 0.2 : 0.12,
-                        ),
+                        color: widget.color.withValues(alpha: _isHovering ? 0.2 : 0.12),
                         borderRadius: BorderRadius.circular(
                           DesktopTheme.radiusMd,
                         ),
                         border: Border.all(
-                          color: widget.color.withOpacity(
-                            _isHovering ? 0.3 : 0.15,
-                          ),
+                          color: widget.color.withValues(alpha: _isHovering ? 0.3 : 0.15),
                           width: 1,
                         ),
                       ),

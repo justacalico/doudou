@@ -302,10 +302,12 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
     // If we're on restricted desktop and YT Music is disabled but form had YT selected, switch to jellyfin on first build
     if (isRestrictedDesktop && !appState.allowYoutubeMusicOnDesktop && _selectedServerType == 'youtubeMusic') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() {
-          _selectedServerType = 'jellyfin';
-          _serverController.text = _getServerPlaceholder();
-        });
+        if (mounted) {
+          setState(() {
+            _selectedServerType = 'jellyfin';
+            _serverController.text = _getServerPlaceholder();
+          });
+        }
       });
     }
     final effectiveServerType = (isRestrictedDesktop && !appState.allowYoutubeMusicOnDesktop && _selectedServerType == 'youtubeMusic')
@@ -318,7 +320,8 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DropdownButtonFormField<String>(
-            value: effectiveServerType,
+            key: ValueKey(effectiveServerType),
+            initialValue: effectiveServerType,
             decoration: const InputDecoration(
               labelText: 'Server type',
               border: OutlineInputBorder(),

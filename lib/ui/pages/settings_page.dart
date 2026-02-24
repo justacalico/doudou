@@ -609,18 +609,18 @@ class _SettingsSidebarTileState extends State<_SettingsSidebarTile> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: widget.isSelected || _hover
-                  ? Colors.white.withOpacity(0.05)
+                  ? Colors.white.withValues(alpha: 0.05)
                   : Colors.transparent,
               border: Border.all(
                 color: widget.isSelected
-                    ? Colors.white.withOpacity(0.1)
+                    ? Colors.white.withValues(alpha: 0.1)
                     : Colors.transparent,
                 width: 1,
               ),
               boxShadow: widget.isSelected
                   ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -632,7 +632,7 @@ class _SettingsSidebarTileState extends State<_SettingsSidebarTile> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: widget.item.iconColor.withOpacity(0.2),
+                    color: widget.item.iconColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -1008,13 +1008,13 @@ class _AppearanceSection extends StatelessWidget {
   }
 
   static String _colorDisplayName(Color color) {
-    if (color.value == Colors.purple.value) return 'Purple';
-    if (color.value == Colors.blue.value) return 'Blue';
-    if (color.value == Colors.green.value) return 'Green';
-    if (color.value == Colors.orange.value) return 'Orange';
-    if (color.value == Colors.red.value) return 'Red';
-    if (color.value == Colors.teal.value) return 'Teal';
-    return 'Custom (#${color.value.toRadixString(16).substring(2).toUpperCase()})';
+    if (color.toARGB32() == Colors.purple.toARGB32()) return 'Purple';
+    if (color.toARGB32() == Colors.blue.toARGB32()) return 'Blue';
+    if (color.toARGB32() == Colors.green.toARGB32()) return 'Green';
+    if (color.toARGB32() == Colors.orange.toARGB32()) return 'Orange';
+    if (color.toARGB32() == Colors.red.toARGB32()) return 'Red';
+    if (color.toARGB32() == Colors.teal.toARGB32()) return 'Teal';
+    return 'Custom (#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()})';
   }
 
   static String _languageDisplayName(AppState appState) {
@@ -1453,7 +1453,7 @@ class _AccentColorDialog extends StatelessWidget {
               crossAxisSpacing: spacing,
               childAspectRatio: 1,
               children: _kAccentPresets.map((preset) {
-                final selected = preset.color.value == currentColor.value;
+                final selected = preset.color.toARGB32() == currentColor.toARGB32();
                 return Material(
                   color: Colors.transparent,
                   child: InkWell(
@@ -1564,7 +1564,7 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
   void initState() {
     super.initState();
     _color = widget.initialColor;
-    _hex = TextEditingController(text: _color.value.toRadixString(16).substring(2).toUpperCase());
+    _hex = TextEditingController(text: _color.toARGB32().toRadixString(16).substring(2).toUpperCase());
   }
 
   @override
@@ -1576,7 +1576,7 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
   void _update(Color c) {
     setState(() {
       _color = c;
-      _hex.text = c.value.toRadixString(16).substring(2).toUpperCase();
+      _hex.text = c.toARGB32().toRadixString(16).substring(2).toUpperCase();
     });
   }
 
@@ -1610,11 +1610,11 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
             ),
           ),
           const SizedBox(height: 20),
-          _slider(context, 'Red', _color.red.toDouble(), Colors.red, (v) => _update(Color.fromARGB(255, v.round(), _color.green, _color.blue))),
+          _slider(context, 'Red', _color.r * 255.0, Colors.red, (v) => _update(Color.fromARGB(255, v.round().clamp(0, 255), (_color.g * 255.0).round().clamp(0, 255), (_color.b * 255.0).round().clamp(0, 255)))),
           const SizedBox(height: 8),
-          _slider(context, 'Green', _color.green.toDouble(), Colors.green, (v) => _update(Color.fromARGB(255, _color.red, v.round(), _color.blue))),
+          _slider(context, 'Green', _color.g * 255.0, Colors.green, (v) => _update(Color.fromARGB(255, (_color.r * 255.0).round().clamp(0, 255), v.round().clamp(0, 255), (_color.b * 255.0).round().clamp(0, 255)))),
           const SizedBox(height: 8),
-          _slider(context, 'Blue', _color.blue.toDouble(), Colors.blue, (v) => _update(Color.fromARGB(255, _color.red, _color.green, v.round()))),
+          _slider(context, 'Blue', _color.b * 255.0, Colors.blue, (v) => _update(Color.fromARGB(255, (_color.r * 255.0).round().clamp(0, 255), (_color.g * 255.0).round().clamp(0, 255), v.round().clamp(0, 255)))),
           const SizedBox(height: 16),
           TextField(
             controller: _hex,

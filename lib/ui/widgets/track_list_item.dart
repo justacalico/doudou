@@ -49,13 +49,13 @@ class TrackListItem extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withOpacity(0.12),
-                    Colors.white.withOpacity(0.04),
+                    Colors.white.withValues(alpha: 0.12),
+                    Colors.white.withValues(alpha: 0.04),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -243,7 +243,7 @@ class TrackListItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -328,7 +328,7 @@ class TrackListItem extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         letterSpacing: -0.2,
                       ),
                       maxLines: 1,
@@ -342,7 +342,7 @@ class TrackListItem extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
-                        color: Colors.white.withOpacity(0.4),
+                        color: Colors.white.withValues(alpha: 0.4),
                         letterSpacing: -0.1,
                       ),
                       maxLines: 1,
@@ -359,7 +359,7 @@ class TrackListItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
@@ -381,13 +381,13 @@ class TrackListItem extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withOpacity(0.15),
-                    Colors.white.withOpacity(0.05),
+                    Colors.white.withValues(alpha: 0.15),
+                    Colors.white.withValues(alpha: 0.05),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   width: 1,
                 ),
               ),
@@ -396,7 +396,7 @@ class TrackListItem extends StatelessWidget {
                   track.trackNumber?.toString() ?? trackNumber.toString(),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 14,
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
@@ -425,7 +425,7 @@ class TrackListItem extends StatelessWidget {
                     Text(
                       track.artistName!,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                         letterSpacing: -0.2,
@@ -442,7 +442,7 @@ class TrackListItem extends StatelessWidget {
               Text(
                 _formatDuration(Duration(milliseconds: track.duration!)),
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   fontFeatures: [FontFeature.tabularFigures()],
@@ -465,7 +465,7 @@ class TrackListItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF8B5CF6).withOpacity(0.25),
+                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -548,7 +548,7 @@ class TrackListItem extends StatelessWidget {
                     Text(
                       track.artistName!,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                         letterSpacing: -0.2,
@@ -565,7 +565,7 @@ class TrackListItem extends StatelessWidget {
               Text(
                 _formatDuration(Duration(milliseconds: track.duration!)),
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   fontFeatures: [FontFeature.tabularFigures()],

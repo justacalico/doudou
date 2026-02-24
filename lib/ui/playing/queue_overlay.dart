@@ -10,7 +10,7 @@ import 'package:doudou/ui/widgets/cached_image_widget.dart';
 void showQueueOverlay(BuildContext context) {
   showCupertinoModalPopup(
     context: context,
-    barrierColor: Colors.black.withOpacity(0.3),
+    barrierColor: Colors.black.withValues(alpha: 0.3),
     builder: (context) => const QueueOverlay(),
   );
 }
@@ -78,14 +78,14 @@ class _QueueOverlayState extends State<QueueOverlay>
                   height: MediaQuery.of(context).size.height * 0.8,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: Colors.black.withOpacity(0.7),
+                    color: Colors.black.withValues(alpha: 0.7),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         blurRadius: 30,
                         offset: const Offset(0, 10),
                       ),
@@ -101,8 +101,8 @@ class _QueueOverlayState extends State<QueueOverlay>
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              Colors.white.withOpacity(0.1),
-                              Colors.white.withOpacity(0.05),
+                              Colors.white.withValues(alpha: 0.1),
+                              Colors.white.withValues(alpha: 0.05),
                             ],
                           ),
                         ),
@@ -114,7 +114,7 @@ class _QueueOverlayState extends State<QueueOverlay>
                               decoration: BoxDecoration(
                                 border: Border(
                                   bottom: BorderSide(
-                                    color: Colors.white.withOpacity(0.1),
+                                    color: Colors.white.withValues(alpha: 0.1),
                                     width: 1,
                                   ),
                                 ),
@@ -157,7 +157,7 @@ class _QueueOverlayState extends State<QueueOverlay>
                                       width: 32,
                                       height: 32,
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.2),
+                                        color: Colors.white.withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: const Icon(
@@ -281,9 +281,9 @@ class _QueueOverlayState extends State<QueueOverlay>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.2),
+                    color: Colors.red.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                   ),
                   child: const Text(
                     'SHUFFLED',
@@ -340,8 +340,8 @@ class _QueueOverlayState extends State<QueueOverlay>
     return CupertinoButton(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       color: isActive 
-          ? Colors.red.withOpacity(0.2)
-          : Colors.white.withOpacity(0.1),
+          ? Colors.red.withValues(alpha: 0.2)
+          : Colors.white.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(12),
       onPressed: onPressed,
       child: Row(
@@ -381,11 +381,11 @@ class _QueueOverlayState extends State<QueueOverlay>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: isCurrentTrack 
-              ? Colors.white.withOpacity(0.15)
+              ? Colors.white.withValues(alpha: 0.15)
               : Colors.transparent,
           border: isCurrentTrack
               ? Border.all(
-                  color: Colors.red.withOpacity(0.4),
+                  color: Colors.red.withValues(alpha: 0.4),
                   width: 2,
                 )
               : null,
@@ -397,7 +397,7 @@ class _QueueOverlayState extends State<QueueOverlay>
             height: 48,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
@@ -480,13 +480,13 @@ class _QueueOverlayState extends State<QueueOverlay>
                 const SizedBox(width: 12),
                 CupertinoButton(
                   padding: EdgeInsets.zero,
-                  minSize: 24,
+                  minimumSize: const Size(24, 24),
                   onPressed: onRemove,
                   child: Container(
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.2),
+                      color: Colors.red.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(

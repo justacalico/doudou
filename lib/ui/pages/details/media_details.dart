@@ -252,7 +252,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         style: IconButton.styleFrom(
           foregroundColor: Theme.of(context).colorScheme.onSurface,
           side: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
           ),
         ),
       ),
@@ -388,11 +388,11 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   width: artworkSize,
                   height: artworkSize,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceVariant,
+                    color: theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: widget.mediaType == MediaType.album ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -515,7 +515,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           Icon(
             Icons.music_note,
             size: 64,
-            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -530,7 +530,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 ? l10n.addSongsToGetStarted
                 : l10n.albumTracksEmptyMessage,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -658,7 +658,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceVariant,
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: track.imageUrl != null

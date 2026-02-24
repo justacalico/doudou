@@ -46,7 +46,7 @@ class PageTemplate extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                theme.colorScheme.primary.withOpacity(0.1),
+                theme.colorScheme.primary.withValues(alpha: 0.1),
                 Colors.transparent,
               ],
             ),
@@ -239,7 +239,7 @@ class SectionHeader extends StatelessWidget {
                     ),
                     colors: [
                       theme.colorScheme.primary,
-                      theme.colorScheme.primary.withOpacity(0.7),
+                      theme.colorScheme.primary.withValues(alpha: 0.7),
                     ],
                   )
                 else
@@ -316,7 +316,7 @@ class _ModernBackButtonState extends State<_ModernBackButton> {
             borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
             border: Border.all(
               color: _isHovered
-                  ? theme.colorScheme.primary.withOpacity(0.3)
+                  ? theme.colorScheme.primary.withValues(alpha: 0.3)
                   : DesktopTheme.glassBorder,
               width: 1,
             ),
@@ -381,7 +381,7 @@ class _ModernSeeAllButtonState extends State<_ModernSeeAllButton> {
           ),
           decoration: BoxDecoration(
             color: _isHovered
-                ? theme.colorScheme.primary.withOpacity(0.1)
+                ? theme.colorScheme.primary.withValues(alpha: 0.1)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(DesktopTheme.radiusRound),
           ),

@@ -106,11 +106,11 @@ class DownloadButton extends StatelessWidget {
   Color _getBackgroundColor(DownloadStatus status) {
     switch (status) {
       case DownloadStatus.downloading:
-        return const Color(0xFF007AFF).withOpacity(0.1);
+        return const Color(0xFF007AFF).withValues(alpha: 0.1);
       case DownloadStatus.downloaded:
-        return const Color(0xFF00FF88).withOpacity(0.1);
+        return const Color(0xFF00FF88).withValues(alpha: 0.1);
       case DownloadStatus.failed:
-        return const Color(0xFFFF453A).withOpacity(0.1);
+        return const Color(0xFFFF453A).withValues(alpha: 0.1);
       default:
         return const Color(0xFF1C1C1E);
     }
@@ -119,11 +119,11 @@ class DownloadButton extends StatelessWidget {
   Color _getBorderColor(DownloadStatus status) {
     switch (status) {
       case DownloadStatus.downloading:
-        return const Color(0xFF007AFF).withOpacity(0.3);
+        return const Color(0xFF007AFF).withValues(alpha: 0.3);
       case DownloadStatus.downloaded:
-        return const Color(0xFF00FF88).withOpacity(0.3);
+        return const Color(0xFF00FF88).withValues(alpha: 0.3);
       case DownloadStatus.failed:
-        return const Color(0xFFFF453A).withOpacity(0.3);
+        return const Color(0xFFFF453A).withValues(alpha: 0.3);
       default:
         return const Color(0xFF2C2C2E);
     }

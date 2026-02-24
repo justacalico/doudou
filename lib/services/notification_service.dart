@@ -261,7 +261,7 @@ class _NotificationWidgetState extends State<_NotificationWidget>
                           Text(
                             widget.message,
                             style: TextStyle(
-                              color: widget.textColor.withOpacity(0.9),
+                              color: widget.textColor.withValues(alpha: 0.9),
                               fontSize: 14,
                             ),
                             maxLines: 3,
@@ -275,7 +275,7 @@ class _NotificationWidgetState extends State<_NotificationWidget>
                       onPressed: _dismiss,
                       icon: Icon(
                         Icons.close,
-                        color: widget.textColor.withOpacity(0.7),
+                        color: widget.textColor.withValues(alpha: 0.7),
                         size: 18,
                       ),
                       constraints: const BoxConstraints(

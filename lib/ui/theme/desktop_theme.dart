@@ -213,7 +213,7 @@ class DesktopGlassContainer extends StatelessWidget {
             padding: padding,
             decoration: BoxDecoration(
               color:
-                  backgroundColor ?? DesktopTheme.glassSurface.withOpacity(0.8),
+                  backgroundColor ?? DesktopTheme.glassSurface.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(borderRadius),
               border: showBorder
                   ? Border.all(color: DesktopTheme.glassBorder, width: 1)
@@ -287,24 +287,23 @@ class _DesktopGlassButtonState extends State<DesktopGlassButton> {
                 vertical: DesktopTheme.spacingSm,
               ),
           transform: Matrix4.identity()
-            ..scale(
-              _isPressed
-                  ? 0.97
-                  : _isHovered
-                  ? 1.02
-                  : 1.0,
+            ..scaleByDouble(
+              _isPressed ? 0.97 : _isHovered ? 1.02 : 1.0,
+              _isPressed ? 0.97 : _isHovered ? 1.02 : 1.0,
+              1.0,
+              1.0,
             ),
           transformAlignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(widget.borderRadius),
             color: widget.filled
-                ? (isEnabled ? accent : accent.withOpacity(0.5))
+                ? (isEnabled ? accent : accent.withValues(alpha: 0.5))
                 : (_isHovered ? DesktopTheme.glassOverlay : Colors.transparent),
             border: widget.filled
                 ? null
                 : Border.all(
                     color: _isHovered
-                        ? accent.withOpacity(0.5)
+                        ? accent.withValues(alpha: 0.5)
                         : DesktopTheme.glassBorder,
                     width: 1,
                   ),
@@ -404,7 +403,7 @@ class _DesktopPlayButtonState extends State<DesktopPlayButton>
                 height: widget.size,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isEnabled ? accent : accent.withOpacity(0.5),
+                  color: isEnabled ? accent : accent.withValues(alpha: 0.5),
                   boxShadow: _isHovered && isEnabled
                       ? DesktopTheme.shadowGlow(accent)
                       : DesktopTheme.shadowMd,
@@ -586,12 +585,12 @@ class _DesktopNavItemState extends State<DesktopNavItem> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
             color: widget.isSelected
-                ? accent.withOpacity(0.15)
+                ? accent.withValues(alpha: 0.15)
                 : _isHovered
                 ? DesktopTheme.glassOverlay
                 : Colors.transparent,
             border: widget.isSelected
-                ? Border.all(color: accent.withOpacity(0.3), width: 1)
+                ? Border.all(color: accent.withValues(alpha: 0.3), width: 1)
                 : null,
           ),
           child: Row(
@@ -745,7 +744,7 @@ class _DesktopProgressSliderState extends State<DesktopProgressSlider> {
           activeTrackColor: accent,
           inactiveTrackColor: DesktopTheme.backgroundElevated,
           thumbColor: accent,
-          overlayColor: accent.withOpacity(0.2),
+          overlayColor: accent.withValues(alpha: 0.2),
         ),
         child: Slider(
           value: widget.value.clamp(0.0, 1.0),

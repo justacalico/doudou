@@ -2311,7 +2311,7 @@ class AppState extends ChangeNotifier {
     _themeMode = _parseThemeMode(themeModeString);
 
     final accentColorValue =
-        prefs.getInt('accent_color') ?? Colors.purple.value;
+        prefs.getInt('accent_color') ?? Colors.purple.toARGB32();
     _accentColor = Color(accentColorValue);
 
     _onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
@@ -2370,7 +2370,7 @@ class AppState extends ChangeNotifier {
     if (_accentColor != color) {
       _accentColor = color;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('accent_color', color.value);
+      await prefs.setInt('accent_color', color.toARGB32());
       notifyListeners();
     }
   }

@@ -77,7 +77,7 @@ class AppleDesignSystem {
   static List<BoxShadow> shadowLarge(Color c) => AppTokens.shadowLg(c);
   static List<BoxShadow> shadowXLarge(Color c) => [
         BoxShadow(
-          color: c.withOpacity(0.20),
+          color: c.withValues(alpha: 0.20),
           offset: const Offset(0, 16),
           blurRadius: 48,
         ),
@@ -162,15 +162,15 @@ class AppleColors {
   static const Color separatorDark = Color(0x33FFFFFF);
   static const Color separatorOpaqueDark = Color(0xFF2A2A30);
 
-  static Color glassLight = const Color(0xFFFFFFFF).withOpacity(0.72);
-  static Color glassDark = const Color(0xFF1A1A1F).withOpacity(0.80);
-  static Color glassLightThin = const Color(0xFFFFFFFF).withOpacity(0.50);
-  static Color glassDarkThin = const Color(0xFF1A1A1F).withOpacity(0.60);
-  static Color glassLightUltraThin = const Color(0xFFFFFFFF).withOpacity(0.30);
-  static Color glassDarkUltraThin = const Color(0xFF1A1A1F).withOpacity(0.40);
+  static Color glassLight = const Color(0xFFFFFFFF).withValues(alpha: 0.72);
+  static Color glassDark = const Color(0xFF1A1A1F).withValues(alpha: 0.80);
+  static Color glassLightThin = const Color(0xFFFFFFFF).withValues(alpha: 0.50);
+  static Color glassDarkThin = const Color(0xFF1A1A1F).withValues(alpha: 0.60);
+  static Color glassLightUltraThin = const Color(0xFFFFFFFF).withValues(alpha: 0.30);
+  static Color glassDarkUltraThin = const Color(0xFF1A1A1F).withValues(alpha: 0.40);
 
-  static Color vibrancyLight = const Color(0xFFFFFFFF).withOpacity(0.15);
-  static Color vibrancyDark = const Color(0xFF000000).withOpacity(0.25);
+  static Color vibrancyLight = const Color(0xFFFFFFFF).withValues(alpha: 0.15);
+  static Color vibrancyDark = const Color(0xFF000000).withValues(alpha: 0.25);
 }
 
 // ============================================
@@ -381,7 +381,7 @@ class AppleTheme {
       fontFamily: AppTokens.fontFamilyBody,
       colorScheme: ColorScheme.light(
         primary: primaryColor,
-        primaryContainer: primaryColor.withOpacity(0.15),
+        primaryContainer: primaryColor.withValues(alpha: 0.15),
         secondary: AppTokens.textSecondaryLight,
         secondaryContainer: AppTokens.backgroundSecondaryLight,
         surface: AppTokens.backgroundPrimaryLight,
@@ -408,7 +408,7 @@ class AppleTheme {
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: AppTokens.backgroundPrimaryLight.withOpacity(0.9),
+        backgroundColor: AppTokens.backgroundPrimaryLight.withValues(alpha: 0.9),
         foregroundColor: AppTokens.textPrimaryLight,
         titleTextStyle: GoogleFonts.nunito(
           fontSize: AppTokens.typeScaleHeadline,
@@ -418,8 +418,8 @@ class AppleTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
-        backgroundColor: AppTokens.backgroundPrimaryLight.withOpacity(0.9),
-        indicatorColor: primaryColor.withOpacity(0.15),
+        backgroundColor: AppTokens.backgroundPrimaryLight.withValues(alpha: 0.9),
+        indicatorColor: primaryColor.withValues(alpha: 0.15),
         labelTextStyle: WidgetStateProperty.all(
           GoogleFonts.nunito(
             fontSize: AppTokens.typeScaleCaption2,
@@ -446,13 +446,13 @@ class AppleTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTokens.radiusMd),
         ),
-        selectedTileColor: primaryColor.withOpacity(0.15),
+        selectedTileColor: primaryColor.withValues(alpha: 0.15),
       ),
       sliderTheme: SliderThemeData(
         activeTrackColor: primaryColor,
         inactiveTrackColor: AppTokens.surfaceElevatedLight,
         thumbColor: Colors.white,
-        overlayColor: primaryColor.withOpacity(0.15),
+        overlayColor: primaryColor.withValues(alpha: 0.15),
         trackHeight: 4,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
       ),
@@ -483,7 +483,7 @@ class AppleTheme {
       fontFamily: AppTokens.fontFamilyBody,
       colorScheme: ColorScheme.dark(
         primary: primaryColor,
-        primaryContainer: primaryColor.withOpacity(0.25),
+        primaryContainer: primaryColor.withValues(alpha: 0.25),
         secondary: AppTokens.textSecondaryDark,
         secondaryContainer: AppTokens.backgroundTertiaryDark,
         surface: bgSecondary,
@@ -510,7 +510,7 @@ class AppleTheme {
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: oled ? _oledBlack : AppTokens.backgroundPrimaryDark.withOpacity(0.9),
+        backgroundColor: oled ? _oledBlack : AppTokens.backgroundPrimaryDark.withValues(alpha: 0.9),
         foregroundColor: AppTokens.textPrimaryDark,
         titleTextStyle: GoogleFonts.nunito(
           fontSize: AppTokens.typeScaleHeadline,
@@ -520,8 +520,8 @@ class AppleTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
-        backgroundColor: oled ? _oledBlack : AppTokens.backgroundSecondaryDark.withOpacity(0.9),
-        indicatorColor: primaryColor.withOpacity(0.25),
+        backgroundColor: oled ? _oledBlack : AppTokens.backgroundSecondaryDark.withValues(alpha: 0.9),
+        indicatorColor: primaryColor.withValues(alpha: 0.25),
         labelTextStyle: WidgetStateProperty.all(
           GoogleFonts.nunito(
             fontSize: AppTokens.typeScaleCaption2,
@@ -565,13 +565,13 @@ class AppleTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTokens.radiusMd),
         ),
-        selectedTileColor: primaryColor.withOpacity(0.25),
+        selectedTileColor: primaryColor.withValues(alpha: 0.25),
       ),
       sliderTheme: SliderThemeData(
         activeTrackColor: primaryColor,
         inactiveTrackColor: AppTokens.backgroundTertiaryDark,
         thumbColor: Colors.white,
-        overlayColor: primaryColor.withOpacity(0.25),
+        overlayColor: primaryColor.withValues(alpha: 0.25),
         trackHeight: 4,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
       ),
@@ -602,8 +602,8 @@ class AppleTheme {
       primaryColor: primaryColor,
       primaryContrastingColor: Colors.white,
       barBackgroundColor: brightness == Brightness.dark
-          ? AppleColors.backgroundSecondaryDark.withOpacity(0.8)
-          : AppleColors.backgroundPrimary.withOpacity(0.8),
+          ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.8)
+          : AppleColors.backgroundPrimary.withValues(alpha: 0.8),
       scaffoldBackgroundColor: brightness == Brightness.dark
           ? AppleColors.backgroundPrimaryDark
           : AppleColors.backgroundPrimary,

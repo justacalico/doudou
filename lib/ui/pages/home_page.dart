@@ -54,10 +54,12 @@ class _HomePageState extends State<HomePage> {
         _ytHomeLoading = false;
       });
     } catch (_) {
-      if (mounted) setState(() {
-        _ytHomeSections = [];
-        _ytHomeLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _ytHomeSections = [];
+          _ytHomeLoading = false;
+        });
+      }
     }
   }
 

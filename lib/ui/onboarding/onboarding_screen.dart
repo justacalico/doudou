@@ -219,7 +219,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         crossAxisSpacing: spacing,
         childAspectRatio: 1,
         children: _kOnboardingAccentPresets.map((color) {
-          final selected = color.value == currentColor.value;
+          final selected = color.toARGB32() == currentColor.toARGB32();
           return Material(
             color: Colors.transparent,
             child: InkWell(
@@ -242,7 +242,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       if (selected)
                         BoxShadow(
                           color: (isDark ? Colors.white : Theme.of(context).colorScheme.primary)
-                              .withOpacity(0.3),
+                              .withValues(alpha: 0.3),
                           blurRadius: 8,
                           spreadRadius: 0,
                         ),
@@ -286,7 +286,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           color: Colors.transparent,
           child: Container(
             decoration: BoxDecoration(
-              color: DesktopTheme.backgroundTertiary.withOpacity(0.6),
+              color: DesktopTheme.backgroundTertiary.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: DesktopTheme.glassBorder,

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' show HttpClient;
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -118,10 +119,9 @@ class JellyfinService implements BaseMediaService {
         final adapter = _dio.httpClientAdapter;
         if (adapter.runtimeType.toString() == 'IOHttpClientAdapter') {
           final dynamic ioAdapter = adapter;
-          ioAdapter.onHttpClientCreate = (client) {
-            client.badCertificateCallback = (cert, host, port) {
-              return true; // Accept all certificates for now (development)
-            };
+          ioAdapter.createHttpClient = () {
+            final client = HttpClient();
+            client.badCertificateCallback = (cert, host, port) => true;
             return client;
           };
         }

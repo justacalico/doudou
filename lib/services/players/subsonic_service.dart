@@ -26,13 +26,11 @@ class SubsonicService implements BaseMediaService {
 
     // Platform-specific configurations
     if (Platform.isLinux) {
-      (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
-          (client) {
-            client.badCertificateCallback = (cert, host, port) {
-              return true;
-            };
-            return client;
-          };
+      (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+        final client = HttpClient();
+        client.badCertificateCallback = (cert, host, port) => true;
+        return client;
+      };
     }
   }
 

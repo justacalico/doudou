@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'services/audio/just_audio_media_kit_ext.dart';
 import 'services/audio/linux_locale_fix_stub.dart' if (dart.library.io) 'services/audio/linux_locale_fix.dart' as linux_locale;
@@ -134,14 +133,6 @@ class DoudouApp extends StatelessWidget {
 
   /// Wraps the app with platform-specific services
   Widget _buildAppWithPlatformServices(Widget app) {
-    // On Android and macOS, use AudioServiceWidget for background audio support
-    if (!kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.macOS)) {
-      return AudioServiceWidget(child: app);
-    }
-
-    // On other platforms (including web), return the app directly
     return app;
   }
 }

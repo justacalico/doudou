@@ -847,7 +847,7 @@ class _PlayPauseButtonState extends State<_PlayPauseButton> {
           duration: DesktopTheme.durationFast,
           width: 40,
           height: 40,
-          transform: Matrix4.identity()..scale(_isHovered ? 1.08 : 1.0),
+          transform: Matrix4.identity()..scaleByDouble(_isHovered ? 1.08 : 1.0, _isHovered ? 1.08 : 1.0, 1.0, 1.0),
           transformAlignment: Alignment.center,
           decoration: BoxDecoration(
             color: DesktopTheme.textPrimary,
@@ -1644,7 +1644,7 @@ class _DetailHeaderState extends State<_DetailHeader>
                   color: DesktopTheme.backgroundElevated,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -2587,7 +2587,7 @@ class _AlbumCardState extends State<_AlbumCard> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
+                                color: Colors.black.withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),

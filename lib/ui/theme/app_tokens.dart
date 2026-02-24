@@ -160,7 +160,7 @@ class AppTokens {
 
   static List<BoxShadow> shadowSm(Color base) => [
         BoxShadow(
-          color: base.withOpacity(0.08),
+          color: base.withValues(alpha: 0.08),
           offset: const Offset(0, 1),
           blurRadius: 3,
         ),
@@ -168,7 +168,7 @@ class AppTokens {
 
   static List<BoxShadow> shadowMd(Color base) => [
         BoxShadow(
-          color: base.withOpacity(0.12),
+          color: base.withValues(alpha: 0.12),
           offset: const Offset(0, 4),
           blurRadius: 12,
         ),
@@ -176,7 +176,7 @@ class AppTokens {
 
   static List<BoxShadow> shadowLg(Color base) => [
         BoxShadow(
-          color: base.withOpacity(0.16),
+          color: base.withValues(alpha: 0.16),
           offset: const Offset(0, 8),
           blurRadius: 24,
         ),
@@ -184,12 +184,12 @@ class AppTokens {
 
   static List<BoxShadow> shadowGlow(Color color) => [
         BoxShadow(
-          color: color.withOpacity(0.35),
+          color: color.withValues(alpha: 0.35),
           blurRadius: 20,
           offset: const Offset(0, 4),
         ),
         BoxShadow(
-          color: color.withOpacity(0.2),
+          color: color.withValues(alpha: 0.2),
           blurRadius: 40,
           offset: const Offset(0, 8),
         ),

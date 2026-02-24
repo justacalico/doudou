@@ -9,7 +9,7 @@ import 'package:doudou/providers/app_state.dart';
 void showSyncedLyricsOverlay(BuildContext context, String trackName, String artistName) {
   showCupertinoModalPopup(
     context: context,
-    barrierColor: Colors.black.withOpacity(0.3),
+    barrierColor: Colors.black.withValues(alpha: 0.3),
     builder: (context) => SyncedLyricsOverlay(
       trackName: trackName,
       artistName: artistName,
@@ -312,14 +312,14 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                 height: MediaQuery.of(context).size.height * 0.8,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: Colors.black.withOpacity(0.7),
+                  color: Colors.black.withValues(alpha: 0.7),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       blurRadius: 30,
                       offset: const Offset(0, 10),
                     ),
@@ -335,8 +335,8 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.white.withOpacity(0.1),
-                            Colors.white.withOpacity(0.05),
+                            Colors.white.withValues(alpha: 0.1),
+                            Colors.white.withValues(alpha: 0.05),
                           ],
                         ),
                       ),
@@ -348,7 +348,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                             decoration: BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   width: 1,
                                 ),
                               ),
@@ -381,9 +381,9 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                                 Container(
                                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.green.withOpacity(0.2),
+                                                    color: Colors.green.withValues(alpha: 0.2),
                                                     borderRadius: BorderRadius.circular(8),
-                                                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                                                    border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
                                                   ),
                                                   child: const Text(
                                                     'SYNC',
@@ -402,7 +402,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                           Text(
                                             '$displayTrackName • $displayArtistName',
                                             style: TextStyle(
-                                              color: Colors.white.withOpacity(0.8),
+                                              color: Colors.white.withValues(alpha: 0.8),
                                               fontSize: 16,
                                               decoration: TextDecoration.none,
                                             ),
@@ -425,7 +425,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                     width: 32,
                                     height: 32,
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: const Icon(
@@ -546,18 +546,18 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       color: isCurrentLine 
-                          ? Colors.white.withOpacity(0.15)
+                          ? Colors.white.withValues(alpha: 0.15)
                           : Colors.transparent,
                       border: isCurrentLine
                           ? Border.all(
-                              color: Colors.white.withOpacity(0.4),
+                              color: Colors.white.withValues(alpha: 0.4),
                               width: 2, // Thicker border for current line
                             )
                           : null,
                       boxShadow: isCurrentLine
                           ? [
                               BoxShadow(
-                                color: Colors.white.withOpacity(0.1),
+                                color: Colors.white.withValues(alpha: 0.1),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -571,8 +571,8 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                         color: isCurrentLine
                             ? Colors.white
                             : isPastLine
-                                ? Colors.white.withOpacity(0.5)
-                                : Colors.white.withOpacity(0.7),
+                                ? Colors.white.withValues(alpha: 0.5)
+                                : Colors.white.withValues(alpha: 0.7),
                         fontSize: isCurrentLine ? 20 : 16, // Larger font for current line
                         fontWeight: isCurrentLine ? FontWeight.w700 : FontWeight.normal,
                         height: 1.4,
@@ -580,7 +580,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                         shadows: isCurrentLine
                             ? [
                                 Shadow(
-                                  color: Colors.black.withOpacity(0.3),
+                                  color: Colors.black.withValues(alpha: 0.3),
                                   blurRadius: 4,
                                   offset: const Offset(0, 1),
                                 ),

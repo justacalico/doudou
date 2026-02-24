@@ -577,16 +577,16 @@ class _SidebarTileState extends State<_SidebarTile> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               color: widget.selected
-                  ? accent.withOpacity(0.15)
-                  : accent.withOpacity(0.1),
+                  ? accent.withValues(alpha: 0.15)
+                  : accent.withValues(alpha: 0.1),
               border: Border.all(
-                color: accent.withOpacity(0.2),
+                color: accent.withValues(alpha: 0.2),
                 width: 1,
               ),
               boxShadow: widget.selected
                   ? [
                       BoxShadow(
-                        color: accent.withOpacity(0.15),
+                        color: accent.withValues(alpha: 0.15),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -701,10 +701,10 @@ class _MobileNavBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(DesktopTheme.radiusXl),
                   color: (isDark ? Colors.white : Colors.black)
-                      .withOpacity(isDark ? 0.12 : 0.06),
+                      .withValues(alpha: isDark ? 0.12 : 0.06),
                   border: Border.all(
                     color: (isDark ? Colors.white : Colors.black)
-                        .withOpacity(0.15),
+                        .withValues(alpha: 0.15),
                     width: 0.5,
                   ),
                   boxShadow: DesktopTheme.shadowMd,
@@ -737,8 +737,8 @@ class _MobileNavBar extends StatelessWidget {
                                   color: selected
                                       ? theme.colorScheme.primary
                                       : (isDark
-                                          ? Colors.white.withOpacity(0.6)
-                                          : Colors.black.withOpacity(0.5)),
+                                          ? Colors.white.withValues(alpha: 0.6)
+                                          : Colors.black.withValues(alpha: 0.5)),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -750,8 +750,8 @@ class _MobileNavBar extends StatelessWidget {
                                     color: selected
                                         ? theme.colorScheme.primary
                                         : (isDark
-                                            ? Colors.white.withOpacity(0.5)
-                                            : Colors.black.withOpacity(0.4)),
+                                            ? Colors.white.withValues(alpha: 0.5)
+                                            : Colors.black.withValues(alpha: 0.4)),
                                   ),
                                 ),
                               ],
@@ -834,19 +834,18 @@ class _MobilePlayerBar extends StatelessWidget {
                             color: (isDark
                                     ? Colors.white
                                     : Colors.black)
-                                .withOpacity(
-                                    isDark ? 0.12 : 0.06),
+                                .withValues(alpha: isDark ? 0.12 : 0.06),
                             border: Border.all(
                               color: (isDark
                                       ? Colors.white
                                       : Colors.black)
-                                  .withOpacity(0.12),
+                                  .withValues(alpha: 0.12),
                               width: 0.5,
                             ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black
-                                    .withOpacity(0.25),
+                                    .withValues(alpha: 0.25),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -899,7 +898,7 @@ class _MobilePlayerBar extends StatelessWidget {
                                                       .white
                                                   : Colors
                                                       .black)
-                                              .withOpacity(0.6),
+                                              .withValues(alpha: 0.6),
                                         ),
                                         maxLines: 1,
                                         overflow:
@@ -1014,7 +1013,7 @@ class _MobilePlayerBar extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black
-                .withOpacity(0.3),
+                .withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

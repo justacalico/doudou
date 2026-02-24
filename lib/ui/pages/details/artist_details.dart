@@ -279,11 +279,11 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant,
+        color: theme.colorScheme.surfaceContainerHighest,
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -596,7 +596,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant,
+                color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: album.imageUrl != null

@@ -69,7 +69,7 @@ class LiquidGlassMaterial extends StatelessWidget {
             shadows ??
             [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.15),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -84,12 +84,10 @@ class LiquidGlassMaterial extends StatelessWidget {
               padding: padding,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(borderRadius),
-                color: baseTint.withOpacity(tintOpacity),
+                color: baseTint.withValues(alpha: tintOpacity),
                 border: showBorder
                     ? Border.all(
-                        color: (isDark ? Colors.white : Colors.black).withOpacity(
-                          borderOpacity,
-                        ),
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: borderOpacity),
                         width: 0.5,
                       )
                     : null,
@@ -97,8 +95,8 @@ class LiquidGlassMaterial extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withOpacity(isDark ? 0.08 : 0.5),
-                    Colors.white.withOpacity(isDark ? 0.03 : 0.2),
+                    Colors.white.withValues(alpha: isDark ? 0.08 : 0.5),
+                    Colors.white.withValues(alpha: isDark ? 0.03 : 0.2),
                   ],
                 ),
               ),
@@ -146,16 +144,14 @@ class LiquidGlassNavBar extends StatelessWidget {
               height: 64,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(28),
-                color: (isDark ? Colors.white : Colors.black).withOpacity(
-                  isDark ? 0.12 : 0.06,
-                ),
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.12 : 0.06),
                 border: Border.all(
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(0.15),
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.15),
                   width: 0.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 20,
                     offset: const Offset(0, 5),
                   ),
@@ -251,7 +247,7 @@ class _NavBarItemWidgetState extends State<_NavBarItemWidget>
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: widget.isSelected
-                  ? widget.accent.withOpacity(0.2)
+                  ? widget.accent.withValues(alpha: 0.2)
                   : Colors.transparent,
             ),
             child: Icon(
@@ -260,8 +256,8 @@ class _NavBarItemWidgetState extends State<_NavBarItemWidget>
               color: widget.isSelected
                   ? widget.accent
                   : (widget.isDark
-                        ? Colors.white.withOpacity(0.6)
-                        : Colors.black.withOpacity(0.5)),
+                        ? Colors.white.withValues(alpha: 0.6)
+                        : Colors.black.withValues(alpha: 0.5)),
             ),
           ),
           const SizedBox(height: 2),
@@ -274,8 +270,8 @@ class _NavBarItemWidgetState extends State<_NavBarItemWidget>
               color: widget.isSelected
                   ? widget.accent
                   : (widget.isDark
-                        ? Colors.white.withOpacity(0.5)
-                        : Colors.black.withOpacity(0.4)),
+                        ? Colors.white.withValues(alpha: 0.5)
+                        : Colors.black.withValues(alpha: 0.4)),
             ),
             child: Text(widget.item.label),
           ),
@@ -342,18 +338,14 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
               height: 68,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: (isDark ? Colors.white : Colors.black).withOpacity(
-                  isDark ? 0.15 : 0.08,
-                ),
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.15 : 0.08),
                 border: Border.all(
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(
-                    0.12,
-                  ),
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12),
                   width: 0.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.25),
+                    color: Colors.black.withValues(alpha: 0.25),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -373,7 +365,7 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -410,7 +402,7 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
                                 fontFamily: AppleDesignSystem.fontFamily,
                                 fontSize: 13,
                                 color: (isDark ? Colors.white : Colors.black)
-                                    .withOpacity(0.6),
+                                    .withValues(alpha: 0.6),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -524,7 +516,7 @@ class _LiquidGlassIconButtonState extends State<_LiquidGlassIconButton>
                     size: widget.size * 0.7,
                     color: widget.disabled
                         ? (widget.isDark ? Colors.white : Colors.black)
-                              .withOpacity(0.3)
+                              .withValues(alpha: 0.3)
                         : (widget.isDark ? Colors.white : Colors.black),
                   ),
           ),
@@ -569,11 +561,9 @@ class LiquidGlassSearchBar extends StatelessWidget {
           height: 48,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: (isDark ? Colors.white : Colors.black).withOpacity(
-              isDark ? 0.12 : 0.06,
-            ),
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.12 : 0.06),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
               width: 0.5,
             ),
           ),
@@ -583,7 +573,7 @@ class LiquidGlassSearchBar extends StatelessWidget {
               Icon(
                 CupertinoIcons.search,
                 size: 20,
-                color: (isDark ? Colors.white : Colors.black).withOpacity(0.5),
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -593,9 +583,7 @@ class LiquidGlassSearchBar extends StatelessWidget {
                   placeholderStyle: TextStyle(
                     fontFamily: AppleDesignSystem.fontFamily,
                     fontSize: 16,
-                    color: (isDark ? Colors.white : Colors.black).withOpacity(
-                      0.4,
-                    ),
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
                   ),
                   style: TextStyle(
                     fontFamily: AppleDesignSystem.fontFamily,
@@ -620,9 +608,7 @@ class LiquidGlassSearchBar extends StatelessWidget {
                     child: Icon(
                       CupertinoIcons.xmark_circle_fill,
                       size: 18,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(
-                        0.4,
-                      ),
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
                     ),
                   ),
                 ),
@@ -684,9 +670,7 @@ class LiquidGlassSectionHeader extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: AppleDesignSystem.fontFamily,
                       fontSize: 15,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(
-                        0.6,
-                      ),
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -787,7 +771,7 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.35),
+                      color: Colors.black.withValues(alpha: 0.35),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),
@@ -824,9 +808,7 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
                     style: TextStyle(
                       fontFamily: AppleDesignSystem.fontFamily,
                       fontSize: 13,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(
-                        0.6,
-                      ),
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -889,7 +871,7 @@ class _LiquidGlassListTileState extends State<LiquidGlassListTile> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: _isPressed
-              ? (isDark ? Colors.white : Colors.black).withOpacity(0.1)
+              ? (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -923,7 +905,7 @@ class _LiquidGlassListTileState extends State<LiquidGlassListTile> {
                         fontFamily: AppleDesignSystem.fontFamily,
                         fontSize: 14,
                         color: (isDark ? Colors.white : Colors.black)
-                            .withOpacity(0.6),
+                            .withValues(alpha: 0.6),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1013,14 +995,12 @@ class _LiquidGlassChipState extends State<LiquidGlassChip>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             color: widget.isSelected
-                ? accent.withOpacity(0.2)
-                : (isDark ? Colors.white : Colors.black).withOpacity(
-                    isDark ? 0.1 : 0.06,
-                  ),
+                ? accent.withValues(alpha: 0.2)
+                : (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.1 : 0.06),
             border: Border.all(
               color: widget.isSelected
-                  ? accent.withOpacity(0.5)
-                  : (isDark ? Colors.white : Colors.black).withOpacity(0.12),
+                  ? accent.withValues(alpha: 0.5)
+                  : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12),
               width: 0.5,
             ),
           ),
@@ -1033,7 +1013,7 @@ class _LiquidGlassChipState extends State<LiquidGlassChip>
                   size: 16,
                   color: widget.isSelected
                       ? accent
-                      : (isDark ? Colors.white : Colors.black).withOpacity(0.7),
+                      : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
                 ),
                 const SizedBox(width: 6),
               ],
@@ -1047,7 +1027,7 @@ class _LiquidGlassChipState extends State<LiquidGlassChip>
                       : FontWeight.w500,
                   color: widget.isSelected
                       ? accent
-                      : (isDark ? Colors.white : Colors.black).withOpacity(0.8),
+                      : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
                 ),
               ),
             ],
@@ -1129,11 +1109,11 @@ class _LiquidGlassFABState extends State<LiquidGlassFAB>
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [accent, accent.withOpacity(0.8)],
+                  colors: [accent, accent.withValues(alpha: 0.8)],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: accent.withOpacity(0.4),
+                    color: accent.withValues(alpha: 0.4),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -1178,7 +1158,7 @@ class LiquidGlassProgressBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(height / 2),
         color:
             backgroundColor ??
-            (isDark ? Colors.white : Colors.black).withOpacity(0.15),
+            (isDark ? Colors.white : Colors.black).withValues(alpha: 0.15),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -1192,7 +1172,7 @@ class LiquidGlassProgressBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(height / 2),
                   gradient: LinearGradient(
-                    colors: [accent, accent.withOpacity(0.8)],
+                    colors: [accent, accent.withValues(alpha: 0.8)],
                   ),
                 ),
               ),
@@ -1315,7 +1295,7 @@ class _OrbPainter extends CustomPainter {
         radius: size.width * 0.4,
         color: (isDark
             ? AppleColors.systemPink
-            : AppleColors.systemPink.withOpacity(0.3)),
+            : AppleColors.systemPink.withValues(alpha: 0.3)),
         phaseX: 0,
         phaseY: 0.5,
       ),
@@ -1325,7 +1305,7 @@ class _OrbPainter extends CustomPainter {
         radius: size.width * 0.35,
         color: (isDark
             ? AppleColors.systemPurple
-            : AppleColors.systemPurple.withOpacity(0.3)),
+            : AppleColors.systemPurple.withValues(alpha: 0.3)),
         phaseX: 0.3,
         phaseY: 0.8,
       ),
@@ -1335,7 +1315,7 @@ class _OrbPainter extends CustomPainter {
         radius: size.width * 0.3,
         color: (isDark
             ? AppleColors.systemBlue
-            : AppleColors.systemBlue.withOpacity(0.3)),
+            : AppleColors.systemBlue.withValues(alpha: 0.3)),
         phaseX: 0.7,
         phaseY: 0.2,
       ),
@@ -1353,8 +1333,8 @@ class _OrbPainter extends CustomPainter {
         ..shader =
             RadialGradient(
               colors: [
-                orb.color.withOpacity(isDark ? 0.15 : 0.1),
-                orb.color.withOpacity(0),
+                orb.color.withValues(alpha: isDark ? 0.15 : 0.1),
+                orb.color.withValues(alpha: 0),
               ],
             ).createShader(
               Rect.fromCircle(center: Offset(x, y), radius: orb.radius),

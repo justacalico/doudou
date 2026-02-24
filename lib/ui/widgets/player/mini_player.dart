@@ -147,18 +147,18 @@ class _MiniPlayerState extends State<MiniPlayer>
                       (isDark
                               ? const Color(0xFFFFFFFF)
                               : const Color(0xFF000000))
-                          .withOpacity(isDark ? 0.15 : 0.08),
+                          .withValues(alpha: isDark ? 0.15 : 0.08),
                   border: Border.all(
                     color:
                         (isDark
                                 ? const Color(0xFFFFFFFF)
                                 : const Color(0xFF000000))
-                            .withOpacity(0.12),
+                            .withValues(alpha: 0.12),
                     width: 0.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF000000).withOpacity(0.25),
+                      color: const Color(0xFF000000).withValues(alpha: 0.25),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -179,7 +179,7 @@ class _MiniPlayerState extends State<MiniPlayer>
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF000000).withOpacity(0.3),
+                              color: const Color(0xFF000000).withValues(alpha: 0.3),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -226,10 +226,10 @@ class _MiniPlayerState extends State<MiniPlayer>
                               Text(
                                 currentTrack.artistName!,
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: (isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000)).withOpacity(0.6),
+                                  color: (isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000)).withValues(alpha: 0.6),
                                 ) ?? TextStyle(
                                   fontSize: 13,
-                                  color: (isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000)).withOpacity(0.6),
+                                  color: (isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000)).withValues(alpha: 0.6),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -525,7 +525,7 @@ class _LiquidGlassControlButtonState extends State<_LiquidGlassControlButton>
                         ? (widget.isDark
                                   ? const Color(0xFFFFFFFF)
                                   : const Color(0xFF000000))
-                              .withOpacity(0.3)
+                              .withValues(alpha: 0.3)
                         : (widget.isDark
                               ? const Color(0xFFFFFFFF)
                               : const Color(0xFF000000)),
