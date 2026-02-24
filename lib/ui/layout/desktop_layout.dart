@@ -986,7 +986,7 @@ class _PlayerExtrasState extends State<_PlayerExtras> {
   }
 }
 
-/// Add to playlist dialog content (used inside [showAppleDialog]).
+/// Add to playlist dialog content (used inside [showAppDialog]).
 class _AddToPlaylistDialogContent extends StatelessWidget {
   final Track track;
   final List<Playlist> playlists;

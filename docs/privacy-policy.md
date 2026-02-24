@@ -4,7 +4,7 @@
 
 ## Overview
 
-Doudou is a music player application that connects to your personal Jellyfin media server. We are committed to protecting your privacy and being transparent about our data practices.
+Doudou is a music player application that connects to your personal media server (Jellyfin, Plex, Subsonic) or plays local files. We are committed to protecting your privacy and being transparent about our data practices. The same no-tracking policy applies for all backends.
 
 ## Data Collection
 
@@ -20,7 +20,7 @@ Doudou:
 ## Local Data Storage
 
 The app only stores the following data locally on your device:
-- Your Jellyfin server connection details (server URL, login credentials)
+- Your media server connection details (server URL, login credentials) when using Jellyfin, Plex, or Subsonic
 - Audio playback preferences (volume, crossfade settings)
 - App settings and preferences
 
@@ -32,10 +32,10 @@ This data:
 ## Network Communication
 
 Doudou only communicates with:
-- Your personal Jellyfin server that you configure
+- Your personal media server that you configure (Jellyfin, Plex, Subsonic), when used
 - No other external services or servers
 
-All communication is direct between your device and your Jellyfin server.
+All communication is direct between your device and your server (or stays on-device for local music).
 
 ## Third-Party Services
 
@@ -52,7 +52,7 @@ We may update this privacy policy from time to time. Any changes will be posted 
 ## Contact Us
 
 If you have any questions about this privacy policy, please contact us at:
-- Gitlab: https://github.com/HttpAnimations/doudou
+- GitLab: https://gitlab.com/Openlyst/doudou
 
 ## Data Safety Summary for Google Play
 
@@ -73,5 +73,5 @@ If you have any questions about this privacy policy, please contact us at:
 
 ✅ **Data Security:**
 - All data stays on your device
-- Encrypted connection to your Jellyfin server
+- Encrypted connection to your media server when applicable
 - No data transmission to third parties

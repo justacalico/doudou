@@ -26,7 +26,7 @@ You are responsible for:
 
 ## Intellectual Property
 
-- The Doudou app is open source and available under the MIT License
+- The Doudou app is open source and available under the GPL-3.0 License
 - You retain all rights to your media content
 - Jellyfin is a separate project with its own terms and licenses
 
@@ -59,15 +59,15 @@ We may update these terms from time to time. Continued use of the app constitute
 
 ## Governing Law
 
-These terms are governed by the laws of [Your Jurisdiction].
+These terms are governed by the laws of the jurisdiction of the developer.
 
 ## Contact Information
 
 For questions about these terms:
-- Email: [your-email@domain.com]
-- GitHub: https://github.com/[your-username]/doudou
+- Email: support@openlyst.com
+- GitLab: https://gitlab.com/Openlyst/doudou
 
 ## Open Source
 
 This application is open source software. Source code is available at:
-https://github.com/[your-username]/doudou
+https://gitlab.com/Openlyst/doudou

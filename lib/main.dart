@@ -149,6 +149,8 @@ class DoudouApp extends StatelessWidget {
 
 /// Log comprehensive system information for debugging, especially Flatpak issues
 Future<void> _logSystemInfo(String context) async {
+  if (!kDebugMode) return;
+
   final logger = LoggingService();
 
   try {

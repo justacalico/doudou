@@ -65,10 +65,6 @@ Future<bool?> showAppChoiceDialog({
   );
 }
 
-@Deprecated('Use showAppChoiceDialog instead')
-Future<bool?> showAppleChoiceDialog({required BuildContext context, required String title, required String message, required String secondaryLabel, required String primaryLabel, bool primaryIsDestructive = false}) =>
-    showAppChoiceDialog(context: context, title: title, message: message, secondaryLabel: secondaryLabel, primaryLabel: primaryLabel, primaryIsDestructive: primaryIsDestructive);
-
 /// Confirmation dialog. Returns true if confirmed, false if cancelled, null if dismissed.
 Future<bool?> showAppConfirmDialog({
   required BuildContext context,
@@ -131,10 +127,6 @@ Future<bool?> showAppConfirmDialog({
   );
 }
 
-@Deprecated('Use showAppConfirmDialog instead')
-Future<bool?> showAppleConfirmDialog({required BuildContext context, required String title, required String message, String cancelLabel = 'Cancel', required String confirmLabel, bool isDestructive = false}) =>
-    showAppConfirmDialog(context: context, title: title, message: message, cancelLabel: cancelLabel, confirmLabel: confirmLabel, isDestructive: isDestructive);
-
 /// App dialog: frosted glass, rounded corners. Use [actionsBuilder] so buttons use dialog context for Navigator.pop.
 void showAppDialog({
   required BuildContext context,
@@ -179,11 +171,6 @@ void showAppDialog({
       );
     },
   );
-}
-
-@Deprecated('Use showAppDialog instead')
-void showAppleDialog({required BuildContext context, required String title, required Widget content, List<Widget>? actions, List<Widget> Function(BuildContext dialogContext)? actionsBuilder, double? width, double? maxHeight, bool barrierDismissible = true}) {
-  showAppDialog(context: context, title: title, content: content, actions: actions, actionsBuilder: actionsBuilder, width: width, maxHeight: maxHeight, barrierDismissible: barrierDismissible);
 }
 
 class _AppDialogContent extends StatelessWidget {
@@ -366,14 +353,4 @@ class AppDialogOption extends StatelessWidget {
       ),
     );
   }
-}
-
-@Deprecated('Use AppDialogOption instead')
-class AppleDialogOption extends StatelessWidget {
-  const AppleDialogOption({super.key, required this.label, required this.selected, required this.onTap});
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) => AppDialogOption(label: label, selected: selected, onTap: onTap);
 }
