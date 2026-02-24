@@ -64,18 +64,6 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
           )
           .toList();
 
-      // YouTube Music: library is empty; search by artist name to show tracks
-      if (appState.mediaServiceManager.currentServerType == ServerType.youtubeMusic &&
-          _artistTracks.isEmpty) {
-        final results = await appState.mediaServiceManager.search(
-          widget.artist.name,
-          limit: 50,
-        );
-        if (mounted && results.tracks.isNotEmpty) {
-          _artistTracks = results.tracks;
-        }
-      }
-
       setState(() {
         _isLoading = false;
       });

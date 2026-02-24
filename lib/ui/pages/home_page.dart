@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/providers/app_state.dart';
-import 'package:doudou/services/base_service.dart';
 import 'package:doudou/services/navigation_service.dart';
 
 import 'package:doudou/ui/layout/desktop_layout.dart';
@@ -24,9 +23,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Track> _browseTracks = [];
-  bool _browseTracksLoading = false;
-
   @override
   void initState() {
     super.initState();
@@ -39,28 +35,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _loadBrowseTracksIfNeeded(AppState appState) {
-    if (appState.mediaServiceManager.currentServerType !=
-        ServerType.youtubeMusic) {
-      return;
-    }
-    if (appState.tracks.isNotEmpty) return;
-    if (_browseTracks.isNotEmpty || _browseTracksLoading) return;
-    _browseTracksLoading = true;
-    appState.mediaServiceManager.search('music', limit: 50).then((results) {
-      if (mounted && results.tracks.isNotEmpty) {
-        setState(() {
-          _browseTracks = results.tracks;
-          _browseTracksLoading = false;
-        });
-      } else if (mounted) {
-        setState(() => _browseTracksLoading = false);
-      }
-    }).catchError((_) {
-      if (mounted) setState(() => _browseTracksLoading = false);
-    });
-  }
-
   String? _imageUrl(AppState appState, String? imageId) {
     return imageId != null ? appState.getImageUrl(imageId) : null;
   }
@@ -70,15 +44,6 @@ class _HomePageState extends State<HomePage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        if (!appState.isLoading &&
-            appState.mediaServiceManager.currentServerType ==
-                ServerType.youtubeMusic &&
-            appState.tracks.isEmpty) {
-          _loadBrowseTracksIfNeeded(appState);
-        }
-        final effectiveTracks = _browseTracks.isNotEmpty
-            ? _browseTracks
-            : appState.tracks;
         return Padding(
           padding: const EdgeInsets.fromLTRB(
             DesktopTheme.spacingLg,
@@ -88,48 +53,55 @@ class _HomePageState extends State<HomePage> {
           ),
           child: appState.isLoading
               ? _loading(Theme.of(context))
-              : SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: DesktopTheme.spacingMd),
-                      _quickAccess(context, appState, l10n, effectiveTracks),
-                      const SizedBox(height: DesktopTheme.spacingXl),
-                      if (appState.albums.isNotEmpty) ...[
-                        SectionHeader(
-                          title: l10n.recentlyAddedAlbums,
-                          subtitle: l10n.yourNewestAdditions,
-                          useGradient: true,
-                          onSeeAllPressed: () =>
-                              NavigationService().selectPage(3),
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: DesktopTheme.spacingMd),
+                    _quickAccess(context, appState, l10n),
+                    const SizedBox(height: DesktopTheme.spacingXl),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (appState.albums.isNotEmpty) ...[
+                              SectionHeader(
+                                title: l10n.recentlyAddedAlbums,
+                                subtitle: l10n.yourNewestAdditions,
+                                useGradient: true,
+                                onSeeAllPressed: () =>
+                                    NavigationService().selectPage(3),
+                              ),
+                              const SizedBox(height: DesktopTheme.spacingMd),
+                              _albumRow(context, appState, l10n),
+                              const SizedBox(height: DesktopTheme.spacingXl),
+                            ],
+                            if (appState.artists.isNotEmpty) ...[
+                              SectionHeader(
+                                title: l10n.yourArtists,
+                                subtitle: l10n.browseByArtist,
+                                onSeeAllPressed: () =>
+                                    NavigationService().selectPage(4),
+                              ),
+                              const SizedBox(height: DesktopTheme.spacingMd),
+                              _artistRow(context, appState, l10n),
+                              const SizedBox(height: DesktopTheme.spacingXl),
+                            ],
+                            if (appState.tracks.isNotEmpty) ...[
+                              SectionHeader(
+                                title: l10n.recentTracks,
+                                subtitle: l10n.yourMusicCollection,
+                              ),
+                              const SizedBox(height: DesktopTheme.spacingMd),
+                              _recentTracks(context, appState, l10n),
+                            ],
+                            const SizedBox(height: 120),
+                          ],
                         ),
-                        const SizedBox(height: DesktopTheme.spacingMd),
-                        _albumRow(context, appState, l10n),
-                        const SizedBox(height: DesktopTheme.spacingXl),
-                      ],
-                      if (appState.artists.isNotEmpty) ...[
-                        SectionHeader(
-                          title: l10n.yourArtists,
-                          subtitle: l10n.browseByArtist,
-                          onSeeAllPressed: () =>
-                              NavigationService().selectPage(4),
-                        ),
-                        const SizedBox(height: DesktopTheme.spacingMd),
-                        _artistRow(context, appState, l10n),
-                        const SizedBox(height: DesktopTheme.spacingXl),
-                      ],
-                      if (appState.tracks.isNotEmpty || _browseTracks.isNotEmpty) ...[
-                        SectionHeader(
-                          title: l10n.recentTracks,
-                          subtitle: l10n.yourMusicCollection,
-                        ),
-                        const SizedBox(height: DesktopTheme.spacingMd),
-                        _recentTracks(context, appState, l10n, effectiveTracks),
-                      ],
-                      const SizedBox(height: 120),
-                    ],
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
         );
       },
@@ -160,39 +132,27 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _quickAccess(
-      BuildContext context, AppState appState, AppLocalizations l10n,
-      List<Track> effectiveTracks) {
-    final useBrowse = _browseTracks.isNotEmpty;
-    final favoriteCount = effectiveTracks.where((t) => t.isFavorite).length;
+      BuildContext context, AppState appState, AppLocalizations l10n) {
     return Row(
       children: [
         Expanded(
           child: QuickAccessCard(
             title: 'Shuffle All',
-            subtitle: l10n.countSongs(effectiveTracks.length),
+            subtitle: l10n.countSongs(appState.tracks.length),
             icon: Icons.shuffle_rounded,
             color: DesktopTheme.playButtonGreen,
-            onTap: effectiveTracks.isEmpty
-                ? null
-                : () async {
-                    if (useBrowse) {
-                      final list = List<Track>.from(effectiveTracks)..shuffle();
-                      await appState.playPlaylist(list, 0);
-                      await appState.audioHandler?.shuffle();
-                    } else {
-                      await appState.shuffleAllTracks();
-                    }
-                  },
+            onTap: () => appState.shuffleAllTracks(),
           ),
         ),
         const SizedBox(width: DesktopTheme.spacingMd),
         Expanded(
           child: QuickAccessCard(
             title: 'Shuffle Favorites',
-            subtitle: l10n.countSongs(favoriteCount),
+            subtitle: l10n.countSongs(
+                appState.tracks.where((t) => t.isFavorite).length),
             icon: Icons.favorite_rounded,
             color: DesktopTheme.heartRed,
-            onTap: favoriteCount > 0 ? () => appState.shuffleFavoriteTracks() : null,
+            onTap: () => appState.shuffleFavoriteTracks(),
           ),
         ),
       ],
@@ -260,9 +220,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _recentTracks(
-      BuildContext context, AppState appState, AppLocalizations l10n,
-      List<Track> effectiveTracks) {
-    final tracks = effectiveTracks.take(8).toList();
+      BuildContext context, AppState appState, AppLocalizations l10n) {
+    final tracks = appState.tracks.take(8).toList();
     return Column(
       children: tracks
           .map(
@@ -295,8 +254,8 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
                 onTap: () {
-                  final i = effectiveTracks.indexOf(track);
-                  if (i >= 0) appState.playPlaylist(effectiveTracks, i);
+                  final i = appState.tracks.indexOf(track);
+                  if (i >= 0) appState.playPlaylist(appState.tracks, i);
                 },
               ),
             ),
