@@ -8,6 +8,23 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart' hide Playlist;
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
 
+/// A single section on the YouTube Music home page (e.g. "Quick picks", "Playlists").
+class YtHomeSection {
+  final String title;
+  final List<Track> tracks;
+  final List<Playlist> playlists;
+
+  YtHomeSection({
+    required this.title,
+    List<Track>? tracks,
+    List<Playlist>? playlists,
+  })  : tracks = tracks ?? const [],
+        playlists = playlists ?? const [];
+
+  bool get isTracks => tracks.isNotEmpty;
+  bool get isPlaylists => playlists.isNotEmpty;
+}
+
 /// YouTube Music as a data-only provider. Supplies catalog (search) and
 /// stream URLs. Playback uses the existing UnifiedAudioHandler/AppAudioPlayer.
 class YoutubeMusicService implements BaseMediaService {
@@ -95,6 +112,34 @@ class YoutubeMusicService implements BaseMediaService {
   @override
   Future<List<Playlist>> getPlaylists() async {
     return [];
+  }
+
+  /// Returns home page sections in the style of Harmony Music: Quick picks (tracks)
+  /// and horizontal rows of playlists. Uses search to build sections without a full browse API.
+  Future<List<YtHomeSection>> getHomeSections() async {
+    final sections = <YtHomeSection>[];
+    try {
+      // Quick picks: mixed music search, take tracks
+      final quick = await search('music', limit: 12);
+      if (quick.tracks.isNotEmpty) {
+        sections.add(YtHomeSection(title: 'Quick picks', tracks: quick.tracks));
+      }
+      // Community playlists row
+      if (quick.playlists.isNotEmpty) {
+        sections.add(YtHomeSection(
+          title: 'Popular playlists',
+          playlists: quick.playlists.take(10).toList(),
+        ));
+      }
+      // Trending / charts-style row
+      final trending = await search('trending music', limit: 12);
+      if (trending.tracks.isNotEmpty && sections.length < 4) {
+        sections.add(YtHomeSection(title: 'Trending', tracks: trending.tracks));
+      }
+    } catch (_) {
+      // Return whatever we have
+    }
+    return sections;
   }
 
   @override

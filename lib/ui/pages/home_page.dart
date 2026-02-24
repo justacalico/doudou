@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/providers/app_state.dart';
+import 'package:doudou/services/base_service.dart';
 import 'package:doudou/services/navigation_service.dart';
+import 'package:doudou/services/players/youtube_music_service.dart';
 
 import 'package:doudou/ui/layout/desktop_layout.dart';
 import 'package:doudou/ui/pages/details/artist_detail.dart';
@@ -23,6 +25,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  List<YtHomeSection>? _ytHomeSections;
+  bool _ytHomeLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +40,27 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _loadYtHome(BuildContext context) async {
+    final appState = context.read<AppState>();
+    if (appState.mediaServiceManager.currentServerType != ServerType.youtubeMusic) return;
+    if (_ytHomeSections != null || _ytHomeLoading) return;
+    if (!mounted) return;
+    setState(() => _ytHomeLoading = true);
+    try {
+      final sections = await appState.mediaServiceManager.getYtHomeSections();
+      if (!mounted) return;
+      setState(() {
+        _ytHomeSections = sections;
+        _ytHomeLoading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() {
+        _ytHomeSections = [];
+        _ytHomeLoading = false;
+      });
+    }
+  }
+
   String? _imageUrl(AppState appState, String? imageId) {
     return imageId != null ? appState.getImageUrl(imageId) : null;
   }
@@ -44,6 +70,14 @@ class _HomePageState extends State<HomePage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        final isYtMusic = appState.mediaServiceManager.currentServerType == ServerType.youtubeMusic;
+        if (isYtMusic && _ytHomeSections == null && !_ytHomeLoading) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _loadYtHome(context));
+        } else if (!isYtMusic && _ytHomeSections != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _ytHomeSections = null);
+          });
+        }
         return Padding(
           padding: const EdgeInsets.fromLTRB(
             DesktopTheme.spacingLg,
@@ -51,7 +85,7 @@ class _HomePageState extends State<HomePage> {
             DesktopTheme.spacingLg,
             0,
           ),
-          child: appState.isLoading
+          child: appState.isLoading && !isYtMusic
               ? _loading(Theme.of(context))
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -60,51 +94,159 @@ class _HomePageState extends State<HomePage> {
                     _quickAccess(context, appState, l10n),
                     const SizedBox(height: DesktopTheme.spacingXl),
                     Expanded(
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (appState.albums.isNotEmpty) ...[
-                              SectionHeader(
-                                title: l10n.recentlyAddedAlbums,
-                                subtitle: l10n.yourNewestAdditions,
-                                useGradient: true,
-                                onSeeAllPressed: () =>
-                                    NavigationService().selectPage(3),
+                      child: isYtMusic
+                          ? _ytHomeBody(context, appState, l10n)
+                          : SingleChildScrollView(
+                              physics: const BouncingScrollPhysics(),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (appState.albums.isNotEmpty) ...[
+                                    SectionHeader(
+                                      title: l10n.recentlyAddedAlbums,
+                                      subtitle: l10n.yourNewestAdditions,
+                                      useGradient: true,
+                                      onSeeAllPressed: () =>
+                                          NavigationService().selectPage(3),
+                                    ),
+                                    const SizedBox(height: DesktopTheme.spacingMd),
+                                    _albumRow(context, appState, l10n),
+                                    const SizedBox(height: DesktopTheme.spacingXl),
+                                  ],
+                                  if (appState.artists.isNotEmpty) ...[
+                                    SectionHeader(
+                                      title: l10n.yourArtists,
+                                      subtitle: l10n.browseByArtist,
+                                      onSeeAllPressed: () =>
+                                          NavigationService().selectPage(4),
+                                    ),
+                                    const SizedBox(height: DesktopTheme.spacingMd),
+                                    _artistRow(context, appState, l10n),
+                                    const SizedBox(height: DesktopTheme.spacingXl),
+                                  ],
+                                  if (appState.tracks.isNotEmpty) ...[
+                                    SectionHeader(
+                                      title: l10n.recentTracks,
+                                      subtitle: l10n.yourMusicCollection,
+                                    ),
+                                    const SizedBox(height: DesktopTheme.spacingMd),
+                                    _recentTracks(context, appState, l10n),
+                                  ],
+                                  const SizedBox(height: 120),
+                                ],
                               ),
-                              const SizedBox(height: DesktopTheme.spacingMd),
-                              _albumRow(context, appState, l10n),
-                              const SizedBox(height: DesktopTheme.spacingXl),
-                            ],
-                            if (appState.artists.isNotEmpty) ...[
-                              SectionHeader(
-                                title: l10n.yourArtists,
-                                subtitle: l10n.browseByArtist,
-                                onSeeAllPressed: () =>
-                                    NavigationService().selectPage(4),
-                              ),
-                              const SizedBox(height: DesktopTheme.spacingMd),
-                              _artistRow(context, appState, l10n),
-                              const SizedBox(height: DesktopTheme.spacingXl),
-                            ],
-                            if (appState.tracks.isNotEmpty) ...[
-                              SectionHeader(
-                                title: l10n.recentTracks,
-                                subtitle: l10n.yourMusicCollection,
-                              ),
-                              const SizedBox(height: DesktopTheme.spacingMd),
-                              _recentTracks(context, appState, l10n),
-                            ],
-                            const SizedBox(height: 120),
-                          ],
-                        ),
-                      ),
+                            ),
                     ),
                   ],
                 ),
         );
       },
+    );
+  }
+
+  Widget _ytHomeBody(BuildContext context, AppState appState, AppLocalizations l10n) {
+    if (_ytHomeLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            Text(
+              'Loading...',
+              style: TextStyle(fontSize: 14, color: DesktopTheme.textSecondary),
+            ),
+          ],
+        ),
+      );
+    }
+    final sections = _ytHomeSections ?? [];
+    if (sections.isEmpty) {
+      return Center(
+        child: Text(
+          'Use Search to find music',
+          style: TextStyle(fontSize: 15, color: DesktopTheme.textSecondary),
+        ),
+      );
+    }
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final section in sections) ...[
+            SectionHeader(title: section.title),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            if (section.isTracks)
+              _ytTrackRow(context, appState, l10n, section.tracks)
+            else
+              _ytPlaylistRow(context, appState, section.playlists),
+            const SizedBox(height: DesktopTheme.spacingXl),
+          ],
+          const SizedBox(height: 120),
+        ],
+      ),
+    );
+  }
+
+  Widget _ytTrackRow(BuildContext context, AppState appState, AppLocalizations l10n, List<Track> tracks) {
+    return SizedBox(
+      height: 72,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: tracks.length,
+        itemBuilder: (context, index) {
+          final track = tracks[index];
+          final imageUrl = appState.mediaServiceManager.getImageUrl(track.imageUrl ?? track.id);
+          return Padding(
+            padding: EdgeInsets.only(
+                right: index < tracks.length - 1 ? DesktopTheme.spacingMd : 0),
+            child: SizedBox(
+              width: 280,
+              child: MusicListTile(
+                title: track.name,
+                subtitle: track.artistName ?? l10n.unknownArtist,
+                imageUrl: imageUrl,
+                onTap: () => appState.playPlaylist(tracks, index),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _ytPlaylistRow(BuildContext context, AppState appState, List<Playlist> playlists) {
+    return SizedBox(
+      height: 230,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: playlists.length,
+        itemBuilder: (context, index) {
+          final playlist = playlists[index];
+          final imageUrl = playlist.imageUrl ?? appState.mediaServiceManager.getImageUrl(playlist.id);
+          return Padding(
+            padding: EdgeInsets.only(
+                right: index < playlists.length - 1 ? DesktopTheme.spacingMd : 0),
+            child: MusicCard(
+              title: playlist.name,
+              subtitle: '${playlist.trackCount} tracks',
+              imageUrl: imageUrl,
+              size: 180,
+              onTap: () => NavigationService().navigateToPlaylist(playlist),
+            ),
+          );
+        },
+      ),
     );
   }
 

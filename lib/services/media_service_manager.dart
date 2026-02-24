@@ -334,6 +334,14 @@ class MediaServiceManager {
     );
   }
 
+  /// YouTube Music home sections (Harmony-style). Returns empty list when not on YT Music.
+  Future<List<YtHomeSection>> getYtHomeSections() async {
+    if (_currentService is YoutubeMusicService) {
+      return await (_currentService! as YoutubeMusicService).getHomeSections();
+    }
+    return [];
+  }
+
   /// Get server information from the current service
   Future<ServerInfo> getServerInfo() async {
     if (_currentService == null) {
