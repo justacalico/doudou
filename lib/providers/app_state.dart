@@ -52,6 +52,8 @@ class AppState extends ChangeNotifier {
   bool _showQueueOnPlayerBar = true;
   bool _showShuffleRepeatOnPlayerBar = true;
   bool _showHexColorControls = false;
+  final Set<String> _ytFollowedAlbumIds = <String>{};
+  final Set<String> _ytFollowedArtistNames = <String>{};
 
   /// When false (default on Windows/Linux), YouTube Music is hidden due to known issues; user can re-enable in General settings.
   bool _allowYoutubeMusicOnDesktop = false;
@@ -157,6 +159,8 @@ class AppState extends ChangeNotifier {
   bool get showShuffleRepeatOnPlayerBar => _showShuffleRepeatOnPlayerBar;
   bool get showHexColorControls => _showHexColorControls;
   bool get allowYoutubeMusicOnDesktop => _allowYoutubeMusicOnDesktop;
+  bool get isYoutubeMusic =>
+      _mediaServiceManager.currentServerType == ServerType.youtubeMusic;
 
   /// True on Windows/Linux where YouTube Music is optionally hidden by default.
   bool get isDesktopWhereYoutubeMusicRestricted =>
@@ -1905,21 +1909,34 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Fetch ALL starred tracks from the server using the new getStarredTracks method
-      // This uses getStarred2 API for Subsonic which returns all starred items
-      List<Track> favoriteTracks = await _mediaServiceManager
-          .getStarredTracks();
-
-      if (favoriteTracks.isEmpty) {
-        // Fallback to cached tracks filtered by isFavorite
-        favoriteTracks = _tracks.where((track) => track.isFavorite).toList();
-      }
-
-      if (favoriteTracks.isEmpty) {
+      if (isYoutubeMusic) {
+        final localFavoriteTracks = List<Track>.from(favoriteTracks);
+        if (localFavoriteTracks.isEmpty) {
+          return;
+        }
+        localFavoriteTracks.shuffle();
+        await _audioHandler!.playPlaylist(localFavoriteTracks, 0);
+        await _audioHandler!.shuffle();
         return;
       }
 
-      final shuffledFavorites = List<Track>.from(favoriteTracks);
+      // Fetch ALL starred tracks from the server using the new getStarredTracks method
+      // This uses getStarred2 API for Subsonic which returns all starred items
+      List<Track> serverFavoriteTracks = await _mediaServiceManager
+          .getStarredTracks();
+
+      if (serverFavoriteTracks.isEmpty) {
+        // Fallback to cached tracks filtered by isFavorite
+        serverFavoriteTracks = _tracks
+            .where((track) => track.isFavorite)
+            .toList();
+      }
+
+      if (serverFavoriteTracks.isEmpty) {
+        return;
+      }
+
+      final shuffledFavorites = List<Track>.from(serverFavoriteTracks);
       shuffledFavorites.shuffle();
 
       await _audioHandler!.playPlaylist(shuffledFavorites, 0);
@@ -1934,14 +1951,71 @@ class AppState extends ChangeNotifier {
 
   /// Get all starred tracks from the server (not cached)
   Future<List<Track>> getStarredTracksFromServer() async {
+    if (isYoutubeMusic) {
+      return favoriteTracks;
+    }
     return await _mediaServiceManager.getStarredTracks();
   }
 
-  List<Track> get favoriteTracks =>
-      _tracks.where((track) => track.isFavorite).toList();
+  List<Track> get favoriteTracks {
+    if (!isYoutubeMusic) {
+      return _tracks.where((track) => track.isFavorite).toList();
+    }
+    return _tracks.where((track) {
+      final byAlbum =
+          track.albumId != null && _ytFollowedAlbumIds.contains(track.albumId);
+      final byArtist =
+          track.artistName != null &&
+          _ytFollowedArtistNames.any(
+            (followedName) =>
+                _artistNameMatches(track.artistName!, followedName),
+          );
+      return byAlbum || byArtist || track.isFavorite;
+    }).toList();
+  }
 
-  List<Album> get favoriteAlbums =>
-      _albums.where((album) => album.isFavorite).toList();
+  List<Album> get favoriteAlbums {
+    if (!isYoutubeMusic) {
+      return _albums.where((album) => album.isFavorite).toList();
+    }
+    return _albums
+        .where(
+          (album) => _ytFollowedAlbumIds.contains(album.id) || album.isFavorite,
+        )
+        .toList();
+  }
+
+  List<Artist> get favoriteArtists {
+    if (!isYoutubeMusic) {
+      return const <Artist>[];
+    }
+    return _artists
+        .where((artist) => _ytFollowedArtistNames.contains(artist.name))
+        .toList();
+  }
+
+  bool isAlbumFollowed(Album album) {
+    if (!isYoutubeMusic) {
+      return album.isFavorite;
+    }
+    return _ytFollowedAlbumIds.contains(album.id) || album.isFavorite;
+  }
+
+  bool isArtistFollowed(Artist artist) {
+    if (!isYoutubeMusic) return false;
+    return _ytFollowedArtistNames.contains(artist.name);
+  }
+
+  bool _artistNameMatches(String haystack, String needle) {
+    final h = haystack.trim().toLowerCase();
+    final n = needle.trim().toLowerCase();
+    if (h == n || h.contains(n)) return true;
+    final tokens = h
+        .split(RegExp(r'[,/&]'))
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty);
+    return tokens.contains(n);
+  }
 
   /// Check if a track is favorited by its ID
   bool isFavorite(String trackId) {
@@ -2015,6 +2089,10 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> toggleAlbumFavorite(Album album) async {
+    if (isYoutubeMusic) {
+      await toggleAlbumFollow(album);
+      return;
+    }
     try {
       final success = await _mediaServiceManager.toggleFavorite(
         album.id,
@@ -2031,6 +2109,48 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       _setError('Failed to toggle album favorite: ${e.toString()}');
     }
+  }
+
+  Future<void> toggleArtistFollow(Artist artist) async {
+    if (!isYoutubeMusic) return;
+    if (_ytFollowedArtistNames.contains(artist.name)) {
+      _ytFollowedArtistNames.remove(artist.name);
+    } else {
+      _ytFollowedArtistNames.add(artist.name);
+    }
+    await _saveYoutubeFollows();
+    notifyListeners();
+  }
+
+  Future<void> toggleAlbumFollow(Album album) async {
+    if (!isYoutubeMusic) {
+      await toggleAlbumFavorite(album);
+      return;
+    }
+    final index = _albums.indexWhere((a) => a.id == album.id);
+    final isFollowed = _ytFollowedAlbumIds.contains(album.id);
+    if (isFollowed) {
+      _ytFollowedAlbumIds.remove(album.id);
+    } else {
+      _ytFollowedAlbumIds.add(album.id);
+    }
+    if (index != -1) {
+      _albums[index] = _albums[index].copyWith(isFavorite: !isFollowed);
+    }
+    await _saveYoutubeFollows();
+    notifyListeners();
+  }
+
+  Future<void> _saveYoutubeFollows() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'yt_followed_album_ids',
+      _ytFollowedAlbumIds.toList(),
+    );
+    await prefs.setStringList(
+      'yt_followed_artist_names',
+      _ytFollowedArtistNames.toList(),
+    );
   }
 
   Future<bool> createPlaylist(String name) async {
@@ -2337,6 +2457,16 @@ class AppState extends ChangeNotifier {
     _showShuffleRepeatOnPlayerBar =
         prefs.getBool('show_shuffle_repeat_on_player_bar') ?? true;
     _showHexColorControls = prefs.getBool('show_hex_color_controls') ?? false;
+    _ytFollowedAlbumIds
+      ..clear()
+      ..addAll(
+        prefs.getStringList('yt_followed_album_ids') ?? const <String>[],
+      );
+    _ytFollowedArtistNames
+      ..clear()
+      ..addAll(
+        prefs.getStringList('yt_followed_artist_names') ?? const <String>[],
+      );
     _allowYoutubeMusicOnDesktop =
         prefs.getBool('allow_youtube_music_on_desktop') ?? false;
 

@@ -464,9 +464,7 @@ class _HomePageState extends State<HomePage> {
         Expanded(
           child: QuickAccessCard(
             title: 'Shuffle Favorites',
-            subtitle: l10n.countSongs(
-              appState.tracks.where((t) => t.isFavorite).length,
-            ),
+            subtitle: l10n.countSongs(appState.favoriteTracks.length),
             icon: Icons.favorite_rounded,
             color: DesktopTheme.heartRed,
             onTap: () => appState.shuffleFavoriteTracks(),

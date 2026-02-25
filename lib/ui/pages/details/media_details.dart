@@ -17,15 +17,13 @@ class MediaDetailsPage extends StatefulWidget {
   final Album? album;
   final MediaType mediaType;
 
-  const MediaDetailsPage.playlist({
-    super.key,
-    required this.playlist,
-  }) : album = null, mediaType = MediaType.playlist;
+  const MediaDetailsPage.playlist({super.key, required this.playlist})
+    : album = null,
+      mediaType = MediaType.playlist;
 
-  const MediaDetailsPage.album({
-    super.key,
-    required this.album,
-  }) : playlist = null, mediaType = MediaType.album;
+  const MediaDetailsPage.album({super.key, required this.album})
+    : playlist = null,
+      mediaType = MediaType.album;
 
   @override
   State<MediaDetailsPage> createState() => _MediaDetailsPageState();
@@ -49,7 +47,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   void _loadTracks() async {
     if (!mounted) return;
-    
+
     final appState = context.read<AppState>();
     setState(() {
       _isLoading = true;
@@ -60,19 +58,23 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         _tracks = await appState.getPlaylistTracks(widget.playlist!.id);
       } else {
         _tracks = await appState.getAlbumTracks(widget.album!.id);
-        
+
         _tracks.sort((a, b) {
           final aTrack = a.trackNumber ?? 999;
           final bTrack = b.trackNumber ?? 999;
           return aTrack.compareTo(bTrack);
         });
-        
+
         if (_tracks.isEmpty) {
-          final fallbackTracks = appState.tracks.where((track) => 
-            track.albumId == widget.album!.id || 
-            track.albumName?.toLowerCase() == widget.album!.name.toLowerCase()
-          ).toList();
-          
+          final fallbackTracks = appState.tracks
+              .where(
+                (track) =>
+                    track.albumId == widget.album!.id ||
+                    track.albumName?.toLowerCase() ==
+                        widget.album!.name.toLowerCase(),
+              )
+              .toList();
+
           if (fallbackTracks.isNotEmpty) {
             _tracks = fallbackTracks;
           }
@@ -99,8 +101,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   }
 
   String get _title {
-    return widget.mediaType == MediaType.playlist 
-        ? widget.playlist!.name 
+    return widget.mediaType == MediaType.playlist
+        ? widget.playlist!.name
         : widget.album!.name;
   }
 
@@ -110,7 +112,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final theme = Theme.of(context);
-        
+
         return PageTemplate(
           showBackButton: true,
           title: _title,
@@ -123,24 +125,25 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                       padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
                       child: ConstrainedBox(
                         constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight - 48, // Account for padding
+                          minHeight:
+                              constraints.maxHeight - 48, // Account for padding
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                      // Action buttons row
-                      _buildActionButtons(theme, l10n),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Media header
-                      _buildMediaHeader(theme, appState, l10n),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Track list section (now part of the scrollable content)
-                      _buildTrackList(theme, appState, l10n),
+                            // Action buttons row
+                            _buildActionButtons(theme, l10n),
+
+                            const SizedBox(height: 24),
+
+                            // Media header
+                            _buildMediaHeader(theme, appState, l10n),
+
+                            const SizedBox(height: 24),
+
+                            // Track list section (now part of the scrollable content)
+                            _buildTrackList(theme, appState, l10n),
                           ],
                         ),
                       ),
@@ -157,51 +160,63 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       builder: (context, appState, child) {
         return LayoutBuilder(
           builder: (context, constraints) {
-            final isNarrow = constraints.maxWidth < (widget.mediaType == MediaType.playlist ? 500 : 600);
-            
+            final isNarrow =
+                constraints.maxWidth <
+                (widget.mediaType == MediaType.playlist ? 500 : 600);
+            final isAlbumFollowed =
+                widget.mediaType == MediaType.album && widget.album != null
+                ? appState.isAlbumFollowed(widget.album!)
+                : false;
+
             return Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
                 // Play button
                 ElevatedButton.icon(
-                  onPressed: _tracks.isNotEmpty ? () async {
-                    await appState.playPlaylist(_tracks, 0);
-                  } : null,
+                  onPressed: _tracks.isNotEmpty
+                      ? () async {
+                          await appState.playPlaylist(_tracks, 0);
+                        }
+                      : null,
                   icon: const Icon(Icons.play_arrow),
-                  label: Text(isNarrow ? l10n.play : (widget.mediaType == MediaType.playlist ? l10n.playAll : l10n.playAlbum)),
+                  label: Text(
+                    isNarrow
+                        ? l10n.play
+                        : (widget.mediaType == MediaType.playlist
+                              ? l10n.playAll
+                              : l10n.playAlbum),
+                  ),
                 ),
                 // Shuffle button
                 OutlinedButton.icon(
-                  onPressed: _tracks.isNotEmpty ? () async {
-                    final shuffledTracks = List<Track>.from(_tracks)..shuffle();
-                    await appState.playPlaylist(shuffledTracks, 0);
-                  } : null,
+                  onPressed: _tracks.isNotEmpty
+                      ? () async {
+                          final shuffledTracks = List<Track>.from(_tracks)
+                            ..shuffle();
+                          await appState.playPlaylist(shuffledTracks, 0);
+                        }
+                      : null,
                   icon: const Icon(Icons.shuffle),
                   label: Text(l10n.shuffle),
                 ),
                 // Download album button (albums only)
-                if (widget.mediaType == MediaType.album && appState.downloadsEnabled)
+                if (widget.mediaType == MediaType.album &&
+                    appState.downloadsEnabled)
                   _buildAlbumDownloadButton(appState, l10n),
                 // Conditional buttons based on media type
                 if (widget.mediaType == MediaType.album) ...[
                   // Favorite button (for albums)
                   IconButton(
-                    onPressed: () {
-                      // Note: Albums don't typically have favorites in most services
-                      // This would need to be implemented based on your service's capabilities
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(l10n.albumFavoritesNotImplemented),
-                          backgroundColor: Colors.orange,
-                        ),
-                      );
-                    },
+                    onPressed: () =>
+                        appState.toggleAlbumFavorite(widget.album!),
                     icon: Icon(
-                      widget.album!.isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: widget.album!.isFavorite ? Colors.red : null,
+                      isAlbumFollowed ? Icons.favorite : Icons.favorite_border,
+                      color: isAlbumFollowed ? Colors.red : null,
                     ),
-                    tooltip: widget.album!.isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
+                    tooltip: isAlbumFollowed
+                        ? l10n.removeFromFavorites
+                        : l10n.addToFavorites,
                   ),
                 ],
                 _buildMoreOptionsMenu(l10n),
@@ -215,17 +230,21 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   Widget _buildAlbumDownloadButton(AppState appState, AppLocalizations l10n) {
     final downloadService = appState.downloadService;
-    final toDownload = _tracks.where((t) => !downloadService.isTrackDownloaded(t.id)).toList();
+    final toDownload = _tracks
+        .where((t) => !downloadService.isTrackDownloaded(t.id))
+        .toList();
     final isAllDownloaded = toDownload.isEmpty;
-    final anyDownloading = _tracks.any((t) =>
-        downloadService.getDownloadStatus(t.id) == DownloadStatus.downloading);
+    final anyDownloading = _tracks.any(
+      (t) =>
+          downloadService.getDownloadStatus(t.id) == DownloadStatus.downloading,
+    );
 
     return Tooltip(
       message: isAllDownloaded
           ? l10n.downloadedSection
           : anyDownloading
-              ? l10n.downloading
-              : l10n.download,
+          ? l10n.downloading
+          : l10n.download,
       child: IconButton(
         onPressed: isAllDownloaded
             ? null
@@ -246,7 +265,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 }
               },
         icon: Icon(
-          isAllDownloaded ? Icons.download_done_rounded : Icons.download_rounded,
+          isAllDownloaded
+              ? Icons.download_done_rounded
+              : Icons.download_rounded,
           size: 24,
         ),
         style: IconButton.styleFrom(
@@ -293,73 +314,92 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       },
       itemBuilder: (context) {
         List<PopupMenuEntry<String>> items = [];
-        
+
         // Common items
         if (widget.mediaType == MediaType.album) {
-          items.add(PopupMenuItem(
-            value: 'add_playlist',
-            child: ListTile(
-              leading: const Icon(Icons.playlist_add),
-              title: Text(l10n.addToPlaylist),
-              contentPadding: EdgeInsets.zero,
-            ),
-          ));
-          if (context.read<AppState>().downloadsEnabled) {
-            items.add(PopupMenuItem(
-              value: 'download',
+          items.add(
+            PopupMenuItem(
+              value: 'add_playlist',
               child: ListTile(
-                leading: const Icon(Icons.download),
-                title: Text(l10n.download),
+                leading: const Icon(Icons.playlist_add),
+                title: Text(l10n.addToPlaylist),
                 contentPadding: EdgeInsets.zero,
               ),
-            ));
+            ),
+          );
+          if (context.read<AppState>().downloadsEnabled) {
+            items.add(
+              PopupMenuItem(
+                value: 'download',
+                child: ListTile(
+                  leading: const Icon(Icons.download),
+                  title: Text(l10n.download),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            );
           }
         }
-        
-        items.add(PopupMenuItem(
-          value: 'share',
-          child: ListTile(
-            leading: const Icon(Icons.share),
-            title: Text(l10n.share),
-            contentPadding: EdgeInsets.zero,
+
+        items.add(
+          PopupMenuItem(
+            value: 'share',
+            child: ListTile(
+              leading: const Icon(Icons.share),
+              title: Text(l10n.share),
+              contentPadding: EdgeInsets.zero,
+            ),
           ),
-        ));
-        
+        );
+
         // Media type specific items
         if (widget.mediaType == MediaType.album) {
-          items.add(PopupMenuItem(
-            value: 'artist',
-            child: ListTile(
-              leading: const Icon(Icons.person),
-              title: Text(l10n.goToArtist),
-              contentPadding: EdgeInsets.zero,
+          items.add(
+            PopupMenuItem(
+              value: 'artist',
+              child: ListTile(
+                leading: const Icon(Icons.person),
+                title: Text(l10n.goToArtist),
+                contentPadding: EdgeInsets.zero,
+              ),
             ),
-          ));
+          );
         } else {
-          items.add(PopupMenuItem(
-            value: 'edit',
-            child: ListTile(
-              leading: const Icon(Icons.edit),
-              title: Text(l10n.editPlaylist),
-              contentPadding: EdgeInsets.zero,
+          items.add(
+            PopupMenuItem(
+              value: 'edit',
+              child: ListTile(
+                leading: const Icon(Icons.edit),
+                title: Text(l10n.editPlaylist),
+                contentPadding: EdgeInsets.zero,
+              ),
             ),
-          ));
-          items.add(PopupMenuItem(
-            value: 'delete',
-            child: ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: Text(l10n.deletePlaylist, style: const TextStyle(color: Colors.red)),
-              contentPadding: EdgeInsets.zero,
+          );
+          items.add(
+            PopupMenuItem(
+              value: 'delete',
+              child: ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: Text(
+                  l10n.deletePlaylist,
+                  style: const TextStyle(color: Colors.red),
+                ),
+                contentPadding: EdgeInsets.zero,
+              ),
             ),
-          ));
+          );
         }
-        
+
         return items;
       },
     );
   }
 
-  Widget _buildMediaHeader(ThemeData theme, AppState appState, AppLocalizations l10n) {
+  Widget _buildMediaHeader(
+    ThemeData theme,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -375,28 +415,30 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 final iconSize = widget.mediaType == MediaType.playlist
                     ? (constraints.maxWidth < 800 ? 60.0 : 80.0)
                     : (constraints.maxWidth < 800 ? 70.0 : 100.0);
-                
+
                 final imageUrl = widget.mediaType == MediaType.playlist
                     ? widget.playlist!.imageUrl
                     : widget.album!.imageUrl;
-                
+
                 final defaultIcon = widget.mediaType == MediaType.playlist
                     ? Icons.playlist_play
                     : Icons.album;
-                
+
                 return Container(
                   width: artworkSize,
                   height: artworkSize,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: widget.mediaType == MediaType.album ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ] : null,
+                    boxShadow: widget.mediaType == MediaType.album
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ]
+                        : null,
                   ),
                   child: imageUrl != null
                       ? ClipRRect(
@@ -423,16 +465,18 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 );
               },
             ),
-            
+
             SizedBox(width: widget.mediaType == MediaType.album ? 20 : 16),
-            
+
             // Media info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.mediaType == MediaType.playlist ? l10n.playlist : l10n.album,
+                    widget.mediaType == MediaType.playlist
+                        ? l10n.playlist
+                        : l10n.album,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w600,
@@ -461,7 +505,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      if (widget.mediaType == MediaType.album && widget.album!.year != null) ...[
+                      if (widget.mediaType == MediaType.album &&
+                          widget.album!.year != null) ...[
                         Text(
                           widget.album!.year.toString(),
                           style: theme.textTheme.bodyLarge?.copyWith(
@@ -507,7 +552,11 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
   }
 
-  Widget _buildTrackList(ThemeData theme, AppState appState, AppLocalizations l10n) {
+  Widget _buildTrackList(
+    ThemeData theme,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
     if (_tracks.isEmpty && !_isLoading) {
       return Column(
         children: [
@@ -519,14 +568,16 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            widget.mediaType == MediaType.playlist ? l10n.noTracksInPlaylist : l10n.noTracksFound,
+            widget.mediaType == MediaType.playlist
+                ? l10n.noTracksInPlaylist
+                : l10n.noTracksFound,
             style: theme.textTheme.headlineSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            widget.mediaType == MediaType.playlist 
+            widget.mediaType == MediaType.playlist
                 ? l10n.addSongsToGetStarted
                 : l10n.albumTracksEmptyMessage,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -544,10 +595,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               label: Text(l10n.addSongs),
             )
           else
-            ElevatedButton(
-              onPressed: _refreshTracks,
-              child: Text(l10n.retry),
-            ),
+            ElevatedButton(onPressed: _refreshTracks, child: Text(l10n.retry)),
         ],
       );
     }
@@ -558,9 +606,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         children: [
           // Track list header
           _buildTrackListHeader(theme, l10n),
-          
+
           const Divider(height: 1),
-          
+
           // Track list items (using Column instead of ListView for scrollable parent)
           ...List.generate(_tracks.length, (index) {
             final track = _tracks[index];
@@ -643,7 +691,13 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
   }
 
-  Widget _buildTrackItem(ThemeData theme, AppState appState, Track track, int index, AppLocalizations l10n) {
+  Widget _buildTrackItem(
+    ThemeData theme,
+    AppState appState,
+    Track track,
+    int index,
+    AppLocalizations l10n,
+  ) {
     return InkWell(
       onTap: () async {
         await appState.playPlaylist(_tracks, index);
@@ -684,7 +738,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               ),
               const SizedBox(width: 16),
             ],
-            
+
             // Track number
             SizedBox(
               width: 40,
@@ -696,7 +750,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               ),
             ),
             const SizedBox(width: 16),
-            
+
             // Track title
             Expanded(
               flex: 3,
@@ -711,7 +765,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (widget.mediaType == MediaType.album && track.artistName != null) ...[
+                  if (widget.mediaType == MediaType.album &&
+                      track.artistName != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       track.artistName!,
@@ -725,7 +780,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 ],
               ),
             ),
-            
+
             // Artist (only for playlists)
             if (widget.mediaType == MediaType.playlist) ...[
               const SizedBox(width: 16),
@@ -740,7 +795,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              
+
               // Album (only for playlists)
               const SizedBox(width: 16),
               Expanded(
@@ -755,9 +810,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 ),
               ),
             ],
-            
+
             const SizedBox(width: 16),
-            
+
             // Duration
             SizedBox(
               width: 60,
@@ -769,7 +824,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 textAlign: TextAlign.right,
               ),
             ),
-            
+
             // Menu button
             PopupMenuButton<String>(
               onSelected: (value) {
@@ -786,29 +841,33 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               },
               itemBuilder: (context) {
                 List<PopupMenuEntry<String>> items = [];
-                
+
                 if (widget.mediaType == MediaType.playlist) {
-                  items.add(PopupMenuItem(
-                    value: 'remove',
-                    child: ListTile(
-                      leading: const Icon(Icons.remove),
-                      title: Text(l10n.removeFromPlaylist),
-                      contentPadding: EdgeInsets.zero,
+                  items.add(
+                    PopupMenuItem(
+                      value: 'remove',
+                      child: ListTile(
+                        leading: const Icon(Icons.remove),
+                        title: Text(l10n.removeFromPlaylist),
+                        contentPadding: EdgeInsets.zero,
+                      ),
                     ),
-                  ));
+                  );
                 }
-                
+
                 if (context.read<AppState>().downloadsEnabled) {
-                  items.add(PopupMenuItem(
-                    value: 'download',
-                    child: ListTile(
-                      leading: const Icon(Icons.download),
-                      title: Text(l10n.download),
-                      contentPadding: EdgeInsets.zero,
+                  items.add(
+                    PopupMenuItem(
+                      value: 'download',
+                      child: ListTile(
+                        leading: const Icon(Icons.download),
+                        title: Text(l10n.download),
+                        contentPadding: EdgeInsets.zero,
+                      ),
                     ),
-                  ));
+                  );
                 }
-                
+
                 return items;
               },
             ),
@@ -830,11 +889,11 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       0,
       (sum, track) => sum + (track.duration ?? 0),
     );
-    
+
     final duration = Duration(milliseconds: totalMs);
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     } else {
@@ -845,7 +904,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   String _formatDate(DateTime date, AppLocalizations l10n) {
     final now = DateTime.now();
     final difference = now.difference(date);
-    
+
     if (difference.inDays < 1) {
       return l10n.today;
     } else if (difference.inDays < 7) {
@@ -860,16 +919,17 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   // Album-specific methods
   void _navigateToArtist(AppLocalizations l10n) {
     if (widget.mediaType != MediaType.album) return;
-    
+
     if (widget.album!.artistName == null) {
       return;
     }
 
     final appState = context.read<AppState>();
-    
+
     // Find the artist by name in the artists list
     final artist = appState.artists.firstWhere(
-      (artist) => artist.name.toLowerCase() == widget.album!.artistName!.toLowerCase(),
+      (artist) =>
+          artist.name.toLowerCase() == widget.album!.artistName!.toLowerCase(),
       orElse: () => Artist(
         id: '', // We'll use empty ID as a fallback
         name: widget.album!.artistName!,
@@ -897,9 +957,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   void _downloadAlbum(AppLocalizations l10n) async {
     if (widget.mediaType != MediaType.album) return;
-    
+
     final appState = context.read<AppState>();
-    
+
     if (_tracks.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -914,7 +974,10 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     final confirmed = await showAppConfirmDialog(
       context: context,
       title: l10n.downloadAlbum,
-      message: l10n.downloadAlbumConfirmation(_tracks.length, widget.album!.name),
+      message: l10n.downloadAlbumConfirmation(
+        _tracks.length,
+        widget.album!.name,
+      ),
       confirmLabel: l10n.downloadAllTracks,
     );
 
@@ -928,7 +991,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       try {
         final streamUrl = appState.mediaServiceManager.getStreamUrl(track.id);
         final uri = Uri.parse(streamUrl);
-        
+
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
           successCount++;
@@ -946,14 +1009,22 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       if (failCount == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.openedTracksInBrowser(successCount, widget.album!.name)),
+            content: Text(
+              l10n.openedTracksInBrowser(successCount, widget.album!.name),
+            ),
             backgroundColor: Colors.green,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.openedTracksPartialSuccess(successCount, failCount, widget.album!.name)),
+            content: Text(
+              l10n.openedTracksPartialSuccess(
+                successCount,
+                failCount,
+                widget.album!.name,
+              ),
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -965,7 +1036,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     final appState = context.read<AppState>();
     showAppDialog(
       context: context,
-      title: widget.mediaType == MediaType.album ? l10n.addAlbumToPlaylist : l10n.addTracksToPlaylist,
+      title: widget.mediaType == MediaType.album
+          ? l10n.addAlbumToPlaylist
+          : l10n.addTracksToPlaylist,
       width: 320,
       maxHeight: 420,
       content: Column(
@@ -984,23 +1057,31 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           ListView.builder(
             shrinkWrap: true,
             itemCount: appState.playlists.length,
-              itemBuilder: (context, index) {
-                final playlist = appState.playlists[index];
-                return ListTile(
-                  leading: const Icon(Icons.playlist_play),
-                  title: Text(playlist.name),
-                  subtitle: Text(l10n.countSongs(playlist.trackCount)),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.addedToPlaylist(widget.mediaType == MediaType.album ? l10n.album : 'tracks', playlist.name, _title)),
+            itemBuilder: (context, index) {
+              final playlist = appState.playlists[index];
+              return ListTile(
+                leading: const Icon(Icons.playlist_play),
+                title: Text(playlist.name),
+                subtitle: Text(l10n.countSongs(playlist.trackCount)),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n.addedToPlaylist(
+                          widget.mediaType == MediaType.album
+                              ? l10n.album
+                              : 'tracks',
+                          playlist.name,
+                          _title,
+                        ),
                       ),
-                    );
-                  },
-                );
-              },
-            ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
         ],
       ),
       actionsBuilder: (dialogContext) => [
@@ -1036,7 +1117,12 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               Navigator.of(dialogContext).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(l10n.createdPlaylistWithTracks(nameController.text, widget.mediaType == MediaType.album ? l10n.album : '')),
+                  content: Text(
+                    l10n.createdPlaylistWithTracks(
+                      nameController.text,
+                      widget.mediaType == MediaType.album ? l10n.album : '',
+                    ),
+                  ),
                 ),
               );
             }
@@ -1107,11 +1193,11 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   void _removeTrackFromPlaylist(Track track, AppLocalizations l10n) {
     if (widget.mediaType != MediaType.playlist) return;
-    
+
     setState(() {
       _tracks.remove(track);
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(l10n.removedFromPlaylist(track.name)),

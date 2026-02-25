@@ -39,10 +39,12 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     });
 
     try {
+      final artistQuery = widget.artist.name.toLowerCase();
       // Get albums by this artist
-      _artistAlbums = appState.albums
-          .where((album) => album.artistName == widget.artist.name)
-          .toList();
+      _artistAlbums = appState.albums.where((album) {
+        final name = album.artistName?.toLowerCase();
+        return name != null && name.contains(artistQuery);
+      }).toList();
 
       // Sort albums by year (newest first)
       _artistAlbums.sort((a, b) {
@@ -53,7 +55,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
 
       // Get popular tracks by this artist
       _popularTracks = appState.tracks
-          .where((track) => track.artistName == widget.artist.name)
+          .where((track) => _artistMatch(track.artistName, artistQuery))
           .take(10)
           .toList();
 
@@ -71,6 +73,17 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
         _isLoading = false;
       });
     }
+  }
+
+  bool _artistMatch(String? artistName, String queryLower) {
+    if (artistName == null || artistName.isEmpty) return false;
+    final value = artistName.toLowerCase();
+    if (value == queryLower || value.contains(queryLower)) return true;
+    return value
+        .split(RegExp(r'[,/&]'))
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty)
+        .contains(queryLower);
   }
 
   String? _getImageUrl(AppState appState, String? imageId) {
@@ -167,18 +180,29 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                 ),
                 // Favorite button
                 IconButton(
-                  onPressed: () {
-                    // Toggle favorite artist
-                  },
-                  icon: const Icon(Icons.favorite_border),
-                  tooltip: l10n.addToFavorites,
+                  onPressed: appState.isYoutubeMusic
+                      ? () => appState.toggleArtistFollow(widget.artist)
+                      : null,
+                  icon: Icon(
+                    appState.isArtistFollowed(widget.artist)
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                    color: appState.isArtistFollowed(widget.artist)
+                        ? Colors.red
+                        : null,
+                  ),
+                  tooltip: appState.isArtistFollowed(widget.artist)
+                      ? l10n.removeFromFavorites
+                      : l10n.followArtist,
                 ),
                 // More options
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     switch (value) {
                       case 'follow':
-                        // Follow/unfollow artist
+                        if (appState.isYoutubeMusic) {
+                          appState.toggleArtistFollow(widget.artist);
+                        }
                         break;
                       case 'share':
                         // Share artist
@@ -192,8 +216,16 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                     PopupMenuItem(
                       value: 'follow',
                       child: ListTile(
-                        leading: const Icon(Icons.person_add),
-                        title: Text(l10n.followArtist),
+                        leading: Icon(
+                          appState.isArtistFollowed(widget.artist)
+                              ? Icons.person_remove
+                              : Icons.person_add,
+                        ),
+                        title: Text(
+                          appState.isArtistFollowed(widget.artist)
+                              ? l10n.removeFromFavorites
+                              : l10n.followArtist,
+                        ),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -443,13 +475,9 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     if (isFirst && isLast) {
       borderRadius = BorderRadius.circular(radius);
     } else if (isFirst) {
-      borderRadius = BorderRadius.horizontal(
-        left: Radius.circular(radius),
-      );
+      borderRadius = BorderRadius.horizontal(left: Radius.circular(radius));
     } else if (isLast) {
-      borderRadius = BorderRadius.horizontal(
-        right: Radius.circular(radius),
-      );
+      borderRadius = BorderRadius.horizontal(right: Radius.circular(radius));
     }
 
     return Material(
@@ -461,9 +489,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
           decoration: BoxDecoration(
-            color: isSelected
-                ? theme.colorScheme.primary
-                : Colors.transparent,
+            color: isSelected ? theme.colorScheme.primary : Colors.transparent,
             borderRadius: borderRadius,
           ),
           child: Text(

@@ -39,6 +39,18 @@ class _LibraryPageState extends State<LibraryPage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        final albumsCount = appState.isYoutubeMusic
+            ? appState.favoriteAlbums.length
+            : appState.albums.length;
+        final artistsCount = appState.isYoutubeMusic
+            ? appState.favoriteArtists.length
+            : appState.artists.length;
+        final tracksCount = appState.isYoutubeMusic
+            ? appState.favoriteTracks.length
+            : appState.tracks.length;
+        final previewAlbums = appState.isYoutubeMusic
+            ? appState.favoriteAlbums
+            : appState.albums;
         return PageTemplate(
           title: l10n.navLibrary,
           child: SingleChildScrollView(
@@ -52,8 +64,7 @@ class _LibraryPageState extends State<LibraryPage> {
                 const SizedBox(height: DesktopTheme.spacingMd),
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    final isNarrow =
-                        constraints.maxWidth < _kLibraryBreakpoint;
+                    final isNarrow = constraints.maxWidth < _kLibraryBreakpoint;
                     final spacing = DesktopTheme.spacingMd;
                     final tileWidth = isNarrow
                         ? (constraints.maxWidth - spacing) / 2
@@ -65,40 +76,36 @@ class _LibraryPageState extends State<LibraryPage> {
                         _LibraryTile(
                           icon: Icons.album_rounded,
                           label: l10n.albums,
-                          count: appState.albums.length,
-                          onTap: () =>
-                              NavigationService().selectPage(3),
+                          count: albumsCount,
+                          onTap: () => NavigationService().selectPage(3),
                           width: tileWidth,
                         ),
                         _LibraryTile(
                           icon: Icons.person_rounded,
                           label: l10n.artists,
-                          count: appState.artists.length,
-                          onTap: () =>
-                              NavigationService().selectPage(4),
+                          count: artistsCount,
+                          onTap: () => NavigationService().selectPage(4),
                           width: tileWidth,
                         ),
                         _LibraryTile(
                           icon: Icons.music_note_rounded,
                           label: l10n.songs,
-                          count: appState.tracks.length,
-                          onTap: () =>
-                              NavigationService().selectPage(5),
+                          count: tracksCount,
+                          onTap: () => NavigationService().selectPage(5),
                           width: tileWidth,
                         ),
                         _LibraryTile(
                           icon: Icons.queue_music_rounded,
                           label: l10n.playlists,
                           count: appState.playlists.length,
-                          onTap: () =>
-                              NavigationService().selectPage(6),
+                          onTap: () => NavigationService().selectPage(6),
                           width: tileWidth,
                         ),
                       ],
                     );
                   },
                 ),
-                if (appState.albums.isNotEmpty) ...[
+                if (previewAlbums.isNotEmpty) ...[
                   const SizedBox(height: DesktopTheme.spacingXl),
                   SectionHeader(
                     title: l10n.recentlyAddedAlbums,
@@ -109,26 +116,27 @@ class _LibraryPageState extends State<LibraryPage> {
                     height: 230,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: appState.albums.take(8).length,
+                      itemCount: previewAlbums.take(8).length,
                       itemBuilder: (context, index) {
-                        final album = appState.albums[index];
+                        final album = previewAlbums[index];
                         final imageUrl = album.imageUrl != null
                             ? appState.getImageUrl(album.imageUrl!)
                             : null;
                         return KeyedSubtree(
                           key: ValueKey(album.id),
                           child: Padding(
-                          padding: EdgeInsets.only(
-                              right: index < 7 ? DesktopTheme.spacingMd : 0),
-                          child: MusicCard(
-                            title: album.name,
-                            subtitle: album.artistName ?? l10n.unknownArtist,
-                            imageUrl: imageUrl,
-                            size: 160,
-                            onTap: () =>
-                                NavigationService().navigateToAlbum(album),
+                            padding: EdgeInsets.only(
+                              right: index < 7 ? DesktopTheme.spacingMd : 0,
+                            ),
+                            child: MusicCard(
+                              title: album.name,
+                              subtitle: album.artistName ?? l10n.unknownArtist,
+                              imageUrl: imageUrl,
+                              size: 160,
+                              onTap: () =>
+                                  NavigationService().navigateToAlbum(album),
+                            ),
                           ),
-                        ),
                         );
                       },
                     ),

@@ -35,11 +35,14 @@ class _ArtistsPageState extends State<ArtistsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Selector<AppState, List<Artist>>(
-      selector: (_, appState) => appState.artists,
-      builder: (context, artists, child) {
-        final sorted = List<Artist>.from(artists)
-          ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final artists = appState.isYoutubeMusic
+            ? appState.favoriteArtists
+            : appState.artists;
+        final sorted = List<Artist>.from(
+          artists,
+        )..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         return PageTemplate(
           title: l10n.artists,
           child: sorted.isEmpty
@@ -47,13 +50,18 @@ class _ArtistsPageState extends State<ArtistsPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.person_outline_rounded,
-                          size: 64, color: DesktopTheme.textMuted),
+                      Icon(
+                        Icons.person_outline_rounded,
+                        size: 64,
+                        color: DesktopTheme.textMuted,
+                      ),
                       const SizedBox(height: DesktopTheme.spacingMd),
                       Text(
                         l10n.noArtistsFound,
                         style: TextStyle(
-                            fontSize: 16, color: DesktopTheme.textSecondary),
+                          fontSize: 16,
+                          color: DesktopTheme.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -75,14 +83,14 @@ class _ArtistsPageState extends State<ArtistsPage> {
                     return KeyedSubtree(
                       key: ValueKey(artist.id),
                       child: MusicCard(
-                      title: artist.name,
-                      subtitle: l10n.artist,
-                      imageUrl: imageUrl,
-                      size: 180,
-                      placeholderIcon: Icons.person_rounded,
-                      onTap: () =>
-                          NavigationService().navigateToArtist(artist),
-                    ),
+                        title: artist.name,
+                        subtitle: l10n.artist,
+                        imageUrl: imageUrl,
+                        size: 180,
+                        placeholderIcon: Icons.person_rounded,
+                        onTap: () =>
+                            NavigationService().navigateToArtist(artist),
+                      ),
                     );
                   },
                 ),

@@ -1364,9 +1364,11 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
     setState(() => _isLoading = true);
 
     try {
-      _albums = appState.albums
-          .where((album) => album.artistName == widget.artist.name)
-          .toList();
+      final artistQuery = widget.artist.name.toLowerCase();
+      _albums = appState.albums.where((album) {
+        final name = album.artistName?.toLowerCase();
+        return name != null && name.contains(artistQuery);
+      }).toList();
       _albums.sort((a, b) {
         final aYear = a.year ?? 0;
         final bYear = b.year ?? 0;
@@ -1374,7 +1376,7 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
       });
 
       _tracks = appState.tracks
-          .where((track) => track.artistName == widget.artist.name)
+          .where((track) => _artistMatch(track.artistName, artistQuery))
           .toList();
 
       if (_albums.isEmpty) {
@@ -1392,6 +1394,17 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
   String? _getImageUrl(AppState appState, String? imageId) {
     if (imageId == null) return null;
     return appState.getImageUrl(imageId);
+  }
+
+  bool _artistMatch(String? artistName, String queryLower) {
+    if (artistName == null || artistName.isEmpty) return false;
+    final value = artistName.toLowerCase();
+    if (value == queryLower || value.contains(queryLower)) return true;
+    return value
+        .split(RegExp(r'[,/&]'))
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty)
+        .contains(queryLower);
   }
 
   @override

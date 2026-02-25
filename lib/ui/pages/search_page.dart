@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:doudou/l10n/app_localizations.dart';
+import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/base_service.dart';
 import 'package:doudou/services/navigation_service.dart';
@@ -71,21 +72,7 @@ class _SearchPageState extends State<SearchPage> {
             builder: (context, q, _) {
               final query = q.trim();
               if (query.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.search_rounded,
-                          size: 64, color: DesktopTheme.textMuted),
-                      const SizedBox(height: DesktopTheme.spacingMd),
-                      Text(
-                        l10n.search,
-                        style: TextStyle(
-                            fontSize: 16, color: DesktopTheme.textSecondary),
-                      ),
-                    ],
-                  ),
-                );
+                return _recommendationsView(context, appState, l10n);
               }
               // YouTube Music: remote search (community playlists + songs)
               if (appState.mediaServiceManager.currentServerType ==
@@ -97,14 +84,16 @@ class _SearchPageState extends State<SearchPage> {
                       return Center(
                         child: Padding(
                           padding: const EdgeInsets.all(DesktopTheme.spacingXl),
-                          child: snapshot.connectionState ==
+                          child:
+                              snapshot.connectionState ==
                                   ConnectionState.waiting
                               ? const CircularProgressIndicator()
                               : Text(
                                   l10n.noSongsFound,
                                   style: TextStyle(
-                                      fontSize: 16,
-                                      color: DesktopTheme.textSecondary),
+                                    fontSize: 16,
+                                    color: DesktopTheme.textSecondary,
+                                  ),
                                 ),
                         ),
                       );
@@ -113,15 +102,18 @@ class _SearchPageState extends State<SearchPage> {
                     final playlists = results.playlists;
                     final tracks = results.tracks;
                     final artists = results.artists;
-                    if (playlists.isEmpty && tracks.isEmpty && artists.isEmpty) {
+                    if (playlists.isEmpty &&
+                        tracks.isEmpty &&
+                        artists.isEmpty) {
                       return Center(
                         child: Padding(
                           padding: const EdgeInsets.all(DesktopTheme.spacingXl),
                           child: Text(
                             l10n.noSongsFound,
                             style: TextStyle(
-                                fontSize: 16,
-                                color: DesktopTheme.textSecondary),
+                              fontSize: 16,
+                              color: DesktopTheme.textSecondary,
+                            ),
                           ),
                         ),
                       );
@@ -143,16 +135,17 @@ class _SearchPageState extends State<SearchPage> {
                                   final imageUrl = artist.imageUrl;
                                   return Padding(
                                     padding: EdgeInsets.only(
-                                        right: i < artists.length - 1
-                                            ? DesktopTheme.spacingMd
-                                            : 0),
+                                      right: i < artists.length - 1
+                                          ? DesktopTheme.spacingMd
+                                          : 0,
+                                    ),
                                     child: MusicCard(
                                       title: artist.name,
                                       subtitle: l10n.artist,
                                       imageUrl: imageUrl,
                                       size: 160,
-                                      onTap: () =>
-                                          NavigationService().navigateToArtist(artist),
+                                      onTap: () => NavigationService()
+                                          .navigateToArtist(artist),
                                     ),
                                   );
                                 },
@@ -161,8 +154,7 @@ class _SearchPageState extends State<SearchPage> {
                             const SizedBox(height: DesktopTheme.spacingLg),
                           ],
                           if (playlists.isNotEmpty) ...[
-                            SectionHeader(
-                                title: l10n.communityPlaylists),
+                            SectionHeader(title: l10n.communityPlaylists),
                             const SizedBox(height: DesktopTheme.spacingSm),
                             SizedBox(
                               height: 220,
@@ -173,9 +165,10 @@ class _SearchPageState extends State<SearchPage> {
                                   final playlist = playlists[i];
                                   return Padding(
                                     padding: EdgeInsets.only(
-                                        right: i < playlists.length - 1
-                                            ? DesktopTheme.spacingMd
-                                            : 0),
+                                      right: i < playlists.length - 1
+                                          ? DesktopTheme.spacingMd
+                                          : 0,
+                                    ),
                                     child: MusicCard(
                                       title: playlist.name,
                                       subtitle: l10n.playlists,
@@ -213,9 +206,12 @@ class _SearchPageState extends State<SearchPage> {
               }
               final queryLower = query.toLowerCase();
               final albums = appState.albums
-                  .where((a) =>
-                      a.name.toLowerCase().contains(queryLower) ||
-                      (a.artistName?.toLowerCase().contains(queryLower) ?? false))
+                  .where(
+                    (a) =>
+                        a.name.toLowerCase().contains(queryLower) ||
+                        (a.artistName?.toLowerCase().contains(queryLower) ??
+                            false),
+                  )
                   .take(6)
                   .toList();
               final artists = appState.artists
@@ -223,10 +219,14 @@ class _SearchPageState extends State<SearchPage> {
                   .take(6)
                   .toList();
               final tracks = appState.tracks
-                  .where((t) =>
-                      t.name.toLowerCase().contains(queryLower) ||
-                      (t.artistName?.toLowerCase().contains(queryLower) ?? false) ||
-                      (t.albumName?.toLowerCase().contains(queryLower) ?? false))
+                  .where(
+                    (t) =>
+                        t.name.toLowerCase().contains(queryLower) ||
+                        (t.artistName?.toLowerCase().contains(queryLower) ??
+                            false) ||
+                        (t.albumName?.toLowerCase().contains(queryLower) ??
+                            false),
+                  )
                   .toList();
 
               return SingleChildScrollView(
@@ -248,9 +248,10 @@ class _SearchPageState extends State<SearchPage> {
                                 : null;
                             return Padding(
                               padding: EdgeInsets.only(
-                                  right: i < albums.length - 1
-                                      ? DesktopTheme.spacingMd
-                                      : 0),
+                                right: i < albums.length - 1
+                                    ? DesktopTheme.spacingMd
+                                    : 0,
+                              ),
                               child: MusicCard(
                                 title: album.name,
                                 subtitle:
@@ -281,9 +282,10 @@ class _SearchPageState extends State<SearchPage> {
                                 : null;
                             return Padding(
                               padding: EdgeInsets.only(
-                                  right: i < artists.length - 1
-                                      ? DesktopTheme.spacingMd
-                                      : 0),
+                                right: i < artists.length - 1
+                                    ? DesktopTheme.spacingMd
+                                    : 0,
+                              ),
                               child: MusicCard(
                                 title: artist.name,
                                 subtitle: l10n.artist,
@@ -322,8 +324,9 @@ class _SearchPageState extends State<SearchPage> {
                           child: Text(
                             l10n.noSongsFound,
                             style: TextStyle(
-                                fontSize: 16,
-                                color: DesktopTheme.textSecondary),
+                              fontSize: 16,
+                              color: DesktopTheme.textSecondary,
+                            ),
                           ),
                         ),
                       ),
@@ -336,5 +339,233 @@ class _SearchPageState extends State<SearchPage> {
         );
       },
     );
+  }
+
+  Widget _recommendationsView(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
+    final recent = appState.recentTracks.take(8).toList();
+    final favorites = appState.favoriteTracks.take(8).toList();
+    final mostPlayed =
+        appState.tracks.where((t) => (t.playCount ?? 0) > 0).toList()
+          ..sort((a, b) => (b.playCount ?? 0).compareTo(a.playCount ?? 0));
+    final topPlayed = mostPlayed.take(8).toList();
+    final playlistPicks = _pickVaried<Playlist>(
+      appState.playlists,
+      10,
+      salt: 'search-playlists',
+      keyOf: (p) => p.id,
+    );
+    final albumPicks = _pickVaried<Album>(
+      appState.albums,
+      10,
+      salt: 'search-albums',
+      keyOf: (a) => a.id,
+    );
+    final artistPicks = _pickVaried<Artist>(
+      appState.artists,
+      10,
+      salt: 'search-artists',
+      keyOf: (a) => a.id,
+    );
+
+    if (recent.isEmpty &&
+        favorites.isEmpty &&
+        topPlayed.isEmpty &&
+        playlistPicks.isEmpty &&
+        albumPicks.isEmpty &&
+        artistPicks.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_rounded, size: 64, color: DesktopTheme.textMuted),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            Text(
+              'Start typing to search music',
+              style: TextStyle(fontSize: 16, color: DesktopTheme.textSecondary),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (recent.isNotEmpty) ...[
+            SectionHeader(
+              title: 'Continue Listening',
+              subtitle: 'Your recently played tracks',
+            ),
+            const SizedBox(height: DesktopTheme.spacingSm),
+            SizedBox(
+              height: 320,
+              child: TrackListTemplate(
+                tracks: recent,
+                showTrackNumber: false,
+                showArtist: true,
+                showAlbum: true,
+                showArtwork: true,
+              ),
+            ),
+            const SizedBox(height: DesktopTheme.spacingLg),
+          ],
+          if (favorites.isNotEmpty) ...[
+            SectionHeader(
+              title: 'Favorite Tracks',
+              subtitle: 'Songs you liked',
+            ),
+            const SizedBox(height: DesktopTheme.spacingSm),
+            SizedBox(
+              height: 320,
+              child: TrackListTemplate(
+                tracks: favorites,
+                showTrackNumber: false,
+                showArtist: true,
+                showAlbum: true,
+                showArtwork: true,
+              ),
+            ),
+            const SizedBox(height: DesktopTheme.spacingLg),
+          ],
+          if (topPlayed.isNotEmpty) ...[
+            SectionHeader(
+              title: 'Most Played',
+              subtitle: 'From your listening history',
+            ),
+            const SizedBox(height: DesktopTheme.spacingSm),
+            SizedBox(
+              height: 320,
+              child: TrackListTemplate(
+                tracks: topPlayed,
+                showTrackNumber: false,
+                showArtist: true,
+                showAlbum: true,
+                showArtwork: true,
+              ),
+            ),
+            const SizedBox(height: DesktopTheme.spacingLg),
+          ],
+          if (playlistPicks.isNotEmpty) ...[
+            SectionHeader(
+              title: l10n.playlists,
+              subtitle: 'Suggested playlists',
+            ),
+            const SizedBox(height: DesktopTheme.spacingSm),
+            SizedBox(
+              height: 220,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: playlistPicks.length,
+                itemBuilder: (context, i) {
+                  final playlist = playlistPicks[i];
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      right: i < playlistPicks.length - 1
+                          ? DesktopTheme.spacingMd
+                          : 0,
+                    ),
+                    child: MusicCard(
+                      title: playlist.name,
+                      subtitle: '${playlist.trackCount} tracks',
+                      imageUrl: playlist.imageUrl,
+                      size: 160,
+                      onTap: () =>
+                          NavigationService().navigateToPlaylist(playlist),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: DesktopTheme.spacingLg),
+          ],
+          if (albumPicks.isNotEmpty) ...[
+            SectionHeader(title: l10n.albums, subtitle: 'Albums to explore'),
+            const SizedBox(height: DesktopTheme.spacingSm),
+            SizedBox(
+              height: 220,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: albumPicks.length,
+                itemBuilder: (context, i) {
+                  final album = albumPicks[i];
+                  final imageUrl = album.imageUrl != null
+                      ? appState.getImageUrl(album.imageUrl!)
+                      : null;
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      right: i < albumPicks.length - 1
+                          ? DesktopTheme.spacingMd
+                          : 0,
+                    ),
+                    child: MusicCard(
+                      title: album.name,
+                      subtitle: album.artistName ?? l10n.unknownArtist,
+                      imageUrl: imageUrl,
+                      size: 160,
+                      onTap: () => NavigationService().navigateToAlbum(album),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: DesktopTheme.spacingLg),
+          ],
+          if (artistPicks.isNotEmpty) ...[
+            SectionHeader(title: l10n.artists, subtitle: 'Artists to explore'),
+            const SizedBox(height: DesktopTheme.spacingSm),
+            SizedBox(
+              height: 220,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: artistPicks.length,
+                itemBuilder: (context, i) {
+                  final artist = artistPicks[i];
+                  final imageUrl = artist.imageUrl != null
+                      ? appState.getImageUrl(artist.imageUrl!)
+                      : null;
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      right: i < artistPicks.length - 1
+                          ? DesktopTheme.spacingMd
+                          : 0,
+                    ),
+                    child: MusicCard(
+                      title: artist.name,
+                      subtitle: l10n.artist,
+                      imageUrl: imageUrl,
+                      size: 160,
+                      onTap: () => NavigationService().navigateToArtist(artist),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+          const SizedBox(height: 120),
+        ],
+      ),
+    );
+  }
+
+  List<T> _pickVaried<T>(
+    List<T> source,
+    int count, {
+    required String salt,
+    required String Function(T) keyOf,
+  }) {
+    if (source.isEmpty || count <= 0) return const [];
+    final seed = DateTime.now().toUtc().difference(DateTime.utc(2024)).inDays;
+    final sorted = List<T>.from(source)
+      ..sort((a, b) {
+        final ah = Object.hash(seed, salt, keyOf(a));
+        final bh = Object.hash(seed, salt, keyOf(b));
+        return ah.compareTo(bh);
+      });
+    return sorted.take(count).toList();
   }
 }

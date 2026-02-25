@@ -46,9 +46,11 @@ class _AlbumsPageState extends State<AlbumsPage> {
     if (_query.isNotEmpty) {
       final q = _query.toLowerCase();
       result = result
-          .where((a) =>
-              a.name.toLowerCase().contains(q) ||
-              (a.artistName?.toLowerCase().contains(q) ?? false))
+          .where(
+            (a) =>
+                a.name.toLowerCase().contains(q) ||
+                (a.artistName?.toLowerCase().contains(q) ?? false),
+          )
           .toList();
     }
     result.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
@@ -58,9 +60,11 @@ class _AlbumsPageState extends State<AlbumsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Selector<AppState, List<Album>>(
-      selector: (_, appState) => appState.albums,
-      builder: (context, albums, child) {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final albums = appState.isYoutubeMusic
+            ? appState.favoriteAlbums
+            : appState.albums;
         final filtered = _filteredFromList(albums);
         return PageTemplate(
           title: l10n.albums,
@@ -89,13 +93,18 @@ class _AlbumsPageState extends State<AlbumsPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.album_outlined,
-                          size: 64, color: DesktopTheme.textMuted),
+                      Icon(
+                        Icons.album_outlined,
+                        size: 64,
+                        color: DesktopTheme.textMuted,
+                      ),
                       const SizedBox(height: DesktopTheme.spacingMd),
                       Text(
                         l10n.noAlbumsFound,
                         style: TextStyle(
-                            fontSize: 16, color: DesktopTheme.textSecondary),
+                          fontSize: 16,
+                          color: DesktopTheme.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -117,12 +126,12 @@ class _AlbumsPageState extends State<AlbumsPage> {
                     return KeyedSubtree(
                       key: ValueKey(album.id),
                       child: MusicCard(
-                      title: album.name,
-                      subtitle: album.artistName ?? l10n.unknownArtist,
-                      imageUrl: imageUrl,
-                      size: 180,
-                      onTap: () => NavigationService().navigateToAlbum(album),
-                    ),
+                        title: album.name,
+                        subtitle: album.artistName ?? l10n.unknownArtist,
+                        imageUrl: imageUrl,
+                        size: 180,
+                        onTap: () => NavigationService().navigateToAlbum(album),
+                      ),
                     );
                   },
                 ),

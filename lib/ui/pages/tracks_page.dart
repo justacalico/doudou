@@ -34,10 +34,13 @@ class _TracksPageState extends State<TracksPage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        final visibleTracks = appState.isYoutubeMusic
+            ? appState.favoriteTracks
+            : appState.tracks;
         return PageTemplate(
           title: l10n.songs,
           child: TrackListTemplate(
-            tracks: appState.tracks,
+            tracks: visibleTracks,
             emptyStateTitle: l10n.noSongsFound,
             emptyStateMessage: l10n.yourMusicCollection,
             showTrackNumber: true,
