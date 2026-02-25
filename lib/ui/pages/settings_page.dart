@@ -1182,12 +1182,22 @@ class _AppearanceSection extends StatelessWidget {
   }
 
   static String _colorDisplayName(Color color) {
-    if (color.toARGB32() == const Color(0xFF38BDF8).toARGB32()) return 'Sky';
-    if (color.toARGB32() == Colors.blue.toARGB32()) return 'Blue';
-    if (color.toARGB32() == Colors.green.toARGB32()) return 'Green';
-    if (color.toARGB32() == Colors.orange.toARGB32()) return 'Orange';
-    if (color.toARGB32() == Colors.red.toARGB32()) return 'Red';
-    if (color.toARGB32() == Colors.teal.toARGB32()) return 'Teal';
+    if (color.toARGB32() == const Color(0xFF8EC5FC).toARGB32()) {
+      return 'Baby Blue';
+    }
+    if (color.toARGB32() == const Color(0xFFB39DDB).toARGB32()) {
+      return 'Lavender';
+    }
+    if (color.toARGB32() == const Color(0xFFA8E6CF).toARGB32()) return 'Mint';
+    if (color.toARGB32() == const Color(0xFFFFD3B6).toARGB32()) {
+      return 'Peach';
+    }
+    if (color.toARGB32() == const Color(0xFFFFA8C5).toARGB32()) {
+      return 'Blush';
+    }
+    if (color.toARGB32() == const Color(0xFFFFE08A).toARGB32()) {
+      return 'Butter';
+    }
     return 'Custom (#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()})';
   }
 
@@ -1787,12 +1797,12 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
 
 /// Preset accent colors for the accent color picker.
 const List<({String name, Color color})> _kAccentPresets = [
-  (name: 'Sky', color: Color(0xFF38BDF8)),
-  (name: 'Blue', color: Colors.blue),
-  (name: 'Green', color: Colors.green),
-  (name: 'Orange', color: Colors.orange),
-  (name: 'Red', color: Colors.red),
-  (name: 'Teal', color: Colors.teal),
+  (name: 'Baby Blue', color: Color(0xFF8EC5FC)),
+  (name: 'Lavender', color: Color(0xFFB39DDB)),
+  (name: 'Mint', color: Color(0xFFA8E6CF)),
+  (name: 'Peach', color: Color(0xFFFFD3B6)),
+  (name: 'Blush', color: Color(0xFFFFA8C5)),
+  (name: 'Butter', color: Color(0xFFFFE08A)),
 ];
 
 class _AccentColorDialog extends StatelessWidget {
