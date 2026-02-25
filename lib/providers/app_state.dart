@@ -1198,10 +1198,33 @@ class AppState extends ChangeNotifier {
   Future<void> removeServer(String id) async {
     final wasCurrent = _currentServerId == id;
     _savedServers = _savedServers.where((s) => s.id != id).toList();
-    if (wasCurrent) {
-      _currentServerId = null;
-      await logout();
+    if (!wasCurrent) {
+      await _saveSavedServersList();
+      notifyListeners();
+      return;
     }
+
+    // If the removed server was active, automatically switch to another saved
+    // server when possible so the user does not get forced back to onboarding.
+    if (_savedServers.isNotEmpty) {
+      SavedServer? connectedServer;
+      for (final candidate in _savedServers) {
+        _currentServerId = candidate.id;
+        await _saveSavedServersList();
+        final ok = await _connectToSavedServer(candidate);
+        if (ok) {
+          connectedServer = candidate;
+          break;
+        }
+      }
+      if (connectedServer != null) {
+        notifyListeners();
+        return;
+      }
+    }
+
+    _currentServerId = null;
+    await logout();
     await _saveSavedServersList();
     notifyListeners();
   }

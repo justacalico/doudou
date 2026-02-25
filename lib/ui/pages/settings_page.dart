@@ -50,6 +50,16 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   /// null on mobile = show list; on desktop we default to first item.
   String? _selectedId;
+  late final bool _autoCloseWhenConnected;
+  bool _didAutoClose = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // When settings is opened from the "No server connected" screen, close it
+    // automatically after a successful login so app shell navigation is visible.
+    _autoCloseWhenConnected = !context.read<AppState>().isLoggedIn;
+  }
 
   List<_SettingsMenuItem> _menuItems(AppLocalizations l10n, bool isLocalMusic) {
     final items = <_SettingsMenuItem>[
@@ -111,6 +121,18 @@ class _SettingsPageState extends State<SettingsPage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        if (_autoCloseWhenConnected &&
+            !_didAutoClose &&
+            appState.isLoggedIn &&
+            Navigator.of(context).canPop()) {
+          _didAutoClose = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
+          });
+        }
+
         final isLocal =
             appState.mediaServiceManager.currentServerType == ServerType.local;
         final items = _menuItems(l10n, isLocal);
@@ -587,14 +609,27 @@ class _SettingsListSidebar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-            child: Text(
-              'Settings',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: DesktopTheme.textPrimary,
-              ),
+            padding: const EdgeInsets.fromLTRB(24, 16, 16, 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Settings',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: DesktopTheme.textPrimary,
+                    ),
+                  ),
+                ),
+                if (Navigator.of(context).canPop())
+                  IconButton(
+                    tooltip: 'Close settings',
+                    icon: const Icon(Icons.close_rounded),
+                    color: DesktopTheme.textSecondary,
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+              ],
             ),
           ),
           Expanded(
