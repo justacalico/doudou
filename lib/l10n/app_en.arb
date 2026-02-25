@@ -1851,6 +1851,58 @@
     "description": "Operating system label"
   },
 
+  "checkForUpdates": "Check for Updates",
+  "@checkForUpdates": {
+    "description": "Check for updates button label"
+  },
+
+  "checkingUpdates": "Checking...",
+  "@checkingUpdates": {
+    "description": "Checking updates button label"
+  },
+
+  "updateAvailableTitle": "Update Available",
+  "@updateAvailableTitle": {
+    "description": "Update available dialog title"
+  },
+
+  "updateAvailableMessage": "Current: {currentVersion}\nLatest: {latestVersion}",
+  "@updateAvailableMessage": {
+    "description": "Update available dialog content with versions",
+    "placeholders": {
+      "currentVersion": {},
+      "latestVersion": {}
+    }
+  },
+
+  "viewUpdate": "View Update",
+  "@viewUpdate": {
+    "description": "Open update page button label"
+  },
+
+  "upToDateTitle": "Up to Date",
+  "@upToDateTitle": {
+    "description": "Up to date dialog title"
+  },
+
+  "upToDateMessage": "Doudou {version} is the latest version.",
+  "@upToDateMessage": {
+    "description": "Up to date dialog content",
+    "placeholders": {
+      "version": {}
+    }
+  },
+
+  "updateCheckFailedTitle": "Update Check Failed",
+  "@updateCheckFailedTitle": {
+    "description": "Update check failed dialog title"
+  },
+
+  "updateCheckFailedMessage": "Unable to check for updates. Please try again later.",
+  "@updateCheckFailedMessage": {
+    "description": "Update check failed dialog content"
+  },
+
   "dynamicIslePlayer": "Dynamic Isle Player",
   "@dynamicIslePlayer": {
     "description": "Dynamic Isle player setting label"

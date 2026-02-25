@@ -1544,6 +1544,7 @@ class _AboutSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       child: Padding(
@@ -1552,7 +1553,7 @@ class _AboutSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'About Doudou',
+              l10n.aboutDoudou,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -1593,7 +1594,7 @@ class _AboutSection extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'Version $v',
+                            l10n.version(v),
                             style: theme.textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: theme.colorScheme.onPrimaryContainer,
@@ -1603,8 +1604,8 @@ class _AboutSection extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'A beautiful music player for anyone anywhere.',
+                    Text(
+                      l10n.beautifulMusicPlayer,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
@@ -1621,24 +1622,24 @@ class _AboutSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'System Information',
+                      l10n.systemInformation,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 16),
                     ListTile(
-                      title: const Text('Platform'),
+                      title: Text(l10n.platform),
                       subtitle: Text(_getPlatformInfo()),
                       leading: const Icon(Icons.computer),
                     ),
                     ListTile(
-                      title: const Text('Build Date'),
+                      title: Text(l10n.buildDate),
                       subtitle: Text(_getBuildDate()),
                       leading: const Icon(Icons.calendar_today),
                     ),
                     ListTile(
-                      title: const Text('Operating System'),
+                      title: Text(l10n.operatingSystem),
                       subtitle: Text(_getOSVersion()),
                       leading: const Icon(Icons.settings_system_daydream),
                     ),
@@ -1700,6 +1701,7 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
   bool _checking = false;
 
   Future<void> _check() async {
+    final l10n = AppLocalizations.of(context);
     setState(() => _checking = true);
     try {
       final info = await UpdateService.checkForUpdate();
@@ -1708,9 +1710,12 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
       if (info.updateAvailable) {
         showAppDialog(
           context: context,
-          title: 'Update Available',
+          title: l10n.updateAvailableTitle,
           content: Text(
-            'Current: ${info.currentVersion}\nLatest: ${info.latestVersion}',
+            l10n.updateAvailableMessage(
+              info.currentVersion,
+              info.latestVersion,
+            ),
             style: TextStyle(
               color: DesktopTheme.textSecondary,
               decoration: TextDecoration.none,
@@ -1719,7 +1724,7 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
           actionsBuilder: (dialogContext) => [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Later'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () {
@@ -1729,16 +1734,16 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
                   mode: LaunchMode.externalApplication,
                 );
               },
-              child: const Text('View Update'),
+              child: Text(l10n.viewUpdate),
             ),
           ],
         );
       } else {
         showAppDialog(
           context: context,
-          title: 'Up to Date',
+          title: l10n.upToDateTitle,
           content: Text(
-            'Doudou ${info.currentVersion} is the latest version.',
+            l10n.upToDateMessage(info.currentVersion),
             style: TextStyle(
               color: DesktopTheme.textSecondary,
               decoration: TextDecoration.none,
@@ -1747,7 +1752,7 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
           actionsBuilder: (dialogContext) => [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('OK'),
+              child: Text(l10n.ok),
             ),
           ],
         );
@@ -1757,9 +1762,9 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
         setState(() => _checking = false);
         showAppDialog(
           context: context,
-          title: 'Update Check Failed',
+          title: l10n.updateCheckFailedTitle,
           content: Text(
-            'Unable to check for updates. Please try again later.',
+            l10n.updateCheckFailedMessage,
             style: TextStyle(
               color: DesktopTheme.textSecondary,
               decoration: TextDecoration.none,
@@ -1768,7 +1773,7 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
           actionsBuilder: (dialogContext) => [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('OK'),
+              child: Text(l10n.ok),
             ),
           ],
         );
@@ -1778,6 +1783,7 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return FilledButton.icon(
       onPressed: _checking ? null : _check,
       icon: _checking
@@ -1790,7 +1796,7 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
               ),
             )
           : const Icon(Icons.refresh),
-      label: Text(_checking ? 'Checking...' : 'Check for Updates'),
+      label: Text(_checking ? l10n.checkingUpdates : l10n.checkForUpdates),
     );
   }
 }
