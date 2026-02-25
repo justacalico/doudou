@@ -44,6 +44,7 @@ class _AppShellState extends State<AppShell> {
   final Map<int, Widget> _builtPages = {};
   int _pageCount = 0;
   int _settingsIndex = 0;
+  bool _sidebarCompact = false;
   late List<_NavItem> _navItems;
   late List<_NavItem> _libraryItems;
 
@@ -291,6 +292,9 @@ class _AppShellState extends State<AppShell> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= kLayoutBreakpoint;
+        final forceCompactSidebar = constraints.maxWidth < 1060;
+        final effectiveCompactSidebar =
+            isDesktop && (forceCompactSidebar || _sidebarCompact);
         return KeyboardListener(
           focusNode: FocusNode(),
           autofocus: true,
@@ -315,6 +319,12 @@ class _AppShellState extends State<AppShell> {
                                   navItems: _navItems,
                                   libraryItems: _libraryItems,
                                   settingsIndex: _settingsIndex,
+                                  compact: effectiveCompactSidebar,
+                                  onToggleCompact: () {
+                                    setState(
+                                      () => _sidebarCompact = !_sidebarCompact,
+                                    );
+                                  },
                                   onTap: _navigateTo,
                                 ),
                               Expanded(
@@ -406,6 +416,8 @@ class _Sidebar extends StatelessWidget {
   final List<_NavItem> navItems;
   final List<_NavItem> libraryItems;
   final int settingsIndex;
+  final bool compact;
+  final VoidCallback onToggleCompact;
   final ValueChanged<int> onTap;
 
   const _Sidebar({
@@ -413,6 +425,8 @@ class _Sidebar extends StatelessWidget {
     required this.navItems,
     required this.libraryItems,
     required this.settingsIndex,
+    required this.compact,
+    required this.onToggleCompact,
     required this.onTap,
   });
 
@@ -421,8 +435,11 @@ class _Sidebar extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
-    return Container(
-      width: DesktopTheme.sidebarWidth,
+    final sidebarWidth = compact ? 88.0 : DesktopTheme.sidebarWidth;
+    return AnimatedContainer(
+      duration: DesktopTheme.durationMedium,
+      curve: Curves.easeOutCubic,
+      width: sidebarWidth,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -445,11 +462,13 @@ class _Sidebar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+                    padding: EdgeInsets.all(
+                      compact ? 12 : DesktopTheme.spacingLg,
+                    ),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: compact ? 10 : 12,
+                        vertical: compact ? 8 : 10,
                       ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(
@@ -463,6 +482,9 @@ class _Sidebar extends StatelessWidget {
                         ),
                       ),
                       child: Row(
+                        mainAxisAlignment: compact
+                            ? MainAxisAlignment.center
+                            : MainAxisAlignment.start,
                         children: [
                           Container(
                             width: 40,
@@ -484,27 +506,47 @@ class _Sidebar extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Doudou',
-                            style:
-                                theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: DesktopTheme.textPrimary,
-                                  letterSpacing: -0.2,
-                                ) ??
-                                TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: DesktopTheme.textPrimary,
-                                ),
-                          ),
+                          if (!compact) ...[
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Doudou',
+                                style:
+                                    theme.textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: DesktopTheme.textPrimary,
+                                      letterSpacing: -0.2,
+                                    ) ??
+                                    TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: DesktopTheme.textPrimary,
+                                    ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(horizontal: compact ? 0 : 16),
+                    child: Center(
+                      child: IconButton(
+                        tooltip: compact ? 'Full view' : 'Shrink sidebar',
+                        onPressed: onToggleCompact,
+                        icon: Icon(
+                          compact
+                              ? Icons.keyboard_double_arrow_right_rounded
+                              : Icons.keyboard_double_arrow_left_rounded,
+                          color: DesktopTheme.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 16),
                     child: Column(
                       children: navItems
                           .asMap()
@@ -516,28 +558,30 @@ class _Sidebar extends StatelessWidget {
                               label: _navLabel(l10n, e.key),
                               selected: currentIndex == e.key,
                               onTap: () => onTap(e.key),
+                              compact: compact,
                               isSettings: false,
                             ),
                           )
                           .toList(),
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      l10n.library.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: DesktopTheme.textTertiary,
-                        letterSpacing: 1.5,
+                  SizedBox(height: compact ? 20 : 32),
+                  if (!compact)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        l10n.library.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: DesktopTheme.textTertiary,
+                          letterSpacing: 1.5,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: compact ? 4 : 8),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 16),
                     child: Column(
                       children: libraryItems.asMap().entries.map((e) {
                         final idx = navItems.length + e.key;
@@ -547,6 +591,7 @@ class _Sidebar extends StatelessWidget {
                           label: _libraryLabel(l10n, e.key),
                           selected: currentIndex == idx,
                           onTap: () => onTap(idx),
+                          compact: compact,
                           isSettings: false,
                         );
                       }).toList(),
@@ -557,21 +602,24 @@ class _Sidebar extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(compact ? 8 : 16),
             child: Container(
               decoration: BoxDecoration(
                 border: Border(
-                  top: BorderSide(color: DesktopTheme.glassBorder, width: 1),
+                  top: compact
+                      ? BorderSide.none
+                      : BorderSide(color: DesktopTheme.glassBorder, width: 1),
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.only(top: 16),
+                padding: EdgeInsets.only(top: compact ? 0 : 16),
                 child: _SidebarTile(
                   icon: Icons.settings_outlined,
                   activeIcon: Icons.settings_rounded,
                   label: l10n.settings,
                   selected: currentIndex == settingsIndex,
                   onTap: () => onTap(settingsIndex),
+                  compact: compact,
                   isSettings: true,
                 ),
               ),
@@ -619,6 +667,7 @@ class _SidebarTile extends StatefulWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final bool compact;
   final bool isSettings;
 
   const _SidebarTile({
@@ -627,6 +676,7 @@ class _SidebarTile extends StatefulWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    required this.compact,
     this.isSettings = false,
   });
 
@@ -641,6 +691,13 @@ class _SidebarTileState extends State<_SidebarTile> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
+    final tile = widget.isSettings
+        ? _buildSettingsTile(context, accent)
+        : _buildDefaultTile(context);
+    return Tooltip(message: widget.label, child: tile);
+  }
+
+  Widget _buildSettingsTile(BuildContext context, Color accent) {
     if (widget.isSettings) {
       return MouseRegion(
         onEnter: (_) => setState(() => _hover = true),
@@ -650,7 +707,9 @@ class _SidebarTileState extends State<_SidebarTile> {
           onTap: widget.onTap,
           child: AnimatedContainer(
             duration: DesktopTheme.durationFast,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: widget.compact
+                ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
+                : const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               color: widget.selected
@@ -671,30 +730,39 @@ class _SidebarTileState extends State<_SidebarTile> {
                   : null,
             ),
             child: Row(
+              mainAxisAlignment: widget.compact
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
               children: [
                 Icon(
                   widget.selected ? widget.activeIcon : widget.icon,
                   color: accent,
                   size: 20,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    widget.label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: accent,
+                if (!widget.compact) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.label,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: accent,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
+                ],
               ],
             ),
           ),
         ),
       );
     }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildDefaultTile(BuildContext context) {
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -704,7 +772,9 @@ class _SidebarTileState extends State<_SidebarTile> {
         child: AnimatedContainer(
           duration: DesktopTheme.durationFast,
           margin: const EdgeInsets.only(bottom: 4),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: widget.compact
+              ? const EdgeInsets.symmetric(horizontal: 10, vertical: 12)
+              : const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             color: widget.selected
@@ -721,6 +791,9 @@ class _SidebarTileState extends State<_SidebarTile> {
                 : null,
           ),
           child: Row(
+            mainAxisAlignment: widget.compact
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.start,
             children: [
               Icon(
                 widget.selected ? widget.activeIcon : widget.icon,
@@ -731,24 +804,26 @@ class _SidebarTileState extends State<_SidebarTile> {
                     : DesktopTheme.textSecondary,
                 size: 20,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  widget.label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: widget.selected
-                        ? FontWeight.w600
-                        : FontWeight.w500,
-                    color: widget.selected
-                        ? DesktopTheme.textPrimary
-                        : _hover
-                        ? DesktopTheme.textPrimary
-                        : DesktopTheme.textSecondary,
+              if (!widget.compact) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: widget.selected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+                      color: widget.selected
+                          ? DesktopTheme.textPrimary
+                          : _hover
+                          ? DesktopTheme.textPrimary
+                          : DesktopTheme.textSecondary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
+              ],
             ],
           ),
         ),
