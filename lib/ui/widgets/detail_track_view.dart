@@ -65,7 +65,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
   List<Track> tracks = [];
   bool isLoading = true;
   bool _isShuffled = false;
-  Color _artGlowColor = const Color(0xFF8B5CF6);
+  Color _artGlowColor = const Color(0xFF38BDF8);
   String? _lastGlowImageUrl;
 
   @override
@@ -79,7 +79,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
   void didUpdateWidget(covariant DetailTrackView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.imageUrl != widget.imageUrl) {
-      _artGlowColor = const Color(0xFF8B5CF6);
+      _artGlowColor = const Color(0xFF38BDF8);
       _lastGlowImageUrl = null;
       _updateArtGlowColor();
     }
@@ -281,7 +281,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                               decoration: const BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    Color(0xFF8B5CF6),
+                                    Color(0xFF38BDF8),
                                     Color(0xFFEC4899),
                                   ],
                                   begin: Alignment.topLeft,
@@ -298,7 +298,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                               decoration: const BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    Color(0xFF8B5CF6),
+                                    Color(0xFF38BDF8),
                                     Color(0xFFEC4899),
                                   ],
                                   begin: Alignment.topLeft,
@@ -317,12 +317,12 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                               gradient: LinearGradient(
                                 colors: widget.viewType == DetailViewType.album
                                     ? [
-                                        const Color(0xFF8B5CF6),
+                                        const Color(0xFF38BDF8),
                                         const Color(0xFFEC4899),
                                       ]
                                     : [
                                         const Color(0xFF06B6D4),
-                                        const Color(0xFF8B5CF6),
+                                        const Color(0xFF38BDF8),
                                       ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -414,7 +414,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                              colors: [Color(0xFF38BDF8), Color(0xFFEC4899)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -470,7 +470,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                 ? const LinearGradient(
                                     colors: [
                                       Color(0xFF06B6D4),
-                                      Color(0xFF8B5CF6),
+                                      Color(0xFF38BDF8),
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -623,7 +623,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
                                         colors: [
-                                          Color(0xFF8B5CF6),
+                                          Color(0xFF38BDF8),
                                           Color(0xFFEC4899),
                                         ],
                                         begin: Alignment.topLeft,
@@ -633,7 +633,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                       boxShadow: [
                                         BoxShadow(
                                           color: const Color(
-                                            0xFF8B5CF6,
+                                            0xFF38BDF8,
                                           ).withValues(alpha: 0.4),
                                           blurRadius: 20,
                                           offset: const Offset(0, 8),

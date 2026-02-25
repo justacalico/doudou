@@ -191,15 +191,15 @@ class _AppDialogContent extends StatelessWidget {
   final double? maxHeight;
 
   static const double _radius = 20;
-  static const double _blurSigma = 24;
+  static const double _blurSigma = 18;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bgColor = isDark
-        ? Colors.white.withValues(alpha: 0.08)
-        : Colors.black.withValues(alpha: 0.04);
+        ? DesktopTheme.backgroundTertiary.withValues(alpha: 0.9)
+        : DesktopTheme.backgroundTertiary.withValues(alpha: 0.95);
     final effectiveActions = actionsBuilder != null
         ? actionsBuilder!(context)
         : actions;
@@ -219,21 +219,14 @@ class _AppDialogContent extends StatelessWidget {
               borderRadius: BorderRadius.circular(_radius),
               color: bgColor,
               border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.06),
+                color: theme.colorScheme.primary.withValues(alpha: isDark ? 0.32 : 0.18),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 40,
-                  offset: const Offset(0, 12),
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  color: theme.colorScheme.primary.withValues(alpha: isDark ? 0.22 : 0.1),
+                  blurRadius: 32,
+                  offset: const Offset(0, 10),
                 ),
               ],
             ),

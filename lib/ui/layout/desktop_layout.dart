@@ -243,7 +243,14 @@ class _PlayerBarContent extends StatelessWidget {
     return Container(
       height: DesktopTheme.playerBarHeight,
       decoration: BoxDecoration(
-        color: DesktopTheme.backgroundSecondary,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            DesktopTheme.backgroundSecondary.withValues(alpha: 0.96),
+            DesktopTheme.backgroundTertiary.withValues(alpha: 0.96),
+          ],
+        ),
         border: Border(
           top: BorderSide(color: DesktopTheme.glassBorder, width: 1),
         ),

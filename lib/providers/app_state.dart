@@ -60,7 +60,7 @@ class AppState extends ChangeNotifier {
 
   // Theme settings
   ThemeMode _themeMode = ThemeMode.system;
-  Color _accentColor = Colors.purple;
+  Color _accentColor = const Color(0xFF38BDF8);
 
   // Locale settings
   Locale? _locale; // null means use system locale
@@ -2311,7 +2311,7 @@ class AppState extends ChangeNotifier {
     _themeMode = _parseThemeMode(themeModeString);
 
     final accentColorValue =
-        prefs.getInt('accent_color') ?? Colors.purple.toARGB32();
+        prefs.getInt('accent_color') ?? const Color(0xFF38BDF8).toARGB32();
     _accentColor = Color(accentColorValue);
 
     _onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;

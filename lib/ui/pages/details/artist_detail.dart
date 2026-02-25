@@ -131,11 +131,11 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(CupertinoIcons.plus, size: 18, color: Color(0xFF8B5CF6)),
+                  Icon(CupertinoIcons.plus, size: 18, color: Color(0xFF38BDF8)),
                   SizedBox(width: 8),
                   Text(
                     'Add All to Queue',
-                    style: TextStyle(color: Color(0xFF8B5CF6)),
+                    style: TextStyle(color: Color(0xFF38BDF8)),
                   ),
                 ],
               ),
@@ -174,11 +174,11 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.share, size: 18, color: Color(0xFF8B5CF6)),
+                Icon(CupertinoIcons.share, size: 18, color: Color(0xFF38BDF8)),
                 SizedBox(width: 8),
                 Text(
                   'Share Artist',
-                  style: TextStyle(color: Color(0xFF8B5CF6)),
+                  style: TextStyle(color: Color(0xFF38BDF8)),
                 ),
               ],
             ),
@@ -188,7 +188,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
           onPressed: () => Navigator.pop(context),
           child: const Text(
             'Cancel',
-            style: TextStyle(color: Color(0xFF8B5CF6)),
+            style: TextStyle(color: Color(0xFF38BDF8)),
           ),
         ),
       ),
@@ -413,7 +413,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                           boxShadow: [
                                             BoxShadow(
                                               color: const Color(
-                                                0xFF8B5CF6,
+                                                0xFF38BDF8,
                                               ).withValues(alpha: 0.5),
                                               blurRadius: 40,
                                               spreadRadius: 10,
@@ -507,7 +507,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                                           : 'Albums',
                                                       CupertinoIcons
                                                           .music_albums,
-                                                      const Color(0xFF8B5CF6),
+                                                      const Color(0xFF38BDF8),
                                                     ),
                                                   if (_artistAlbums.isNotEmpty)
                                                     Container(
@@ -572,7 +572,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                                   gradient:
                                                       const LinearGradient(
                                                         colors: [
-                                                          Color(0xFF8B5CF6),
+                                                          Color(0xFF38BDF8),
                                                           Color(0xFFEC4899),
                                                         ],
                                                         begin:
@@ -706,19 +706,19 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
                                         color: const Color(
-                                          0xFF8B5CF6,
+                                          0xFF38BDF8,
                                         ).withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(10),
                                         border: Border.all(
                                           color: const Color(
-                                            0xFF8B5CF6,
+                                            0xFF38BDF8,
                                           ).withValues(alpha: 0.3),
                                           width: 1,
                                         ),
                                       ),
                                       child: const Icon(
                                         CupertinoIcons.music_albums_fill,
-                                        color: Color(0xFF8B5CF6),
+                                        color: Color(0xFF38BDF8),
                                         size: 20,
                                       ),
                                     ),
@@ -969,7 +969,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                        const Color(0xFF38BDF8).withValues(alpha: 0.3),
                         const Color(0xFFEC4899).withValues(alpha: 0.2),
                       ],
                     ),
@@ -988,7 +988,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                                  const Color(0xFF38BDF8).withValues(alpha: 0.3),
                                   const Color(0xFFEC4899).withValues(alpha: 0.2),
                                 ],
                               ),
@@ -1004,7 +1004,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                                const Color(0xFF38BDF8).withValues(alpha: 0.3),
                                 const Color(0xFFEC4899).withValues(alpha: 0.2),
                               ],
                             ),
@@ -1043,7 +1043,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                          color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -1051,7 +1051,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF8B5CF6),
+                            color: Color(0xFF38BDF8),
                           ),
                         ),
                       ),

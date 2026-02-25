@@ -129,12 +129,12 @@ class TrackListItem extends StatelessWidget {
                     Icon(
                       CupertinoIcons.plus,
                       size: 18,
-                      color: Color(0xFF8B5CF6),
+                      color: Color(0xFF38BDF8),
                     ),
                     SizedBox(width: 8),
                     Text(
                       'Add to Queue',
-                      style: TextStyle(color: Color(0xFF8B5CF6)),
+                      style: TextStyle(color: Color(0xFF38BDF8)),
                     ),
                   ],
                 ),
@@ -150,12 +150,12 @@ class TrackListItem extends StatelessWidget {
                     Icon(
                       CupertinoIcons.play_arrow_solid,
                       size: 18,
-                      color: Color(0xFF8B5CF6),
+                      color: Color(0xFF38BDF8),
                     ),
                     SizedBox(width: 8),
                     Text(
                       'Play Next',
-                      style: TextStyle(color: Color(0xFF8B5CF6)),
+                      style: TextStyle(color: Color(0xFF38BDF8)),
                     ),
                   ],
                 ),
@@ -217,7 +217,7 @@ class TrackListItem extends StatelessWidget {
               child: const Text(
                 'Cancel',
                 style: TextStyle(
-                  color: Color(0xFF8B5CF6),
+                  color: Color(0xFF38BDF8),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -243,7 +243,7 @@ class TrackListItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                    color: const Color(0xFF38BDF8).withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -264,7 +264,7 @@ class TrackListItem extends StatelessWidget {
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                              colors: [Color(0xFF38BDF8), Color(0xFFEC4899)],
                             ),
                           ),
                           child: const Icon(
@@ -278,7 +278,7 @@ class TrackListItem extends StatelessWidget {
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                              colors: [Color(0xFF38BDF8), Color(0xFFEC4899)],
                             ),
                           ),
                           child: const Icon(
@@ -293,7 +293,7 @@ class TrackListItem extends StatelessWidget {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                            colors: [Color(0xFF38BDF8), Color(0xFFEC4899)],
                           ),
                         ),
                         child: const Icon(
@@ -465,7 +465,7 @@ class TrackListItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+                    color: const Color(0xFF38BDF8).withValues(alpha: 0.25),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -486,7 +486,7 @@ class TrackListItem extends StatelessWidget {
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                              colors: [Color(0xFF38BDF8), Color(0xFFEC4899)],
                             ),
                           ),
                           child: const Icon(
@@ -500,7 +500,7 @@ class TrackListItem extends StatelessWidget {
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                              colors: [Color(0xFF38BDF8), Color(0xFFEC4899)],
                             ),
                           ),
                           child: const Icon(
@@ -515,7 +515,7 @@ class TrackListItem extends StatelessWidget {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                            colors: [Color(0xFF38BDF8), Color(0xFFEC4899)],
                           ),
                         ),
                         child: const Icon(

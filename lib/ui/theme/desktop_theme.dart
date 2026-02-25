@@ -67,16 +67,16 @@ class DesktopTheme {
       _isDark ? AppTokens.glassHighlightDark : AppTokens.glassHighlightLight;
 
   static const List<Color> accentGradientPurple = [
-    Color(0xFF0D9488),
-    Color(0xFF2DD4BF),
+    Color(0xFF0EA5E9),
+    Color(0xFF38BDF8),
   ];
   static const List<Color> accentGradientPink = [
-    Color(0xFFEC4899),
-    Color(0xFFF43F5E),
+    Color(0xFFF97316),
+    Color(0xFFEF4444),
   ];
   static const List<Color> accentGradientBlue = [
-    Color(0xFF3B82F6),
-    Color(0xFF06B6D4),
+    Color(0xFF0284C7),
+    Color(0xFF22D3EE),
   ];
 
   static Color get textPrimary =>
@@ -96,13 +96,13 @@ class DesktopTheme {
   static Color get playButtonGreen =>
       _isDark ? AppTokens.playGreenDark : AppTokens.playGreenLight;
   static Color get heartRed => _isDark ? AppTokens.heartRedDark : AppTokens.heartRedLight;
-  static const Color shufflePurple = Color(0xFF8B5CF6);
+  static const Color shufflePurple = Color(0xFF38BDF8);
   static const Color repeatBlue = Color(0xFF3B82F6);
   static Color get accentPrimary =>
       _isDark ? AppTokens.accentDefaultDark : AppTokens.accentDefaultLight;
 
   static LinearGradient get accentGradient => const LinearGradient(
-        colors: [Color(0xFF0D9488), Color(0xFF2DD4BF)],
+        colors: [Color(0xFF0284C7), Color(0xFF38BDF8)],
         begin: Alignment.centerLeft,
         end: Alignment.centerRight,
       );

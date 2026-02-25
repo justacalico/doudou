@@ -386,7 +386,14 @@ class _Sidebar extends StatelessWidget {
     return Container(
       width: DesktopTheme.sidebarWidth,
       decoration: BoxDecoration(
-        color: DesktopTheme.backgroundSidebar,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            DesktopTheme.backgroundSidebar,
+            DesktopTheme.backgroundPrimary,
+          ],
+        ),
         border: Border(
           right: BorderSide(color: DesktopTheme.glassBorder, width: 1),
         ),
@@ -401,35 +408,48 @@ class _Sidebar extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(DesktopTheme.spacingLg),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: accent,
-                            borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-                            boxShadow: DesktopTheme.shadowGlow(accent),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+                        border: Border.all(color: accent.withValues(alpha: 0.35)),
+                        color: DesktopTheme.backgroundTertiary.withValues(alpha: 0.7),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: DesktopTheme.backgroundTertiary,
+                              borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Image.asset(
+                              'assets/icons/icon.png',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Icon(
+                                Icons.music_note_rounded,
+                                color: accent,
+                                size: 20,
+                              ),
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.music_note_rounded,
-                            color: Colors.white,
-                            size: 20,
+                          const SizedBox(width: 12),
+                          Text(
+                            'Doudou',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: DesktopTheme.textPrimary,
+                              letterSpacing: -0.2,
+                            ) ?? TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: DesktopTheme.textPrimary,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Doudou',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: DesktopTheme.textPrimary,
-                          ) ?? TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: DesktopTheme.textPrimary,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   Padding(
@@ -629,12 +649,17 @@ class _SidebarTileState extends State<_SidebarTile> {
           margin: const EdgeInsets.only(bottom: 4),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             color: widget.selected
-                ? DesktopTheme.sidebarActive
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.16)
                 : _hover
-                    ? DesktopTheme.sidebarHover
+                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08)
                     : Colors.transparent,
+            border: widget.selected
+                ? Border.all(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.45),
+                  )
+                : null,
           ),
           child: Row(
             children: [
@@ -700,11 +725,18 @@ class _MobileNavBar extends StatelessWidget {
                 height: 64,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(DesktopTheme.radiusXl),
-                  color: (isDark ? Colors.white : Colors.black)
-                      .withValues(alpha: isDark ? 0.12 : 0.06),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      (isDark ? Colors.white : Colors.black)
+                          .withValues(alpha: isDark ? 0.18 : 0.05),
+                      (isDark ? Colors.white : Colors.black)
+                          .withValues(alpha: isDark ? 0.11 : 0.03),
+                    ],
+                  ),
                   border: Border.all(
-                    color: (isDark ? Colors.white : Colors.black)
-                        .withValues(alpha: 0.15),
+                    color: theme.colorScheme.primary.withValues(alpha: isDark ? 0.35 : 0.2),
                     width: 0.5,
                   ),
                   boxShadow: DesktopTheme.shadowMd,
@@ -725,9 +757,9 @@ class _MobileNavBar extends StatelessWidget {
                             horizontal: 8,
                             vertical: 6,
                           ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Column(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -831,15 +863,18 @@ class _MobilePlayerBar extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius:
                                 BorderRadius.circular(22),
-                            color: (isDark
-                                    ? Colors.white
-                                    : Colors.black)
-                                .withValues(alpha: isDark ? 0.12 : 0.06),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                (isDark ? Colors.white : Colors.black)
+                                    .withValues(alpha: isDark ? 0.2 : 0.08),
+                                (isDark ? Colors.white : Colors.black)
+                                    .withValues(alpha: isDark ? 0.12 : 0.04),
+                              ],
+                            ),
                             border: Border.all(
-                              color: (isDark
-                                      ? Colors.white
-                                      : Colors.black)
-                                  .withValues(alpha: 0.12),
+                              color: theme.colorScheme.primary.withValues(alpha: isDark ? 0.35 : 0.2),
                               width: 0.5,
                             ),
                             boxShadow: [

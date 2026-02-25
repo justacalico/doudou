@@ -289,81 +289,81 @@ class AppleTheme {
 
   static TextTheme _buildTextThemeLight(Color labelPrimary, Color labelSecondary, Color labelTertiary) {
     return TextTheme(
-      displayLarge: GoogleFonts.plusJakartaSans(
+      displayLarge: GoogleFonts.sora(
         fontSize: AppTokens.typeScaleLargeTitle,
         fontWeight: AppTokens.weightBold,
         color: labelPrimary,
         height: 1.2,
       ),
-      displayMedium: GoogleFonts.plusJakartaSans(
+      displayMedium: GoogleFonts.sora(
         fontSize: AppTokens.typeScaleTitle1,
         fontWeight: AppTokens.weightBold,
         color: labelPrimary,
         height: 1.22,
       ),
-      displaySmall: GoogleFonts.plusJakartaSans(
+      displaySmall: GoogleFonts.sora(
         fontSize: AppTokens.typeScaleTitle2,
         fontWeight: AppTokens.weightBold,
         color: labelPrimary,
         height: 1.27,
       ),
-      headlineLarge: GoogleFonts.plusJakartaSans(
+      headlineLarge: GoogleFonts.sora(
         fontSize: AppTokens.typeScaleTitle1,
         fontWeight: AppTokens.weightBold,
         color: labelPrimary,
       ),
-      headlineMedium: GoogleFonts.plusJakartaSans(
+      headlineMedium: GoogleFonts.sora(
         fontSize: AppTokens.typeScaleTitle2,
         fontWeight: AppTokens.weightBold,
         color: labelPrimary,
       ),
-      headlineSmall: GoogleFonts.plusJakartaSans(
+      headlineSmall: GoogleFonts.sora(
         fontSize: AppTokens.typeScaleTitle3,
         fontWeight: AppTokens.weightSemiBold,
         color: labelPrimary,
       ),
-      titleLarge: GoogleFonts.nunito(
+      titleLarge: GoogleFonts.manrope(
         fontSize: AppTokens.typeScaleHeadline,
         fontWeight: AppTokens.weightSemiBold,
         color: labelPrimary,
       ),
-      titleMedium: GoogleFonts.nunito(
+      titleMedium: GoogleFonts.manrope(
         fontSize: AppTokens.typeScaleCallout,
         fontWeight: AppTokens.weightRegular,
         color: labelPrimary,
       ),
-      titleSmall: GoogleFonts.nunito(
+      titleSmall: GoogleFonts.manrope(
         fontSize: AppTokens.typeScaleSubheadline,
         fontWeight: AppTokens.weightRegular,
         color: labelPrimary,
       ),
-      bodyLarge: GoogleFonts.nunito(
+      bodyLarge: GoogleFonts.manrope(
         fontSize: AppTokens.typeScaleBody,
         fontWeight: AppTokens.weightRegular,
         color: labelPrimary,
         height: 1.4,
       ),
-      bodyMedium: GoogleFonts.nunito(
+      bodyMedium: GoogleFonts.manrope(
         fontSize: AppTokens.typeScaleCallout,
         fontWeight: AppTokens.weightRegular,
         color: labelPrimary,
       ),
-      bodySmall: GoogleFonts.nunito(
+      bodySmall: GoogleFonts.manrope(
         fontSize: AppTokens.typeScaleFootnote,
         fontWeight: AppTokens.weightRegular,
         color: labelSecondary,
       ),
-      labelLarge: GoogleFonts.nunito(
+      labelLarge: GoogleFonts.manrope(
         fontSize: AppTokens.typeScaleSubheadline,
         fontWeight: AppTokens.weightRegular,
         color: labelPrimary,
       ),
-      labelMedium: GoogleFonts.nunito(
+      labelMedium: GoogleFonts.manrope(
         fontSize: AppTokens.typeScaleFootnote,
         fontWeight: AppTokens.weightRegular,
         color: labelSecondary,
       ),
-      labelSmall: GoogleFonts.nunito(
+      labelSmall: GoogleFonts.manrope(
         fontSize: AppTokens.typeScaleCaption1,
         fontWeight: AppTokens.weightRegular,
         color: labelTertiary,
@@ -410,7 +410,7 @@ class AppleTheme {
         scrolledUnderElevation: 0,
         backgroundColor: AppTokens.backgroundPrimaryLight.withValues(alpha: 0.9),
         foregroundColor: AppTokens.textPrimaryLight,
-        titleTextStyle: GoogleFonts.nunito(
+        titleTextStyle: GoogleFonts.manrope(
           fontSize: AppTokens.typeScaleHeadline,
           fontWeight: AppTokens.weightSemiBold,
           color: AppTokens.textPrimaryLight,
@@ -421,7 +421,7 @@ class AppleTheme {
         backgroundColor: AppTokens.backgroundPrimaryLight.withValues(alpha: 0.9),
         indicatorColor: primaryColor.withValues(alpha: 0.15),
         labelTextStyle: WidgetStateProperty.all(
-          GoogleFonts.nunito(
+          GoogleFonts.manrope(
             fontSize: AppTokens.typeScaleCaption2,
             color: AppTokens.textSecondaryLight,
           ),
@@ -512,7 +512,7 @@ class AppleTheme {
         scrolledUnderElevation: 0,
         backgroundColor: oled ? _oledBlack : AppTokens.backgroundPrimaryDark.withValues(alpha: 0.9),
         foregroundColor: AppTokens.textPrimaryDark,
-        titleTextStyle: GoogleFonts.nunito(
+        titleTextStyle: GoogleFonts.manrope(
           fontSize: AppTokens.typeScaleHeadline,
           fontWeight: AppTokens.weightSemiBold,
           color: AppTokens.textPrimaryDark,
@@ -523,7 +523,7 @@ class AppleTheme {
         backgroundColor: oled ? _oledBlack : AppTokens.backgroundSecondaryDark.withValues(alpha: 0.9),
         indicatorColor: primaryColor.withValues(alpha: 0.25),
         labelTextStyle: WidgetStateProperty.all(
-          GoogleFonts.nunito(
+          GoogleFonts.manrope(
             fontSize: AppTokens.typeScaleCaption2,
             color: AppTokens.textSecondaryDark,
           ),

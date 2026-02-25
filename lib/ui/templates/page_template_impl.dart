@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:doudou/ui/theme.dart';
 
-/// Page template with optional gradient header. Uses theme typography and tokens.
+/// Shared page scaffold used across all top-level and detail pages.
 class PageTemplate extends StatelessWidget {
   final String title;
   final Widget child;
@@ -29,164 +29,121 @@ class PageTemplate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+    final headerGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        theme.colorScheme.primary.withValues(alpha: 0.18),
+        theme.colorScheme.primary.withValues(alpha: 0.07),
+        Colors.transparent,
+      ],
+      stops: const [0.0, 0.4, 1.0],
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Modern header with gradient option
         Container(
+          margin: const EdgeInsets.fromLTRB(
+            DesktopTheme.spacingLg,
+            DesktopTheme.spacingLg,
+            DesktopTheme.spacingLg,
+            DesktopTheme.spacingSm,
+          ),
           padding: const EdgeInsets.fromLTRB(
             DesktopTheme.spacingLg,
             DesktopTheme.spacingLg,
             DesktopTheme.spacingLg,
             DesktopTheme.spacingMd,
           ),
-          decoration: showGradientHeader ? BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                theme.colorScheme.primary.withValues(alpha: 0.1),
-                Colors.transparent,
-              ],
-            ),
-          ) : null,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusLg),
+            border: Border.all(color: DesktopTheme.glassBorder),
+            color: DesktopTheme.backgroundTertiary.withValues(alpha: 0.72),
+            gradient: showGradientHeader ? headerGradient : null,
+            boxShadow: DesktopTheme.shadowMd,
+          ),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final isNarrow = constraints.maxWidth < 500;
-              
-              if (isNarrow && actions != null && actions!.isNotEmpty) {
-                // Stack layout for narrow screens
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: DesktopTheme.textPrimary,
-                        decoration: TextDecoration.none,
-                      ) ?? TextStyle(
-                        fontSize: AppTokens.typeScaleTitle1,
-                        fontWeight: FontWeight.bold,
-                        color: DesktopTheme.textPrimary,
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle!,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: DesktopTheme.textSecondary,
-                        ) ?? TextStyle(
-                          fontSize: 14,
-                          color: DesktopTheme.textSecondary,
+              final isNarrow = constraints.maxWidth < 700;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      if (showBackButton) ...[
+                        _ModernBackButton(onPressed: onBackPressed),
+                        const SizedBox(width: DesktopTheme.spacingMd),
+                      ],
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              theme.textTheme.headlineMedium?.copyWith(
+                                color: DesktopTheme.textPrimary,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.4,
+                                height: 1.15,
+                              ) ??
+                              TextStyle(
+                                fontSize: AppTokens.typeScaleTitle1,
+                                fontWeight: FontWeight.w700,
+                                color: DesktopTheme.textPrimary,
+                                letterSpacing: -0.4,
+                              ),
                         ),
                       ),
                     ],
-                    const SizedBox(height: DesktopTheme.spacingMd),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: DesktopTheme.spacingSm),
+                    Text(
+                      subtitle!,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: DesktopTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                  if (actions != null && actions!.isNotEmpty) ...[
+                    SizedBox(
+                      height: isNarrow
+                          ? DesktopTheme.spacingMd
+                          : DesktopTheme.spacingLg,
+                    ),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: actions!.map((action) => Padding(
-                          padding: const EdgeInsets.only(right: DesktopTheme.spacingSm),
-                          child: action,
-                        )).toList(),
+                        children: actions!
+                            .map(
+                              (action) => Padding(
+                                padding: const EdgeInsets.only(
+                                  right: DesktopTheme.spacingSm,
+                                ),
+                                child: action,
+                              ),
+                            )
+                            .toList(),
                       ),
                     ),
-                  ],
-                );
-              }
-              
-              // Normal row layout
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (showBackButton) ...[
-                    _ModernBackButton(onPressed: onBackPressed),
-                    const SizedBox(width: DesktopTheme.spacingMd),
-                  ],
-                  // Title with minimum width to prevent wrapping
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          color: DesktopTheme.textPrimary,
-                          decoration: TextDecoration.none,
-                        ) ?? TextStyle(
-                          fontSize: AppTokens.typeScaleTitle1,
-                          fontWeight: FontWeight.bold,
-                          color: DesktopTheme.textPrimary,
-                          decoration: TextDecoration.none,
-                        ),
-                      ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitle!,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: DesktopTheme.textSecondary,
-                          ) ?? TextStyle(
-                            fontSize: 14,
-                            color: DesktopTheme.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(width: DesktopTheme.spacingMd),
-                  if (actions != null) ...[
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: actions!.map((action) => Padding(
-                            padding: const EdgeInsets.only(left: DesktopTheme.spacingSm),
-                            child: action,
-                          )).toList(),
-                        ),
-                      ),
-                    ),
-                  ] else ...[
-                    const Spacer(),
                   ],
                 ],
               );
             },
           ),
         ),
-        
-        // Subtle gradient divider
-        Container(
-          height: 1,
-          margin: const EdgeInsets.symmetric(
-            horizontal: DesktopTheme.spacingLg,
-          ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.transparent,
-                DesktopTheme.glassBorder,
-                Colors.transparent,
-              ],
-            ),
-          ),
-        ),
-        
-        // Page content (minHeight: 0 so Expanded allows SingleChildScrollView to scroll)
         Expanded(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 0),
-            child: Padding(
-              padding: padding ?? const EdgeInsets.symmetric(
-                horizontal: DesktopTheme.spacingLg,
-              ),
-              child: child,
-            ),
+          child: Padding(
+            padding:
+                padding ??
+                const EdgeInsets.fromLTRB(
+                  DesktopTheme.spacingLg,
+                  DesktopTheme.spacingSm,
+                  DesktopTheme.spacingLg,
+                  0,
+                ),
+            child: child,
           ),
         ),
       ],
@@ -194,7 +151,6 @@ class PageTemplate extends StatelessWidget {
   }
 }
 
-/// Section header with optional gradient title. Uses theme typography.
 class SectionHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -214,11 +170,38 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
+    final titleWidget = useGradient
+        ? DesktopGradientText(
+            text: title,
+            style:
+                theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ) ??
+                const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+            colors: [
+              theme.colorScheme.primary,
+              theme.colorScheme.primary.withValues(alpha: 0.55),
+            ],
+          )
+        : Text(
+            title,
+            style:
+                theme.textTheme.titleLarge?.copyWith(
+                  color: DesktopTheme.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ) ??
+                TextStyle(
+                  fontSize: AppTokens.typeScaleTitle2,
+                  fontWeight: FontWeight.w700,
+                  color: DesktopTheme.textPrimary,
+                ),
+          );
+
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: DesktopTheme.spacingMd,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: DesktopTheme.spacingMd),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -226,42 +209,12 @@ class SectionHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (useGradient)
-                  DesktopGradientText(
-                    text: title,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.3,
-                    ) ?? const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.3,
-                    ),
-                    colors: [
-                      theme.colorScheme.primary,
-                      theme.colorScheme.primary.withValues(alpha: 0.7),
-                    ],
-                  )
-                else
-                  Text(
-                    title,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: DesktopTheme.textPrimary,
-                    ) ?? TextStyle(
-                      fontSize: AppTokens.typeScaleTitle2,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.3,
-                      color: DesktopTheme.textPrimary,
-                    ),
-                  ),
+                titleWidget,
                 if (subtitle != null) ...[
                   const SizedBox(height: DesktopTheme.spacingXs),
                   Text(
                     subtitle!,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: DesktopTheme.textSecondary,
-                    ) ?? TextStyle(
-                      fontSize: 14,
                       color: DesktopTheme.textSecondary,
                     ),
                   ),
@@ -269,7 +222,7 @@ class SectionHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) 
+          if (trailing != null)
             trailing!
           else if (onSeeAllPressed != null)
             _ModernSeeAllButton(onPressed: onSeeAllPressed!),
@@ -279,70 +232,28 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-/// Modern back button with hover effect
-class _ModernBackButton extends StatefulWidget {
+class _ModernBackButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
   const _ModernBackButton({this.onPressed});
 
   @override
-  State<_ModernBackButton> createState() => _ModernBackButtonState();
-}
-
-class _ModernBackButtonState extends State<_ModernBackButton> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onPressed ?? () => Navigator.of(context).pop(),
-        child: AnimatedContainer(
-          duration: DesktopTheme.durationFast,
-          curve: DesktopTheme.curveSpring,
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesktopTheme.spacingMd,
-            vertical: DesktopTheme.spacingSm,
+    return SizedBox(
+      height: 44,
+      child: OutlinedButton.icon(
+        onPressed: onPressed ?? () => Navigator.of(context).pop(),
+        icon: const Icon(Icons.arrow_back_rounded, size: 18),
+        label: const Text('Back'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: theme.colorScheme.primary,
+          side: BorderSide(
+            color: theme.colorScheme.primary.withValues(alpha: 0.35),
           ),
-          decoration: BoxDecoration(
-            color: _isHovered
-                ? DesktopTheme.glassOverlay
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-            border: Border.all(
-              color: _isHovered
-                  ? theme.colorScheme.primary.withValues(alpha: 0.3)
-                  : DesktopTheme.glassBorder,
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.arrow_back_rounded,
-                size: 18,
-                color: _isHovered
-                    ? theme.colorScheme.primary
-                    : DesktopTheme.textSecondary,
-              ),
-              const SizedBox(width: DesktopTheme.spacingSm),
-              Text(
-                'Back',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: _isHovered
-                      ? theme.colorScheme.primary
-                      : DesktopTheme.textSecondary,
-                ),
-              ),
-            ],
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusRound),
           ),
         ),
       ),
@@ -350,64 +261,201 @@ class _ModernBackButtonState extends State<_ModernBackButton> {
   }
 }
 
-/// Modern "See All" button with hover animation
-class _ModernSeeAllButton extends StatefulWidget {
+class _ModernSeeAllButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   const _ModernSeeAllButton({required this.onPressed});
 
   @override
-  State<_ModernSeeAllButton> createState() => _ModernSeeAllButtonState();
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: const Icon(Icons.east_rounded, size: 16),
+      label: const Text('See all'),
+      style: TextButton.styleFrom(
+        foregroundColor: theme.colorScheme.primary,
+        textStyle: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+    );
+  }
 }
 
-class _ModernSeeAllButtonState extends State<_ModernSeeAllButton> {
-  bool _isHovered = false;
+class QuickAccessCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const QuickAccessCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: AnimatedContainer(
-          duration: DesktopTheme.durationFast,
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesktopTheme.spacingMd,
-            vertical: DesktopTheme.spacingSm,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final iconOnly = constraints.maxWidth < 190;
+        return InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+              border: Border.all(color: DesktopTheme.glassBorder),
+              color: DesktopTheme.backgroundTertiary.withValues(alpha: 0.75),
+              boxShadow: DesktopTheme.shadowSm,
+            ),
+            child: iconOnly
+                ? Tooltip(
+                    message: title,
+                    child: Center(
+                      child: Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(icon, color: color),
+                      ),
+                    ),
+                  )
+                : Row(
+                    children: [
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(icon, color: color),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: DesktopTheme.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: DesktopTheme.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
           ),
-          decoration: BoxDecoration(
-            color: _isHovered
-                ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(DesktopTheme.radiusRound),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'See All',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.primary,
-                ),
+        );
+      },
+    );
+  }
+}
+
+class MusicListTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String? imageUrl;
+  final Widget? trailing;
+  final VoidCallback onTap;
+
+  const MusicListTile({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    this.imageUrl,
+    this.trailing,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+          border: Border.all(color: DesktopTheme.glassBorder),
+          color: DesktopTheme.backgroundTertiary.withValues(alpha: 0.68),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: DesktopTheme.backgroundElevated,
               ),
-              const SizedBox(width: DesktopTheme.spacingXs),
-              AnimatedSlide(
-                duration: DesktopTheme.durationFast,
-                offset: _isHovered ? const Offset(0.2, 0) : Offset.zero,
-                child: Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 16,
-                  color: theme.colorScheme.primary,
-                ),
+              clipBehavior: Clip.antiAlias,
+              child: imageUrl != null
+                  ? Image.network(
+                      imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.music_note_rounded,
+                        color: theme.colorScheme.primary,
+                      ),
+                    )
+                  : Icon(
+                      Icons.music_note_rounded,
+                      color: theme.colorScheme.primary,
+                    ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: DesktopTheme.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: DesktopTheme.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            if (trailing != null) trailing!,
+          ],
         ),
       ),
     );

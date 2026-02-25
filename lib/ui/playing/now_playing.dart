@@ -49,7 +49,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
   int _skipDirection = 0; // -1 for next, 1 for previous
   bool? _hasLyrics; // null = unknown, true = available, false = not available
   String? _lastCheckedTrackId; // To avoid repeated checks for the same track
-  Color _albumGlowColor = const Color(0xFF8B5CF6);
+  Color _albumGlowColor = const Color(0xFF38BDF8);
   String? _lastGlowTrackId;
   List<Color>? _gradientColors;
   String? _lastOverlayImageUrl;
@@ -322,7 +322,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     if (track.imageUrl == null) {
       if (!mounted) return;
       setState(() {
-        _albumGlowColor = const Color(0xFF8B5CF6);
+        _albumGlowColor = const Color(0xFF38BDF8);
       });
       return;
     }
@@ -906,7 +906,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                                         .centerRight,
                                                                     colors: [
                                                                       Color(
-                                                                          0xFF8B5CF6),
+                                                                          0xFF38BDF8),
                                                                       Color(
                                                                           0xFFEC4899),
                                                                     ],
@@ -1013,7 +1013,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                               ?.isShuffled ==
                                                           true
                                                       ? const Color(
-                                                          0xFF8B5CF6,
+                                                          0xFF38BDF8,
                                                         ).withValues(alpha: 0.3)
                                                       : CupertinoColors.white
                                                             .withValues(alpha: 0.1),
@@ -1025,7 +1025,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                                 ?.isShuffled ==
                                                             true
                                                         ? const Color(
-                                                            0xFF8B5CF6,
+                                                            0xFF38BDF8,
                                                           ).withValues(alpha: 0.5)
                                                         : CupertinoColors.white
                                                               .withValues(alpha: 0.15),
@@ -1089,7 +1089,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                                 colors: [
-                                                  Color(0xFF8B5CF6),
+                                                  Color(0xFF38BDF8),
                                                   Color(0xFFEC4899),
                                                 ],
                                               ),
@@ -1097,7 +1097,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                               boxShadow: [
                                                 BoxShadow(
                                                   color: const Color(
-                                                    0xFF8B5CF6,
+                                                    0xFF38BDF8,
                                                   ).withValues(alpha: 0.4),
                                                   blurRadius: 20,
                                                   offset: const Offset(0, 8),

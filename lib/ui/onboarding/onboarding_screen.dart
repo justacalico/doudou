@@ -34,12 +34,12 @@ String _effectiveThemeSelection(AppState appState) {
 
 /// Preset accent colors for onboarding (matches settings picker).
 const List<Color> _kOnboardingAccentPresets = [
-  Colors.purple,
-  Colors.blue,
-  Colors.green,
-  Colors.orange,
-  Colors.red,
-  Colors.teal,
+  Color(0xFF38BDF8),
+  Color(0xFF0EA5E9),
+  Color(0xFF14B8A6),
+  Color(0xFF22C55E),
+  Color(0xFFF97316),
+  Color(0xFFEF4444),
 ];
 
 /// Full-screen onboarding: welcome, then steps for language, theme, accent colour, then Get Started.

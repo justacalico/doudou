@@ -79,7 +79,7 @@ class _SettingsPageState extends State<SettingsPage> {
         id: 'appearance',
         label: l10n.appearanceSettings,
         icon: Icons.palette_rounded,
-        iconColor: const Color(0xFF8B5CF6),
+        iconColor: const Color(0xFF38BDF8),
         section: 'Appearance',
       ),
       _SettingsMenuItem(
@@ -1008,7 +1008,7 @@ class _AppearanceSection extends StatelessWidget {
   }
 
   static String _colorDisplayName(Color color) {
-    if (color.toARGB32() == Colors.purple.toARGB32()) return 'Purple';
+    if (color.toARGB32() == const Color(0xFF38BDF8).toARGB32()) return 'Sky';
     if (color.toARGB32() == Colors.blue.toARGB32()) return 'Blue';
     if (color.toARGB32() == Colors.green.toARGB32()) return 'Green';
     if (color.toARGB32() == Colors.orange.toARGB32()) return 'Orange';
@@ -1411,7 +1411,7 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
 
 /// Preset accent colors for the accent color picker.
 const List<({String name, Color color})> _kAccentPresets = [
-  (name: 'Purple', color: Colors.purple),
+  (name: 'Sky', color: Color(0xFF38BDF8)),
   (name: 'Blue', color: Colors.blue),
   (name: 'Green', color: Colors.green),
   (name: 'Orange', color: Colors.orange),
