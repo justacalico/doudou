@@ -277,6 +277,12 @@
   "seamlessTransitions": "队列中曲目之间无缝过渡",
   "autoplay": "自动播放",
   "autoplayDescription": "队列结束时自动播放相似音乐",
+  "smartBackButton": "智能返回按钮",
+  "smartBackButtonDescription": "播放进度超过 20% 时：第一次返回重播当前曲目，短时间内第二次返回切到上一曲。",
+  "defaultVolumeLabel": "默认音量：{percent}%",
+  "defaultVolumeDescription": "在音频初始化和更改时应用到播放器。",
+  "defaultSpeedLabel": "默认速度：{speed}x",
+  "defaultSpeedDescription": "用于当前和后续播放的速度。",
 
   "volume": "音量",
   "volumeNormalization": "音量标准化",

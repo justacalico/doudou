@@ -1049,6 +1049,7 @@ class _AudioSectionState extends State<_AudioSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final appState = widget.appState;
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -1058,7 +1059,7 @@ class _AudioSectionState extends State<_AudioSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Audio Settings',
+              l10n.audioSettings,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -1073,17 +1074,15 @@ class _AudioSectionState extends State<_AudioSection> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Playback',
+                        l10n.playback,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 12),
                       SwitchListTile(
-                        title: const Text('Smart back button'),
-                        subtitle: const Text(
-                          'If past 20%: first back restarts, second back quickly goes to previous track',
-                        ),
+                        title: Text(l10n.smartBackButton),
+                        subtitle: Text(l10n.smartBackButtonDescription),
                         value: appState.smartBackToStartEnabled,
                         onChanged: (v) => appState.toggleSmartBackToStart(v),
                       ),
@@ -1091,11 +1090,9 @@ class _AudioSectionState extends State<_AudioSection> {
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(
-                          'Default volume: ${(_volume * 100).round()}%',
+                          l10n.defaultVolumeLabel((_volume * 100).round()),
                         ),
-                        subtitle: const Text(
-                          'Applied to the player when audio initializes and when changed.',
-                        ),
+                        subtitle: Text(l10n.defaultVolumeDescription),
                       ),
                       Slider(
                         value: _volume,
@@ -1110,11 +1107,9 @@ class _AudioSectionState extends State<_AudioSection> {
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(
-                          'Default speed: ${_speed.toStringAsFixed(2)}x',
+                          l10n.defaultSpeedLabel(_speed.toStringAsFixed(2)),
                         ),
-                        subtitle: const Text(
-                          'Playback speed used for current and future playback.',
-                        ),
+                        subtitle: Text(l10n.defaultSpeedDescription),
                       ),
                       Slider(
                         value: _speed,
@@ -1127,18 +1122,14 @@ class _AudioSectionState extends State<_AudioSection> {
                       ),
                       const SizedBox(height: 8),
                       SwitchListTile(
-                        title: const Text('Gapless playback'),
-                        subtitle: const Text(
-                          'Reduce pauses between tracks when possible.',
-                        ),
+                        title: Text(l10n.gaplessPlayback),
+                        subtitle: Text(l10n.seamlessTransitions),
                         value: appState.gaplessPlaybackEnabled,
                         onChanged: (v) => appState.setGaplessPlaybackEnabled(v),
                       ),
                       SwitchListTile(
-                        title: const Text('Autoplay recommendations'),
-                        subtitle: const Text(
-                          'When queue ends, automatically add similar tracks.',
-                        ),
+                        title: Text(l10n.autoplay),
+                        subtitle: Text(l10n.autoplayDescription),
                         value: appState.autoplayRecommendationsEnabled,
                         onChanged: (v) =>
                             appState.setAutoplayRecommendationsEnabled(v),

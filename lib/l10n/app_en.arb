@@ -1446,6 +1446,44 @@
     "description": "Autoplay setting description"
   },
 
+  "smartBackButton": "Smart back button",
+  "@smartBackButton": {
+    "description": "Smart back button setting label"
+  },
+
+  "smartBackButtonDescription": "If past 20%: first back restarts, second back quickly goes to previous track",
+  "@smartBackButtonDescription": {
+    "description": "Smart back button setting description"
+  },
+
+  "defaultVolumeLabel": "Default volume: {percent}%",
+  "@defaultVolumeLabel": {
+    "description": "Default volume label with percentage",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+
+  "defaultVolumeDescription": "Applied to the player when audio initializes and when changed.",
+  "@defaultVolumeDescription": {
+    "description": "Default volume setting description"
+  },
+
+  "defaultSpeedLabel": "Default speed: {speed}x",
+  "@defaultSpeedLabel": {
+    "description": "Default speed label with multiplier",
+    "placeholders": {
+      "speed": {}
+    }
+  },
+
+  "defaultSpeedDescription": "Playback speed used for current and future playback.",
+  "@defaultSpeedDescription": {
+    "description": "Default speed setting description"
+  },
+
   "volume": "Volume",
   "@volume": {
     "description": "Volume settings section"
