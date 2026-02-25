@@ -300,65 +300,69 @@ class _AppShellState extends State<AppShell> {
             child: Scaffold(
               backgroundColor: DesktopTheme.backgroundDeep,
               extendBody: !isDesktop,
-              body: Padding(
-                padding: EdgeInsets.only(
-                  bottom: isDesktop
-                      ? 0
-                      : 164 + MediaQuery.of(context).padding.bottom,
-                ),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          if (isDesktop)
-                            _Sidebar(
-                              currentIndex: _selectedIndex,
-                              navItems: _navItems,
-                              libraryItems: _libraryItems,
-                              settingsIndex: _settingsIndex,
-                              onTap: _navigateTo,
-                            ),
-                          Expanded(
-                            child: Container(
-                              color: DesktopTheme.backgroundPrimary,
-                              child: Stack(
-                                children: [
-                                  IndexedStack(
-                                    index: _selectedIndex.clamp(
-                                      0,
-                                      _pageCount - 1,
-                                    ),
-                                    children: List.generate(
-                                      _pageCount,
-                                      (i) => i == _selectedIndex
-                                          ? _getOrBuildPage(i)
-                                          : (_builtPages[i] ??
-                                                const SizedBox.shrink()),
-                                    ),
+              body: Stack(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(bottom: isDesktop ? 0 : 20),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              if (isDesktop)
+                                _Sidebar(
+                                  currentIndex: _selectedIndex,
+                                  navItems: _navItems,
+                                  libraryItems: _libraryItems,
+                                  settingsIndex: _settingsIndex,
+                                  onTap: _navigateTo,
+                                ),
+                              Expanded(
+                                child: Container(
+                                  color: DesktopTheme.backgroundPrimary,
+                                  child: Stack(
+                                    children: [
+                                      IndexedStack(
+                                        index: _selectedIndex.clamp(
+                                          0,
+                                          _pageCount - 1,
+                                        ),
+                                        children: List.generate(
+                                          _pageCount,
+                                          (i) => i == _selectedIndex
+                                              ? _getOrBuildPage(i)
+                                              : (_builtPages[i] ??
+                                                    const SizedBox.shrink()),
+                                        ),
+                                      ),
+                                      if (_buildDetailOverlay() != null)
+                                        Positioned.fill(
+                                          child: _buildDetailOverlay()!,
+                                        ),
+                                    ],
                                   ),
-                                  if (_buildDetailOverlay() != null)
-                                    Positioned.fill(
-                                      child: _buildDetailOverlay()!,
-                                    ),
-                                ],
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
+                        if (isDesktop) const DesktopPlayerBar(),
+                      ],
+                    ),
+                  ),
+                  if (!isDesktop)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: _MobileFloatingDock(
+                        entries: _getMobileNavEntries(context),
+                        currentIndex: _selectedIndex,
+                        onTap: _navigateTo,
                       ),
                     ),
-                    if (isDesktop) const DesktopPlayerBar(),
-                  ],
-                ),
+                ],
               ),
-              bottomNavigationBar: isDesktop
-                  ? null
-                  : _MobileFloatingDock(
-                      entries: _getMobileNavEntries(context),
-                      currentIndex: _selectedIndex,
-                      onTap: _navigateTo,
-                    ),
             ),
           ),
         );
