@@ -531,21 +531,6 @@ class _Sidebar extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: compact ? 0 : 16),
-                    child: Center(
-                      child: IconButton(
-                        tooltip: compact ? 'Full view' : 'Shrink sidebar',
-                        onPressed: onToggleCompact,
-                        icon: Icon(
-                          compact
-                              ? Icons.keyboard_double_arrow_right_rounded
-                              : Icons.keyboard_double_arrow_left_rounded,
-                          color: DesktopTheme.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 16),
                     child: Column(
                       children: navItems
@@ -613,14 +598,32 @@ class _Sidebar extends StatelessWidget {
               ),
               child: Padding(
                 padding: EdgeInsets.only(top: compact ? 0 : 16),
-                child: _SidebarTile(
-                  icon: Icons.settings_outlined,
-                  activeIcon: Icons.settings_rounded,
-                  label: l10n.settings,
-                  selected: currentIndex == settingsIndex,
-                  onTap: () => onTap(settingsIndex),
-                  compact: compact,
-                  isSettings: true,
+                child: Column(
+                  children: [
+                    _SidebarTile(
+                      icon: Icons.settings_outlined,
+                      activeIcon: Icons.settings_rounded,
+                      label: l10n.settings,
+                      selected: currentIndex == settingsIndex,
+                      onTap: () => onTap(settingsIndex),
+                      compact: compact,
+                      isSettings: true,
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarTile(
+                      icon: compact
+                          ? Icons.keyboard_double_arrow_right_rounded
+                          : Icons.keyboard_double_arrow_left_rounded,
+                      activeIcon: compact
+                          ? Icons.keyboard_double_arrow_right_rounded
+                          : Icons.keyboard_double_arrow_left_rounded,
+                      label: compact ? 'Full view' : 'Shrink sidebar',
+                      selected: false,
+                      onTap: onToggleCompact,
+                      compact: compact,
+                      isSettings: false,
+                    ),
+                  ],
                 ),
               ),
             ),
