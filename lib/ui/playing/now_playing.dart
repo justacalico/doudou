@@ -9,7 +9,8 @@ import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/models/download_models.dart';
 import 'package:doudou/services/album_art_color_service.dart';
-import 'package:doudou/services/audio/unified_audio_handler.dart' show RepeatMode;
+import 'package:doudou/services/audio/unified_audio_handler.dart'
+    show RepeatMode;
 import 'package:doudou/ui/playing/lyrics_overlay.dart';
 import 'package:doudou/ui/playing/queue_overlay.dart';
 import 'package:doudou/ui/widgets/cached_image_widget.dart';
@@ -221,13 +222,17 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                     boxShadow: isCurrent
                         ? [
                             BoxShadow(
-                              color: glowColor.withValues(alpha: isPlaying ? 0.3 : 0.1),
+                              color: glowColor.withValues(
+                                alpha: isPlaying ? 0.3 : 0.1,
+                              ),
                               blurRadius: 40,
                               offset: const Offset(0, 20),
                               spreadRadius: isPlaying ? 5 : 0,
                             ),
                             BoxShadow(
-                              color: secondaryGlowColor.withValues(alpha: isPlaying ? 0.2 : 0.05),
+                              color: secondaryGlowColor.withValues(
+                                alpha: isPlaying ? 0.2 : 0.05,
+                              ),
                               blurRadius: 60,
                               offset: const Offset(-10, 30),
                             ),
@@ -258,9 +263,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    CupertinoColors.white.withValues(alpha: 0.1),
+                                    CupertinoColors.white.withValues(
+                                      alpha: 0.1,
+                                    ),
                                     Colors.transparent,
-                                    CupertinoColors.white.withValues(alpha: 0.05),
+                                    CupertinoColors.white.withValues(
+                                      alpha: 0.05,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -456,930 +465,856 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     Track currentTrack,
   ) {
     return Scaffold(
-              backgroundColor: const Color(0xFF000000),
-              body: Stack(
-                children: [
-                  // Blurred background with animated gradient
-                  if (currentTrack.imageUrl != null)
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: NetworkImage(
-                              appState.getImageUrl(
-                                currentTrack.imageUrl!,
-                                width: 800,
-                                height: 800,
-                              ),
+      backgroundColor: const Color(0xFF000000),
+      body: Stack(
+        children: [
+          // Blurred background with animated gradient
+          if (currentTrack.imageUrl != null)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(
+                      appState.getImageUrl(
+                        currentTrack.imageUrl!,
+                        width: 800,
+                        height: 800,
+                      ),
+                    ),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: StreamBuilder<PlayerState>(
+                  stream: appState.playerStateStream,
+                  builder: (context, snapshot) {
+                    final isPlaying = snapshot.data?.playing == true;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: isPlaying ? 40 : 25,
+                          sigmaY: isPlaying ? 40 : 25,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withValues(
+                                  alpha: isPlaying ? 0.3 : 0.5,
+                                ),
+                                Colors.black.withValues(
+                                  alpha: isPlaying ? 0.6 : 0.8,
+                                ),
+                              ],
                             ),
-                            fit: BoxFit.cover,
                           ),
                         ),
-                        child: StreamBuilder<PlayerState>(
-                          stream: appState.playerStateStream,
-                          builder: (context, snapshot) {
-                            final isPlaying = snapshot.data?.playing == true;
-                            return AnimatedContainer(
-                              duration: const Duration(milliseconds: 500),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(
-                                  sigmaX: isPlaying ? 40 : 25,
-                                  sigmaY: isPlaying ? 40 : 25,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          // Content
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 0),
+              child: Column(
+                children: [
+                  // Top bar with liquid glass style
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Liquid glass close button
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.white.withValues(
+                                    alpha: 0.15,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: CupertinoColors.white.withValues(
+                                      alpha: 0.2,
+                                    ),
+                                    width: 0.5,
+                                  ),
                                 ),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Colors.black.withValues(alpha: isPlaying ? 0.3 : 0.5),
-                                        Colors.black.withValues(alpha: isPlaying ? 0.6 : 0.8),
-                                      ],
+                                child: const Icon(
+                                  CupertinoIcons.chevron_down,
+                                  color: CupertinoColors.white,
+                                  size: 22,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Flexible content area
+                  Expanded(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+
+                        // Album Art Carousel with rotary animation
+                        Expanded(
+                          flex: 3,
+                          child: StreamBuilder<PlayerState>(
+                            stream: appState.playerStateStream,
+                            builder: (context, snapshot) {
+                              final isPlaying = snapshot.data?.playing == true;
+                              final queueTracks =
+                                  appState.audioHandler?.queueTracks ?? [];
+                              final currentIndex =
+                                  appState.audioHandler?.currentIndex ?? 0;
+
+                              // Get previous and next tracks
+                              final prevTrack = currentIndex > 0
+                                  ? queueTracks[currentIndex - 1]
+                                  : null;
+                              final nextTrack =
+                                  currentIndex < queueTracks.length - 1
+                                  ? queueTracks[currentIndex + 1]
+                                  : null;
+
+                              return LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final availableSize =
+                                      constraints.maxHeight * 0.9;
+                                  final screenWidth = MediaQuery.of(
+                                    context,
+                                  ).size.width;
+                                  final albumArtSize =
+                                      (availableSize < screenWidth * 0.75)
+                                      ? availableSize
+                                      : screenWidth * 0.75;
+                                  // Distance between album art centers - closer so side albums peek in
+                                  final spacing = albumArtSize * 0.85;
+                                  // Store spacing for button animations
+                                  WidgetsBinding.instance.addPostFrameCallback((
+                                    _,
+                                  ) {
+                                    if (_currentSpacing != spacing) {
+                                      _currentSpacing = spacing;
+                                    }
+                                  });
+
+                                  return GestureDetector(
+                                    onHorizontalDragUpdate: (details) {
+                                      setState(() {
+                                        _dragOffset += details.delta.dx;
+                                        // Limit drag to one album art width
+                                        _dragOffset = _dragOffset.clamp(
+                                          nextTrack != null ? -spacing : 0.0,
+                                          prevTrack != null ? spacing : 0.0,
+                                        );
+                                      });
+                                    },
+                                    onHorizontalDragEnd: (details) {
+                                      final velocity =
+                                          details.primaryVelocity ?? 0;
+                                      final threshold = spacing * 0.3;
+
+                                      // Swipe left (negative) = next track
+                                      if ((velocity < -300 ||
+                                              _dragOffset < -threshold) &&
+                                          nextTrack != null) {
+                                        _animateSkipToNext(appState, spacing);
+                                      }
+                                      // Swipe right (positive) = previous track
+                                      else if ((velocity > 300 ||
+                                              _dragOffset > threshold) &&
+                                          prevTrack != null) {
+                                        _animateSkipToPrevious(
+                                          appState,
+                                          spacing,
+                                        );
+                                      }
+                                      // Snap back with animation
+                                      else {
+                                        _snapBack();
+                                      }
+                                    },
+                                    child: AnimatedBuilder(
+                                      animation: Listenable.merge([
+                                        _skipAnimationController,
+                                        _snapBackController,
+                                      ]),
+                                      builder: (context, child) {
+                                        // Calculate total offset: skip animation, snap-back, or drag
+                                        double totalOffset;
+                                        if (_isAnimatingSkip) {
+                                          final targetOffset =
+                                              _skipDirection * spacing;
+                                          final progress = Curves.easeOutCubic
+                                              .transform(
+                                                _skipAnimationController.value,
+                                              );
+                                          totalOffset =
+                                              _animationStartOffset +
+                                              (targetOffset -
+                                                      _animationStartOffset) *
+                                                  progress;
+                                        } else if (_isSnappingBack) {
+                                          totalOffset =
+                                              _snapBackStartOffset *
+                                              (1 - _snapBackController.value);
+                                        } else {
+                                          totalOffset = _dragOffset;
+                                        }
+
+                                        return Stack(
+                                          alignment: Alignment.center,
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            // Previous track album art (left position)
+                                            if (prevTrack != null)
+                                              _buildCarouselItem(
+                                                appState: appState,
+                                                track: prevTrack,
+                                                basePosition: -spacing,
+                                                dragOffset: totalOffset,
+                                                spacing: spacing,
+                                                albumArtSize: albumArtSize,
+                                                isPlaying: false,
+                                                glowColor: _albumGlowColor,
+                                                onTap: () =>
+                                                    _animateSkipToPrevious(
+                                                      appState,
+                                                      spacing,
+                                                    ),
+                                              ),
+
+                                            // Next track album art (right position)
+                                            if (nextTrack != null)
+                                              _buildCarouselItem(
+                                                appState: appState,
+                                                track: nextTrack,
+                                                basePosition: spacing,
+                                                dragOffset: totalOffset,
+                                                spacing: spacing,
+                                                albumArtSize: albumArtSize,
+                                                isPlaying: false,
+                                                glowColor: _albumGlowColor,
+                                                onTap: () => _animateSkipToNext(
+                                                  appState,
+                                                  spacing,
+                                                ),
+                                              ),
+
+                                            // Current track album art (center)
+                                            _buildCarouselItem(
+                                              appState: appState,
+                                              track: currentTrack,
+                                              basePosition: 0,
+                                              dragOffset: totalOffset,
+                                              spacing: spacing,
+                                              albumArtSize: albumArtSize,
+                                              isPlaying: isPlaying,
+                                              glowColor: _albumGlowColor,
+                                              onTap: null,
+                                              isCurrent: true,
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+
+                        // Track info section with liquid glass card
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  height: 36,
+                                  child: MarqueeText(
+                                    text: currentTrack.name,
+                                    style: const TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w700,
+                                      color: CupertinoColors.white,
+                                      letterSpacing: -0.5,
                                     ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  // Content
-                  SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 0),
-                      child: Column(
-                        children: [
-                          // Top bar with liquid glass style
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Liquid glass close button
-                                GestureDetector(
-                                  onTap: () => Navigator.pop(context),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: BackdropFilter(
-                                      filter: ImageFilter.blur(
-                                        sigmaX: 10,
-                                        sigmaY: 10,
-                                      ),
-                                      child: Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          color: CupertinoColors.white
-                                              .withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          border: Border.all(
-                                            color: CupertinoColors.white
-                                                .withValues(alpha: 0.2),
-                                            width: 0.5,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          CupertinoIcons.chevron_down,
-                                          color: CupertinoColors.white,
-                                          size: 22,
-                                        ),
-                                      ),
+                                const SizedBox(height: 8),
+                                Flexible(
+                                  child: Text(
+                                    currentTrack.artistName ?? 'Unknown Artist',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: CupertinoColors.systemGrey,
                                     ),
+                                    textAlign: TextAlign.center,
+                                    maxLines:
+                                        2, // Allow more lines for large fonts
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
                             ),
                           ),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                          // Flexible content area
-                          Expanded(
+                  // Bottom section - fixed height
+                  Column(
+                    children: [
+                      // Progress slider and time
+                      StreamBuilder<Duration>(
+                        stream:
+                            audioHandler?.positionStream ??
+                            Stream.value(Duration.zero),
+                        builder: (context, snapshot) {
+                          final position = snapshot.data ?? Duration.zero;
+                          final duration =
+                              audioHandler?.duration ?? Duration.zero;
+
+                          double sliderValue = 0.0;
+                          if (duration.inMilliseconds > 0) {
+                            sliderValue =
+                                position.inMilliseconds /
+                                duration.inMilliseconds;
+                            sliderValue = sliderValue.clamp(0.0, 1.0);
+                          }
+
+                          void seekToPosition(
+                            Offset localPosition,
+                            RenderBox box,
+                          ) {
+                            final newValue = (localPosition.dx / box.size.width)
+                                .clamp(0.0, 1.0);
+                            final newPosition = Duration(
+                              milliseconds: (newValue * duration.inMilliseconds)
+                                  .round(),
+                            );
+                            appState.seekTo(newPosition);
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                const SizedBox(height: 20),
-
-                                // Album Art Carousel with rotary animation
-                                Expanded(
-                                  flex: 3,
-                                  child: StreamBuilder<PlayerState>(
-                                    stream: appState.playerStateStream,
-                                    builder: (context, snapshot) {
-                                      final isPlaying =
-                                          snapshot.data?.playing == true;
-                                      final queueTracks =
-                                          appState.audioHandler?.queueTracks ??
-                                          [];
-                                      final currentIndex =
-                                          appState.audioHandler?.currentIndex ??
-                                          0;
-
-                                      // Get previous and next tracks
-                                      final prevTrack = currentIndex > 0
-                                          ? queueTracks[currentIndex - 1]
-                                          : null;
-                                      final nextTrack =
-                                          currentIndex < queueTracks.length - 1
-                                          ? queueTracks[currentIndex + 1]
-                                          : null;
-
-                                      return LayoutBuilder(
-                                        builder: (context, constraints) {
-                                          final availableSize =
-                                              constraints.maxHeight * 0.9;
-                                          final screenWidth = MediaQuery.of(
-                                            context,
-                                          ).size.width;
-                                          final albumArtSize =
-                                              (availableSize <
-                                                  screenWidth * 0.75)
-                                              ? availableSize
-                                              : screenWidth * 0.75;
-                                          // Distance between album art centers - closer so side albums peek in
-                                          final spacing = albumArtSize * 0.85;
-                                          // Store spacing for button animations
-                                          WidgetsBinding.instance
-                                              .addPostFrameCallback((_) {
-                                                if (_currentSpacing !=
-                                                    spacing) {
-                                                  _currentSpacing = spacing;
-                                                }
-                                              });
-
-                                          return GestureDetector(
-                                            onHorizontalDragUpdate: (details) {
-                                              setState(() {
-                                                _dragOffset += details.delta.dx;
-                                                // Limit drag to one album art width
-                                                _dragOffset = _dragOffset.clamp(
-                                                  nextTrack != null
-                                                      ? -spacing
-                                                      : 0.0,
-                                                  prevTrack != null
-                                                      ? spacing
-                                                      : 0.0,
-                                                );
-                                              });
-                                            },
-                                            onHorizontalDragEnd: (details) {
-                                              final velocity =
-                                                  details.primaryVelocity ?? 0;
-                                              final threshold = spacing * 0.3;
-
-                                              // Swipe left (negative) = next track
-                                              if ((velocity < -300 ||
-                                                      _dragOffset <
-                                                          -threshold) &&
-                                                  nextTrack != null) {
-                                                _animateSkipToNext(
-                                                  appState,
-                                                  spacing,
-                                                );
-                                              }
-                                              // Swipe right (positive) = previous track
-                                              else if ((velocity > 300 ||
-                                                      _dragOffset >
-                                                          threshold) &&
-                                                  prevTrack != null) {
-                                                _animateSkipToPrevious(
-                                                  appState,
-                                                  spacing,
-                                                );
-                                              }
-                                              // Snap back with animation
-                                              else {
-                                                _snapBack();
-                                              }
-                                            },
-                                            child: AnimatedBuilder(
-                                              animation: Listenable.merge([
-                                                _skipAnimationController,
-                                                _snapBackController,
-                                              ]),
-                                              builder: (context, child) {
-                                                // Calculate total offset: skip animation, snap-back, or drag
-                                                double totalOffset;
-                                                if (_isAnimatingSkip) {
-                                                  final targetOffset =
-                                                      _skipDirection * spacing;
-                                                  final progress = Curves
-                                                      .easeOutCubic
-                                                      .transform(
-                                                        _skipAnimationController
-                                                            .value,
-                                                      );
-                                                  totalOffset =
-                                                      _animationStartOffset +
-                                                      (targetOffset -
-                                                              _animationStartOffset) *
-                                                          progress;
-                                                } else if (_isSnappingBack) {
-                                                  totalOffset =
-                                                      _snapBackStartOffset *
-                                                          (1 -
-                                                              _snapBackController
-                                                                  .value);
-                                                } else {
-                                                  totalOffset = _dragOffset;
-                                                }
-
+                                // Progress bar: single full-width track, fill left-to-right; large hit area
+                                GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTapDown: (details) {
+                                    final box =
+                                        context.findRenderObject() as RenderBox;
+                                    seekToPosition(details.localPosition, box);
+                                  },
+                                  onHorizontalDragUpdate: (details) {
+                                    final box =
+                                        context.findRenderObject() as RenderBox;
+                                    seekToPosition(details.localPosition, box);
+                                  },
+                                  child: SizedBox(
+                                    height: 44,
+                                    child: Center(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: BackdropFilter(
+                                          filter: ImageFilter.blur(
+                                            sigmaX: 5,
+                                            sigmaY: 5,
+                                          ),
+                                          child: Container(
+                                            height: 8,
+                                            width: double.infinity,
+                                            decoration: BoxDecoration(
+                                              color: CupertinoColors.white
+                                                  .withValues(alpha: 0.15),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: LayoutBuilder(
+                                              builder: (context, constraints) {
                                                 return Stack(
-                                                  alignment: Alignment.center,
-                                                  clipBehavior: Clip.none,
+                                                  alignment:
+                                                      Alignment.centerLeft,
                                                   children: [
-                                                    // Previous track album art (left position)
-                                                    if (prevTrack != null)
-                                                      _buildCarouselItem(
-                                                        appState: appState,
-                                                        track: prevTrack,
-                                                        basePosition: -spacing,
-                                                        dragOffset: totalOffset,
-                                                        spacing: spacing,
-                                                        albumArtSize:
-                                                            albumArtSize,
-                                                        isPlaying: false,
-                                                        glowColor:
-                                                            _albumGlowColor,
-                                                        onTap: () =>
-                                                            _animateSkipToPrevious(
-                                                              appState,
-                                                              spacing,
-                                                            ),
+                                                    // Filled portion: left to right only (single direction)
+                                                    SizedBox(
+                                                      width:
+                                                          constraints.maxWidth *
+                                                          sliderValue.clamp(
+                                                            0.0,
+                                                            1.0,
+                                                          ),
+                                                      child: Container(
+                                                        decoration: BoxDecoration(
+                                                          gradient:
+                                                              const LinearGradient(
+                                                                begin: Alignment
+                                                                    .centerLeft,
+                                                                end: Alignment
+                                                                    .centerRight,
+                                                                colors: [
+                                                                  Color(
+                                                                    0xFF38BDF8,
+                                                                  ),
+                                                                  Color(
+                                                                    0xFFEC4899,
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                6,
+                                                              ),
+                                                        ),
                                                       ),
-
-                                                    // Next track album art (right position)
-                                                    if (nextTrack != null)
-                                                      _buildCarouselItem(
-                                                        appState: appState,
-                                                        track: nextTrack,
-                                                        basePosition: spacing,
-                                                        dragOffset: totalOffset,
-                                                        spacing: spacing,
-                                                        albumArtSize:
-                                                            albumArtSize,
-                                                        isPlaying: false,
-                                                        glowColor:
-                                                            _albumGlowColor,
-                                                        onTap: () =>
-                                                            _animateSkipToNext(
-                                                              appState,
-                                                              spacing,
-                                                            ),
-                                                      ),
-
-                                                    // Current track album art (center)
-                                                    _buildCarouselItem(
-                                                      appState: appState,
-                                                      track: currentTrack,
-                                                      basePosition: 0,
-                                                      dragOffset: totalOffset,
-                                                      spacing: spacing,
-                                                      albumArtSize:
-                                                          albumArtSize,
-                                                      isPlaying: isPlaying,
-                                                      glowColor:
-                                                          _albumGlowColor,
-                                                      onTap: null,
-                                                      isCurrent: true,
                                                     ),
                                                   ],
                                                 );
                                               },
                                             ),
-                                          );
-                                        },
-                                      );
-                                    },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
-
-                                // Track info section with liquid glass card
-                                Expanded(
-                                  flex: 1,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 30,
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          height: 36,
-                                          child: MarqueeText(
-                                            text: currentTrack.name,
-                                            style: const TextStyle(
-                                              fontSize: 26,
-                                              fontWeight: FontWeight.w700,
-                                              color: CupertinoColors.white,
-                                              letterSpacing: -0.5,
-                                            ),
-                                          ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4.0,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        _formatDuration(position),
+                                        style: TextStyle(
+                                          color: CupertinoColors.white
+                                              .withValues(alpha: 0.6),
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
                                         ),
-                                        const SizedBox(height: 8),
-                                        Flexible(
-                                          child: Text(
-                                            currentTrack.artistName ??
-                                                'Unknown Artist',
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              color: CupertinoColors.systemGrey,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                            maxLines:
-                                                2, // Allow more lines for large fonts
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                      ),
+                                      Text(
+                                        _formatDuration(duration),
+                                        style: TextStyle(
+                                          color: CupertinoColors.white
+                                              .withValues(alpha: 0.6),
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                          ),
+                          );
+                        },
+                      ),
 
-                          // Bottom section - fixed height
-                          Column(
-                            children: [
-                              // Progress slider and time
-                              StreamBuilder<Duration>(
-                                stream:
-                                    audioHandler?.positionStream ??
-                                    Stream.value(Duration.zero),
-                                builder: (context, snapshot) {
-                                  final position =
-                                      snapshot.data ?? Duration.zero;
-                                  final duration =
-                                      audioHandler?.duration ?? Duration.zero;
+                      const SizedBox(height: 24),
 
-                                  double sliderValue = 0.0;
-                                  if (duration.inMilliseconds > 0) {
-                                    sliderValue =
-                                        position.inMilliseconds /
-                                        duration.inMilliseconds;
-                                    sliderValue = sliderValue.clamp(0.0, 1.0);
-                                  }
+                      // Control buttons with liquid glass
+                      StreamBuilder<PlayerState>(
+                        stream: appState.playerStateStream,
+                        builder: (context, snapshot) {
+                          final isPlaying = snapshot.data?.playing == true;
+                          final processingState =
+                              snapshot.data?.processingState ??
+                              ProcessingState.idle;
 
-                                  void seekToPosition(Offset localPosition,
-                                      RenderBox box) {
-                                    final newValue = (localPosition.dx /
-                                            box.size.width)
-                                        .clamp(0.0, 1.0);
-                                    final newPosition = Duration(
-                                      milliseconds: (newValue *
-                                              duration.inMilliseconds)
-                                          .round(),
-                                    );
-                                    appState.seekTo(newPosition);
-                                  }
-
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 30,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        // Progress bar: single full-width track, fill left-to-right; large hit area
-                                        GestureDetector(
-                                          behavior: HitTestBehavior.opaque,
-                                          onTapDown: (details) {
-                                            final box = context.findRenderObject()
-                                                as RenderBox;
-                                            seekToPosition(
-                                                details.localPosition, box);
-                                          },
-                                          onHorizontalDragUpdate: (details) {
-                                            final box = context.findRenderObject()
-                                                as RenderBox;
-                                            seekToPosition(
-                                                details.localPosition, box);
-                                          },
-                                          child: SizedBox(
-                                            height: 44,
-                                            child: Center(
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                                child: BackdropFilter(
-                                                  filter: ImageFilter.blur(
-                                                      sigmaX: 5, sigmaY: 5),
-                                                  child: Container(
-                                                    height: 8,
-                                                    width: double.infinity,
-                                                    decoration: BoxDecoration(
-                                                      color: CupertinoColors
-                                                          .white
-                                                          .withValues(alpha: 0.15),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6),
-                                                    ),
-                                                    child: LayoutBuilder(
-                                                      builder: (context,
-                                                          constraints) {
-                                                        return Stack(
-                                                          alignment:
-                                                              Alignment
-                                                                  .centerLeft,
-                                                          children: [
-                                                            // Filled portion: left to right only (single direction)
-                                                            SizedBox(
-                                                              width: constraints
-                                                                      .maxWidth *
-                                                                  sliderValue
-                                                                      .clamp(
-                                                                          0.0,
-                                                                          1.0),
-                                                              child: Container(
-                                                                decoration: BoxDecoration(
-                                                                  gradient: const LinearGradient(
-                                                                    begin: Alignment
-                                                                        .centerLeft,
-                                                                    end: Alignment
-                                                                        .centerRight,
-                                                                    colors: [
-                                                                      Color(
-                                                                          0xFF38BDF8),
-                                                                      Color(
-                                                                          0xFFEC4899),
-                                                                    ],
-                                                                  ),
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              6),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        );
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 40),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // Shuffle button with liquid glass
+                                GestureDetector(
+                                  onTap: () {
+                                    final audioHandler = appState.audioHandler;
+                                    if (audioHandler?.isShuffled == true) {
+                                      audioHandler?.unshuffle();
+                                    } else {
+                                      audioHandler?.shuffle();
+                                    }
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                        sigmaX: 8,
+                                        sigmaY: 8,
+                                      ),
+                                      child: Container(
+                                        width: 44,
+                                        height: 44,
+                                        decoration: BoxDecoration(
+                                          color:
+                                              audioHandler?.isShuffled == true
+                                              ? const Color(
+                                                  0xFF38BDF8,
+                                                ).withValues(alpha: 0.3)
+                                              : CupertinoColors.white
+                                                    .withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 4.0,
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                _formatDuration(position),
-                                                style: TextStyle(
-                                                  color: CupertinoColors.white
-                                                      .withValues(alpha: 0.6),
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              Text(
-                                                _formatDuration(duration),
-                                                style: TextStyle(
-                                                  color: CupertinoColors.white
-                                                      .withValues(alpha: 0.6),
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-
-                              const SizedBox(height: 24),
-
-                              // Control buttons with liquid glass
-                              StreamBuilder<PlayerState>(
-                                stream: appState.playerStateStream,
-                                builder: (context, snapshot) {
-                                  final isPlaying =
-                                      snapshot.data?.playing == true;
-                                  final processingState =
-                                      snapshot.data?.processingState ??
-                                      ProcessingState.idle;
-
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 40,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        // Shuffle button with liquid glass
-                                        GestureDetector(
-                                          onTap: () {
-                                            final audioHandler =
-                                                appState.audioHandler;
-                                            if (audioHandler?.isShuffled ==
-                                                true) {
-                                              audioHandler?.unshuffle();
-                                            } else {
-                                              audioHandler?.shuffle();
-                                            }
-                                          },
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            child: BackdropFilter(
-                                              filter: ImageFilter.blur(
-                                                sigmaX: 8,
-                                                sigmaY: 8,
-                                              ),
-                                              child: Container(
-                                                width: 44,
-                                                height: 44,
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      audioHandler
-                                                              ?.isShuffled ==
-                                                          true
-                                                      ? const Color(
-                                                          0xFF38BDF8,
-                                                        ).withValues(alpha: 0.3)
-                                                      : CupertinoColors.white
-                                                            .withValues(alpha: 0.1),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  border: Border.all(
-                                                    color:
-                                                        audioHandler
-                                                                ?.isShuffled ==
-                                                            true
-                                                        ? const Color(
-                                                            0xFF38BDF8,
-                                                          ).withValues(alpha: 0.5)
-                                                        : CupertinoColors.white
-                                                              .withValues(alpha: 0.15),
-                                                    width: 0.5,
-                                                  ),
-                                                ),
-                                                child: Icon(
-                                                  CupertinoIcons.shuffle,
-                                                  color:
-                                                      audioHandler
-                                                              ?.isShuffled ==
-                                                          true
-                                                      ? CupertinoColors.white
-                                                      : CupertinoColors.white
-                                                            .withValues(alpha: 0.6),
-                                                  size: 20,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        // Previous button
-                                        GestureDetector(
-                                          onTap:
-                                              audioHandler?.hasPrevious == true
-                                              ? () async {
-                                                  final willRestart =
-                                                      await audioHandler
-                                                          .willBackRestartCurrentTrack();
-                                                  if (!mounted) return;
-                                                  if (willRestart) {
-                                                    await appState
-                                                        .skipToPrevious();
-                                                    return;
-                                                  }
-                                                  _animateSkipToPrevious(
-                                                    appState,
-                                                    _currentSpacing,
-                                                  );
-                                                }
-                                              : null,
-                                          child: Icon(
-                                            CupertinoIcons.backward_fill,
-                                            size: 36,
+                                          border: Border.all(
                                             color:
-                                                audioHandler?.hasPrevious ==
-                                                    true
-                                                ? CupertinoColors.white
-                                                : CupertinoColors.white
-                                                      .withValues(alpha: 0.3),
-                                          ),
-                                        ),
-                                        // Play/Pause button with gradient
-                                        GestureDetector(
-                                          onTap: () => appState.playPause(),
-                                          child: Container(
-                                            width: 72,
-                                            height: 72,
-                                            decoration: BoxDecoration(
-                                              gradient: const LinearGradient(
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                                colors: [
-                                                  Color(0xFF38BDF8),
-                                                  Color(0xFFEC4899),
-                                                ],
-                                              ),
-                                              shape: BoxShape.circle,
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: const Color(
+                                                audioHandler?.isShuffled == true
+                                                ? const Color(
                                                     0xFF38BDF8,
-                                                  ).withValues(alpha: 0.4),
-                                                  blurRadius: 20,
-                                                  offset: const Offset(0, 8),
-                                                ),
-                                              ],
-                                            ),
-                                            child:
-                                                processingState ==
-                                                        ProcessingState
-                                                            .loading ||
-                                                    processingState ==
-                                                        ProcessingState
-                                                            .buffering
-                                                ? const Center(
-                                                    child:
-                                                        CupertinoActivityIndicator(
-                                                          color: CupertinoColors
-                                                              .white,
-                                                        ),
-                                                  )
-                                                : Icon(
-                                                    isPlaying
-                                                        ? CupertinoIcons
-                                                              .pause_fill
-                                                        : CupertinoIcons
-                                                              .play_arrow_solid,
-                                                    size: 32,
-                                                    color:
-                                                        CupertinoColors.white,
-                                                  ),
-                                          ),
-                                        ),
-                                        // Next button
-                                        GestureDetector(
-                                          onTap: audioHandler?.hasNext == true
-                                              ? () => _animateSkipToNext(
-                                                  appState,
-                                                  _currentSpacing,
-                                                )
-                                              : null,
-                                          child: Icon(
-                                            CupertinoIcons.forward_fill,
-                                            size: 36,
-                                            color: audioHandler?.hasNext == true
-                                                ? CupertinoColors.white
+                                                  ).withValues(alpha: 0.5)
                                                 : CupertinoColors.white
-                                                      .withValues(alpha: 0.3),
+                                                      .withValues(alpha: 0.15),
+                                            width: 0.5,
                                           ),
                                         ),
-                                        // Repeat button with liquid glass
-                                        GestureDetector(
-                                          onTap: () async {
-                                            final audioHandler =
-                                                appState.audioHandler;
-                                            if (audioHandler != null) {
-                                              final currentMode =
-                                                  audioHandler.repeatMode ??
-                                                  RepeatMode.none;
-
-                                              switch (currentMode) {
-                                                case RepeatMode.none:
-                                                  await audioHandler
-                                                      .setRepeatMode(
-                                                        RepeatMode.all,
-                                                      );
-                                                  break;
-                                                case RepeatMode.all:
-                                                  await audioHandler
-                                                      .setRepeatMode(
-                                                        RepeatMode.one,
-                                                      );
-                                                  break;
-                                                case RepeatMode.one:
-                                                  await audioHandler
-                                                      .setRepeatMode(
-                                                        RepeatMode.none,
-                                                      );
-                                                  break;
-                                              }
-                                            }
-                                          },
-                                          child: Builder(
-                                            builder: (context) {
-                                              final repeatMode =
-                                                  audioHandler?.repeatMode ??
-                                                  RepeatMode.none;
-                                              final isActive =
-                                                  repeatMode != RepeatMode.none;
-
-                                              return ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                child: BackdropFilter(
-                                                  filter: ImageFilter.blur(
-                                                    sigmaX: 8,
-                                                    sigmaY: 8,
-                                                  ),
-                                                  child: Container(
-                                                    width: 44,
-                                                    height: 44,
-                                                    decoration: BoxDecoration(
-                                                      color: isActive
-                                                          ? const Color(
-                                                              0xFFEC4899,
-                                                            ).withValues(alpha: 0.3)
-                                                          : CupertinoColors
-                                                                .white
-                                                                .withValues(alpha: 0.1),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            12,
-                                                          ),
-                                                      border: Border.all(
-                                                        color: isActive
-                                                            ? const Color(
-                                                                0xFFEC4899,
-                                                              ).withValues(alpha: 0.5)
-                                                            : CupertinoColors
-                                                                  .white
-                                                                  .withValues(alpha: 0.15),
-                                                        width: 0.5,
-                                                      ),
-                                                    ),
-                                                    child: Icon(
-                                                      repeatMode ==
-                                                              RepeatMode.one
-                                                          ? CupertinoIcons
-                                                                .repeat_1
-                                                          : CupertinoIcons
-                                                                .repeat,
-                                                      color: isActive
-                                                          ? CupertinoColors
-                                                                .white
-                                                          : CupertinoColors
-                                                                .white
-                                                                .withValues(alpha: 0.6),
-                                                      size: 20,
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
+                                        child: Icon(
+                                          CupertinoIcons.shuffle,
+                                          color:
+                                              audioHandler?.isShuffled == true
+                                              ? CupertinoColors.white
+                                              : CupertinoColors.white
+                                                    .withValues(alpha: 0.6),
+                                          size: 20,
                                         ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-
-                              const SizedBox(height: 20),
-
-                              // Bottom controls row with liquid glass
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 50,
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(
-                                      sigmaX: 15,
-                                      sigmaY: 15,
-                                    ),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 20,
-                                        vertical: 12,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: CupertinoColors.white
-                                            .withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: CupertinoColors.white
-                                              .withValues(alpha: 0.2),
-                                          width: 0.5,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          // Queue button
-                                          GestureDetector(
-                                            onTap: () {
-                                              showQueueOverlay(context);
-                                            },
-                                            child: Icon(
-                                              CupertinoIcons.list_bullet,
-                                              color: CupertinoColors.white
-                                                  .withValues(alpha: 0.8),
-                                              size: 22,
-                                            ),
-                                          ),
-                                          // Favorite button
-                                          GestureDetector(
-                                            onTap: () async {
-                                              _triggerFavoriteHaptic();
-                                              await _favoriteAnimationController
-                                                  .forward();
-                                              await _favoriteAnimationController
-                                                  .reverse();
-                                              appState.toggleFavorite(
-                                                currentTrack,
-                                              );
-                                            },
-                                            child: AnimatedBuilder(
-                                              animation:
-                                                  _favoriteScaleAnimation,
-                                              builder: (context, child) {
-                                                final isFavorite = appState
-                                                    .isFavorite(
-                                                      currentTrack.id,
-                                                    );
-                                                return Transform.scale(
-                                                  scale: _favoriteScaleAnimation
-                                                      .value,
-                                                  child: Icon(
-                                                    isFavorite
-                                                        ? CupertinoIcons
-                                                              .heart_fill
-                                                        : CupertinoIcons.heart,
-                                                    color: isFavorite
-                                                        ? const Color(
-                                                            0xFFEC4899,
-                                                          )
-                                                        : CupertinoColors.white
-                                                              .withValues(alpha: 0.8),
-                                                    size: 22,
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                          // Lyrics button (only when lyrics available and enabled)
-                                          if (appState.lyricsEnabled && _hasLyrics == true)
-                                            GestureDetector(
-                                              onTap: () {
-                                                _showLyricsOverlay(
-                                                  context,
-                                                  currentTrack,
-                                                );
-                                              },
-                                              child: Icon(
-                                                CupertinoIcons.mic_fill,
-                                                color: CupertinoColors.white
-                                                    .withValues(alpha: 0.8),
-                                                size: 22,
-                                              ),
-                                            ),
-                                          // More options button
-                                          GestureDetector(
-                                            onTap: () => _showMoreOptions(
-                                              context,
-                                              currentTrack,
-                                              appState,
-                                            ),
-                                            child: Icon(
-                                              CupertinoIcons.ellipsis,
-                                              color: CupertinoColors.white
-                                                  .withValues(alpha: 0.8),
-                                              size: 22,
-                                            ),
-                                          ),
-                                        ],
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
+                                // Previous button
+                                GestureDetector(
+                                  onTap: audioHandler?.hasPrevious == true
+                                      ? () async {
+                                          final willRestart = await audioHandler
+                                              .willBackRestartCurrentTrack();
+                                          if (!mounted) return;
+                                          if (willRestart) {
+                                            await appState.skipToPrevious();
+                                            return;
+                                          }
+                                          _animateSkipToPrevious(
+                                            appState,
+                                            _currentSpacing,
+                                          );
+                                        }
+                                      : null,
+                                  child: Icon(
+                                    CupertinoIcons.backward_fill,
+                                    size: 36,
+                                    color: audioHandler?.hasPrevious == true
+                                        ? CupertinoColors.white
+                                        : CupertinoColors.white.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                  ),
+                                ),
+                                // Play/Pause button with gradient
+                                GestureDetector(
+                                  onTap: () => appState.playPause(),
+                                  child: Container(
+                                    width: 72,
+                                    height: 72,
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Color(0xFF38BDF8),
+                                          Color(0xFFEC4899),
+                                        ],
+                                      ),
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(
+                                            0xFF38BDF8,
+                                          ).withValues(alpha: 0.4),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ],
+                                    ),
+                                    child:
+                                        processingState ==
+                                                ProcessingState.loading ||
+                                            processingState ==
+                                                ProcessingState.buffering
+                                        ? const Center(
+                                            child: CupertinoActivityIndicator(
+                                              color: CupertinoColors.white,
+                                            ),
+                                          )
+                                        : Icon(
+                                            isPlaying
+                                                ? CupertinoIcons.pause_fill
+                                                : CupertinoIcons
+                                                      .play_arrow_solid,
+                                            size: 32,
+                                            color: CupertinoColors.white,
+                                          ),
+                                  ),
+                                ),
+                                // Next button
+                                GestureDetector(
+                                  onTap: audioHandler?.hasNext == true
+                                      ? () => _animateSkipToNext(
+                                          appState,
+                                          _currentSpacing,
+                                        )
+                                      : null,
+                                  child: Icon(
+                                    CupertinoIcons.forward_fill,
+                                    size: 36,
+                                    color: audioHandler?.hasNext == true
+                                        ? CupertinoColors.white
+                                        : CupertinoColors.white.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                  ),
+                                ),
+                                // Repeat button with liquid glass
+                                GestureDetector(
+                                  onTap: () async {
+                                    final audioHandler = appState.audioHandler;
+                                    if (audioHandler != null) {
+                                      final currentMode =
+                                          audioHandler.repeatMode ??
+                                          RepeatMode.none;
 
-                              const SizedBox(height: 20),
-                            ],
-                          ),
-                        ],
+                                      switch (currentMode) {
+                                        case RepeatMode.none:
+                                          await audioHandler.setRepeatMode(
+                                            RepeatMode.all,
+                                          );
+                                          break;
+                                        case RepeatMode.all:
+                                          await audioHandler.setRepeatMode(
+                                            RepeatMode.one,
+                                          );
+                                          break;
+                                        case RepeatMode.one:
+                                          await audioHandler.setRepeatMode(
+                                            RepeatMode.none,
+                                          );
+                                          break;
+                                      }
+                                    }
+                                  },
+                                  child: Builder(
+                                    builder: (context) {
+                                      final repeatMode =
+                                          audioHandler?.repeatMode ??
+                                          RepeatMode.none;
+                                      final isActive =
+                                          repeatMode != RepeatMode.none;
+
+                                      return ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: BackdropFilter(
+                                          filter: ImageFilter.blur(
+                                            sigmaX: 8,
+                                            sigmaY: 8,
+                                          ),
+                                          child: Container(
+                                            width: 44,
+                                            height: 44,
+                                            decoration: BoxDecoration(
+                                              color: isActive
+                                                  ? const Color(
+                                                      0xFFEC4899,
+                                                    ).withValues(alpha: 0.3)
+                                                  : CupertinoColors.white
+                                                        .withValues(alpha: 0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: isActive
+                                                    ? const Color(
+                                                        0xFFEC4899,
+                                                      ).withValues(alpha: 0.5)
+                                                    : CupertinoColors.white
+                                                          .withValues(
+                                                            alpha: 0.15,
+                                                          ),
+                                                width: 0.5,
+                                              ),
+                                            ),
+                                            child: Icon(
+                                              repeatMode == RepeatMode.one
+                                                  ? CupertinoIcons.repeat_1
+                                                  : CupertinoIcons.repeat,
+                                              color: isActive
+                                                  ? CupertinoColors.white
+                                                  : CupertinoColors.white
+                                                        .withValues(alpha: 0.6),
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                    ),
+
+                      const SizedBox(height: 20),
+
+                      // Bottom controls row with liquid glass
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 50),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.white.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: CupertinoColors.white.withValues(
+                                    alpha: 0.2,
+                                  ),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  // Queue button
+                                  GestureDetector(
+                                    onTap: () {
+                                      showQueueOverlay(context);
+                                    },
+                                    child: Icon(
+                                      CupertinoIcons.list_bullet,
+                                      color: CupertinoColors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                      size: 22,
+                                    ),
+                                  ),
+                                  // Favorite button
+                                  GestureDetector(
+                                    onTap: () async {
+                                      _triggerFavoriteHaptic();
+                                      await _favoriteAnimationController
+                                          .forward();
+                                      await _favoriteAnimationController
+                                          .reverse();
+                                      appState.toggleFavorite(currentTrack);
+                                    },
+                                    child: AnimatedBuilder(
+                                      animation: _favoriteScaleAnimation,
+                                      builder: (context, child) {
+                                        final isFavorite = appState.isFavorite(
+                                          currentTrack.id,
+                                        );
+                                        return Transform.scale(
+                                          scale: _favoriteScaleAnimation.value,
+                                          child: Icon(
+                                            isFavorite
+                                                ? CupertinoIcons.heart_fill
+                                                : CupertinoIcons.heart,
+                                            color: isFavorite
+                                                ? const Color(0xFFEC4899)
+                                                : CupertinoColors.white
+                                                      .withValues(alpha: 0.8),
+                                            size: 22,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  // Lyrics button (only when lyrics available and enabled)
+                                  if (appState.lyricsEnabled &&
+                                      _hasLyrics == true)
+                                    GestureDetector(
+                                      onTap: () {
+                                        _showLyricsOverlay(
+                                          context,
+                                          currentTrack,
+                                        );
+                                      },
+                                      child: Icon(
+                                        CupertinoIcons.mic_fill,
+                                        color: CupertinoColors.white.withValues(
+                                          alpha: 0.8,
+                                        ),
+                                        size: 22,
+                                      ),
+                                    ),
+                                  // More options button
+                                  GestureDetector(
+                                    onTap: () => _showMoreOptions(
+                                      context,
+                                      currentTrack,
+                                      appState,
+                                    ),
+                                    child: Icon(
+                                      CupertinoIcons.ellipsis,
+                                      color: CupertinoColors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                      size: 22,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ],
-              )
-            );
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Expanded (desktop) layout: album + controls left, queue/lyrics right.
@@ -1409,7 +1344,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         _gradientColors = null;
       }
     }
-    final overlayGradientColors = _gradientColors ??
+    final overlayGradientColors =
+        _gradientColors ??
         [
           DesktopTheme.backgroundDeep.withValues(alpha: 0.5),
           DesktopTheme.backgroundDeep.withValues(alpha: 0.85),
@@ -1496,8 +1432,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                 bottom: DesktopTheme.spacingLg,
                               ),
                               decoration: BoxDecoration(
-                                color: DesktopTheme.backgroundDeep
-                                    .withValues(alpha: 0.6),
+                                color: DesktopTheme.backgroundDeep.withValues(
+                                  alpha: 0.6,
+                                ),
                                 borderRadius: BorderRadius.circular(
                                   DesktopTheme.radiusMd,
                                 ),
@@ -1573,8 +1510,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                 ),
                                                 _NowPlayingLyricsPanel(
                                                   trackName: currentTrack.name,
-                                                  artistName: currentTrack
-                                                          .artistName ??
+                                                  artistName:
+                                                      currentTrack.artistName ??
                                                       '',
                                                   audioHandler: audioHandler,
                                                 ),
@@ -1588,8 +1525,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                       children: [
                                         Padding(
                                           padding: const EdgeInsets.symmetric(
-                                            horizontal:
-                                                DesktopTheme.spacingMd,
+                                            horizontal: DesktopTheme.spacingMd,
                                           ),
                                           child: Row(
                                             children: [
@@ -1597,8 +1533,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                 '${l10n.playingFrom} ',
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  color: DesktopTheme
-                                                      .textTertiary,
+                                                  color:
+                                                      DesktopTheme.textTertiary,
                                                 ),
                                               ),
                                               Expanded(
@@ -1607,8 +1543,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                       l10n.unknownAlbum,
                                                   style: TextStyle(
                                                     fontSize: 12,
-                                                    fontWeight:
-                                                        FontWeight.w500,
+                                                    fontWeight: FontWeight.w500,
                                                     color: DesktopTheme
                                                         .textPrimary,
                                                   ),
@@ -1657,11 +1592,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
   }
 
   bool _isMindElectricBackwards(
-      String title, String artist, Duration position) {
+    String title,
+    String artist,
+    Duration position,
+  ) {
     final t = title.toLowerCase();
     final a = artist.toLowerCase();
-    final isMindElectric = (t.contains('mind electric') ||
-            t.contains('the mind electric')) &&
+    final isMindElectric =
+        (t.contains('mind electric') || t.contains('the mind electric')) &&
         (a.contains('miracle musical') ||
             a.contains('tally hall') ||
             a.contains('joe hawley'));
@@ -1682,6 +1620,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     dynamic currentTrack,
     AppState appState,
   ) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
@@ -1698,15 +1637,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                 Navigator.pop(context);
                 _navigateToAlbum(context, currentTrack, appState);
               },
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     CupertinoIcons.music_albums,
                     color: CupertinoColors.activeBlue,
                   ),
-                  SizedBox(width: 8),
-                  Text('Go to Album'),
+                  const SizedBox(width: 8),
+                  Text(l10n.goToAlbum),
                 ],
               ),
             ),
@@ -1717,15 +1656,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                 Navigator.pop(context);
                 _navigateToArtist(context, currentTrack, appState);
               },
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     CupertinoIcons.person,
                     color: CupertinoColors.activeBlue,
                   ),
-                  SizedBox(width: 8),
-                  Text('Go to Artist'),
+                  const SizedBox(width: 8),
+                  Text(l10n.goToArtist),
                 ],
               ),
             ),
@@ -1735,15 +1674,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
               Navigator.pop(context);
               DesktopLayout.showAddToPlaylistDialog(context, currentTrack);
             },
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   CupertinoIcons.add_circled,
                   color: CupertinoColors.activeBlue,
                 ),
-                SizedBox(width: 8),
-                Text('Add to Playlist'),
+                const SizedBox(width: 8),
+                Text(l10n.addToPlaylist),
               ],
             ),
           ),
@@ -1755,12 +1694,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
               Navigator.pop(context);
               _shareTrack(context, currentTrack);
             },
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.share, color: CupertinoColors.activeBlue),
-                SizedBox(width: 8),
-                Text('Share'),
+                const Icon(
+                  CupertinoIcons.share,
+                  color: CupertinoColors.activeBlue,
+                ),
+                const SizedBox(width: 8),
+                Text(l10n.share),
               ],
             ),
           ),
@@ -1782,8 +1724,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                 const SizedBox(width: 8),
                 Text(
                   appState.radioModeEnabled
-                      ? 'Disable Radio Mode'
-                      : 'Enable Radio Mode',
+                      ? l10n.disableRadioMode
+                      : l10n.enableRadioMode,
                 ),
               ],
             ),
@@ -1791,7 +1733,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
       ),
     );
@@ -1811,7 +1753,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(CupertinoIcons.cloud_download, color: CupertinoColors.activeBlue),
+            Icon(
+              CupertinoIcons.cloud_download,
+              color: CupertinoColors.activeBlue,
+            ),
             const SizedBox(width: 8),
             Text(l10n.download),
           ],
@@ -1858,7 +1803,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
       case DownloadStatus.downloaded:
         showAppDialog(
           context: context,
-          title: 'Downloaded',
+          title: l10n.downloaded,
           content: Text(
             '"${track.name}" is already downloaded.',
             style: TextStyle(
@@ -1942,22 +1887,26 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
   }
 
   void _shareTrack(BuildContext context, dynamic currentTrack) {
+    final l10n = AppLocalizations.of(context);
     final trackInfo =
-        '${currentTrack.name} by ${currentTrack.artistName ?? 'Unknown Artist'}';
+        '${currentTrack.name} by ${currentTrack.artistName ?? l10n.unknownArtist}';
 
     // For now, just show the track info in a dialog
     // In a real app, you would use a share plugin like share_plus
     showAppDialog(
       context: context,
-      title: 'Share Track',
+      title: l10n.shareTrack,
       content: Text(
         trackInfo,
-        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+        style: TextStyle(
+          color: DesktopTheme.textSecondary,
+          decoration: TextDecoration.none,
+        ),
       ),
       actionsBuilder: (dialogContext) => [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('OK'),
+          child: Text(l10n.ok),
         ),
       ],
     );
@@ -2040,22 +1989,29 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
       );
     } catch (e) {
       debugPrint('Error navigating to artist: $e');
-      _showErrorSnackBar(context, 'Artist not found in library');
+      _showErrorSnackBar(
+        context,
+        AppLocalizations.of(context).artistNotFoundInLibrary,
+      );
     }
   }
 
   void _showErrorSnackBar(BuildContext context, String message) {
+    final l10n = AppLocalizations.of(context);
     showAppDialog(
       context: context,
-      title: 'Navigation Error',
+      title: l10n.navigationError,
       content: Text(
         message,
-        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+        style: TextStyle(
+          color: DesktopTheme.textSecondary,
+          decoration: TextDecoration.none,
+        ),
       ),
       actionsBuilder: (dialogContext) => [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('OK'),
+          child: Text(l10n.ok),
         ),
       ],
     );
@@ -2086,8 +2042,10 @@ class _ExpandedLeftColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final hasAlbum = currentTrack.albumName != null && currentTrack.albumName!.isNotEmpty;
-    final hasArtist = currentTrack.artistName != null && currentTrack.artistName!.isNotEmpty;
+    final hasAlbum =
+        currentTrack.albumName != null && currentTrack.albumName!.isNotEmpty;
+    final hasArtist =
+        currentTrack.artistName != null && currentTrack.artistName!.isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.all(DesktopTheme.spacingXl),
@@ -2119,7 +2077,9 @@ class _ExpandedLeftColumn extends StatelessWidget {
                             height: 800,
                           ),
                           size: 400,
-                          borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+                          borderRadius: BorderRadius.circular(
+                            DesktopTheme.radiusMd,
+                          ),
                         )
                       : Container(
                           color: DesktopTheme.backgroundElevated,
@@ -2155,7 +2115,10 @@ class _ExpandedLeftColumn extends StatelessWidget {
               child: Text.rich(
                 TextSpan(
                   text: '${l10n.fromAlbum} ',
-                  style: TextStyle(fontSize: 14, color: DesktopTheme.textTertiary),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: DesktopTheme.textTertiary,
+                  ),
                   children: [
                     TextSpan(
                       text: currentTrack.albumName,
@@ -2178,7 +2141,10 @@ class _ExpandedLeftColumn extends StatelessWidget {
               child: Text.rich(
                 TextSpan(
                   text: '${l10n.byArtist} ',
-                  style: TextStyle(fontSize: 14, color: DesktopTheme.textTertiary),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: DesktopTheme.textTertiary,
+                  ),
                   children: [
                     TextSpan(
                       text: currentTrack.artistName,
@@ -2202,15 +2168,20 @@ class _ExpandedLeftColumn extends StatelessWidget {
                 builder: (context, durSnapshot) {
                   final duration = durSnapshot.data ?? Duration.zero;
                   final progress = duration.inMilliseconds > 0
-                      ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
+                      ? (position.inMilliseconds / duration.inMilliseconds)
+                            .clamp(0.0, 1.0)
                       : 0.0;
                   return Column(
                     children: [
                       SliderTheme(
                         data: SliderTheme.of(context).copyWith(
                           trackHeight: 4,
-                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                          overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                          thumbShape: const RoundSliderThumbShape(
+                            enabledThumbRadius: 6,
+                          ),
+                          overlayShape: const RoundSliderOverlayShape(
+                            overlayRadius: 14,
+                          ),
                           activeTrackColor: DesktopTheme.textPrimary,
                           inactiveTrackColor: DesktopTheme.backgroundElevated,
                           thumbColor: DesktopTheme.textPrimary,
@@ -2219,24 +2190,33 @@ class _ExpandedLeftColumn extends StatelessWidget {
                           value: progress,
                           onChanged: (value) {
                             final newPos = Duration(
-                              milliseconds: (value * duration.inMilliseconds).round(),
+                              milliseconds: (value * duration.inMilliseconds)
+                                  .round(),
                             );
                             audioHandler.seek(newPos);
                           },
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingMd),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: DesktopTheme.spacingMd,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               _formatDurationForDisplay(position),
-                              style: TextStyle(fontSize: 12, color: DesktopTheme.textSecondary),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: DesktopTheme.textSecondary,
+                              ),
                             ),
                             Text(
                               _formatDurationForDisplay(duration),
-                              style: TextStyle(fontSize: 12, color: DesktopTheme.textSecondary),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: DesktopTheme.textSecondary,
+                              ),
                             ),
                           ],
                         ),
@@ -2289,7 +2269,9 @@ class _ExpandedLeftColumn extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                        isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
                         color: DesktopTheme.backgroundDeep,
                         size: 32,
                       ),
@@ -2306,21 +2288,25 @@ class _ExpandedLeftColumn extends StatelessWidget {
                       repeatMode == RepeatMode.one
                           ? Icons.repeat_one_rounded
                           : Icons.repeat_rounded,
-                      color: repeatMode != RepeatMode.none ? theme.colorScheme.primary : null,
+                      color: repeatMode != RepeatMode.none
+                          ? theme.colorScheme.primary
+                          : null,
                     ),
                     onPressed: () {
                       final next = repeatMode == RepeatMode.none
                           ? RepeatMode.all
                           : repeatMode == RepeatMode.all
-                              ? RepeatMode.one
-                              : RepeatMode.none;
+                          ? RepeatMode.one
+                          : RepeatMode.none;
                       audioHandler.setRepeatMode(next);
                     },
                   ),
                   const SizedBox(width: DesktopTheme.spacingXl),
                   IconButton(
                     icon: Icon(
-                      isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
                       color: isFavorite ? const Color(0xFFEC4899) : null,
                     ),
                     onPressed: () => appState.toggleFavorite(currentTrack),
@@ -2336,20 +2322,28 @@ class _ExpandedLeftColumn extends StatelessWidget {
   }
 }
 
-void _navigateToAlbumFromExpanded(BuildContext context, Track track, AppState appState) {
+void _navigateToAlbumFromExpanded(
+  BuildContext context,
+  Track track,
+  AppState appState,
+) {
   try {
     if (track.albumId == null) return;
     final album = appState.albums.firstWhere(
       (a) => a.id == track.albumId,
       orElse: () => throw StateError('not found'),
     );
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => DetailTrackView.album(album)),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => DetailTrackView.album(album)));
   } catch (_) {}
 }
 
-void _navigateToArtistFromExpanded(BuildContext context, Track track, AppState appState) {
+void _navigateToArtistFromExpanded(
+  BuildContext context,
+  Track track,
+  AppState appState,
+) {
   try {
     if (track.artistName == null) return;
     final artist = appState.artists.firstWhere(
@@ -2396,35 +2390,45 @@ class _NowPlayingQueuePanel extends StatelessWidget {
         return KeyedSubtree(
           key: ValueKey(track.id),
           child: ListTile(
-          dense: true,
-          leading: SizedBox(
-            width: 40,
-            height: 40,
-            child: track.imageUrl != null
-                ? AlbumArtWidget(
-                    imageUrl: appState.getImageUrl(track.imageUrl!, width: 80, height: 80),
-                    size: 40,
-                    borderRadius: BorderRadius.circular(4),
-                  )
-                : Icon(Icons.music_note_rounded, size: 20, color: DesktopTheme.textTertiary),
-          ),
-          title: Text(
-            track.name,
-            style: TextStyle(
-              fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
-              color: isCurrent ? Theme.of(context).colorScheme.primary : DesktopTheme.textPrimary,
+            dense: true,
+            leading: SizedBox(
+              width: 40,
+              height: 40,
+              child: track.imageUrl != null
+                  ? AlbumArtWidget(
+                      imageUrl: appState.getImageUrl(
+                        track.imageUrl!,
+                        width: 80,
+                        height: 80,
+                      ),
+                      size: 40,
+                      borderRadius: BorderRadius.circular(4),
+                    )
+                  : Icon(
+                      Icons.music_note_rounded,
+                      size: 20,
+                      color: DesktopTheme.textTertiary,
+                    ),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            title: Text(
+              track.name,
+              style: TextStyle(
+                fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
+                color: isCurrent
+                    ? Theme.of(context).colorScheme.primary
+                    : DesktopTheme.textPrimary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              track.artistName ?? '',
+              style: TextStyle(fontSize: 12, color: DesktopTheme.textTertiary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            onTap: () => audioHandler?.skipToQueueItem(index),
           ),
-          subtitle: Text(
-            track.artistName ?? '',
-            style: TextStyle(fontSize: 12, color: DesktopTheme.textTertiary),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          onTap: () => audioHandler?.skipToQueueItem(index),
-        ),
         );
       },
     );
@@ -2484,7 +2488,10 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
       _lineKeys.clear();
     });
     try {
-      final result = await LyricsService.fetchLyrics(widget.trackName, widget.artistName);
+      final result = await LyricsService.fetchLyrics(
+        widget.trackName,
+        widget.artistName,
+      );
       if (mounted) {
         setState(() {
           _result = result;
@@ -2497,13 +2504,20 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
         });
       }
     } catch (_) {
-      if (mounted) setState(() { _loading = false; _result = null; });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _result = null;
+        });
+      }
     }
   }
 
   void _updateLine(Duration position) {
     if (_result?.syncedLyrics == null) return;
-    if ((position - _lastPosition).abs() < const Duration(milliseconds: 50)) return;
+    if ((position - _lastPosition).abs() < const Duration(milliseconds: 50)) {
+      return;
+    }
     _lastPosition = position;
     final lines = _result!.syncedLyrics!;
     int newIndex = -1;
@@ -2528,7 +2542,12 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
     if (_currentLineIndex < 0 || _currentLineIndex >= _lineKeys.length) return;
     final ctx = _lineKeys[_currentLineIndex].currentContext;
     if (ctx != null) {
-      Scrollable.ensureVisible(ctx, alignment: 0.4, duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic);
+      Scrollable.ensureVisible(
+        ctx,
+        alignment: 0.4,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
     }
   }
 
@@ -2539,9 +2558,16 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2)),
+            const SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
             const SizedBox(height: DesktopTheme.spacingMd),
-            Text('Loading lyrics...', style: TextStyle(fontSize: 13, color: DesktopTheme.textSecondary)),
+            Text(
+              AppLocalizations.of(context).loadingLyrics,
+              style: TextStyle(fontSize: 13, color: DesktopTheme.textSecondary),
+            ),
           ],
         ),
       );
@@ -2551,9 +2577,16 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.lyrics_outlined, size: 48, color: DesktopTheme.textTertiary),
+            Icon(
+              Icons.lyrics_outlined,
+              size: 48,
+              color: DesktopTheme.textTertiary,
+            ),
             const SizedBox(height: DesktopTheme.spacingMd),
-            Text('Lyrics not available', style: TextStyle(fontSize: 14, color: DesktopTheme.textTertiary)),
+            Text(
+              AppLocalizations.of(context).lyricsNotAvailable,
+              style: TextStyle(fontSize: 14, color: DesktopTheme.textTertiary),
+            ),
           ],
         ),
       );
@@ -2566,7 +2599,10 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
           _updateLine(position);
           return ListView.builder(
             controller: _scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingMd, vertical: DesktopTheme.spacingXl),
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesktopTheme.spacingMd,
+              vertical: DesktopTheme.spacingXl,
+            ),
             itemCount: _result!.syncedLyrics!.length,
             itemBuilder: (context, index) {
               final line = _result!.syncedLyrics![index];
@@ -2581,13 +2617,19 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-                  color: isCurrent ? DesktopTheme.accentPrimary.withValues(alpha: 0.15) : Colors.transparent,
+                  color: isCurrent
+                      ? DesktopTheme.accentPrimary.withValues(alpha: 0.15)
+                      : Colors.transparent,
                 ),
                 child: Text(
                   line.text,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: isCurrent ? DesktopTheme.textPrimary : (isPast ? DesktopTheme.textTertiary : DesktopTheme.textSecondary),
+                    color: isCurrent
+                        ? DesktopTheme.textPrimary
+                        : (isPast
+                              ? DesktopTheme.textTertiary
+                              : DesktopTheme.textSecondary),
                     fontSize: isCurrent ? 15 : 13,
                     fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
                   ),
@@ -2602,7 +2644,11 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
       padding: const EdgeInsets.all(DesktopTheme.spacingMd),
       child: SelectableText(
         _result!.plainLyrics,
-        style: TextStyle(color: DesktopTheme.textSecondary, fontSize: 13, height: 1.8),
+        style: TextStyle(
+          color: DesktopTheme.textSecondary,
+          fontSize: 13,
+          height: 1.8,
+        ),
         textAlign: TextAlign.center,
       ),
     );

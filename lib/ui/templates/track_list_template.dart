@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/ui/theme.dart';
@@ -72,7 +73,9 @@ class TrackListTemplate extends StatelessWidget {
                 context.read<AppState>().playPlaylist(tracks, index);
               }
             },
-            onRemove: onRemoveTrack != null ? () => onRemoveTrack!(track) : null,
+            onRemove: onRemoveTrack != null
+                ? () => onRemoveTrack!(track)
+                : null,
           );
         },
       ),
@@ -115,10 +118,14 @@ class _TrackRowState extends State<_TrackRow> {
     final appState = context.read<AppState>();
     final subtitleParts = <String>[];
 
-    if (widget.showArtist && widget.track.artistName != null && widget.track.artistName!.isNotEmpty) {
+    if (widget.showArtist &&
+        widget.track.artistName != null &&
+        widget.track.artistName!.isNotEmpty) {
       subtitleParts.add(widget.track.artistName!);
     }
-    if (widget.showAlbum && widget.track.albumName != null && widget.track.albumName!.isNotEmpty) {
+    if (widget.showAlbum &&
+        widget.track.albumName != null &&
+        widget.track.albumName!.isNotEmpty) {
       subtitleParts.add(widget.track.albumName!);
     }
 
@@ -157,7 +164,11 @@ class _TrackRowState extends State<_TrackRow> {
               if (widget.showArtwork)
                 _TrackArt(
                   imageUrl: widget.track.imageUrl != null
-                      ? appState.getImageUrl(widget.track.imageUrl!, width: 120, height: 120)
+                      ? appState.getImageUrl(
+                          widget.track.imageUrl!,
+                          width: 120,
+                          height: 120,
+                        )
                       : null,
                 ),
               if (widget.showArtwork) const SizedBox(width: 12),
@@ -200,7 +211,7 @@ class _TrackRowState extends State<_TrackRow> {
                 IconButton(
                   onPressed: widget.onRemove,
                   icon: const Icon(Icons.remove_circle_outline_rounded),
-                  tooltip: 'Remove',
+                  tooltip: AppLocalizations.of(context).remove,
                   color: theme.colorScheme.error,
                 ),
               ],
@@ -303,10 +314,7 @@ class _EmptyState extends StatelessWidget {
                 color: DesktopTheme.textSecondary,
               ),
             ),
-            if (action != null) ...[
-              const SizedBox(height: 16),
-              action!,
-            ],
+            if (action != null) ...[const SizedBox(height: 16), action!],
           ],
         ),
       ),

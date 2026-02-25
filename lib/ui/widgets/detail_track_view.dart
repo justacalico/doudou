@@ -1,7 +1,16 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Colors, Material, MaterialType, Text, TextButton, TextStyle, TextDecoration;
+import 'package:flutter/material.dart'
+    show
+        Colors,
+        Material,
+        MaterialType,
+        Text,
+        TextButton,
+        TextStyle,
+        TextDecoration;
 import 'package:provider/provider.dart';
+import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/album_art_color_service.dart';
@@ -189,6 +198,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
   }
 
   Future<void> _removeTrackFromPlaylist(int index, Track track) async {
+    final l10n = AppLocalizations.of(context);
     if (widget.viewType != DetailViewType.playlist) return;
 
     final appState = context.read<AppState>();
@@ -222,15 +232,18 @@ class _DetailTrackViewState extends State<DetailTrackView> {
 
     showAppDialog(
       context: context,
-      title: 'Unable to remove track',
+      title: l10n.unableToRemoveTrack,
       content: Text(
-        'Failed to remove "${track.name}" from this playlist.',
-        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+        l10n.failedToRemoveTrackFromPlaylist(track.name),
+        style: TextStyle(
+          color: DesktopTheme.textSecondary,
+          decoration: TextDecoration.none,
+        ),
       ),
       actionsBuilder: (dialogContext) => [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('OK'),
+          child: Text(l10n.ok),
         ),
       ],
     );
@@ -660,7 +673,9 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                     'This ${widget.viewType == DetailViewType.album ? 'album' : 'playlist'} appears to be empty',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white.withValues(alpha: 0.6),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.6,
+                                      ),
                                     ),
                                     textAlign: TextAlign.center,
                                   ),

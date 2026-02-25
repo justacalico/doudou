@@ -1280,6 +1280,131 @@
   "@serverSettings": {
     "description": "Server settings section header"
   },
+  "localMusic": "Local Music",
+  "general": "General",
+  "appearance": "Appearance",
+  "connected": "Connected",
+  "active": "Active",
+  "selectASetting": "Select a setting",
+  "oled": "OLED",
+  "selectMusicDirectory": "Select Music Directory",
+  "addedDirectory": "Added directory: {name}",
+  "@addedDirectory": {
+    "placeholders": {"name": {}}
+  },
+  "errorAddingDirectory": "Error adding directory: {error}",
+  "@errorAddingDirectory": {
+    "placeholders": {"error": {}}
+  },
+  "removeDirectoryTitle": "Remove Directory",
+  "removeDirectoryMessage": "Remove \"{name}\" from your music sources?",
+  "@removeDirectoryMessage": {
+    "placeholders": {"name": {}}
+  },
+  "directoryRemoved": "Directory removed",
+  "scanningLibrary": "Scanning Library",
+  "scanning": "Scanning...",
+  "complete": "Complete",
+  "starting": "Starting...",
+  "libraryScanComplete": "Library scan complete",
+  "scanError": "Scan error: {error}",
+  "@scanError": {
+    "placeholders": {"error": {}}
+  },
+  "signOutConfirmMessage": "Are you sure you want to sign out? You'll need to log in again to access your music.",
+  "showHexColorControls": "Show Hex Color Controls",
+  "showHexColorControlsDescription": "Show hex value and manual hex input in color picker",
+  "lookAndLanguage": "Look & language",
+  "colorBabyBlue": "Baby Blue",
+  "colorLavender": "Lavender",
+  "colorMint": "Mint",
+  "colorPeach": "Peach",
+  "colorBlush": "Blush",
+  "colorButter": "Butter",
+  "customColorHex": "Custom (#{hex})",
+  "@customColorHex": {
+    "placeholders": {"hex": {}}
+  },
+  "clearArtworkCache": "Clear artwork cache",
+  "removeDownloadedAlbumArtwork": "Remove downloaded album artwork",
+  "artworkCacheCleared": "Artwork cache cleared",
+  "hex": "Hex",
+  "noServerConnected": "No server connected",
+  "addServerInSettingsToStart": "Add a server in Settings to get started.",
+  "openSettings": "Open Settings",
+  "homeContinueListening": "Continue Listening",
+  "homeContinueListeningSubtitle": "Pick up where you left off",
+  "homeBecauseYouLikeArtists": "Because You Like These Artists",
+  "homeBecauseYouLikeArtistsSubtitle": "More tracks from artists you already favorite",
+  "homePlaylistsSubtitle": "Playlists from your collection",
+  "homeArtistsSubtitle": "A rotating mix from your artists",
+  "homeFreshPicks": "Fresh Picks",
+  "homeEmptyLibraryMessage": "Your library is empty. Add music to unlock personalized home sections.",
+  "searchStartTyping": "Start typing to search music",
+  "searchRecentlyPlayedSubtitle": "Your recently played tracks",
+  "searchFavoriteTracks": "Favorite Tracks",
+  "searchFavoriteTracksSubtitle": "Songs you liked",
+  "searchMostPlayed": "Most Played",
+  "searchMostPlayedSubtitle": "From your listening history",
+  "searchSuggestedPlaylists": "Suggested playlists",
+  "searchAlbumsToExplore": "Albums to explore",
+  "searchArtistsToExplore": "Artists to explore",
+  "enableRadioMode": "Enable Radio Mode",
+  "disableRadioMode": "Disable Radio Mode",
+  "lyricsNotAvailable": "Lyrics not available",
+  "downloaded": "Downloaded",
+  "moreOptions": "More options",
+  "previousTrack": "Previous",
+  "nextTrack": "Next",
+  "repeatTrack": "Repeat",
+  "closeAndClearQueue": "Close and clear queue",
+  "startedDownloadingTrack": "Started downloading \"{name}\"",
+  "@startedDownloadingTrack": {
+    "placeholders": {"name": {}}
+  },
+  "failedToStartDownloadTrack": "Failed to start download: {error}",
+  "@failedToStartDownloadTrack": {
+    "placeholders": {"error": {}}
+  },
+  "deletedDownloadTrack": "Deleted download for \"{name}\"",
+  "@deletedDownloadTrack": {
+    "placeholders": {"name": {}}
+  },
+  "cancelledDownloadTrack": "Cancelled download for \"{name}\"",
+  "@cancelledDownloadTrack": {
+    "placeholders": {"name": {}}
+  },
+  "serverType": "Server type",
+  "localMusicConnectHelp": "Connect to use local music. Add folders and scan in Settings > Local Music after connecting.",
+  "connecting": "Connecting...",
+  "connect": "Connect",
+  "youtubeMusicConnectHelp": "Stream from YouTube Music. No login required. Use search to find and play tracks.",
+  "account": "Account",
+  "apiKey": "API Key",
+  "quickConnect": "Quick",
+  "startQuickConnect": "Start Quick Connect",
+  "enterPlexToken": "Enter Plex token",
+  "yourJellyfinApiKey": "Your Jellyfin API key",
+  "enterApiKey": "Enter API key",
+  "enterUsername": "Enter username",
+  "passwordOptional": "Password (optional)",
+  "enterCodeOnJellyfinServer": "Enter this code on your Jellyfin server",
+  "unableToRemoveTrack": "Unable to remove track",
+  "failedToRemoveTrackFromPlaylist": "Failed to remove \"{name}\" from this playlist.",
+  "@failedToRemoveTrackFromPlaylist": {
+    "placeholders": {"name": {}}
+  },
+  "downloadingTracksByArtist": "Downloading {count} tracks by {artist}",
+  "@downloadingTracksByArtist": {
+    "placeholders": {"count": {"type": "int"}, "artist": {}}
+  },
+  "addedTracksByArtistToQueue": "Added {count} tracks by {artist} to your queue",
+  "@addedTracksByArtistToQueue": {
+    "placeholders": {"count": {"type": "int"}, "artist": {}}
+  },
+  "artistNotFoundInLibrary": "Artist not found in library",
+  "downloadInProgress": "Download in progress",
+  "quickConnectFailed": "Quick Connect failed.",
 
   "localMusicSettings": "Local Music Settings",
   "@localMusicSettings": {

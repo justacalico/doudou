@@ -384,7 +384,7 @@ class _SearchPageState extends State<SearchPage> {
             Icon(Icons.search_rounded, size: 64, color: DesktopTheme.textMuted),
             const SizedBox(height: DesktopTheme.spacingMd),
             Text(
-              'Start typing to search music',
+              l10n.searchStartTyping,
               style: TextStyle(fontSize: 16, color: DesktopTheme.textSecondary),
             ),
           ],
@@ -398,8 +398,8 @@ class _SearchPageState extends State<SearchPage> {
         children: [
           if (recent.isNotEmpty) ...[
             SectionHeader(
-              title: 'Continue Listening',
-              subtitle: 'Your recently played tracks',
+              title: l10n.homeContinueListening,
+              subtitle: l10n.searchRecentlyPlayedSubtitle,
             ),
             const SizedBox(height: DesktopTheme.spacingSm),
             SizedBox(
@@ -416,8 +416,8 @@ class _SearchPageState extends State<SearchPage> {
           ],
           if (favorites.isNotEmpty) ...[
             SectionHeader(
-              title: 'Favorite Tracks',
-              subtitle: 'Songs you liked',
+              title: l10n.searchFavoriteTracks,
+              subtitle: l10n.searchFavoriteTracksSubtitle,
             ),
             const SizedBox(height: DesktopTheme.spacingSm),
             SizedBox(
@@ -434,8 +434,8 @@ class _SearchPageState extends State<SearchPage> {
           ],
           if (topPlayed.isNotEmpty) ...[
             SectionHeader(
-              title: 'Most Played',
-              subtitle: 'From your listening history',
+              title: l10n.searchMostPlayed,
+              subtitle: l10n.searchMostPlayedSubtitle,
             ),
             const SizedBox(height: DesktopTheme.spacingSm),
             SizedBox(
@@ -453,7 +453,7 @@ class _SearchPageState extends State<SearchPage> {
           if (playlistPicks.isNotEmpty) ...[
             SectionHeader(
               title: l10n.playlists,
-              subtitle: 'Suggested playlists',
+              subtitle: l10n.searchSuggestedPlaylists,
             ),
             const SizedBox(height: DesktopTheme.spacingSm),
             SizedBox(
@@ -471,7 +471,7 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     child: MusicCard(
                       title: playlist.name,
-                      subtitle: '${playlist.trackCount} tracks',
+                      subtitle: l10n.countSongs(playlist.trackCount),
                       imageUrl: playlist.imageUrl,
                       size: 160,
                       onTap: () =>
@@ -484,7 +484,10 @@ class _SearchPageState extends State<SearchPage> {
             const SizedBox(height: DesktopTheme.spacingLg),
           ],
           if (albumPicks.isNotEmpty) ...[
-            SectionHeader(title: l10n.albums, subtitle: 'Albums to explore'),
+            SectionHeader(
+              title: l10n.albums,
+              subtitle: l10n.searchAlbumsToExplore,
+            ),
             const SizedBox(height: DesktopTheme.spacingSm),
             SizedBox(
               height: 220,
@@ -516,7 +519,10 @@ class _SearchPageState extends State<SearchPage> {
             const SizedBox(height: DesktopTheme.spacingLg),
           ],
           if (artistPicks.isNotEmpty) ...[
-            SectionHeader(title: l10n.artists, subtitle: 'Artists to explore'),
+            SectionHeader(
+              title: l10n.artists,
+              subtitle: l10n.searchArtistsToExplore,
+            ),
             const SizedBox(height: DesktopTheme.spacingSm),
             SizedBox(
               height: 220,

@@ -20,6 +20,23 @@ import 'package:doudou/ui/widgets/apple_dialog.dart';
 /// Breakpoint: below this width use mobile list → detail; above use sidebar + detail.
 const double _kSettingsBreakpoint = 768.0;
 
+String _settingsSectionLabel(AppLocalizations l10n, String section) {
+  switch (section) {
+    case 'Server':
+      return l10n.server;
+    case 'General':
+      return l10n.general;
+    case 'Playback':
+      return l10n.playback;
+    case 'Appearance':
+      return l10n.appearance;
+    case 'About':
+      return l10n.about;
+    default:
+      return section;
+  }
+}
+
 /// Menu item for iOS-style settings list.
 class _SettingsMenuItem {
   final String id;
@@ -65,14 +82,14 @@ class _SettingsPageState extends State<SettingsPage> {
     final items = <_SettingsMenuItem>[
       _SettingsMenuItem(
         id: 'server',
-        label: isLocalMusic ? 'Local Music' : l10n.server,
+        label: isLocalMusic ? l10n.localMusic : l10n.server,
         icon: isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded,
         iconColor: const Color(0xFF3B82F6),
         section: 'Server',
         valueText: (a) => a.isLoggedIn
             ? (isLocalMusic
-                  ? 'Active'
-                  : (a.jellyfinService.username ?? 'Connected'))
+                  ? l10n.active
+                  : (a.jellyfinService.username ?? l10n.connected))
             : null,
       ),
       _SettingsMenuItem(
@@ -173,7 +190,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 appState,
                                 effectiveSelected,
                               )
-                            : const Center(child: Text('Select a setting')),
+                            : Center(child: Text(l10n.selectASetting)),
                       ),
                     ),
                   ],
@@ -303,16 +320,17 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _showThemeDialog() {
     final appState = context.read<AppState>();
+    final l10n = AppLocalizations.of(context);
     final current = _effectiveThemeSelection(appState);
     showAppDialog(
       context: context,
-      title: 'Choose Theme',
+      title: l10n.chooseTheme,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AppDialogOption(
-            label: 'System Default',
+            label: l10n.systemDefault,
             selected: current == 'system',
             onTap: () {
               Navigator.pop(context);
@@ -321,7 +339,7 @@ class _SettingsPageState extends State<SettingsPage> {
             },
           ),
           AppDialogOption(
-            label: 'Light',
+            label: l10n.light,
             selected: current == 'light',
             onTap: () {
               Navigator.pop(context);
@@ -330,7 +348,7 @@ class _SettingsPageState extends State<SettingsPage> {
             },
           ),
           AppDialogOption(
-            label: 'Dark',
+            label: l10n.dark,
             selected: current == 'dark',
             onTap: () {
               Navigator.pop(context);
@@ -339,7 +357,7 @@ class _SettingsPageState extends State<SettingsPage> {
             },
           ),
           AppDialogOption(
-            label: 'OLED',
+            label: l10n.oled,
             selected: current == 'oled',
             onTap: () {
               Navigator.pop(context);
@@ -400,9 +418,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _showLanguageDialog(AppState appState) {
     final current = appState.locale;
+    final l10n = AppLocalizations.of(context);
     showAppDialog(
       context: context,
-      title: 'Select Language',
+      title: l10n.selectLanguage,
       width: 320,
       maxHeight: 440,
       content: Column(
@@ -410,7 +429,7 @@ class _SettingsPageState extends State<SettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AppDialogOption(
-            label: 'System default',
+            label: l10n.systemDefault,
             selected: current == null,
             onTap: () {
               Navigator.pop(context);
@@ -433,23 +452,24 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _addLocalDirectory(AppState appState) async {
+    final l10n = AppLocalizations.of(context);
     final result = await FilePicker.platform.getDirectoryPath(
-      dialogTitle: 'Select Music Directory',
+      dialogTitle: l10n.selectMusicDirectory,
     );
     if (result == null) return;
     try {
       await appState.mediaServiceManager.addLocalMusicDirectory(result);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Added directory: ${result.split('/').last}')),
+          SnackBar(content: Text(l10n.addedDirectory(result.split('/').last))),
         );
         setState(() {});
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error adding directory: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.errorAddingDirectory(e.toString()))),
+        );
       }
     }
   }
@@ -458,11 +478,12 @@ class _SettingsPageState extends State<SettingsPage> {
     AppState appState,
     String directory,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showAppConfirmDialog(
       context: context,
-      title: 'Remove Directory',
-      message: 'Remove "${directory.split('/').last}" from your music sources?',
-      confirmLabel: 'Remove',
+      title: l10n.removeDirectoryTitle,
+      message: l10n.removeDirectoryMessage(directory.split('/').last),
+      confirmLabel: l10n.remove,
       isDestructive: true,
     );
     if (ok == true) {
@@ -472,18 +493,19 @@ class _SettingsPageState extends State<SettingsPage> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Directory removed')));
+        ).showSnackBar(SnackBar(content: Text(l10n.directoryRemoved)));
         setState(() {});
       }
     }
   }
 
   Future<void> _rescanLocalLibrary(AppState appState) async {
+    final l10n = AppLocalizations.of(context);
     final local = appState.mediaServiceManager.localMusicService;
     if (local == null) return;
     showAppDialog(
       context: context,
-      title: 'Scanning Library',
+      title: l10n.scanningLibrary,
       barrierDismissible: false,
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -493,10 +515,10 @@ class _SettingsPageState extends State<SettingsPage> {
           StreamBuilder<String>(
             stream: Stream.periodic(
               const Duration(milliseconds: 500),
-              (_) => local.isScanning ? 'Scanning...' : 'Complete',
+              (_) => local.isScanning ? l10n.scanning : l10n.complete,
             ),
             builder: (_, snap) => Text(
-              snap.data ?? 'Starting...',
+              snap.data ?? l10n.starting,
               style: TextStyle(
                 color: DesktopTheme.textSecondary,
                 decoration: TextDecoration.none,
@@ -512,7 +534,7 @@ class _SettingsPageState extends State<SettingsPage> {
         Navigator.pop(context);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Library scan complete')));
+        ).showSnackBar(SnackBar(content: Text(l10n.libraryScanComplete)));
         await appState.loadLibraryData();
       }
     } catch (e) {
@@ -520,18 +542,18 @@ class _SettingsPageState extends State<SettingsPage> {
         Navigator.pop(context);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Scan error: $e')));
+        ).showSnackBar(SnackBar(content: Text(l10n.scanError(e.toString()))));
       }
     }
   }
 
   void _showSignOutDialog(AppState appState) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showAppConfirmDialog(
       context: context,
-      title: 'Sign Out',
-      message:
-          'Are you sure you want to sign out? You\'ll need to log in again to access your music.',
-      confirmLabel: 'Sign Out',
+      title: l10n.signOut,
+      message: l10n.signOutConfirmMessage,
+      confirmLabel: l10n.signOut,
       isDestructive: true,
     );
     if (ok == true) {
@@ -540,12 +562,16 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showClearCacheDialog(String cacheType) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showAppConfirmDialog(
       context: context,
-      title: 'Clear ${cacheType == 'all' ? 'All' : 'Image'} Cache',
-      message:
-          'This will remove ${cacheType == 'all' ? 'all cached data' : 'cached images'} and may slow down the app temporarily. Continue?',
-      confirmLabel: 'Clear',
+      title: cacheType == 'all'
+          ? l10n.cacheClearedTitle('All')
+          : l10n.cacheClearedTitle('Image'),
+      message: l10n.clearCacheConfirm(
+        cacheType == 'all' ? l10n.allCachedData : l10n.cachedImages,
+      ),
+      confirmLabel: l10n.clear,
       isDestructive: true,
     );
     if (ok == true) {
@@ -561,16 +587,18 @@ class _SettingsPageState extends State<SettingsPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '${cacheType == 'all' ? 'All' : 'Image'} cache cleared',
+                l10n.cacheCleared(
+                  cacheType == 'all' ? l10n.allCachedData : l10n.cachedImages,
+                ),
               ),
             ),
           );
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Failed: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.errorOccurred(e.toString()))),
+          );
         }
       }
     }
@@ -595,6 +623,7 @@ class _SettingsListSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return Container(
@@ -614,7 +643,7 @@ class _SettingsListSidebar extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Settings',
+                    l10n.settings,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -624,7 +653,7 @@ class _SettingsListSidebar extends StatelessWidget {
                 ),
                 if (Navigator.of(context).canPop())
                   IconButton(
-                    tooltip: 'Close settings',
+                    tooltip: l10n.close,
                     icon: const Icon(Icons.close_rounded),
                     color: DesktopTheme.textSecondary,
                     onPressed: () => Navigator.of(context).pop(),
@@ -650,7 +679,7 @@ class _SettingsListSidebar extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(left: 4, bottom: 12),
                           child: Text(
-                            section.toUpperCase(),
+                            _settingsSectionLabel(l10n, section).toUpperCase(),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
@@ -705,6 +734,7 @@ class _SettingsSidebarTileState extends State<_SettingsSidebarTile> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: MouseRegion(
@@ -770,7 +800,7 @@ class _SettingsSidebarTileState extends State<_SettingsSidebarTile> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        widget.item.section,
+                        _settingsSectionLabel(l10n, widget.item.section),
                         style: TextStyle(
                           fontSize: 11,
                           color: DesktopTheme.textTertiary,
@@ -823,6 +853,7 @@ class _SettingsListMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return ListView.builder(
@@ -840,7 +871,7 @@ class _SettingsListMobile extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 4, bottom: 8),
                 child: Text(
-                  section.toUpperCase(),
+                  _settingsSectionLabel(l10n, section).toUpperCase(),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -996,10 +1027,8 @@ class _GeneralSection extends StatelessWidget {
                             appState.setShowShuffleRepeatOnPlayerBar(v),
                       ),
                       SwitchListTile(
-                        title: const Text('Show Hex Color Controls'),
-                        subtitle: const Text(
-                          'Show hex value and manual hex input in color picker',
-                        ),
+                        title: Text(l10n.showHexColorControls),
+                        subtitle: Text(l10n.showHexColorControlsDescription),
                         value: appState.showHexColorControls,
                         onChanged: (v) => appState.setShowHexColorControls(v),
                       ),
@@ -1187,7 +1216,7 @@ class _AppearanceSection extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Look & language',
+                        l10n.lookAndLanguage,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -1195,13 +1224,15 @@ class _AppearanceSection extends StatelessWidget {
                       const SizedBox(height: 12),
                       ListTile(
                         title: Text(l10n.appTheme),
-                        subtitle: Text(_themeDisplayName(appState)),
+                        subtitle: Text(_themeDisplayName(context, appState)),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: onTheme,
                       ),
                       ListTile(
                         title: Text(l10n.accentColor),
-                        subtitle: Text(_colorDisplayName(appState.accentColor)),
+                        subtitle: Text(
+                          _colorDisplayName(context, appState.accentColor),
+                        ),
                         trailing: Container(
                           width: 24,
                           height: 24,
@@ -1215,7 +1246,7 @@ class _AppearanceSection extends StatelessWidget {
                       ListTile(
                         leading: const Icon(Icons.language),
                         title: Text(l10n.selectLanguage),
-                        subtitle: Text(_languageDisplayName(appState)),
+                        subtitle: Text(_languageDisplayName(context, appState)),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: onLanguage,
                       ),
@@ -1230,43 +1261,49 @@ class _AppearanceSection extends StatelessWidget {
     );
   }
 
-  static String _themeDisplayName(AppState appState) {
+  static String _themeDisplayName(BuildContext context, AppState appState) {
+    final l10n = AppLocalizations.of(context);
     if (appState.themeMode == ThemeMode.dark && appState.oledDarkModeEnabled) {
-      return 'OLED';
+      return l10n.oled;
     }
     switch (appState.themeMode) {
       case ThemeMode.light:
-        return 'Light';
+        return l10n.light;
       case ThemeMode.dark:
-        return 'Dark';
+        return l10n.dark;
       case ThemeMode.system:
-        return 'System default';
+        return l10n.systemDefault;
     }
   }
 
-  static String _colorDisplayName(Color color) {
+  static String _colorDisplayName(BuildContext context, Color color) {
+    final l10n = AppLocalizations.of(context);
     if (color.toARGB32() == const Color(0xFF8EC5FC).toARGB32()) {
-      return 'Baby Blue';
+      return l10n.colorBabyBlue;
     }
     if (color.toARGB32() == const Color(0xFFB39DDB).toARGB32()) {
-      return 'Lavender';
+      return l10n.colorLavender;
     }
-    if (color.toARGB32() == const Color(0xFFA8E6CF).toARGB32()) return 'Mint';
+    if (color.toARGB32() == const Color(0xFFA8E6CF).toARGB32()) {
+      return l10n.colorMint;
+    }
     if (color.toARGB32() == const Color(0xFFFFD3B6).toARGB32()) {
-      return 'Peach';
+      return l10n.colorPeach;
     }
     if (color.toARGB32() == const Color(0xFFFFA8C5).toARGB32()) {
-      return 'Blush';
+      return l10n.colorBlush;
     }
     if (color.toARGB32() == const Color(0xFFFFE08A).toARGB32()) {
-      return 'Butter';
+      return l10n.colorButter;
     }
-    return 'Custom (#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()})';
+    return l10n.customColorHex(
+      color.toARGB32().toRadixString(16).substring(2).toUpperCase(),
+    );
   }
 
-  static String _languageDisplayName(AppState appState) {
+  static String _languageDisplayName(BuildContext context, AppState appState) {
     final locale = appState.locale;
-    if (locale == null) return 'System default';
+    if (locale == null) return AppLocalizations.of(context).systemDefault;
     return _languageNames[locale.languageCode] ?? locale.languageCode;
   }
 }
@@ -1570,16 +1607,14 @@ class _ServerSectionState extends State<_ServerSection> {
                     ),
                     if (isLocal && localService != null)
                       ListTile(
-                        title: const Text('Clear artwork cache'),
-                        subtitle: const Text('Remove downloaded album artwork'),
+                        title: Text(l10n.clearArtworkCache),
+                        subtitle: Text(l10n.removeDownloadedAlbumArtwork),
                         trailing: const Icon(Icons.image_not_supported),
                         onTap: () async {
                           await localService.clearArtworkCache();
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Artwork cache cleared'),
-                              ),
+                              SnackBar(content: Text(l10n.artworkCacheCleared)),
                             );
                           }
                         },
@@ -2137,7 +2172,7 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
               controller: _hex,
               maxLength: 6,
               decoration: InputDecoration(
-                labelText: 'Hex',
+                labelText: AppLocalizations.of(context).hex,
                 prefixText: '# ',
                 border: const OutlineInputBorder(),
                 isDense: true,
@@ -2157,12 +2192,12 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
             children: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(AppLocalizations.of(context).cancel),
               ),
               const SizedBox(width: 12),
               FilledButton(
                 onPressed: () => widget.onColorSelected(_color),
-                child: const Text('Apply'),
+                child: Text(AppLocalizations.of(context).save),
               ),
             ],
           ),

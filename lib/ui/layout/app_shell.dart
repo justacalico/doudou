@@ -222,6 +222,7 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
+    final l10n = AppLocalizations.of(context);
     // When downloadsEnabled or server type changes, page list may need to change
     final isLocal =
         appState.mediaServiceManager.currentServerType == ServerType.local;
@@ -254,7 +255,7 @@ class _AppShellState extends State<AppShell> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'No server connected',
+                  l10n.noServerConnected,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
@@ -263,7 +264,7 @@ class _AppShellState extends State<AppShell> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Add a server in Settings to get started.',
+                  l10n.addServerInSettingsToStart,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -280,7 +281,7 @@ class _AppShellState extends State<AppShell> {
                     );
                   },
                   icon: const Icon(Icons.settings_rounded),
-                  label: const Text('Open Settings'),
+                  label: Text(l10n.openSettings),
                 ),
               ],
             ),

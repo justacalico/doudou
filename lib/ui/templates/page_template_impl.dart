@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/ui/theme.dart';
 
 /// Shared page scaffold used across all top-level and detail pages.
@@ -245,7 +246,7 @@ class _ModernBackButton extends StatelessWidget {
       child: OutlinedButton.icon(
         onPressed: onPressed ?? () => Navigator.of(context).pop(),
         icon: const Icon(Icons.arrow_back_rounded, size: 18),
-        label: const Text('Back'),
+        label: Text(AppLocalizations.of(context).back),
         style: OutlinedButton.styleFrom(
           foregroundColor: theme.colorScheme.primary,
           side: BorderSide(
@@ -272,7 +273,7 @@ class _ModernSeeAllButton extends StatelessWidget {
     return TextButton.icon(
       onPressed: onPressed,
       icon: const Icon(Icons.east_rounded, size: 16),
-      label: const Text('See all'),
+      label: Text(AppLocalizations.of(context).viewAll),
       style: TextButton.styleFrom(
         foregroundColor: theme.colorScheme.primary,
         textStyle: const TextStyle(fontWeight: FontWeight.w700),

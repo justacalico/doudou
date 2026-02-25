@@ -449,6 +449,7 @@ class _TrackInfo extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final l10n = AppLocalizations.of(context);
     final trackId = mediaItem!.id;
     final isFavorite = appState.isFavorite(trackId);
 
@@ -501,7 +502,7 @@ class _TrackInfo extends StatelessWidget {
               ? Icons.favorite_rounded
               : Icons.favorite_border_rounded,
           color: isFavorite ? const Color(0xFFEC4899) : null,
-          tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+          tooltip: isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
           onPressed: () {
             final track = appState.tracks
                 .where((t) => t.id == trackId)
@@ -518,7 +519,7 @@ class _TrackInfo extends StatelessWidget {
             color: DesktopTheme.textSecondary,
             size: 20,
           ),
-          tooltip: 'More options',
+          tooltip: l10n.moreOptions,
           onSelected: (value) {
             final track = appState.tracks
                 .where((t) => t.id == trackId)
@@ -581,7 +582,7 @@ class _TrackInfo extends StatelessWidget {
               );
               if (downloadStatus == DownloadStatus.downloaded) {
                 downloadIcon = Icons.download_done_rounded;
-                downloadLabel = 'Downloaded';
+                downloadLabel = l10n.downloaded;
               } else if (downloadStatus == DownloadStatus.downloading) {
                 downloadIcon = Icons.downloading_rounded;
                 downloadLabel = l10n.downloading;
@@ -645,7 +646,7 @@ class _TrackInfo extends StatelessWidget {
         // Show option to delete
         showAppDialog(
           context: context,
-          title: 'Downloaded',
+          title: l10n.downloaded,
           content: Text(
             '"${track.name}" is already downloaded.',
             style: TextStyle(
@@ -795,7 +796,7 @@ class _PlaybackControls extends StatelessWidget {
             isActive: isShuffled,
             activeColor: theme.colorScheme.primary,
             onPressed: onShuffle,
-            tooltip: 'Shuffle',
+            tooltip: AppLocalizations.of(context).shuffle,
           ),
           const SizedBox(width: DesktopTheme.spacingMd),
         ],
@@ -804,7 +805,7 @@ class _PlaybackControls extends StatelessWidget {
           icon: Icons.skip_previous_rounded,
           size: 24,
           onPressed: onPrevious,
-          tooltip: 'Previous',
+          tooltip: AppLocalizations.of(context).previousTrack,
         ),
         const SizedBox(width: DesktopTheme.spacingSm),
         // Play/Pause
@@ -815,7 +816,7 @@ class _PlaybackControls extends StatelessWidget {
           icon: Icons.skip_next_rounded,
           size: 24,
           onPressed: onNext,
-          tooltip: 'Next',
+          tooltip: AppLocalizations.of(context).nextTrack,
         ),
         if (showShuffleRepeat) ...[
           const SizedBox(width: DesktopTheme.spacingMd),
@@ -827,7 +828,7 @@ class _PlaybackControls extends StatelessWidget {
             isActive: repeatMode != RepeatMode.none,
             activeColor: theme.colorScheme.primary,
             onPressed: onRepeat,
-            tooltip: 'Repeat',
+            tooltip: AppLocalizations.of(context).repeatTrack,
           ),
         ],
       ],
@@ -932,7 +933,7 @@ class _PlayerExtrasState extends State<_PlayerExtras> {
         if (widget.onClose != null) ...[
           DesktopIconButton(
             icon: Icons.close_rounded,
-            tooltip: 'Close and clear queue',
+            tooltip: AppLocalizations.of(context).closeAndClearQueue,
             onPressed: widget.onClose,
           ),
           const SizedBox(width: DesktopTheme.spacingSm),
@@ -940,7 +941,7 @@ class _PlayerExtrasState extends State<_PlayerExtras> {
         if (widget.showQueue) ...[
           DesktopIconButton(
             icon: Icons.queue_music_rounded,
-            tooltip: 'Queue',
+            tooltip: AppLocalizations.of(context).queue,
             onPressed: widget.onQueueTap,
           ),
           const SizedBox(width: DesktopTheme.spacingSm),
@@ -998,7 +999,7 @@ class _PlayerExtrasState extends State<_PlayerExtras> {
         // Fullscreen/Now Playing
         DesktopIconButton(
           icon: Icons.open_in_full_rounded,
-          tooltip: 'Now Playing',
+          tooltip: AppLocalizations.of(context).nowPlaying,
           onPressed: widget.onQueueTap,
         ),
       ],
@@ -2223,7 +2224,11 @@ class _TrackRowState extends State<_TrackRow> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Started downloading "${widget.track.name}"'),
+            content: Text(
+              AppLocalizations.of(
+                context,
+              ).startedDownloadingTrack(widget.track.name),
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -2232,7 +2237,11 @@ class _TrackRowState extends State<_TrackRow> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to start download: $e'),
+            content: Text(
+              AppLocalizations.of(
+                context,
+              ).failedToStartDownloadTrack(e.toString()),
+            ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -2245,7 +2254,7 @@ class _TrackRowState extends State<_TrackRow> {
     final l10n = AppLocalizations.of(context);
     showAppDialog(
       context: context,
-      title: 'Downloaded',
+      title: l10n.downloaded,
       content: Text(
         '"${widget.track.name}" is already downloaded.',
         style: TextStyle(
@@ -2264,7 +2273,7 @@ class _TrackRowState extends State<_TrackRow> {
             appState.downloadService.deleteDownload(widget.track.id);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Deleted download for "${widget.track.name}"'),
+                content: Text(l10n.deletedDownloadTrack(widget.track.name)),
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -2304,7 +2313,7 @@ class _TrackRowState extends State<_TrackRow> {
             appState.downloadService.cancelDownload(widget.track.id);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Cancelled download for "${widget.track.name}"'),
+                content: Text(l10n.cancelledDownloadTrack(widget.track.name)),
                 behavior: SnackBarBehavior.floating,
               ),
             );

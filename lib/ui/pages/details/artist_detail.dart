@@ -1,7 +1,16 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Colors, Material, MaterialType, Text, TextButton, TextStyle, TextDecoration;
+import 'package:flutter/material.dart'
+    show
+        Colors,
+        Material,
+        MaterialType,
+        Text,
+        TextButton,
+        TextStyle,
+        TextDecoration;
 import 'package:provider/provider.dart';
+import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/services/base_service.dart';
@@ -196,6 +205,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   }
 
   void _downloadAllTracks(AppState appState) {
+    final l10n = AppLocalizations.of(context);
     for (final track in _artistTracks) {
       if (!appState.downloadService.isTrackDownloaded(track.id)) {
         appState.downloadService.downloadTrack(track);
@@ -206,15 +216,21 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     if (mounted) {
       showAppDialog(
         context: context,
-        title: 'Download Started',
+        title: l10n.downloadStarted,
         content: Text(
-          'Downloading ${_artistTracks.length} tracks by ${widget.artist.name}',
-          style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+          l10n.downloadingTracksByArtist(
+            _artistTracks.length,
+            widget.artist.name,
+          ),
+          style: TextStyle(
+            color: DesktopTheme.textSecondary,
+            decoration: TextDecoration.none,
+          ),
         ),
         actionsBuilder: (dialogContext) => [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('OK'),
+            child: Text(l10n.ok),
           ),
         ],
       );
@@ -222,6 +238,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   }
 
   void _addAllToQueue(AppState appState) {
+    final l10n = AppLocalizations.of(context);
     for (final track in _artistTracks) {
       appState.addToQueue(track);
     }
@@ -230,15 +247,21 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     if (mounted) {
       showAppDialog(
         context: context,
-        title: 'Added to Queue',
+        title: l10n.addedToQueue,
         content: Text(
-          'Added ${_artistTracks.length} tracks by ${widget.artist.name} to your queue',
-          style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+          l10n.addedTracksByArtistToQueue(
+            _artistTracks.length,
+            widget.artist.name,
+          ),
+          style: TextStyle(
+            color: DesktopTheme.textSecondary,
+            decoration: TextDecoration.none,
+          ),
         ),
         actionsBuilder: (dialogContext) => [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('OK'),
+            child: Text(l10n.ok),
           ),
         ],
       );
@@ -246,6 +269,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   }
 
   void _createArtistRadio(AppState appState) async {
+    final l10n = AppLocalizations.of(context);
     if (_artistTracks.isNotEmpty) {
       // Enable radio mode and start playing
       appState.enableRadioMode();
@@ -256,15 +280,18 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       if (mounted) {
         showAppDialog(
           context: context,
-          title: 'Radio Station Created',
+          title: l10n.radioStationCreated,
           content: Text(
-            'Started ${widget.artist.name} radio station with infinite playback',
-            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+            l10n.startedRadioStation(widget.artist.name),
+            style: TextStyle(
+              color: DesktopTheme.textSecondary,
+              decoration: TextDecoration.none,
+            ),
           ),
           actionsBuilder: (dialogContext) => [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('OK'),
+              child: Text(l10n.ok),
             ),
           ],
         );
@@ -273,21 +300,25 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   }
 
   void _shareArtist(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final artistInfo = '${widget.artist.name} - Check out this artist!';
 
     // For now, just show the artist info in a dialog
     // In a real app, you would use a share plugin like share_plus
     showAppDialog(
       context: context,
-      title: 'Share Artist',
+      title: l10n.shareArtist,
       content: Text(
         artistInfo,
-        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+        style: TextStyle(
+          color: DesktopTheme.textSecondary,
+          decoration: TextDecoration.none,
+        ),
       ),
       actionsBuilder: (dialogContext) => [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('OK'),
+          child: Text(l10n.ok),
         ),
       ],
     );
@@ -333,7 +364,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                     ),
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.2),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       width: 1,
                                     ),
                                   ),
@@ -369,7 +402,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                     ),
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.2),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       width: 1,
                                     ),
                                   ),
@@ -424,7 +459,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             border: Border.all(
-                                              color: Colors.white.withValues(alpha: 0.2),
+                                              color: Colors.white.withValues(
+                                                alpha: 0.2,
+                                              ),
                                               width: 2,
                                             ),
                                           ),
@@ -484,8 +521,12 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                               decoration: BoxDecoration(
                                                 gradient: LinearGradient(
                                                   colors: [
-                                                    Colors.white.withValues(alpha: 0.15),
-                                                    Colors.white.withValues(alpha: 0.05),
+                                                    Colors.white.withValues(
+                                                      alpha: 0.15,
+                                                    ),
+                                                    Colors.white.withValues(
+                                                      alpha: 0.05,
+                                                    ),
                                                   ],
                                                 ),
                                                 borderRadius:
@@ -514,7 +555,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                                       width: 1,
                                                       height: 32,
                                                       color: Colors.white
-                                                          .withValues(alpha: 0.2),
+                                                          .withValues(
+                                                            alpha: 0.2,
+                                                          ),
                                                       margin:
                                                           const EdgeInsets.symmetric(
                                                             horizontal: 20,
@@ -637,8 +680,12 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                                 decoration: BoxDecoration(
                                                   gradient: LinearGradient(
                                                     colors: [
-                                                      Colors.white.withValues(alpha: 0.15),
-                                                      Colors.white.withValues(alpha: 0.05),
+                                                      Colors.white.withValues(
+                                                        alpha: 0.15,
+                                                      ),
+                                                      Colors.white.withValues(
+                                                        alpha: 0.05,
+                                                      ),
                                                     ],
                                                   ),
                                                   borderRadius:
@@ -988,8 +1035,12 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  const Color(0xFF38BDF8).withValues(alpha: 0.3),
-                                  const Color(0xFFEC4899).withValues(alpha: 0.2),
+                                  const Color(
+                                    0xFF38BDF8,
+                                  ).withValues(alpha: 0.3),
+                                  const Color(
+                                    0xFFEC4899,
+                                  ).withValues(alpha: 0.2),
                                 ],
                               ),
                             ),
@@ -1043,7 +1094,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                          color: const Color(
+                            0xFF38BDF8,
+                          ).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(

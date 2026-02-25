@@ -134,7 +134,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: DesktopTheme.spacingMd),
             Text(
-              'Loading...',
+              l10n.loading,
               style: TextStyle(fontSize: 14, color: DesktopTheme.textSecondary),
             ),
           ],
@@ -145,7 +145,7 @@ class _HomePageState extends State<HomePage> {
     if (sections.isEmpty) {
       return Center(
         child: Text(
-          'Use Search to find music',
+          l10n.searchDescription,
           style: TextStyle(fontSize: 15, color: DesktopTheme.textSecondary),
         ),
       );
@@ -209,8 +209,8 @@ class _HomePageState extends State<HomePage> {
         children: [
           if (continueListening.isNotEmpty) ...[
             SectionHeader(
-              title: 'Continue Listening',
-              subtitle: 'Pick up where you left off',
+              title: l10n.homeContinueListening,
+              subtitle: l10n.homeContinueListeningSubtitle,
             ),
             const SizedBox(height: DesktopTheme.spacingMd),
             _trackRow(context, appState, l10n, continueListening),
@@ -218,8 +218,8 @@ class _HomePageState extends State<HomePage> {
           ],
           if (basedOnFavorites.isNotEmpty) ...[
             SectionHeader(
-              title: 'Because You Like These Artists',
-              subtitle: 'More tracks from artists you already favorite',
+              title: l10n.homeBecauseYouLikeArtists,
+              subtitle: l10n.homeBecauseYouLikeArtistsSubtitle,
               onSeeAllPressed: () => NavigationService().selectPage(5),
             ),
             const SizedBox(height: DesktopTheme.spacingMd),
@@ -229,7 +229,7 @@ class _HomePageState extends State<HomePage> {
           if (featuredPlaylists.isNotEmpty) ...[
             SectionHeader(
               title: l10n.playlists,
-              subtitle: 'Playlists from your collection',
+              subtitle: l10n.homePlaylistsSubtitle,
               onSeeAllPressed: () => NavigationService().selectPage(6),
             ),
             const SizedBox(height: DesktopTheme.spacingMd),
@@ -250,7 +250,7 @@ class _HomePageState extends State<HomePage> {
           if (artistsToExplore.isNotEmpty) ...[
             SectionHeader(
               title: l10n.yourArtists,
-              subtitle: 'A rotating mix from your artists',
+              subtitle: l10n.homeArtistsSubtitle,
               onSeeAllPressed: () => NavigationService().selectPage(4),
             ),
             const SizedBox(height: DesktopTheme.spacingMd),
@@ -259,7 +259,7 @@ class _HomePageState extends State<HomePage> {
           ],
           if (freshPicks.isNotEmpty) ...[
             SectionHeader(
-              title: 'Fresh Picks',
+              title: l10n.homeFreshPicks,
               subtitle: l10n.yourMusicCollection,
               onSeeAllPressed: () => NavigationService().selectPage(5),
             ),
@@ -275,7 +275,7 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.only(top: 20),
               child: Text(
-                'Your library is empty. Add music to unlock personalized home sections.',
+                l10n.homeEmptyLibraryMessage,
                 style: TextStyle(
                   fontSize: 15,
                   color: DesktopTheme.textSecondary,
@@ -395,6 +395,7 @@ class _HomePageState extends State<HomePage> {
     AppState appState,
     List<Playlist> playlists,
   ) {
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       height: 230,
       child: ListView.builder(
@@ -412,7 +413,7 @@ class _HomePageState extends State<HomePage> {
             ),
             child: MusicCard(
               title: playlist.name,
-              subtitle: '${playlist.trackCount} tracks',
+              subtitle: l10n.countSongs(playlist.trackCount),
               imageUrl: imageUrl,
               size: 180,
               onTap: () => NavigationService().navigateToPlaylist(playlist),
@@ -424,6 +425,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _loading(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -438,7 +440,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: DesktopTheme.spacingMd),
           Text(
-            'Loading your music...',
+            l10n.loadingYourMusicLibrary,
             style: TextStyle(fontSize: 16, color: DesktopTheme.textSecondary),
           ),
         ],
@@ -455,7 +457,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         Expanded(
           child: QuickAccessCard(
-            title: 'Shuffle All',
+            title: l10n.shuffleAll,
             subtitle: l10n.countSongs(appState.tracks.length),
             icon: Icons.shuffle_rounded,
             color: DesktopTheme.playButtonGreen,
@@ -465,7 +467,7 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(width: DesktopTheme.spacingMd),
         Expanded(
           child: QuickAccessCard(
-            title: 'Shuffle Favorites',
+            title: l10n.shuffleFavorites,
             subtitle: l10n.countSongs(appState.favoriteTracks.length),
             icon: Icons.favorite_rounded,
             color: DesktopTheme.heartRed,

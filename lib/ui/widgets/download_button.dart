@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/models/download_models.dart';
 import 'package:doudou/providers/app_state.dart';
@@ -161,14 +162,15 @@ class DownloadButton extends StatelessWidget {
     BuildContext context,
     DownloadService downloadService,
   ) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
         title: Text(track.name),
-        message: const Text('Download in progress'),
+        message: Text(l10n.downloadInProgress),
         actions: [
           CupertinoActionSheetAction(
-            child: const Text('Cancel Download'),
+            child: Text(l10n.cancelDownload),
             onPressed: () {
               Navigator.pop(context);
               downloadService.cancelDownload(track.id);
@@ -176,7 +178,7 @@ class DownloadButton extends StatelessWidget {
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
-          child: const Text('Close'),
+          child: Text(l10n.close),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -187,15 +189,16 @@ class DownloadButton extends StatelessWidget {
     BuildContext context,
     DownloadService downloadService,
   ) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
         title: Text(track.name),
-        message: const Text('Downloaded for offline listening'),
+        message: Text(l10n.downloadedForOffline),
         actions: [
           CupertinoActionSheetAction(
             isDestructiveAction: true,
-            child: const Text('Delete Download'),
+            child: Text(l10n.deleteDownload),
             onPressed: () {
               Navigator.pop(context);
               _confirmDeleteDownload(context, downloadService);
@@ -203,7 +206,7 @@ class DownloadButton extends StatelessWidget {
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
-          child: const Text('Close'),
+          child: Text(l10n.close),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -214,11 +217,12 @@ class DownloadButton extends StatelessWidget {
     BuildContext context,
     DownloadService downloadService,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showAppConfirmDialog(
       context: context,
-      title: 'Delete Download',
-      message: 'Delete "${track.name}" from your device?',
-      confirmLabel: 'Delete',
+      title: l10n.deleteDownload,
+      message: l10n.deleteConfirm(track.name),
+      confirmLabel: l10n.delete,
       isDestructive: true,
     );
     if (ok == true) {

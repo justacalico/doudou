@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/models/saved_server.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/ui/theme.dart';
@@ -23,7 +24,8 @@ class ServerConnectionSection extends StatefulWidget {
   final Future<void> Function(SavedServer server)? onConnectSuccess;
 
   @override
-  State<ServerConnectionSection> createState() => _ServerConnectionSectionState();
+  State<ServerConnectionSection> createState() =>
+      _ServerConnectionSectionState();
 }
 
 class _ServerConnectionSectionState extends State<ServerConnectionSection> {
@@ -59,7 +61,9 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
       } else {
         _usernameController.text = s.identifier ?? '';
         _passwordController.text = s.credential ?? '';
-        if (s.serverType == 'plex') _plexTokenController.text = s.credential ?? '';
+        if (s.serverType == 'plex') {
+          _plexTokenController.text = s.credential ?? '';
+        }
       }
     } else {
       _serverController.text = _getServerPlaceholder();
@@ -78,7 +82,8 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
   }
 
   String? _validateServerUrl(String? value) {
-    if (_selectedServerType == 'youtubeMusic' || _selectedServerType == 'local') {
+    if (_selectedServerType == 'youtubeMusic' ||
+        _selectedServerType == 'local') {
       return null;
     }
     final url = (value ?? '').trim().toLowerCase();
@@ -118,7 +123,12 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
     if (_selectedServerType == 'youtubeMusic') {
       if (!mounted) return;
       final appState = context.read<AppState>();
-      final success = await appState.loginWithServerType('youtubeMusic', '', '', '');
+      final success = await appState.loginWithServerType(
+        'youtubeMusic',
+        '',
+        '',
+        '',
+      );
       if (success && mounted) {
         final server = _buildSavedServerFromForm();
         await widget.onConnectSuccess?.call(server);
@@ -169,35 +179,47 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
   }
 
   SavedServer _buildSavedServerFromForm() {
-    final id = widget.initialServer?.id ?? 's_${DateTime.now().millisecondsSinceEpoch}';
-    final url = (_selectedServerType == 'local' || _selectedServerType == 'youtubeMusic')
+    final id =
+        widget.initialServer?.id ??
+        's_${DateTime.now().millisecondsSinceEpoch}';
+    final url =
+        (_selectedServerType == 'local' ||
+            _selectedServerType == 'youtubeMusic')
         ? ''
         : _serverController.text.trim();
     final authMethod = _selectedServerType == 'local'
         ? 'local'
         : _selectedServerType == 'youtubeMusic'
-            ? 'none'
-            : _selectedServerType == 'plex'
-                ? 'password'
-                : _jellyfinAuthMethod == JellyfinAuthMethod.apiKey
-                    ? 'api_key'
-                    : _jellyfinAuthMethod == JellyfinAuthMethod.quickConnect
-                        ? 'quick_connect'
-                        : 'password';
+        ? 'none'
+        : _selectedServerType == 'plex'
+        ? 'password'
+        : _jellyfinAuthMethod == JellyfinAuthMethod.apiKey
+        ? 'api_key'
+        : _jellyfinAuthMethod == JellyfinAuthMethod.quickConnect
+        ? 'quick_connect'
+        : 'password';
     final defaultName = _selectedServerType == 'local'
         ? 'Local Music'
         : _selectedServerType == 'youtubeMusic'
-            ? 'YouTube Music'
-            : null;
+        ? 'YouTube Music'
+        : null;
     return SavedServer(
       id: id,
       name: widget.initialServer?.name ?? defaultName,
       serverType: _selectedServerType,
       serverUrl: url,
       authMethod: authMethod,
-      identifier: _selectedServerType == 'plex' ? null : _usernameController.text.trim().isEmpty ? null : _usernameController.text.trim(),
-      credential: _selectedServerType == 'plex' ? _plexTokenController.text : _passwordController.text,
-      apiKey: _jellyfinAuthMethod == JellyfinAuthMethod.apiKey ? _apiKeyController.text.trim() : null,
+      identifier: _selectedServerType == 'plex'
+          ? null
+          : _usernameController.text.trim().isEmpty
+          ? null
+          : _usernameController.text.trim(),
+      credential: _selectedServerType == 'plex'
+          ? _plexTokenController.text
+          : _passwordController.text,
+      apiKey: _jellyfinAuthMethod == JellyfinAuthMethod.apiKey
+          ? _apiKeyController.text.trim()
+          : null,
       userId: null,
     );
   }
@@ -206,7 +228,9 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
     final serverUrl = _serverController.text.trim();
     if (serverUrl.isEmpty) {
       if (mounted) {
-        context.read<AppState>().setErrorMessage('Please enter a server URL first');
+        context.read<AppState>().setErrorMessage(
+          'Please enter a server URL first',
+        );
       }
       return;
     }
@@ -222,7 +246,9 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
 
     final result = await jellyfinService.initiateQuickConnect(serverUrl);
     if (result == null && mounted) {
-      context.read<AppState>().setErrorMessage('Failed to start Quick Connect.');
+      context.read<AppState>().setErrorMessage(
+        'Failed to start Quick Connect.',
+      );
       return;
     }
 
@@ -260,7 +286,9 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
         if (mounted) {
           final userId = status['userId'] as String?;
           final server = SavedServer(
-            id: widget.initialServer?.id ?? 's_${DateTime.now().millisecondsSinceEpoch}',
+            id:
+                widget.initialServer?.id ??
+                's_${DateTime.now().millisecondsSinceEpoch}',
             name: widget.initialServer?.name,
             serverType: 'jellyfin',
             serverUrl: serverUrl,
@@ -278,7 +306,9 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
           }
         }
       } else {
-        context.read<AppState>().setErrorMessage('Quick Connect failed.');
+        context.read<AppState>().setErrorMessage(
+          AppLocalizations.of(context).quickConnectFailed,
+        );
         _cancelQuickConnect();
       }
     }
@@ -296,11 +326,16 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final appState = context.watch<AppState>();
-    final isRestrictedDesktop = !kIsWeb && (Platform.isLinux || Platform.isWindows);
-    final showYoutubeMusic = !isRestrictedDesktop || appState.allowYoutubeMusicOnDesktop;
+    final isRestrictedDesktop =
+        !kIsWeb && (Platform.isLinux || Platform.isWindows);
+    final showYoutubeMusic =
+        !isRestrictedDesktop || appState.allowYoutubeMusicOnDesktop;
     // If we're on restricted desktop and YT Music is disabled but form had YT selected, switch to jellyfin on first build
-    if (isRestrictedDesktop && !appState.allowYoutubeMusicOnDesktop && _selectedServerType == 'youtubeMusic') {
+    if (isRestrictedDesktop &&
+        !appState.allowYoutubeMusicOnDesktop &&
+        _selectedServerType == 'youtubeMusic') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           setState(() {
@@ -310,7 +345,10 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
         }
       });
     }
-    final effectiveServerType = (isRestrictedDesktop && !appState.allowYoutubeMusicOnDesktop && _selectedServerType == 'youtubeMusic')
+    final effectiveServerType =
+        (isRestrictedDesktop &&
+            !appState.allowYoutubeMusicOnDesktop &&
+            _selectedServerType == 'youtubeMusic')
         ? 'jellyfin'
         : _selectedServerType;
 
@@ -322,17 +360,26 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
           DropdownButtonFormField<String>(
             key: ValueKey(effectiveServerType),
             initialValue: effectiveServerType,
-            decoration: const InputDecoration(
-              labelText: 'Server type',
+            decoration: InputDecoration(
+              labelText: l10n.serverType,
               border: OutlineInputBorder(),
             ),
             items: [
-              const DropdownMenuItem(value: 'jellyfin', child: Text('Jellyfin')),
+              const DropdownMenuItem(
+                value: 'jellyfin',
+                child: Text('Jellyfin'),
+              ),
               const DropdownMenuItem(value: 'plex', child: Text('Plex')),
-              const DropdownMenuItem(value: 'subsonic', child: Text('Subsonic')),
+              const DropdownMenuItem(
+                value: 'subsonic',
+                child: Text('Subsonic'),
+              ),
               if (showYoutubeMusic)
-                const DropdownMenuItem(value: 'youtubeMusic', child: Text('YouTube Music')),
-              const DropdownMenuItem(value: 'local', child: Text('Local')),
+                const DropdownMenuItem(
+                  value: 'youtubeMusic',
+                  child: Text('YouTube Music'),
+                ),
+              DropdownMenuItem(value: 'local', child: Text(l10n.localMusic)),
             ],
             onChanged: (String? type) {
               if (type == null) return;
@@ -354,7 +401,7 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'Connect to use local music. Add folders and scan in Settings > Local Music after connecting.',
+                l10n.localMusicConnectHelp,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: DesktopTheme.textSecondary,
                 ),
@@ -382,14 +429,16 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
                     )
                   : const Icon(Icons.link_rounded),
               label: Text(
-                context.watch<AppState>().isLoading ? 'Connecting...' : 'Connect',
+                context.watch<AppState>().isLoading
+                    ? l10n.connecting
+                    : l10n.connect,
               ),
             ),
           ] else if (_selectedServerType == 'youtubeMusic') ...[
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'Stream from YouTube Music. No login required. Use search to find and play tracks.',
+                l10n.youtubeMusicConnectHelp,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: DesktopTheme.textSecondary,
                 ),
@@ -417,14 +466,16 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
                     )
                   : const Icon(Icons.link_rounded),
               label: Text(
-                context.watch<AppState>().isLoading ? 'Connecting...' : 'Connect',
+                context.watch<AppState>().isLoading
+                    ? l10n.connecting
+                    : l10n.connect,
               ),
             ),
           ] else ...[
             TextFormField(
               controller: _serverController,
-              decoration: const InputDecoration(
-                labelText: 'Server URL',
+              decoration: InputDecoration(
+                labelText: l10n.serverUrl,
                 hintText: 'https://server:8096',
               ),
               validator: _validateServerUrl,
@@ -436,20 +487,20 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
 
             if (_selectedServerType == 'jellyfin') ...[
               SegmentedButton<JellyfinAuthMethod>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: JellyfinAuthMethod.account,
-                    label: Text('Account'),
+                    label: Text(l10n.account),
                     icon: Icon(Icons.person_outline, size: 18),
                   ),
                   ButtonSegment(
                     value: JellyfinAuthMethod.apiKey,
-                    label: Text('API Key'),
+                    label: Text(l10n.apiKey),
                     icon: Icon(Icons.key, size: 18),
                   ),
                   ButtonSegment(
                     value: JellyfinAuthMethod.quickConnect,
-                    label: Text('Quick'),
+                    label: Text(l10n.quickConnect),
                     icon: Icon(Icons.qr_code, size: 18),
                   ),
                 ],
@@ -457,7 +508,8 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
                 onSelectionChanged: (s) {
                   setState(() {
                     _jellyfinAuthMethod = s.first;
-                    if (_jellyfinAuthMethod != JellyfinAuthMethod.quickConnect) {
+                    if (_jellyfinAuthMethod !=
+                        JellyfinAuthMethod.quickConnect) {
                       _cancelQuickConnect();
                     }
                   });
@@ -472,53 +524,61 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
                 _quickConnectCodeWidget(context, theme)
               else
                 OutlinedButton(
-                  onPressed: context.watch<AppState>().isLoading ? null : _startQuickConnect,
-                  child: const Text('Start Quick Connect'),
+                  onPressed: context.watch<AppState>().isLoading
+                      ? null
+                      : _startQuickConnect,
+                  child: Text(l10n.startQuickConnect),
                 ),
             ] else if (_selectedServerType == 'plex') ...[
               TextFormField(
                 controller: _plexTokenController,
-                decoration: const InputDecoration(
-                  labelText: 'Plex Token',
+                decoration: InputDecoration(
+                  labelText: l10n.plexToken,
                   hintText: 'X-Plex-Token',
                 ),
-                validator: (v) =>
-                    (v == null || v.toString().trim().isEmpty) ? 'Enter Plex token' : null,
+                validator: (v) => (v == null || v.toString().trim().isEmpty)
+                    ? l10n.enterPlexToken
+                    : null,
               ),
             ] else if (_selectedServerType == 'jellyfin' &&
                 _jellyfinAuthMethod == JellyfinAuthMethod.apiKey) ...[
               TextFormField(
                 controller: _apiKeyController,
-                decoration: const InputDecoration(
-                  labelText: 'API Key',
-                  hintText: 'Your Jellyfin API key',
+                decoration: InputDecoration(
+                  labelText: l10n.apiKey,
+                  hintText: l10n.yourJellyfinApiKey,
                 ),
-                validator: (v) =>
-                    (v == null || v.toString().trim().isEmpty) ? 'Enter API key' : null,
+                validator: (v) => (v == null || v.toString().trim().isEmpty)
+                    ? l10n.enterApiKey
+                    : null,
               ),
             ] else ...[
               TextFormField(
                 controller: _usernameController,
-                decoration: const InputDecoration(
-                  labelText: 'Username',
-                  hintText: 'Username',
+                decoration: InputDecoration(
+                  labelText: l10n.username,
+                  hintText: l10n.username,
                 ),
-                validator: (v) =>
-                    (v == null || v.toString().trim().isEmpty) ? 'Enter username' : null,
+                validator: (v) => (v == null || v.toString().trim().isEmpty)
+                    ? l10n.enterUsername
+                    : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _passwordController,
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
-                  labelText: 'Password',
-                  hintText: 'Password (optional)',
+                  labelText: l10n.password,
+                  hintText: l10n.passwordOptional,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                      _isPasswordVisible
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                     ),
-                    onPressed: () =>
-                        setState(() => _isPasswordVisible = !_isPasswordVisible),
+                    onPressed: () => setState(
+                      () => _isPasswordVisible = !_isPasswordVisible,
+                    ),
                   ),
                 ),
               ),
@@ -552,7 +612,9 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
                       )
                     : const Icon(Icons.link_rounded),
                 label: Text(
-                  context.watch<AppState>().isLoading ? 'Connecting...' : 'Connect',
+                  context.watch<AppState>().isLoading
+                      ? l10n.connecting
+                      : l10n.connect,
                 ),
               ),
             ],
@@ -563,6 +625,7 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
   }
 
   Widget _quickConnectCodeWidget(BuildContext context, ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -572,7 +635,7 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
       ),
       child: Column(
         children: [
-          const Text('Enter this code on your Jellyfin server'),
+          Text(l10n.enterCodeOnJellyfinServer),
           const SizedBox(height: 12),
           Text(
             _quickConnectCode!,
@@ -588,10 +651,7 @@ class _ServerConnectionSectionState extends State<ServerConnectionSection> {
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
           const SizedBox(height: 8),
-          TextButton(
-            onPressed: _cancelQuickConnect,
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: _cancelQuickConnect, child: Text(l10n.cancel)),
         ],
       ),
     );
