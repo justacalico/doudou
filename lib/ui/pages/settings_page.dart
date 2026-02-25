@@ -1026,14 +1026,30 @@ class _GeneralSection extends StatelessWidget {
 }
 
 // --- Audio ---
-class _AudioSection extends StatelessWidget {
+class _AudioSection extends StatefulWidget {
   final AppState appState;
 
   const _AudioSection({required this.appState});
 
   @override
+  State<_AudioSection> createState() => _AudioSectionState();
+}
+
+class _AudioSectionState extends State<_AudioSection> {
+  late double _volume;
+  late double _speed;
+
+  @override
+  void initState() {
+    super.initState();
+    _volume = widget.appState.audioDefaultVolume;
+    _speed = widget.appState.audioDefaultSpeed;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appState = widget.appState;
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       child: Padding(
@@ -1070,6 +1086,62 @@ class _AudioSection extends StatelessWidget {
                         ),
                         value: appState.smartBackToStartEnabled,
                         onChanged: (v) => appState.toggleSmartBackToStart(v),
+                      ),
+                      const SizedBox(height: 12),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          'Default volume: ${(_volume * 100).round()}%',
+                        ),
+                        subtitle: const Text(
+                          'Applied to the player when audio initializes and when changed.',
+                        ),
+                      ),
+                      Slider(
+                        value: _volume,
+                        min: 0.0,
+                        max: 1.0,
+                        divisions: 20,
+                        label: '${(_volume * 100).round()}%',
+                        onChanged: (v) => setState(() => _volume = v),
+                        onChangeEnd: (v) => appState.setAudioDefaultVolume(v),
+                      ),
+                      const SizedBox(height: 8),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          'Default speed: ${_speed.toStringAsFixed(2)}x',
+                        ),
+                        subtitle: const Text(
+                          'Playback speed used for current and future playback.',
+                        ),
+                      ),
+                      Slider(
+                        value: _speed,
+                        min: 0.5,
+                        max: 1.5,
+                        divisions: 20,
+                        label: '${_speed.toStringAsFixed(2)}x',
+                        onChanged: (v) => setState(() => _speed = v),
+                        onChangeEnd: (v) => appState.setAudioDefaultSpeed(v),
+                      ),
+                      const SizedBox(height: 8),
+                      SwitchListTile(
+                        title: const Text('Gapless playback'),
+                        subtitle: const Text(
+                          'Reduce pauses between tracks when possible.',
+                        ),
+                        value: appState.gaplessPlaybackEnabled,
+                        onChanged: (v) => appState.setGaplessPlaybackEnabled(v),
+                      ),
+                      SwitchListTile(
+                        title: const Text('Autoplay recommendations'),
+                        subtitle: const Text(
+                          'When queue ends, automatically add similar tracks.',
+                        ),
+                        value: appState.autoplayRecommendationsEnabled,
+                        onChanged: (v) =>
+                            appState.setAutoplayRecommendationsEnabled(v),
                       ),
                     ],
                   ),

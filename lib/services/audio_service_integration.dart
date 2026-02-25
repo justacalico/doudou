@@ -173,6 +173,17 @@ class AudioServiceIntegration {
     }
   }
 
+  /// Set playback speed
+  Future<void> setSpeed(double speed) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      await _audioHandler!.setSpeed(speed);
+    } catch (e) {
+      // Error setting speed
+    }
+  }
+
   /// Skip to specific queue item
   Future<void> skipToQueueItem(int index) async {
     if (!_initialized || _audioHandler == null) return;
@@ -271,6 +282,12 @@ class AudioServiceIntegration {
     return _audioHandler!.volume;
   }
 
+  /// Get current playback speed
+  double get speed {
+    if (!_initialized || _audioHandler == null) return 1.0;
+    return _audioHandler!.speed;
+  }
+
   /// Get current repeat mode
   RepeatMode get repeatMode {
     if (!_initialized || _audioHandler == null) return RepeatMode.none;
@@ -299,6 +316,18 @@ class AudioServiceIntegration {
   bool get radioModeEnabled {
     if (!_initialized || _audioHandler == null) return false;
     return _audioHandler!.radioModeEnabled;
+  }
+
+  /// Check if gapless playback is enabled
+  bool get gaplessPlaybackEnabled {
+    if (!_initialized || _audioHandler == null) return false;
+    return _audioHandler!.gaplessPlaybackEnabled;
+  }
+
+  /// Check if autoplay recommendations are enabled
+  bool get autoplayEnabled {
+    if (!_initialized || _audioHandler == null) return true;
+    return _audioHandler!.autoplayEnabled;
   }
 
   // === Playback Mode Control ===

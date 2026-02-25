@@ -44,6 +44,10 @@ class AppState extends ChangeNotifier {
   bool _oledDarkModeEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
   bool _smartBackToStartEnabled = true;
+  double _audioDefaultVolume = 1.0;
+  double _audioDefaultSpeed = 1.0;
+  bool _gaplessPlaybackEnabled = true;
+  bool _autoplayRecommendationsEnabled = true;
 
   // General feature toggles (all default true = current behavior)
   bool _lyricsEnabled = true;
@@ -152,6 +156,10 @@ class AppState extends ChangeNotifier {
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get loggingEnabled => _loggingEnabled;
   bool get smartBackToStartEnabled => _smartBackToStartEnabled;
+  double get audioDefaultVolume => _audioDefaultVolume;
+  double get audioDefaultSpeed => _audioDefaultSpeed;
+  bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
+  bool get autoplayRecommendationsEnabled => _autoplayRecommendationsEnabled;
   bool get lyricsEnabled => _lyricsEnabled;
   bool get downloadsEnabled => _downloadsEnabled;
   bool get showVolumeOnPlayerBar => _showVolumeOnPlayerBar;
@@ -251,6 +259,28 @@ class AppState extends ChangeNotifier {
       subscription.cancel();
     }
     _audioHandlerSubscriptions.clear();
+  }
+
+  Future<void> _applyAudioPreferencesToHandler() async {
+    final handler = _audioHandler;
+    if (handler == null) return;
+    try {
+      handler.audioHandler?.setSmartBackToStartEnabled(
+        _smartBackToStartEnabled,
+      );
+      await handler.setVolume(_audioDefaultVolume);
+      await handler.setSpeed(_audioDefaultSpeed);
+      await handler.setGaplessPlayback(_gaplessPlaybackEnabled);
+      handler.setAutoplay(_autoplayRecommendationsEnabled);
+    } catch (_) {
+      // Keep playback available if applying one of the preferences fails.
+    }
+  }
+
+  Future<void> _bindAudioHandler(AudioServiceIntegration audioService) async {
+    _audioHandler = audioService;
+    _setupAudioHandlerListeners();
+    await _applyAudioPreferencesToHandler();
   }
 
   Future<void> _loadSavedServer() async {
@@ -361,12 +391,7 @@ class AppState extends ChangeNotifier {
             try {
               final audioService = AudioServiceIntegration.instance;
               await audioService.initialize(_mediaServiceManager);
-              _audioHandler = audioService;
-
-              // Apply persisted audio behavior toggles
-              audioService.audioHandler?.setSmartBackToStartEnabled(
-                _smartBackToStartEnabled,
-              );
+              await _bindAudioHandler(audioService);
             } catch (audioError) {
               _audioHandler = null;
             }
@@ -433,9 +458,7 @@ class AppState extends ChangeNotifier {
               try {
                 final audioService = AudioServiceIntegration.instance;
                 await audioService.initialize(_mediaServiceManager);
-                _audioHandler = audioService;
-
-                _setupAudioHandlerListeners();
+                await _bindAudioHandler(audioService);
               } catch (audioError) {
                 _audioHandler = null;
               }
@@ -478,7 +501,7 @@ class AppState extends ChangeNotifier {
               try {
                 final audioService = AudioServiceIntegration.instance;
                 await audioService.initialize(_mediaServiceManager);
-                _audioHandler = audioService;
+                await _bindAudioHandler(audioService);
               } catch (audioError) {
                 _audioHandler = null;
               }
@@ -528,9 +551,7 @@ class AppState extends ChangeNotifier {
           try {
             final audioService = AudioServiceIntegration.instance;
             await audioService.initialize(_mediaServiceManager);
-            _audioHandler = audioService;
-
-            _setupAudioHandlerListeners();
+            await _bindAudioHandler(audioService);
             notifyListeners();
           } catch (audioError) {
             _audioHandler = null;
@@ -653,9 +674,7 @@ class AppState extends ChangeNotifier {
         try {
           final audioService = AudioServiceIntegration.instance;
           await audioService.initialize(_mediaServiceManager);
-          _audioHandler = audioService;
-
-          _setupAudioHandlerListeners();
+          await _bindAudioHandler(audioService);
         } catch (e) {
           _audioHandler = null;
         }
@@ -720,9 +739,7 @@ class AppState extends ChangeNotifier {
       try {
         final audioService = AudioServiceIntegration.instance;
         await audioService.initialize(_mediaServiceManager);
-        _audioHandler = audioService;
-
-        _setupAudioHandlerListeners();
+        await _bindAudioHandler(audioService);
       } catch (e) {
         _audioHandler = null;
       }
@@ -801,7 +818,7 @@ class AppState extends ChangeNotifier {
       try {
         final audioService = AudioServiceIntegration.instance;
         await audioService.initialize(_mediaServiceManager);
-        _audioHandler = audioService;
+        await _bindAudioHandler(audioService);
         _setupAudioHandlerListeners();
       } catch (e) {
         _audioHandler = null;
@@ -899,9 +916,7 @@ class AppState extends ChangeNotifier {
         try {
           final audioService = AudioServiceIntegration.instance;
           await audioService.initialize(_mediaServiceManager);
-          _audioHandler = audioService;
-
-          _setupAudioHandlerListeners();
+          await _bindAudioHandler(audioService);
         } catch (e) {
           _audioHandler = null;
         }
@@ -2352,9 +2367,45 @@ class AppState extends ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('smart_back_to_start_enabled', enabled);
+    await _applyAudioPreferencesToHandler();
+    notifyListeners();
+  }
 
-    // Forward to audio handler if available
-    _audioHandler?.audioHandler?.setSmartBackToStartEnabled(enabled);
+  Future<void> setAudioDefaultVolume(double value) async {
+    final clamped = value.clamp(0.0, 1.0);
+    if ((_audioDefaultVolume - clamped).abs() < 0.001) return;
+    _audioDefaultVolume = clamped;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('audio_default_volume', _audioDefaultVolume);
+    await _applyAudioPreferencesToHandler();
+    notifyListeners();
+  }
+
+  Future<void> setAudioDefaultSpeed(double value) async {
+    final clamped = value.clamp(0.5, 1.5);
+    if ((_audioDefaultSpeed - clamped).abs() < 0.001) return;
+    _audioDefaultSpeed = clamped;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('audio_default_speed', _audioDefaultSpeed);
+    await _applyAudioPreferencesToHandler();
+    notifyListeners();
+  }
+
+  Future<void> setGaplessPlaybackEnabled(bool enabled) async {
+    if (_gaplessPlaybackEnabled == enabled) return;
+    _gaplessPlaybackEnabled = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('gapless_playback_enabled', enabled);
+    await _applyAudioPreferencesToHandler();
+    notifyListeners();
+  }
+
+  Future<void> setAutoplayRecommendationsEnabled(bool enabled) async {
+    if (_autoplayRecommendationsEnabled == enabled) return;
+    _autoplayRecommendationsEnabled = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('autoplay_recommendations_enabled', enabled);
+    await _applyAudioPreferencesToHandler();
 
     notifyListeners();
   }
@@ -2473,6 +2524,15 @@ class AppState extends ChangeNotifier {
         prefs.getBool('logging_enabled') ?? false; // Disabled by default
     _smartBackToStartEnabled =
         prefs.getBool('smart_back_to_start_enabled') ?? true;
+    _audioDefaultVolume = (prefs.getDouble('audio_default_volume') ?? 1.0)
+        .clamp(0.0, 1.0);
+    _audioDefaultSpeed = (prefs.getDouble('audio_default_speed') ?? 1.0).clamp(
+      0.5,
+      1.5,
+    );
+    _gaplessPlaybackEnabled = prefs.getBool('gapless_playback_enabled') ?? true;
+    _autoplayRecommendationsEnabled =
+        prefs.getBool('autoplay_recommendations_enabled') ?? true;
     _lyricsEnabled = prefs.getBool('lyrics_enabled') ?? true;
     _downloadsEnabled = prefs.getBool('downloads_enabled') ?? true;
     _showVolumeOnPlayerBar = prefs.getBool('show_volume_on_player_bar') ?? true;
@@ -2694,7 +2754,7 @@ class AppState extends ChangeNotifier {
       try {
         final audioService = AudioServiceIntegration.instance;
         await audioService.initialize(_mediaServiceManager);
-        _audioHandler = audioService;
+        await _bindAudioHandler(audioService);
 
         // Set up listeners for automatic UI updates
         _setupAudioHandlerListeners();
