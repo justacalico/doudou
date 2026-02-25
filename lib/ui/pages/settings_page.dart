@@ -1300,9 +1300,10 @@ void _showServerConnectionDialog(
   AppState appState, {
   SavedServer? initialServer,
 }) {
+  final l10n = AppLocalizations.of(context);
   showAppDialog(
     context: context,
-    title: initialServer != null ? 'Edit server' : 'Add server',
+    title: initialServer != null ? l10n.editServer : l10n.addServer,
     width: 420,
     content: ServerConnectionSection(
       initialServer: initialServer,
@@ -1313,7 +1314,7 @@ void _showServerConnectionDialog(
     actionsBuilder: (dialogContext) => [
       TextButton(
         onPressed: () => Navigator.of(dialogContext).pop(),
-        child: const Text('Cancel'),
+        child: Text(l10n.cancel),
       ),
     ],
   );
@@ -1360,7 +1361,7 @@ class _ServerSectionState extends State<_ServerSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isLocal ? 'Local Music Settings' : l10n.serverSettings,
+              isLocal ? l10n.localMusicSettings : l10n.serverSettings,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -1373,7 +1374,7 @@ class _ServerSectionState extends State<_ServerSection> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Servers',
+                      l10n.servers,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -1383,7 +1384,7 @@ class _ServerSectionState extends State<_ServerSection> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Text(
-                          'No servers yet. Add one to connect.',
+                          l10n.noServersYetAddOne,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.textTheme.bodySmall?.color,
                           ),
@@ -1466,7 +1467,7 @@ class _ServerSectionState extends State<_ServerSection> {
                                                 );
                                               }
                                             },
-                                            child: const Text('Switch'),
+                                            child: Text(l10n.switchServer),
                                           ),
                                   ),
                                   IconButton(
@@ -1478,7 +1479,7 @@ class _ServerSectionState extends State<_ServerSection> {
                                             initialServer: server,
                                           )
                                         : null,
-                                    tooltip: 'Edit',
+                                    tooltip: l10n.editServer,
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.delete_outline),
@@ -1487,10 +1488,12 @@ class _ServerSectionState extends State<_ServerSection> {
                                             final confirm =
                                                 await showAppConfirmDialog(
                                                   context: context,
-                                                  title: 'Remove server?',
-                                                  message:
-                                                      'Remove "${server.displayLabel}" from your saved servers?',
-                                                  confirmLabel: 'Remove',
+                                                  title: l10n.removeServerTitle,
+                                                  message: l10n
+                                                      .removeServerMessage(
+                                                        server.displayLabel,
+                                                      ),
+                                                  confirmLabel: l10n.remove,
                                                   isDestructive: true,
                                                 );
                                             if (confirm == true &&
@@ -1501,7 +1504,7 @@ class _ServerSectionState extends State<_ServerSection> {
                                             }
                                           }
                                         : null,
-                                    tooltip: 'Remove',
+                                    tooltip: l10n.remove,
                                   ),
                                 ],
                               ),
@@ -1539,7 +1542,7 @@ class _ServerSectionState extends State<_ServerSection> {
                       onPressed: () =>
                           _showServerConnectionDialog(context, appState),
                       icon: const Icon(Icons.add),
-                      label: const Text('Add server'),
+                      label: Text(l10n.addServer),
                     ),
                   ],
                 ),
@@ -1553,15 +1556,15 @@ class _ServerSectionState extends State<_ServerSection> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Cache',
+                      l10n.cache,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 16),
                     ListTile(
-                      title: const Text('Clear image cache'),
-                      subtitle: const Text('Free up storage space'),
+                      title: Text(l10n.clearImageCache),
+                      subtitle: Text(l10n.freeUpStorage),
                       trailing: const Icon(Icons.clear),
                       onTap: () => widget.onClearCache('images'),
                     ),
@@ -1582,8 +1585,8 @@ class _ServerSectionState extends State<_ServerSection> {
                         },
                       ),
                     ListTile(
-                      title: const Text('Clear all cache'),
-                      subtitle: const Text('Remove all cached data'),
+                      title: Text(l10n.clearAllCache),
+                      subtitle: Text(l10n.removeAllCachedData),
                       trailing: const Icon(Icons.delete_sweep),
                       onTap: () => widget.onClearCache('all'),
                     ),

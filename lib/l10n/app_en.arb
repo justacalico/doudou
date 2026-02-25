@@ -1281,6 +1281,49 @@
     "description": "Server settings section header"
   },
 
+  "localMusicSettings": "Local Music Settings",
+  "@localMusicSettings": {
+    "description": "Server settings title when local music provider is active"
+  },
+
+  "servers": "Servers",
+  "@servers": {
+    "description": "Saved servers section header"
+  },
+
+  "noServersYetAddOne": "No servers yet. Add one to connect.",
+  "@noServersYetAddOne": {
+    "description": "Empty state message for saved servers"
+  },
+
+  "addServer": "Add server",
+  "@addServer": {
+    "description": "Add server action label"
+  },
+
+  "switchServer": "Switch",
+  "@switchServer": {
+    "description": "Switch to this saved server action label"
+  },
+
+  "editServer": "Edit server",
+  "@editServer": {
+    "description": "Edit server action label"
+  },
+
+  "removeServerTitle": "Remove server?",
+  "@removeServerTitle": {
+    "description": "Remove server confirmation dialog title"
+  },
+
+  "removeServerMessage": "Remove \"{name}\" from your saved servers?",
+  "@removeServerMessage": {
+    "description": "Remove server confirmation dialog message",
+    "placeholders": {
+      "name": {}
+    }
+  },
+
   "logsAndDiagnostics": "Logs & Diagnostics",
   "@logsAndDiagnostics": {
     "description": "Logs and diagnostics section header"
