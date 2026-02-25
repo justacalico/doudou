@@ -2,7 +2,7 @@ display_name: Doudou
 package_name: doudou
 maintainer:
   name: httpanimations
-  email: httpanimations@example.com
+  email: httpanimations@gmail.com
 priority: optional
 section: sound
 installed_size: 50000

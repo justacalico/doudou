@@ -17,6 +17,6 @@ startup_notify: true
 summary: Music Streaming Client
 vendor: httpanimations
 packager: httpanimations
-packagerEmail: httpanimations@example.com
-license: MIT
-url: https://openlyst.com
+packagerEmail: httpanimations@gmail.com
+AGPL
+url: https://openlyst.ink
