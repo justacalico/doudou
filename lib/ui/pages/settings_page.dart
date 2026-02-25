@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -58,7 +59,11 @@ class _SettingsPageState extends State<SettingsPage> {
         icon: isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded,
         iconColor: const Color(0xFF3B82F6),
         section: 'Server',
-        valueText: (a) => a.isLoggedIn ? (isLocalMusic ? 'Active' : (a.jellyfinService.username ?? 'Connected')) : null,
+        valueText: (a) => a.isLoggedIn
+            ? (isLocalMusic
+                  ? 'Active'
+                  : (a.jellyfinService.username ?? 'Connected'))
+            : null,
       ),
       _SettingsMenuItem(
         id: 'general',
@@ -93,19 +98,30 @@ class _SettingsPageState extends State<SettingsPage> {
     return items;
   }
 
-  static const List<String> _sectionOrder = ['Server', 'General', 'Playback', 'Appearance', 'About'];
+  static const List<String> _sectionOrder = [
+    'Server',
+    'General',
+    'Playback',
+    'Appearance',
+    'About',
+  ];
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final isLocal = appState.mediaServiceManager.currentServerType == ServerType.local;
+        final isLocal =
+            appState.mediaServiceManager.currentServerType == ServerType.local;
         final items = _menuItems(l10n, isLocal);
-        final sections = _sectionOrder.where((s) => items.any((i) => i.section == s)).toList();
-        final isDesktop = MediaQuery.sizeOf(context).width >= _kSettingsBreakpoint;
+        final sections = _sectionOrder
+            .where((s) => items.any((i) => i.section == s))
+            .toList();
+        final isDesktop =
+            MediaQuery.sizeOf(context).width >= _kSettingsBreakpoint;
         // Desktop: default to first item when none selected
-        final effectiveSelected = _selectedId ?? (isDesktop ? items.first.id : null);
+        final effectiveSelected =
+            _selectedId ?? (isDesktop ? items.first.id : null);
 
         return LayoutBuilder(
           builder: (context, constraints) {
@@ -130,7 +146,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Container(
                         color: DesktopTheme.backgroundTertiary,
                         child: effectiveSelected != null
-                            ? _buildDetailContent(context, appState, effectiveSelected)
+                            ? _buildDetailContent(
+                                context,
+                                appState,
+                                effectiveSelected,
+                              )
                             : const Center(child: Text('Select a setting')),
                       ),
                     ),
@@ -181,14 +201,25 @@ class _SettingsPageState extends State<SettingsPage> {
               backgroundColor: mobileBg,
               appBar: AppBar(
                 title: Text(
-                  items.firstWhere((e) => e.id == effectiveSelected, orElse: () => items.first).label,
-                  style: TextStyle(color: mobileTitleColor, fontSize: 17, fontWeight: FontWeight.w600),
+                  items
+                      .firstWhere(
+                        (e) => e.id == effectiveSelected,
+                        orElse: () => items.first,
+                      )
+                      .label,
+                  style: TextStyle(
+                    color: mobileTitleColor,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 leading: IconButton(
                   icon: const Icon(Icons.chevron_left, size: 28),
                   onPressed: () => setState(() => _selectedId = null),
                 ),
-                backgroundColor: theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
+                backgroundColor:
+                    theme.appBarTheme.backgroundColor ??
+                    theme.colorScheme.surface,
                 foregroundColor: mobileTitleColor,
                 elevation: 0,
                 scrolledUnderElevation: 0,
@@ -201,7 +232,11 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildDetailContent(BuildContext context, AppState appState, String id) {
+  Widget _buildDetailContent(
+    BuildContext context,
+    AppState appState,
+    String id,
+  ) {
     switch (id) {
       case 'general':
         return _GeneralSection(appState: appState);
@@ -235,9 +270,12 @@ class _SettingsPageState extends State<SettingsPage> {
       return 'oled';
     }
     switch (appState.themeMode) {
-      case ThemeMode.system: return 'system';
-      case ThemeMode.light: return 'light';
-      case ThemeMode.dark: return 'dark';
+      case ThemeMode.system:
+        return 'system';
+      case ThemeMode.light:
+        return 'light';
+      case ThemeMode.dark:
+        return 'dark';
     }
   }
 
@@ -321,6 +359,7 @@ class _SettingsPageState extends State<SettingsPage> {
       width: 320,
       content: _CustomColorPickerDialog(
         initialColor: appState.accentColor,
+        showHexControls: appState.showHexColorControls,
         onColorSelected: (c) {
           appState.setAccentColor(c);
           Navigator.pop(context);
@@ -356,21 +395,25 @@ class _SettingsPageState extends State<SettingsPage> {
               appState.setLocale(null);
             },
           ),
-          ...AppLocalizations.supportedLocales.map((locale) => AppDialogOption(
-                label: _getLanguageNameForLocale(locale),
-                selected: current == locale,
-                onTap: () {
-                  Navigator.pop(context);
-                  appState.setLocale(locale);
-                },
-              )),
+          ...AppLocalizations.supportedLocales.map(
+            (locale) => AppDialogOption(
+              label: _getLanguageNameForLocale(locale),
+              selected: current == locale,
+              onTap: () {
+                Navigator.pop(context);
+                appState.setLocale(locale);
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 
   Future<void> _addLocalDirectory(AppState appState) async {
-    final result = await FilePicker.platform.getDirectoryPath(dialogTitle: 'Select Music Directory');
+    final result = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: 'Select Music Directory',
+    );
     if (result == null) return;
     try {
       await appState.mediaServiceManager.addLocalMusicDirectory(result);
@@ -382,14 +425,17 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding directory: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error adding directory: $e')));
       }
     }
   }
 
-  Future<void> _removeLocalDirectory(AppState appState, String directory) async {
+  Future<void> _removeLocalDirectory(
+    AppState appState,
+    String directory,
+  ) async {
     final ok = await showAppConfirmDialog(
       context: context,
       title: 'Remove Directory',
@@ -398,9 +444,13 @@ class _SettingsPageState extends State<SettingsPage> {
       isDestructive: true,
     );
     if (ok == true) {
-      await appState.mediaServiceManager.localMusicService?.removeDirectory(directory);
+      await appState.mediaServiceManager.localMusicService?.removeDirectory(
+        directory,
+      );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Directory removed')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Directory removed')));
         setState(() {});
       }
     }
@@ -419,8 +469,17 @@ class _SettingsPageState extends State<SettingsPage> {
           const CircularProgressIndicator(),
           const SizedBox(height: 16),
           StreamBuilder<String>(
-            stream: Stream.periodic(const Duration(milliseconds: 500), (_) => local.isScanning ? 'Scanning...' : 'Complete'),
-            builder: (_, snap) => Text(snap.data ?? 'Starting...', style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none)),
+            stream: Stream.periodic(
+              const Duration(milliseconds: 500),
+              (_) => local.isScanning ? 'Scanning...' : 'Complete',
+            ),
+            builder: (_, snap) => Text(
+              snap.data ?? 'Starting...',
+              style: TextStyle(
+                color: DesktopTheme.textSecondary,
+                decoration: TextDecoration.none,
+              ),
+            ),
           ),
         ],
       ),
@@ -429,13 +488,17 @@ class _SettingsPageState extends State<SettingsPage> {
       await local.scanDirectories();
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Library scan complete')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Library scan complete')));
         await appState.loadLibraryData();
       }
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Scan error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Scan error: $e')));
       }
     }
   }
@@ -444,7 +507,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final ok = await showAppConfirmDialog(
       context: context,
       title: 'Sign Out',
-      message: 'Are you sure you want to sign out? You\'ll need to log in again to access your music.',
+      message:
+          'Are you sure you want to sign out? You\'ll need to log in again to access your music.',
       confirmLabel: 'Sign Out',
       isDestructive: true,
     );
@@ -457,7 +521,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final ok = await showAppConfirmDialog(
       context: context,
       title: 'Clear ${cacheType == 'all' ? 'All' : 'Image'} Cache',
-      message: 'This will remove ${cacheType == 'all' ? 'all cached data' : 'cached images'} and may slow down the app temporarily. Continue?',
+      message:
+          'This will remove ${cacheType == 'all' ? 'all cached data' : 'cached images'} and may slow down the app temporarily. Continue?',
       confirmLabel: 'Clear',
       isDestructive: true,
     );
@@ -472,12 +537,18 @@ class _SettingsPageState extends State<SettingsPage> {
         }
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${cacheType == 'all' ? 'All' : 'Image'} cache cleared')),
+            SnackBar(
+              content: Text(
+                '${cacheType == 'all' ? 'All' : 'Image'} cache cleared',
+              ),
+            ),
           );
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed: $e')));
         }
       }
     }
@@ -532,7 +603,9 @@ class _SettingsListSidebar extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: sections.map((section) {
-                  final sectionItems = items.where((i) => i.section == section).toList();
+                  final sectionItems = items
+                      .where((i) => i.section == section)
+                      .toList();
                   if (sectionItems.isEmpty) return const SizedBox.shrink();
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -551,13 +624,15 @@ class _SettingsListSidebar extends StatelessWidget {
                             ),
                           ),
                         ),
-                        ...sectionItems.map((item) => _SettingsSidebarTile(
-                              item: item,
-                              isSelected: selectedId == item.id,
-                              value: item.valueText?.call(appState),
-                              onTap: () => onSelect(item.id),
-                              isDark: isDark,
-                            )),
+                        ...sectionItems.map(
+                          (item) => _SettingsSidebarTile(
+                            item: item,
+                            isSelected: selectedId == item.id,
+                            value: item.valueText?.call(appState),
+                            onTap: () => onSelect(item.id),
+                            isDark: isDark,
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -749,7 +824,10 @@ class _SettingsListMobile extends StatelessWidget {
                       onTap: () => onSelect(item.id),
                       borderRadius: BorderRadius.circular(12),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         child: Row(
                           children: [
                             Container(
@@ -758,7 +836,11 @@ class _SettingsListMobile extends StatelessWidget {
                                 color: item.iconColor,
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Icon(item.icon, size: 20, color: Colors.white),
+                              child: Icon(
+                                item.icon,
+                                size: 20,
+                                color: Colors.white,
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -776,7 +858,9 @@ class _SettingsListMobile extends StatelessWidget {
                                 value,
                                 style: TextStyle(
                                   fontSize: 17,
-                                  color: isDark ? Colors.white54 : Colors.black45,
+                                  color: isDark
+                                      ? Colors.white54
+                                      : Colors.black45,
                                 ),
                               ),
                             const SizedBox(width: 8),
@@ -819,7 +903,9 @@ class _GeneralSection extends StatelessWidget {
           children: [
             Text(
               l10n.generalSettings,
-              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -832,7 +918,9 @@ class _GeneralSection extends StatelessWidget {
                     children: [
                       Text(
                         l10n.generalSectionSubtitle,
-                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       SwitchListTile(
@@ -849,28 +937,46 @@ class _GeneralSection extends StatelessWidget {
                       ),
                       SwitchListTile(
                         title: Text(l10n.settingsVolumeOnPlayerBar),
-                        subtitle: Text(l10n.settingsVolumeOnPlayerBarDescription),
+                        subtitle: Text(
+                          l10n.settingsVolumeOnPlayerBarDescription,
+                        ),
                         value: appState.showVolumeOnPlayerBar,
                         onChanged: (v) => appState.setShowVolumeOnPlayerBar(v),
                       ),
                       SwitchListTile(
                         title: Text(l10n.settingsQueueOnPlayerBar),
-                        subtitle: Text(l10n.settingsQueueOnPlayerBarDescription),
+                        subtitle: Text(
+                          l10n.settingsQueueOnPlayerBarDescription,
+                        ),
                         value: appState.showQueueOnPlayerBar,
                         onChanged: (v) => appState.setShowQueueOnPlayerBar(v),
                       ),
                       SwitchListTile(
                         title: Text(l10n.settingsShuffleRepeatOnPlayerBar),
-                        subtitle: Text(l10n.settingsShuffleRepeatOnPlayerBarDescription),
+                        subtitle: Text(
+                          l10n.settingsShuffleRepeatOnPlayerBarDescription,
+                        ),
                         value: appState.showShuffleRepeatOnPlayerBar,
-                        onChanged: (v) => appState.setShowShuffleRepeatOnPlayerBar(v),
+                        onChanged: (v) =>
+                            appState.setShowShuffleRepeatOnPlayerBar(v),
+                      ),
+                      SwitchListTile(
+                        title: const Text('Show Hex Color Controls'),
+                        subtitle: const Text(
+                          'Show hex value and manual hex input in color picker',
+                        ),
+                        value: appState.showHexColorControls,
+                        onChanged: (v) => appState.setShowHexColorControls(v),
                       ),
                       if (appState.isDesktopWhereYoutubeMusicRestricted)
                         SwitchListTile(
                           title: Text(l10n.settingsYoutubeMusicOnDesktop),
-                          subtitle: Text(l10n.settingsYoutubeMusicOnDesktopDescription),
+                          subtitle: Text(
+                            l10n.settingsYoutubeMusicOnDesktopDescription,
+                          ),
                           value: appState.allowYoutubeMusicOnDesktop,
-                          onChanged: (v) => appState.setAllowYoutubeMusicOnDesktop(v),
+                          onChanged: (v) =>
+                              appState.setAllowYoutubeMusicOnDesktop(v),
                         ),
                     ],
                   ),
@@ -900,7 +1006,12 @@ class _AudioSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Audio Settings', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Audio Settings',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -910,11 +1021,18 @@ class _AudioSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Playback', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                      Text(
+                        'Playback',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       SwitchListTile(
                         title: const Text('Smart back button'),
-                        subtitle: const Text('If past 20%: first back restarts, second back quickly goes to previous track'),
+                        subtitle: const Text(
+                          'If past 20%: first back restarts, second back quickly goes to previous track',
+                        ),
                         value: appState.smartBackToStartEnabled,
                         onChanged: (v) => appState.toggleSmartBackToStart(v),
                       ),
@@ -937,7 +1055,12 @@ class _AppearanceSection extends StatelessWidget {
   final VoidCallback onColor;
   final VoidCallback onLanguage;
 
-  const _AppearanceSection({required this.appState, required this.onTheme, required this.onColor, required this.onLanguage});
+  const _AppearanceSection({
+    required this.appState,
+    required this.onTheme,
+    required this.onColor,
+    required this.onLanguage,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -950,7 +1073,12 @@ class _AppearanceSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.appearanceSettings, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              l10n.appearanceSettings,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -960,7 +1088,12 @@ class _AppearanceSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Look & language', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                      Text(
+                        'Look & language',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       ListTile(
                         title: Text(l10n.appTheme),
@@ -974,7 +1107,10 @@ class _AppearanceSection extends StatelessWidget {
                         trailing: Container(
                           width: 24,
                           height: 24,
-                          decoration: BoxDecoration(color: appState.accentColor, shape: BoxShape.circle),
+                          decoration: BoxDecoration(
+                            color: appState.accentColor,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                         onTap: onColor,
                       ),
@@ -1001,9 +1137,12 @@ class _AppearanceSection extends StatelessWidget {
       return 'OLED';
     }
     switch (appState.themeMode) {
-      case ThemeMode.light: return 'Light';
-      case ThemeMode.dark: return 'Dark';
-      case ThemeMode.system: return 'System default';
+      case ThemeMode.light:
+        return 'Light';
+      case ThemeMode.dark:
+        return 'Dark';
+      case ThemeMode.system:
+        return 'System default';
     }
   }
 
@@ -1025,11 +1164,25 @@ class _AppearanceSection extends StatelessWidget {
 }
 
 const Map<String, String> _languageNames = {
-  'en': 'English', 'es': 'Español', 'fr': 'Français', 'de': 'Deutsch',
-  'it': 'Italiano', 'pt': 'Português', 'ru': 'Русский', 'zh': '中文',
-  'ja': '日本語', 'ko': '한국어', 'ar': 'العربية', 'hi': 'हिन्दी',
-  'nl': 'Nederlands', 'pl': 'Polski', 'tr': 'Türkçe', 'vi': 'Tiếng Việt',
-  'th': 'ไทย', 'id': 'Indonesia', 'uk': 'Українська',
+  'en': 'English',
+  'es': 'Español',
+  'fr': 'Français',
+  'de': 'Deutsch',
+  'it': 'Italiano',
+  'pt': 'Português',
+  'ru': 'Русский',
+  'zh': '中文',
+  'ja': '日本語',
+  'ko': '한국어',
+  'ar': 'العربية',
+  'hi': 'हिन्दी',
+  'nl': 'Nederlands',
+  'pl': 'Polski',
+  'tr': 'Türkçe',
+  'vi': 'Tiếng Việt',
+  'th': 'ไทย',
+  'id': 'Indonesia',
+  'uk': 'Українська',
 };
 
 // --- Server ---
@@ -1092,7 +1245,9 @@ class _ServerSection extends StatelessWidget {
           children: [
             Text(
               isLocal ? 'Local Music Settings' : l10n.serverSettings,
-              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 24),
             Card(
@@ -1103,7 +1258,9 @@ class _ServerSection extends StatelessWidget {
                   children: [
                     Text(
                       'Servers',
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     if (appState.savedServers.isEmpty)
@@ -1117,67 +1274,86 @@ class _ServerSection extends StatelessWidget {
                         ),
                       ),
                     ...appState.savedServers
-                        .where((server) =>
-                            !appState.isDesktopWhereYoutubeMusicRestricted ||
-                            appState.allowYoutubeMusicOnDesktop ||
-                            server.serverType != 'youtubeMusic')
+                        .where(
+                          (server) =>
+                              !appState.isDesktopWhereYoutubeMusicRestricted ||
+                              appState.allowYoutubeMusicOnDesktop ||
+                              server.serverType != 'youtubeMusic',
+                        )
                         .map((server) {
-                      final isCurrent = appState.currentServerId == server.id;
-                      return ListTile(
-                        title: Text(server.displayLabel),
-                        subtitle: Text(
-                          '${server.serverType} • ${server.serverUrl.replaceFirst(RegExp(r'^https?://'), '').split('/').first}',
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (!isCurrent)
-                              TextButton(
-                                onPressed: () async {
-                                  final ok = await appState.switchToServer(server.id);
-                                  if (context.mounted && !ok && appState.errorMessage != null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(appState.errorMessage!)),
+                          final isCurrent =
+                              appState.currentServerId == server.id;
+                          return ListTile(
+                            title: Text(server.displayLabel),
+                            subtitle: Text(
+                              '${server.serverType} • ${server.serverUrl.replaceFirst(RegExp(r'^https?://'), '').split('/').first}',
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (!isCurrent)
+                                  TextButton(
+                                    onPressed: () async {
+                                      final ok = await appState.switchToServer(
+                                        server.id,
+                                      );
+                                      if (context.mounted &&
+                                          !ok &&
+                                          appState.errorMessage != null) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              appState.errorMessage!,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    child: const Text('Switch'),
+                                  ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit_outlined),
+                                  onPressed: () => _showServerConnectionDialog(
+                                    context,
+                                    appState,
+                                    initialServer: server,
+                                  ),
+                                  tooltip: 'Edit',
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  onPressed: () async {
+                                    final confirm = await showAppConfirmDialog(
+                                      context: context,
+                                      title: 'Remove server?',
+                                      message:
+                                          'Remove "${server.displayLabel}" from your saved servers?',
+                                      confirmLabel: 'Remove',
+                                      isDestructive: true,
                                     );
-                                  }
-                                },
-                                child: const Text('Switch'),
-                              ),
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined),
-                              onPressed: () => _showServerConnectionDialog(
-                                context,
-                                appState,
-                                initialServer: server,
-                              ),
-                              tooltip: 'Edit',
+                                    if (confirm == true && context.mounted) {
+                                      await appState.removeServer(server.id);
+                                    }
+                                  },
+                                  tooltip: 'Remove',
+                                ),
+                              ],
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline),
-                              onPressed: () async {
-                                final confirm = await showAppConfirmDialog(
-                                  context: context,
-                                  title: 'Remove server?',
-                                  message: 'Remove "${server.displayLabel}" from your saved servers?',
-                                  confirmLabel: 'Remove',
-                                  isDestructive: true,
-                                );
-                                if (confirm == true && context.mounted) {
-                                  await appState.removeServer(server.id);
-                                }
-                              },
-                              tooltip: 'Remove',
-                            ),
-                          ],
-                        ),
-                        leading: isCurrent
-                            ? const Icon(Icons.check_circle, color: Colors.green, size: 22)
-                            : null,
-                      );
-                    }),
+                            leading: isCurrent
+                                ? const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 22,
+                                  )
+                                : null,
+                          );
+                        }),
                     const SizedBox(height: 8),
                     OutlinedButton.icon(
-                      onPressed: () => _showServerConnectionDialog(context, appState),
+                      onPressed: () =>
+                          _showServerConnectionDialog(context, appState),
                       icon: const Icon(Icons.add),
                       label: const Text('Add server'),
                     ),
@@ -1192,7 +1368,12 @@ class _ServerSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Cache', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                    Text(
+                      'Cache',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     ListTile(
                       title: const Text('Clear image cache'),
@@ -1208,7 +1389,11 @@ class _ServerSection extends StatelessWidget {
                         onTap: () async {
                           await localService.clearArtworkCache();
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Artwork cache cleared')));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Artwork cache cleared'),
+                              ),
+                            );
                           }
                         },
                       ),
@@ -1245,33 +1430,62 @@ class _AboutSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('About Doudou', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'About Doudou',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 24),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Column(
                   children: [
-                    Image.asset('assets/icons/icon.png', width: 80, height: 80, errorBuilder: (_, _, _) => const Icon(Icons.music_note, size: 80)),
+                    Image.asset(
+                      'assets/icons/icon.png',
+                      width: 80,
+                      height: 80,
+                      errorBuilder: (_, _, _) =>
+                          const Icon(Icons.music_note, size: 80),
+                    ),
                     const SizedBox(height: 24),
-                    Text('Doudou', style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
+                    Text(
+                      'Doudou',
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     FutureBuilder<PackageInfo>(
                       future: PackageInfo.fromPlatform(),
                       builder: (_, snap) {
                         final v = snap.data?.version ?? 'Unknown';
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: theme.colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Text('Version $v', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.onPrimaryContainer)),
+                          child: Text(
+                            'Version $v',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
+                          ),
                         );
                       },
                     ),
                     const SizedBox(height: 16),
-                    const Text('A beautiful music player for anyone anywhere.', textAlign: TextAlign.center),
+                    const Text(
+                      'A beautiful music player for anyone anywhere.',
+                      textAlign: TextAlign.center,
+                    ),
                     const SizedBox(height: 24),
                     _UpdateCheckButton(theme: theme),
                   ],
@@ -1285,11 +1499,28 @@ class _AboutSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('System Information', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                    Text(
+                      'System Information',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 16),
-                    ListTile(title: const Text('Platform'), subtitle: Text(_getPlatformInfo()), leading: const Icon(Icons.computer)),
-                    ListTile(title: const Text('Build Date'), subtitle: Text(_getBuildDate()), leading: const Icon(Icons.calendar_today)),
-                    ListTile(title: const Text('Operating System'), subtitle: Text(_getOSVersion()), leading: const Icon(Icons.settings_system_daydream)),
+                    ListTile(
+                      title: const Text('Platform'),
+                      subtitle: Text(_getPlatformInfo()),
+                      leading: const Icon(Icons.computer),
+                    ),
+                    ListTile(
+                      title: const Text('Build Date'),
+                      subtitle: Text(_getBuildDate()),
+                      leading: const Icon(Icons.calendar_today),
+                    ),
+                    ListTile(
+                      title: const Text('Operating System'),
+                      subtitle: Text(_getOSVersion()),
+                      leading: const Icon(Icons.settings_system_daydream),
+                    ),
                   ],
                 ),
               ),
@@ -1304,7 +1535,9 @@ class _AboutSection extends StatelessWidget {
     try {
       if (Platform.isLinux || Platform.isMacOS) {
         final r = Process.runSync('uname', ['-m']);
-        if (r.exitCode == 0) return '${Platform.operatingSystem} (${r.stdout.toString().trim()})';
+        if (r.exitCode == 0) {
+          return '${Platform.operatingSystem} (${r.stdout.toString().trim()})';
+        }
       }
     } catch (_) {}
     return Platform.operatingSystem;
@@ -1319,7 +1552,9 @@ class _AboutSection extends StatelessWidget {
     try {
       if (Platform.isLinux) {
         final r = Process.runSync('lsb_release', ['-d', '-s']);
-        if (r.exitCode == 0) return r.stdout.toString().trim().replaceAll('"', '');
+        if (r.exitCode == 0) {
+          return r.stdout.toString().trim().replaceAll('"', '');
+        }
         final k = Process.runSync('uname', ['-r']);
         if (k.exitCode == 0) return 'Linux ${k.stdout.toString().trim()}';
       } else if (Platform.isMacOS) {
@@ -1355,14 +1590,23 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
           title: 'Update Available',
           content: Text(
             'Current: ${info.currentVersion}\nLatest: ${info.latestVersion}',
-            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+            style: TextStyle(
+              color: DesktopTheme.textSecondary,
+              decoration: TextDecoration.none,
+            ),
           ),
           actionsBuilder: (dialogContext) => [
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Later')),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Later'),
+            ),
             FilledButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                launchUrl(Uri.parse('https://openlyst.ink/apps/doudou'), mode: LaunchMode.externalApplication);
+                launchUrl(
+                  Uri.parse('https://openlyst.ink/apps/doudou'),
+                  mode: LaunchMode.externalApplication,
+                );
               },
               child: const Text('View Update'),
             ),
@@ -1374,10 +1618,16 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
           title: 'Up to Date',
           content: Text(
             'Doudou ${info.currentVersion} is the latest version.',
-            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+            style: TextStyle(
+              color: DesktopTheme.textSecondary,
+              decoration: TextDecoration.none,
+            ),
           ),
           actionsBuilder: (dialogContext) => [
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('OK')),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('OK'),
+            ),
           ],
         );
       }
@@ -1389,10 +1639,16 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
           title: 'Update Check Failed',
           content: Text(
             'Unable to check for updates. Please try again later.',
-            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+            style: TextStyle(
+              color: DesktopTheme.textSecondary,
+              decoration: TextDecoration.none,
+            ),
           ),
           actionsBuilder: (dialogContext) => [
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('OK')),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('OK'),
+            ),
           ],
         );
       }
@@ -1403,7 +1659,16 @@ class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
   Widget build(BuildContext context) {
     return FilledButton.icon(
       onPressed: _checking ? null : _check,
-      icon: _checking ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.refresh),
+      icon: _checking
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : const Icon(Icons.refresh),
       label: Text(_checking ? 'Checking...' : 'Check for Updates'),
     );
   }
@@ -1444,101 +1709,106 @@ class _AccentColorDialog extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-            // Preset grid: 3x2 circular swatches
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 3,
-              mainAxisSpacing: spacing,
-              crossAxisSpacing: spacing,
-              childAspectRatio: 1,
-              children: _kAccentPresets.map((preset) {
-                final selected = preset.color.toARGB32() == currentColor.toARGB32();
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => onColorSelected(preset.color),
-                    borderRadius: BorderRadius.circular(swatchSize / 2 + ringWidth),
-                    child: Center(
-                      child: Container(
-                        width: swatchSize,
-                        height: swatchSize,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: preset.color,
-                          border: Border.all(
-                            color: selected
-                                ? (isDark ? Colors.white : theme.colorScheme.primary)
-                                : theme.colorScheme.outline.withValues(alpha: 0.5),
-                            width: selected ? ringWidth : 1,
-                          ),
-                          boxShadow: [
-                            if (selected)
-                              BoxShadow(
-                                color: (isDark ? Colors.white : theme.colorScheme.primary)
-                                    .withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                spreadRadius: 0,
-                              ),
-                          ],
-                        ),
-                        child: selected
-                            ? Icon(
-                                Icons.check_rounded,
-                                color: preset.color.computeLuminance() > 0.4
-                                    ? Colors.black87
-                                    : Colors.white,
-                                size: 26,
-                              )
-                            : null,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: spacing + 4),
-            // Custom color row
-            Material(
+        // Preset grid: 3x2 circular swatches
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 3,
+          mainAxisSpacing: spacing,
+          crossAxisSpacing: spacing,
+          childAspectRatio: 1,
+          children: _kAccentPresets.map((preset) {
+            final selected = preset.color.toARGB32() == currentColor.toARGB32();
+            return Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: onCustomTap,
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: currentColor,
-                          border: Border.all(
-                            color: theme.colorScheme.outline.withValues(alpha: 0.6),
-                            width: 1,
+                onTap: () => onColorSelected(preset.color),
+                borderRadius: BorderRadius.circular(swatchSize / 2 + ringWidth),
+                child: Center(
+                  child: Container(
+                    width: swatchSize,
+                    height: swatchSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: preset.color,
+                      border: Border.all(
+                        color: selected
+                            ? (isDark
+                                  ? Colors.white
+                                  : theme.colorScheme.primary)
+                            : theme.colorScheme.outline.withValues(alpha: 0.5),
+                        width: selected ? ringWidth : 1,
+                      ),
+                      boxShadow: [
+                        if (selected)
+                          BoxShadow(
+                            color:
+                                (isDark
+                                        ? Colors.white
+                                        : theme.colorScheme.primary)
+                                    .withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            spreadRadius: 0,
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Text(
-                        customLabel,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const Spacer(),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 22,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ],
+                      ],
+                    ),
+                    child: selected
+                        ? Icon(
+                            Icons.check_rounded,
+                            color: preset.color.computeLuminance() > 0.4
+                                ? Colors.black87
+                                : Colors.white,
+                            size: 26,
+                          )
+                        : null,
                   ),
                 ),
               ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: spacing + 4),
+        // Custom color row
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onCustomTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: currentColor,
+                      border: Border.all(
+                        color: theme.colorScheme.outline.withValues(alpha: 0.6),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Text(
+                    customLabel,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 22,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1546,25 +1816,32 @@ class _AccentColorDialog extends StatelessWidget {
 class _CustomColorPickerDialog extends StatefulWidget {
   const _CustomColorPickerDialog({
     required this.initialColor,
+    required this.showHexControls,
     required this.onColorSelected,
   });
 
   final Color initialColor;
+  final bool showHexControls;
   final ValueChanged<Color> onColorSelected;
 
   @override
-  State<_CustomColorPickerDialog> createState() => _CustomColorPickerDialogState();
+  State<_CustomColorPickerDialog> createState() =>
+      _CustomColorPickerDialogState();
 }
 
 class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
   late Color _color;
+  late HSVColor _hsv;
   late TextEditingController _hex;
 
   @override
   void initState() {
     super.initState();
     _color = widget.initialColor;
-    _hex = TextEditingController(text: _color.toARGB32().toRadixString(16).substring(2).toUpperCase());
+    _hsv = HSVColor.fromColor(_color);
+    _hex = TextEditingController(
+      text: _color.toARGB32().toRadixString(16).substring(2).toUpperCase(),
+    );
   }
 
   @override
@@ -1576,14 +1853,41 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
   void _update(Color c) {
     setState(() {
       _color = c;
-      _hex.text = c.toARGB32().toRadixString(16).substring(2).toUpperCase();
+      _hsv = HSVColor.fromColor(c);
+      _syncHex(c);
     });
+  }
+
+  void _updateFromHsv(HSVColor hsv) {
+    final c = hsv.toColor();
+    setState(() {
+      _hsv = hsv;
+      _color = c;
+      _syncHex(c);
+    });
+  }
+
+  void _syncHex(Color color) {
+    _hex.text = color.toARGB32().toRadixString(16).substring(2).toUpperCase();
+  }
+
+  void _applyHex(String value) {
+    final normalized = value
+        .replaceAll(RegExp(r'[^0-9a-fA-F]'), '')
+        .toUpperCase();
+    if (normalized.length != 6) return;
+    try {
+      final parsed = Color(int.parse('FF$normalized', radix: 16));
+      _update(parsed);
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textColor = _color.computeLuminance() > 0.4 ? Colors.black87 : Colors.white;
+    final textColor = _color.computeLuminance() > 0.4
+        ? Colors.black87
+        : Colors.white;
 
     return SingleChildScrollView(
       child: Column(
@@ -1595,47 +1899,66 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
             decoration: BoxDecoration(
               color: _color,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.5),
+              ),
             ),
             child: Center(
-              child: Text(
-                '#${_hex.text.toUpperCase()}',
-                style: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                  fontFamily: 'monospace',
-                ),
-              ),
+              child: widget.showHexControls
+                  ? Text(
+                      '#${_hex.text.toUpperCase()}',
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        fontFamily: 'monospace',
+                      ),
+                    )
+                  : null,
             ),
           ),
           const SizedBox(height: 20),
-          _slider(context, 'Red', _color.r * 255.0, Colors.red, (v) => _update(Color.fromARGB(255, v.round().clamp(0, 255), (_color.g * 255.0).round().clamp(0, 255), (_color.b * 255.0).round().clamp(0, 255)))),
-          const SizedBox(height: 8),
-          _slider(context, 'Green', _color.g * 255.0, Colors.green, (v) => _update(Color.fromARGB(255, (_color.r * 255.0).round().clamp(0, 255), v.round().clamp(0, 255), (_color.b * 255.0).round().clamp(0, 255)))),
-          const SizedBox(height: 8),
-          _slider(context, 'Blue', _color.b * 255.0, Colors.blue, (v) => _update(Color.fromARGB(255, (_color.r * 255.0).round().clamp(0, 255), (_color.g * 255.0).round().clamp(0, 255), v.round().clamp(0, 255)))),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _hex,
-            maxLength: 6,
-            decoration: InputDecoration(
-              labelText: 'Hex',
-              prefixText: '# ',
-              border: const OutlineInputBorder(),
-              isDense: true,
-              counterText: '',
+          Center(
+            child: SizedBox(
+              width: 220,
+              height: 220,
+              child: _ColorWheelPicker(hsv: _hsv, onChanged: _updateFromHsv),
             ),
-            style: const TextStyle(fontFamily: 'monospace', letterSpacing: 1.2),
-            onChanged: (s) {
-              if (s.length == 6) {
-                try {
-                  setState(() => _color = Color(int.parse('FF${s.toUpperCase()}', radix: 16)));
-                } catch (_) {}
-              }
-            },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 14),
+          Text(
+            'Brightness: ${(_hsv.value * 100).round()}%',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Slider(
+            value: _hsv.value,
+            min: 0,
+            max: 1,
+            onChanged: (v) => _updateFromHsv(_hsv.withValue(v)),
+          ),
+          if (widget.showHexControls) ...[
+            const SizedBox(height: 16),
+            TextField(
+              controller: _hex,
+              maxLength: 6,
+              decoration: InputDecoration(
+                labelText: 'Hex',
+                prefixText: '# ',
+                border: const OutlineInputBorder(),
+                isDense: true,
+                counterText: '',
+              ),
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                letterSpacing: 1.2,
+              ),
+              onChanged: _applyHex,
+            ),
+            const SizedBox(height: 24),
+          ] else
+            const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -1654,34 +1977,113 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
       ),
     );
   }
+}
 
-  Widget _slider(BuildContext context, String label, double value, Color color, ValueChanged<double> onChanged) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '$label: ${value.round()}',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+class _ColorWheelPicker extends StatelessWidget {
+  final HSVColor hsv;
+  final ValueChanged<HSVColor> onChanged;
+
+  const _ColorWheelPicker({required this.hsv, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = math.min(constraints.maxWidth, constraints.maxHeight);
+        return GestureDetector(
+          onPanDown: (d) => _handlePointer(d.localPosition, size),
+          onPanUpdate: (d) => _handlePointer(d.localPosition, size),
+          child: CustomPaint(
+            size: Size.square(size),
+            painter: _ColorWheelPainter(hsv: hsv),
           ),
-        ),
-        const SizedBox(height: 4),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: color,
-            thumbColor: color,
-            overlayColor: color.withValues(alpha: 0.2),
-          ),
-          child: Slider(
-            value: value,
-            min: 0,
-            max: 255,
-            divisions: 255,
-            onChanged: onChanged,
-          ),
-        ),
-      ],
+        );
+      },
     );
+  }
+
+  void _handlePointer(Offset local, double size) {
+    final center = Offset(size / 2, size / 2);
+    final delta = local - center;
+    final radius = size / 2;
+    final distance = delta.distance.clamp(0.0, radius);
+    final saturation = (distance / radius).clamp(0.0, 1.0);
+    var hue = math.atan2(delta.dy, delta.dx) * 180 / math.pi;
+    if (hue < 0) {
+      hue += 360;
+    }
+    onChanged(hsv.withHue(hue).withSaturation(saturation));
+  }
+}
+
+class _ColorWheelPainter extends CustomPainter {
+  final HSVColor hsv;
+
+  const _ColorWheelPainter({required this.hsv});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    final huePaint = Paint()
+      ..shader = SweepGradient(
+        colors: const [
+          Colors.red,
+          Colors.yellow,
+          Colors.green,
+          Colors.cyan,
+          Colors.blue,
+          Colors.purple,
+          Colors.red,
+        ],
+      ).createShader(rect);
+    canvas.drawCircle(center, radius, huePaint);
+
+    final whiteFade = Paint()
+      ..shader = RadialGradient(
+        colors: [Colors.white, Colors.white.withValues(alpha: 0.0)],
+        stops: const [0.0, 1.0],
+      ).createShader(rect);
+    canvas.drawCircle(center, radius, whiteFade);
+
+    if (hsv.value < 1) {
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()..color = Colors.black.withValues(alpha: 1 - hsv.value),
+      );
+    }
+
+    final theta = hsv.hue * math.pi / 180.0;
+    final selectorOffset =
+        center +
+        Offset(
+          math.cos(theta) * hsv.saturation * radius,
+          math.sin(theta) * hsv.saturation * radius,
+        );
+
+    canvas.drawCircle(
+      selectorOffset,
+      10,
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.35)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+    );
+    canvas.drawCircle(selectorOffset, 9, Paint()..color = hsv.toColor());
+    canvas.drawCircle(
+      selectorOffset,
+      9,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = Colors.white,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _ColorWheelPainter oldDelegate) {
+    return oldDelegate.hsv != hsv;
   }
 }

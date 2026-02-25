@@ -51,6 +51,8 @@ class AppState extends ChangeNotifier {
   bool _showVolumeOnPlayerBar = true;
   bool _showQueueOnPlayerBar = true;
   bool _showShuffleRepeatOnPlayerBar = true;
+  bool _showHexColorControls = false;
+
   /// When false (default on Windows/Linux), YouTube Music is hidden due to known issues; user can re-enable in General settings.
   bool _allowYoutubeMusicOnDesktop = false;
 
@@ -153,6 +155,7 @@ class AppState extends ChangeNotifier {
   bool get showVolumeOnPlayerBar => _showVolumeOnPlayerBar;
   bool get showQueueOnPlayerBar => _showQueueOnPlayerBar;
   bool get showShuffleRepeatOnPlayerBar => _showShuffleRepeatOnPlayerBar;
+  bool get showHexColorControls => _showHexColorControls;
   bool get allowYoutubeMusicOnDesktop => _allowYoutubeMusicOnDesktop;
 
   /// True on Windows/Linux where YouTube Music is optionally hidden by default.
@@ -251,10 +254,14 @@ class AppState extends ChangeNotifier {
       await _loadSavedServersList();
 
       // On Windows/Linux, YouTube Music is disabled by default; don't restore it as current server unless user re-enabled it.
-      if (isDesktopWhereYoutubeMusicRestricted && !_allowYoutubeMusicOnDesktop && _currentServerId != null) {
+      if (isDesktopWhereYoutubeMusicRestricted &&
+          !_allowYoutubeMusicOnDesktop &&
+          _currentServerId != null) {
         final idx = _savedServers.indexWhere((s) => s.id == _currentServerId);
         if (idx >= 0 && _savedServers[idx].serverType == 'youtubeMusic') {
-          final nonYt = _savedServers.where((s) => s.serverType != 'youtubeMusic').toList();
+          final nonYt = _savedServers
+              .where((s) => s.serverType != 'youtubeMusic')
+              .toList();
           _currentServerId = nonYt.isNotEmpty ? nonYt.first.id : null;
         }
       }
@@ -1035,7 +1042,9 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<void> _migrateLegacyToSavedServers(Map<String, String> credentials) async {
+  Future<void> _migrateLegacyToSavedServers(
+    Map<String, String> credentials,
+  ) async {
     final serverType = credentials['serverType']!;
     final serverUrl = credentials['serverUrl']!;
     final authMethod = credentials['authMethod'] ?? 'password';
@@ -1107,7 +1116,9 @@ class AppState extends ChangeNotifier {
         }
         return ok;
       }
-      if (s.serverType == 'jellyfin' && s.authMethod == 'api_key' && s.apiKey != null) {
+      if (s.serverType == 'jellyfin' &&
+          s.authMethod == 'api_key' &&
+          s.apiKey != null) {
         final ok = await loginWithApiKey(s.serverUrl, s.apiKey!);
         if (ok) {
           _currentServerId = s.id;
@@ -1116,16 +1127,11 @@ class AppState extends ChangeNotifier {
         return ok;
       }
       if (s.serverType == 'plex' && s.credential != null) {
-        final ok = await loginWithServerType('plex', s.serverUrl, '', s.credential!);
-        if (ok) {
-          _currentServerId = s.id;
-          await _saveSavedServersList();
-        }
-        return ok;
-      }
-      if (s.serverType == 'subsonic' && s.identifier != null && s.credential != null) {
         final ok = await loginWithServerType(
-          'subsonic', s.serverUrl, s.identifier!, s.credential!,
+          'plex',
+          s.serverUrl,
+          '',
+          s.credential!,
         );
         if (ok) {
           _currentServerId = s.id;
@@ -1133,10 +1139,30 @@ class AppState extends ChangeNotifier {
         }
         return ok;
       }
-      if (s.serverType == 'jellyfin' && s.authMethod == 'password' &&
-          s.identifier != null && s.credential != null) {
+      if (s.serverType == 'subsonic' &&
+          s.identifier != null &&
+          s.credential != null) {
         final ok = await loginWithServerType(
-          'jellyfin', s.serverUrl, s.identifier!, s.credential!,
+          'subsonic',
+          s.serverUrl,
+          s.identifier!,
+          s.credential!,
+        );
+        if (ok) {
+          _currentServerId = s.id;
+          await _saveSavedServersList();
+        }
+        return ok;
+      }
+      if (s.serverType == 'jellyfin' &&
+          s.authMethod == 'password' &&
+          s.identifier != null &&
+          s.credential != null) {
+        final ok = await loginWithServerType(
+          'jellyfin',
+          s.serverUrl,
+          s.identifier!,
+          s.credential!,
         );
         if (ok) {
           _currentServerId = s.id;
@@ -2230,6 +2256,14 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setShowHexColorControls(bool enabled) async {
+    if (_showHexColorControls == enabled) return;
+    _showHexColorControls = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('show_hex_color_controls', enabled);
+    notifyListeners();
+  }
+
   Future<void> setAllowYoutubeMusicOnDesktop(bool enabled) async {
     if (_allowYoutubeMusicOnDesktop == enabled) return;
     _allowYoutubeMusicOnDesktop = enabled;
@@ -2298,11 +2332,11 @@ class AppState extends ChangeNotifier {
         prefs.getBool('smart_back_to_start_enabled') ?? true;
     _lyricsEnabled = prefs.getBool('lyrics_enabled') ?? true;
     _downloadsEnabled = prefs.getBool('downloads_enabled') ?? true;
-    _showVolumeOnPlayerBar =
-        prefs.getBool('show_volume_on_player_bar') ?? true;
+    _showVolumeOnPlayerBar = prefs.getBool('show_volume_on_player_bar') ?? true;
     _showQueueOnPlayerBar = prefs.getBool('show_queue_on_player_bar') ?? true;
     _showShuffleRepeatOnPlayerBar =
         prefs.getBool('show_shuffle_repeat_on_player_bar') ?? true;
+    _showHexColorControls = prefs.getBool('show_hex_color_controls') ?? false;
     _allowYoutubeMusicOnDesktop =
         prefs.getBool('allow_youtube_music_on_desktop') ?? false;
 
