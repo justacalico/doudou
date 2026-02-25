@@ -381,6 +381,7 @@ class MusicListTile extends StatelessWidget {
   final String? imageUrl;
   final Widget? trailing;
   final VoidCallback onTap;
+  final VoidCallback? onSecondaryTap;
 
   const MusicListTile({
     super.key,
@@ -389,6 +390,7 @@ class MusicListTile extends StatelessWidget {
     this.imageUrl,
     this.trailing,
     required this.onTap,
+    this.onSecondaryTap,
   });
 
   @override
@@ -396,6 +398,7 @@ class MusicListTile extends StatelessWidget {
     final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
+      onSecondaryTap: onSecondaryTap,
       borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
       child: Container(
         padding: const EdgeInsets.all(10),

@@ -379,6 +379,8 @@ class _HomePageState extends State<HomePage> {
                 title: track.name,
                 subtitle: track.artistName ?? l10n.unknownArtist,
                 imageUrl: imageUrl,
+                onSecondaryTap: () =>
+                    _showTrackMoreMenu(context, track, appState),
                 onTap: () => appState.playPlaylist(tracks, index),
               ),
             ),
@@ -558,6 +560,8 @@ class _HomePageState extends State<HomePage> {
                 subtitle:
                     '${track.artistName ?? l10n.unknownArtist} • ${track.albumName ?? l10n.unknownAlbum}',
                 imageUrl: _imageUrl(appState, track.imageUrl),
+                onSecondaryTap: () =>
+                    _showTrackMoreMenu(context, track, appState),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
