@@ -42,7 +42,10 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadYtHome(BuildContext context) async {
     final appState = context.read<AppState>();
-    if (appState.mediaServiceManager.currentServerType != ServerType.youtubeMusic) return;
+    if (appState.mediaServiceManager.currentServerType !=
+        ServerType.youtubeMusic) {
+      return;
+    }
     if (_ytHomeSections != null || _ytHomeLoading) return;
     if (!mounted) return;
     setState(() => _ytHomeLoading = true);
@@ -72,9 +75,13 @@ class _HomePageState extends State<HomePage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final isYtMusic = appState.mediaServiceManager.currentServerType == ServerType.youtubeMusic;
+        final isYtMusic =
+            appState.mediaServiceManager.currentServerType ==
+            ServerType.youtubeMusic;
         if (isYtMusic && _ytHomeSections == null && !_ytHomeLoading) {
-          WidgetsBinding.instance.addPostFrameCallback((_) => _loadYtHome(context));
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => _loadYtHome(context),
+          );
         } else if (!isYtMusic && _ytHomeSections != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) setState(() => _ytHomeSections = null);
@@ -98,46 +105,7 @@ class _HomePageState extends State<HomePage> {
                     Expanded(
                       child: isYtMusic
                           ? _ytHomeBody(context, appState, l10n)
-                          : SingleChildScrollView(
-                              physics: const BouncingScrollPhysics(),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (appState.albums.isNotEmpty) ...[
-                                    SectionHeader(
-                                      title: l10n.recentlyAddedAlbums,
-                                      subtitle: l10n.yourNewestAdditions,
-                                      useGradient: true,
-                                      onSeeAllPressed: () =>
-                                          NavigationService().selectPage(3),
-                                    ),
-                                    const SizedBox(height: DesktopTheme.spacingMd),
-                                    _albumRow(context, appState, l10n),
-                                    const SizedBox(height: DesktopTheme.spacingXl),
-                                  ],
-                                  if (appState.artists.isNotEmpty) ...[
-                                    SectionHeader(
-                                      title: l10n.yourArtists,
-                                      subtitle: l10n.browseByArtist,
-                                      onSeeAllPressed: () =>
-                                          NavigationService().selectPage(4),
-                                    ),
-                                    const SizedBox(height: DesktopTheme.spacingMd),
-                                    _artistRow(context, appState, l10n),
-                                    const SizedBox(height: DesktopTheme.spacingXl),
-                                  ],
-                                  if (appState.tracks.isNotEmpty) ...[
-                                    SectionHeader(
-                                      title: l10n.recentTracks,
-                                      subtitle: l10n.yourMusicCollection,
-                                    ),
-                                    const SizedBox(height: DesktopTheme.spacingMd),
-                                    _recentTracks(context, appState, l10n),
-                                  ],
-                                  const SizedBox(height: 120),
-                                ],
-                              ),
-                            ),
+                          : _libraryHomeBody(context, appState, l10n),
                     ),
                   ],
                 ),
@@ -146,7 +114,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _ytHomeBody(BuildContext context, AppState appState, AppLocalizations l10n) {
+  Widget _ytHomeBody(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
     if (_ytHomeLoading) {
       return Center(
         child: Column(
@@ -187,9 +159,9 @@ class _HomePageState extends State<HomePage> {
             SectionHeader(title: section.title),
             const SizedBox(height: DesktopTheme.spacingMd),
             if (section.isTracks)
-              _ytTrackRow(context, appState, l10n, section.tracks)
+              _trackRow(context, appState, l10n, section.tracks)
             else
-              _ytPlaylistRow(context, appState, section.playlists),
+              _playlistRow(context, appState, section.playlists),
             const SizedBox(height: DesktopTheme.spacingXl),
           ],
           const SizedBox(height: 120),
@@ -198,7 +170,196 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _ytTrackRow(BuildContext context, AppState appState, AppLocalizations l10n, List<Track> tracks) {
+  Widget _libraryHomeBody(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
+    final continueListening = _pickVaried<Track>(
+      appState.recentTracks,
+      10,
+      salt: 'continue',
+      keyOf: (t) => t.id,
+    );
+    final basedOnFavorites = _pickTracksFromFavoriteArtists(appState);
+    final featuredPlaylists = _pickVaried<Playlist>(
+      appState.playlists,
+      10,
+      salt: 'playlists',
+      keyOf: (p) => p.id,
+    );
+    final latestAlbums = _pickRecentAlbums(appState.albums, 10);
+    final artistsToExplore = _pickVaried<Artist>(
+      appState.artists,
+      10,
+      salt: 'artists',
+      keyOf: (a) => a.id,
+    );
+    final freshPicks = _pickVaried<Track>(
+      appState.tracks,
+      10,
+      salt: 'fresh',
+      keyOf: (t) => t.id,
+    );
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (continueListening.isNotEmpty) ...[
+            SectionHeader(
+              title: 'Continue Listening',
+              subtitle: 'Pick up where you left off',
+            ),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            _trackRow(context, appState, l10n, continueListening),
+            const SizedBox(height: DesktopTheme.spacingXl),
+          ],
+          if (basedOnFavorites.isNotEmpty) ...[
+            SectionHeader(
+              title: 'Because You Like These Artists',
+              subtitle: 'More tracks from artists you already favorite',
+              onSeeAllPressed: () => NavigationService().selectPage(5),
+            ),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            _trackRow(context, appState, l10n, basedOnFavorites),
+            const SizedBox(height: DesktopTheme.spacingXl),
+          ],
+          if (featuredPlaylists.isNotEmpty) ...[
+            SectionHeader(
+              title: l10n.playlists,
+              subtitle: 'Playlists from your collection',
+              onSeeAllPressed: () => NavigationService().selectPage(6),
+            ),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            _playlistRow(context, appState, featuredPlaylists),
+            const SizedBox(height: DesktopTheme.spacingXl),
+          ],
+          if (latestAlbums.isNotEmpty) ...[
+            SectionHeader(
+              title: l10n.recentlyAddedAlbums,
+              subtitle: l10n.yourNewestAdditions,
+              useGradient: true,
+              onSeeAllPressed: () => NavigationService().selectPage(3),
+            ),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            _albumRow(context, appState, l10n, latestAlbums),
+            const SizedBox(height: DesktopTheme.spacingXl),
+          ],
+          if (artistsToExplore.isNotEmpty) ...[
+            SectionHeader(
+              title: l10n.yourArtists,
+              subtitle: 'A rotating mix from your artists',
+              onSeeAllPressed: () => NavigationService().selectPage(4),
+            ),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            _artistRow(context, appState, l10n, artistsToExplore),
+            const SizedBox(height: DesktopTheme.spacingXl),
+          ],
+          if (freshPicks.isNotEmpty) ...[
+            SectionHeader(
+              title: 'Fresh Picks',
+              subtitle: l10n.yourMusicCollection,
+              onSeeAllPressed: () => NavigationService().selectPage(5),
+            ),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            _recentTracks(context, appState, l10n, freshPicks),
+          ],
+          if (continueListening.isEmpty &&
+              basedOnFavorites.isEmpty &&
+              featuredPlaylists.isEmpty &&
+              latestAlbums.isEmpty &&
+              artistsToExplore.isEmpty &&
+              freshPicks.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 20),
+              child: Text(
+                'Your library is empty. Add music to unlock personalized home sections.',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: DesktopTheme.textSecondary,
+                ),
+              ),
+            ),
+          const SizedBox(height: 120),
+        ],
+      ),
+    );
+  }
+
+  List<T> _pickVaried<T>(
+    List<T> source,
+    int count, {
+    required String salt,
+    required String Function(T) keyOf,
+  }) {
+    if (source.isEmpty || count <= 0) return const [];
+    final seed = DateTime.now().toUtc().difference(DateTime.utc(2024)).inDays;
+    final sorted = List<T>.from(source)
+      ..sort((a, b) {
+        final ah = Object.hash(seed, salt, keyOf(a));
+        final bh = Object.hash(seed, salt, keyOf(b));
+        return ah.compareTo(bh);
+      });
+    return sorted.take(count).toList();
+  }
+
+  List<Album> _pickRecentAlbums(List<Album> albums, int count) {
+    if (albums.isEmpty || count <= 0) return const [];
+    final withDate = albums.where((a) => a.dateCreated != null).toList()
+      ..sort((a, b) => b.dateCreated!.compareTo(a.dateCreated!));
+    if (withDate.length >= count) return withDate.take(count).toList();
+    final remainingCount = count - withDate.length;
+    final remaining = albums.where((a) => a.dateCreated == null).toList();
+    return [
+      ...withDate,
+      ..._pickVaried<Album>(
+        remaining,
+        remainingCount,
+        salt: 'albums-fallback',
+        keyOf: (a) => a.id,
+      ),
+    ];
+  }
+
+  List<Track> _pickTracksFromFavoriteArtists(AppState appState) {
+    final favoriteArtistNames = appState.favoriteTracks
+        .map((t) => t.artistName)
+        .whereType<String>()
+        .where((name) => name.isNotEmpty)
+        .toSet();
+    if (favoriteArtistNames.isEmpty) return const [];
+    final matching = appState.tracks
+        .where(
+          (t) =>
+              t.artistName != null &&
+              favoriteArtistNames.contains(t.artistName) &&
+              !t.isFavorite,
+        )
+        .toList();
+    if (matching.isEmpty) {
+      return _pickVaried<Track>(
+        appState.favoriteTracks,
+        10,
+        salt: 'favorite-fallback',
+        keyOf: (t) => t.id,
+      );
+    }
+    return _pickVaried<Track>(
+      matching,
+      10,
+      salt: 'favorite-artists',
+      keyOf: (t) => t.id,
+    );
+  }
+
+  Widget _trackRow(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+    List<Track> tracks,
+  ) {
     return SizedBox(
       height: 72,
       child: ListView.builder(
@@ -207,10 +368,11 @@ class _HomePageState extends State<HomePage> {
         itemCount: tracks.length,
         itemBuilder: (context, index) {
           final track = tracks[index];
-          final imageUrl = appState.mediaServiceManager.getImageUrl(track.imageUrl ?? track.id);
+          final imageUrl = _imageUrl(appState, track.imageUrl);
           return Padding(
             padding: EdgeInsets.only(
-                right: index < tracks.length - 1 ? DesktopTheme.spacingMd : 0),
+              right: index < tracks.length - 1 ? DesktopTheme.spacingMd : 0,
+            ),
             child: SizedBox(
               width: 280,
               child: MusicListTile(
@@ -226,7 +388,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _ytPlaylistRow(BuildContext context, AppState appState, List<Playlist> playlists) {
+  Widget _playlistRow(
+    BuildContext context,
+    AppState appState,
+    List<Playlist> playlists,
+  ) {
     return SizedBox(
       height: 230,
       child: ListView.builder(
@@ -235,10 +401,13 @@ class _HomePageState extends State<HomePage> {
         itemCount: playlists.length,
         itemBuilder: (context, index) {
           final playlist = playlists[index];
-          final imageUrl = playlist.imageUrl ?? appState.mediaServiceManager.getImageUrl(playlist.id);
+          final imageUrl =
+              playlist.imageUrl ??
+              appState.mediaServiceManager.getImageUrl(playlist.id);
           return Padding(
             padding: EdgeInsets.only(
-                right: index < playlists.length - 1 ? DesktopTheme.spacingMd : 0),
+              right: index < playlists.length - 1 ? DesktopTheme.spacingMd : 0,
+            ),
             child: MusicCard(
               title: playlist.name,
               subtitle: '${playlist.trackCount} tracks',
@@ -276,7 +445,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _quickAccess(
-      BuildContext context, AppState appState, AppLocalizations l10n) {
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
     return Row(
       children: [
         Expanded(
@@ -293,7 +465,8 @@ class _HomePageState extends State<HomePage> {
           child: QuickAccessCard(
             title: 'Shuffle Favorites',
             subtitle: l10n.countSongs(
-                appState.tracks.where((t) => t.isFavorite).length),
+              appState.tracks.where((t) => t.isFavorite).length,
+            ),
             icon: Icons.favorite_rounded,
             color: DesktopTheme.heartRed,
             onTap: () => appState.shuffleFavoriteTracks(),
@@ -304,8 +477,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _albumRow(
-      BuildContext context, AppState appState, AppLocalizations l10n) {
-    final list = appState.albums.take(10).toList();
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+    List<Album> list,
+  ) {
     return SizedBox(
       height: 230,
       child: ListView.builder(
@@ -318,7 +494,8 @@ class _HomePageState extends State<HomePage> {
             key: ValueKey(album.id),
             child: Padding(
               padding: EdgeInsets.only(
-                  right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
+                right: index < list.length - 1 ? DesktopTheme.spacingMd : 0,
+              ),
               child: MusicCard(
                 title: album.name,
                 subtitle: album.artistName ?? l10n.unknownArtist,
@@ -334,8 +511,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _artistRow(
-      BuildContext context, AppState appState, AppLocalizations l10n) {
-    final list = appState.artists.take(10).toList();
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+    List<Artist> list,
+  ) {
     return SizedBox(
       height: 230,
       child: ListView.builder(
@@ -348,7 +528,8 @@ class _HomePageState extends State<HomePage> {
             key: ValueKey(artist.id),
             child: Padding(
               padding: EdgeInsets.only(
-                  right: index < list.length - 1 ? DesktopTheme.spacingMd : 0),
+                right: index < list.length - 1 ? DesktopTheme.spacingMd : 0,
+              ),
               child: MusicCard(
                 title: artist.name,
                 subtitle: l10n.artist,
@@ -364,8 +545,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _recentTracks(
-      BuildContext context, AppState appState, AppLocalizations l10n) {
-    final tracks = appState.tracks.take(8).toList();
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+    List<Track> tracks,
+  ) {
     return Column(
       children: tracks
           .map(
@@ -414,7 +598,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showTrackMoreMenu(
-      BuildContext context, Track track, AppState appState) {
+    BuildContext context,
+    Track track,
+    AppState appState,
+  ) {
     final l10n = AppLocalizations.of(context);
     showCupertinoModalPopup<void>(
       context: context,
