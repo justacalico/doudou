@@ -28,6 +28,9 @@ import 'package:doudou/ui/onboarding/onboarding_screen.dart';
 /// Breakpoint: above = sidebar (desktop), below = bottom nav (mobile).
 const double kLayoutBreakpoint = 768.0;
 
+/// Below this, keep compact sidebar to preserve usable content width.
+const double kCompactSidebarLockBreakpoint = 840.0;
+
 /// Single responsive shell: sidebar on desktop, bottom navbar on mobile.
 /// Uses one [selectedIndex] and one set of pages so resizing never reloads or loses state.
 class AppShell extends StatefulWidget {
@@ -293,7 +296,8 @@ class _AppShellState extends State<AppShell> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= kLayoutBreakpoint;
-        final forceCompactSidebar = constraints.maxWidth < 1060;
+        final forceCompactSidebar =
+            constraints.maxWidth < kCompactSidebarLockBreakpoint;
         final effectiveCompactSidebar =
             isDesktop && (forceCompactSidebar || _sidebarCompact);
         return KeyboardListener(
