@@ -1246,7 +1246,7 @@ void _showServerConnectionDialog(
   );
 }
 
-class _ServerSection extends StatelessWidget {
+class _ServerSection extends StatefulWidget {
   final AppState appState;
   final Future<void> Function(AppState) onAddDir;
   final Future<void> Function(AppState, String) onRemoveDir;
@@ -1264,9 +1264,17 @@ class _ServerSection extends StatelessWidget {
   });
 
   @override
+  State<_ServerSection> createState() => _ServerSectionState();
+}
+
+class _ServerSectionState extends State<_ServerSection> {
+  String? _switchingServerId;
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final appState = widget.appState;
     final serverType = appState.mediaServiceManager.currentServerType;
     final isLocal = serverType == ServerType.local;
     final localService = appState.mediaServiceManager.localMusicService;
@@ -1318,71 +1326,139 @@ class _ServerSection extends StatelessWidget {
                         .map((server) {
                           final isCurrent =
                               appState.currentServerId == server.id;
-                          return ListTile(
-                            title: Text(server.displayLabel),
-                            subtitle: Text(
-                              '${server.serverType} • ${server.serverUrl.replaceFirst(RegExp(r'^https?://'), '').split('/').first}',
+                          final isSwitching = _switchingServerId == server.id;
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 260),
+                            curve: Curves.easeOutCubic,
+                            decoration: BoxDecoration(
+                              color: isCurrent
+                                  ? theme.colorScheme.primary.withValues(
+                                      alpha: 0.08,
+                                    )
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (!isCurrent)
-                                  TextButton(
-                                    onPressed: () async {
-                                      final ok = await appState.switchToServer(
-                                        server.id,
-                                      );
-                                      if (context.mounted &&
-                                          !ok &&
-                                          appState.errorMessage != null) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              appState.errorMessage!,
+                            child: ListTile(
+                              title: Text(server.displayLabel),
+                              subtitle: Text(
+                                '${server.serverType} • ${server.serverUrl.replaceFirst(RegExp(r'^https?://'), '').split('/').first}',
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 220),
+                                    child: isCurrent
+                                        ? const SizedBox(
+                                            key: ValueKey('switch-current'),
+                                          )
+                                        : isSwitching
+                                        ? const SizedBox(
+                                            key: ValueKey('switch-loading'),
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
                                             ),
+                                          )
+                                        : TextButton(
+                                            key: ValueKey(
+                                              'switch-${server.id}',
+                                            ),
+                                            onPressed: () async {
+                                              setState(
+                                                () => _switchingServerId =
+                                                    server.id,
+                                              );
+                                              final ok = await appState
+                                                  .switchToServer(server.id);
+                                              if (mounted) {
+                                                setState(
+                                                  () =>
+                                                      _switchingServerId = null,
+                                                );
+                                              }
+                                              if (context.mounted &&
+                                                  !ok &&
+                                                  appState.errorMessage !=
+                                                      null) {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      appState.errorMessage!,
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            child: const Text('Switch'),
                                           ),
-                                        );
-                                      }
-                                    },
-                                    child: const Text('Switch'),
                                   ),
-                                IconButton(
-                                  icon: const Icon(Icons.edit_outlined),
-                                  onPressed: () => _showServerConnectionDialog(
-                                    context,
-                                    appState,
-                                    initialServer: server,
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_outlined),
+                                    onPressed: _switchingServerId == null
+                                        ? () => _showServerConnectionDialog(
+                                            context,
+                                            appState,
+                                            initialServer: server,
+                                          )
+                                        : null,
+                                    tooltip: 'Edit',
                                   ),
-                                  tooltip: 'Edit',
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline),
+                                    onPressed: _switchingServerId == null
+                                        ? () async {
+                                            final confirm =
+                                                await showAppConfirmDialog(
+                                                  context: context,
+                                                  title: 'Remove server?',
+                                                  message:
+                                                      'Remove "${server.displayLabel}" from your saved servers?',
+                                                  confirmLabel: 'Remove',
+                                                  isDestructive: true,
+                                                );
+                                            if (confirm == true &&
+                                                context.mounted) {
+                                              await appState.removeServer(
+                                                server.id,
+                                              );
+                                            }
+                                          }
+                                        : null,
+                                    tooltip: 'Remove',
+                                  ),
+                                ],
+                              ),
+                              leading: SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 240),
+                                  child: isSwitching
+                                      ? const SizedBox(
+                                          key: ValueKey('leading-loading'),
+                                          width: 22,
+                                          height: 22,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : isCurrent
+                                      ? const Icon(
+                                          Icons.check_circle,
+                                          key: ValueKey('leading-current'),
+                                          color: Colors.green,
+                                          size: 22,
+                                        )
+                                      : const SizedBox(
+                                          key: ValueKey('leading-empty'),
+                                        ),
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline),
-                                  onPressed: () async {
-                                    final confirm = await showAppConfirmDialog(
-                                      context: context,
-                                      title: 'Remove server?',
-                                      message:
-                                          'Remove "${server.displayLabel}" from your saved servers?',
-                                      confirmLabel: 'Remove',
-                                      isDestructive: true,
-                                    );
-                                    if (confirm == true && context.mounted) {
-                                      await appState.removeServer(server.id);
-                                    }
-                                  },
-                                  tooltip: 'Remove',
-                                ),
-                              ],
+                              ),
                             ),
-                            leading: isCurrent
-                                ? const Icon(
-                                    Icons.check_circle,
-                                    color: Colors.green,
-                                    size: 22,
-                                  )
-                                : null,
                           );
                         }),
                     const SizedBox(height: 8),
@@ -1414,7 +1490,7 @@ class _ServerSection extends StatelessWidget {
                       title: const Text('Clear image cache'),
                       subtitle: const Text('Free up storage space'),
                       trailing: const Icon(Icons.clear),
-                      onTap: () => onClearCache('images'),
+                      onTap: () => widget.onClearCache('images'),
                     ),
                     if (isLocal && localService != null)
                       ListTile(
@@ -1436,7 +1512,7 @@ class _ServerSection extends StatelessWidget {
                       title: const Text('Clear all cache'),
                       subtitle: const Text('Remove all cached data'),
                       trailing: const Icon(Icons.delete_sweep),
-                      onTap: () => onClearCache('all'),
+                      onTap: () => widget.onClearCache('all'),
                     ),
                   ],
                 ),
