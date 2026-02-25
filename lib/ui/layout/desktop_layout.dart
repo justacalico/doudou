@@ -113,8 +113,9 @@ class DesktopLayout {
               final created = await appState.createPlaylist(name);
               if (!context.mounted) return;
               if (created) {
-                final list =
-                    appState.playlists.where((p) => p.name == name).toList();
+                final list = appState.playlists
+                    .where((p) => p.name == name)
+                    .toList();
                 if (list.isNotEmpty) {
                   final newPlaylist = list.first;
                   await appState.addToPlaylist(newPlaylist.id, track.id);
@@ -131,18 +132,18 @@ class DesktopLayout {
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
-                }
-              } else {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.errorCreatingPlaylist(name)),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
+                  }
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.errorCreatingPlaylist(name)),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
                 }
               }
-            }
             } catch (e) {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -647,7 +648,10 @@ class _TrackInfo extends StatelessWidget {
           title: 'Downloaded',
           content: Text(
             '"${track.name}" is already downloaded.',
-            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+            style: TextStyle(
+              color: DesktopTheme.textSecondary,
+              decoration: TextDecoration.none,
+            ),
           ),
           actionsBuilder: (dialogContext) => [
             TextButton(
@@ -678,7 +682,10 @@ class _TrackInfo extends StatelessWidget {
           title: l10n.downloading,
           content: Text(
             '"${track.name}" is currently downloading.',
-            style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+            style: TextStyle(
+              color: DesktopTheme.textSecondary,
+              decoration: TextDecoration.none,
+            ),
           ),
           actionsBuilder: (dialogContext) => [
             TextButton(
@@ -854,7 +861,13 @@ class _PlayPauseButtonState extends State<_PlayPauseButton> {
           duration: DesktopTheme.durationFast,
           width: 40,
           height: 40,
-          transform: Matrix4.identity()..scaleByDouble(_isHovered ? 1.08 : 1.0, _isHovered ? 1.08 : 1.0, 1.0, 1.0),
+          transform: Matrix4.identity()
+            ..scaleByDouble(
+              _isHovered ? 1.08 : 1.0,
+              _isHovered ? 1.08 : 1.0,
+              1.0,
+              1.0,
+            ),
           transformAlignment: Alignment.center,
           decoration: BoxDecoration(
             color: DesktopTheme.textPrimary,
@@ -998,7 +1011,10 @@ class _AddToPlaylistDialogContent extends StatelessWidget {
   final Track track;
   final List<Playlist> playlists;
 
-  const _AddToPlaylistDialogContent({required this.track, required this.playlists});
+  const _AddToPlaylistDialogContent({
+    required this.track,
+    required this.playlists,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1008,7 +1024,10 @@ class _AddToPlaylistDialogContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ListTile(
-          leading: const Icon(Icons.add_circle_outline, color: CupertinoColors.activeBlue),
+          leading: const Icon(
+            Icons.add_circle_outline,
+            color: CupertinoColors.activeBlue,
+          ),
           title: Text(l10n.createNewPlaylist),
           onTap: () {
             Navigator.of(context).pop();
@@ -1031,7 +1050,9 @@ class _AddToPlaylistDialogContent extends StatelessWidget {
         else
           ListView.builder(
             shrinkWrap: true,
-            padding: const EdgeInsets.symmetric(vertical: DesktopTheme.spacingSm),
+            padding: const EdgeInsets.symmetric(
+              vertical: DesktopTheme.spacingSm,
+            ),
             itemCount: playlists.length,
             itemBuilder: (context, index) {
               final playlist = playlists[index];
@@ -1217,8 +1238,9 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
     AppLocalizations l10n,
   ) {
     final downloadService = appState.downloadService;
-    final toDownload =
-        _tracks.where((t) => !downloadService.isTrackDownloaded(t.id)).toList();
+    final toDownload = _tracks
+        .where((t) => !downloadService.isTrackDownloaded(t.id))
+        .toList();
     final isAllDownloaded = toDownload.isEmpty;
 
     return DesktopGlassButton(
@@ -1240,9 +1262,7 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
       borderRadius: 28,
       padding: const EdgeInsets.all(16),
       child: Icon(
-        isAllDownloaded
-            ? Icons.download_done_rounded
-            : Icons.download_rounded,
+        isAllDownloaded ? Icons.download_done_rounded : Icons.download_rounded,
         size: 24,
       ),
     );
@@ -1277,14 +1297,19 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
                 },
                 onSubtitleTap: artistName != null && artistName.isNotEmpty
                     ? () {
-                        final match = appState.artists
-                            .where((a) => a.name == artistName);
+                        final match = appState.artists.where(
+                          (a) => a.name == artistName,
+                        );
                         if (match.isNotEmpty) {
                           navigationService.navigateToArtist(match.first);
                         }
                       }
                     : null,
-                extraActions: _buildAlbumDownloadButton(context, appState, l10n),
+                extraActions: _buildAlbumDownloadButton(
+                  context,
+                  appState,
+                  l10n,
+                ),
               ),
               // Track list
               Expanded(
@@ -1530,8 +1555,10 @@ class _DetailHeader extends StatefulWidget {
   final bool isCircular;
   final VoidCallback? onPlay;
   final VoidCallback? onShuffle;
+
   /// When set, subtitle is tappable (e.g. to open artist from album header).
   final VoidCallback? onSubtitleTap;
+
   /// Optional extra action(s), e.g. download album button.
   final Widget? extraActions;
 
@@ -1618,141 +1645,139 @@ class _DetailHeaderState extends State<_DetailHeader>
             _headerColors!.length >= 3 ? _headerColors![1] : _headerColors![0],
             DesktopTheme.backgroundPrimary,
           ]
-        : [
-            DesktopTheme.backgroundPrimary,
-            DesktopTheme.backgroundPrimary,
-          ];
+        : [DesktopTheme.backgroundPrimary, DesktopTheme.backgroundPrimary];
     final gradientStops = _headerColors != null && _headerColors!.length >= 2
         ? const [0.0, 0.45, 1.0]
         : null;
 
     final content = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Back button
-          DesktopIconButton(
-            icon: Icons.arrow_back_rounded,
-            onPressed: widget.onBack,
-            tooltip: l10n.back,
-          ),
-          const SizedBox(height: DesktopTheme.spacingMd),
-          // Content row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // Image
-              Container(
-                width: 180,
-                height: 180,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(
-                    widget.isCircular ? 90 : DesktopTheme.radiusMd,
-                  ),
-                  color: DesktopTheme.backgroundElevated,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Back button
+        DesktopIconButton(
+          icon: Icons.arrow_back_rounded,
+          onPressed: widget.onBack,
+          tooltip: l10n.back,
+        ),
+        const SizedBox(height: DesktopTheme.spacingMd),
+        // Content row
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // Image
+            Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(
+                  widget.isCircular ? 90 : DesktopTheme.radiusMd,
                 ),
-                clipBehavior: Clip.antiAlias,
-                child: widget.imageUrl != null
-                    ? buildSmartImage(
-                        imageUrl: widget.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: () => _buildPlaceholder(),
-                      )
-                    : _buildPlaceholder(),
+                color: DesktopTheme.backgroundElevated,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
-              const SizedBox(width: DesktopTheme.spacingLg),
-              // Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: DesktopTheme.textPrimary,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+              clipBehavior: Clip.antiAlias,
+              child: widget.imageUrl != null
+                  ? buildSmartImage(
+                      imageUrl: widget.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: () => _buildPlaceholder(),
+                    )
+                  : _buildPlaceholder(),
+            ),
+            const SizedBox(width: DesktopTheme.spacingLg),
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: DesktopTheme.textPrimary,
                     ),
-                    if (widget.subtitle != null) ...[
-                      const SizedBox(height: DesktopTheme.spacingSm),
-                      widget.onSubtitleTap != null
-                          ? MouseRegion(
-                              cursor: SystemMouseCursors.click,
-                              child: GestureDetector(
-                                onTap: widget.onSubtitleTap,
-                                child: Text(
-                                  widget.subtitle!,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: DesktopTheme.textSecondary,
-                                  ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (widget.subtitle != null) ...[
+                    const SizedBox(height: DesktopTheme.spacingSm),
+                    widget.onSubtitleTap != null
+                        ? MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: GestureDetector(
+                              onTap: widget.onSubtitleTap,
+                              child: Text(
+                                widget.subtitle!,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: DesktopTheme.textSecondary,
                                 ),
                               ),
-                            )
-                          : Text(
-                              widget.subtitle!,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: DesktopTheme.textSecondary,
-                              ),
                             ),
-                    ],
-                    if (widget.year != null || widget.trackCount != null) ...[
-                      const SizedBox(height: DesktopTheme.spacingSm),
-                      Text(
-                        [
-                          if (widget.year != null) widget.year,
-                          if (widget.trackCount != null) '${widget.trackCount} ${l10n.songs}',
-                        ].join(' • '),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: DesktopTheme.textTertiary,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: DesktopTheme.spacingLg),
-                    // Action buttons
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          if (widget.onPlay != null)
-                            DesktopPlayButton(
-                              isPlaying: false,
-                              onPressed: widget.onPlay!,
+                          )
+                        : Text(
+                            widget.subtitle!,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: DesktopTheme.textSecondary,
                             ),
-                          const SizedBox(width: DesktopTheme.spacingMd),
-                          if (widget.onShuffle != null)
-                            DesktopGlassButton(
-                              onPressed: widget.onShuffle!,
-                              borderRadius: 28,
-                              padding: const EdgeInsets.all(16),
-                              child: const Icon(Icons.shuffle_rounded, size: 24),
-                            ),
-                          if (widget.extraActions != null) ...[
-                            const SizedBox(width: DesktopTheme.spacingMd),
-                            widget.extraActions!,
-                          ],
-                        ],
+                          ),
+                  ],
+                  if (widget.year != null || widget.trackCount != null) ...[
+                    const SizedBox(height: DesktopTheme.spacingSm),
+                    Text(
+                      [
+                        if (widget.year != null) widget.year,
+                        if (widget.trackCount != null)
+                          '${widget.trackCount} ${l10n.songs}',
+                      ].join(' • '),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: DesktopTheme.textTertiary,
                       ),
                     ),
                   ],
-                ),
+                  const SizedBox(height: DesktopTheme.spacingLg),
+                  // Action buttons
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        if (widget.onPlay != null)
+                          DesktopPlayButton(
+                            isPlaying: false,
+                            onPressed: widget.onPlay!,
+                          ),
+                        const SizedBox(width: DesktopTheme.spacingMd),
+                        if (widget.onShuffle != null)
+                          DesktopGlassButton(
+                            onPressed: widget.onShuffle!,
+                            borderRadius: 28,
+                            padding: const EdgeInsets.all(16),
+                            child: const Icon(Icons.shuffle_rounded, size: 24),
+                          ),
+                        if (widget.extraActions != null) ...[
+                          const SizedBox(width: DesktopTheme.spacingMd),
+                          widget.extraActions!,
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
-      );
+            ),
+          ],
+        ),
+      ],
+    );
 
     final gradientLayer = Container(
       decoration: BoxDecoration(
@@ -1844,10 +1869,15 @@ class _ArtistTabSegmentedControl extends StatelessWidget {
           final w = constraints.maxWidth;
           final segmentCount = showAlbums ? 2 : 1;
           final segmentWidth = w / segmentCount;
-          final selectedIndex = selectedTab == 'albums' ? 0 : 1;
-          final pillLeft = segmentCount == 1 ? 0.0 : selectedIndex * segmentWidth;
+          final selectedIndex = showAlbums
+              ? (selectedTab == 'albums' ? 0 : 1)
+              : 0;
+          final pillLeft = segmentCount == 1
+              ? 0.0
+              : selectedIndex * segmentWidth;
 
-          return IntrinsicHeight(
+          return SizedBox(
+            height: 44,
             child: Stack(
               children: [
                 AnimatedPositioned(
@@ -1862,10 +1892,10 @@ class _ArtistTabSegmentedControl extends StatelessWidget {
                       color: theme.colorScheme.primary,
                       borderRadius: selectedIndex == 0
                           ? (segmentCount == 1
-                              ? BorderRadius.circular(radius)
-                              : BorderRadius.horizontal(
-                                  left: Radius.circular(radius),
-                                ))
+                                ? BorderRadius.circular(radius)
+                                : BorderRadius.horizontal(
+                                    left: Radius.circular(radius),
+                                  ))
                           : BorderRadius.horizontal(
                               right: Radius.circular(radius),
                             ),
@@ -1960,30 +1990,41 @@ class _SegmentState extends State<_Segment> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: DesktopTheme.durationFast,
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesktopTheme.spacingLg,
-            vertical: DesktopTheme.spacingSm + 2,
-          ),
-          decoration: BoxDecoration(
-            color: widget.isSelected
-                ? Colors.transparent
-                : _hover
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 150;
+            return AnimatedContainer(
+              duration: DesktopTheme.durationFast,
+              alignment: Alignment.center,
+              padding: EdgeInsets.symmetric(
+                horizontal: compact
+                    ? DesktopTheme.spacingSm
+                    : DesktopTheme.spacingLg,
+                vertical: DesktopTheme.spacingSm + 2,
+              ),
+              decoration: BoxDecoration(
+                color: widget.isSelected
+                    ? Colors.transparent
+                    : _hover
                     ? DesktopTheme.glassOverlay
                     : Colors.transparent,
-            borderRadius: borderRadius,
-          ),
-          child: Text(
-            widget.label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: widget.isSelected
-                  ? Colors.white
-                  : DesktopTheme.textSecondary,
-            ),
-          ),
+                borderRadius: borderRadius,
+              ),
+              child: Text(
+                widget.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: widget.isSelected
+                      ? Colors.white
+                      : DesktopTheme.textSecondary,
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -2125,10 +2166,7 @@ class _TrackRowState extends State<_TrackRow> {
     final name = widget.track.artistName ?? '';
     final text = Text(
       name,
-      style: TextStyle(
-        fontSize: 12,
-        color: DesktopTheme.textTertiary,
-      ),
+      style: TextStyle(fontSize: 12, color: DesktopTheme.textTertiary),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
@@ -2197,10 +2235,16 @@ class _TrackRowState extends State<_TrackRow> {
       title: 'Downloaded',
       content: Text(
         '"${widget.track.name}" is already downloaded.',
-        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+        style: TextStyle(
+          color: DesktopTheme.textSecondary,
+          decoration: TextDecoration.none,
+        ),
       ),
       actionsBuilder: (dialogContext) => [
-        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(l10n.ok)),
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: Text(l10n.ok),
+        ),
         TextButton(
           onPressed: () {
             Navigator.of(dialogContext).pop();
@@ -2231,19 +2275,23 @@ class _TrackRowState extends State<_TrackRow> {
       title: l10n.downloading,
       content: Text(
         '"${widget.track.name}" is downloading ($progressPercent%)',
-        style: TextStyle(color: DesktopTheme.textSecondary, decoration: TextDecoration.none),
+        style: TextStyle(
+          color: DesktopTheme.textSecondary,
+          decoration: TextDecoration.none,
+        ),
       ),
       actionsBuilder: (dialogContext) => [
-        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(l10n.ok)),
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: Text(l10n.ok),
+        ),
         TextButton(
           onPressed: () {
             Navigator.of(dialogContext).pop();
             appState.downloadService.cancelDownload(widget.track.id);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                  'Cancelled download for "${widget.track.name}"',
-                ),
+                content: Text('Cancelled download for "${widget.track.name}"'),
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -2479,9 +2527,12 @@ class _AlbumGridView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final minCardWidth = 160.0;
-        final crossAxisCount = (constraints.maxWidth / minCardWidth)
-            .floor()
-            .clamp(2, 6);
+        final usableWidth =
+            (constraints.maxWidth - (DesktopTheme.spacingLg * 2)).clamp(
+              0.0,
+              double.infinity,
+            );
+        final crossAxisCount = (usableWidth / minCardWidth).floor().clamp(1, 6);
 
         return GridView.builder(
           padding: const EdgeInsets.all(DesktopTheme.spacingLg),
