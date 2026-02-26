@@ -369,13 +369,15 @@ class _HomePageState extends State<HomePage> {
         itemBuilder: (context, index) {
           final track = tracks[index];
           final imageUrl = _imageUrl(appState, track.imageUrl);
-          return Padding(
-            padding: EdgeInsets.only(
-              right: index < tracks.length - 1 ? DesktopTheme.spacingMd : 0,
-            ),
-            child: SizedBox(
-              width: 280,
-              child: MusicListTile(
+          return KeyedSubtree(
+            key: ValueKey(track.id),
+            child: Padding(
+              padding: EdgeInsets.only(
+                right: index < tracks.length - 1 ? DesktopTheme.spacingMd : 0,
+              ),
+              child: SizedBox(
+                width: 280,
+                child: MusicListTile(
                 title: track.name,
                 subtitle: track.artistName ?? l10n.unknownArtist,
                 imageUrl: imageUrl,
@@ -384,7 +386,8 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => appState.playPlaylist(tracks, index),
               ),
             ),
-          );
+          ),
+        );
         },
       ),
     );
@@ -407,16 +410,19 @@ class _HomePageState extends State<HomePage> {
           final imageUrl =
               playlist.imageUrl ??
               appState.mediaServiceManager.getImageUrl(playlist.id);
-          return Padding(
-            padding: EdgeInsets.only(
-              right: index < playlists.length - 1 ? DesktopTheme.spacingMd : 0,
-            ),
-            child: MusicCard(
-              title: playlist.name,
-              subtitle: l10n.countSongs(playlist.trackCount),
-              imageUrl: imageUrl,
-              size: 180,
-              onTap: () => NavigationService().navigateToPlaylist(playlist),
+          return KeyedSubtree(
+            key: ValueKey(playlist.id),
+            child: Padding(
+              padding: EdgeInsets.only(
+                right: index < playlists.length - 1 ? DesktopTheme.spacingMd : 0,
+              ),
+              child: MusicCard(
+                title: playlist.name,
+                subtitle: l10n.countSongs(playlist.trackCount),
+                imageUrl: imageUrl,
+                size: 180,
+                onTap: () => NavigationService().navigateToPlaylist(playlist),
+              ),
             ),
           );
         },

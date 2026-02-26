@@ -170,20 +170,30 @@ Widget buildSmartImage({
     );
   }
 
-  return Image.network(
-    imageUrl,
+  final errorWidget = errorBuilder?.call() ?? Container(
+    width: width,
+    height: height,
+    color: const Color(0xFF2C2C2E),
+    child: const Icon(
+      Icons.music_note,
+      color: Colors.grey,
+      size: 32,
+    ),
+  );
+  return CachedNetworkImage(
+    imageUrl: imageUrl,
     width: width,
     height: height,
     fit: fit,
-    errorBuilder: (_, _, _) => errorBuilder?.call() ?? Container(
+    cacheManager: ImageCacheManager.instance,
+    placeholder: (_, __) => Container(
       width: width,
       height: height,
       color: const Color(0xFF2C2C2E),
-      child: const Icon(
-        Icons.music_note,
-        color: Colors.grey,
-        size: 32,
+      child: const Center(
+        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
       ),
     ),
+    errorWidget: (_, __, ___) => errorWidget,
   );
 }
