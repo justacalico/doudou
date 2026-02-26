@@ -1034,29 +1034,25 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                           ),
                                   ),
                                 ),
-                                // Play/Pause button with gradient
+                                // Play/Pause button
                                 GestureDetector(
                                   onTap: () => appState.playPause(),
                                   child: Container(
                                     width: 72,
                                     height: 72,
                                     decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: [
-                                          Color(0xFF38BDF8),
-                                          Color(0xFFEC4899),
-                                        ],
-                                      ),
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                       shape: BoxShape.circle,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(
-                                            0xFF38BDF8,
-                                          ).withValues(alpha: 0.4),
-                                          blurRadius: 20,
-                                          offset: const Offset(0, 8),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.35),
+                                          blurRadius: 16,
+                                          offset: const Offset(0, 6),
                                         ),
                                       ],
                                     ),
@@ -1937,7 +1933,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
       debugPrint('Found album: ${album.name}, navigating...');
       Navigator.of(context).push(
         CupertinoPageRoute(
-          builder: (context) => MediaDetailsPage.album(album: album)),
+          builder: (context) => MediaDetailsPage.album(album: album),
+        ),
       );
     } catch (e) {
       debugPrint('Error navigating to album: $e');
@@ -2312,10 +2309,9 @@ void _navigateToAlbumFromExpanded(
       (a) => a.id == track.albumId,
       orElse: () => throw StateError('not found'),
     );
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(
-        builder: (_) => MediaDetailsPage.album(album: album)));
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => MediaDetailsPage.album(album: album)),
+    );
   } catch (_) {}
 }
 
@@ -2331,7 +2327,9 @@ void _navigateToArtistFromExpanded(
       orElse: () => throw StateError('not found'),
     );
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => MediaDetailsPage.artist(artist: artist)),
+      MaterialPageRoute(
+        builder: (_) => MediaDetailsPage.artist(artist: artist),
+      ),
     );
   } catch (_) {}
 }
