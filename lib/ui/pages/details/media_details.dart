@@ -682,7 +682,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               ),
             ),
           );
-        } else {
+        } else if (widget.mediaType == MediaType.playlist) {
           items.add(
             PopupMenuItem(
               value: 'edit',
