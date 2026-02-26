@@ -5,6 +5,7 @@ import 'package:doudou/ui/templates/track_list_template.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/l10n/app_localizations.dart';
+import 'package:doudou/services/base_service.dart';
 
 import 'media_details.dart';
 
@@ -39,21 +40,35 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     });
 
     try {
+      if (appState.mediaServiceManager.currentServerType ==
+          ServerType.youtubeMusic) {
+        final tracks = await appState.mediaServiceManager.getArtistTracks(
+          widget.artist,
+          limit: 100,
+        );
+        if (mounted) {
+          setState(() {
+            _popularTracks = tracks;
+            _artistAlbums = [];
+            _selectedTab = 'songs';
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
       final artistQuery = widget.artist.name.toLowerCase();
-      // Get albums by this artist
       _artistAlbums = appState.albums.where((album) {
         final name = album.artistName?.toLowerCase();
         return name != null && name.contains(artistQuery);
       }).toList();
 
-      // Sort albums by year (newest first)
       _artistAlbums.sort((a, b) {
         final aYear = a.year ?? 0;
         final bYear = b.year ?? 0;
         return bYear.compareTo(aYear);
       });
 
-      // Get popular tracks by this artist
       _popularTracks = appState.tracks
           .where((track) => _artistMatch(track.artistName, artistQuery))
           .take(10)
@@ -62,16 +77,13 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
       if (_artistAlbums.isEmpty) {
         _selectedTab = 'songs';
       } else if (_selectedTab == 'songs' || _selectedTab == 'albums') {
-        // Keep current valid selection.
       } else {
         _selectedTab = 'albums';
       }
     } catch (e) {
       // Handle error
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

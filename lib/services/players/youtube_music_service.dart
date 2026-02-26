@@ -254,6 +254,39 @@ class YoutubeMusicService implements BaseMediaService {
     return null;
   }
 
+  /// Get tracks for an artist (channel uploads when artist.id is channel id, else search by name).
+  Future<List<Track>> getArtistTracks(Artist artist, {int limit = 100}) async {
+    try {
+      if (artist.id.isNotEmpty) {
+        final videos = await _client.channels
+            .getUploads(artist.id)
+            .take(limit)
+            .toList();
+        return videos
+            .map(
+              (v) => Track(
+                id: v.id.value,
+                name: v.title,
+                artistName: v.author,
+                albumName: null,
+                albumId: null,
+                playlistItemId: null,
+                duration: v.duration?.inMilliseconds,
+                trackNumber: null,
+                imageUrl: v.id.value,
+                isFavorite: false,
+                playCount: null,
+              ),
+            )
+            .toList();
+      }
+      final results = await search(artist.name, limit: limit);
+      return results.tracks;
+    } catch (_) {
+      return [];
+    }
+  }
+
   @override
   Future<SearchResults> search(
     String query, {

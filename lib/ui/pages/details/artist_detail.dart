@@ -53,7 +53,22 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     });
 
     try {
-      // Get all tracks by this artist
+      if (appState.mediaServiceManager.currentServerType ==
+          ServerType.youtubeMusic) {
+        final tracks = await appState.mediaServiceManager.getArtistTracks(
+          widget.artist,
+          limit: 100,
+        );
+        if (mounted) {
+          setState(() {
+            _artistTracks = tracks;
+            _artistAlbums = [];
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
       final allTracks = appState.tracks;
       _artistTracks = allTracks
           .where(
@@ -63,7 +78,6 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
           )
           .toList();
 
-      // Get all albums by this artist
       final allAlbums = appState.albums;
       _artistAlbums = allAlbums
           .where(

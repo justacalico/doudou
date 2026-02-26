@@ -7,6 +7,7 @@ import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/models/download_models.dart';
 import 'package:doudou/services/audio/unified_audio_handler.dart';
+import 'package:doudou/services/base_service.dart';
 import 'package:doudou/services/navigation_service.dart';
 import 'package:doudou/ui/pages/details/media_details.dart';
 import 'package:doudou/ui/pages/details/artist_details.dart';
@@ -1359,11 +1360,28 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
     _loadData();
   }
 
-  void _loadData() {
+  void _loadData() async {
     final appState = context.read<AppState>();
     setState(() => _isLoading = true);
 
     try {
+      if (appState.mediaServiceManager.currentServerType ==
+          ServerType.youtubeMusic) {
+        final tracks = await appState.mediaServiceManager.getArtistTracks(
+          widget.artist,
+          limit: 100,
+        );
+        if (mounted) {
+          setState(() {
+            _tracks = tracks;
+            _albums = [];
+            _selectedTab = 'songs';
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
       final artistQuery = widget.artist.name.toLowerCase();
       _albums = appState.albums.where((album) {
         final name = album.artistName?.toLowerCase();

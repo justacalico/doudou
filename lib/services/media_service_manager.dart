@@ -342,6 +342,15 @@ class MediaServiceManager {
     return [];
   }
 
+  /// Get tracks for an artist. For YouTube Music uses channel uploads or search; other servers return empty.
+  Future<List<Track>> getArtistTracks(Artist artist, {int limit = 100}) async {
+    if (_currentService is YoutubeMusicService) {
+      return await (_currentService! as YoutubeMusicService)
+          .getArtistTracks(artist, limit: limit);
+    }
+    return [];
+  }
+
   /// Get server information from the current service
   Future<ServerInfo> getServerInfo() async {
     if (_currentService == null) {
