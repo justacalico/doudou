@@ -116,16 +116,13 @@ class PageTemplate extends StatelessWidget {
                     SizedBox(
                       width: constraints.maxWidth,
                       child: Row(
-                        children: actions!
-                            .map(
-                              (action) => Padding(
-                                padding: const EdgeInsets.only(
-                                  right: DesktopTheme.spacingSm,
-                                ),
-                                child: action,
-                              ),
-                            )
-                            .toList(),
+                        children: [
+                          for (int i = 0; i < actions!.length; i++) ...[
+                            if (i > 0)
+                              const SizedBox(width: DesktopTheme.spacingSm),
+                            actions![i],
+                          ],
+                        ],
                       ),
                     ),
                   ],
