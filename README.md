@@ -4,10 +4,11 @@ A privacy-focused music player for your media server. Stream your music collecti
 
 ## Supported Backends
 
-- **Jellyfin** - Full support (recommended)
+- **Subsonic** - Full support (recommended)
+- **Jellyfin** - Full API compatibility
 - **Plex** - Working with limitations
-- **Subsonic** - Full API compatibility
 - **Local Files** - Play music directly from your device without a server
+- **Youtube Music** - Not avaible on Windows/Linux (Open a Pull Request if you get this working)
 
 ## Features
 
@@ -18,15 +19,13 @@ A privacy-focused music player for your media server. Stream your music collecti
 - All data stays on your devices
 
 ### Playback
-- Gapless audio with smooth crossfades
-- Drag-and-drop queue management
+- Gapless audio
 - Radio mode for continuous playback
-- High quality audio support: MP3, FLAC, AAC, OGG, M4A, WAV, WMA, OPUS, AIFF, ALAC, APE, WEBM
 - Automatic transcoding support
 
 ### Local Music
 - Play music directly from your filesystem
-- Album artwork from embedded metadata, local images, or online sources (MusicBrainz/Cover Art Archive)
+- Album artwork from embedded metadata, local images, or online sources
 - Create and manage local playlists
 
 ### Platforms
@@ -44,14 +43,6 @@ A privacy-focused music player for your media server. Stream your music collecti
 **[Download for all platforms](https://openlyst.ink/apps/doudou)**
 
 Available for Android, iOS, macOS, Windows, Linux, and Web.
-
-### Docker (Self-Hosted Web Version)
-
-```bash
-docker run -d -p 34273:34273 --name doudou-web httpanimations/doudou:latest
-```
-
-See [DOCKER.md](docs/DOCKER.md) for detailed deployment instructions.
 
 ## Setup
 
@@ -134,15 +125,16 @@ flutter clean
 - [Report a Bug](https://gitlab.com/Openlyst/doudou/issues)
 - [Request a Feature](https://gitlab.com/Openlyst/doudou/issues)
 - [Community Discussions](https://gitlab.com/Openlyst/doudou/-/discussions)
-- [Email Support](mailto:support@openlyst.com)
 
 ## Credits
 
 Built with these open-source projects:
 
-- [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Subsonic](http://www.subsonic.org/) - Media servers
+- [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Subsonic](http://www.subsonic.org/), [Youtube Music](https://music.youtube.com) - Media servers
+- [Harmony-Music](https://github.com/anandnet/Harmony-Music) - Youttube Music support
 - [Flutter](https://flutter.dev/) - Cross-platform framework
+
 
 ## License
 
-GPL-3.0
+AGPL-3.0
