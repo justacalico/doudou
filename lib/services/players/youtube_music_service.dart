@@ -34,6 +34,19 @@ class YoutubeMusicService implements BaseMediaService {
   // Short-lived cache for stream URLs (videoId -> url). TTL not enforced for simplicity.
   final Map<String, String> _streamUrlCache = {};
 
+  bool _isUnsupportedMixPlaylist(String id, String title) {
+    final normalized = id.toUpperCase();
+    final t = title.toLowerCase();
+    // Mix/radio playlists are unstable in current implementation.
+    if (normalized.startsWith('RD')) return true;
+    if (normalized.startsWith('VLRD')) return true;
+    if (normalized == 'RDMM') return true;
+    if (t.contains(' mix') || t.startsWith('mix ') || t.contains(' radio')) {
+      return true;
+    }
+    return false;
+  }
+
   @override
   ServerType get serverType => ServerType.youtubeMusic;
 
@@ -363,6 +376,7 @@ class YoutubeMusicService implements BaseMediaService {
           ));
         } else if (r is SearchPlaylist) {
           if (playlists.length >= maxPlaylists) continue;
+          if (_isUnsupportedMixPlaylist(r.id.value, r.title)) continue;
           final thumbUrl = r.thumbnails.isNotEmpty
               ? r.thumbnails.first.url.toString()
               : null;
