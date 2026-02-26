@@ -37,7 +37,17 @@ class _ArtistsPageState extends State<ArtistsPage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final artists = appState.artists;
+        final artists = appState.isYoutubeMusic
+            ? <Artist>[
+                ...appState.artists,
+                ...appState.favoriteArtists.where(
+                  (fav) => !appState.artists.any(
+                    (a) => a.name.trim().toLowerCase() ==
+                        fav.name.trim().toLowerCase(),
+                  ),
+                ),
+              ]
+            : appState.artists;
         final isYt = appState.isYoutubeMusic;
         final sorted = List<Artist>.from(
           artists,

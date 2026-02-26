@@ -2048,9 +2048,29 @@ class AppState extends ChangeNotifier {
     if (!isYoutubeMusic) {
       return const <Artist>[];
     }
-    return _artists
-        .where((artist) => _ytFollowedArtistNames.contains(artist.name))
-        .toList();
+    final byLower = <String, Artist>{};
+    for (final artist in _artists) {
+      final key = artist.name.trim().toLowerCase();
+      if (key.isNotEmpty) byLower[key] = artist;
+    }
+
+    final resolved = <Artist>[];
+    for (final followedName in _ytFollowedArtistNames) {
+      final key = followedName.trim().toLowerCase();
+      if (key.isEmpty) continue;
+      final existing = byLower[key];
+      if (existing != null) {
+        resolved.add(existing);
+      } else {
+        resolved.add(
+          Artist(
+            id: 'yt_followed_$key',
+            name: followedName,
+          ),
+        );
+      }
+    }
+    return resolved;
   }
 
   List<Playlist> get favoritePlaylists {
@@ -2069,7 +2089,10 @@ class AppState extends ChangeNotifier {
 
   bool isArtistFollowed(Artist artist) {
     if (!isYoutubeMusic) return false;
-    return _ytFollowedArtistNames.contains(artist.name);
+    final key = artist.name.trim().toLowerCase();
+    return _ytFollowedArtistNames.any(
+      (n) => n.trim().toLowerCase() == key,
+    );
   }
 
   bool isPlaylistFollowed(Playlist playlist) {
@@ -2184,10 +2207,21 @@ class AppState extends ChangeNotifier {
 
   Future<void> toggleArtistFollow(Artist artist) async {
     if (!isYoutubeMusic) return;
-    if (_ytFollowedArtistNames.contains(artist.name)) {
-      _ytFollowedArtistNames.remove(artist.name);
+    final key = artist.name.trim().toLowerCase();
+    final existing = _ytFollowedArtistNames.firstWhere(
+      (n) => n.trim().toLowerCase() == key,
+      orElse: () => '',
+    );
+    if (existing.isNotEmpty) {
+      _ytFollowedArtistNames.remove(existing);
     } else {
       _ytFollowedArtistNames.add(artist.name);
+      final existsInLibrary = _artists.any(
+        (a) => a.name.trim().toLowerCase() == key,
+      );
+      if (!existsInLibrary) {
+        _artists.add(artist);
+      }
     }
     await _saveYoutubeFollows();
     notifyListeners();
