@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: DesktopTheme.spacingSm),
           Text(
-            'Follow artists or albums to get personalized content here.',
+            'Use Search to find artists or albums, then follow them to get personalized content here.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 15, color: DesktopTheme.textSecondary),
           ),
@@ -117,21 +117,10 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(fontSize: 13, color: DesktopTheme.textTertiary),
           ),
           const SizedBox(height: DesktopTheme.spacingXl),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FilledButton.icon(
-                onPressed: () => NavigationService().selectPage(4),
-                icon: const Icon(Icons.person_add_alt_rounded),
-                label: Text(l10n.artists),
-              ),
-              const SizedBox(width: DesktopTheme.spacingMd),
-              OutlinedButton.icon(
-                onPressed: () => NavigationService().selectPage(3),
-                icon: const Icon(Icons.album_rounded),
-                label: Text(l10n.albums),
-              ),
-            ],
+          FilledButton.icon(
+            onPressed: () => NavigationService().selectPage(1),
+            icon: const Icon(Icons.search_rounded),
+            label: Text(l10n.search),
           ),
         ],
       ),
