@@ -113,8 +113,8 @@ class PageTemplate extends StatelessWidget {
                           ? DesktopTheme.spacingMd
                           : DesktopTheme.spacingLg,
                     ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
+                    SizedBox(
+                      width: constraints.maxWidth,
                       child: Row(
                         children: actions!
                             .map(
