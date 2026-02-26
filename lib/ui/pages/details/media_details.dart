@@ -191,7 +191,11 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           color: DesktopTheme.backgroundPrimary,
           child: PageTemplate(
             showBackButton: true,
-            title: _title,
+            title: widget.mediaType == MediaType.playlist
+                ? l10n.playlist
+                : widget.mediaType == MediaType.artist
+                ? l10n.artist
+                : l10n.album,
             onBackPressed:
                 widget.onBackPressed ?? () => Navigator.of(context).pop(),
             child: _isLoading
