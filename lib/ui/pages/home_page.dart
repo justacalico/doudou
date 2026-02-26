@@ -47,35 +47,23 @@ class _HomePageState extends State<HomePage> {
         final isYtMusic =
             appState.mediaServiceManager.currentServerType ==
             ServerType.youtubeMusic;
-        if (isYtMusic) {
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(
-              DesktopTheme.spacingLg,
-              DesktopTheme.spacingLg,
-              DesktopTheme.spacingLg,
-              0,
-            ),
-            child: _ytFollowHintBody(context, appState, l10n),
-          );
-        }
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(
-            DesktopTheme.spacingLg,
-            DesktopTheme.spacingMd,
-            DesktopTheme.spacingLg,
-            0,
-          ),
-          child: appState.isLoading && !isYtMusic
-              ? _loading(Theme.of(context))
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: DesktopTheme.spacingMd),
-                    _quickAccess(context, appState, l10n),
-                    const SizedBox(height: DesktopTheme.spacingXl),
-                    Expanded(child: _libraryHomeBody(context, appState, l10n)),
-                  ],
-                ),
+        return PageTemplate(
+          title: l10n.navHome,
+          child: isYtMusic
+              ? _ytFollowHintBody(context, appState, l10n)
+              : (appState.isLoading
+                    ? _loading(Theme.of(context))
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: DesktopTheme.spacingMd),
+                          _quickAccess(context, appState, l10n),
+                          const SizedBox(height: DesktopTheme.spacingXl),
+                          Expanded(
+                            child: _libraryHomeBody(context, appState, l10n),
+                          ),
+                        ],
+                      )),
         );
       },
     );
