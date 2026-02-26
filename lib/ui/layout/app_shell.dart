@@ -715,18 +715,22 @@ class _SidebarTileState extends State<_SidebarTile> {
           onTap: widget.onTap,
           child: AnimatedContainer(
             duration: DesktopTheme.durationFast,
+            margin: const EdgeInsets.only(bottom: 4),
             padding: widget.compact
                 ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
                 : const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               color: widget.selected
-                  ? accent.withValues(alpha: 0.15)
-                  : accent.withValues(alpha: 0.1),
-              border: Border.all(
-                color: accent.withValues(alpha: 0.2),
-                width: 1,
-              ),
+                  ? accent.withValues(alpha: 0.16)
+                  : _hover
+                      ? accent.withValues(alpha: 0.08)
+                      : Colors.transparent,
+              border: widget.selected
+                  ? Border.all(
+                      color: accent.withValues(alpha: 0.45),
+                    )
+                  : null,
               boxShadow: widget.selected
                   ? [
                       BoxShadow(
@@ -744,7 +748,11 @@ class _SidebarTileState extends State<_SidebarTile> {
               children: [
                 Icon(
                   widget.selected ? widget.activeIcon : widget.icon,
-                  color: accent,
+                  color: widget.selected
+                      ? DesktopTheme.textPrimary
+                      : _hover
+                          ? DesktopTheme.textPrimary
+                          : DesktopTheme.textSecondary,
                   size: 20,
                 ),
                 if (!widget.compact) ...[
@@ -754,8 +762,14 @@ class _SidebarTileState extends State<_SidebarTile> {
                       widget.label,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: accent,
+                        fontWeight: widget.selected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: widget.selected
+                            ? DesktopTheme.textPrimary
+                            : _hover
+                                ? DesktopTheme.textPrimary
+                                : DesktopTheme.textSecondary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
