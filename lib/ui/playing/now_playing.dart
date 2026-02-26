@@ -16,7 +16,7 @@ import 'package:doudou/ui/playing/queue_overlay.dart';
 import 'package:doudou/ui/widgets/cached_image_widget.dart';
 import 'package:doudou/ui/widgets/marquee_text.dart';
 import 'package:doudou/ui/widgets/detail_track_view.dart';
-import 'package:doudou/ui/pages/details/artist_detail.dart';
+import 'package:doudou/ui/pages/details/media_details.dart';
 import 'package:doudou/services/lyrics_service.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/ui/layout/desktop_layout.dart';
@@ -1963,7 +1963,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
       debugPrint('Found artist: ${artist.name}, navigating...');
       Navigator.of(context).push(
         CupertinoPageRoute(
-          builder: (context) => ArtistDetailScreen(artist: artist),
+          builder: (context) => MediaDetailsPage.artist(artist: artist),
         ),
       );
     } catch (e) {
@@ -2330,7 +2330,7 @@ void _navigateToArtistFromExpanded(
       orElse: () => throw StateError('not found'),
     );
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ArtistDetailScreen(artist: artist)),
+      MaterialPageRoute(builder: (_) => MediaDetailsPage.artist(artist: artist)),
     );
   } catch (_) {}
 }

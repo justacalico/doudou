@@ -10,7 +10,7 @@ import 'package:doudou/services/navigation_service.dart';
 import 'package:doudou/services/players/youtube_music_service.dart';
 
 import 'package:doudou/ui/layout/desktop_layout.dart';
-import 'package:doudou/ui/pages/details/artist_detail.dart';
+import 'package:doudou/ui/pages/details/media_details.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/templates/music_card.dart';
@@ -673,7 +673,7 @@ class _HomePageState extends State<HomePage> {
                   );
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (_) => ArtistDetailScreen(artist: artist),
+                      builder: (_) => MediaDetailsPage.artist(artist: artist),
                     ),
                   );
                 } catch (_) {}
