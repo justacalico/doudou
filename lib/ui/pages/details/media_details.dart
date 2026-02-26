@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:doudou/ui/templates/page_template.dart';
-import 'package:doudou/ui/templates/track_list_template.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/models/download_models.dart';
@@ -52,7 +51,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   bool _isLoading = true;
   List<Album> _artistAlbums = [];
   List<Track> _popularTracks = [];
-  String _selectedTab = 'albums';
 
   @override
   void initState() {
@@ -80,8 +78,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         if (mounted) {
           setState(() {
             _popularTracks = tracks;
+            _tracks = tracks;
             _artistAlbums = [];
-            _selectedTab = 'songs';
             _isLoading = false;
           });
         }
@@ -99,9 +97,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       });
       _popularTracks = appState.tracks
           .where((track) => _artistMatch(track.artistName, artistQuery))
-          .take(10)
           .toList();
-      if (_artistAlbums.isEmpty) _selectedTab = 'songs';
+      _tracks = _popularTracks;
     } catch (_) {}
     if (mounted) setState(() => _isLoading = false);
   }
@@ -116,8 +113,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         .where((p) => p.isNotEmpty)
         .contains(queryLower);
   }
-
-  int _getArtistTotalTracks() => _popularTracks.length;
 
   void _loadTracks() async {
     if (!mounted) return;
@@ -171,7 +166,11 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   }
 
   void _refreshTracks() {
-    _loadTracks();
+    if (widget.mediaType == MediaType.artist) {
+      _loadArtistData();
+    } else {
+      _loadTracks();
+    }
   }
 
   String get _title {
@@ -186,39 +185,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final theme = Theme.of(context);
-        if (widget.mediaType == MediaType.artist) {
-          return PageTemplate(
-            showBackButton: true,
-            title: _title,
-            onBackPressed: widget.onBackPressed ?? () => Navigator.of(context).pop(),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildArtistActionButtons(theme, l10n),
-                      const SizedBox(height: 24),
-                      _buildArtistHeader(theme, appState, l10n),
-                      const SizedBox(height: 24),
-                      _buildArtistTabSelector(theme, l10n),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: _buildArtistTabContent(theme, appState, l10n),
-                        ),
-                ),
-              ],
-            ),
-          );
-        }
         return PageTemplate(
           showBackButton: true,
           title: _title,
@@ -254,478 +220,12 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
   }
 
-  Widget _buildArtistActionButtons(ThemeData theme, AppLocalizations l10n) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isNarrow = constraints.maxWidth < 500;
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _popularTracks.isNotEmpty
-                      ? () async => await appState.playPlaylist(_popularTracks, 0)
-                      : null,
-                  icon: const Icon(Icons.play_arrow),
-                  label: Text(isNarrow ? l10n.play : l10n.playAll),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _popularTracks.isNotEmpty
-                      ? () async {
-                          final shuffled =
-                              List<Track>.from(_popularTracks)..shuffle();
-                          await appState.playPlaylist(shuffled, 0);
-                        }
-                      : null,
-                  icon: const Icon(Icons.shuffle),
-                  label: Text(l10n.shuffle),
-                ),
-                if (widget.artist != null)
-                  IconButton(
-                    onPressed: appState.isYoutubeMusic
-                        ? () => appState.toggleArtistFollow(widget.artist!)
-                        : null,
-                    icon: Icon(
-                      appState.isArtistFollowed(widget.artist!)
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: appState.isArtistFollowed(widget.artist!)
-                          ? Colors.red
-                          : null,
-                    ),
-                    tooltip: appState.isArtistFollowed(widget.artist!)
-                        ? l10n.removeFromFavorites
-                        : l10n.followArtist,
-                  ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildArtistHeader(
-    ThemeData theme,
-    AppState appState,
-    AppLocalizations l10n,
-  ) {
-    final artist = widget.artist!;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isNarrow = constraints.maxWidth < 600;
-            final size = isNarrow
-                ? (constraints.maxWidth < 400 ? 120.0 : 150.0)
-                : (constraints.maxWidth < 800 ? 150.0 : 200.0);
-            final hasAlbums = _artistAlbums.isNotEmpty;
-            if (isNarrow) {
-              return Column(
-                children: [
-                  _buildArtistImage(theme, appState, size),
-                  const SizedBox(height: 20),
-                  Text(
-                    l10n.artist,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    artist.name,
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: isNarrow ? 24 : null,
-                    ),
-                    textAlign: isNarrow ? TextAlign.center : TextAlign.start,
-                  ),
-                  const SizedBox(height: 16),
-                  if (hasAlbums)
-                    Text(
-                      l10n.countAlbums(_artistAlbums.length),
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  Text(
-                    l10n.countSongs(_getArtistTotalTracks()),
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              );
-            }
-            return Row(
-              children: [
-                _buildArtistImage(theme, appState, size),
-                const SizedBox(width: 24),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.artist,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        artist.name,
-                        style: theme.textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          if (hasAlbums) ...[
-                            Text(
-                              l10n.countAlbums(_artistAlbums.length),
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                          ],
-                          Text(
-                            l10n.countSongs(_getArtistTotalTracks()),
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildArtistImage(ThemeData theme, AppState appState, double size) {
-    final artist = widget.artist!;
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: artist.imageUrl != null
-          ? ClipOval(
-              child: Image.network(
-                _getImageUrl(appState, artist.imageUrl)!,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(
-                  Icons.person,
-                  size: size * 0.4,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            )
-          : Icon(
-              Icons.person,
-              size: size * 0.4,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-    );
-  }
-
-  Widget _buildArtistTabSelector(ThemeData theme, AppLocalizations l10n) {
-    final hasAlbums = _artistAlbums.isNotEmpty;
-    const radius = 20.0;
-    final unselectedBg = theme.colorScheme.surfaceContainerHighest;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.3),
-        ),
-        color: unselectedBg,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (hasAlbums)
-              _buildArtistSegment(
-                'albums',
-                l10n.albums,
-                theme,
-                isFirst: true,
-                isLast: false,
-                radius: radius,
-              ),
-            _buildArtistSegment(
-              'songs',
-              l10n.popularSongs,
-              theme,
-              isFirst: !hasAlbums,
-              isLast: true,
-              radius: radius,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildArtistSegment(
-    String tabId,
-    String title,
-    ThemeData theme, {
-    required bool isFirst,
-    required bool isLast,
-    required double radius,
-  }) {
-    final isSelected = _selectedTab == tabId;
-    BorderRadius? borderRadius;
-    if (isFirst && isLast) {
-      borderRadius = BorderRadius.circular(radius);
-    } else if (isFirst) {
-      borderRadius = BorderRadius.horizontal(left: Radius.circular(radius));
-    } else if (isLast) {
-      borderRadius = BorderRadius.horizontal(right: Radius.circular(radius));
-    }
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => setState(() => _selectedTab = tabId),
-        borderRadius: borderRadius,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-          decoration: BoxDecoration(
-            color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-            borderRadius: borderRadius,
-          ),
-          child: Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: isSelected
-                  ? theme.colorScheme.onPrimary
-                  : theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildArtistTabContent(
-    ThemeData theme,
-    AppState appState,
-    AppLocalizations l10n,
-  ) {
-    if (_artistAlbums.isEmpty) return _buildArtistSongsTab(theme, appState, l10n);
-    switch (_selectedTab) {
-      case 'albums':
-        return _buildArtistAlbumsTab(theme, appState, l10n);
-      case 'songs':
-        return _buildArtistSongsTab(theme, appState, l10n);
-      default:
-        return _buildArtistSongsTab(theme, appState, l10n);
-    }
-  }
-
-  Widget _buildArtistAlbumsTab(
-    ThemeData theme,
-    AppState appState,
-    AppLocalizations l10n,
-  ) {
-    if (_artistAlbums.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.album_outlined, size: 64,
-                color: theme.colorScheme.onSurfaceVariant),
-            const SizedBox(height: 16),
-            Text(l10n.noAlbumsFoundForArtist),
-            const SizedBox(height: 8),
-            Text(
-              l10n.artistHasNoAlbumsYet,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            int crossAxisCount;
-            double childAspectRatio;
-            if (constraints.maxWidth < 400) {
-              crossAxisCount = 1;
-              childAspectRatio = 1.2;
-            } else if (constraints.maxWidth < 600) {
-              crossAxisCount = 2;
-              childAspectRatio = 0.9;
-            } else if (constraints.maxWidth < 900) {
-              crossAxisCount = 3;
-              childAspectRatio = 0.8;
-            } else {
-              crossAxisCount = 4;
-              childAspectRatio = 0.75;
-            }
-            return GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio,
-              ),
-              itemCount: _artistAlbums.length,
-              itemBuilder: (context, index) {
-                final album = _artistAlbums[index];
-                return InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MediaDetailsPage.album(album: album),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: album.imageUrl != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    _getImageUrl(appState, album.imageUrl)!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Icon(
-                                      Icons.album,
-                                      size: 48,
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.album,
-                                  size: 48,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        album.name,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (album.year != null)
-                        Text(
-                          album.year.toString(),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildArtistSongsTab(
-    ThemeData theme,
-    AppState appState,
-    AppLocalizations l10n,
-  ) {
-    return Column(
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Text(
-                  l10n.popularSongs,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () {},
-                  child: Text(l10n.viewAll),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Expanded(
-          child: TrackListTemplate(
-            tracks: _popularTracks,
-            emptyStateTitle: l10n.noSongsFound,
-            emptyStateMessage: l10n.artistHasNoSongsYet,
-            showTrackNumber: true,
-            showArtist: false,
-            showAlbum: true,
-            showArtwork: true,
-            onTrackTap: (track, index) async {
-              await appState.playPlaylist(_popularTracks, index);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildActionButtons(ThemeData theme, AppLocalizations l10n) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return LayoutBuilder(
           builder: (context, constraints) {
-            final isNarrow =
-                constraints.maxWidth <
+            final isNarrow = constraints.maxWidth <
                 (widget.mediaType == MediaType.playlist ? 500 : 600);
             final isAlbumFollowed =
                 widget.mediaType == MediaType.album && widget.album != null
@@ -747,9 +247,10 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   label: Text(
                     isNarrow
                         ? l10n.play
-                        : (widget.mediaType == MediaType.playlist
-                              ? l10n.playAll
-                              : l10n.playAlbum),
+                        : (widget.mediaType == MediaType.playlist ||
+                                widget.mediaType == MediaType.artist
+                            ? l10n.playAll
+                            : l10n.playAlbum),
                   ),
                 ),
                 // Shuffle button
@@ -770,7 +271,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   _buildAlbumDownloadButton(appState, l10n),
                 // Conditional buttons based on media type
                 if (widget.mediaType == MediaType.album) ...[
-                  // Favorite button (for albums)
                   IconButton(
                     onPressed: () =>
                         appState.toggleAlbumFavorite(widget.album!),
@@ -783,6 +283,24 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                         : l10n.addToFavorites,
                   ),
                 ],
+                if (widget.mediaType == MediaType.artist &&
+                    widget.artist != null &&
+                    appState.isYoutubeMusic)
+                  IconButton(
+                    onPressed: () =>
+                        appState.toggleArtistFollow(widget.artist!),
+                    icon: Icon(
+                      appState.isArtistFollowed(widget.artist!)
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: appState.isArtistFollowed(widget.artist!)
+                          ? Colors.red
+                          : null,
+                    ),
+                    tooltip: appState.isArtistFollowed(widget.artist!)
+                        ? l10n.removeFromFavorites
+                        : l10n.followArtist,
+                  ),
                 _buildMoreOptionsMenu(l10n),
               ],
             );
@@ -972,21 +490,26 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             // Media artwork - responsive size
             LayoutBuilder(
               builder: (context, constraints) {
-                // Use different sizes based on media type and screen size
-                final artworkSize = widget.mediaType == MediaType.playlist
+                final isPlaylist = widget.mediaType == MediaType.playlist;
+                final isArtist = widget.mediaType == MediaType.artist;
+                final artworkSize = isPlaylist
                     ? (constraints.maxWidth < 800 ? 150.0 : 200.0)
                     : (constraints.maxWidth < 800 ? 180.0 : 250.0);
-                final iconSize = widget.mediaType == MediaType.playlist
+                final iconSize = isPlaylist
                     ? (constraints.maxWidth < 800 ? 60.0 : 80.0)
                     : (constraints.maxWidth < 800 ? 70.0 : 100.0);
 
-                final imageUrl = widget.mediaType == MediaType.playlist
+                final imageUrl = isPlaylist
                     ? widget.playlist!.imageUrl
-                    : widget.album!.imageUrl;
+                    : isArtist
+                        ? widget.artist!.imageUrl
+                        : widget.album!.imageUrl;
 
-                final defaultIcon = widget.mediaType == MediaType.playlist
+                final defaultIcon = isPlaylist
                     ? Icons.playlist_play
-                    : Icons.album;
+                    : isArtist
+                        ? Icons.person
+                        : Icons.album;
 
                 return Container(
                   width: artworkSize,
@@ -1032,7 +555,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
             SizedBox(width: widget.mediaType == MediaType.album ? 20 : 16),
 
-            // Media info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1040,7 +562,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   Text(
                     widget.mediaType == MediaType.playlist
                         ? l10n.playlist
-                        : l10n.album,
+                        : widget.mediaType == MediaType.artist
+                            ? l10n.artist
+                            : l10n.album,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w600,
@@ -1143,7 +667,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           Text(
             widget.mediaType == MediaType.playlist
                 ? l10n.addSongsToGetStarted
-                : l10n.albumTracksEmptyMessage,
+                : (widget.mediaType == MediaType.artist
+                    ? l10n.noTracksFound
+                    : l10n.albumTracksEmptyMessage),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
@@ -1158,7 +684,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               icon: const Icon(Icons.add),
               label: Text(l10n.addSongs),
             )
-          else
+          else if (widget.mediaType == MediaType.artist ||
+              widget.mediaType == MediaType.album)
             ElevatedButton(onPressed: _refreshTracks, child: Text(l10n.retry)),
         ],
       );
