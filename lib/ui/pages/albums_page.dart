@@ -19,19 +19,10 @@ class AlbumsPage extends StatefulWidget {
 }
 
 class _AlbumsPageState extends State<AlbumsPage> {
-  String _query = '';
-  final _searchController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
     _loadData();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   void _loadData() {
@@ -41,18 +32,8 @@ class _AlbumsPageState extends State<AlbumsPage> {
     });
   }
 
-  List<Album> _filteredFromList(List<Album> list) {
-    var result = List<Album>.from(list);
-    if (_query.isNotEmpty) {
-      final q = _query.toLowerCase();
-      result = result
-          .where(
-            (a) =>
-                a.name.toLowerCase().contains(q) ||
-                (a.artistName?.toLowerCase().contains(q) ?? false),
-          )
-          .toList();
-    }
+  List<Album> _sortedFromList(List<Album> list) {
+    final result = List<Album>.from(list);
     result.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return result;
   }
@@ -65,30 +46,10 @@ class _AlbumsPageState extends State<AlbumsPage> {
         final albums = appState.isYoutubeMusic
             ? appState.favoriteAlbums
             : appState.albums;
-        final filtered = _filteredFromList(albums);
+        final sorted = _sortedFromList(albums);
         return PageTemplate(
           title: l10n.albums,
-          actions: [
-            SizedBox(
-              width: 220,
-              child: TextField(
-                controller: _searchController,
-                onChanged: (v) => setState(() => _query = v),
-                decoration: InputDecoration(
-                  hintText: l10n.search,
-                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                  isDense: true,
-                  filled: true,
-                  fillColor: DesktopTheme.backgroundSecondary,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-          ],
-          child: filtered.isEmpty
+          child: sorted.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -116,9 +77,9 @@ class _AlbumsPageState extends State<AlbumsPage> {
                     crossAxisSpacing: DesktopTheme.spacingMd,
                     mainAxisSpacing: DesktopTheme.spacingMd,
                   ),
-                  itemCount: filtered.length,
+                  itemCount: sorted.length,
                   itemBuilder: (context, index) {
-                    final album = filtered[index];
+                    final album = sorted[index];
                     final appState = context.read<AppState>();
                     final imageUrl = album.imageUrl != null
                         ? appState.getImageUrl(album.imageUrl!)
