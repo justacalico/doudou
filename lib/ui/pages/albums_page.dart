@@ -43,10 +43,9 @@ class _AlbumsPageState extends State<AlbumsPage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final albums = appState.isYoutubeMusic
-            ? appState.favoriteAlbums
-            : appState.albums;
+        final albums = appState.albums;
         final sorted = _sortedFromList(albums);
+        final isYt = appState.isYoutubeMusic;
         return PageTemplate(
           title: l10n.albums,
           child: sorted.isEmpty
@@ -84,14 +83,47 @@ class _AlbumsPageState extends State<AlbumsPage> {
                     final imageUrl = album.imageUrl != null
                         ? appState.getImageUrl(album.imageUrl!)
                         : null;
+                    final isFollowed = appState.isAlbumFollowed(album);
                     return KeyedSubtree(
                       key: ValueKey(album.id),
-                      child: MusicCard(
-                        title: album.name,
-                        subtitle: album.artistName ?? l10n.unknownArtist,
-                        imageUrl: imageUrl,
-                        size: 180,
-                        onTap: () => NavigationService().navigateToAlbum(album),
+                      child: Stack(
+                        children: [
+                          MusicCard(
+                            title: album.name,
+                            subtitle: album.artistName ?? l10n.unknownArtist,
+                            imageUrl: imageUrl,
+                            size: 180,
+                            onTap: () => NavigationService().navigateToAlbum(album),
+                          ),
+                          if (isYt)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: DesktopTheme.backgroundDeep.withValues(
+                                    alpha: 0.78,
+                                  ),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: DesktopTheme.glassBorder),
+                                ),
+                                child: IconButton(
+                                  iconSize: 18,
+                                  splashRadius: 18,
+                                  tooltip: isFollowed
+                                      ? l10n.removeFromFavorites
+                                      : l10n.addToFavorites,
+                                  onPressed: () => appState.toggleAlbumFollow(album),
+                                  icon: Icon(
+                                    isFollowed
+                                        ? Icons.favorite_rounded
+                                        : Icons.favorite_border_rounded,
+                                    color: isFollowed ? Colors.redAccent : Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     );
                   },

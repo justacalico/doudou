@@ -286,6 +286,7 @@ class AppState extends ChangeNotifier {
   Future<void> _loadSavedServer() async {
     try {
       await _loadSavedServersList();
+      await _loadYoutubeFollows();
 
       // On Windows/Linux, YouTube Music is disabled by default; don't restore it as current server unless user re-enabled it.
       if (isDesktopWhereYoutubeMusicRestricted &&
@@ -1123,6 +1124,7 @@ class AppState extends ChangeNotifier {
         final ok = await loginWithLocalMusic();
         if (ok) {
           _currentServerId = s.id;
+          await _loadYoutubeFollows();
           await _saveSavedServersList();
         }
         return ok;
@@ -1131,6 +1133,7 @@ class AppState extends ChangeNotifier {
         final ok = await loginWithServerType('youtubeMusic', '', '', '');
         if (ok) {
           _currentServerId = s.id;
+          await _loadYoutubeFollows();
           await _saveSavedServersList();
         }
         return ok;
@@ -1141,6 +1144,7 @@ class AppState extends ChangeNotifier {
         final ok = await loginWithApiKey(s.serverUrl, s.apiKey!);
         if (ok) {
           _currentServerId = s.id;
+          await _loadYoutubeFollows();
           await _saveSavedServersList();
         }
         return ok;
@@ -1154,6 +1158,7 @@ class AppState extends ChangeNotifier {
         );
         if (ok) {
           _currentServerId = s.id;
+          await _loadYoutubeFollows();
           await _saveSavedServersList();
         }
         return ok;
@@ -1169,6 +1174,7 @@ class AppState extends ChangeNotifier {
         );
         if (ok) {
           _currentServerId = s.id;
+          await _loadYoutubeFollows();
           await _saveSavedServersList();
         }
         return ok;
@@ -1185,6 +1191,7 @@ class AppState extends ChangeNotifier {
         );
         if (ok) {
           _currentServerId = s.id;
+          await _loadYoutubeFollows();
           await _saveSavedServersList();
         }
         return ok;
@@ -1248,6 +1255,7 @@ class AppState extends ChangeNotifier {
     final idx = _savedServers.indexWhere((s) => s.id == id);
     if (idx < 0) return false;
     _currentServerId = id;
+    await _loadYoutubeFollows();
     await _saveSavedServersList();
     return _connectToSavedServer(_savedServers[idx]);
   }
@@ -1255,6 +1263,7 @@ class AppState extends ChangeNotifier {
   Future<bool> addServerAndConnect(SavedServer server) async {
     await addServer(server);
     _currentServerId = server.id;
+    await _loadYoutubeFollows();
     await _saveSavedServersList();
     return _connectToSavedServer(server);
   }
@@ -1276,6 +1285,7 @@ class AppState extends ChangeNotifier {
       _savedServers = List.from(_savedServers)..add(server);
     }
     _currentServerId = server.id;
+    await _loadYoutubeFollows();
     await _saveSavedServersList();
     notifyListeners();
   }
@@ -1284,6 +1294,8 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
 
     _currentServerId = null;
+    _ytFollowedAlbumIds.clear();
+    _ytFollowedArtistNames.clear();
     await _saveSavedServersList();
 
     // Clear all server credentials (legacy flat keys and type-specific)
@@ -2186,14 +2198,40 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  String _ytFollowedAlbumIdsKey() {
+    final sid = _currentServerId;
+    if (sid == null || sid.isEmpty) return 'yt_followed_album_ids';
+    return 'yt_followed_album_ids_$sid';
+  }
+
+  String _ytFollowedArtistNamesKey() {
+    final sid = _currentServerId;
+    if (sid == null || sid.isEmpty) return 'yt_followed_artist_names';
+    return 'yt_followed_artist_names_$sid';
+  }
+
+  Future<void> _loadYoutubeFollows() async {
+    final prefs = await SharedPreferences.getInstance();
+    _ytFollowedAlbumIds
+      ..clear()
+      ..addAll(
+        prefs.getStringList(_ytFollowedAlbumIdsKey()) ?? const <String>[],
+      );
+    _ytFollowedArtistNames
+      ..clear()
+      ..addAll(
+        prefs.getStringList(_ytFollowedArtistNamesKey()) ?? const <String>[],
+      );
+  }
+
   Future<void> _saveYoutubeFollows() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
-      'yt_followed_album_ids',
+      _ytFollowedAlbumIdsKey(),
       _ytFollowedAlbumIds.toList(),
     );
     await prefs.setStringList(
-      'yt_followed_artist_names',
+      _ytFollowedArtistNamesKey(),
       _ytFollowedArtistNames.toList(),
     );
   }
@@ -2547,16 +2585,6 @@ class AppState extends ChangeNotifier {
     _showShuffleRepeatOnPlayerBar =
         prefs.getBool('show_shuffle_repeat_on_player_bar') ?? true;
     _showHexColorControls = prefs.getBool('show_hex_color_controls') ?? false;
-    _ytFollowedAlbumIds
-      ..clear()
-      ..addAll(
-        prefs.getStringList('yt_followed_album_ids') ?? const <String>[],
-      );
-    _ytFollowedArtistNames
-      ..clear()
-      ..addAll(
-        prefs.getStringList('yt_followed_artist_names') ?? const <String>[],
-      );
     _allowYoutubeMusicOnDesktop =
         prefs.getBool('allow_youtube_music_on_desktop') ?? false;
 

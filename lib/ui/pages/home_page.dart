@@ -7,7 +7,6 @@ import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/base_service.dart';
 import 'package:doudou/services/navigation_service.dart';
-import 'package:doudou/services/players/youtube_music_service.dart';
 
 import 'package:doudou/ui/layout/desktop_layout.dart';
 import 'package:doudou/ui/pages/details/media_details.dart';
@@ -24,9 +23,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<YtHomeSection>? _ytHomeSections;
-  bool _ytHomeLoading = false;
-
   @override
   void initState() {
     super.initState();
@@ -37,32 +33,6 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AppState>().loadLibraryData();
     });
-  }
-
-  Future<void> _loadYtHome(BuildContext context) async {
-    final appState = context.read<AppState>();
-    if (appState.mediaServiceManager.currentServerType !=
-        ServerType.youtubeMusic) {
-      return;
-    }
-    if (_ytHomeSections != null || _ytHomeLoading) return;
-    if (!mounted) return;
-    setState(() => _ytHomeLoading = true);
-    try {
-      final sections = await appState.mediaServiceManager.getYtHomeSections();
-      if (!mounted) return;
-      setState(() {
-        _ytHomeSections = sections;
-        _ytHomeLoading = false;
-      });
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _ytHomeSections = [];
-          _ytHomeLoading = false;
-        });
-      }
-    }
   }
 
   String? _imageUrl(AppState appState, String? imageId) {
@@ -77,14 +47,16 @@ class _HomePageState extends State<HomePage> {
         final isYtMusic =
             appState.mediaServiceManager.currentServerType ==
             ServerType.youtubeMusic;
-        if (isYtMusic && _ytHomeSections == null && !_ytHomeLoading) {
-          WidgetsBinding.instance.addPostFrameCallback(
-            (_) => _loadYtHome(context),
+        if (isYtMusic) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(
+              DesktopTheme.spacingLg,
+              DesktopTheme.spacingLg,
+              DesktopTheme.spacingLg,
+              0,
+            ),
+            child: _ytFollowHintBody(context, appState, l10n),
           );
-        } else if (!isYtMusic && _ytHomeSections != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) setState(() => _ytHomeSections = null);
-          });
         }
         return Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -101,11 +73,7 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: DesktopTheme.spacingMd),
                     _quickAccess(context, appState, l10n),
                     const SizedBox(height: DesktopTheme.spacingXl),
-                    Expanded(
-                      child: isYtMusic
-                          ? _ytHomeBody(context, appState, l10n)
-                          : _libraryHomeBody(context, appState, l10n),
-                    ),
+                    Expanded(child: _libraryHomeBody(context, appState, l10n)),
                   ],
                 ),
         );
@@ -113,57 +81,58 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _ytHomeBody(
+  Widget _ytFollowHintBody(
     BuildContext context,
     AppState appState,
     AppLocalizations l10n,
   ) {
-    if (_ytHomeLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: DesktopTheme.spacingMd),
-            Text(
-              l10n.loading,
-              style: TextStyle(fontSize: 14, color: DesktopTheme.textSecondary),
-            ),
-          ],
-        ),
-      );
-    }
-    final sections = _ytHomeSections ?? [];
-    if (sections.isEmpty) {
-      return Center(
-        child: Text(
-          l10n.searchDescription,
-          style: TextStyle(fontSize: 15, color: DesktopTheme.textSecondary),
-        ),
-      );
-    }
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+    final followedAlbums = appState.favoriteAlbums.length;
+    final followedArtists = appState.favoriteArtists.length;
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          for (final section in sections) ...[
-            SectionHeader(title: section.title),
-            const SizedBox(height: DesktopTheme.spacingMd),
-            if (section.isTracks)
-              _trackRow(context, appState, l10n, section.tracks)
-            else
-              _playlistRow(context, appState, section.playlists),
-            const SizedBox(height: DesktopTheme.spacingXl),
-          ],
-          const SizedBox(height: 120),
+          Icon(
+            Icons.favorite_border_rounded,
+            size: 72,
+            color: DesktopTheme.textMuted,
+          ),
+          const SizedBox(height: DesktopTheme.spacingLg),
+          Text(
+            'YouTube Music home is follow-based',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: DesktopTheme.textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: DesktopTheme.spacingSm),
+          Text(
+            'Follow artists or albums to get personalized content here.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 15, color: DesktopTheme.textSecondary),
+          ),
+          const SizedBox(height: DesktopTheme.spacingMd),
+          Text(
+            'Following: $followedArtists artists • $followedAlbums albums',
+            style: TextStyle(fontSize: 13, color: DesktopTheme.textTertiary),
+          ),
+          const SizedBox(height: DesktopTheme.spacingXl),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FilledButton.icon(
+                onPressed: () => NavigationService().selectPage(4),
+                icon: const Icon(Icons.person_add_alt_rounded),
+                label: Text(l10n.artists),
+              ),
+              const SizedBox(width: DesktopTheme.spacingMd),
+              OutlinedButton.icon(
+                onPressed: () => NavigationService().selectPage(3),
+                icon: const Icon(Icons.album_rounded),
+                label: Text(l10n.albums),
+              ),
+            ],
+          ),
         ],
       ),
     );

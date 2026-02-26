@@ -37,9 +37,8 @@ class _ArtistsPageState extends State<ArtistsPage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final artists = appState.isYoutubeMusic
-            ? appState.favoriteArtists
-            : appState.artists;
+        final artists = appState.artists;
+        final isYt = appState.isYoutubeMusic;
         final sorted = List<Artist>.from(
           artists,
         )..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
@@ -80,16 +79,50 @@ class _ArtistsPageState extends State<ArtistsPage> {
                     final imageUrl = artist.imageUrl != null
                         ? appState.getImageUrl(artist.imageUrl!)
                         : null;
+                    final isFollowed = appState.isArtistFollowed(artist);
                     return KeyedSubtree(
                       key: ValueKey(artist.id),
-                      child: MusicCard(
-                        title: artist.name,
-                        subtitle: l10n.artist,
-                        imageUrl: imageUrl,
-                        size: 180,
-                        placeholderIcon: Icons.person_rounded,
-                        onTap: () =>
-                            NavigationService().navigateToArtist(artist),
+                      child: Stack(
+                        children: [
+                          MusicCard(
+                            title: artist.name,
+                            subtitle: l10n.artist,
+                            imageUrl: imageUrl,
+                            size: 180,
+                            placeholderIcon: Icons.person_rounded,
+                            onTap: () =>
+                                NavigationService().navigateToArtist(artist),
+                          ),
+                          if (isYt)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: DesktopTheme.backgroundDeep.withValues(
+                                    alpha: 0.78,
+                                  ),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: DesktopTheme.glassBorder),
+                                ),
+                                child: IconButton(
+                                  iconSize: 18,
+                                  splashRadius: 18,
+                                  tooltip: isFollowed
+                                      ? l10n.removeFromFavorites
+                                      : l10n.followArtist,
+                                  onPressed: () =>
+                                      appState.toggleArtistFollow(artist),
+                                  icon: Icon(
+                                    isFollowed
+                                        ? Icons.favorite_rounded
+                                        : Icons.favorite_border_rounded,
+                                    color: isFollowed ? Colors.redAccent : Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     );
                   },
