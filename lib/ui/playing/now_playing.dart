@@ -52,8 +52,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
   String? _lastCheckedTrackId; // To avoid repeated checks for the same track
   Color _albumGlowColor = const Color(0xFF38BDF8);
   String? _lastGlowTrackId;
-  List<Color>? _gradientColors;
-  String? _lastOverlayImageUrl;
 
   @override
   void initState() {
@@ -1328,29 +1326,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     final overlayImageUrl = currentTrack.imageUrl != null
         ? appState.getImageUrl(currentTrack.imageUrl!, width: 800, height: 800)
         : null;
-    if (overlayImageUrl != null &&
-        overlayImageUrl.isNotEmpty &&
-        overlayImageUrl != _lastOverlayImageUrl) {
-      _lastOverlayImageUrl = overlayImageUrl;
-      AlbumArtColorService.getGradientColors(overlayImageUrl).then((colors) {
-        if (mounted && colors != null) {
-          setState(() => _gradientColors = colors);
-        }
-      });
-    }
-    if (overlayImageUrl == null || overlayImageUrl.isEmpty) {
-      if (_lastOverlayImageUrl != null || _gradientColors != null) {
-        _lastOverlayImageUrl = null;
-        _gradientColors = null;
-      }
-    }
-    final overlayGradientColors =
-        _gradientColors ??
-        [
-          DesktopTheme.backgroundDeep.withValues(alpha: 0.5),
-          DesktopTheme.backgroundDeep.withValues(alpha: 0.85),
-          DesktopTheme.backgroundDeep.withValues(alpha: 0.95),
-        ];
 
     return StreamBuilder<Duration>(
       stream: audioHandler.positionStream,
@@ -1380,7 +1355,11 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: overlayGradientColors,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.35),
+                        Colors.black.withValues(alpha: 0.6),
+                        Colors.black.withValues(alpha: 0.85),
+                      ],
                     ),
                   ),
                 ),
