@@ -622,7 +622,7 @@ class _Sidebar extends StatelessWidget {
                       activeIcon: compact
                           ? Icons.keyboard_double_arrow_right_rounded
                           : Icons.keyboard_double_arrow_left_rounded,
-                      label: compact ? 'Full view' : 'Shrink sidebar',
+                      label: compact ? l10n.fullView : l10n.shrinkSidebar,
                       selected: false,
                       onTap: onToggleCompact,
                       compact: compact,

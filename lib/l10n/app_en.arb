@@ -66,6 +66,16 @@
     "description": "Navigation label for Favorites"
   },
 
+  "shrinkSidebar": "Shrink sidebar",
+  "@shrinkSidebar": {
+    "description": "Sidebar toggle label when expanded"
+  },
+
+  "fullView": "Full view",
+  "@fullView": {
+    "description": "Sidebar toggle label when collapsed"
+  },
+
   "play": "Play",
   "@play": {
     "description": "Play button label"

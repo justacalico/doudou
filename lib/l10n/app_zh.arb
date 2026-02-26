@@ -16,6 +16,9 @@
   "navArtists": "艺术家",
   "navFavorites": "收藏",
 
+  "shrinkSidebar": "收起侧边栏",
+  "fullView": "完整视图",
+
   "play": "播放",
   "pause": "暂停",
   "playAll": "全部播放",
