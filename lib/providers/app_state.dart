@@ -58,6 +58,7 @@ class AppState extends ChangeNotifier {
   bool _showHexColorControls = false;
   final Set<String> _ytFollowedAlbumIds = <String>{};
   final Set<String> _ytFollowedArtistNames = <String>{};
+  final Set<String> _ytFollowedPlaylistIds = <String>{};
 
   /// When false (default on Windows/Linux), YouTube Music is hidden due to known issues; user can re-enable in General settings.
   bool _allowYoutubeMusicOnDesktop = false;
@@ -1296,6 +1297,7 @@ class AppState extends ChangeNotifier {
     _currentServerId = null;
     _ytFollowedAlbumIds.clear();
     _ytFollowedArtistNames.clear();
+    _ytFollowedPlaylistIds.clear();
     await _saveSavedServersList();
 
     // Clear all server credentials (legacy flat keys and type-specific)
@@ -2051,6 +2053,13 @@ class AppState extends ChangeNotifier {
         .toList();
   }
 
+  List<Playlist> get favoritePlaylists {
+    if (!isYoutubeMusic) return _playlists;
+    return _playlists
+        .where((playlist) => _ytFollowedPlaylistIds.contains(playlist.id))
+        .toList();
+  }
+
   bool isAlbumFollowed(Album album) {
     if (!isYoutubeMusic) {
       return album.isFavorite;
@@ -2061,6 +2070,11 @@ class AppState extends ChangeNotifier {
   bool isArtistFollowed(Artist artist) {
     if (!isYoutubeMusic) return false;
     return _ytFollowedArtistNames.contains(artist.name);
+  }
+
+  bool isPlaylistFollowed(Playlist playlist) {
+    if (!isYoutubeMusic) return false;
+    return _ytFollowedPlaylistIds.contains(playlist.id);
   }
 
   bool _artistNameMatches(String haystack, String needle) {
@@ -2198,6 +2212,22 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> togglePlaylistFollow(Playlist playlist) async {
+    if (!isYoutubeMusic) return;
+    final isFollowed = _ytFollowedPlaylistIds.contains(playlist.id);
+    if (isFollowed) {
+      _ytFollowedPlaylistIds.remove(playlist.id);
+    } else {
+      _ytFollowedPlaylistIds.add(playlist.id);
+      final exists = _playlists.any((p) => p.id == playlist.id);
+      if (!exists) {
+        _playlists.add(playlist);
+      }
+    }
+    await _saveYoutubeFollows();
+    notifyListeners();
+  }
+
   String _ytFollowedAlbumIdsKey() {
     final sid = _currentServerId;
     if (sid == null || sid.isEmpty) return 'yt_followed_album_ids';
@@ -2208,6 +2238,12 @@ class AppState extends ChangeNotifier {
     final sid = _currentServerId;
     if (sid == null || sid.isEmpty) return 'yt_followed_artist_names';
     return 'yt_followed_artist_names_$sid';
+  }
+
+  String _ytFollowedPlaylistIdsKey() {
+    final sid = _currentServerId;
+    if (sid == null || sid.isEmpty) return 'yt_followed_playlist_ids';
+    return 'yt_followed_playlist_ids_$sid';
   }
 
   Future<void> _loadYoutubeFollows() async {
@@ -2222,6 +2258,11 @@ class AppState extends ChangeNotifier {
       ..addAll(
         prefs.getStringList(_ytFollowedArtistNamesKey()) ?? const <String>[],
       );
+    _ytFollowedPlaylistIds
+      ..clear()
+      ..addAll(
+        prefs.getStringList(_ytFollowedPlaylistIdsKey()) ?? const <String>[],
+      );
   }
 
   Future<void> _saveYoutubeFollows() async {
@@ -2233,6 +2274,10 @@ class AppState extends ChangeNotifier {
     await prefs.setStringList(
       _ytFollowedArtistNamesKey(),
       _ytFollowedArtistNames.toList(),
+    );
+    await prefs.setStringList(
+      _ytFollowedPlaylistIdsKey(),
+      _ytFollowedPlaylistIds.toList(),
     );
   }
 

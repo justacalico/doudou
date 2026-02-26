@@ -37,7 +37,11 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     return Selector<AppState, List<Playlist>>(
       selector: (_, appState) => appState.playlists,
       builder: (context, playlists, child) {
-        final sorted = List<Playlist>.from(playlists)
+        final appState = context.read<AppState>();
+        final source = appState.isYoutubeMusic
+            ? appState.favoritePlaylists
+            : playlists;
+        final sorted = List<Playlist>.from(source)
           ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         return PageTemplate(
           title: l10n.playlists,
@@ -67,7 +71,6 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                   itemCount: sorted.length,
                   itemBuilder: (context, index) {
                     final pl = sorted[index];
-                    final appState = context.read<AppState>();
                     final imageUrl = pl.imageUrl != null
                         ? appState.getImageUrl(pl.imageUrl!)
                         : null;

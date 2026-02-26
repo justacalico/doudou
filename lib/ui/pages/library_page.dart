@@ -48,6 +48,9 @@ class _LibraryPageState extends State<LibraryPage> {
         final tracksCount = appState.isYoutubeMusic
             ? appState.favoriteTracks.length
             : appState.tracks.length;
+        final playlistsCount = appState.isYoutubeMusic
+            ? appState.favoritePlaylists.length
+            : appState.playlists.length;
         final previewAlbums = appState.isYoutubeMusic
             ? appState.favoriteAlbums
             : appState.albums;
@@ -97,7 +100,7 @@ class _LibraryPageState extends State<LibraryPage> {
                         _LibraryTile(
                           icon: Icons.queue_music_rounded,
                           label: l10n.playlists,
-                          count: appState.playlists.length,
+                          count: playlistsCount,
                           onTap: () => NavigationService().selectPage(6),
                           width: tileWidth,
                         ),

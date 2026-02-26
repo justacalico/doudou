@@ -7,6 +7,8 @@ import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/models/download_models.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/services/base_service.dart';
+import 'package:doudou/services/navigation_service.dart';
+import 'package:doudou/ui/templates/music_card.dart';
 import 'package:doudou/ui/widgets/apple_dialog.dart';
 import 'package:doudou/ui/theme.dart';
 
@@ -52,6 +54,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   bool _isLoading = true;
   List<Album> _artistAlbums = [];
   List<Track> _popularTracks = [];
+  bool _showArtistAlbums = false;
 
   @override
   void initState() {
@@ -225,12 +228,28 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                               maxWidth,
                             ),
                             const SizedBox(height: 20),
-                            _buildTrackListPanel(
-                              context,
-                              appState,
-                              l10n,
-                              maxWidth,
-                            ),
+                            if (widget.mediaType == MediaType.artist) ...[
+                              _buildArtistTabs(l10n),
+                              const SizedBox(height: 12),
+                              _showArtistAlbums
+                                  ? _buildArtistAlbumsPanel(
+                                      context,
+                                      appState,
+                                      l10n,
+                                    )
+                                  : _buildTrackListPanel(
+                                      context,
+                                      appState,
+                                      l10n,
+                                      maxWidth,
+                                    ),
+                            ] else
+                              _buildTrackListPanel(
+                                context,
+                                appState,
+                                l10n,
+                                maxWidth,
+                              ),
                           ],
                         ),
                       );
@@ -492,6 +511,10 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         widget.mediaType == MediaType.artist && widget.artist != null
         ? appState.isArtistFollowed(widget.artist!)
         : false;
+    final isPlaylistFollowed =
+        widget.mediaType == MediaType.playlist && widget.playlist != null
+        ? appState.isPlaylistFollowed(widget.playlist!)
+        : false;
 
     return Wrap(
       spacing: 8,
@@ -548,6 +571,18 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             ),
             label: Text(
               isArtistFollowed ? l10n.removeFromFavorites : l10n.followArtist,
+            ),
+          ),
+        if (widget.mediaType == MediaType.playlist && appState.isYoutubeMusic)
+          FilledButton.tonalIcon(
+            onPressed: () => appState.togglePlaylistFollow(widget.playlist!),
+            icon: Icon(
+              isPlaylistFollowed
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+            ),
+            label: Text(
+              isPlaylistFollowed ? l10n.removeFromFavorites : l10n.addToFavorites,
             ),
           ),
         if (widget.mediaType == MediaType.album && !appState.isYoutubeMusic)
@@ -804,6 +839,127 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildArtistTabs(AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: DesktopTheme.backgroundSecondary,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: DesktopTheme.glassBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildArtistTabChip(
+            label: l10n.songs,
+            selected: !_showArtistAlbums,
+            onTap: () => setState(() => _showArtistAlbums = false),
+          ),
+          _buildArtistTabChip(
+            label: l10n.albums,
+            selected: _showArtistAlbums,
+            onTap: () => setState(() => _showArtistAlbums = true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildArtistTabChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: TextButton(
+        onPressed: onTap,
+        style: TextButton.styleFrom(
+          backgroundColor: selected
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.18)
+              : Colors.transparent,
+          foregroundColor: selected
+              ? Theme.of(context).colorScheme.primary
+              : DesktopTheme.textSecondary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        ),
+        child: Text(label),
+      ),
+    );
+  }
+
+  Widget _buildArtistAlbumsPanel(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
+    if (_artistAlbums.isEmpty) {
+      return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: DesktopTheme.backgroundSecondary,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: DesktopTheme.glassBorder),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: Column(
+          children: [
+            Icon(Icons.album_outlined, size: 56, color: DesktopTheme.textMuted),
+            const SizedBox(height: 12),
+            Text(
+              l10n.noAlbumsFound,
+              style: TextStyle(
+                color: DesktopTheme.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: DesktopTheme.backgroundSecondary,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: DesktopTheme.glassBorder),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 200,
+          childAspectRatio: 0.74,
+          crossAxisSpacing: DesktopTheme.spacingMd,
+          mainAxisSpacing: DesktopTheme.spacingMd,
+        ),
+        itemCount: _artistAlbums.length,
+        itemBuilder: (context, index) {
+          final album = _artistAlbums[index];
+          final imageUrl = album.imageUrl != null
+              ? appState.getImageUrl(album.imageUrl!)
+              : null;
+          return KeyedSubtree(
+            key: ValueKey(album.id),
+            child: MusicCard(
+              title: album.name,
+              subtitle: album.artistName ?? l10n.unknownArtist,
+              imageUrl: imageUrl,
+              size: 180,
+              onTap: () => NavigationService().navigateToAlbum(album),
+            ),
+          );
+        },
       ),
     );
   }
