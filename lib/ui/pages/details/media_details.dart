@@ -185,7 +185,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final theme = Theme.of(context);
         return Container(
           width: double.infinity,
           height: double.infinity,
@@ -193,126 +192,324 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           child: PageTemplate(
             showBackButton: true,
             title: _title,
-            onBackPressed: widget.onBackPressed ?? () => Navigator.of(context).pop(),
+            onBackPressed:
+                widget.onBackPressed ?? () => Navigator.of(context).pop(),
             child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight:
-                              constraints.maxHeight - 48,
+                ? const Center(child: CircularProgressIndicator())
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      final maxWidth = constraints.maxWidth;
+                      final sidePadding = maxWidth >= 1200
+                          ? 32.0
+                          : maxWidth >= 900
+                          ? 24.0
+                          : 16.0;
+                      return SingleChildScrollView(
+                        padding: EdgeInsets.fromLTRB(
+                          sidePadding,
+                          16,
+                          sidePadding,
+                          24,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            _buildActionButtons(theme, l10n),
-                            const SizedBox(height: 24),
-                            _buildMediaHeader(theme, appState, l10n),
-                            const SizedBox(height: 24),
-                            _buildTrackList(theme, appState, l10n),
+                            _buildHeroSection(
+                              context,
+                              appState,
+                              l10n,
+                              maxWidth,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildTrackListPanel(
+                              context,
+                              appState,
+                              l10n,
+                              maxWidth,
+                            ),
                           ],
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
           ),
         );
       },
     );
   }
 
-  Widget _buildActionButtons(ThemeData theme, AppLocalizations l10n) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isNarrow = constraints.maxWidth <
-                (widget.mediaType == MediaType.playlist ? 500 : 600);
-            final isAlbumFollowed =
-                widget.mediaType == MediaType.album && widget.album != null
-                ? appState.isAlbumFollowed(widget.album!)
-                : false;
+  Widget _buildHeroSection(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+    double maxWidth,
+  ) {
+    final theme = Theme.of(context);
+    final isWide = maxWidth >= 900;
+    final imageSize = isWide ? 220.0 : 172.0;
+    final imageUrl = widget.mediaType == MediaType.playlist
+        ? widget.playlist!.imageUrl
+        : widget.mediaType == MediaType.artist
+        ? widget.artist!.imageUrl
+        : widget.album!.imageUrl;
 
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                // Play button
-                ElevatedButton.icon(
-                  onPressed: _tracks.isNotEmpty
-                      ? () async {
-                          await appState.playPlaylist(_tracks, 0);
-                        }
-                      : null,
-                  icon: const Icon(Icons.play_arrow),
-                  label: Text(
-                    isNarrow
-                        ? l10n.play
-                        : (widget.mediaType == MediaType.playlist ||
-                                widget.mediaType == MediaType.artist
-                            ? l10n.playAll
-                            : l10n.playAlbum),
-                  ),
-                ),
-                // Shuffle button
-                OutlinedButton.icon(
-                  onPressed: _tracks.isNotEmpty
-                      ? () async {
-                          final shuffledTracks = List<Track>.from(_tracks)
-                            ..shuffle();
-                          await appState.playPlaylist(shuffledTracks, 0);
-                        }
-                      : null,
-                  icon: const Icon(Icons.shuffle),
-                  label: Text(l10n.shuffle),
-                ),
-                // Download album button (albums only)
-                if (widget.mediaType == MediaType.album &&
-                    appState.downloadsEnabled)
-                  _buildAlbumDownloadButton(appState, l10n),
-                // Conditional buttons based on media type
-                if (widget.mediaType == MediaType.album) ...[
-                  IconButton(
-                    onPressed: () =>
-                        appState.toggleAlbumFavorite(widget.album!),
-                    icon: Icon(
-                      isAlbumFollowed ? Icons.favorite : Icons.favorite_border,
-                      color: isAlbumFollowed ? Colors.red : null,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: DesktopTheme.glassBorder),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            DesktopTheme.backgroundSecondary,
+            DesktopTheme.backgroundTertiary.withValues(alpha: 0.9),
+          ],
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: isWide
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _buildArtworkCard(appState, imageUrl, imageSize),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: _buildHeroMeta(
+                      context,
+                      appState,
+                      l10n,
+                      theme,
+                      isWide: true,
                     ),
-                    tooltip: isAlbumFollowed
-                        ? l10n.removeFromFavorites
-                        : l10n.addToFavorites,
                   ),
                 ],
-                if (widget.mediaType == MediaType.artist &&
-                    widget.artist != null &&
-                    appState.isYoutubeMusic)
-                  IconButton(
-                    onPressed: () =>
-                        appState.toggleArtistFollow(widget.artist!),
-                    icon: Icon(
-                      appState.isArtistFollowed(widget.artist!)
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: appState.isArtistFollowed(widget.artist!)
-                          ? Colors.red
-                          : null,
-                    ),
-                    tooltip: appState.isArtistFollowed(widget.artist!)
-                        ? l10n.removeFromFavorites
-                        : l10n.followArtist,
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildArtworkCard(appState, imageUrl, imageSize),
+                  const SizedBox(height: 16),
+                  _buildHeroMeta(
+                    context,
+                    appState,
+                    l10n,
+                    theme,
+                    isWide: false,
                   ),
-                _buildMoreOptionsMenu(l10n),
-              ],
-            );
-          },
-        );
-      },
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildArtworkCard(AppState appState, String? imageId, double size) {
+    final imageUrl = _getImageUrl(appState, imageId);
+    final icon = widget.mediaType == MediaType.artist
+        ? Icons.person_rounded
+        : widget.mediaType == MediaType.playlist
+        ? Icons.queue_music_rounded
+        : Icons.album_rounded;
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: DesktopTheme.backgroundElevated,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: imageUrl == null
+          ? Icon(icon, size: size * 0.45, color: DesktopTheme.textMuted)
+          : Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  Icon(icon, size: size * 0.45, color: DesktopTheme.textMuted),
+            ),
+    );
+  }
+
+  Widget _buildHeroMeta(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+    ThemeData theme, {
+    required bool isWide,
+  }) {
+    final mediaLabel = widget.mediaType == MediaType.playlist
+        ? l10n.playlist
+        : widget.mediaType == MediaType.artist
+        ? l10n.artist
+        : l10n.album;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            mediaLabel.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              letterSpacing: 0.8,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          _title,
+          maxLines: isWide ? 2 : 3,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            color: DesktopTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+            height: 1.05,
+          ),
+        ),
+        if (widget.mediaType == MediaType.album) ...[
+          const SizedBox(height: 8),
+          InkWell(
+            onTap: () => _navigateToArtist(l10n),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+              child: Text(
+                widget.album!.artistName ?? l10n.unknownArtist,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 14),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildStatPill(Icons.music_note_rounded, l10n.countSongs(_tracks.length)),
+            _buildStatPill(Icons.schedule_rounded, _getTotalDuration()),
+            if (widget.mediaType == MediaType.album && widget.album!.year != null)
+              _buildStatPill(
+                Icons.calendar_today_rounded,
+                widget.album!.year.toString(),
+              ),
+            if (widget.mediaType == MediaType.album &&
+                widget.album!.dateCreated != null)
+              _buildStatPill(
+                Icons.add_circle_outline_rounded,
+                '${l10n.added} ${_formatDate(widget.album!.dateCreated!, l10n)}',
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildActionButtonsRow(appState, l10n),
+      ],
+    );
+  }
+
+  Widget _buildStatPill(IconData icon, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: DesktopTheme.backgroundDeep.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: DesktopTheme.glassBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: DesktopTheme.textMuted),
+          const SizedBox(width: 6),
+          Text(
+            value,
+            style: TextStyle(
+              color: DesktopTheme.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtonsRow(AppState appState, AppLocalizations l10n) {
+    final isAlbumFollowed =
+        widget.mediaType == MediaType.album && widget.album != null
+        ? appState.isAlbumFollowed(widget.album!)
+        : false;
+    final isArtistFollowed =
+        widget.mediaType == MediaType.artist && widget.artist != null
+        ? appState.isArtistFollowed(widget.artist!)
+        : false;
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        FilledButton.icon(
+          onPressed: _tracks.isEmpty
+              ? null
+              : () async {
+                  await appState.playPlaylist(_tracks, 0);
+                },
+          icon: const Icon(Icons.play_arrow_rounded),
+          label: Text(
+            widget.mediaType == MediaType.playlist || widget.mediaType == MediaType.artist
+                ? l10n.playAll
+                : l10n.playAlbum,
+          ),
+        ),
+        OutlinedButton.icon(
+          onPressed: _tracks.isEmpty
+              ? null
+              : () async {
+                  final shuffledTracks = List<Track>.from(_tracks)..shuffle();
+                  await appState.playPlaylist(shuffledTracks, 0);
+                },
+          icon: const Icon(Icons.shuffle_rounded),
+          label: Text(l10n.shuffle),
+        ),
+        if (widget.mediaType == MediaType.album && appState.downloadsEnabled)
+          _buildAlbumDownloadButton(appState, l10n),
+        if (widget.mediaType == MediaType.album)
+          IconButton(
+            onPressed: () => appState.toggleAlbumFavorite(widget.album!),
+            tooltip: isAlbumFollowed
+                ? l10n.removeFromFavorites
+                : l10n.addToFavorites,
+            icon: Icon(
+              isAlbumFollowed ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: isAlbumFollowed ? Colors.redAccent : null,
+            ),
+          ),
+        if (widget.mediaType == MediaType.artist &&
+            widget.artist != null &&
+            appState.isYoutubeMusic)
+          IconButton(
+            onPressed: () => appState.toggleArtistFollow(widget.artist!),
+            tooltip: isArtistFollowed ? l10n.removeFromFavorites : l10n.followArtist,
+            icon: Icon(
+              isArtistFollowed ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: isArtistFollowed ? Colors.redAccent : null,
+            ),
+          ),
+        _buildMoreOptionsMenu(l10n),
+      ],
     );
   }
 
@@ -356,7 +553,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           isAllDownloaded
               ? Icons.download_done_rounded
               : Icons.download_rounded,
-          size: 24,
+          size: 22,
         ),
         style: IconButton.styleFrom(
           foregroundColor: Theme.of(context).colorScheme.onSurface,
@@ -381,7 +578,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             }
             break;
           case 'share':
-            // Share media
             break;
           case 'artist':
             if (widget.mediaType == MediaType.album) {
@@ -401,15 +597,14 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         }
       },
       itemBuilder: (context) {
-        List<PopupMenuEntry<String>> items = [];
+        final items = <PopupMenuEntry<String>>[];
 
-        // Common items
         if (widget.mediaType == MediaType.album) {
           items.add(
             PopupMenuItem(
               value: 'add_playlist',
               child: ListTile(
-                leading: const Icon(Icons.playlist_add),
+                leading: const Icon(Icons.playlist_add_rounded),
                 title: Text(l10n.addToPlaylist),
                 contentPadding: EdgeInsets.zero,
               ),
@@ -420,7 +615,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               PopupMenuItem(
                 value: 'download',
                 child: ListTile(
-                  leading: const Icon(Icons.download),
+                  leading: const Icon(Icons.download_rounded),
                   title: Text(l10n.download),
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -433,20 +628,19 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           PopupMenuItem(
             value: 'share',
             child: ListTile(
-              leading: const Icon(Icons.share),
+              leading: const Icon(Icons.share_rounded),
               title: Text(l10n.share),
               contentPadding: EdgeInsets.zero,
             ),
           ),
         );
 
-        // Media type specific items
         if (widget.mediaType == MediaType.album) {
           items.add(
             PopupMenuItem(
               value: 'artist',
               child: ListTile(
-                leading: const Icon(Icons.person),
+                leading: const Icon(Icons.person_rounded),
                 title: Text(l10n.goToArtist),
                 contentPadding: EdgeInsets.zero,
               ),
@@ -457,7 +651,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             PopupMenuItem(
               value: 'edit',
               child: ListTile(
-                leading: const Icon(Icons.edit),
+                leading: const Icon(Icons.edit_rounded),
                 title: Text(l10n.editPlaylist),
                 contentPadding: EdgeInsets.zero,
               ),
@@ -467,7 +661,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             PopupMenuItem(
               value: 'delete',
               child: ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
+                leading: const Icon(Icons.delete_rounded, color: Colors.red),
                 title: Text(
                   l10n.deletePlaylist,
                   style: const TextStyle(color: Colors.red),
@@ -477,452 +671,220 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             ),
           );
         }
-
         return items;
       },
     );
   }
 
-  Widget _buildMediaHeader(
-    ThemeData theme,
+  Widget _buildTrackListPanel(
+    BuildContext context,
     AppState appState,
     AppLocalizations l10n,
+    double maxWidth,
   ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Row(
+    final theme = Theme.of(context);
+    if (_tracks.isEmpty && !_isLoading) {
+      return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: DesktopTheme.backgroundSecondary,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: DesktopTheme.glassBorder),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: Column(
           children: [
-            // Media artwork - responsive size
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isPlaylist = widget.mediaType == MediaType.playlist;
-                final isArtist = widget.mediaType == MediaType.artist;
-                final artworkSize = isPlaylist
-                    ? (constraints.maxWidth < 800 ? 150.0 : 200.0)
-                    : (constraints.maxWidth < 800 ? 180.0 : 250.0);
-                final iconSize = isPlaylist
-                    ? (constraints.maxWidth < 800 ? 60.0 : 80.0)
-                    : (constraints.maxWidth < 800 ? 70.0 : 100.0);
-
-                final imageUrl = isPlaylist
-                    ? widget.playlist!.imageUrl
-                    : isArtist
-                        ? widget.artist!.imageUrl
-                        : widget.album!.imageUrl;
-
-                final defaultIcon = isPlaylist
-                    ? Icons.playlist_play
-                    : isArtist
-                        ? Icons.person
-                        : Icons.album;
-
-                return Container(
-                  width: artworkSize,
-                  height: artworkSize,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: widget.mediaType == MediaType.album
-                        ? [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: imageUrl != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            _getImageUrl(appState, imageUrl)!,
-                            width: artworkSize,
-                            height: artworkSize,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                defaultIcon,
-                                size: iconSize,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              );
-                            },
-                          ),
-                        )
-                      : Icon(
-                          defaultIcon,
-                          size: iconSize,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                );
-              },
+            Icon(
+              Icons.library_music_outlined,
+              size: 56,
+              color: DesktopTheme.textMuted,
             ),
-
-            SizedBox(width: widget.mediaType == MediaType.album ? 20 : 16),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.mediaType == MediaType.playlist
-                        ? l10n.playlist
-                        : widget.mediaType == MediaType.artist
-                            ? l10n.artist
-                            : l10n.album,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _title,
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (widget.mediaType == MediaType.album) ...[
-                    const SizedBox(height: 8),
-                    InkWell(
-                      onTap: () => _navigateToArtist(l10n),
-                      child: Text(
-                        widget.album!.artistName ?? l10n.unknownArtist,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      if (widget.mediaType == MediaType.album &&
-                          widget.album!.year != null) ...[
-                        Text(
-                          widget.album!.year.toString(),
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                      ],
-                      Text(
-                        l10n.countSongs(_tracks.length),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        _getTotalDuration(),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (widget.mediaType == MediaType.album) ...[
-                    const SizedBox(height: 8),
-                    if (widget.album!.dateCreated != null)
-                      Text(
-                        '${l10n.added} ${_formatDate(widget.album!.dateCreated!, l10n)}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                  ],
-                ],
+            const SizedBox(height: 12),
+            Text(
+              widget.mediaType == MediaType.playlist
+                  ? l10n.noTracksInPlaylist
+                  : l10n.noTracksFound,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: DesktopTheme.textPrimary,
+                fontWeight: FontWeight.w700,
               ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              widget.mediaType == MediaType.album
+                  ? l10n.albumTracksEmptyMessage
+                  : l10n.noTracksFound,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: DesktopTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: _refreshTracks,
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(l10n.retry),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTrackList(
-    ThemeData theme,
-    AppState appState,
-    AppLocalizations l10n,
-  ) {
-    if (_tracks.isEmpty && !_isLoading) {
-      return Column(
-        children: [
-          const SizedBox(height: 64), // Add some spacing from the header
-          Icon(
-            Icons.music_note,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            widget.mediaType == MediaType.playlist
-                ? l10n.noTracksInPlaylist
-                : l10n.noTracksFound,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            widget.mediaType == MediaType.playlist
-                ? l10n.addSongsToGetStarted
-                : (widget.mediaType == MediaType.artist
-                    ? l10n.noTracksFound
-                    : l10n.albumTracksEmptyMessage),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          if (widget.mediaType == MediaType.playlist)
-            ElevatedButton.icon(
-              onPressed: () {
-                // Add tracks to playlist
-              },
-              icon: const Icon(Icons.add),
-              label: Text(l10n.addSongs),
-            )
-          else if (widget.mediaType == MediaType.artist ||
-              widget.mediaType == MediaType.album)
-            ElevatedButton(onPressed: _refreshTracks, child: Text(l10n.retry)),
-        ],
       );
     }
 
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: DesktopTheme.backgroundSecondary,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: DesktopTheme.glassBorder),
+      ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          // Track list header
-          _buildTrackListHeader(theme, l10n),
-
+          _buildTrackHeaderRow(theme, l10n, maxWidth),
           const Divider(height: 1),
-
-          // Track list items (using Column instead of ListView for scrollable parent)
-          ...List.generate(_tracks.length, (index) {
-            final track = _tracks[index];
-            return _buildTrackItem(theme, appState, track, index, l10n);
-          }),
+          ...List.generate(
+            _tracks.length,
+            (index) => _buildTrackRow(
+              context,
+              appState,
+              _tracks[index],
+              index,
+              l10n,
+              maxWidth,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTrackListHeader(ThemeData theme, AppLocalizations l10n) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+  Widget _buildTrackHeaderRow(
+    ThemeData theme,
+    AppLocalizations l10n,
+    double maxWidth,
+  ) {
+    final isWide = maxWidth >= 900;
+    final showPlaylistColumns = widget.mediaType == MediaType.playlist && isWide;
+
+    final style = theme.textTheme.labelMedium?.copyWith(
+      color: DesktopTheme.textMuted,
+      fontWeight: FontWeight.w700,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
       child: Row(
         children: [
-          if (widget.mediaType == MediaType.playlist) ...[
-            const SizedBox(width: 60), // Space for artwork
-            const SizedBox(width: 16),
+          const SizedBox(width: 36, child: Text('#')),
+          const SizedBox(width: 10),
+          Expanded(flex: 4, child: Text(l10n.title, style: style)),
+          if (showPlaylistColumns) ...[
+            const SizedBox(width: 10),
+            Expanded(flex: 3, child: Text(l10n.artist, style: style)),
+            const SizedBox(width: 10),
+            Expanded(flex: 3, child: Text(l10n.album, style: style)),
           ],
+          const SizedBox(width: 10),
           SizedBox(
-            width: 40,
-            child: Text(
-              '#',
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            width: 56,
+            child: Text(l10n.duration, style: style, textAlign: TextAlign.right),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 3,
-            child: Text(
-              l10n.title,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          if (widget.mediaType == MediaType.playlist) ...[
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: Text(
-                l10n.artist,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: Text(
-                l10n.album,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-          const SizedBox(width: 16),
-          SizedBox(
-            width: 60,
-            child: Text(
-              l10n.duration,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
-          const SizedBox(width: 48), // Space for menu button
+          const SizedBox(width: 32),
         ],
       ),
     );
   }
 
-  Widget _buildTrackItem(
-    ThemeData theme,
+  Widget _buildTrackRow(
+    BuildContext context,
     AppState appState,
     Track track,
     int index,
     AppLocalizations l10n,
+    double maxWidth,
   ) {
+    final theme = Theme.of(context);
+    final isWide = maxWidth >= 900;
+    final showPlaylistColumns = widget.mediaType == MediaType.playlist && isWide;
+
     return InkWell(
-      onTap: () async {
-        await appState.playPlaylist(_tracks, index);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      onTap: () async => appState.playPlaylist(_tracks, index),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            // Track artwork (only for playlists)
-            if (widget.mediaType == MediaType.playlist) ...[
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: track.imageUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          _getImageUrl(appState, track.imageUrl)!,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.music_note,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            );
-                          },
-                        ),
-                      )
-                    : Icon(
-                        Icons.music_note,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-              ),
-              const SizedBox(width: 16),
-            ],
-
-            // Track number
             SizedBox(
-              width: 40,
+              width: 36,
               child: Text(
-                track.trackNumber?.toString() ?? (index + 1).toString(),
+                (track.trackNumber ?? index + 1).toString(),
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: DesktopTheme.textMuted,
                 ),
               ),
             ),
-            const SizedBox(width: 16),
-
-            // Track title
+            const SizedBox(width: 10),
             Expanded(
-              flex: 3,
+              flex: 4,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     track.name,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: DesktopTheme.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  if (widget.mediaType == MediaType.album &&
-                      track.artistName != null) ...[
+                  if (!showPlaylistColumns && track.artistName != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      track.artistName!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      '${track.artistName}${track.albumName != null ? ' • ${track.albumName}' : ''}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: DesktopTheme.textSecondary,
+                      ),
                     ),
                   ],
                 ],
               ),
             ),
-
-            // Artist (only for playlists)
-            if (widget.mediaType == MediaType.playlist) ...[
-              const SizedBox(width: 16),
+            if (showPlaylistColumns) ...[
+              const SizedBox(width: 10),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: Text(
                   track.artistName ?? l10n.unknownArtist,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: DesktopTheme.textSecondary,
+                  ),
                 ),
               ),
-
-              // Album (only for playlists)
-              const SizedBox(width: 16),
+              const SizedBox(width: 10),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: Text(
                   track.albumName ?? l10n.unknownAlbum,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: DesktopTheme.textSecondary,
+                  ),
                 ),
               ),
             ],
-
-            const SizedBox(width: 16),
-
-            // Duration
+            const SizedBox(width: 10),
             SizedBox(
-              width: 60,
+              width: 56,
               child: Text(
                 _formatDuration(track.duration ?? 0),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
                 textAlign: TextAlign.right,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: DesktopTheme.textMuted,
+                ),
               ),
             ),
-
-            // Menu button
             PopupMenuButton<String>(
               onSelected: (value) {
                 switch (value) {
@@ -932,39 +894,35 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                     }
                     break;
                   case 'download':
-                    // Download track
                     break;
                 }
               },
               itemBuilder: (context) {
-                List<PopupMenuEntry<String>> items = [];
-
+                final items = <PopupMenuEntry<String>>[];
                 if (widget.mediaType == MediaType.playlist) {
                   items.add(
                     PopupMenuItem(
                       value: 'remove',
                       child: ListTile(
-                        leading: const Icon(Icons.remove),
+                        leading: const Icon(Icons.remove_circle_outline_rounded),
                         title: Text(l10n.removeFromPlaylist),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
                   );
                 }
-
                 if (context.read<AppState>().downloadsEnabled) {
                   items.add(
                     PopupMenuItem(
                       value: 'download',
                       child: ListTile(
-                        leading: const Icon(Icons.download),
+                        leading: const Icon(Icons.download_rounded),
                         title: Text(l10n.download),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
                   );
                 }
-
                 return items;
               },
             ),
