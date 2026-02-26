@@ -724,12 +724,10 @@ class _SidebarTileState extends State<_SidebarTile> {
               color: widget.selected
                   ? accent.withValues(alpha: 0.16)
                   : _hover
-                      ? accent.withValues(alpha: 0.08)
-                      : Colors.transparent,
+                  ? accent.withValues(alpha: 0.08)
+                  : Colors.transparent,
               border: widget.selected
-                  ? Border.all(
-                      color: accent.withValues(alpha: 0.45),
-                    )
+                  ? Border.all(color: accent.withValues(alpha: 0.45))
                   : null,
               boxShadow: widget.selected
                   ? [
@@ -751,8 +749,8 @@ class _SidebarTileState extends State<_SidebarTile> {
                   color: widget.selected
                       ? DesktopTheme.textPrimary
                       : _hover
-                          ? DesktopTheme.textPrimary
-                          : DesktopTheme.textSecondary,
+                      ? DesktopTheme.textPrimary
+                      : DesktopTheme.textSecondary,
                   size: 20,
                 ),
                 if (!widget.compact) ...[
@@ -768,8 +766,8 @@ class _SidebarTileState extends State<_SidebarTile> {
                         color: widget.selected
                             ? DesktopTheme.textPrimary
                             : _hover
-                                ? DesktopTheme.textPrimary
-                                : DesktopTheme.textSecondary,
+                            ? DesktopTheme.textPrimary
+                            : DesktopTheme.textSecondary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -1122,7 +1120,7 @@ class _MobileNowPlayingCapsule extends StatelessWidget {
                       isPlaying
                           ? Icons.pause_rounded
                           : Icons.play_arrow_rounded,
-                      color: theme.colorScheme.primary,
+                      color: isDark ? Colors.white : Colors.black,
                       size: 25,
                     ),
                     onPressed: onPlayPause,

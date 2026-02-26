@@ -1041,20 +1041,16 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                     width: 72,
                                     height: 72,
                                     decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
+                                      color: CupertinoColors.white.withValues(
+                                        alpha: 0.14,
+                                      ),
                                       shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                              .withValues(alpha: 0.35),
-                                          blurRadius: 16,
-                                          offset: const Offset(0, 6),
+                                      border: Border.all(
+                                        color: CupertinoColors.white.withValues(
+                                          alpha: 0.24,
                                         ),
-                                      ],
+                                        width: 0.6,
+                                      ),
                                     ),
                                     child:
                                         processingState ==
