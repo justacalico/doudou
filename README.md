@@ -124,7 +124,6 @@ flutter clean
 
 - [Report a Bug](https://gitlab.com/Openlyst/doudou/issues)
 - [Request a Feature](https://gitlab.com/Openlyst/doudou/issues)
-- [Community Discussions](https://gitlab.com/Openlyst/doudou/-/discussions)
 
 ## Credits
 
