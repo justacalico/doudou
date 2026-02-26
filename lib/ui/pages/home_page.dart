@@ -88,6 +88,57 @@ class _HomePageState extends State<HomePage> {
   ) {
     final followedAlbums = appState.favoriteAlbums.length;
     final followedArtists = appState.favoriteArtists.length;
+    final followedTracks = appState.favoriteTracks;
+
+    if (followedAlbums > 0 || followedArtists > 0) {
+      return SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SectionHeader(
+              title: 'Following',
+              subtitle:
+                  '$followedArtists artists • $followedAlbums albums',
+            ),
+            const SizedBox(height: DesktopTheme.spacingMd),
+            if (appState.favoriteArtists.isNotEmpty) ...[
+              SectionHeader(
+                title: l10n.artists,
+                onSeeAllPressed: () => NavigationService().selectPage(4),
+              ),
+              const SizedBox(height: DesktopTheme.spacingSm),
+              _artistRow(context, appState, l10n, appState.favoriteArtists),
+              const SizedBox(height: DesktopTheme.spacingLg),
+            ],
+            if (appState.favoriteAlbums.isNotEmpty) ...[
+              SectionHeader(
+                title: l10n.albums,
+                onSeeAllPressed: () => NavigationService().selectPage(3),
+              ),
+              const SizedBox(height: DesktopTheme.spacingSm),
+              _albumRow(context, appState, l10n, appState.favoriteAlbums),
+              const SizedBox(height: DesktopTheme.spacingLg),
+            ],
+            if (followedTracks.isNotEmpty) ...[
+              SectionHeader(
+                title: l10n.songs,
+                onSeeAllPressed: () => NavigationService().selectPage(5),
+              ),
+              const SizedBox(height: DesktopTheme.spacingSm),
+              _recentTracks(
+                context,
+                appState,
+                l10n,
+                followedTracks.take(15).toList(),
+              ),
+            ],
+            const SizedBox(height: 120),
+          ],
+        ),
+      );
+    }
+
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
