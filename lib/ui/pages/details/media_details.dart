@@ -522,7 +522,35 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         ),
         if (widget.mediaType == MediaType.album && appState.downloadsEnabled)
           _buildAlbumDownloadButton(appState, l10n),
-        if (widget.mediaType == MediaType.album)
+        if (widget.mediaType == MediaType.album && appState.isYoutubeMusic)
+          FilledButton.tonalIcon(
+            onPressed: () => appState.toggleAlbumFollow(widget.album!),
+            icon: Icon(
+              isAlbumFollowed
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+            ),
+            label: Text(
+              isAlbumFollowed
+                  ? l10n.removeFromFavorites
+                  : l10n.addToFavorites,
+            ),
+          ),
+        if (widget.mediaType == MediaType.artist &&
+            widget.artist != null &&
+            appState.isYoutubeMusic)
+          FilledButton.tonalIcon(
+            onPressed: () => appState.toggleArtistFollow(widget.artist!),
+            icon: Icon(
+              isArtistFollowed
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+            ),
+            label: Text(
+              isArtistFollowed ? l10n.removeFromFavorites : l10n.followArtist,
+            ),
+          ),
+        if (widget.mediaType == MediaType.album && !appState.isYoutubeMusic)
           IconButton(
             onPressed: () => appState.toggleAlbumFavorite(widget.album!),
             tooltip: isAlbumFollowed
@@ -531,17 +559,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             icon: Icon(
               isAlbumFollowed ? Icons.favorite_rounded : Icons.favorite_border_rounded,
               color: isAlbumFollowed ? Colors.redAccent : null,
-            ),
-          ),
-        if (widget.mediaType == MediaType.artist &&
-            widget.artist != null &&
-            appState.isYoutubeMusic)
-          IconButton(
-            onPressed: () => appState.toggleArtistFollow(widget.artist!),
-            tooltip: isArtistFollowed ? l10n.removeFromFavorites : l10n.followArtist,
-            icon: Icon(
-              isArtistFollowed ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isArtistFollowed ? Colors.redAccent : null,
             ),
           ),
         _buildMoreOptionsMenu(l10n),
