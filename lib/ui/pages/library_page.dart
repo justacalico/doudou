@@ -136,6 +136,7 @@ class _LibraryPageState extends State<LibraryPage> {
                               subtitle: album.artistName ?? l10n.unknownArtist,
                               imageUrl: imageUrl,
                               size: 160,
+                              placeholderIcon: Icons.album_rounded,
                               onTap: () =>
                                   NavigationService().navigateToAlbum(album),
                             ),
