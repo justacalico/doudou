@@ -216,25 +216,32 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                   ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
-                    boxShadow: isCurrent
-                        ? [
-                            BoxShadow(
-                              color: glowColor.withValues(
-                                alpha: isPlaying ? 0.3 : 0.1,
-                              ),
-                              blurRadius: 40,
-                              offset: const Offset(0, 20),
-                              spreadRadius: isPlaying ? 5 : 0,
-                            ),
-                            BoxShadow(
-                              color: secondaryGlowColor.withValues(
-                                alpha: isPlaying ? 0.2 : 0.05,
-                              ),
-                              blurRadius: 60,
-                              offset: const Offset(-10, 30),
-                            ),
-                          ]
-                        : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: isCurrent ? 0.32 : 0.24,
+                        ),
+                        blurRadius: 24,
+                        offset: const Offset(0, 12),
+                      ),
+                      if (isCurrent) ...[
+                        BoxShadow(
+                          color: glowColor.withValues(
+                            alpha: isPlaying ? 0.3 : 0.1,
+                          ),
+                          blurRadius: 40,
+                          offset: const Offset(0, 20),
+                          spreadRadius: isPlaying ? 5 : 0,
+                        ),
+                        BoxShadow(
+                          color: secondaryGlowColor.withValues(
+                            alpha: isPlaying ? 0.2 : 0.05,
+                          ),
+                          blurRadius: 60,
+                          offset: const Offset(-10, 30),
+                        ),
+                      ],
+                    ],
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
