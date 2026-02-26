@@ -18,8 +18,8 @@ class YtHomeSection {
     required this.title,
     List<Track>? tracks,
     List<Playlist>? playlists,
-  })  : tracks = tracks ?? const [],
-        playlists = playlists ?? const [];
+  }) : tracks = tracks ?? const [],
+       playlists = playlists ?? const [];
 
   bool get isTracks => tracks.isNotEmpty;
   bool get isPlaylists => playlists.isNotEmpty;
@@ -77,11 +77,7 @@ class YoutubeMusicService implements BaseMediaService {
   @override
   Future<List<Library>> getLibraries() async {
     return [
-      Library(
-        id: 'yt_music',
-        name: 'YouTube Music',
-        collectionType: 'music',
-      ),
+      Library(id: 'yt_music', name: 'YouTube Music', collectionType: 'music'),
     ];
   }
 
@@ -144,10 +140,12 @@ class YoutubeMusicService implements BaseMediaService {
       }
       // Community playlists row
       if (quick.playlists.isNotEmpty) {
-        sections.add(YtHomeSection(
-          title: 'Popular playlists',
-          playlists: quick.playlists.take(10).toList(),
-        ));
+        sections.add(
+          YtHomeSection(
+            title: 'Popular playlists',
+            playlists: quick.playlists.take(10).toList(),
+          ),
+        );
       }
       // Trending / charts-style row
       final trending = await search('trending music', limit: 12);
@@ -173,19 +171,21 @@ class YoutubeMusicService implements BaseMediaService {
     try {
       final tracks = <Track>[];
       await for (final video in _client.playlists.getVideos(playlistId)) {
-        tracks.add(Track(
-          id: video.id.value,
-          name: video.title,
-          artistName: video.author,
-          albumName: null,
-          albumId: null,
-          playlistItemId: null,
-          duration: video.duration?.inMilliseconds,
-          trackNumber: null,
-          imageUrl: video.id.value,
-          isFavorite: false,
-          playCount: null,
-        ));
+        tracks.add(
+          Track(
+            id: video.id.value,
+            name: video.title,
+            artistName: video.author,
+            albumName: null,
+            albumId: null,
+            playlistItemId: null,
+            duration: video.duration?.inMilliseconds,
+            trackNumber: null,
+            imageUrl: video.id.value,
+            isFavorite: false,
+            playCount: null,
+          ),
+        );
       }
       return tracks;
     } catch (_) {
@@ -257,7 +257,9 @@ class YoutubeMusicService implements BaseMediaService {
       final list = inRange.isNotEmpty
           ? List<AudioOnlyStreamInfo>.from(inRange)
           : List<AudioOnlyStreamInfo>.from(audioOnly);
-      list.sort((a, b) => b.bitrate.bitsPerSecond.compareTo(a.bitrate.bitsPerSecond));
+      list.sort(
+        (a, b) => b.bitrate.bitsPerSecond.compareTo(a.bitrate.bitsPerSecond),
+      );
       final best = list.first;
       final url = best.url.toString();
       _streamUrlCache[trackId] = url;
@@ -318,35 +320,63 @@ class YoutubeMusicService implements BaseMediaService {
 
   /// Get tracks for an artist (channel uploads when artist.id is channel id, else search by name).
   Future<List<Track>> getArtistTracks(Artist artist, {int limit = 100}) async {
-    try {
-      if (artist.id.isNotEmpty) {
+    final id = artist.id.trim();
+    // Followed artists can be synthetic placeholders (e.g. yt_followed_*).
+    // Only treat real YouTube channel IDs as upload sources.
+    final isLikelyChannelId = RegExp(r'^UC[0-9A-Za-z_-]{20,}$').hasMatch(id);
+
+    if (isLikelyChannelId) {
+      try {
         final videos = await _client.channels
-            .getUploads(artist.id)
+            .getUploads(id)
             .take(limit)
             .toList();
-        return videos
-            .map(
-              (v) => Track(
-                id: v.id.value,
-                name: v.title,
-                artistName: v.author,
-                albumName: null,
-                albumId: null,
-                playlistItemId: null,
-                duration: v.duration?.inMilliseconds,
-                trackNumber: null,
-                imageUrl: v.id.value,
-                isFavorite: false,
-                playCount: null,
-              ),
-            )
-            .toList();
+        if (videos.isNotEmpty) {
+          return videos
+              .map(
+                (v) => Track(
+                  id: v.id.value,
+                  name: v.title,
+                  artistName: v.author,
+                  albumName: null,
+                  albumId: null,
+                  playlistItemId: null,
+                  duration: v.duration?.inMilliseconds,
+                  trackNumber: null,
+                  imageUrl: v.id.value,
+                  isFavorite: false,
+                  playCount: null,
+                ),
+              )
+              .toList();
+        }
+      } catch (_) {
+        // Fallback to name-based search below.
       }
-      final results = await search(artist.name, limit: limit);
-      return results.tracks;
-    } catch (_) {
-      return [];
     }
+
+    // Name-based fallbacks for artists without a usable channel ID.
+    final queries = <String>[
+      artist.name,
+      '${artist.name} topic',
+      '${artist.name} songs',
+    ];
+
+    final deduped = <String, Track>{};
+    for (final query in queries) {
+      try {
+        final results = await search(query, limit: limit);
+        for (final track in results.tracks) {
+          deduped.putIfAbsent(track.id, () => track);
+        }
+        if (deduped.isNotEmpty) {
+          return deduped.values.take(limit).toList(growable: false);
+        }
+      } catch (_) {
+        // Try next query variant.
+      }
+    }
+    return [];
   }
 
   @override
@@ -368,19 +398,21 @@ class YoutubeMusicService implements BaseMediaService {
       for (final r in searchList) {
         if (r is SearchVideo) {
           if (tracks.length >= maxTracks) continue;
-          tracks.add(Track(
-            id: r.id.value,
-            name: r.title,
-            artistName: r.author,
-            albumName: null,
-            albumId: null,
-            playlistItemId: null,
-            duration: _durationStringToMs(r.duration),
-            trackNumber: null,
-            imageUrl: r.id.value,
-            isFavorite: false,
-            playCount: null,
-          ));
+          tracks.add(
+            Track(
+              id: r.id.value,
+              name: r.title,
+              artistName: r.author,
+              albumName: null,
+              albumId: null,
+              playlistItemId: null,
+              duration: _durationStringToMs(r.duration),
+              trackNumber: null,
+              imageUrl: r.id.value,
+              isFavorite: false,
+              playCount: null,
+            ),
+          );
         } else if (r is SearchPlaylist) {
           if (_isUnsupportedMixPlaylist(r.id.value, r.title)) continue;
           final thumbUrl = r.thumbnails.isNotEmpty
@@ -389,31 +421,25 @@ class YoutubeMusicService implements BaseMediaService {
           if (_isAlbumLikePlaylist(r.id.value)) {
             if (albums.length >= maxAlbums) continue;
             albums.add(
-              Album(
-                id: r.id.value,
-                name: r.title,
-                imageUrl: thumbUrl,
-              ),
+              Album(id: r.id.value, name: r.title, imageUrl: thumbUrl),
             );
           } else {
             if (playlists.length >= maxPlaylists) continue;
-            playlists.add(Playlist(
-              id: r.id.value,
-              name: r.title,
-              imageUrl: thumbUrl,
-              trackCount: r.videoCount,
-            ));
+            playlists.add(
+              Playlist(
+                id: r.id.value,
+                name: r.title,
+                imageUrl: thumbUrl,
+                trackCount: r.videoCount,
+              ),
+            );
           }
         } else if (r is SearchChannel) {
           if (artists.length >= maxArtists) continue;
           final thumbUrl = r.thumbnails.isNotEmpty
               ? r.thumbnails.first.url.toString()
               : null;
-          artists.add(Artist(
-            id: r.id.value,
-            name: r.name,
-            imageUrl: thumbUrl,
-          ));
+          artists.add(Artist(id: r.id.value, name: r.name, imageUrl: thumbUrl));
         }
       }
       return SearchResults(

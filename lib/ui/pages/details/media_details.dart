@@ -25,25 +25,25 @@ class MediaDetailsPage extends StatefulWidget {
     super.key,
     required this.playlist,
     this.onBackPressed,
-  })  : album = null,
-        artist = null,
-        mediaType = MediaType.playlist;
+  }) : album = null,
+       artist = null,
+       mediaType = MediaType.playlist;
 
   const MediaDetailsPage.album({
     super.key,
     required this.album,
     this.onBackPressed,
-  })  : playlist = null,
-        artist = null,
-        mediaType = MediaType.album;
+  }) : playlist = null,
+       artist = null,
+       mediaType = MediaType.album;
 
   const MediaDetailsPage.artist({
     super.key,
     required this.artist,
     this.onBackPressed,
-  })  : playlist = null,
-        album = null,
-        mediaType = MediaType.artist;
+  }) : playlist = null,
+       album = null,
+       mediaType = MediaType.artist;
 
   @override
   State<MediaDetailsPage> createState() => _MediaDetailsPageState();
@@ -75,7 +75,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     try {
       if (appState.mediaServiceManager.currentServerType ==
           ServerType.youtubeMusic) {
-        final tracks = await appState.mediaServiceManager.getArtistTracks(
+        var tracks = await appState.mediaServiceManager.getArtistTracks(
           widget.artist!,
           limit: 100,
         );
@@ -83,7 +83,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           '${widget.artist!.name} album',
           limit: 50,
         );
-        final ytAlbums = albumSearch.albums.where((a) => a.id.isNotEmpty).toList();
+        final ytAlbums = albumSearch.albums
+            .where((a) => a.id.isNotEmpty)
+            .toList();
         if (ytAlbums.isEmpty) {
           final artistQuery = widget.artist!.name.toLowerCase();
           _artistAlbums = appState.albums.where((album) {
@@ -92,6 +94,17 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           }).toList();
         } else {
           _artistAlbums = ytAlbums;
+        }
+        // Fallback: if artist search returns no tracks, try fetching tracks
+        // from the top album-like results.
+        if (tracks.isEmpty && ytAlbums.isNotEmpty) {
+          for (final album in ytAlbums.take(3)) {
+            final albumTracks = await appState.getPlaylistTracks(album.id);
+            if (albumTracks.isNotEmpty) {
+              tracks = albumTracks;
+              break;
+            }
+          }
         }
         if (mounted) {
           setState(() {
@@ -433,14 +446,15 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           _title,
           maxLines: isWide ? 2 : 3,
           overflow: TextOverflow.ellipsis,
-          style: (isWide
-                  ? theme.textTheme.headlineMedium
-                  : theme.textTheme.headlineSmall)
-              ?.copyWith(
-            color: DesktopTheme.textPrimary,
-            fontWeight: FontWeight.w800,
-            height: 1.05,
-          ),
+          style:
+              (isWide
+                      ? theme.textTheme.headlineMedium
+                      : theme.textTheme.headlineSmall)
+                  ?.copyWith(
+                    color: DesktopTheme.textPrimary,
+                    fontWeight: FontWeight.w800,
+                    height: 1.05,
+                  ),
         ),
         if (widget.mediaType == MediaType.album) ...[
           const SizedBox(height: 8),
@@ -469,7 +483,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               l10n.countSongs(_tracks.length),
             ),
             _buildStatPill(Icons.schedule_rounded, _getTotalDuration()),
-            if (widget.mediaType == MediaType.album && widget.album!.year != null)
+            if (widget.mediaType == MediaType.album &&
+                widget.album!.year != null)
               _buildStatPill(
                 Icons.calendar_today_rounded,
                 widget.album!.year.toString(),
@@ -541,7 +556,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 },
           icon: const Icon(Icons.play_arrow_rounded),
           label: Text(
-            widget.mediaType == MediaType.playlist || widget.mediaType == MediaType.artist
+            widget.mediaType == MediaType.playlist ||
+                    widget.mediaType == MediaType.artist
                 ? l10n.playAll
                 : l10n.playAlbum,
           ),
@@ -567,9 +583,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   : Icons.favorite_border_rounded,
             ),
             label: Text(
-              isAlbumFollowed
-                  ? l10n.removeFromFavorites
-                  : l10n.addToFavorites,
+              isAlbumFollowed ? l10n.removeFromFavorites : l10n.addToFavorites,
             ),
           ),
         if (widget.mediaType == MediaType.artist &&
@@ -595,7 +609,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   : Icons.favorite_border_rounded,
             ),
             label: Text(
-              isPlaylistFollowed ? l10n.removeFromFavorites : l10n.addToFavorites,
+              isPlaylistFollowed
+                  ? l10n.removeFromFavorites
+                  : l10n.addToFavorites,
             ),
           ),
         if (widget.mediaType == MediaType.album && !appState.isYoutubeMusic)
@@ -605,7 +621,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 ? l10n.removeFromFavorites
                 : l10n.addToFavorites,
             icon: Icon(
-              isAlbumFollowed ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              isAlbumFollowed
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
               color: isAlbumFollowed ? Colors.redAccent : null,
             ),
           ),
@@ -966,7 +984,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             key: ValueKey(album.id),
             child: MusicCard(
               title: album.name,
-              subtitle: album.artistName ?? l10n.unknownArtist,
+              subtitle:
+                  album.artistName ?? widget.artist?.name ?? l10n.unknownArtist,
               imageUrl: imageUrl,
               size: 180,
               onTap: () => NavigationService().navigateToAlbum(album),
@@ -983,7 +1002,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     double maxWidth,
   ) {
     final isWide = maxWidth >= 900;
-    final showPlaylistColumns = widget.mediaType == MediaType.playlist && isWide;
+    final showPlaylistColumns =
+        widget.mediaType == MediaType.playlist && isWide;
 
     final style = theme.textTheme.labelMedium?.copyWith(
       color: DesktopTheme.textMuted,
@@ -1006,7 +1026,11 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           const SizedBox(width: 10),
           SizedBox(
             width: 56,
-            child: Text(l10n.duration, style: style, textAlign: TextAlign.right),
+            child: Text(
+              l10n.duration,
+              style: style,
+              textAlign: TextAlign.right,
+            ),
           ),
           const SizedBox(width: 32),
         ],
@@ -1024,7 +1048,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   ) {
     final theme = Theme.of(context);
     final isWide = maxWidth >= 900;
-    final showPlaylistColumns = widget.mediaType == MediaType.playlist && isWide;
+    final showPlaylistColumns =
+        widget.mediaType == MediaType.playlist && isWide;
 
     return InkWell(
       onTap: () async => appState.playPlaylist(_tracks, index),
@@ -1126,7 +1151,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                     PopupMenuItem(
                       value: 'remove',
                       child: ListTile(
-                        leading: const Icon(Icons.remove_circle_outline_rounded),
+                        leading: const Icon(
+                          Icons.remove_circle_outline_rounded,
+                        ),
                         title: Text(l10n.removeFromPlaylist),
                         contentPadding: EdgeInsets.zero,
                       ),
