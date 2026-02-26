@@ -869,20 +869,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                           ),
                                                       child: Container(
                                                         decoration: BoxDecoration(
-                                                          gradient:
-                                                              const LinearGradient(
-                                                                begin: Alignment
-                                                                    .centerLeft,
-                                                                end: Alignment
-                                                                    .centerRight,
-                                                                colors: [
-                                                                  Color(
-                                                                    0xFF38BDF8,
-                                                                  ),
-                                                                  Color(
-                                                                    0xFFEC4899,
-                                                                  ),
-                                                                ],
+                                                          color: CupertinoColors
+                                                              .white
+                                                              .withValues(
+                                                                alpha: 0.85,
                                                               ),
                                                           borderRadius:
                                                               BorderRadius.circular(
