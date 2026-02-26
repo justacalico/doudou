@@ -186,7 +186,7 @@ Widget buildSmartImage({
     height: height,
     fit: fit,
     cacheManager: ImageCacheManager.instance,
-    placeholder: (_, __) => Container(
+    placeholder: (_, _) => Container(
       width: width,
       height: height,
       color: const Color(0xFF2C2C2E),
@@ -194,6 +194,6 @@ Widget buildSmartImage({
         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
       ),
     ),
-    errorWidget: (_, __, ___) => errorWidget,
+    errorWidget: (_, _, _) => errorWidget,
   );
 }

@@ -8,6 +8,7 @@ import 'package:doudou/models/download_models.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/services/base_service.dart';
 import 'package:doudou/ui/widgets/apple_dialog.dart';
+import 'package:doudou/ui/theme.dart';
 
 enum MediaType { playlist, album, artist }
 
@@ -185,11 +186,15 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final theme = Theme.of(context);
-        return PageTemplate(
-          showBackButton: true,
-          title: _title,
-          onBackPressed: widget.onBackPressed ?? () => Navigator.of(context).pop(),
-          child: _isLoading
+        return Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: DesktopTheme.backgroundPrimary,
+          child: PageTemplate(
+            showBackButton: true,
+            title: _title,
+            onBackPressed: widget.onBackPressed ?? () => Navigator.of(context).pop(),
+            child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : LayoutBuilder(
                   builder: (context, constraints) {
@@ -215,6 +220,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                     );
                   },
                 ),
+          ),
         );
       },
     );

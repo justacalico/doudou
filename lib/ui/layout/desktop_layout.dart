@@ -1538,7 +1538,7 @@ class _DetailHeader extends StatelessWidget {
                       [
                         if (year != null) year,
                         if (trackCount != null)
-                          '${trackCount} ${l10n.songs}',
+                          '$trackCount ${l10n.songs}',
                       ].join(' • '),
                       style: TextStyle(
                         fontSize: 14,
