@@ -1331,6 +1331,18 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                   ),
                 ),
               Positioned.fill(
+                child: IgnorePointer(
+                  child: ClipRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.06),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
