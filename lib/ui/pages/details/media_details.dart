@@ -79,11 +79,24 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           widget.artist!,
           limit: 100,
         );
+        final albumSearch = await appState.mediaServiceManager.search(
+          '${widget.artist!.name} album',
+          limit: 50,
+        );
+        final ytAlbums = albumSearch.albums.where((a) => a.id.isNotEmpty).toList();
+        if (ytAlbums.isEmpty) {
+          final artistQuery = widget.artist!.name.toLowerCase();
+          _artistAlbums = appState.albums.where((album) {
+            final name = album.artistName?.toLowerCase();
+            return name != null && name.contains(artistQuery);
+          }).toList();
+        } else {
+          _artistAlbums = ytAlbums;
+        }
         if (mounted) {
           setState(() {
             _popularTracks = tracks;
             _tracks = tracks;
-            _artistAlbums = [];
             _isLoading = false;
           });
         }

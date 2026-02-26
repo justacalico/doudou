@@ -47,6 +47,11 @@ class YoutubeMusicService implements BaseMediaService {
     return false;
   }
 
+  bool _isAlbumLikePlaylist(String id) {
+    // YouTube Music album browse IDs commonly start with OLAK5uy.
+    return id.startsWith('OLAK5uy');
+  }
+
   @override
   ServerType get serverType => ServerType.youtubeMusic;
 
@@ -352,10 +357,12 @@ class YoutubeMusicService implements BaseMediaService {
   }) async {
     final maxTracks = limit ?? 25;
     final maxPlaylists = 12;
+    final maxAlbums = 12;
     final maxArtists = 12;
     try {
       final searchList = await _client.search.searchContent(query);
       final tracks = <Track>[];
+      final albums = <Album>[];
       final playlists = <Playlist>[];
       final artists = <Artist>[];
       for (final r in searchList) {
@@ -375,17 +382,28 @@ class YoutubeMusicService implements BaseMediaService {
             playCount: null,
           ));
         } else if (r is SearchPlaylist) {
-          if (playlists.length >= maxPlaylists) continue;
           if (_isUnsupportedMixPlaylist(r.id.value, r.title)) continue;
           final thumbUrl = r.thumbnails.isNotEmpty
               ? r.thumbnails.first.url.toString()
               : null;
-          playlists.add(Playlist(
-            id: r.id.value,
-            name: r.title,
-            imageUrl: thumbUrl,
-            trackCount: r.videoCount,
-          ));
+          if (_isAlbumLikePlaylist(r.id.value)) {
+            if (albums.length >= maxAlbums) continue;
+            albums.add(
+              Album(
+                id: r.id.value,
+                name: r.title,
+                imageUrl: thumbUrl,
+              ),
+            );
+          } else {
+            if (playlists.length >= maxPlaylists) continue;
+            playlists.add(Playlist(
+              id: r.id.value,
+              name: r.title,
+              imageUrl: thumbUrl,
+              trackCount: r.videoCount,
+            ));
+          }
         } else if (r is SearchChannel) {
           if (artists.length >= maxArtists) continue;
           final thumbUrl = r.thumbnails.isNotEmpty
@@ -399,6 +417,7 @@ class YoutubeMusicService implements BaseMediaService {
         }
       }
       return SearchResults(
+        albums: albums,
         tracks: tracks,
         playlists: playlists,
         artists: artists,
