@@ -15,7 +15,6 @@ import 'package:doudou/ui/playing/lyrics_overlay.dart';
 import 'package:doudou/ui/playing/queue_overlay.dart';
 import 'package:doudou/ui/widgets/cached_image_widget.dart';
 import 'package:doudou/ui/widgets/marquee_text.dart';
-import 'package:doudou/ui/widgets/detail_track_view.dart';
 import 'package:doudou/ui/pages/details/media_details.dart';
 import 'package:doudou/services/lyrics_service.dart';
 import 'package:doudou/l10n/app_localizations.dart';
@@ -1937,7 +1936,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
       debugPrint('Found album: ${album.name}, navigating...');
       Navigator.of(context).push(
-        CupertinoPageRoute(builder: (context) => DetailTrackView.album(album)),
+        CupertinoPageRoute(
+          builder: (context) => MediaDetailsPage.album(album: album)),
       );
     } catch (e) {
       debugPrint('Error navigating to album: $e');
@@ -2314,7 +2314,8 @@ void _navigateToAlbumFromExpanded(
     );
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => DetailTrackView.album(album)));
+    ).push(MaterialPageRoute(
+        builder: (_) => MediaDetailsPage.album(album: album)));
   } catch (_) {}
 }
 

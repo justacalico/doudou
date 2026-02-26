@@ -14,7 +14,6 @@ import 'package:doudou/ui/pages/details/media_details.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/templates/music_card.dart';
-import 'package:doudou/ui/widgets/detail_track_view.dart';
 
 /// Home page built from reusable templates (page, section header, music cards, list tiles).
 class HomePage extends StatefulWidget {
@@ -645,7 +644,7 @@ class _HomePageState extends State<HomePage> {
                   );
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (_) => DetailTrackView.album(album),
+                      builder: (_) => MediaDetailsPage.album(album: album),
                     ),
                   );
                 } catch (_) {}
