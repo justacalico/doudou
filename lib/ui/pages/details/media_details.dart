@@ -246,7 +246,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   ) {
     final theme = Theme.of(context);
     final isWide = maxWidth >= 900;
-    final imageSize = isWide ? 220.0 : 172.0;
+    final imageSize = isWide ? 220.0 : 132.0;
     final imageUrl = widget.mediaType == MediaType.playlist
         ? widget.playlist!.imageUrl
         : widget.mediaType == MediaType.artist
@@ -254,8 +254,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         : widget.album!.imageUrl;
 
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: DesktopTheme.glassBorder),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -267,7 +268,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         child: isWide
             ? Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -281,6 +282,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                       l10n,
                       theme,
                       isWide: true,
+                      includeActions: true,
                     ),
                   ),
                 ],
@@ -288,15 +290,36 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildArtworkCard(appState, imageUrl, imageSize),
-                  const SizedBox(height: 16),
-                  _buildHeroMeta(
-                    context,
-                    appState,
-                    l10n,
-                    theme,
-                    isWide: false,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildArtworkCard(appState, imageUrl, imageSize),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: DesktopTheme.backgroundDeep.withValues(
+                              alpha: 0.3,
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: DesktopTheme.glassBorder),
+                          ),
+                          padding: const EdgeInsets.all(12),
+                          child: _buildHeroMeta(
+                            context,
+                            appState,
+                            l10n,
+                            theme,
+                            isWide: false,
+                            includeActions: false,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 14),
+                  _buildActionButtonsRow(appState, l10n),
                 ],
               ),
       ),
@@ -343,6 +366,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     AppLocalizations l10n,
     ThemeData theme, {
     required bool isWide,
+    required bool includeActions,
   }) {
     final mediaLabel = widget.mediaType == MediaType.playlist
         ? l10n.playlist
@@ -373,7 +397,10 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           _title,
           maxLines: isWide ? 2 : 3,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.headlineMedium?.copyWith(
+          style: (isWide
+                  ? theme.textTheme.headlineMedium
+                  : theme.textTheme.headlineSmall)
+              ?.copyWith(
             color: DesktopTheme.textPrimary,
             fontWeight: FontWeight.w800,
             height: 1.05,
@@ -401,7 +428,10 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildStatPill(Icons.music_note_rounded, l10n.countSongs(_tracks.length)),
+            _buildStatPill(
+              Icons.music_note_rounded,
+              l10n.countSongs(_tracks.length),
+            ),
             _buildStatPill(Icons.schedule_rounded, _getTotalDuration()),
             if (widget.mediaType == MediaType.album && widget.album!.year != null)
               _buildStatPill(
@@ -416,8 +446,10 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               ),
           ],
         ),
-        const SizedBox(height: 16),
-        _buildActionButtonsRow(appState, l10n),
+        if (includeActions) ...[
+          const SizedBox(height: 16),
+          _buildActionButtonsRow(appState, l10n),
+        ],
       ],
     );
   }
