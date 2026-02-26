@@ -1729,8 +1729,15 @@ class AppState extends ChangeNotifier {
         playlistId,
       );
       if (cachedTracks != null) {
+        // For YouTube Music, don't trust empty cached playlist results:
+        // mix/radio IDs can resolve differently across retries.
+        if (_mediaServiceManager.currentServerType == ServerType.youtubeMusic &&
+            cachedTracks.isEmpty) {
+          // Fall through to fetch fresh below.
+        } else {
         _loadPlaylistTracksInBackground(playlistId);
         return cachedTracks;
+        }
       }
 
       final tracks = await _mediaServiceManager.getPlaylistTracks(playlistId);

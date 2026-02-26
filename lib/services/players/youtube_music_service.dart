@@ -144,6 +144,14 @@ class YoutubeMusicService implements BaseMediaService {
 
   @override
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
+    for (final candidateId in _playlistIdCandidates(playlistId)) {
+      final tracks = await _getPlaylistTracksSingle(candidateId);
+      if (tracks.isNotEmpty) return tracks;
+    }
+    return [];
+  }
+
+  Future<List<Track>> _getPlaylistTracksSingle(String playlistId) async {
     try {
       final tracks = <Track>[];
       await for (final video in _client.playlists.getVideos(playlistId)) {
@@ -163,8 +171,44 @@ class YoutubeMusicService implements BaseMediaService {
       }
       return tracks;
     } catch (_) {
-      return [];
+      return const [];
     }
+  }
+
+  List<String> _playlistIdCandidates(String rawId) {
+    final candidates = <String>{};
+    var id = rawId.trim();
+
+    // Accept links by extracting ?list=
+    if (id.startsWith('http://') || id.startsWith('https://')) {
+      try {
+        final uri = Uri.parse(id);
+        final listParam = uri.queryParameters['list'];
+        if (listParam != null && listParam.isNotEmpty) {
+          id = listParam;
+        }
+      } catch (_) {}
+    }
+
+    if (id.isEmpty) return const [];
+
+    candidates.add(id);
+
+    // YT Music browse IDs often include "VL" prefix.
+    if (id.startsWith('VL') && id.length > 2) {
+      candidates.add(id.substring(2));
+    } else {
+      candidates.add('VL$id');
+    }
+
+    // Mix variants seen in the wild.
+    if (id.startsWith('RDAMVM') && id.length > 6) {
+      candidates.add('RD${id.substring(6)}');
+    } else if (id.startsWith('RD') && !id.startsWith('RDAMVM')) {
+      candidates.add('RDAMVM${id.substring(2)}');
+    }
+
+    return candidates.toList(growable: false);
   }
 
   /// Sync getStreamUrl returns cached URL or empty. Use getStreamUrlAsync for resolution.
