@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -55,6 +56,10 @@ class _QueueOverlayState extends State<QueueOverlay>
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final panelWidth = math.min(740.0, screenSize.width - 24);
+    final panelHeight = math.min(screenSize.height * 0.84, 860.0);
+
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -66,35 +71,35 @@ class _QueueOverlayState extends State<QueueOverlay>
               color: Colors.transparent,
               child: Center(
                 child: Container(
-                  margin: const EdgeInsets.all(20),
-                  height: MediaQuery.of(context).size.height * 0.8,
+                  width: panelWidth,
+                  height: panelHeight,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(24),
+                    color: const Color(0xFF050C19).withValues(alpha: 0.68),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: Colors.white.withValues(alpha: 0.13),
                       width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.5),
-                        blurRadius: 30,
-                        offset: const Offset(0, 10),
+                        blurRadius: 42,
+                        offset: const Offset(0, 18),
                       ),
                     ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(24),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      filter: ImageFilter.blur(sigmaX: 26, sigmaY: 26),
                       child: Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
                             colors: [
-                              Colors.white.withValues(alpha: 0.1),
-                              Colors.white.withValues(alpha: 0.05),
+                              const Color(0xFF102544).withValues(alpha: 0.42),
+                              const Color(0xFF071021).withValues(alpha: 0.26),
                             ],
                           ),
                         ),
@@ -102,11 +107,16 @@ class _QueueOverlayState extends State<QueueOverlay>
                           children: [
                             // Header
                             Container(
-                              padding: const EdgeInsets.all(20),
+                              padding: const EdgeInsets.fromLTRB(
+                                22,
+                                18,
+                                14,
+                                14,
+                              ),
                               decoration: BoxDecoration(
                                 border: Border(
                                   bottom: BorderSide(
-                                    color: Colors.white.withValues(alpha: 0.1),
+                                    color: Colors.white.withValues(alpha: 0.10),
                                     width: 1,
                                   ),
                                 ),
@@ -122,8 +132,9 @@ class _QueueOverlayState extends State<QueueOverlay>
                                           'Queue',
                                           style: TextStyle(
                                             color: Colors.white,
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
+                                            fontSize: 38,
+                                            height: 1.0,
+                                            fontWeight: FontWeight.w700,
                                             decoration: TextDecoration.none,
                                           ),
                                         ),
@@ -131,8 +142,8 @@ class _QueueOverlayState extends State<QueueOverlay>
                                         Text(
                                           'Playing from queue',
                                           style: TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 16,
+                                            color: Color(0xFFB7C3D8),
+                                            fontSize: 17,
                                             decoration: TextDecoration.none,
                                           ),
                                         ),
@@ -147,18 +158,18 @@ class _QueueOverlayState extends State<QueueOverlay>
                                       });
                                     },
                                     child: Container(
-                                      width: 32,
-                                      height: 32,
+                                      width: 36,
+                                      height: 36,
                                       decoration: BoxDecoration(
                                         color: Colors.white.withValues(
-                                          alpha: 0.2,
+                                          alpha: 0.16,
                                         ),
-                                        borderRadius: BorderRadius.circular(16),
+                                        borderRadius: BorderRadius.circular(18),
                                       ),
                                       child: const Icon(
                                         CupertinoIcons.xmark,
                                         color: Colors.white,
-                                        size: 18,
+                                        size: 19,
                                       ),
                                     ),
                                   ),
@@ -196,13 +207,10 @@ class _QueueOverlayState extends State<QueueOverlay>
         rawCurrentIndex >= 0 && rawCurrentIndex < queueTracks.length
         ? rawCurrentIndex
         : 0;
-    final displayIndices = <int>[
-      currentIndex,
-      ...List<int>.generate(
-        queueTracks.length,
-        (i) => i,
-      ).where((i) => i != currentIndex),
-    ];
+    final displayIndices = List<int>.generate(
+      queueTracks.length,
+      (i) => i,
+    ).where((i) => i != currentIndex).toList();
     final isShuffled = audioHandler?.isShuffled ?? false;
 
     if (queueTracks.isEmpty) {
@@ -229,7 +237,7 @@ class _QueueOverlayState extends State<QueueOverlay>
       children: [
         // Queue controls
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
           child: Row(
             children: [
               Expanded(
@@ -264,15 +272,24 @@ class _QueueOverlayState extends State<QueueOverlay>
           ),
         ),
 
+        // Current track card (always pinned)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+          child: _buildCurrentTrackCard(
+            track: queueTracks[currentIndex],
+            appState: appState,
+          ),
+        ),
+
         // Queue header info
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
           child: Row(
             children: [
               Text(
                 '${queueTracks.length} song${queueTracks.length == 1 ? '' : 's'}',
                 style: const TextStyle(
-                  color: Colors.white70,
+                  color: Color(0xFFD5DFEF),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   decoration: TextDecoration.none,
@@ -286,16 +303,16 @@ class _QueueOverlayState extends State<QueueOverlay>
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xFFFF4D6D).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: Colors.red.withValues(alpha: 0.3),
+                      color: const Color(0xFFFF4D6D).withValues(alpha: 0.4),
                     ),
                   ),
                   child: const Text(
                     'SHUFFLED',
                     style: TextStyle(
-                      color: Colors.red,
+                      color: Color(0xFFFF8DA6),
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       decoration: TextDecoration.none,
@@ -309,7 +326,7 @@ class _QueueOverlayState extends State<QueueOverlay>
         // Queue list
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
             itemCount: displayIndices.length,
             itemBuilder: (context, index) {
               final queueIndex = displayIndices[index];
@@ -348,26 +365,126 @@ class _QueueOverlayState extends State<QueueOverlay>
     required VoidCallback onPressed,
   }) {
     return CupertinoButton(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
       color: isActive
-          ? Colors.red.withValues(alpha: 0.2)
-          : Colors.white.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(12),
+          ? const Color(0xFFFF4D6D).withValues(alpha: 0.26)
+          : Colors.white.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(14),
       onPressed: onPressed,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: isActive ? Colors.red : Colors.white, size: 18),
+          Icon(
+            icon,
+            color: isActive ? const Color(0xFFFF8DA6) : Colors.white,
+            size: 18,
+          ),
           const SizedBox(width: 8),
           Text(
             label,
             style: TextStyle(
-              color: isActive ? Colors.red : Colors.white,
+              color: isActive ? const Color(0xFFFFA5B8) : Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w500,
               decoration: TextDecoration.none,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCurrentTrackCard({
+    required Track track,
+    required AppState appState,
+  }) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: const Color(0xFFFF4D6D).withValues(alpha: 0.08),
+        border: Border.all(
+          color: const Color(0xFFFF5E7D).withValues(alpha: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(9),
+            child: track.imageUrl != null
+                ? CachedImageWidget(
+                    imageUrl: appState.getImageUrl(
+                      track.imageUrl!,
+                      width: 100,
+                      height: 100,
+                    ),
+                    width: 46,
+                    height: 46,
+                    fit: BoxFit.cover,
+                    placeholder: const CupertinoActivityIndicator(
+                      color: Colors.white38,
+                    ),
+                    errorWidget: const Icon(
+                      CupertinoIcons.music_note,
+                      color: Colors.white54,
+                    ),
+                  )
+                : Container(
+                    width: 46,
+                    height: 46,
+                    color: Colors.white.withValues(alpha: 0.08),
+                    child: const Icon(
+                      CupertinoIcons.music_note,
+                      color: Colors.white54,
+                    ),
+                  ),
+          ),
+          const SizedBox(width: 10),
+          const Icon(
+            CupertinoIcons.play_fill,
+            size: 16,
+            color: Color(0xFFFF6F8B),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  track.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFFF9AB0),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  track.artistName ?? 'Unknown artist',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFC9D4E8),
+                    fontSize: 13,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (track.duration != null)
+            Text(
+              _formatDuration(Duration(milliseconds: track.duration!)),
+              style: const TextStyle(
+                color: Color(0xFFE7EAF2),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.none,
+              ),
+            ),
         ],
       ),
     );
@@ -387,11 +504,13 @@ class _QueueOverlayState extends State<QueueOverlay>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: isCurrentTrack
-              ? Colors.white.withValues(alpha: 0.15)
-              : Colors.transparent,
+              ? const Color(0xFFFF4D6D).withValues(alpha: 0.08)
+              : Colors.white.withValues(alpha: 0.04),
           border: isCurrentTrack
-              ? Border.all(color: Colors.red.withValues(alpha: 0.4), width: 2)
-              : null,
+              ? Border.all(
+                  color: const Color(0xFFFF5E7D).withValues(alpha: 0.55),
+                )
+              : Border.all(color: Colors.white.withValues(alpha: 0.06)),
         ),
         child: CupertinoListTile(
           onTap: onTap,
@@ -435,7 +554,7 @@ class _QueueOverlayState extends State<QueueOverlay>
               if (isCurrentTrack) ...[
                 const Icon(
                   CupertinoIcons.play_fill,
-                  color: Colors.red,
+                  color: Color(0xFFFF6F8B),
                   size: 16,
                 ),
                 const SizedBox(width: 8),
@@ -445,8 +564,10 @@ class _QueueOverlayState extends State<QueueOverlay>
                   track.name,
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    color: isCurrentTrack ? Colors.red : Colors.white,
-                    fontSize: 16,
+                    color: isCurrentTrack
+                        ? const Color(0xFFFF8DA6)
+                        : const Color(0xFFE7EDF9),
+                    fontSize: 15,
                     decoration: TextDecoration.none,
                   ),
                   maxLines: 1,
@@ -459,8 +580,8 @@ class _QueueOverlayState extends State<QueueOverlay>
               ? Text(
                   track.artistName!,
                   style: const TextStyle(
-                    color: Colors.white60,
-                    fontSize: 14,
+                    color: Color(0xFF9DACCA),
+                    fontSize: 13,
                     decoration: TextDecoration.none,
                   ),
                   maxLines: 1,
@@ -474,7 +595,7 @@ class _QueueOverlayState extends State<QueueOverlay>
                 Text(
                   _formatDuration(Duration(milliseconds: track.duration!)),
                   style: const TextStyle(
-                    color: Colors.white60,
+                    color: Color(0xFFB8C4DA),
                     fontSize: 12,
                     decoration: TextDecoration.none,
                   ),
@@ -489,12 +610,12 @@ class _QueueOverlayState extends State<QueueOverlay>
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.2),
+                      color: const Color(0xFFFF4D6D).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
                       CupertinoIcons.minus,
-                      color: Colors.red,
+                      color: Color(0xFFFF8DA6),
                       size: 14,
                     ),
                   ),
