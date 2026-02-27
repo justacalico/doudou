@@ -51,6 +51,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
   String? _lastCheckedTrackId; // To avoid repeated checks for the same track
   Color _albumGlowColor = const Color(0xFF38BDF8);
   String? _lastGlowTrackId;
+  final FocusNode _keyboardFocusNode = FocusNode(
+    debugLabel: 'now_playing_keys',
+  );
 
   @override
   void initState() {
@@ -73,14 +76,45 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _keyboardFocusNode.requestFocus();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _keyboardFocusNode.dispose();
     _favoriteAnimationController.dispose();
     _skipAnimationController.dispose();
     _snapBackController.dispose();
     super.dispose();
+  }
+
+  void _handleNowPlayingKeyEvent(KeyEvent event, AppState appState) {
+    if (event is! KeyDownEvent) return;
+    final handler = appState.audioHandler;
+    if (handler == null) return;
+
+    if (event.logicalKey == LogicalKeyboardKey.keyN &&
+        HardwareKeyboard.instance.isShiftPressed) {
+      appState.skipToNext();
+      return;
+    }
+
+    if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      final currentVolume = (handler.volume as num?)?.toDouble() ?? 1.0;
+      final newVolume = (currentVolume + 0.05).clamp(0.0, 1.0);
+      handler.setVolume(newVolume);
+      return;
+    }
+
+    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      final currentVolume = (handler.volume as num?)?.toDouble() ?? 1.0;
+      final newVolume = (currentVolume - 0.05).clamp(0.0, 1.0);
+      handler.setVolume(newVolume);
+    }
   }
 
   // Haptic feedback for favorite button
@@ -437,23 +471,28 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
               _updateAlbumGlowColor(appState, currentTrack);
             }
 
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth >= kNowPlayingExpandedBreakpoint) {
-                  return _buildExpandedLayout(
+            return KeyboardListener(
+              focusNode: _keyboardFocusNode,
+              autofocus: true,
+              onKeyEvent: (event) => _handleNowPlayingKeyEvent(event, appState),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth >= kNowPlayingExpandedBreakpoint) {
+                    return _buildExpandedLayout(
+                      context,
+                      appState,
+                      audioHandler!,
+                      currentTrack,
+                    );
+                  }
+                  return _buildCompactLayout(
                     context,
                     appState,
                     audioHandler!,
                     currentTrack,
                   );
-                }
-                return _buildCompactLayout(
-                  context,
-                  appState,
-                  audioHandler!,
-                  currentTrack,
-                );
-              },
+                },
+              ),
             );
           },
         );
@@ -1177,6 +1216,63 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                       ),
 
                       const SizedBox(height: 20),
+                      // Volume control
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 42),
+                        child: StreamBuilder<double>(
+                          stream: audioHandler?.volumeStream,
+                          builder: (context, volSnapshot) {
+                            final volume =
+                                (volSnapshot.data ??
+                                        (audioHandler?.volume as num?)
+                                            ?.toDouble() ??
+                                        1.0)
+                                    .clamp(0.0, 1.0);
+                            return Row(
+                              children: [
+                                Icon(
+                                  volume == 0
+                                      ? CupertinoIcons.volume_off
+                                      : volume < 0.5
+                                      ? CupertinoIcons.volume_down
+                                      : CupertinoIcons.volume_up,
+                                  color: CupertinoColors.white.withValues(
+                                    alpha: 0.8,
+                                  ),
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      trackHeight: 3,
+                                      thumbShape: const RoundSliderThumbShape(
+                                        enabledThumbRadius: 6,
+                                      ),
+                                      overlayShape:
+                                          const RoundSliderOverlayShape(
+                                            overlayRadius: 12,
+                                          ),
+                                      activeTrackColor: CupertinoColors.white,
+                                      inactiveTrackColor: CupertinoColors.white
+                                          .withValues(alpha: 0.25),
+                                      thumbColor: CupertinoColors.white,
+                                    ),
+                                    child: Slider(
+                                      value: volume,
+                                      onChanged: (value) {
+                                        audioHandler?.setVolume(value);
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
 
                       // Bottom controls row with liquid glass
                       Padding(
@@ -2291,6 +2387,51 @@ class _ExpandedLeftColumn extends StatelessWidget {
                       color: isFavorite ? const Color(0xFFEC4899) : null,
                     ),
                     onPressed: () => appState.toggleFavorite(currentTrack),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: DesktopTheme.spacingMd),
+          StreamBuilder<double>(
+            stream: audioHandler.volumeStream,
+            builder: (context, volSnapshot) {
+              final volume =
+                  (volSnapshot.data ??
+                          (audioHandler.volume as num?)?.toDouble() ??
+                          1.0)
+                      .clamp(0.0, 1.0);
+              return Row(
+                children: [
+                  Icon(
+                    volume == 0
+                        ? Icons.volume_off_rounded
+                        : volume < 0.5
+                        ? Icons.volume_down_rounded
+                        : Icons.volume_up_rounded,
+                    color: DesktopTheme.textSecondary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: DesktopTheme.spacingSm),
+                  Expanded(
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 3,
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: 6,
+                        ),
+                        overlayShape: const RoundSliderOverlayShape(
+                          overlayRadius: 12,
+                        ),
+                        activeTrackColor: DesktopTheme.textPrimary,
+                        inactiveTrackColor: DesktopTheme.backgroundElevated,
+                        thumbColor: DesktopTheme.textPrimary,
+                      ),
+                      child: Slider(
+                        value: volume,
+                        onChanged: (value) => audioHandler.setVolume(value),
+                      ),
+                    ),
                   ),
                 ],
               );
