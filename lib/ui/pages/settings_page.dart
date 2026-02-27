@@ -1443,16 +1443,21 @@ class _ServerSectionState extends State<_ServerSection> {
                             curve: Curves.easeOutCubic,
                             decoration: BoxDecoration(
                               color: isCurrent
-                                  ? theme.colorScheme.primary.withValues(
-                                      alpha: 0.08,
-                                    )
+                                  ? theme.colorScheme.primary
+                                      .withValues(alpha: 0.08)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: ListTile(
-                              title: Text(server.displayLabel),
+                              title: Text(
+                                server.displayLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                               subtitle: Text(
                                 '${server.serverType} • ${server.serverUrl.replaceFirst(RegExp(r'^https?://'), '').split('/').first}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
