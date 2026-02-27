@@ -188,20 +188,28 @@
   "selectPlaylistToAdd": "Выберите плейлист для добавления \"{track}\":",
   "@selectPlaylistToAdd": {
     "placeholders": {
-      "track": {}
+      "track": {
+        "type": "String"
+      }
     }
   },
   "addedTrackToPlaylist": "\"{track}\" добавлен в плейлист",
   "@addedTrackToPlaylist": {
     "placeholders": {
-      "track": {}
+      "track": {
+        "type": "String"
+      }
     }
   },
   "failedToAddToPlaylist": "Не удалось добавить \"{track}\" в \"{playlist}\".",
   "@failedToAddToPlaylist": {
     "placeholders": {
-      "track": {},
-      "playlist": {}
+      "track": {
+        "type": "String"
+      },
+      "playlist": {
+        "type": "String"
+      }
     }
   },
   "failedToAddTrackToPlaylist": "Не удалось добавить трек в плейлист",
@@ -211,21 +219,29 @@
   "createdPlaylistAndAdded": "Создан плейлист \"{playlist}\" и добавлен \"{track}\".",
   "@createdPlaylistAndAdded": {
     "placeholders": {
-      "playlist": {},
-      "track": {}
+      "playlist": {
+        "type": "String"
+      },
+      "track": {
+        "type": "String"
+      }
     }
   },
   "partialSuccess": "Частичный успех",
   "createdPlaylistButFailed": "Плейлист \"{name}\" создан, но не удалось добавить песню. Вы можете добавить её вручную на экране плейлистов.",
   "@createdPlaylistButFailed": {
     "placeholders": {
-      "name": {}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "failedToCreatePlaylist": "Не удалось создать плейлист \"{name}\".",
   "@failedToCreatePlaylist": {
     "placeholders": {
-      "name": {}
+      "name": {
+        "type": "String"
+      }
     }
   },
 
@@ -632,36 +648,56 @@
   "openedTracksInBrowser": "Открыто все {count} треков из \"{name}\" в браузере",
   "@openedTracksInBrowser": {
     "placeholders": {
-      "count": {},
-      "name": {}
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
     }
   },
   "openedTracksPartialSuccess": "Открыто {success} треков, {failed} не удалось из \"{name}\"",
   "@openedTracksPartialSuccess": {
     "placeholders": {
-      "success": {},
-      "failed": {},
-      "name": {}
+      "success": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
     }
   },
   "artistNotFound": "Исполнитель \"{name}\" не найден",
   "@artistNotFound": {
     "placeholders": {
-      "name": {}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "addedToPlaylist": "Добавлено {type} в \"{playlist}\"",
   "@addedToPlaylist": {
     "placeholders": {
-      "type": {},
-      "playlist": {}
+      "type": {
+        "type": "String"
+      },
+      "playlist": {
+        "type": "String"
+      }
     }
   },
   "createdPlaylistWithTracks": "Создан плейлист \"{name}\" с треками {type}",
   "@createdPlaylistWithTracks": {
     "placeholders": {
-      "name": {},
-      "type": {}
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
     }
   },
   "added": "Добавлено",
@@ -691,19 +727,25 @@
   "cacheClearedTitle": "Кэш {type} очищен",
   "@cacheClearedTitle": {
     "placeholders": {
-      "type": {}
+      "type": {
+        "type": "String"
+      }
     }
   },
   "cacheClearedMessage": "Кэш {type} был успешно очищен.",
   "@cacheClearedMessage": {
     "placeholders": {
-      "type": {}
+      "type": {
+        "type": "String"
+      }
     }
   },
   "failedToClearCache": "Не удалось очистить кэш {type}",
   "@failedToClearCache": {
     "placeholders": {
-      "type": {}
+      "type": {
+        "type": "String"
+      }
     }
   },
   "failedToCleanExpiredCache": "Не удалось очистить устаревший кэш",

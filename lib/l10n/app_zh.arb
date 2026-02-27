@@ -189,27 +189,39 @@
   "selectPlaylistToAdd": "选择播放列表以添加“{track}”：",
   "@selectPlaylistToAdd": {
     "placeholders": {
-      "track": {}
+      "track": {
+        "type": "String"
+      }
     }
   },
-  "addedToPlaylist": "“{track}”已添加到“{playlist}”。",
+  "addedToPlaylist": "已将{type}添加到“{playlist}”。",
   "@addedToPlaylist": {
     "placeholders": {
-      "track": {},
-      "playlist": {}
+      "type": {
+        "type": "String"
+      },
+      "playlist": {
+        "type": "String"
+      }
     }
   },
   "addedTrackToPlaylist": "“{track}”已添加到播放列表",
   "@addedTrackToPlaylist": {
     "placeholders": {
-      "track": {}
+      "track": {
+        "type": "String"
+      }
     }
   },
   "failedToAddToPlaylist": "无法将“{track}”添加到“{playlist}”。",
   "@failedToAddToPlaylist": {
     "placeholders": {
-      "track": {},
-      "playlist": {}
+      "track": {
+        "type": "String"
+      },
+      "playlist": {
+        "type": "String"
+      }
     }
   },
   "failedToAddTrackToPlaylist": "无法将曲目添加到播放列表",
@@ -219,21 +231,29 @@
   "createdPlaylistAndAdded": "已创建播放列表“{playlist}”并添加了“{track}”。",
   "@createdPlaylistAndAdded": {
     "placeholders": {
-      "playlist": {},
-      "track": {}
+      "playlist": {
+        "type": "String"
+      },
+      "track": {
+        "type": "String"
+      }
     }
   },
   "partialSuccess": "部分成功",
   "createdPlaylistButFailed": "播放列表“{name}”已创建，但无法添加歌曲。您可以在播放列表界面手动添加。",
   "@createdPlaylistButFailed": {
     "placeholders": {
-      "name": {}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "failedToCreatePlaylist": "无法创建播放列表“{name}”。",
   "@failedToCreatePlaylist": {
     "placeholders": {
-      "name": {}
+      "name": {
+        "type": "String"
+      }
     }
   },
 

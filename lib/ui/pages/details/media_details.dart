@@ -1405,7 +1405,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                               ? l10n.album
                               : 'tracks',
                           playlist.name,
-                          _title,
                         ),
                       ),
                     ),

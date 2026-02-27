@@ -2737,13 +2737,10 @@ class _NowPlayingQueuePanel extends StatelessWidget {
     final currentIndex = rawCurrentIndex >= 0 && rawCurrentIndex < queue.length
         ? rawCurrentIndex
         : 0;
-    final displayIndices = <int>[
-      currentIndex,
-      ...List<int>.generate(
-        queue.length,
-        (i) => i,
-      ).where((i) => i != currentIndex),
-    ];
+    final displayIndices = List<int>.generate(
+      queue.length,
+      (i) => i,
+    ).where((i) => i != currentIndex).toList();
 
     if (queue.isEmpty) {
       return Center(
@@ -2754,58 +2751,145 @@ class _NowPlayingQueuePanel extends StatelessWidget {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingSm),
-      itemCount: displayIndices.length,
-      itemBuilder: (context, index) {
-        final queueIndex = displayIndices[index];
-        final track = queue[queueIndex];
-        final isCurrent = queueIndex == currentIndex;
+    final currentTrack = queue[currentIndex];
 
-        return KeyedSubtree(
-          key: ValueKey('${track.id}-$queueIndex'),
-          child: ListTile(
-            dense: true,
-            leading: SizedBox(
-              width: 40,
-              height: 40,
-              child: track.imageUrl != null
-                  ? AlbumArtWidget(
-                      imageUrl: appState.getImageUrl(
-                        track.imageUrl!,
-                        width: 80,
-                        height: 80,
-                      ),
-                      size: 40,
-                      borderRadius: BorderRadius.circular(4),
-                    )
-                  : Icon(
-                      Icons.music_note_rounded,
-                      size: 20,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingSm,
+            vertical: DesktopTheme.spacingSm,
+          ),
+          child: _buildCurrentTrackCard(context, currentTrack),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding:
+                const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingSm),
+            itemCount: displayIndices.length,
+            itemBuilder: (context, index) {
+              final queueIndex = displayIndices[index];
+              final track = queue[queueIndex];
+
+              return KeyedSubtree(
+                key: ValueKey('${track.id}-$queueIndex'),
+                child: ListTile(
+                  dense: true,
+                  leading: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: track.imageUrl != null
+                        ? AlbumArtWidget(
+                            imageUrl: appState.getImageUrl(
+                              track.imageUrl!,
+                              width: 80,
+                              height: 80,
+                            ),
+                            size: 40,
+                            borderRadius: BorderRadius.circular(4),
+                          )
+                        : Icon(
+                            Icons.music_note_rounded,
+                            size: 20,
+                            color: DesktopTheme.textTertiary,
+                          ),
+                  ),
+                  title: Text(
+                    track.name,
+                    style: TextStyle(
+                      color: DesktopTheme.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    track.artistName ?? '',
+                    style: TextStyle(
+                      fontSize: 12,
                       color: DesktopTheme.textTertiary,
                     ),
-            ),
-            title: Text(
-              track.name,
-              style: TextStyle(
-                fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
-                color: isCurrent
-                    ? Theme.of(context).colorScheme.primary
-                    : DesktopTheme.textPrimary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              track.artistName ?? '',
-              style: TextStyle(fontSize: 12, color: DesktopTheme.textTertiary),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            onTap: () => audioHandler?.skipToQueueItem(queueIndex),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onTap: () => audioHandler?.skipToQueueItem(queueIndex),
+                ),
+              );
+            },
           ),
-        );
-      },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCurrentTrackCard(BuildContext context, Track track) {
+    final accent = Theme.of(context).colorScheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: DesktopTheme.backgroundElevated,
+        border: Border.all(
+          color: accent.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 44,
+            height: 44,
+            child: track.imageUrl != null
+                ? AlbumArtWidget(
+                    imageUrl: appState.getImageUrl(
+                      track.imageUrl!,
+                      width: 88,
+                      height: 88,
+                    ),
+                    size: 44,
+                    borderRadius: BorderRadius.circular(6),
+                  )
+                : Icon(
+                    Icons.music_note_rounded,
+                    size: 22,
+                    color: DesktopTheme.textTertiary,
+                  ),
+          ),
+          const SizedBox(width: 10),
+          Icon(
+            Icons.equalizer_rounded,
+            size: 18,
+            color: accent,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  track.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: DesktopTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  track.artistName ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: DesktopTheme.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

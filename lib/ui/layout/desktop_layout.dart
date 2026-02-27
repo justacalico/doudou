@@ -121,11 +121,7 @@ class DesktopLayout {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          l10n.addedToPlaylist(
-                            'track',
-                            newPlaylist.name,
-                            track.name,
-                          ),
+                          l10n.addedTrackToPlaylist(track.name),
                         ),
                         behavior: SnackBarBehavior.floating,
                       ),
@@ -1077,7 +1073,7 @@ class _AddToPlaylistDialogContent extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              l10n.addedToPlaylist('track', playlist.name, track.name),
+              l10n.addedTrackToPlaylist(track.name),
             ),
             behavior: SnackBarBehavior.floating,
           ),
