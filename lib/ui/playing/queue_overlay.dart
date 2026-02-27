@@ -35,23 +35,15 @@ class _QueueOverlayState extends State<QueueOverlay>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-    
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-    
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
     _animationController.forward();
   }
 
@@ -123,7 +115,8 @@ class _QueueOverlayState extends State<QueueOverlay>
                                 children: [
                                   const Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'Queue',
@@ -157,7 +150,9 @@ class _QueueOverlayState extends State<QueueOverlay>
                                       width: 32,
                                       height: 32,
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.2),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.2,
+                                        ),
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: const Icon(
@@ -170,7 +165,7 @@ class _QueueOverlayState extends State<QueueOverlay>
                                 ],
                               ),
                             ),
-                          
+
                             // Queue content
                             Expanded(
                               child: Consumer<AppState>(
@@ -196,7 +191,18 @@ class _QueueOverlayState extends State<QueueOverlay>
   Widget _buildQueueContent(AppState appState) {
     final audioHandler = appState.audioHandler;
     final queueTracks = audioHandler?.queueTracks ?? [];
-    final currentIndex = audioHandler?.currentIndex ?? 0;
+    final rawCurrentIndex = audioHandler?.currentIndex ?? 0;
+    final currentIndex =
+        rawCurrentIndex >= 0 && rawCurrentIndex < queueTracks.length
+        ? rawCurrentIndex
+        : 0;
+    final displayIndices = <int>[
+      currentIndex,
+      ...List<int>.generate(
+        queueTracks.length,
+        (i) => i,
+      ).where((i) => i != currentIndex),
+    ];
     final isShuffled = audioHandler?.isShuffled ?? false;
 
     if (queueTracks.isEmpty) {
@@ -204,11 +210,7 @@ class _QueueOverlayState extends State<QueueOverlay>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              CupertinoIcons.list_bullet,
-              size: 64,
-              color: Colors.white38,
-            ),
+            Icon(CupertinoIcons.list_bullet, size: 64, color: Colors.white38),
             SizedBox(height: 16),
             Text(
               'No songs in queue',
@@ -261,7 +263,7 @@ class _QueueOverlayState extends State<QueueOverlay>
             ],
           ),
         ),
-        
+
         // Queue header info
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -279,11 +281,16 @@ class _QueueOverlayState extends State<QueueOverlay>
               const Spacer(),
               if (isShuffled)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.red.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: Colors.red.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: const Text(
                     'SHUFFLED',
@@ -298,32 +305,35 @@ class _QueueOverlayState extends State<QueueOverlay>
             ],
           ),
         ),
-        
+
         // Queue list
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            itemCount: queueTracks.length,
+            itemCount: displayIndices.length,
             itemBuilder: (context, index) {
-              final track = queueTracks[index];
-              final isCurrentTrack = index == currentIndex;
+              final queueIndex = displayIndices[index];
+              final track = queueTracks[queueIndex];
+              final isCurrentTrack = queueIndex == currentIndex;
 
               return KeyedSubtree(
-                key: ValueKey(track.id),
+                key: ValueKey('${track.id}-$queueIndex'),
                 child: _buildQueueItem(
-                track: track,
-                isCurrentTrack: isCurrentTrack,
-                appState: appState,
-                onTap: () {
-                  if (!isCurrentTrack) {
-                    appState.skipToIndex(index);
-                  }
-                },
-                onRemove: isCurrentTrack ? null : () {
-                  audioHandler?.removeFromQueue(index);
-                },
-              ),
-            );
+                  track: track,
+                  isCurrentTrack: isCurrentTrack,
+                  appState: appState,
+                  onTap: () {
+                    if (!isCurrentTrack) {
+                      appState.skipToIndex(queueIndex);
+                    }
+                  },
+                  onRemove: isCurrentTrack
+                      ? null
+                      : () {
+                          audioHandler?.removeFromQueue(queueIndex);
+                        },
+                ),
+              );
             },
           ),
         ),
@@ -339,7 +349,7 @@ class _QueueOverlayState extends State<QueueOverlay>
   }) {
     return CupertinoButton(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      color: isActive 
+      color: isActive
           ? Colors.red.withValues(alpha: 0.2)
           : Colors.white.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(12),
@@ -347,11 +357,7 @@ class _QueueOverlayState extends State<QueueOverlay>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: isActive ? Colors.red : Colors.white,
-            size: 18,
-          ),
+          Icon(icon, color: isActive ? Colors.red : Colors.white, size: 18),
           const SizedBox(width: 8),
           Text(
             label,
@@ -380,14 +386,11 @@ class _QueueOverlayState extends State<QueueOverlay>
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: isCurrentTrack 
+          color: isCurrentTrack
               ? Colors.white.withValues(alpha: 0.15)
               : Colors.transparent,
           border: isCurrentTrack
-              ? Border.all(
-                  color: Colors.red.withValues(alpha: 0.4),
-                  width: 2,
-                )
+              ? Border.all(color: Colors.red.withValues(alpha: 0.4), width: 2)
               : null,
         ),
         child: CupertinoListTile(

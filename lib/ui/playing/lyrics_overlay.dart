@@ -6,14 +6,16 @@ import 'package:doudou/services/lyrics_service.dart';
 import 'package:doudou/providers/app_state.dart';
 
 /// Shows the synchronized lyrics overlay with karaoke-style highlighting
-void showSyncedLyricsOverlay(BuildContext context, String trackName, String artistName) {
+void showSyncedLyricsOverlay(
+  BuildContext context,
+  String trackName,
+  String artistName,
+) {
   showCupertinoModalPopup(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.3),
-    builder: (context) => SyncedLyricsOverlay(
-      trackName: trackName,
-      artistName: artistName,
-    ),
+    builder: (context) =>
+        SyncedLyricsOverlay(trackName: trackName, artistName: artistName),
   );
 }
 
@@ -36,21 +38,33 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  
+
   LyricsResult? _lyricsResult;
   bool _isLoading = true;
   int _currentLineIndex = -1;
   final ScrollController _scrollController = ScrollController();
   final List<GlobalKey> _lineKeys = [];
-  
+
   // Track change detection
   String? _currentTrackId;
   String? _currentTrackName;
   String? _currentArtistName;
-  
+
   // Throttling for position updates
   Duration _lastPosition = Duration.zero;
   bool _isUpdatingLine = false;
+
+  Duration _getCurrentPosition(AppState appState) {
+    try {
+      final handlerPosition = appState.audioHandler?.position;
+      if (handlerPosition is Duration) return handlerPosition;
+    } catch (_) {}
+    try {
+      final statePosition = appState.audioHandler?.playbackState.value.position;
+      if (statePosition is Duration) return statePosition;
+    } catch (_) {}
+    return Duration.zero;
+  }
 
   @override
   void initState() {
@@ -59,27 +73,19 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-    
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-    
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
     // Initialize track tracking variables
     _currentTrackName = widget.trackName;
     _currentArtistName = widget.artistName;
-    
+
     _animationController.forward();
     _loadLyrics();
   }
@@ -96,28 +102,28 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
       setState(() {
         _isLoading = true;
       });
-      
-      final result = await LyricsService.fetchLyrics(widget.trackName, widget.artistName);
-      
+
+      final result = await LyricsService.fetchLyrics(
+        widget.trackName,
+        widget.artistName,
+      );
+
       setState(() {
         _lyricsResult = result;
         _isLoading = false;
-        
+
         // Initialize line keys for scrolling
         if (result?.syncedLyrics != null) {
           _lineKeys.clear();
           for (int i = 0; i < result!.syncedLyrics!.length; i++) {
             _lineKeys.add(GlobalKey());
           }
-          
+
           // After loading lyrics, check current position and scroll to appropriate line
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               final appState = Provider.of<AppState>(context, listen: false);
-              final currentPosition = appState.audioHandler?.playbackState.value.position ?? Duration.zero;
-              if (currentPosition > Duration.zero) {
-                _updateCurrentLine(currentPosition);
-              }
+              _updateCurrentLine(_getCurrentPosition(appState), force: true);
             }
           });
         }
@@ -136,21 +142,21 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
         _isLoading = true;
         _currentLineIndex = -1; // Reset current line
       });
-      
+
       final result = await LyricsService.fetchLyrics(trackName, artistName);
-      
+
       if (mounted) {
         setState(() {
           _lyricsResult = result;
           _isLoading = false;
-          
+
           // Reset and initialize line keys for scrolling
           if (result?.syncedLyrics != null) {
             _lineKeys.clear();
             for (int i = 0; i < result!.syncedLyrics!.length; i++) {
               _lineKeys.add(GlobalKey());
             }
-            
+
             // Reset scroll position to top
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && _scrollController.hasClients) {
@@ -159,13 +165,10 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                   duration: const Duration(milliseconds: 500),
                   curve: Curves.easeOut,
                 );
-                
+
                 // Check current position and scroll to appropriate line
                 final appState = Provider.of<AppState>(context, listen: false);
-                final currentPosition = appState.audioHandler?.playbackState.value.position ?? Duration.zero;
-                if (currentPosition > Duration.zero) {
-                  _updateCurrentLine(currentPosition);
-                }
+                _updateCurrentLine(_getCurrentPosition(appState), force: true);
               }
             });
           }
@@ -181,19 +184,20 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
     }
   }
 
-  void _updateCurrentLine(Duration position) {
+  void _updateCurrentLine(Duration position, {bool force = false}) {
     if (_lyricsResult?.syncedLyrics == null || _isUpdatingLine) return;
-    
+
     // Throttle updates to prevent excessive rebuilds
-    if ((position - _lastPosition).abs() < const Duration(milliseconds: 25)) {
+    if (!force &&
+        (position - _lastPosition).abs() < const Duration(milliseconds: 25)) {
       return;
     }
-    
+
     _lastPosition = position;
-    
+
     final lines = _lyricsResult!.syncedLyrics!;
     int newLineIndex = -1;
-    
+
     // Find the current line based on position
     for (int i = 0; i < lines.length; i++) {
       if (position >= lines[i].timestamp) {
@@ -202,22 +206,22 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
         break;
       }
     }
-    
+
     if (newLineIndex != _currentLineIndex) {
       _isUpdatingLine = true;
-      
+
       // Use post frame callback to avoid setState during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           setState(() {
             _currentLineIndex = newLineIndex;
           });
-          
+
           // Scroll immediately to the new current line
           if (newLineIndex >= 0 && newLineIndex < _lineKeys.length) {
             _scrollToCurrentLine();
           }
-          
+
           _isUpdatingLine = false;
         }
       });
@@ -225,10 +229,9 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
   }
 
   void _scrollToCurrentLine() {
-    if (_currentLineIndex >= 0 && 
-        _currentLineIndex < _lineKeys.length && 
+    if (_currentLineIndex >= 0 &&
+        _currentLineIndex < _lineKeys.length &&
         _scrollController.hasClients) {
-      
       // Use ensureVisible as the primary method for better reliability
       final context = _lineKeys[_currentLineIndex].currentContext;
       if (context != null) {
@@ -253,19 +256,20 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
 
   void _fallbackScrollToLine() {
     if (!_scrollController.hasClients) return;
-    
+
     try {
       // Simple calculation to scroll to approximate position
       final itemHeight = 70.0; // Average item height
       final targetPosition = _currentLineIndex * itemHeight;
       final viewportHeight = _scrollController.position.viewportDimension;
-      final centeredPosition = targetPosition - (viewportHeight / 2) + (itemHeight / 2);
-      
+      final centeredPosition =
+          targetPosition - (viewportHeight / 2) + (itemHeight / 2);
+
       // Clamp to valid range
       final maxOffset = _scrollController.position.maxScrollExtent;
       final minOffset = _scrollController.position.minScrollExtent;
       final clampedOffset = centeredPosition.clamp(minOffset, maxOffset);
-      
+
       _scrollController.animateTo(
         clampedOffset,
         duration: const Duration(milliseconds: 500),
@@ -275,7 +279,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
       // If all else fails, jump to position without animation
       final itemHeight = 70.0;
       final targetPosition = (_currentLineIndex * itemHeight).clamp(
-        0.0, 
+        0.0,
         _scrollController.position.maxScrollExtent,
       );
       _scrollController.jumpTo(targetPosition);
@@ -358,12 +362,20 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                 Expanded(
                                   child: Consumer<AppState>(
                                     builder: (context, appState, child) {
-                                      final currentTrack = appState.audioHandler?.currentTrack;
-                                      final displayTrackName = currentTrack?.name ?? _currentTrackName ?? 'Unknown Track';
-                                      final displayArtistName = currentTrack?.artistName ?? _currentArtistName ?? 'Unknown Artist';
-                                      
+                                      final currentTrack =
+                                          appState.audioHandler?.currentTrack;
+                                      final displayTrackName =
+                                          currentTrack?.name ??
+                                          _currentTrackName ??
+                                          'Unknown Track';
+                                      final displayArtistName =
+                                          currentTrack?.artistName ??
+                                          _currentArtistName ??
+                                          'Unknown Artist';
+
                                       return Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Row(
                                             children: [
@@ -373,25 +385,43 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                                   color: Colors.white,
                                                   fontSize: 24,
                                                   fontWeight: FontWeight.bold,
-                                                  decoration: TextDecoration.none,
+                                                  decoration:
+                                                      TextDecoration.none,
                                                 ),
                                               ),
-                                              if (_lyricsResult?.hasSyncedLyrics == true) ...[
+                                              if (_lyricsResult
+                                                      ?.hasSyncedLyrics ==
+                                                  true) ...[
                                                 const SizedBox(width: 8),
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 2,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.green.withValues(alpha: 0.2),
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                                                    color: Colors.green
+                                                        .withValues(alpha: 0.2),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: Colors.green
+                                                          .withValues(
+                                                            alpha: 0.3,
+                                                          ),
+                                                    ),
                                                   ),
                                                   child: const Text(
                                                     'SYNC',
                                                     style: TextStyle(
                                                       color: Colors.green,
                                                       fontSize: 10,
-                                                      fontWeight: FontWeight.bold,
-                                                      decoration: TextDecoration.none,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      decoration:
+                                                          TextDecoration.none,
                                                     ),
                                                   ),
                                                 ),
@@ -402,7 +432,9 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                           Text(
                                             '$displayTrackName • $displayArtistName',
                                             style: TextStyle(
-                                              color: Colors.white.withValues(alpha: 0.8),
+                                              color: Colors.white.withValues(
+                                                alpha: 0.8,
+                                              ),
                                               fontSize: 16,
                                               decoration: TextDecoration.none,
                                             ),
@@ -425,7 +457,9 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                     width: 32,
                                     height: 32,
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.2),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: const Icon(
@@ -438,13 +472,14 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                               ],
                             ),
                           ),
-                          
+
                           // Lyrics content
                           Expanded(
                             child: _isLoading
                                 ? const Center(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         CupertinoActivityIndicator(
                                           color: Colors.white,
@@ -463,22 +498,22 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                     ),
                                   )
                                 : _lyricsResult == null
-                                    ? SingleChildScrollView(
-                                        padding: const EdgeInsets.all(20),
-                                        child: Text(
-                                          _getErrorMessage(),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            height: 1.6,
-                                            decoration: TextDecoration.none,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      )
-                                    : _lyricsResult!.hasSyncedLyrics
-                                        ? _buildSyncedLyrics()
-                                        : _buildPlainLyrics(),
+                                ? SingleChildScrollView(
+                                    padding: const EdgeInsets.all(20),
+                                    child: Text(
+                                      _getErrorMessage(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        height: 1.6,
+                                        decoration: TextDecoration.none,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  )
+                                : _lyricsResult!.hasSyncedLyrics
+                                ? _buildSyncedLyrics()
+                                : _buildPlainLyrics(),
                           ),
                         ],
                       ),
@@ -501,13 +536,13 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
         final trackId = currentTrack?.id;
         final trackName = currentTrack?.name;
         final artistName = currentTrack?.artistName;
-        
+
         // If the track has changed, reload lyrics
         if (trackId != _currentTrackId && trackId != null) {
           _currentTrackId = trackId;
           _currentTrackName = trackName;
           _currentArtistName = artistName;
-          
+
           // Reload lyrics for the new track
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && trackName != null && artistName != null) {
@@ -515,37 +550,45 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
             }
           });
         }
-        
+
         return StreamBuilder<Duration>(
+          initialData: _getCurrentPosition(appState),
           stream: appState.audioHandler?.positionStream,
           builder: (context, snapshot) {
             final position = snapshot.data ?? Duration.zero;
             _updateCurrentLine(position);
-            
+
             return ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 100), // Extra padding for better scrolling
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 100,
+              ), // Extra padding for better scrolling
               itemCount: _lyricsResult!.syncedLyrics!.length,
               itemBuilder: (context, index) {
                 final line = _lyricsResult!.syncedLyrics![index];
                 final isCurrentLine = index == _currentLineIndex;
                 final isPastLine = index < _currentLineIndex;
-                
+
                 return Container(
                   key: _lineKeys[index],
                   margin: EdgeInsets.symmetric(
-                    vertical: isCurrentLine ? 12 : 6, // More spacing for current line
+                    vertical: isCurrentLine
+                        ? 12
+                        : 6, // More spacing for current line
                   ),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOut,
                     padding: EdgeInsets.symmetric(
-                      horizontal: 16, 
-                      vertical: isCurrentLine ? 16 : 12, // More padding for current line
+                      horizontal: 16,
+                      vertical: isCurrentLine
+                          ? 16
+                          : 12, // More padding for current line
                     ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      color: isCurrentLine 
+                      color: isCurrentLine
                           ? Colors.white.withValues(alpha: 0.15)
                           : Colors.transparent,
                       border: isCurrentLine
@@ -571,10 +614,14 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                         color: isCurrentLine
                             ? Colors.white
                             : isPastLine
-                                ? Colors.white.withValues(alpha: 0.5)
-                                : Colors.white.withValues(alpha: 0.7),
-                        fontSize: isCurrentLine ? 20 : 16, // Larger font for current line
-                        fontWeight: isCurrentLine ? FontWeight.w700 : FontWeight.normal,
+                            ? Colors.white.withValues(alpha: 0.5)
+                            : Colors.white.withValues(alpha: 0.7),
+                        fontSize: isCurrentLine
+                            ? 20
+                            : 16, // Larger font for current line
+                        fontWeight: isCurrentLine
+                            ? FontWeight.w700
+                            : FontWeight.normal,
                         height: 1.4,
                         decoration: TextDecoration.none,
                         shadows: isCurrentLine
@@ -606,7 +653,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
 
   Widget _buildPlainLyrics() {
     final lyrics = _lyricsResult?.plainLyrics ?? _getNoLyricsMessage();
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: SelectableText(
