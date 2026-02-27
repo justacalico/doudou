@@ -2212,341 +2212,416 @@ class _ExpandedLeftColumn extends StatelessWidget {
         currentTrack.albumName != null && currentTrack.albumName!.isNotEmpty;
     final hasArtist =
         currentTrack.artistName != null && currentTrack.artistName!.isNotEmpty;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final h = constraints.maxHeight;
+        final compact = h < 760;
+        final dense = h < 680;
+        final outerPadding = dense
+            ? DesktopTheme.spacingMd
+            : compact
+            ? DesktopTheme.spacingLg
+            : DesktopTheme.spacingXl;
+        final gapXl = dense
+            ? DesktopTheme.spacingMd
+            : compact
+            ? DesktopTheme.spacingLg
+            : DesktopTheme.spacingXl;
+        final titleSize = dense
+            ? 20.0
+            : compact
+            ? 22.0
+            : 24.0;
+        final metaSize = dense ? 13.0 : 14.0;
+        final playButtonSize = dense ? 56.0 : 64.0;
+        final controlIconSize = dense ? 28.0 : 32.0;
+        final controlGapLg = dense
+            ? DesktopTheme.spacingLg
+            : DesktopTheme.spacingXl;
+        final controlGapMd = dense
+            ? DesktopTheme.spacingSm
+            : DesktopTheme.spacingMd;
+        final artSize =
+            (h *
+                    (dense
+                        ? 0.30
+                        : compact
+                        ? 0.35
+                        : 0.40))
+                .clamp(200.0, 400.0)
+                .toDouble();
 
-    return Padding(
-      padding: const EdgeInsets.all(DesktopTheme.spacingXl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        blurRadius: 40,
-                        offset: const Offset(0, 20),
-                      ),
-                    ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: currentTrack.imageUrl != null
-                      ? AlbumArtWidget(
-                          imageUrl: appState.getImageUrl(
-                            currentTrack.imageUrl!,
-                            width: 800,
-                            height: 800,
-                          ),
-                          size: 400,
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Padding(
+              padding: EdgeInsets.all(outerPadding),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Center(
+                    child: SizedBox(
+                      width: artSize,
+                      height: artSize,
+                      child: Container(
+                        decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(
                             DesktopTheme.radiusMd,
                           ),
-                        )
-                      : Container(
-                          color: DesktopTheme.backgroundElevated,
-                          child: Icon(
-                            Icons.music_note_rounded,
-                            size: 100,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              blurRadius: 40,
+                              offset: const Offset(0, 20),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: currentTrack.imageUrl != null
+                            ? AlbumArtWidget(
+                                imageUrl: appState.getImageUrl(
+                                  currentTrack.imageUrl!,
+                                  width: 800,
+                                  height: 800,
+                                ),
+                                size: artSize,
+                                borderRadius: BorderRadius.circular(
+                                  DesktopTheme.radiusMd,
+                                ),
+                              )
+                            : Container(
+                                color: DesktopTheme.backgroundElevated,
+                                child: Icon(
+                                  Icons.music_note_rounded,
+                                  size: dense ? 72 : 100,
+                                  color: DesktopTheme.textTertiary,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: gapXl),
+                  Text(
+                    currentTrack.name,
+                    style: TextStyle(
+                      fontSize: titleSize,
+                      fontWeight: FontWeight.bold,
+                      color: DesktopTheme.textPrimary,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: DesktopTheme.spacingSm),
+                  if (hasAlbum)
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        _navigateToAlbumFromExpanded(
+                          context,
+                          currentTrack,
+                          appState,
+                        );
+                      },
+                      child: Text.rich(
+                        TextSpan(
+                          text: '${l10n.fromAlbum} ',
+                          style: TextStyle(
+                            fontSize: metaSize,
                             color: DesktopTheme.textTertiary,
                           ),
-                        ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: DesktopTheme.spacingXl),
-          Text(
-            currentTrack.name,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: DesktopTheme.textPrimary,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: DesktopTheme.spacingSm),
-          if (hasAlbum)
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-                _navigateToAlbumFromExpanded(context, currentTrack, appState);
-              },
-              child: Text.rich(
-                TextSpan(
-                  text: '${l10n.fromAlbum} ',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: DesktopTheme.textTertiary,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: currentTrack.albumName,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: DesktopTheme.textSecondary,
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          if (hasArtist)
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-                _navigateToArtistFromExpanded(context, currentTrack, appState);
-              },
-              child: Text.rich(
-                TextSpan(
-                  text: '${l10n.byArtist} ',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: DesktopTheme.textTertiary,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: currentTrack.artistName,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: DesktopTheme.textSecondary,
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          const SizedBox(height: DesktopTheme.spacingXl),
-          StreamBuilder<Duration>(
-            stream: audioHandler.positionStream,
-            builder: (context, posSnapshot) {
-              final position = posSnapshot.data ?? Duration.zero;
-              return StreamBuilder<Duration?>(
-                stream: audioHandler.durationStream,
-                builder: (context, durSnapshot) {
-                  final duration = durSnapshot.data ?? Duration.zero;
-                  final progress = duration.inMilliseconds > 0
-                      ? (position.inMilliseconds / duration.inMilliseconds)
-                            .clamp(0.0, 1.0)
-                      : 0.0;
-                  return Column(
-                    children: [
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          trackHeight: 4,
-                          thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 6,
-                          ),
-                          overlayShape: const RoundSliderOverlayShape(
-                            overlayRadius: 14,
-                          ),
-                          activeTrackColor: DesktopTheme.textPrimary,
-                          inactiveTrackColor: DesktopTheme.backgroundElevated,
-                          thumbColor: DesktopTheme.textPrimary,
-                        ),
-                        child: Slider(
-                          value: progress,
-                          onChanged: (value) {
-                            final newPos = Duration(
-                              milliseconds: (value * duration.inMilliseconds)
-                                  .round(),
-                            );
-                            audioHandler.seek(newPos);
-                          },
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: DesktopTheme.spacingMd,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              _formatDurationForDisplay(position),
+                            TextSpan(
+                              text: currentTrack.albumName,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: metaSize,
                                 color: DesktopTheme.textSecondary,
-                              ),
-                            ),
-                            Text(
-                              _formatDurationForDisplay(duration),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: DesktopTheme.textSecondary,
+                                decoration: TextDecoration.none,
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-          const SizedBox(height: DesktopTheme.spacingLg),
-          StreamBuilder<PlaybackState>(
-            stream: audioHandler.playbackState,
-            builder: (context, pbSnapshot) {
-              final isPlaying = pbSnapshot.data?.playing ?? false;
-              final isShuffled = audioHandler.shuffleEnabled ?? false;
-              final repeatMode = audioHandler.repeatMode ?? RepeatMode.none;
-              final trackId = currentTrack.id;
-              final isFavorite = appState.isFavorite(trackId);
-
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.shuffle_rounded,
-                      color: isShuffled ? theme.colorScheme.primary : null,
                     ),
-                    onPressed: () {
-                      if (isShuffled) {
-                        audioHandler.unshuffle();
-                      } else {
-                        audioHandler.shuffle();
-                      }
-                    },
-                  ),
-                  const SizedBox(width: DesktopTheme.spacingXl),
-                  IconButton(
-                    icon: const Icon(Icons.skip_previous_rounded, size: 32),
-                    onPressed: appState.skipToPrevious,
-                  ),
-                  const SizedBox(width: DesktopTheme.spacingMd),
-                  GestureDetector(
-                    onTap: () => appState.playPause(),
-                    child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: DesktopTheme.textPrimary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 180),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: ScaleTransition(
-                              scale: Tween<double>(
-                                begin: 0.9,
-                                end: 1.0,
-                              ).animate(animation),
-                              child: child,
+                  if (hasArtist)
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        _navigateToArtistFromExpanded(
+                          context,
+                          currentTrack,
+                          appState,
+                        );
+                      },
+                      child: Text.rich(
+                        TextSpan(
+                          text: '${l10n.byArtist} ',
+                          style: TextStyle(
+                            fontSize: metaSize,
+                            color: DesktopTheme.textTertiary,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: currentTrack.artistName,
+                              style: TextStyle(
+                                fontSize: metaSize,
+                                color: DesktopTheme.textSecondary,
+                                decoration: TextDecoration.none,
+                              ),
                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  SizedBox(height: gapXl),
+                  StreamBuilder<Duration>(
+                    stream: audioHandler.positionStream,
+                    builder: (context, posSnapshot) {
+                      final position = posSnapshot.data ?? Duration.zero;
+                      return StreamBuilder<Duration?>(
+                        stream: audioHandler.durationStream,
+                        builder: (context, durSnapshot) {
+                          final duration = durSnapshot.data ?? Duration.zero;
+                          final progress = duration.inMilliseconds > 0
+                              ? (position.inMilliseconds /
+                                        duration.inMilliseconds)
+                                    .clamp(0.0, 1.0)
+                              : 0.0;
+                          return Column(
+                            children: [
+                              SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 4,
+                                  thumbShape: const RoundSliderThumbShape(
+                                    enabledThumbRadius: 6,
+                                  ),
+                                  overlayShape: const RoundSliderOverlayShape(
+                                    overlayRadius: 14,
+                                  ),
+                                  activeTrackColor: DesktopTheme.textPrimary,
+                                  inactiveTrackColor:
+                                      DesktopTheme.backgroundElevated,
+                                  thumbColor: DesktopTheme.textPrimary,
+                                ),
+                                child: Slider(
+                                  value: progress,
+                                  onChanged: (value) {
+                                    final newPos = Duration(
+                                      milliseconds:
+                                          (value * duration.inMilliseconds)
+                                              .round(),
+                                    );
+                                    audioHandler.seek(newPos);
+                                  },
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: DesktopTheme.spacingMd,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _formatDurationForDisplay(position),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: DesktopTheme.textSecondary,
+                                      ),
+                                    ),
+                                    Text(
+                                      _formatDurationForDisplay(duration),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: DesktopTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           );
                         },
-                        child: Icon(
-                          isPlaying
-                              ? Icons.pause_rounded
-                              : Icons.play_arrow_rounded,
-                          key: ValueKey<bool>(isPlaying),
-                          color: DesktopTheme.backgroundDeep,
-                          size: 32,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: DesktopTheme.spacingMd),
-                  IconButton(
-                    icon: const Icon(Icons.skip_next_rounded, size: 32),
-                    onPressed: appState.skipToNext,
-                  ),
-                  const SizedBox(width: DesktopTheme.spacingXl),
-                  IconButton(
-                    icon: Icon(
-                      repeatMode == RepeatMode.one
-                          ? Icons.repeat_one_rounded
-                          : Icons.repeat_rounded,
-                      color: repeatMode != RepeatMode.none
-                          ? theme.colorScheme.primary
-                          : null,
-                    ),
-                    onPressed: () {
-                      final next = repeatMode == RepeatMode.none
-                          ? RepeatMode.all
-                          : repeatMode == RepeatMode.all
-                          ? RepeatMode.one
-                          : RepeatMode.none;
-                      audioHandler.setRepeatMode(next);
+                      );
                     },
                   ),
-                  const SizedBox(width: DesktopTheme.spacingXl),
-                  IconButton(
-                    icon: Icon(
-                      isFavorite
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
-                      color: isFavorite ? const Color(0xFFEC4899) : null,
-                    ),
-                    onPressed: () => appState.toggleFavorite(currentTrack),
+                  const SizedBox(height: DesktopTheme.spacingLg),
+                  StreamBuilder<PlaybackState>(
+                    stream: audioHandler.playbackState,
+                    builder: (context, pbSnapshot) {
+                      final isPlaying = pbSnapshot.data?.playing ?? false;
+                      final isShuffled = audioHandler.shuffleEnabled ?? false;
+                      final repeatMode =
+                          audioHandler.repeatMode ?? RepeatMode.none;
+                      final trackId = currentTrack.id;
+                      final isFavorite = appState.isFavorite(trackId);
+
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.shuffle_rounded,
+                              color: isShuffled
+                                  ? theme.colorScheme.primary
+                                  : null,
+                            ),
+                            onPressed: () {
+                              if (isShuffled) {
+                                audioHandler.unshuffle();
+                              } else {
+                                audioHandler.shuffle();
+                              }
+                            },
+                          ),
+                          SizedBox(width: controlGapLg),
+                          IconButton(
+                            icon: Icon(
+                              Icons.skip_previous_rounded,
+                              size: controlIconSize,
+                            ),
+                            onPressed: appState.skipToPrevious,
+                          ),
+                          SizedBox(width: controlGapMd),
+                          GestureDetector(
+                            onTap: () => appState.playPause(),
+                            child: Container(
+                              width: playButtonSize,
+                              height: playButtonSize,
+                              decoration: BoxDecoration(
+                                color: DesktopTheme.textPrimary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 180),
+                                switchInCurve: Curves.easeOutCubic,
+                                switchOutCurve: Curves.easeInCubic,
+                                transitionBuilder: (child, animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: ScaleTransition(
+                                      scale: Tween<double>(
+                                        begin: 0.9,
+                                        end: 1.0,
+                                      ).animate(animation),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: Icon(
+                                  isPlaying
+                                      ? Icons.pause_rounded
+                                      : Icons.play_arrow_rounded,
+                                  key: ValueKey<bool>(isPlaying),
+                                  color: DesktopTheme.backgroundDeep,
+                                  size: controlIconSize,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: controlGapMd),
+                          IconButton(
+                            icon: Icon(
+                              Icons.skip_next_rounded,
+                              size: controlIconSize,
+                            ),
+                            onPressed: appState.skipToNext,
+                          ),
+                          SizedBox(width: controlGapLg),
+                          IconButton(
+                            icon: Icon(
+                              repeatMode == RepeatMode.one
+                                  ? Icons.repeat_one_rounded
+                                  : Icons.repeat_rounded,
+                              color: repeatMode != RepeatMode.none
+                                  ? theme.colorScheme.primary
+                                  : null,
+                            ),
+                            onPressed: () {
+                              final next = repeatMode == RepeatMode.none
+                                  ? RepeatMode.all
+                                  : repeatMode == RepeatMode.all
+                                  ? RepeatMode.one
+                                  : RepeatMode.none;
+                              audioHandler.setRepeatMode(next);
+                            },
+                          ),
+                          SizedBox(width: controlGapLg),
+                          IconButton(
+                            icon: Icon(
+                              isFavorite
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              color: isFavorite
+                                  ? const Color(0xFFEC4899)
+                                  : null,
+                            ),
+                            onPressed: () =>
+                                appState.toggleFavorite(currentTrack),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: DesktopTheme.spacingMd),
+                  StreamBuilder<double>(
+                    stream: audioHandler.volumeStream,
+                    builder: (context, volSnapshot) {
+                      final volume =
+                          (volSnapshot.data ??
+                                  (audioHandler.volume as num?)?.toDouble() ??
+                                  1.0)
+                              .clamp(0.0, 1.0);
+                      return Row(
+                        children: [
+                          Icon(
+                            volume == 0
+                                ? Icons.volume_off_rounded
+                                : volume < 0.5
+                                ? Icons.volume_down_rounded
+                                : Icons.volume_up_rounded,
+                            color: DesktopTheme.textSecondary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: DesktopTheme.spacingSm),
+                          Expanded(
+                            child: SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                trackHeight: 3,
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 6,
+                                ),
+                                overlayShape: const RoundSliderOverlayShape(
+                                  overlayRadius: 12,
+                                ),
+                                activeTrackColor: DesktopTheme.textPrimary,
+                                inactiveTrackColor:
+                                    DesktopTheme.backgroundElevated,
+                                thumbColor: DesktopTheme.textPrimary,
+                              ),
+                              child: Slider(
+                                value: volume,
+                                onChanged: (value) =>
+                                    audioHandler.setVolume(value),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  SizedBox(
+                    height: dense
+                        ? DesktopTheme.spacingMd
+                        : DesktopTheme.spacingLg,
                   ),
                 ],
-              );
-            },
+              ),
+            ),
           ),
-          const SizedBox(height: DesktopTheme.spacingMd),
-          StreamBuilder<double>(
-            stream: audioHandler.volumeStream,
-            builder: (context, volSnapshot) {
-              final volume =
-                  (volSnapshot.data ??
-                          (audioHandler.volume as num?)?.toDouble() ??
-                          1.0)
-                      .clamp(0.0, 1.0);
-              return Row(
-                children: [
-                  Icon(
-                    volume == 0
-                        ? Icons.volume_off_rounded
-                        : volume < 0.5
-                        ? Icons.volume_down_rounded
-                        : Icons.volume_up_rounded,
-                    color: DesktopTheme.textSecondary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: DesktopTheme.spacingSm),
-                  Expanded(
-                    child: SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        trackHeight: 3,
-                        thumbShape: const RoundSliderThumbShape(
-                          enabledThumbRadius: 6,
-                        ),
-                        overlayShape: const RoundSliderOverlayShape(
-                          overlayRadius: 12,
-                        ),
-                        activeTrackColor: DesktopTheme.textPrimary,
-                        inactiveTrackColor: DesktopTheme.backgroundElevated,
-                        thumbColor: DesktopTheme.textPrimary,
-                      ),
-                      child: Slider(
-                        value: volume,
-                        onChanged: (value) => audioHandler.setVolume(value),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: DesktopTheme.spacingLg),
-        ],
-      ),
+        );
+      },
     );
   }
 }
