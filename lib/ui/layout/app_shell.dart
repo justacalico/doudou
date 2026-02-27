@@ -23,7 +23,6 @@ import 'package:doudou/ui/pages/tracks_page.dart';
 import 'package:doudou/ui/pages/playlists_page.dart';
 import 'package:doudou/ui/pages/downloads_page.dart';
 import 'package:doudou/ui/pages/settings_page.dart';
-import 'package:doudou/ui/onboarding/onboarding_screen.dart';
 
 /// Breakpoint: above = sidebar (desktop), below = bottom nav (mobile).
 const double kLayoutBreakpoint = 768.0;
@@ -225,7 +224,6 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
-    final l10n = AppLocalizations.of(context);
     // When downloadsEnabled or server type changes, page list may need to change
     final isLocal =
         appState.mediaServiceManager.currentServerType == ServerType.local;
@@ -239,60 +237,6 @@ class _AppShellState extends State<AppShell> {
         }
       });
     }
-    if (!appState.isLoggedIn) {
-      if (!appState.onboardingCompleted) {
-        return const OnboardingScreen();
-      }
-      return Scaffold(
-        backgroundColor: DesktopTheme.backgroundDeep,
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.cloud_off_rounded,
-                  size: 80,
-                  color: DesktopTheme.textMuted,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  l10n.noServerConnected,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    color: DesktopTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.addServerInSettingsToStart,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: DesktopTheme.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                FilledButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const SettingsPage(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.settings_rounded),
-                  label: Text(l10n.openSettings),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= kLayoutBreakpoint;

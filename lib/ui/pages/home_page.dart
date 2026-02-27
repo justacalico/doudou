@@ -12,6 +12,7 @@ import 'package:doudou/ui/layout/desktop_layout.dart';
 import 'package:doudou/ui/pages/details/media_details.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
+import 'package:doudou/ui/pages/settings_page.dart';
 import 'package:doudou/ui/templates/music_card.dart';
 
 /// Home page built from reusable templates (page, section header, music cards, list tiles).
@@ -44,6 +45,12 @@ class _HomePageState extends State<HomePage> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        if (!appState.isLoggedIn) {
+          return PageTemplate(
+            title: l10n.navHome,
+            child: _noServerConfiguredBody(context, l10n),
+          );
+        }
         final isYtMusic =
             appState.mediaServiceManager.currentServerType ==
             ServerType.youtubeMusic;
@@ -66,6 +73,61 @@ class _HomePageState extends State<HomePage> {
                       )),
         );
       },
+    );
+  }
+
+  Widget _noServerConfiguredBody(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.cloud_off_rounded,
+                size: 72,
+                color: DesktopTheme.textMuted,
+              ),
+              const SizedBox(height: DesktopTheme.spacingLg),
+              Text(
+                l10n.noServerConnected,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: DesktopTheme.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: DesktopTheme.spacingSm),
+              Text(
+                l10n.addServerInSettingsToStart,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: DesktopTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(height: DesktopTheme.spacingXl),
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SettingsPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.settings_rounded),
+                label: Text(l10n.openSettings),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
