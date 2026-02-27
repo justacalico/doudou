@@ -2446,6 +2446,53 @@ class _ExpandedLeftColumn extends StatelessWidget {
                       );
                     },
                   ),
+                  const SizedBox(height: DesktopTheme.spacingMd),
+                  StreamBuilder<double>(
+                    stream: audioHandler.volumeStream,
+                    builder: (context, volSnapshot) {
+                      final volume =
+                          (volSnapshot.data ??
+                                  (audioHandler.volume as num?)?.toDouble() ??
+                                  1.0)
+                              .clamp(0.0, 1.0);
+                      return Row(
+                        children: [
+                          Icon(
+                            volume == 0
+                                ? Icons.volume_off_rounded
+                                : volume < 0.5
+                                ? Icons.volume_down_rounded
+                                : Icons.volume_up_rounded,
+                            color: DesktopTheme.textSecondary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: DesktopTheme.spacingSm),
+                          Expanded(
+                            child: SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                trackHeight: 3,
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 6,
+                                ),
+                                overlayShape: const RoundSliderOverlayShape(
+                                  overlayRadius: 12,
+                                ),
+                                activeTrackColor: DesktopTheme.textPrimary,
+                                inactiveTrackColor:
+                                    DesktopTheme.backgroundElevated,
+                                thumbColor: DesktopTheme.textPrimary,
+                              ),
+                              child: Slider(
+                                value: volume,
+                                onChanged: (value) =>
+                                    audioHandler.setVolume(value),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                   const SizedBox(height: DesktopTheme.spacingLg),
                   StreamBuilder<PlaybackState>(
                     stream: audioHandler.playbackState,
@@ -2559,53 +2606,6 @@ class _ExpandedLeftColumn extends StatelessWidget {
                             ),
                             onPressed: () =>
                                 appState.toggleFavorite(currentTrack),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: DesktopTheme.spacingMd),
-                  StreamBuilder<double>(
-                    stream: audioHandler.volumeStream,
-                    builder: (context, volSnapshot) {
-                      final volume =
-                          (volSnapshot.data ??
-                                  (audioHandler.volume as num?)?.toDouble() ??
-                                  1.0)
-                              .clamp(0.0, 1.0);
-                      return Row(
-                        children: [
-                          Icon(
-                            volume == 0
-                                ? Icons.volume_off_rounded
-                                : volume < 0.5
-                                ? Icons.volume_down_rounded
-                                : Icons.volume_up_rounded,
-                            color: DesktopTheme.textSecondary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: DesktopTheme.spacingSm),
-                          Expanded(
-                            child: SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                trackHeight: 3,
-                                thumbShape: const RoundSliderThumbShape(
-                                  enabledThumbRadius: 6,
-                                ),
-                                overlayShape: const RoundSliderOverlayShape(
-                                  overlayRadius: 12,
-                                ),
-                                activeTrackColor: DesktopTheme.textPrimary,
-                                inactiveTrackColor:
-                                    DesktopTheme.backgroundElevated,
-                                thumbColor: DesktopTheme.textPrimary,
-                              ),
-                              child: Slider(
-                                value: volume,
-                                onChanged: (value) =>
-                                    audioHandler.setVolume(value),
-                              ),
-                            ),
                           ),
                         ],
                       );
