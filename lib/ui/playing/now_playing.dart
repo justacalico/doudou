@@ -1650,7 +1650,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                   color: DesktopTheme.glassBorder,
                                 ),
                               ),
-                              child: appState.lyricsEnabled
+                              child:
+                                  (appState.lyricsEnabled && _hasLyrics == true)
                                   ? DefaultTabController(
                                       length: 2,
                                       child: Column(
@@ -2732,7 +2733,17 @@ class _NowPlayingQueuePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final queue = appState.queue;
-    final currentIndex = audioHandler?.currentIndex ?? 0;
+    final rawCurrentIndex = audioHandler?.currentIndex ?? 0;
+    final currentIndex = rawCurrentIndex >= 0 && rawCurrentIndex < queue.length
+        ? rawCurrentIndex
+        : 0;
+    final displayIndices = <int>[
+      currentIndex,
+      ...List<int>.generate(
+        queue.length,
+        (i) => i,
+      ).where((i) => i != currentIndex),
+    ];
 
     if (queue.isEmpty) {
       return Center(
@@ -2745,13 +2756,14 @@ class _NowPlayingQueuePanel extends StatelessWidget {
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingSm),
-      itemCount: queue.length,
+      itemCount: displayIndices.length,
       itemBuilder: (context, index) {
-        final track = queue[index];
-        final isCurrent = index == currentIndex;
+        final queueIndex = displayIndices[index];
+        final track = queue[queueIndex];
+        final isCurrent = queueIndex == currentIndex;
 
         return KeyedSubtree(
-          key: ValueKey(track.id),
+          key: ValueKey('${track.id}-$queueIndex'),
           child: ListTile(
             dense: true,
             leading: SizedBox(
@@ -2790,7 +2802,7 @@ class _NowPlayingQueuePanel extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            onTap: () => audioHandler?.skipToQueueItem(index),
+            onTap: () => audioHandler?.skipToQueueItem(queueIndex),
           ),
         );
       },
@@ -2865,6 +2877,10 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
             }
           }
         });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _updateLine(_getCurrentPosition(), force: true);
+        });
       }
     } catch (_) {
       if (mounted) {
@@ -2876,9 +2892,22 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
     }
   }
 
-  void _updateLine(Duration position) {
+  Duration _getCurrentPosition() {
+    try {
+      final position = widget.audioHandler?.position;
+      if (position is Duration) return position;
+    } catch (_) {}
+    try {
+      final position = widget.audioHandler?.playbackState?.value?.position;
+      if (position is Duration) return position;
+    } catch (_) {}
+    return Duration.zero;
+  }
+
+  void _updateLine(Duration position, {bool force = false}) {
     if (_result?.syncedLyrics == null) return;
-    if ((position - _lastPosition).abs() < const Duration(milliseconds: 50)) {
+    if (!force &&
+        (position - _lastPosition).abs() < const Duration(milliseconds: 50)) {
       return;
     }
     _lastPosition = position;
@@ -2956,6 +2985,7 @@ class _NowPlayingLyricsPanelState extends State<_NowPlayingLyricsPanel> {
     }
     if (_result!.hasSyncedLyrics && _result!.syncedLyrics != null) {
       return StreamBuilder<Duration>(
+        initialData: _getCurrentPosition(),
         stream: widget.audioHandler?.positionStream,
         builder: (context, snapshot) {
           final position = snapshot.data ?? Duration.zero;
