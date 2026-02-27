@@ -1262,6 +1262,17 @@ class _AppearanceSection extends StatelessWidget {
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: onLanguage,
                     ),
+                    ListTile(
+                      leading: const Icon(Icons.phone_iphone),
+                      title: Text(l10n.mobileNavigationStyle),
+                      subtitle: Text(
+                        appState.useFloatingMobileNav
+                            ? l10n.mobileNavFloating
+                            : l10n.mobileNavSolid,
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => _showMobileNavStyleDialog(context),
+                    ),
                   ],
                 ),
               ),
@@ -1316,6 +1327,38 @@ class _AppearanceSection extends StatelessWidget {
     final locale = appState.locale;
     if (locale == null) return AppLocalizations.of(context).systemDefault;
     return _languageNames[locale.languageCode] ?? locale.languageCode;
+  }
+
+  void _showMobileNavStyleDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final useFloating = appState.useFloatingMobileNav;
+
+    showAppDialog(
+      context: context,
+      title: l10n.mobileNavigationStyle,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppDialogOption(
+            label: l10n.mobileNavSolid,
+            selected: !useFloating,
+            onTap: () {
+              Navigator.pop(context);
+              appState.setUseFloatingMobileNav(false);
+            },
+          ),
+          AppDialogOption(
+            label: l10n.mobileNavFloating,
+            selected: useFloating,
+            onTap: () {
+              Navigator.pop(context);
+              appState.setUseFloatingMobileNav(true);
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
 

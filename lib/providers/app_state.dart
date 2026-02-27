@@ -56,6 +56,7 @@ class AppState extends ChangeNotifier {
   bool _showQueueOnPlayerBar = true;
   bool _showShuffleRepeatOnPlayerBar = true;
   bool _showHexColorControls = false;
+  bool _useFloatingMobileNav = false;
   final Set<String> _ytFollowedAlbumIds = <String>{};
   final Set<String> _ytFollowedArtistNames = <String>{};
   final Set<String> _ytFollowedPlaylistIds = <String>{};
@@ -164,6 +165,7 @@ class AppState extends ChangeNotifier {
   bool get showShuffleRepeatOnPlayerBar => _showShuffleRepeatOnPlayerBar;
   bool get showHexColorControls => _showHexColorControls;
   bool get allowYoutubeMusicOnDesktop => _allowYoutubeMusicOnDesktop;
+  bool get useFloatingMobileNav => _useFloatingMobileNav;
   bool get isYoutubeMusic =>
       _mediaServiceManager.currentServerType == ServerType.youtubeMusic;
 
@@ -2586,6 +2588,14 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setUseFloatingMobileNav(bool enabled) async {
+    if (_useFloatingMobileNav == enabled) return;
+    _useFloatingMobileNav = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('use_floating_mobile_nav', enabled);
+    notifyListeners();
+  }
+
   // Recent tracks management
   void _addToRecentTracks(Track track) {
     // Remove if already exists to avoid duplicates
@@ -2662,6 +2672,8 @@ class AppState extends ChangeNotifier {
     _showHexColorControls = prefs.getBool('show_hex_color_controls') ?? false;
     _allowYoutubeMusicOnDesktop =
         prefs.getBool('allow_youtube_music_on_desktop') ?? false;
+    _useFloatingMobileNav =
+        prefs.getBool('use_floating_mobile_nav') ?? false;
 
     // Load theme settings
     final themeModeString = prefs.getString('theme_mode') ?? 'system';

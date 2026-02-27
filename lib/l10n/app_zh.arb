@@ -405,6 +405,10 @@
   "chooseAccentColor": "选择强调色",
   "customColor": "自定义颜色",
 
+  "mobileNavigationStyle": "导航样式（手机）",
+  "mobileNavFloating": "浮动栏",
+  "mobileNavSolid": "固定栏",
+
   "layout": "布局",
   "compactMode": "紧凑模式",
   "reduceSpacing": "减少间距和边距",

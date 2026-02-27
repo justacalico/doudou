@@ -1752,6 +1752,19 @@
     "description": "Custom color option"
   },
 
+  "mobileNavigationStyle": "Navigation style (mobile)",
+  "@mobileNavigationStyle": {
+    "description": "Mobile navigation style setting label"
+  },
+  "mobileNavFloating": "Floating dock",
+  "@mobileNavFloating": {
+    "description": "Floating mobile navigation style option"
+  },
+  "mobileNavSolid": "Solid bar",
+  "@mobileNavSolid": {
+    "description": "Solid mobile navigation style option"
+  },
+
   "layout": "Layout",
   "@layout": {
     "description": "Layout settings section"

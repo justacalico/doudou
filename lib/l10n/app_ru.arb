@@ -316,6 +316,10 @@
   "chooseAccentColor": "Выбрать акцентный цвет",
   "customColor": "Свой цвет",
 
+  "mobileNavigationStyle": "Стиль навигации (мобильный)",
+  "mobileNavFloating": "Плавающая панель",
+  "mobileNavSolid": "Сплошная панель",
+
   "layout": "Макет",
   "compactMode": "Компактный режим",
   "reduceSpacing": "Уменьшить отступы",
