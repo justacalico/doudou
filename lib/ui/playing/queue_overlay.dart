@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/ui/widgets/cached_image_widget.dart';
@@ -123,14 +124,14 @@ class _QueueOverlayState extends State<QueueOverlay>
                               ),
                               child: Row(
                                 children: [
-                                  const Expanded(
+                                  Expanded(
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Queue',
-                                          style: TextStyle(
+                                          AppLocalizations.of(context).queue,
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 38,
                                             height: 1.0,
@@ -138,10 +139,11 @@ class _QueueOverlayState extends State<QueueOverlay>
                                             decoration: TextDecoration.none,
                                           ),
                                         ),
-                                        SizedBox(height: 4),
+                                        const SizedBox(height: 4),
                                         Text(
-                                          'Playing from queue',
-                                          style: TextStyle(
+                                          AppLocalizations.of(context)
+                                              .playingFromQueue,
+                                          style: const TextStyle(
                                             color: Color(0xFFB7C3D8),
                                             fontSize: 17,
                                             decoration: TextDecoration.none,
@@ -214,15 +216,20 @@ class _QueueOverlayState extends State<QueueOverlay>
     final isShuffled = audioHandler?.isShuffled ?? false;
 
     if (queueTracks.isEmpty) {
-      return const Center(
+      final l10n = AppLocalizations.of(context);
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(CupertinoIcons.list_bullet, size: 64, color: Colors.white38),
-            SizedBox(height: 16),
+            const Icon(
+              CupertinoIcons.list_bullet,
+              size: 64,
+              color: Colors.white38,
+            ),
+            const SizedBox(height: 16),
             Text(
-              'No songs in queue',
-              style: TextStyle(
+              l10n.noSongsInQueue,
+              style: const TextStyle(
                 fontSize: 18,
                 color: Colors.white70,
                 decoration: TextDecoration.none,
@@ -232,6 +239,8 @@ class _QueueOverlayState extends State<QueueOverlay>
         ),
       );
     }
+
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       children: [
@@ -243,7 +252,7 @@ class _QueueOverlayState extends State<QueueOverlay>
               Expanded(
                 child: _buildControlButton(
                   icon: CupertinoIcons.shuffle,
-                  label: isShuffled ? 'Shuffled' : 'Shuffle',
+                  label: isShuffled ? l10n.shuffled : l10n.shuffle,
                   isActive: isShuffled,
                   onPressed: () {
                     if (isShuffled) {
@@ -258,7 +267,7 @@ class _QueueOverlayState extends State<QueueOverlay>
               Expanded(
                 child: _buildControlButton(
                   icon: CupertinoIcons.clear,
-                  label: 'Clear Queue',
+                  label: l10n.clearQueue,
                   isActive: false,
                   onPressed: () {
                     audioHandler?.clearQueue();
@@ -287,7 +296,7 @@ class _QueueOverlayState extends State<QueueOverlay>
           child: Row(
             children: [
               Text(
-                '${queueTracks.length} song${queueTracks.length == 1 ? '' : 's'}',
+                l10n.countSongs(queueTracks.length),
                 style: const TextStyle(
                   color: Color(0xFFD5DFEF),
                   fontSize: 14,
@@ -309,9 +318,9 @@ class _QueueOverlayState extends State<QueueOverlay>
                       color: const Color(0xFFFF4D6D).withValues(alpha: 0.4),
                     ),
                   ),
-                  child: const Text(
-                    'SHUFFLED',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.shuffled,
+                    style: const TextStyle(
                       color: Color(0xFFFF8DA6),
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -463,7 +472,7 @@ class _QueueOverlayState extends State<QueueOverlay>
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  track.artistName ?? 'Unknown artist',
+                  track.artistName ?? AppLocalizations.of(context).unknownArtist,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -576,18 +585,16 @@ class _QueueOverlayState extends State<QueueOverlay>
               ),
             ],
           ),
-          subtitle: track.artistName != null
-              ? Text(
-                  track.artistName!,
-                  style: const TextStyle(
-                    color: Color(0xFF9DACCA),
-                    fontSize: 13,
-                    decoration: TextDecoration.none,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : null,
+          subtitle: Text(
+            track.artistName ?? AppLocalizations.of(context).unknownArtist,
+            style: const TextStyle(
+              color: Color(0xFF9DACCA),
+              fontSize: 13,
+              decoration: TextDecoration.none,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
