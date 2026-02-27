@@ -486,11 +486,34 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                       currentTrack,
                     );
                   }
-                  return _buildCompactLayout(
-                    context,
-                    appState,
-                    audioHandler!,
-                    currentTrack,
+                  return StreamBuilder<Duration>(
+                    stream: audioHandler!.positionStream,
+                    builder: (context, posSnapshot) {
+                      final position = posSnapshot.data ?? Duration.zero;
+                      final isMindElectricBackwards = _isMindElectricBackwards(
+                        currentTrack.name,
+                        currentTrack.artistName ?? '',
+                        position,
+                      );
+
+                      final compactContent = _buildCompactLayout(
+                        context,
+                        appState,
+                        audioHandler,
+                        currentTrack,
+                      );
+
+                      if (!isMindElectricBackwards) return compactContent;
+
+                      return Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.identity()..rotateY(3.14159),
+                          child: compactContent,
+                        ),
+                      );
+                    },
                   );
                 },
               ),
