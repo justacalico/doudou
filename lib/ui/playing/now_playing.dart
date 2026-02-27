@@ -2191,7 +2191,7 @@ String _formatDurationForDisplay(Duration duration) {
 }
 
 /// Left column for expanded now-playing: album art, info, progress, controls.
-class _ExpandedLeftColumn extends StatelessWidget {
+class _ExpandedLeftColumn extends StatefulWidget {
   final AppState appState;
   final dynamic audioHandler;
   final Track currentTrack;
@@ -2205,7 +2205,17 @@ class _ExpandedLeftColumn extends StatelessWidget {
   });
 
   @override
+  State<_ExpandedLeftColumn> createState() => _ExpandedLeftColumnState();
+}
+
+class _ExpandedLeftColumnState extends State<_ExpandedLeftColumn> {
+  bool _showDesktopVolumePanel = false;
+
+  @override
   Widget build(BuildContext context) {
+    final appState = widget.appState;
+    final audioHandler = widget.audioHandler;
+    final currentTrack = widget.currentTrack;
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final hasAlbum =
@@ -2446,54 +2456,71 @@ class _ExpandedLeftColumn extends StatelessWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: DesktopTheme.spacingMd),
-                  StreamBuilder<double>(
-                    stream: audioHandler.volumeStream,
-                    builder: (context, volSnapshot) {
-                      final volume =
-                          (volSnapshot.data ??
-                                  (audioHandler.volume as num?)?.toDouble() ??
-                                  1.0)
-                              .clamp(0.0, 1.0);
-                      return Row(
-                        children: [
-                          Icon(
-                            volume == 0
-                                ? Icons.volume_off_rounded
-                                : volume < 0.5
-                                ? Icons.volume_down_rounded
-                                : Icons.volume_up_rounded,
-                            color: DesktopTheme.textSecondary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: DesktopTheme.spacingSm),
-                          Expanded(
-                            child: SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                trackHeight: 3,
-                                thumbShape: const RoundSliderThumbShape(
-                                  enabledThumbRadius: 6,
-                                ),
-                                overlayShape: const RoundSliderOverlayShape(
-                                  overlayRadius: 12,
-                                ),
-                                activeTrackColor: DesktopTheme.textPrimary,
-                                inactiveTrackColor:
-                                    DesktopTheme.backgroundElevated,
-                                thumbColor: DesktopTheme.textPrimary,
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOutCubic,
+                    child: _showDesktopVolumePanel
+                        ? Column(
+                            children: [
+                              const SizedBox(height: DesktopTheme.spacingMd),
+                              StreamBuilder<double>(
+                                stream: audioHandler.volumeStream,
+                                builder: (context, volSnapshot) {
+                                  final volume =
+                                      (volSnapshot.data ??
+                                              (audioHandler.volume as num?)
+                                                  ?.toDouble() ??
+                                              1.0)
+                                          .clamp(0.0, 1.0);
+                                  return Row(
+                                    children: [
+                                      Icon(
+                                        volume == 0
+                                            ? Icons.volume_off_rounded
+                                            : volume < 0.5
+                                            ? Icons.volume_down_rounded
+                                            : Icons.volume_up_rounded,
+                                        color: DesktopTheme.textSecondary,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(
+                                        width: DesktopTheme.spacingSm,
+                                      ),
+                                      Expanded(
+                                        child: SliderTheme(
+                                          data: SliderTheme.of(context).copyWith(
+                                            trackHeight: 3,
+                                            thumbShape:
+                                                const RoundSliderThumbShape(
+                                                  enabledThumbRadius: 6,
+                                                ),
+                                            overlayShape:
+                                                const RoundSliderOverlayShape(
+                                                  overlayRadius: 12,
+                                                ),
+                                            activeTrackColor:
+                                                DesktopTheme.textPrimary,
+                                            inactiveTrackColor:
+                                                DesktopTheme.backgroundElevated,
+                                            thumbColor:
+                                                DesktopTheme.textPrimary,
+                                          ),
+                                          child: Slider(
+                                            value: volume,
+                                            onChanged: (value) =>
+                                                audioHandler.setVolume(value),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
-                              child: Slider(
-                                value: volume,
-                                onChanged: (value) =>
-                                    audioHandler.setVolume(value),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                              const SizedBox(height: DesktopTheme.spacingLg),
+                            ],
+                          )
+                        : const SizedBox(height: DesktopTheme.spacingLg),
                   ),
-                  const SizedBox(height: DesktopTheme.spacingLg),
                   StreamBuilder<PlaybackState>(
                     stream: audioHandler.playbackState,
                     builder: (context, pbSnapshot) {
@@ -2592,6 +2619,36 @@ class _ExpandedLeftColumn extends StatelessWidget {
                                   ? RepeatMode.one
                                   : RepeatMode.none;
                               audioHandler.setRepeatMode(next);
+                            },
+                          ),
+                          SizedBox(width: controlGapLg),
+                          StreamBuilder<double>(
+                            stream: audioHandler.volumeStream,
+                            builder: (context, volSnapshot) {
+                              final volume =
+                                  (volSnapshot.data ??
+                                          (audioHandler.volume as num?)
+                                              ?.toDouble() ??
+                                          1.0)
+                                      .clamp(0.0, 1.0);
+                              return IconButton(
+                                icon: Icon(
+                                  volume == 0
+                                      ? Icons.volume_off_rounded
+                                      : volume < 0.5
+                                      ? Icons.volume_down_rounded
+                                      : Icons.volume_up_rounded,
+                                  color: _showDesktopVolumePanel
+                                      ? theme.colorScheme.primary
+                                      : null,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _showDesktopVolumePanel =
+                                        !_showDesktopVolumePanel;
+                                  });
+                                },
+                              );
                             },
                           ),
                           SizedBox(width: controlGapLg),
