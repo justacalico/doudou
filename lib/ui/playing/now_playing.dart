@@ -1217,152 +1217,23 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                       ),
 
                       const SizedBox(height: 10),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        child: _showMobileVolumePanel
-                            ? Padding(
-                                key: const ValueKey('mobile-volume-panel'),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 42,
-                                ),
-                                child: StreamBuilder<double>(
-                                  stream: audioHandler?.volumeStream,
-                                  builder: (context, volSnapshot) {
-                                    final volume =
-                                        (volSnapshot.data ??
-                                                (audioHandler?.volume as num?)
-                                                    ?.toDouble() ??
-                                                1.0)
-                                            .clamp(0.0, 1.0);
-                                    return Row(
-                                      children: [
-                                        Icon(
-                                          volume == 0
-                                              ? CupertinoIcons.volume_off
-                                              : volume < 0.5
-                                              ? CupertinoIcons.volume_down
-                                              : CupertinoIcons.volume_up,
-                                          color: CupertinoColors.white
-                                              .withValues(alpha: 0.8),
-                                          size: 18,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: SliderTheme(
-                                            data: SliderTheme.of(context).copyWith(
-                                              trackHeight: 3,
-                                              thumbShape:
-                                                  const RoundSliderThumbShape(
-                                                    enabledThumbRadius: 6,
-                                                  ),
-                                              overlayShape:
-                                                  const RoundSliderOverlayShape(
-                                                    overlayRadius: 12,
-                                                  ),
-                                              activeTrackColor:
-                                                  CupertinoColors.white,
-                                              inactiveTrackColor:
-                                                  CupertinoColors.white
-                                                      .withValues(alpha: 0.25),
-                                              thumbColor: CupertinoColors.white,
-                                            ),
-                                            child: Slider(
-                                              value: volume,
-                                              onChanged: (value) {
-                                                audioHandler?.setVolume(value);
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              )
-                            : const SizedBox.shrink(
-                                key: ValueKey('mobile-volume-panel-hidden'),
-                              ),
-                      ),
-
-                      if (_showMobileVolumePanel) const SizedBox(height: 10),
-
-                      // Bottom controls row with liquid glass
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 50),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: CupertinoColors.white.withValues(
-                                  alpha: 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: CupertinoColors.white.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  width: 0.5,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  // Queue button
-                                  GestureDetector(
-                                    onTap: () {
-                                      showQueueOverlay(context);
-                                    },
-                                    child: Icon(
-                                      CupertinoIcons.list_bullet,
-                                      color: CupertinoColors.white.withValues(
-                                        alpha: 0.8,
-                                      ),
-                                      size: 22,
-                                    ),
-                                  ),
-                                  // Favorite button
-                                  GestureDetector(
-                                    onTap: () async {
-                                      _triggerFavoriteHaptic();
-                                      await _favoriteAnimationController
-                                          .forward();
-                                      await _favoriteAnimationController
-                                          .reverse();
-                                      appState.toggleFavorite(currentTrack);
-                                    },
-                                    child: AnimatedBuilder(
-                                      animation: _favoriteScaleAnimation,
-                                      builder: (context, child) {
-                                        final isFavorite = appState.isFavorite(
-                                          currentTrack.id,
-                                        );
-                                        return Transform.scale(
-                                          scale: _favoriteScaleAnimation.value,
-                                          child: Icon(
-                                            isFavorite
-                                                ? CupertinoIcons.heart_fill
-                                                : CupertinoIcons.heart,
-                                            color: isFavorite
-                                                ? const Color(0xFFEC4899)
-                                                : CupertinoColors.white
-                                                      .withValues(alpha: 0.8),
-                                            size: 22,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  // Volume button
-                                  StreamBuilder<double>(
+                      SizedBox(
+                        height: 58,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            AnimatedPositioned(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOutCubic,
+                              left: 42,
+                              right: 42,
+                              bottom: 52,
+                              child: IgnorePointer(
+                                ignoring: !_showMobileVolumePanel,
+                                child: AnimatedOpacity(
+                                  duration: const Duration(milliseconds: 180),
+                                  opacity: _showMobileVolumePanel ? 1 : 0,
+                                  child: StreamBuilder<double>(
                                     stream: audioHandler?.volumeStream,
                                     builder: (context, volSnapshot) {
                                       final volume =
@@ -1371,66 +1242,213 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                       ?.toDouble() ??
                                                   1.0)
                                               .clamp(0.0, 1.0);
-                                      final icon = volume == 0
-                                          ? CupertinoIcons.volume_off
-                                          : volume < 0.5
-                                          ? CupertinoIcons.volume_down
-                                          : CupertinoIcons.volume_up;
-                                      return GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _showMobileVolumePanel =
-                                                !_showMobileVolumePanel;
-                                          });
-                                        },
-                                        child: Icon(
-                                          icon,
-                                          color: _showMobileVolumePanel
-                                              ? CupertinoColors.white
-                                              : CupertinoColors.white
-                                                    .withValues(alpha: 0.8),
-                                          size: 22,
-                                        ),
+                                      return Row(
+                                        children: [
+                                          Icon(
+                                            volume == 0
+                                                ? CupertinoIcons.volume_off
+                                                : volume < 0.5
+                                                ? CupertinoIcons.volume_down
+                                                : CupertinoIcons.volume_up,
+                                            color: CupertinoColors.white
+                                                .withValues(alpha: 0.8),
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: SliderTheme(
+                                              data: SliderTheme.of(context).copyWith(
+                                                trackHeight: 3,
+                                                thumbShape:
+                                                    const RoundSliderThumbShape(
+                                                      enabledThumbRadius: 6,
+                                                    ),
+                                                overlayShape:
+                                                    const RoundSliderOverlayShape(
+                                                      overlayRadius: 12,
+                                                    ),
+                                                activeTrackColor:
+                                                    CupertinoColors.white,
+                                                inactiveTrackColor:
+                                                    CupertinoColors.white
+                                                        .withValues(
+                                                          alpha: 0.25,
+                                                        ),
+                                                thumbColor:
+                                                    CupertinoColors.white,
+                                              ),
+                                              child: Slider(
+                                                value: volume,
+                                                onChanged: (value) {
+                                                  audioHandler?.setVolume(
+                                                    value,
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       );
                                     },
                                   ),
-                                  // Lyrics button (only when lyrics available and enabled)
-                                  if (appState.lyricsEnabled &&
-                                      _hasLyrics == true)
-                                    GestureDetector(
-                                      onTap: () {
-                                        _showLyricsOverlay(
-                                          context,
-                                          currentTrack,
-                                        );
-                                      },
-                                      child: Icon(
-                                        CupertinoIcons.mic_fill,
-                                        color: CupertinoColors.white.withValues(
-                                          alpha: 0.8,
-                                        ),
-                                        size: 22,
-                                      ),
-                                    ),
-                                  // More options button
-                                  GestureDetector(
-                                    onTap: () => _showMoreOptions(
-                                      context,
-                                      currentTrack,
-                                      appState,
-                                    ),
-                                    child: Icon(
-                                      CupertinoIcons.ellipsis,
-                                      color: CupertinoColors.white.withValues(
-                                        alpha: 0.8,
-                                      ),
-                                      size: 22,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
+                            Positioned(
+                              left: 50,
+                              right: 50,
+                              bottom: 0,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaX: 15,
+                                    sigmaY: 15,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.white.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: CupertinoColors.white.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        // Queue button
+                                        GestureDetector(
+                                          onTap: () {
+                                            showQueueOverlay(context);
+                                          },
+                                          child: Icon(
+                                            CupertinoIcons.list_bullet,
+                                            color: CupertinoColors.white
+                                                .withValues(alpha: 0.8),
+                                            size: 22,
+                                          ),
+                                        ),
+                                        // Favorite button
+                                        GestureDetector(
+                                          onTap: () async {
+                                            _triggerFavoriteHaptic();
+                                            await _favoriteAnimationController
+                                                .forward();
+                                            await _favoriteAnimationController
+                                                .reverse();
+                                            appState.toggleFavorite(
+                                              currentTrack,
+                                            );
+                                          },
+                                          child: AnimatedBuilder(
+                                            animation: _favoriteScaleAnimation,
+                                            builder: (context, child) {
+                                              final isFavorite = appState
+                                                  .isFavorite(currentTrack.id);
+                                              return Transform.scale(
+                                                scale: _favoriteScaleAnimation
+                                                    .value,
+                                                child: Icon(
+                                                  isFavorite
+                                                      ? CupertinoIcons
+                                                            .heart_fill
+                                                      : CupertinoIcons.heart,
+                                                  color: isFavorite
+                                                      ? const Color(0xFFEC4899)
+                                                      : CupertinoColors.white
+                                                            .withValues(
+                                                              alpha: 0.8,
+                                                            ),
+                                                  size: 22,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        // Volume button
+                                        StreamBuilder<double>(
+                                          stream: audioHandler?.volumeStream,
+                                          builder: (context, volSnapshot) {
+                                            final volume =
+                                                (volSnapshot.data ??
+                                                        (audioHandler?.volume
+                                                                as num?)
+                                                            ?.toDouble() ??
+                                                        1.0)
+                                                    .clamp(0.0, 1.0);
+                                            final icon = volume == 0
+                                                ? CupertinoIcons.volume_off
+                                                : volume < 0.5
+                                                ? CupertinoIcons.volume_down
+                                                : CupertinoIcons.volume_up;
+                                            return GestureDetector(
+                                              onTap: () {
+                                                setState(() {
+                                                  _showMobileVolumePanel =
+                                                      !_showMobileVolumePanel;
+                                                });
+                                              },
+                                              child: Icon(
+                                                icon,
+                                                color: _showMobileVolumePanel
+                                                    ? CupertinoColors.white
+                                                    : CupertinoColors.white
+                                                          .withValues(
+                                                            alpha: 0.8,
+                                                          ),
+                                                size: 22,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                        // Lyrics button (only when lyrics available and enabled)
+                                        if (appState.lyricsEnabled &&
+                                            _hasLyrics == true)
+                                          GestureDetector(
+                                            onTap: () {
+                                              _showLyricsOverlay(
+                                                context,
+                                                currentTrack,
+                                              );
+                                            },
+                                            child: Icon(
+                                              CupertinoIcons.mic_fill,
+                                              color: CupertinoColors.white
+                                                  .withValues(alpha: 0.8),
+                                              size: 22,
+                                            ),
+                                          ),
+                                        // More options button
+                                        GestureDetector(
+                                          onTap: () => _showMoreOptions(
+                                            context,
+                                            currentTrack,
+                                            appState,
+                                          ),
+                                          child: Icon(
+                                            CupertinoIcons.ellipsis,
+                                            color: CupertinoColors.white
+                                                .withValues(alpha: 0.8),
+                                            size: 22,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 
