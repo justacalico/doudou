@@ -876,6 +876,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   Widget _buildArtistTabs(AppLocalizations l10n) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: DesktopTheme.backgroundSecondary,
@@ -883,17 +884,22 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         border: Border.all(color: DesktopTheme.glassBorder),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         children: [
-          _buildArtistTabChip(
-            label: l10n.songs,
-            selected: !_showArtistAlbums,
-            onTap: () => setState(() => _showArtistAlbums = false),
+          Expanded(
+            child: _buildArtistTabChip(
+              label: l10n.songs,
+              selected: !_showArtistAlbums,
+              onTap: () => setState(() => _showArtistAlbums = false),
+            ),
           ),
-          _buildArtistTabChip(
-            label: l10n.albums,
-            selected: _showArtistAlbums,
-            onTap: () => setState(() => _showArtistAlbums = true),
+          const SizedBox(width: 4),
+          Expanded(
+            child: _buildArtistTabChip(
+              label: l10n.albums,
+              selected: _showArtistAlbums,
+              onTap: () => setState(() => _showArtistAlbums = true),
+            ),
           ),
         ],
       ),
@@ -921,7 +927,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         ),
-        child: Text(label),
+        child: Text(label, textAlign: TextAlign.center),
       ),
     );
   }
