@@ -242,8 +242,10 @@ class _AppShellState extends State<AppShell> {
         final isDesktop = constraints.maxWidth >= kLayoutBreakpoint;
         final forceCompactSidebar =
             constraints.maxWidth < kCompactSidebarLockBreakpoint;
+        final sidebarStyle = context.watch<AppState>().sidebarStyle;
+        final alwaysCompactSidebar = sidebarStyle == SidebarStyle.compact;
         final effectiveCompactSidebar =
-            isDesktop && (forceCompactSidebar || _sidebarCompact);
+            isDesktop && (forceCompactSidebar || _sidebarCompact || alwaysCompactSidebar);
         return KeyboardListener(
           focusNode: FocusNode(),
           autofocus: true,
@@ -282,6 +284,7 @@ class _AppShellState extends State<AppShell> {
                                     );
                                   },
                                   onTap: _navigateTo,
+                                  showToggle: !alwaysCompactSidebar,
                                 ),
                               Expanded(
                                 child: Container(
@@ -375,6 +378,7 @@ class _Sidebar extends StatelessWidget {
   final bool compact;
   final VoidCallback onToggleCompact;
   final ValueChanged<int> onTap;
+  final bool showToggle;
 
   const _Sidebar({
     required this.currentIndex,
@@ -384,6 +388,7 @@ class _Sidebar extends StatelessWidget {
     required this.compact,
     required this.onToggleCompact,
     required this.onTap,
+    required this.showToggle,
   });
 
   @override
@@ -566,19 +571,20 @@ class _Sidebar extends StatelessWidget {
                       isSettings: true,
                     ),
                     const SizedBox(height: 8),
-                    _SidebarTile(
-                      icon: compact
-                          ? Icons.keyboard_double_arrow_right_rounded
-                          : Icons.keyboard_double_arrow_left_rounded,
-                      activeIcon: compact
-                          ? Icons.keyboard_double_arrow_right_rounded
-                          : Icons.keyboard_double_arrow_left_rounded,
-                      label: compact ? l10n.fullView : l10n.shrinkSidebar,
-                      selected: false,
-                      onTap: onToggleCompact,
-                      compact: compact,
-                      isSettings: false,
-                    ),
+                    if (showToggle)
+                      _SidebarTile(
+                        icon: compact
+                            ? Icons.keyboard_double_arrow_right_rounded
+                            : Icons.keyboard_double_arrow_left_rounded,
+                        activeIcon: compact
+                            ? Icons.keyboard_double_arrow_right_rounded
+                            : Icons.keyboard_double_arrow_left_rounded,
+                        label: compact ? l10n.fullView : l10n.shrinkSidebar,
+                        selected: false,
+                        onTap: onToggleCompact,
+                        compact: compact,
+                        isSettings: false,
+                      ),
                   ],
                 ),
               ),
@@ -1138,7 +1144,7 @@ class _MobileNowPlayingCapsule extends StatelessWidget {
           height: 64,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            color: theme.colorScheme.surfaceVariant,
+            color: theme.colorScheme.surfaceContainerHighest,
             border: Border.all(
               color: theme.colorScheme.outline.withValues(alpha: 0.4),
               width: 0.5,

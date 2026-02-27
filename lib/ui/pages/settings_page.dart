@@ -1328,6 +1328,25 @@ class _AppearanceSection extends StatelessWidget {
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () => _showMobileNavStyleDialog(context),
                     ),
+                    const SizedBox(height: 24),
+                    Text(
+                      l10n.layout,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ListTile(
+                      leading: const Icon(Icons.view_sidebar_rounded),
+                      title: Text(l10n.sidebarStyle),
+                      subtitle: Text(
+                        appState.sidebarStyle == SidebarStyle.compact
+                            ? l10n.sidebarStyleCompact
+                            : l10n.sidebarStyleDefault,
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => _showSidebarStyleDialog(context),
+                    ),
                   ],
                 ),
               ),
@@ -1409,6 +1428,39 @@ class _AppearanceSection extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               appState.setUseFloatingMobileNav(true);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSidebarStyleDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final appState = context.read<AppState>();
+    final current = appState.sidebarStyle;
+
+    showAppDialog(
+      context: context,
+      title: l10n.sidebarStyle,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppDialogOption(
+            label: l10n.sidebarStyleDefault,
+            selected: current == SidebarStyle.adaptive,
+            onTap: () {
+              Navigator.pop(context);
+              appState.setSidebarStyle(SidebarStyle.adaptive);
+            },
+          ),
+          AppDialogOption(
+            label: l10n.sidebarStyleCompact,
+            selected: current == SidebarStyle.compact,
+            onTap: () {
+              Navigator.pop(context);
+              appState.setSidebarStyle(SidebarStyle.compact);
             },
           ),
         ],

@@ -413,6 +413,9 @@
   "mobileNavSolid": "固定栏",
 
   "layout": "布局",
+  "sidebarStyle": "侧边栏样式",
+  "sidebarStyleDefault": "自适应（默认）",
+  "sidebarStyleCompact": "紧凑（始终折叠）",
   "compactMode": "紧凑模式",
   "reduceSpacing": "减少间距和边距",
   "showAlbumArtSidebar": "在侧边栏显示专辑封面",

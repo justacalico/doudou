@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'audio_metadata_service.dart';
+import 'players/jellyfin_service.dart' show JellyfinService;
 
 /// Service for fetching album art from multiple sources
 /// Priority:
@@ -28,7 +29,8 @@ class AlbumArtService {
   DateTime? _lastMusicBrainzRequest;
   
   // User agent for API requests (required by MusicBrainz)
-  static const String _userAgent = 'Doudou/10.0.0 (https://github.com/doudou-music)';
+  static String get _userAgent =>
+      'Doudou/${JellyfinService.appVersion} (https://gitlab.com/openlyst/doudou)';
   
   // API endpoints
   static const String _musicBrainzBaseUrl = 'https://musicbrainz.org/ws/2';

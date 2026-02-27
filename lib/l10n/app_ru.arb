@@ -324,6 +324,9 @@
   "mobileNavSolid": "Сплошная панель",
 
   "layout": "Макет",
+  "sidebarStyle": "Стиль боковой панели",
+  "sidebarStyleDefault": "Адаптивный (по умолчанию)",
+  "sidebarStyleCompact": "Компактный (всегда свернута)",
   "compactMode": "Компактный режим",
   "reduceSpacing": "Уменьшить отступы",
   "showAlbumArtSidebar": "Показывать обложку в боковой панели",

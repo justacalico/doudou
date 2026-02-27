@@ -19,6 +19,11 @@ import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
 import '../services/logging_service.dart';
 
+enum SidebarStyle {
+  adaptive,
+  compact,
+}
+
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
   late final MediaServiceManager _mediaServiceManager;
@@ -71,6 +76,7 @@ class AppState extends ChangeNotifier {
   // Theme settings
   ThemeMode _themeMode = ThemeMode.system;
   Color _accentColor = const Color(0xFF38BDF8);
+  SidebarStyle _sidebarStyle = SidebarStyle.adaptive;
   Color _themeColor = const Color(0xFF38BDF8);
 
   // Locale settings
@@ -177,6 +183,7 @@ class AppState extends ChangeNotifier {
   // Theme getters
   ThemeMode get themeMode => _themeMode;
   Color get accentColor => _accentColor;
+  SidebarStyle get sidebarStyle => _sidebarStyle;
   Color get themeColor => _themeColor;
 
   // Locale getter
@@ -2685,6 +2692,9 @@ class AppState extends ChangeNotifier {
         prefs.getInt('accent_color') ?? const Color(0xFF38BDF8).toARGB32();
     _accentColor = Color(accentColorValue);
 
+    final sidebarStyleString = prefs.getString('sidebar_style') ?? 'adaptive';
+    _sidebarStyle = _parseSidebarStyle(sidebarStyleString);
+
     final themeColorValue =
         prefs.getInt('theme_color') ?? const Color(0xFF38BDF8).toARGB32();
     _themeColor = Color(themeColorValue);
@@ -2719,6 +2729,25 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  SidebarStyle _parseSidebarStyle(String value) {
+    switch (value) {
+      case 'compact':
+        return SidebarStyle.compact;
+      case 'adaptive':
+      default:
+        return SidebarStyle.adaptive;
+    }
+  }
+
+  String _sidebarStyleToString(SidebarStyle style) {
+    switch (style) {
+      case SidebarStyle.compact:
+        return 'compact';
+      case SidebarStyle.adaptive:
+        return 'adaptive';
+    }
+  }
+
   String _themeModeToString(ThemeMode mode) {
     switch (mode) {
       case ThemeMode.light:
@@ -2744,6 +2773,15 @@ class AppState extends ChangeNotifier {
       _accentColor = color;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('accent_color', color.toARGB32());
+      notifyListeners();
+    }
+  }
+
+  Future<void> setSidebarStyle(SidebarStyle style) async {
+    if (_sidebarStyle != style) {
+      _sidebarStyle = style;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('sidebar_style', _sidebarStyleToString(style));
       notifyListeners();
     }
   }
