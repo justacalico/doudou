@@ -86,6 +86,7 @@ class DoudouApp extends StatelessWidget {
                       : systemBrightness;
               final oled = appState.themeMode == ThemeMode.dark && appState.oledDarkModeEnabled;
               DesktopTheme.updateBrightness(brightness, oled: oled);
+              DesktopTheme.updateAccent(appState.accentColor);
 
               return MaterialApp(
                 title: 'Doudou - Jellyfin Music Player',

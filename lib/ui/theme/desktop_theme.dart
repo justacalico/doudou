@@ -8,10 +8,17 @@ class DesktopTheme {
 
   static bool _isDark = true;
   static bool _isOled = false;
+  static Color _accentLight = AppTokens.accentDefaultLight;
+  static Color _accentDark = AppTokens.accentDefaultDark;
 
   static void updateBrightness(Brightness brightness, {bool oled = false}) {
     _isDark = brightness == Brightness.dark;
     _isOled = oled && _isDark;
+  }
+
+  static void updateAccent(Color color) {
+    _accentLight = color;
+    _accentDark = color;
   }
 
   static bool get isOled => _isOled;
@@ -66,18 +73,18 @@ class DesktopTheme {
   static Color get glassHighlight =>
       _isDark ? AppTokens.glassHighlightDark : AppTokens.glassHighlightLight;
 
-  static const List<Color> accentGradientPurple = [
-    Color(0xFF0EA5E9),
-    Color(0xFF38BDF8),
-  ];
-  static const List<Color> accentGradientPink = [
-    Color(0xFFF97316),
-    Color(0xFFEF4444),
-  ];
-  static const List<Color> accentGradientBlue = [
-    Color(0xFF0284C7),
-    Color(0xFF22D3EE),
-  ];
+  static List<Color> get accentGradientPurple => [
+        accentPrimary,
+        accentPrimary.withValues(alpha: 0.75),
+      ];
+  static List<Color> get accentGradientPink => [
+        accentPrimary,
+        accentPrimary.withValues(alpha: 0.55),
+      ];
+  static List<Color> get accentGradientBlue => [
+        accentPrimary,
+        accentPrimary.withValues(alpha: 0.35),
+      ];
 
   static Color get textPrimary =>
       _isDark ? AppTokens.textPrimaryDark : AppTokens.textPrimaryLight;
@@ -96,13 +103,15 @@ class DesktopTheme {
   static Color get playButtonGreen =>
       _isDark ? AppTokens.playGreenDark : AppTokens.playGreenLight;
   static Color get heartRed => _isDark ? AppTokens.heartRedDark : AppTokens.heartRedLight;
-  static const Color shufflePurple = Color(0xFF38BDF8);
-  static const Color repeatBlue = Color(0xFF3B82F6);
-  static Color get accentPrimary =>
-      _isDark ? AppTokens.accentDefaultDark : AppTokens.accentDefaultLight;
+  static Color get shufflePurple => accentPrimary;
+  static Color get repeatBlue => accentPrimary;
+  static Color get accentPrimary => _isDark ? _accentDark : _accentLight;
 
-  static LinearGradient get accentGradient => const LinearGradient(
-        colors: [Color(0xFF0284C7), Color(0xFF38BDF8)],
+  static LinearGradient get accentGradient => LinearGradient(
+        colors: [
+          accentPrimary.withValues(alpha: 0.9),
+          accentPrimary.withValues(alpha: 0.5),
+        ],
         begin: Alignment.centerLeft,
         end: Alignment.centerRight,
       );
@@ -502,12 +511,11 @@ class _DesktopAnimatedBackgroundState extends State<DesktopAnimatedBackground>
 
   @override
   Widget build(BuildContext context) {
-    final baseColors =
-        widget.colors ??
+    final baseColors = widget.colors ??
         [
           DesktopTheme.backgroundDeep,
-          const Color(0xFF1A0A2E),
-          const Color(0xFF0A1A2E),
+          DesktopTheme.accentPrimary.withValues(alpha: 0.35),
+          DesktopTheme.accentPrimary.withValues(alpha: 0.2),
           DesktopTheme.backgroundDeep,
         ];
 
