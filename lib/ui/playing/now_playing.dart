@@ -1227,69 +1227,101 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                               curve: Curves.easeOutCubic,
                               left: 42,
                               right: 42,
-                              bottom: 52,
+                              bottom: 58,
                               child: IgnorePointer(
                                 ignoring: !_showMobileVolumePanel,
                                 child: AnimatedOpacity(
                                   duration: const Duration(milliseconds: 180),
                                   opacity: _showMobileVolumePanel ? 1 : 0,
-                                  child: StreamBuilder<double>(
-                                    stream: audioHandler?.volumeStream,
-                                    builder: (context, volSnapshot) {
-                                      final volume =
-                                          (volSnapshot.data ??
-                                                  (audioHandler?.volume as num?)
-                                                      ?.toDouble() ??
-                                                  1.0)
-                                              .clamp(0.0, 1.0);
-                                      return Row(
-                                        children: [
-                                          Icon(
-                                            volume == 0
-                                                ? CupertinoIcons.volume_off
-                                                : volume < 0.5
-                                                ? CupertinoIcons.volume_down
-                                                : CupertinoIcons.volume_up,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(18),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                        sigmaX: 12,
+                                        sigmaY: 12,
+                                      ),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: CupertinoColors.white
+                                              .withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            18,
+                                          ),
+                                          border: Border.all(
                                             color: CupertinoColors.white
-                                                .withValues(alpha: 0.8),
-                                            size: 18,
+                                                .withValues(alpha: 0.2),
+                                            width: 0.5,
                                           ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: SliderTheme(
-                                              data: SliderTheme.of(context).copyWith(
-                                                trackHeight: 3,
-                                                thumbShape:
-                                                    const RoundSliderThumbShape(
-                                                      enabledThumbRadius: 6,
+                                        ),
+                                        child: StreamBuilder<double>(
+                                          stream: audioHandler?.volumeStream,
+                                          builder: (context, volSnapshot) {
+                                            final volume =
+                                                (volSnapshot.data ??
+                                                        (audioHandler?.volume
+                                                                as num?)
+                                                            ?.toDouble() ??
+                                                        1.0)
+                                                    .clamp(0.0, 1.0);
+                                            return Row(
+                                              children: [
+                                                Icon(
+                                                  volume == 0
+                                                      ? CupertinoIcons
+                                                            .volume_off
+                                                      : volume < 0.5
+                                                      ? CupertinoIcons
+                                                            .volume_down
+                                                      : CupertinoIcons
+                                                            .volume_up,
+                                                  color: CupertinoColors.white
+                                                      .withValues(alpha: 0.8),
+                                                  size: 18,
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Expanded(
+                                                  child: SliderTheme(
+                                                    data: SliderTheme.of(context).copyWith(
+                                                      trackHeight: 3,
+                                                      thumbShape:
+                                                          const RoundSliderThumbShape(
+                                                            enabledThumbRadius:
+                                                                6,
+                                                          ),
+                                                      overlayShape:
+                                                          const RoundSliderOverlayShape(
+                                                            overlayRadius: 12,
+                                                          ),
+                                                      activeTrackColor:
+                                                          CupertinoColors.white,
+                                                      inactiveTrackColor:
+                                                          CupertinoColors.white
+                                                              .withValues(
+                                                                alpha: 0.25,
+                                                              ),
+                                                      thumbColor:
+                                                          CupertinoColors.white,
                                                     ),
-                                                overlayShape:
-                                                    const RoundSliderOverlayShape(
-                                                      overlayRadius: 12,
+                                                    child: Slider(
+                                                      value: volume,
+                                                      onChanged: (value) {
+                                                        audioHandler?.setVolume(
+                                                          value,
+                                                        );
+                                                      },
                                                     ),
-                                                activeTrackColor:
-                                                    CupertinoColors.white,
-                                                inactiveTrackColor:
-                                                    CupertinoColors.white
-                                                        .withValues(
-                                                          alpha: 0.25,
-                                                        ),
-                                                thumbColor:
-                                                    CupertinoColors.white,
-                                              ),
-                                              child: Slider(
-                                                value: volume,
-                                                onChanged: (value) {
-                                                  audioHandler?.setVolume(
-                                                    value,
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
