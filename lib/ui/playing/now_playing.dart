@@ -1875,24 +1875,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           ),
           // Download
           _buildDownloadAction(context, currentTrack, appState),
-          // Share
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _shareTrack(context, currentTrack);
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  CupertinoIcons.share,
-                  color: CupertinoColors.activeBlue,
-                ),
-                const SizedBox(width: 8),
-                Text(l10n.share),
-              ],
-            ),
-          ),
           // Radio Mode
           CupertinoActionSheetAction(
             onPressed: () {
@@ -2071,32 +2053,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         }
         break;
     }
-  }
-
-  void _shareTrack(BuildContext context, dynamic currentTrack) {
-    final l10n = AppLocalizations.of(context);
-    final trackInfo =
-        '${currentTrack.name} by ${currentTrack.artistName ?? l10n.unknownArtist}';
-
-    // For now, just show the track info in a dialog
-    // In a real app, you would use a share plugin like share_plus
-    showAppDialog(
-      context: context,
-      title: l10n.shareTrack,
-      content: Text(
-        trackInfo,
-        style: TextStyle(
-          color: DesktopTheme.textSecondary,
-          decoration: TextDecoration.none,
-        ),
-      ),
-      actionsBuilder: (dialogContext) => [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(),
-          child: Text(l10n.ok),
-        ),
-      ],
-    );
   }
 
   String _formatDuration(Duration duration) {
