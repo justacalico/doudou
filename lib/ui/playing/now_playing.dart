@@ -54,6 +54,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
   final FocusNode _keyboardFocusNode = FocusNode(
     debugLabel: 'now_playing_keys',
   );
+  bool _showMobileVolumePanel = false;
 
   @override
   void initState() {
@@ -1215,64 +1216,77 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                         },
                       ),
 
-                      const SizedBox(height: 20),
-                      // Volume control
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 42),
-                        child: StreamBuilder<double>(
-                          stream: audioHandler?.volumeStream,
-                          builder: (context, volSnapshot) {
-                            final volume =
-                                (volSnapshot.data ??
-                                        (audioHandler?.volume as num?)
-                                            ?.toDouble() ??
-                                        1.0)
-                                    .clamp(0.0, 1.0);
-                            return Row(
-                              children: [
-                                Icon(
-                                  volume == 0
-                                      ? CupertinoIcons.volume_off
-                                      : volume < 0.5
-                                      ? CupertinoIcons.volume_down
-                                      : CupertinoIcons.volume_up,
-                                  color: CupertinoColors.white.withValues(
-                                    alpha: 0.8,
-                                  ),
-                                  size: 18,
+                      const SizedBox(height: 10),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        child: _showMobileVolumePanel
+                            ? Padding(
+                                key: const ValueKey('mobile-volume-panel'),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 42,
                                 ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: SliderTheme(
-                                    data: SliderTheme.of(context).copyWith(
-                                      trackHeight: 3,
-                                      thumbShape: const RoundSliderThumbShape(
-                                        enabledThumbRadius: 6,
-                                      ),
-                                      overlayShape:
-                                          const RoundSliderOverlayShape(
-                                            overlayRadius: 12,
+                                child: StreamBuilder<double>(
+                                  stream: audioHandler?.volumeStream,
+                                  builder: (context, volSnapshot) {
+                                    final volume =
+                                        (volSnapshot.data ??
+                                                (audioHandler?.volume as num?)
+                                                    ?.toDouble() ??
+                                                1.0)
+                                            .clamp(0.0, 1.0);
+                                    return Row(
+                                      children: [
+                                        Icon(
+                                          volume == 0
+                                              ? CupertinoIcons.volume_off
+                                              : volume < 0.5
+                                              ? CupertinoIcons.volume_down
+                                              : CupertinoIcons.volume_up,
+                                          color: CupertinoColors.white
+                                              .withValues(alpha: 0.8),
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: SliderTheme(
+                                            data: SliderTheme.of(context).copyWith(
+                                              trackHeight: 3,
+                                              thumbShape:
+                                                  const RoundSliderThumbShape(
+                                                    enabledThumbRadius: 6,
+                                                  ),
+                                              overlayShape:
+                                                  const RoundSliderOverlayShape(
+                                                    overlayRadius: 12,
+                                                  ),
+                                              activeTrackColor:
+                                                  CupertinoColors.white,
+                                              inactiveTrackColor:
+                                                  CupertinoColors.white
+                                                      .withValues(alpha: 0.25),
+                                              thumbColor: CupertinoColors.white,
+                                            ),
+                                            child: Slider(
+                                              value: volume,
+                                              onChanged: (value) {
+                                                audioHandler?.setVolume(value);
+                                              },
+                                            ),
                                           ),
-                                      activeTrackColor: CupertinoColors.white,
-                                      inactiveTrackColor: CupertinoColors.white
-                                          .withValues(alpha: 0.25),
-                                      thumbColor: CupertinoColors.white,
-                                    ),
-                                    child: Slider(
-                                      value: volume,
-                                      onChanged: (value) {
-                                        audioHandler?.setVolume(value);
-                                      },
-                                    ),
-                                  ),
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 ),
-                              ],
-                            );
-                          },
-                        ),
+                              )
+                            : const SizedBox.shrink(
+                                key: ValueKey('mobile-volume-panel-hidden'),
+                              ),
                       ),
 
-                      const SizedBox(height: 10),
+                      if (_showMobileVolumePanel) const SizedBox(height: 10),
 
                       // Bottom controls row with liquid glass
                       Padding(
@@ -1346,6 +1360,39 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                         );
                                       },
                                     ),
+                                  ),
+                                  // Volume button
+                                  StreamBuilder<double>(
+                                    stream: audioHandler?.volumeStream,
+                                    builder: (context, volSnapshot) {
+                                      final volume =
+                                          (volSnapshot.data ??
+                                                  (audioHandler?.volume as num?)
+                                                      ?.toDouble() ??
+                                                  1.0)
+                                              .clamp(0.0, 1.0);
+                                      final icon = volume == 0
+                                          ? CupertinoIcons.volume_off
+                                          : volume < 0.5
+                                          ? CupertinoIcons.volume_down
+                                          : CupertinoIcons.volume_up;
+                                      return GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _showMobileVolumePanel =
+                                                !_showMobileVolumePanel;
+                                          });
+                                        },
+                                        child: Icon(
+                                          icon,
+                                          color: _showMobileVolumePanel
+                                              ? CupertinoColors.white
+                                              : CupertinoColors.white
+                                                    .withValues(alpha: 0.8),
+                                          size: 22,
+                                        ),
+                                      );
+                                    },
                                   ),
                                   // Lyrics button (only when lyrics available and enabled)
                                   if (appState.lyricsEnabled &&
