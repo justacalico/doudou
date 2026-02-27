@@ -175,6 +175,8 @@
   "emptyPlaylist": "Пустой плейлист",
   "playlistEmpty": "Плейлист \"{name}\" пуст.",
   "noTracksInPlaylist": "В этом плейлисте нет треков",
+  "addSongsToGetStarted": "Добавьте песни, чтобы начать",
+  "addSongs": "Добавить песни",
   "playlistCreatedSuccess": "Плейлист \"{name}\" успешно создан!",
   "playlistRenamedSuccess": "Плейлист успешно переименован в \"{name}\"!",
   "playlistRemovedSuccess": "Плейлист \"{name}\" успешно удалён!",
@@ -184,17 +186,48 @@
   "addAlbumToPlaylist": "Добавить альбом в плейлист",
   "selectPlaylist": "Выберите плейлист:",
   "selectPlaylistToAdd": "Выберите плейлист для добавления \"{track}\":",
-  "addedToPlaylist": "\"{track}\" добавлен в \"{playlist}\".",
+  "@selectPlaylistToAdd": {
+    "placeholders": {
+      "track": {}
+    }
+  },
   "addedTrackToPlaylist": "\"{track}\" добавлен в плейлист",
+  "@addedTrackToPlaylist": {
+    "placeholders": {
+      "track": {}
+    }
+  },
   "failedToAddToPlaylist": "Не удалось добавить \"{track}\" в \"{playlist}\".",
+  "@failedToAddToPlaylist": {
+    "placeholders": {
+      "track": {},
+      "playlist": {}
+    }
+  },
   "failedToAddTrackToPlaylist": "Не удалось добавить трек в плейлист",
   "createNewPlaylist": "Создать новый плейлист",
   "newPlaylist": "Новый плейлист",
   "enterPlaylistName": "Введите название для нового плейлиста:",
   "createdPlaylistAndAdded": "Создан плейлист \"{playlist}\" и добавлен \"{track}\".",
+  "@createdPlaylistAndAdded": {
+    "placeholders": {
+      "playlist": {},
+      "track": {}
+    }
+  },
   "partialSuccess": "Частичный успех",
   "createdPlaylistButFailed": "Плейлист \"{name}\" создан, но не удалось добавить песню. Вы можете добавить её вручную на экране плейлистов.",
+  "@createdPlaylistButFailed": {
+    "placeholders": {
+      "name": {}
+    }
+  },
   "failedToCreatePlaylist": "Не удалось создать плейлист \"{name}\".",
+  "@failedToCreatePlaylist": {
+    "placeholders": {
+      "name": {}
+    }
+  },
 
   "noAlbumsFound": "Альбомы не найдены",
   "noArtistsFound": "Исполнители не найдены",
@@ -543,7 +576,6 @@
   "albumInfoNotAvailable": "Информация об альбоме недоступна",
   "albumNotFound": "Альбом не найден",
   "artistInfoNotAvailable": "Информация об исполнителе недоступна",
-  "artistNotFound": "Исполнитель не найден",
 
   "showAlbum": "Показать альбом",
   "showArtist": "Показать исполнителя",
@@ -579,38 +611,20 @@
   "gridView": "Сетка",
   "listView": "Список",
 
-  "artist": "Исполнитель",
-  "album": "Альбом",
   "playlist": "Плейлист",
   "popularSongs": "Популярные песни",
   "noAlbumsFoundForArtist": "Альбомы не найдены",
   "artistHasNoAlbumsYet": "У этого исполнителя пока нет альбомов",
-  "noSongsFound": "Песни не найдены",
   "artistHasNoSongsYet": "У этого исполнителя пока нет песен",
   "followArtist": "Подписаться на исполнителя",
   "startRadio": "Запустить радио",
-  "noTracksInPlaylist": "В этом плейлисте нет треков",
-  "addSongsToGetStarted": "Добавьте песни, чтобы начать",
-  "noTracksFound": "Треки не найдены",
   "albumTracksEmptyMessage": "Этот альбом пуст или треки не удалось загрузить.",
-  "addSongs": "Добавить песни",
-  "retry": "Повторить",
-  "title": "Название",
-  "duration": "Длительность",
   "removeFromPlaylist": "Удалить из плейлиста",
   "albumFavoritesNotImplemented": "Избранное для альбомов пока не реализовано",
   "reloadTracks": "Перезагрузить треки",
-  "addAlbumToPlaylist": "Добавить альбом в плейлист",
   "addTracksToPlaylist": "Добавить треки в плейлист",
-  "createNewPlaylist": "Создать новый плейлист",
-  "playlistName": "Название плейлиста",
-  "create": "Создать",
-  "descriptionOptional": "Описание (необязательно)",
-  "save": "Сохранить",
-  "delete": "Удалить",
   "deletePlaylistConfirmation": "Вы уверены, что хотите удалить \"{name}\"? Это действие нельзя отменить.",
   "removedFromPlaylist": "Удалено \"{track}\" из плейлиста",
-  "undo": "Отменить",
   "downloadAlbum": "Скачать альбом",
   "downloadAlbumConfirmation": "Открыть все {count} треков из \"{name}\" в браузере для скачивания?",
   "downloadAllTracks": "Скачать все",
@@ -650,7 +664,6 @@
       "type": {}
     }
   },
-  "countSongs": "{count} песен",
   "added": "Добавлено",
   "today": "Сегодня",
   "daysAgo": "{count} дней назад",
@@ -696,7 +709,6 @@
   "failedToCleanExpiredCache": "Не удалось очистить устаревший кэш",
   "data": "данных",
   "image": "изображений",
-  "all": "Весь",
   "accountInformation": "Информация об аккаунте",
   "notAvailable": "Недоступно",
   "allSongsDownloaded": "Все песни скачаны",
@@ -704,7 +716,6 @@
   "downloadAllSongsConfirm": "Скачать все {count} песен из вашей библиотеки?",
   "alreadyDownloadedCount": "{count} уже скачано",
   "songsWillBeDownloaded": "{count} песен будет скачано.",
-  "download": "Скачать",
   "noFavoriteSongsYet": "Вы еще не добавили песни в избранное. Нажмите на значок сердца на песне, чтобы добавить её в избранное.",
   "allFavoritesDownloaded": "Все избранные скачаны",
   "allFavoritesAlreadyDownloaded": "Все ваши избранные песни уже скачаны.",
@@ -715,20 +726,13 @@
   "downloadStatus": "Статус загрузки",
   "startedDownloading": "Начата загрузка {count} {songs}",
   "song": "песня",
-  "songs": "песен",
   "failedToStart": "{count} не удалось запустить",
   "downloadsContinueInBackground": "Загрузки продолжатся в фоновом режиме. Проверьте вкладку Загрузки для отслеживания прогресса.",
   "allAlreadyDownloaded": "Все {description} уже скачаны",
-  "failedToStartDownloads": "Не удалось начать загрузки",
   "topArtists": "Топ исполнители",
   "mostPlayed": "Самые популярные",
   "latestAlbums": "Последние альбомы",
   "customMixes": "Пользовательские миксы",
-  "albumsCount": "{count} альбомов",
-  "artistsCount": "{count} исполнителей",
-  "songsCount": "{count} песен",
-  "tracksCount": "{count} треков",
-  "playlistsCount": "{count} плейлистов",
   "account": "Аккаунт",
   "active": "Активный",
   "addServerInSettingsToStart": "Добавьте сервер в Настройках, чтобы начать.",
