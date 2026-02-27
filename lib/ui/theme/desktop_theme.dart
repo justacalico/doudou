@@ -27,45 +27,64 @@ class DesktopTheme {
   // COLOR PALETTE - from AppTokens
   // ============================================
 
-  static Color get backgroundDeep =>
-      _isOled
-          ? AppTokens.oledBlack
-          : (_isDark ? AppTokens.backgroundDeepDark : AppTokens.backgroundDeepLight);
+  static Color get backgroundDeep {
+    if (_isOled) return AppTokens.oledBlack;
+    final base =
+        _isDark ? AppTokens.backgroundDeepDark : AppTokens.backgroundDeepLight;
+    return _applyThemeTint(base);
+  }
 
-  static Color get backgroundSidebar =>
-      _isOled
-          ? AppTokens.oledBlack
-          : (_isDark ? AppTokens.backgroundSidebarDark : AppTokens.backgroundPrimaryLight);
+  static Color get backgroundSidebar {
+    if (_isOled) return AppTokens.oledBlack;
+    final base = _isDark
+        ? AppTokens.backgroundSidebarDark
+        : AppTokens.backgroundPrimaryLight;
+    return _applyThemeTint(base);
+  }
 
-  static Color get backgroundPrimary =>
-      _isOled
-          ? AppTokens.oledBlack
-          : (_isDark ? AppTokens.backgroundPrimaryDark : AppTokens.backgroundPrimaryLight);
+  static Color get backgroundPrimary {
+    if (_isOled) return AppTokens.oledBlack;
+    final base = _isDark
+        ? AppTokens.backgroundPrimaryDark
+        : AppTokens.backgroundPrimaryLight;
+    return _applyThemeTint(base);
+  }
 
-  static Color get backgroundSecondary =>
-      _isOled
-          ? AppTokens.oledBlack
-          : (_isDark ? AppTokens.backgroundSecondaryDark : AppTokens.backgroundSecondaryLight);
+  static Color get backgroundSecondary {
+    if (_isOled) return AppTokens.oledBlack;
+    final base = _isDark
+        ? AppTokens.backgroundSecondaryDark
+        : AppTokens.backgroundSecondaryLight;
+    return _applyThemeTint(base);
+  }
 
-  static Color get backgroundTertiary =>
-      _isOled
-          ? AppTokens.oledBlack
-          : (_isDark ? AppTokens.backgroundTertiaryDark : AppTokens.backgroundTertiaryLight);
+  static Color get backgroundTertiary {
+    if (_isOled) return AppTokens.oledBlack;
+    final base = _isDark
+        ? AppTokens.backgroundTertiaryDark
+        : AppTokens.backgroundTertiaryLight;
+    return _applyThemeTint(base);
+  }
 
-  static Color get backgroundElevated =>
-      _isOled
-          ? AppTokens.oledBlack
-          : (_isDark ? AppTokens.surfaceElevatedDark : AppTokens.surfaceElevatedLight);
+  static Color get backgroundElevated {
+    if (_isOled) return AppTokens.oledBlack;
+    final base = _isDark
+        ? AppTokens.surfaceElevatedDark
+        : AppTokens.surfaceElevatedLight;
+    return _applyThemeTint(base);
+  }
 
   static Color get sidebarActive =>
-      _isDark ? AppTokens.sidebarActiveDark : const Color(0x1A000000);
+      _isDark ? accentPrimary.withValues(alpha: 0.22) : const Color(0x1A000000);
   static Color get sidebarHover =>
-      _isDark ? AppTokens.sidebarHoverDark : const Color(0x0D000000);
+      _isDark ? accentPrimary.withValues(alpha: 0.12) : const Color(0x0D000000);
 
-  static Color get glassSurface =>
-      _isOled
-          ? AppTokens.oledBlack
-          : (_isDark ? AppTokens.glassSurfaceDark : AppTokens.glassSurfaceLight);
+  static Color get glassSurface {
+    if (_isOled) return AppTokens.oledBlack;
+    final base =
+        _isDark ? AppTokens.glassSurfaceDark : AppTokens.glassSurfaceLight;
+    return _applyThemeTint(base);
+  }
   static Color get glassOverlay =>
       _isDark ? AppTokens.glassOverlayDark : AppTokens.glassOverlayLight;
   static Color get glassBorder =>
@@ -115,6 +134,14 @@ class DesktopTheme {
         begin: Alignment.centerLeft,
         end: Alignment.centerRight,
       );
+
+  static Color _applyThemeTint(Color base) {
+    if (!_isDark) return base;
+    return Color.alphaBlend(
+      _accentDark.withValues(alpha: 0.16),
+      base,
+    );
+  }
 
   // ============================================
   // SIZING & SPACING (layout constants)
