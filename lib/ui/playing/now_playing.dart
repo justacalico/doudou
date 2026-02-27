@@ -1387,6 +1387,20 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
               ),
             ),
           ),
+          Positioned.fill(
+            child: IgnorePointer(
+              ignoring: !_showMobileVolumePanel,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  setState(() {
+                    _showMobileVolumePanel = false;
+                  });
+                },
+                child: const SizedBox.expand(),
+              ),
+            ),
+          ),
           Positioned(
             left: 42,
             right: 42,
