@@ -855,7 +855,8 @@ class _SettingsListMobile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final surface = theme.colorScheme.surface;
+    final headerColor = DesktopTheme.textSecondary;
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       itemCount: sections.length,
@@ -876,12 +877,12 @@ class _SettingsListMobile extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.3,
-                    color: isDark ? Colors.white54 : Colors.black54,
+                    color: headerColor,
                   ),
                 ),
               ),
               Material(
-                color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+                color: surface,
                 borderRadius: BorderRadius.circular(12),
                 child: Column(
                   children: sectionItems.map((item) {
@@ -915,7 +916,7 @@ class _SettingsListMobile extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w400,
-                                  color: isDark ? Colors.white : Colors.black87,
+                                  color: theme.colorScheme.onSurface,
                                 ),
                               ),
                             ),
@@ -924,16 +925,14 @@ class _SettingsListMobile extends StatelessWidget {
                                 value,
                                 style: TextStyle(
                                   fontSize: 17,
-                                  color: isDark
-                                      ? Colors.white54
-                                      : Colors.black45,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             const SizedBox(width: 8),
                             Icon(
                               Icons.chevron_right,
                               size: 20,
-                              color: isDark ? Colors.white38 : Colors.black38,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ],
                         ),
@@ -946,6 +945,26 @@ class _SettingsListMobile extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _SettingsPanel extends StatelessWidget {
+  final Widget child;
+
+  const _SettingsPanel({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(DesktopTheme.radiusLg),
+        border: Border.all(color: DesktopTheme.glassBorder),
+        color: DesktopTheme.backgroundSecondary.withValues(alpha: 0.95),
+        boxShadow: DesktopTheme.shadowSm,
+      ),
+      child: child,
     );
   }
 }
@@ -974,76 +993,73 @@ class _GeneralSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.generalSectionSubtitle,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+            _SettingsPanel(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.generalSectionSubtitle,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                      const SizedBox(height: 12),
-                      SwitchListTile(
-                        title: Text(l10n.settingsLyrics),
-                        subtitle: Text(l10n.settingsLyricsDescription),
-                        value: appState.lyricsEnabled,
-                        onChanged: (v) => appState.setLyricsEnabled(v),
+                    ),
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      title: Text(l10n.settingsLyrics),
+                      subtitle: Text(l10n.settingsLyricsDescription),
+                      value: appState.lyricsEnabled,
+                      onChanged: (v) => appState.setLyricsEnabled(v),
+                    ),
+                    SwitchListTile(
+                      title: Text(l10n.settingsDownloads),
+                      subtitle: Text(l10n.settingsDownloadsDescription),
+                      value: appState.downloadsEnabled,
+                      onChanged: (v) => appState.setDownloadsEnabled(v),
+                    ),
+                    SwitchListTile(
+                      title: Text(l10n.settingsVolumeOnPlayerBar),
+                      subtitle: Text(
+                        l10n.settingsVolumeOnPlayerBarDescription,
                       ),
-                      SwitchListTile(
-                        title: Text(l10n.settingsDownloads),
-                        subtitle: Text(l10n.settingsDownloadsDescription),
-                        value: appState.downloadsEnabled,
-                        onChanged: (v) => appState.setDownloadsEnabled(v),
+                      value: appState.showVolumeOnPlayerBar,
+                      onChanged: (v) => appState.setShowVolumeOnPlayerBar(v),
+                    ),
+                    SwitchListTile(
+                      title: Text(l10n.settingsQueueOnPlayerBar),
+                      subtitle: Text(
+                        l10n.settingsQueueOnPlayerBarDescription,
                       ),
+                      value: appState.showQueueOnPlayerBar,
+                      onChanged: (v) => appState.setShowQueueOnPlayerBar(v),
+                    ),
+                    SwitchListTile(
+                      title: Text(l10n.settingsShuffleRepeatOnPlayerBar),
+                      subtitle: Text(
+                        l10n.settingsShuffleRepeatOnPlayerBarDescription,
+                      ),
+                      value: appState.showShuffleRepeatOnPlayerBar,
+                      onChanged: (v) =>
+                          appState.setShowShuffleRepeatOnPlayerBar(v),
+                    ),
+                    SwitchListTile(
+                      title: Text(l10n.showHexColorControls),
+                      subtitle: Text(l10n.showHexColorControlsDescription),
+                      value: appState.showHexColorControls,
+                      onChanged: (v) => appState.setShowHexColorControls(v),
+                    ),
+                    if (appState.isDesktopWhereYoutubeMusicRestricted)
                       SwitchListTile(
-                        title: Text(l10n.settingsVolumeOnPlayerBar),
+                        title: Text(l10n.settingsYoutubeMusicOnDesktop),
                         subtitle: Text(
-                          l10n.settingsVolumeOnPlayerBarDescription,
+                          l10n.settingsYoutubeMusicOnDesktopDescription,
                         ),
-                        value: appState.showVolumeOnPlayerBar,
-                        onChanged: (v) => appState.setShowVolumeOnPlayerBar(v),
-                      ),
-                      SwitchListTile(
-                        title: Text(l10n.settingsQueueOnPlayerBar),
-                        subtitle: Text(
-                          l10n.settingsQueueOnPlayerBarDescription,
-                        ),
-                        value: appState.showQueueOnPlayerBar,
-                        onChanged: (v) => appState.setShowQueueOnPlayerBar(v),
-                      ),
-                      SwitchListTile(
-                        title: Text(l10n.settingsShuffleRepeatOnPlayerBar),
-                        subtitle: Text(
-                          l10n.settingsShuffleRepeatOnPlayerBarDescription,
-                        ),
-                        value: appState.showShuffleRepeatOnPlayerBar,
+                        value: appState.allowYoutubeMusicOnDesktop,
                         onChanged: (v) =>
-                            appState.setShowShuffleRepeatOnPlayerBar(v),
+                            appState.setAllowYoutubeMusicOnDesktop(v),
                       ),
-                      SwitchListTile(
-                        title: Text(l10n.showHexColorControls),
-                        subtitle: Text(l10n.showHexColorControlsDescription),
-                        value: appState.showHexColorControls,
-                        onChanged: (v) => appState.setShowHexColorControls(v),
-                      ),
-                      if (appState.isDesktopWhereYoutubeMusicRestricted)
-                        SwitchListTile(
-                          title: Text(l10n.settingsYoutubeMusicOnDesktop),
-                          subtitle: Text(
-                            l10n.settingsYoutubeMusicOnDesktopDescription,
-                          ),
-                          value: appState.allowYoutubeMusicOnDesktop,
-                          onChanged: (v) =>
-                              appState.setAllowYoutubeMusicOnDesktop(v),
-                        ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ),
@@ -1094,77 +1110,75 @@ class _AudioSectionState extends State<_AudioSection> {
               ),
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.playback,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+            _SettingsPanel(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.playback,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                      const SizedBox(height: 12),
-                      SwitchListTile(
-                        title: Text(l10n.smartBackButton),
-                        subtitle: Text(l10n.smartBackButtonDescription),
-                        value: appState.smartBackToStartEnabled,
-                        onChanged: (v) => appState.toggleSmartBackToStart(v),
+                    ),
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      title: Text(l10n.smartBackButton),
+                      subtitle: Text(l10n.smartBackButtonDescription),
+                      value: appState.smartBackToStartEnabled,
+                      onChanged: (v) => appState.toggleSmartBackToStart(v),
+                    ),
+                    const SizedBox(height: 12),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        l10n.defaultVolumeLabel((_volume * 100).round()),
                       ),
-                      const SizedBox(height: 12),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          l10n.defaultVolumeLabel((_volume * 100).round()),
-                        ),
-                        subtitle: Text(l10n.defaultVolumeDescription),
+                      subtitle: Text(l10n.defaultVolumeDescription),
+                    ),
+                    Slider(
+                      value: _volume,
+                      min: 0.0,
+                      max: 1.0,
+                      divisions: 20,
+                      label: '${(_volume * 100).round()}%',
+                      onChanged: (v) => setState(() => _volume = v),
+                      onChangeEnd: (v) => appState.setAudioDefaultVolume(v),
+                    ),
+                    const SizedBox(height: 8),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        l10n.defaultSpeedLabel(_speed.toStringAsFixed(2)),
                       ),
-                      Slider(
-                        value: _volume,
-                        min: 0.0,
-                        max: 1.0,
-                        divisions: 20,
-                        label: '${(_volume * 100).round()}%',
-                        onChanged: (v) => setState(() => _volume = v),
-                        onChangeEnd: (v) => appState.setAudioDefaultVolume(v),
-                      ),
-                      const SizedBox(height: 8),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          l10n.defaultSpeedLabel(_speed.toStringAsFixed(2)),
-                        ),
-                        subtitle: Text(l10n.defaultSpeedDescription),
-                      ),
-                      Slider(
-                        value: _speed,
-                        min: 0.5,
-                        max: 1.5,
-                        divisions: 20,
-                        label: '${_speed.toStringAsFixed(2)}x',
-                        onChanged: (v) => setState(() => _speed = v),
-                        onChangeEnd: (v) => appState.setAudioDefaultSpeed(v),
-                      ),
-                      const SizedBox(height: 8),
-                      SwitchListTile(
-                        title: Text(l10n.gaplessPlayback),
-                        subtitle: Text(l10n.seamlessTransitions),
-                        value: appState.gaplessPlaybackEnabled,
-                        onChanged: (v) => appState.setGaplessPlaybackEnabled(v),
-                      ),
-                      SwitchListTile(
-                        title: Text(l10n.autoplay),
-                        subtitle: Text(l10n.autoplayDescription),
-                        value: appState.autoplayRecommendationsEnabled,
-                        onChanged: (v) =>
-                            appState.setAutoplayRecommendationsEnabled(v),
-                      ),
-                    ],
-                  ),
+                      subtitle: Text(l10n.defaultSpeedDescription),
+                    ),
+                    Slider(
+                      value: _speed,
+                      min: 0.5,
+                      max: 1.5,
+                      divisions: 20,
+                      label: '${_speed.toStringAsFixed(2)}x',
+                      onChanged: (v) => setState(() => _speed = v),
+                      onChangeEnd: (v) => appState.setAudioDefaultSpeed(v),
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      title: Text(l10n.gaplessPlayback),
+                      subtitle: Text(l10n.seamlessTransitions),
+                      value: appState.gaplessPlaybackEnabled,
+                      onChanged: (v) =>
+                          appState.setGaplessPlaybackEnabled(v),
+                    ),
+                    SwitchListTile(
+                      title: Text(l10n.autoplay),
+                      subtitle: Text(l10n.autoplayDescription),
+                      value: appState.autoplayRecommendationsEnabled,
+                      onChanged: (v) =>
+                          appState.setAutoplayRecommendationsEnabled(v),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1207,51 +1221,48 @@ class _AppearanceSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.lookAndLanguage,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+            _SettingsPanel(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.lookAndLanguage,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ListTile(
+                      title: Text(l10n.appTheme),
+                      subtitle: Text(_themeDisplayName(context, appState)),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: onTheme,
+                    ),
+                    ListTile(
+                      title: Text(l10n.accentColor),
+                      subtitle: Text(
+                        _colorDisplayName(context, appState.accentColor),
+                      ),
+                      trailing: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: appState.accentColor,
+                          shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      ListTile(
-                        title: Text(l10n.appTheme),
-                        subtitle: Text(_themeDisplayName(context, appState)),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: onTheme,
-                      ),
-                      ListTile(
-                        title: Text(l10n.accentColor),
-                        subtitle: Text(
-                          _colorDisplayName(context, appState.accentColor),
-                        ),
-                        trailing: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: appState.accentColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        onTap: onColor,
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.language),
-                        title: Text(l10n.selectLanguage),
-                        subtitle: Text(_languageDisplayName(context, appState)),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: onLanguage,
-                      ),
-                    ],
-                  ),
+                      onTap: onColor,
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.language),
+                      title: Text(l10n.selectLanguage),
+                      subtitle: Text(_languageDisplayName(context, appState)),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: onLanguage,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1404,7 +1415,7 @@ class _ServerSectionState extends State<_ServerSection> {
               ),
             ),
             const SizedBox(height: 24),
-            Card(
+            _SettingsPanel(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -1591,7 +1602,7 @@ class _ServerSectionState extends State<_ServerSection> {
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            _SettingsPanel(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -1665,7 +1676,7 @@ class _AboutSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            Card(
+            _SettingsPanel(
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Column(
@@ -1721,7 +1732,7 @@ class _AboutSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            _SettingsPanel(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
