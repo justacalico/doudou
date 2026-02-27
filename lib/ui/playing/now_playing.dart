@@ -1122,13 +1122,34 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                               color: CupertinoColors.white,
                                             ),
                                           )
-                                        : Icon(
-                                            isPlaying
-                                                ? CupertinoIcons.pause_fill
-                                                : CupertinoIcons
-                                                      .play_arrow_solid,
-                                            size: 32,
-                                            color: CupertinoColors.white,
+                                        : AnimatedSwitcher(
+                                            duration: const Duration(
+                                              milliseconds: 180,
+                                            ),
+                                            switchInCurve: Curves.easeOutCubic,
+                                            switchOutCurve: Curves.easeInCubic,
+                                            transitionBuilder:
+                                                (child, animation) {
+                                                  return FadeTransition(
+                                                    opacity: animation,
+                                                    child: ScaleTransition(
+                                                      scale: Tween<double>(
+                                                        begin: 0.9,
+                                                        end: 1.0,
+                                                      ).animate(animation),
+                                                      child: child,
+                                                    ),
+                                                  );
+                                                },
+                                            child: Icon(
+                                              isPlaying
+                                                  ? CupertinoIcons.pause_fill
+                                                  : CupertinoIcons
+                                                        .play_arrow_solid,
+                                              key: ValueKey<bool>(isPlaying),
+                                              size: 32,
+                                              color: CupertinoColors.white,
+                                            ),
                                           ),
                                   ),
                                 ),
@@ -2413,12 +2434,30 @@ class _ExpandedLeftColumn extends StatelessWidget {
                         color: DesktopTheme.textPrimary,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        isPlaying
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
-                        color: DesktopTheme.backgroundDeep,
-                        size: 32,
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 180),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        transitionBuilder: (child, animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: ScaleTransition(
+                              scale: Tween<double>(
+                                begin: 0.9,
+                                end: 1.0,
+                              ).animate(animation),
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: Icon(
+                          isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
+                          key: ValueKey<bool>(isPlaying),
+                          color: DesktopTheme.backgroundDeep,
+                          size: 32,
+                        ),
                       ),
                     ),
                   ),
