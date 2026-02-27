@@ -295,12 +295,14 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   ) {
     final theme = Theme.of(context);
     final isWide = maxWidth >= 900;
-    final imageSize = isWide ? 220.0 : 132.0;
+    final imageSize = isWide ? 220.0 : 140.0;
     final imageUrl = widget.mediaType == MediaType.playlist
         ? widget.playlist!.imageUrl
         : widget.mediaType == MediaType.artist
         ? widget.artist!.imageUrl
         : widget.album!.imageUrl;
+
+    final isArtist = widget.mediaType == MediaType.artist;
 
     return Container(
       width: double.infinity,
@@ -336,41 +338,62 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   ),
                 ],
               )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            : isArtist
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: _buildArtworkCard(appState, imageUrl, imageSize),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildHeroMeta(
+                        context,
+                        appState,
+                        l10n,
+                        theme,
+                        isWide: false,
+                        includeActions: false,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildActionButtonsRow(appState, l10n),
+                    ],
+                  )
+                : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildArtworkCard(appState, imageUrl, imageSize),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: DesktopTheme.backgroundDeep.withValues(
-                              alpha: 0.3,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildArtworkCard(appState, imageUrl, imageSize),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: DesktopTheme.backgroundDeep.withValues(
+                                  alpha: 0.3,
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                                border:
+                                    Border.all(color: DesktopTheme.glassBorder),
+                              ),
+                              padding: const EdgeInsets.all(12),
+                              child: _buildHeroMeta(
+                                context,
+                                appState,
+                                l10n,
+                                theme,
+                                isWide: false,
+                                includeActions: false,
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: DesktopTheme.glassBorder),
                           ),
-                          padding: const EdgeInsets.all(12),
-                          child: _buildHeroMeta(
-                            context,
-                            appState,
-                            l10n,
-                            theme,
-                            isWide: false,
-                            includeActions: false,
-                          ),
-                        ),
+                        ],
                       ),
+                      const SizedBox(height: 14),
+                      _buildActionButtonsRow(appState, l10n),
                     ],
                   ),
-                  const SizedBox(height: 14),
-                  _buildActionButtonsRow(appState, l10n),
-                ],
-              ),
       ),
     );
   }
