@@ -1747,6 +1747,16 @@
     "description": "Choose accent color dialog title"
   },
 
+  "themeColor": "Theme color",
+  "@themeColor": {
+    "description": "Theme color setting label"
+  },
+
+  "chooseThemeColor": "Choose Theme Color",
+  "@chooseThemeColor": {
+    "description": "Choose theme color dialog title"
+  },
+
   "customColor": "Custom Color",
   "@customColor": {
     "description": "Custom color option"

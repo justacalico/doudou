@@ -405,6 +405,9 @@
   "chooseAccentColor": "选择强调色",
   "customColor": "自定义颜色",
 
+  "themeColor": "主题颜色",
+  "chooseThemeColor": "选择主题颜色",
+
   "mobileNavigationStyle": "导航样式（手机）",
   "mobileNavFloating": "浮动栏",
   "mobileNavSolid": "固定栏",

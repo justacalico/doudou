@@ -286,6 +286,7 @@ class _SettingsPageState extends State<SettingsPage> {
           appState: appState,
           onTheme: _showThemeDialog,
           onColor: _showColorDialog,
+          onThemeColor: _showThemeColorDialog,
           onLanguage: () => _showLanguageDialog(appState),
         );
       case 'server':
@@ -387,6 +388,43 @@ class _SettingsPageState extends State<SettingsPage> {
           _showCustomColorPicker(appState);
         },
         customLabel: l10n.customColor,
+      ),
+    );
+  }
+
+  void _showThemeColorDialog() {
+    final appState = context.read<AppState>();
+    final l10n = AppLocalizations.of(context);
+    showAppDialog(
+      context: context,
+      title: 'Choose theme color',
+      content: _AccentColorDialog(
+        currentColor: appState.themeColor,
+        onColorSelected: (c) {
+          Navigator.pop(context);
+          appState.setThemeColor(c);
+        },
+        onCustomTap: () {
+          Navigator.pop(context);
+          _showCustomThemeColorPicker(appState);
+        },
+        customLabel: l10n.customColor,
+      ),
+    );
+  }
+
+  void _showCustomThemeColorPicker(AppState appState) {
+    showAppDialog(
+      context: context,
+      title: 'Choose theme color',
+      width: 320,
+      content: _CustomColorPickerDialog(
+        initialColor: appState.themeColor,
+        showHexControls: appState.showHexColorControls,
+        onColorSelected: (c) {
+          appState.setThemeColor(c);
+          Navigator.pop(context);
+        },
       ),
     );
   }
@@ -1194,12 +1232,14 @@ class _AppearanceSection extends StatelessWidget {
   final AppState appState;
   final VoidCallback onTheme;
   final VoidCallback onColor;
+  final VoidCallback onThemeColor;
   final VoidCallback onLanguage;
 
   const _AppearanceSection({
     required this.appState,
     required this.onTheme,
     required this.onColor,
+    required this.onThemeColor,
     required this.onLanguage,
   });
 
@@ -1239,6 +1279,21 @@ class _AppearanceSection extends StatelessWidget {
                       subtitle: Text(_themeDisplayName(context, appState)),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: onTheme,
+                    ),
+                    ListTile(
+                      title: const Text('Theme color'),
+                      subtitle: Text(
+                        _colorDisplayName(context, appState.themeColor),
+                      ),
+                      trailing: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: appState.themeColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      onTap: onThemeColor,
                     ),
                     ListTile(
                       title: Text(l10n.accentColor),

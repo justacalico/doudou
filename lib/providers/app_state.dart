@@ -71,6 +71,7 @@ class AppState extends ChangeNotifier {
   // Theme settings
   ThemeMode _themeMode = ThemeMode.system;
   Color _accentColor = const Color(0xFF38BDF8);
+  Color _themeColor = const Color(0xFF38BDF8);
 
   // Locale settings
   Locale? _locale; // null means use system locale
@@ -176,6 +177,7 @@ class AppState extends ChangeNotifier {
   // Theme getters
   ThemeMode get themeMode => _themeMode;
   Color get accentColor => _accentColor;
+  Color get themeColor => _themeColor;
 
   // Locale getter
   Locale? get locale => _locale;
@@ -2683,6 +2685,10 @@ class AppState extends ChangeNotifier {
         prefs.getInt('accent_color') ?? const Color(0xFF38BDF8).toARGB32();
     _accentColor = Color(accentColorValue);
 
+    final themeColorValue =
+        prefs.getInt('theme_color') ?? const Color(0xFF38BDF8).toARGB32();
+    _themeColor = Color(themeColorValue);
+
     // Load locale settings
     final localeCode = prefs.getString('locale');
     if (localeCode != null && localeCode.isNotEmpty) {
@@ -2738,6 +2744,15 @@ class AppState extends ChangeNotifier {
       _accentColor = color;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('accent_color', color.toARGB32());
+      notifyListeners();
+    }
+  }
+
+  Future<void> setThemeColor(Color color) async {
+    if (_themeColor != color) {
+      _themeColor = color;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('theme_color', color.toARGB32());
       notifyListeners();
     }
   }

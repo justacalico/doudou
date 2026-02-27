@@ -316,6 +316,9 @@
   "chooseAccentColor": "Выбрать акцентный цвет",
   "customColor": "Свой цвет",
 
+  "themeColor": "Цвет темы",
+  "chooseThemeColor": "Выбрать цвет темы",
+
   "mobileNavigationStyle": "Стиль навигации (мобильный)",
   "mobileNavFloating": "Плавающая панель",
   "mobileNavSolid": "Сплошная панель",
