@@ -8,7 +8,7 @@ A privacy-focused music player for your media server. Stream your music collecti
 - **Jellyfin** - Full API compatibility
 - **Plex** - Working with limitations
 - **Local Files** - Play music directly from your device without a server
-- **Youtube Music** - Not avaible on Windows/Linux (Open a Pull Request if you get this working)
+- **YouTube Music** - Available across platforms (can be toggled in Settings on desktop)
 
 ## Features
 
@@ -67,7 +67,7 @@ Long-press any song, album, or playlist and select "Download for offline listeni
 Jellyfin offers the best experience with full feature support and is completely free.
 
 **Is the desktop version different?**
-Yes, desktop platforms have an enhanced interface optimized for larger screens and keyboard/mouse input.
+Desktop and mobile use one responsive now-playing/details codepath with adaptive layouts.
 
 ## Building from Source
 
@@ -130,7 +130,7 @@ flutter clean
 Built with these open-source projects:
 
 - [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Subsonic](http://www.subsonic.org/), [Youtube Music](https://music.youtube.com) - Media servers
-- [Harmony-Music](https://github.com/anandnet/Harmony-Music) - Youttube Music support
+- [Harmony-Music](https://github.com/anandnet/Harmony-Music) - YouTube Music support
 - [Flutter](https://flutter.dev/) - Cross-platform framework
 
 
