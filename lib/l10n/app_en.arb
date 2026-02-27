@@ -1123,13 +1123,37 @@
     "description": "Server settings section header"
   },
   "localMusic": "Local Music",
+  "@localMusic": {
+    "description": "Local music settings section label"
+  },
   "general": "General",
+  "@general": {
+    "description": "General settings section label"
+  },
   "appearance": "Appearance",
+  "@appearance": {
+    "description": "Appearance settings section label"
+  },
   "connected": "Connected",
+  "@connected": {
+    "description": "Connected status label"
+  },
   "active": "Active",
+  "@active": {
+    "description": "Active status label"
+  },
   "selectASetting": "Select a setting",
+  "@selectASetting": {
+    "description": "Prompt to select a settings category"
+  },
   "oled": "OLED",
+  "@oled": {
+    "description": "OLED mode label"
+  },
   "selectMusicDirectory": "Select Music Directory",
+  "@selectMusicDirectory": {
+    "description": "Button label to select a local music directory"
+  },
   "addedDirectory": "Added directory: {name}",
   "@addedDirectory": {
     "placeholders": {"name": {}}
@@ -1139,67 +1163,217 @@
     "placeholders": {"error": {}}
   },
   "removeDirectoryTitle": "Remove Directory",
+  "@removeDirectoryTitle": {
+    "description": "Remove local music directory dialog title"
+  },
   "removeDirectoryMessage": "Remove \"{name}\" from your music sources?",
   "@removeDirectoryMessage": {
     "placeholders": {"name": {}}
   },
   "directoryRemoved": "Directory removed",
+  "@directoryRemoved": {
+    "description": "Confirmation that a directory was removed"
+  },
   "scanningLibrary": "Scanning Library",
+  "@scanningLibrary": {
+    "description": "Library scan in progress title"
+  },
   "scanning": "Scanning...",
+  "@scanning": {
+    "description": "Scanning status label"
+  },
   "complete": "Complete",
+  "@complete": {
+    "description": "Scan complete status label"
+  },
   "starting": "Starting...",
+  "@starting": {
+    "description": "Scan starting status label"
+  },
   "libraryScanComplete": "Library scan complete",
+  "@libraryScanComplete": {
+    "description": "Message when library scan finishes"
+  },
   "scanError": "Scan error: {error}",
   "@scanError": {
     "placeholders": {"error": {}}
   },
   "signOutConfirmMessage": "Are you sure you want to sign out? You'll need to log in again to access your music.",
+  "@signOutConfirmMessage": {
+    "description": "Sign out confirmation dialog message"
+  },
   "showHexColorControls": "Show Hex Color Controls",
+  "@showHexColorControls": {
+    "description": "Toggle to show hex controls in color picker"
+  },
   "showHexColorControlsDescription": "Show hex value and manual hex input in color picker",
+  "@showHexColorControlsDescription": {
+    "description": "Description for hex color controls toggle"
+  },
   "lookAndLanguage": "Look & language",
+  "@lookAndLanguage": {
+    "description": "Look and language section title"
+  },
   "colorBabyBlue": "Baby Blue",
+  "@colorBabyBlue": {
+    "description": "Preset theme color Baby Blue"
+  },
   "colorLavender": "Lavender",
+  "@colorLavender": {
+    "description": "Preset theme color Lavender"
+  },
   "colorMint": "Mint",
+  "@colorMint": {
+    "description": "Preset theme color Mint"
+  },
   "colorPeach": "Peach",
+  "@colorPeach": {
+    "description": "Preset theme color Peach"
+  },
   "colorBlush": "Blush",
+  "@colorBlush": {
+    "description": "Preset theme color Blush"
+  },
   "colorButter": "Butter",
+  "@colorButter": {
+    "description": "Preset theme color Butter"
+  },
   "customColorHex": "Custom (#{hex})",
   "@customColorHex": {
     "placeholders": {"hex": {}}
   },
   "clearArtworkCache": "Clear artwork cache",
+  "@clearArtworkCache": {
+    "description": "Button label to clear artwork cache"
+  },
   "removeDownloadedAlbumArtwork": "Remove downloaded album artwork",
+  "@removeDownloadedAlbumArtwork": {
+    "description": "Button label to remove downloaded artwork files"
+  },
   "artworkCacheCleared": "Artwork cache cleared",
+  "@artworkCacheCleared": {
+    "description": "Confirmation that artwork cache was cleared"
+  },
   "hex": "Hex",
+  "@hex": {
+    "description": "Hex color label"
+  },
   "noServerConnected": "No server connected",
+  "@noServerConnected": {
+    "description": "Status when no server is connected"
+  },
   "addServerInSettingsToStart": "Add a server in Settings to get started.",
+  "@addServerInSettingsToStart": {
+    "description": "Prompt to add a server in settings"
+  },
   "openSettings": "Open Settings",
+  "@openSettings": {
+    "description": "Button label to open settings"
+  },
   "homeContinueListening": "Continue Listening",
+  "@homeContinueListening": {
+    "description": "Home section title for continue listening"
+  },
   "homeContinueListeningSubtitle": "Pick up where you left off",
+  "@homeContinueListeningSubtitle": {
+    "description": "Subtitle for continue listening section"
+  },
   "homeBecauseYouLikeArtists": "Because You Like These Artists",
+  "@homeBecauseYouLikeArtists": {
+    "description": "Home section title for recommended artists"
+  },
   "homeBecauseYouLikeArtistsSubtitle": "More tracks from artists you already favorite",
+  "@homeBecauseYouLikeArtistsSubtitle": {
+    "description": "Subtitle for recommended artists section"
+  },
   "homePlaylistsSubtitle": "Playlists from your collection",
+  "@homePlaylistsSubtitle": {
+    "description": "Subtitle for playlists section on home"
+  },
   "homeArtistsSubtitle": "A rotating mix from your artists",
+  "@homeArtistsSubtitle": {
+    "description": "Subtitle for artists section on home"
+  },
   "homeFreshPicks": "Fresh Picks",
+  "@homeFreshPicks": {
+    "description": "Home section title for fresh picks"
+  },
   "homeEmptyLibraryMessage": "Your library is empty. Add music to unlock personalized home sections.",
+  "@homeEmptyLibraryMessage": {
+    "description": "Message shown when library is empty on home"
+  },
   "searchStartTyping": "Start typing to search music",
+  "@searchStartTyping": {
+    "description": "Prompt in search screen before typing"
+  },
   "searchRecentlyPlayedSubtitle": "Your recently played tracks",
+  "@searchRecentlyPlayedSubtitle": {
+    "description": "Subtitle for recently played section in search"
+  },
   "searchFavoriteTracks": "Favorite Tracks",
+  "@searchFavoriteTracks": {
+    "description": "Section title for favorite tracks in search"
+  },
   "searchFavoriteTracksSubtitle": "Songs you liked",
+  "@searchFavoriteTracksSubtitle": {
+    "description": "Subtitle for favorite tracks in search"
+  },
   "searchMostPlayed": "Most Played",
+  "@searchMostPlayed": {
+    "description": "Section title for most played tracks"
+  },
   "searchMostPlayedSubtitle": "From your listening history",
+  "@searchMostPlayedSubtitle": {
+    "description": "Subtitle for most played tracks"
+  },
   "searchSuggestedPlaylists": "Suggested playlists",
+  "@searchSuggestedPlaylists": {
+    "description": "Section title for suggested playlists"
+  },
   "searchAlbumsToExplore": "Albums to explore",
+  "@searchAlbumsToExplore": {
+    "description": "Section title for albums to explore"
+  },
   "searchArtistsToExplore": "Artists to explore",
+  "@searchArtistsToExplore": {
+    "description": "Section title for artists to explore"
+  },
   "enableRadioMode": "Enable Radio Mode",
+  "@enableRadioMode": {
+    "description": "Toggle label to enable radio mode"
+  },
   "disableRadioMode": "Disable Radio Mode",
+  "@disableRadioMode": {
+    "description": "Toggle label to disable radio mode"
+  },
   "lyricsNotAvailable": "Lyrics not available",
+  "@lyricsNotAvailable": {
+    "description": "Message when lyrics are not available"
+  },
   "downloaded": "Downloaded",
+  "@downloaded": {
+    "description": "Downloaded status label"
+  },
   "moreOptions": "More options",
+  "@moreOptions": {
+    "description": "More options button label"
+  },
   "previousTrack": "Previous",
+  "@previousTrack": {
+    "description": "Previous track button label"
+  },
   "nextTrack": "Next",
+  "@nextTrack": {
+    "description": "Next track button label"
+  },
   "repeatTrack": "Repeat",
+  "@repeatTrack": {
+    "description": "Repeat track button label"
+  },
   "closeAndClearQueue": "Close and clear queue",
+  "@closeAndClearQueue": {
+    "description": "Button label to close and clear queue"
+  },
   "startedDownloadingTrack": "Started downloading \"{name}\"",
   "@startedDownloadingTrack": {
     "placeholders": {"name": {}}
@@ -1217,21 +1391,69 @@
     "placeholders": {"name": {}}
   },
   "serverType": "Server type",
+  "@serverType": {
+    "description": "Label for server type selection"
+  },
   "localMusicConnectHelp": "Connect to use local music. Add folders and scan in Settings > Local Music after connecting.",
+  "@localMusicConnectHelp": {
+    "description": "Help text for connecting local music source"
+  },
   "connecting": "Connecting...",
+  "@connecting": {
+    "description": "Connecting status label"
+  },
   "connect": "Connect",
+  "@connect": {
+    "description": "Connect button label"
+  },
   "youtubeMusicConnectHelp": "Stream from YouTube Music. No login required. Use search to find and play tracks.",
+  "@youtubeMusicConnectHelp": {
+    "description": "Help text for YouTube Music server option"
+  },
   "account": "Account",
+  "@account": {
+    "description": "Account settings section label"
+  },
   "apiKey": "API Key",
+  "@apiKey": {
+    "description": "API key field label"
+  },
   "quickConnect": "Quick",
+  "@quickConnect": {
+    "description": "Quick connect button label"
+  },
   "startQuickConnect": "Start Quick Connect",
+  "@startQuickConnect": {
+    "description": "Button label to start quick connect"
+  },
   "enterPlexToken": "Enter Plex token",
+  "@enterPlexToken": {
+    "description": "Prompt to enter Plex token"
+  },
   "yourJellyfinApiKey": "Your Jellyfin API key",
+  "@yourJellyfinApiKey": {
+    "description": "Label for Jellyfin API key explanation"
+  },
   "enterApiKey": "Enter API key",
+  "@enterApiKey": {
+    "description": "Prompt to enter API key"
+  },
   "enterUsername": "Enter username",
+  "@enterUsername": {
+    "description": "Prompt to enter username"
+  },
   "passwordOptional": "Password (optional)",
+  "@passwordOptional": {
+    "description": "Label indicating password is optional"
+  },
   "enterCodeOnJellyfinServer": "Enter this code on your Jellyfin server",
+  "@enterCodeOnJellyfinServer": {
+    "description": "Instruction to enter a pairing code on Jellyfin server"
+  },
   "unableToRemoveTrack": "Unable to remove track",
+  "@unableToRemoveTrack": {
+    "description": "Message when a track cannot be removed"
+  },
   "failedToRemoveTrackFromPlaylist": "Failed to remove \"{name}\" from this playlist.",
   "@failedToRemoveTrackFromPlaylist": {
     "placeholders": {"name": {}}
@@ -1245,8 +1467,17 @@
     "placeholders": {"count": {"type": "int"}, "artist": {}}
   },
   "artistNotFoundInLibrary": "Artist not found in library",
+  "@artistNotFoundInLibrary": {
+    "description": "Message when an artist is not found in the library"
+  },
   "downloadInProgress": "Download in progress",
+  "@downloadInProgress": {
+    "description": "Status message when a download is in progress"
+  },
   "quickConnectFailed": "Quick Connect failed.",
+  "@quickConnectFailed": {
+    "description": "Message when Quick Connect fails"
+  },
 
   "localMusicSettings": "Local Music Settings",
   "@localMusicSettings": {

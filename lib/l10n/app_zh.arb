@@ -142,6 +142,9 @@
   "noDownloadedMusic": "没有已下载的音乐",
   "downloadSongsToListenOffline": "下载歌曲以离线收听",
   "downloadInProgress": "下载进行中",
+  "@downloadInProgress": {
+    "placeholders": {}
+  },
   "downloadedForOffline": "已下载供离线收听",
   "downloadStarted": "下载已开始",
   "downloadFailed": "下载失败",
@@ -184,17 +187,55 @@
   "addAlbumToPlaylist": "将专辑添加到播放列表",
   "selectPlaylist": "选择播放列表：",
   "selectPlaylistToAdd": "选择播放列表以添加“{track}”：",
+  "@selectPlaylistToAdd": {
+    "placeholders": {
+      "track": {}
+    }
+  },
   "addedToPlaylist": "“{track}”已添加到“{playlist}”。",
+  "@addedToPlaylist": {
+    "placeholders": {
+      "track": {},
+      "playlist": {}
+    }
+  },
   "addedTrackToPlaylist": "“{track}”已添加到播放列表",
+  "@addedTrackToPlaylist": {
+    "placeholders": {
+      "track": {}
+    }
+  },
   "failedToAddToPlaylist": "无法将“{track}”添加到“{playlist}”。",
+  "@failedToAddToPlaylist": {
+    "placeholders": {
+      "track": {},
+      "playlist": {}
+    }
+  },
   "failedToAddTrackToPlaylist": "无法将曲目添加到播放列表",
   "createNewPlaylist": "创建新播放列表",
   "newPlaylist": "新播放列表",
   "enterPlaylistName": "输入新播放列表的名称：",
   "createdPlaylistAndAdded": "已创建播放列表“{playlist}”并添加了“{track}”。",
+  "@createdPlaylistAndAdded": {
+    "placeholders": {
+      "playlist": {},
+      "track": {}
+    }
+  },
   "partialSuccess": "部分成功",
   "createdPlaylistButFailed": "播放列表“{name}”已创建，但无法添加歌曲。您可以在播放列表界面手动添加。",
+  "@createdPlaylistButFailed": {
+    "placeholders": {
+      "name": {}
+    }
+  },
   "failedToCreatePlaylist": "无法创建播放列表“{name}”。",
+  "@failedToCreatePlaylist": {
+    "placeholders": {
+      "name": {}
+    }
+  },
 
   "noAlbumsFound": "未找到专辑",
   "noArtistsFound": "未找到艺术家",
@@ -330,7 +371,6 @@
   "downloadingTracksByArtist": "正在下载 {artist} 的 {count} 首曲目",
   "addedTracksByArtistToQueue": "已将 {artist} 的 {count} 首曲目添加到队列",
   "artistNotFoundInLibrary": "在媒体库中未找到该艺术家",
-  "downloadInProgress": "下载进行中",
   "quickConnectFailed": "快速连接失败。",
   "localMusicSettings": "本地音乐设置",
   "servers": "服务器",

@@ -616,10 +616,40 @@
   "downloadAllTracks": "Скачать все",
   "noTracksToDownload": "Нет треков для скачивания",
   "openedTracksInBrowser": "Открыто все {count} треков из \"{name}\" в браузере",
+  "@openedTracksInBrowser": {
+    "placeholders": {
+      "count": {},
+      "name": {}
+    }
+  },
   "openedTracksPartialSuccess": "Открыто {success} треков, {failed} не удалось из \"{name}\"",
+  "@openedTracksPartialSuccess": {
+    "placeholders": {
+      "success": {},
+      "failed": {},
+      "name": {}
+    }
+  },
   "artistNotFound": "Исполнитель \"{name}\" не найден",
+  "@artistNotFound": {
+    "placeholders": {
+      "name": {}
+    }
+  },
   "addedToPlaylist": "Добавлено {type} в \"{playlist}\"",
+  "@addedToPlaylist": {
+    "placeholders": {
+      "type": {},
+      "playlist": {}
+    }
+  },
   "createdPlaylistWithTracks": "Создан плейлист \"{name}\" с треками {type}",
+  "@createdPlaylistWithTracks": {
+    "placeholders": {
+      "name": {},
+      "type": {}
+    }
+  },
   "countSongs": "{count} песен",
   "added": "Добавлено",
   "today": "Сегодня",
@@ -646,8 +676,23 @@
   "supportMessage": "Спасибо за использование Doudou! Это приложение с открытым исходным кодом и бесплатно для использования. Если вы хотите поддержать разработку, поставьте звезду проекту на GitLab или внесите свой вклад в кодовую базу.",
   "refreshFailed": "Ошибка обновления",
   "cacheClearedTitle": "Кэш {type} очищен",
+  "@cacheClearedTitle": {
+    "placeholders": {
+      "type": {}
+    }
+  },
   "cacheClearedMessage": "Кэш {type} был успешно очищен.",
+  "@cacheClearedMessage": {
+    "placeholders": {
+      "type": {}
+    }
+  },
   "failedToClearCache": "Не удалось очистить кэш {type}",
+  "@failedToClearCache": {
+    "placeholders": {
+      "type": {}
+    }
+  },
   "failedToCleanExpiredCache": "Не удалось очистить устаревший кэш",
   "data": "данных",
   "image": "изображений",
