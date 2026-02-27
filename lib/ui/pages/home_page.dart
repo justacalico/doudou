@@ -56,6 +56,7 @@ class _HomePageState extends State<HomePage> {
             ServerType.youtubeMusic;
         return PageTemplate(
           title: l10n.navHome,
+          useCardShell: false,
           child: isYtMusic
               ? _ytFollowHintBody(context, appState, l10n)
               : (appState.isLoading

@@ -13,6 +13,7 @@ class PageTemplate extends StatelessWidget {
   final VoidCallback? onBackPressed;
   final String? subtitle;
   final bool showGradientHeader;
+  final bool useCardShell;
 
   const PageTemplate({
     super.key,
@@ -25,6 +26,7 @@ class PageTemplate extends StatelessWidget {
     this.onBackPressed,
     this.subtitle,
     this.showGradientHeader = false,
+    this.useCardShell = true,
   });
 
   @override
@@ -40,6 +42,99 @@ class PageTemplate extends StatelessWidget {
       ],
       stops: const [0.0, 0.4, 1.0],
     );
+
+    if (!useCardShell) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              DesktopTheme.spacingLg,
+              DesktopTheme.spacingLg,
+              DesktopTheme.spacingLg,
+              DesktopTheme.spacingSm,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 700;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        if (showBackButton) ...[
+                          _ModernBackButton(onPressed: onBackPressed),
+                          const SizedBox(width: DesktopTheme.spacingMd),
+                        ],
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                                  color: DesktopTheme.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.4,
+                                  height: 1.15,
+                                ) ??
+                                TextStyle(
+                                  fontSize: AppTokens.typeScaleTitle1,
+                                  fontWeight: FontWeight.w700,
+                                  color: DesktopTheme.textPrimary,
+                                  letterSpacing: -0.4,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: DesktopTheme.spacingSm),
+                      Text(
+                        subtitle!,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: DesktopTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                    if (actions != null && actions!.isNotEmpty) ...[
+                      SizedBox(
+                        height: isNarrow
+                            ? DesktopTheme.spacingMd
+                            : DesktopTheme.spacingLg,
+                      ),
+                      SizedBox(
+                        width: constraints.maxWidth,
+                        child: Row(
+                          children: [
+                            for (int i = 0; i < actions!.length; i++) ...[
+                              if (i > 0)
+                                const SizedBox(width: DesktopTheme.spacingSm),
+                              actions![i],
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: padding ??
+                  const EdgeInsets.fromLTRB(
+                    DesktopTheme.spacingLg,
+                    DesktopTheme.spacingSm,
+                    DesktopTheme.spacingLg,
+                    0,
+                  ),
+              child: child,
+            ),
+          ),
+        ],
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
