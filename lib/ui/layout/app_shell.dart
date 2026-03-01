@@ -30,6 +30,15 @@ const double kLayoutBreakpoint = 768.0;
 /// Below this, keep compact sidebar to preserve usable content width.
 const double kCompactSidebarLockBreakpoint = 840.0;
 
+const double _kMobileNavBarHeight = 72;
+const double _kMobileNavBarBottomPadding = 10;
+const double _kMobileCapsuleHeightFloating = 74;
+const double _kMobileCapsuleGapFloating = 10;
+const double _kMobileNavRowHeight = 60;
+const double _kMobileNavContainerPadding = 8;
+const double _kMobileCapsuleHeightSolid = 64;
+const double _kMobileCapsuleGapSolid = 8;
+
 /// Single responsive shell: sidebar on desktop, bottom navbar on mobile.
 /// Uses one [selectedIndex] and one set of pages so resizing never reloads or loses state.
 class AppShell extends StatefulWidget {
@@ -246,6 +255,27 @@ class _AppShellState extends State<AppShell> {
         final alwaysCompactSidebar = sidebarStyle == SidebarStyle.compact;
         final effectiveCompactSidebar =
             isDesktop && (forceCompactSidebar || _sidebarCompact || alwaysCompactSidebar);
+        double mobileBottomInset = 0;
+        if (!isDesktop) {
+          final useFloating = appState.useFloatingMobileNav;
+          final hasTrack = appState.audioHandler?.currentTrack != null;
+          if (useFloating) {
+            mobileBottomInset = hasTrack
+                ? _kMobileCapsuleHeightFloating +
+                    _kMobileCapsuleGapFloating +
+                    _kMobileNavBarHeight +
+                    _kMobileNavBarBottomPadding
+                : _kMobileNavBarHeight + _kMobileNavBarBottomPadding;
+          } else {
+            mobileBottomInset = hasTrack
+                ? _kMobileCapsuleHeightSolid +
+                    _kMobileCapsuleGapSolid +
+                    _kMobileNavRowHeight +
+                    _kMobileNavContainerPadding
+                : _kMobileNavRowHeight + _kMobileNavContainerPadding;
+          }
+          mobileBottomInset += MediaQuery.paddingOf(context).bottom;
+        }
         return KeyboardListener(
           focusNode: FocusNode(),
           autofocus: true,
@@ -259,13 +289,7 @@ class _AppShellState extends State<AppShell> {
               body: Stack(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(
-                      bottom: isDesktop
-                          ? 0
-                          : (context.watch<AppState>().useFloatingMobileNav
-                              ? 20
-                              : 0),
-                    ),
+                    padding: EdgeInsets.only(bottom: mobileBottomInset),
                     child: Column(
                       children: [
                         Expanded(
@@ -832,7 +856,7 @@ class _MobileFloatingDock extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     final horizontalPadding = useFloatingNav ? 16.0 : 0.0;
-    final bottomPadding = useFloatingNav ? 10.0 : 0.0;
+    final bottomPadding = useFloatingNav ? _kMobileNavBarBottomPadding : 0.0;
 
     final navRow = Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -907,7 +931,7 @@ class _MobileFloatingDock extends StatelessWidget {
               onClose: appState.closePlayerAndClearQueue,
               embedded: false,
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: _kMobileCapsuleGapFloating),
           ],
           RepaintBoundary(
             child: ClipRRect(
@@ -915,7 +939,7 @@ class _MobileFloatingDock extends StatelessWidget {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
                 child: Container(
-                  height: 72,
+                  height: _kMobileNavBarHeight,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
                     gradient: LinearGradient(
@@ -966,7 +990,12 @@ class _MobileFloatingDock extends StatelessWidget {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+          padding: EdgeInsets.fromLTRB(
+            12,
+            _kMobileNavContainerPadding,
+            12,
+            _kMobileNavContainerPadding,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -986,10 +1015,10 @@ class _MobileFloatingDock extends StatelessWidget {
                   onClose: appState.closePlayerAndClearQueue,
                   embedded: true,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: _kMobileCapsuleGapSolid),
               ],
               SizedBox(
-                height: 60,
+                height: _kMobileNavRowHeight,
                 child: navRow,
               ),
             ],
@@ -1141,7 +1170,7 @@ class _MobileNowPlayingCapsule extends StatelessWidget {
       return GestureDetector(
         onTap: onTapOpen,
         child: Container(
-          height: 64,
+          height: _kMobileCapsuleHeightSolid,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             color: theme.colorScheme.surfaceContainerHighest,
@@ -1157,14 +1186,14 @@ class _MobileNowPlayingCapsule extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTapOpen,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(26),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-          child: Container(
-            height: 74,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(26),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(26),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+            child: Container(
+              height: _kMobileCapsuleHeightFloating,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(26),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
