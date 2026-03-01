@@ -6,7 +6,7 @@ import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/models/download_models.dart';
-import 'package:doudou/services/audio/unified_audio_handler.dart';
+import 'package:doudou/services/audio/unified_audio_handler.dart' as audio;
 import 'package:doudou/services/navigation_service.dart';
 import 'package:doudou/ui/pages/details/media_details.dart';
 import 'package:doudou/ui/widgets/universal_image.dart';
@@ -290,15 +290,15 @@ class _PlayerBarContent extends StatelessWidget {
                       ),
                       onRepeat: () {
                         final currentMode = audioHandler.repeatMode;
-                        final nextMode = currentMode == RepeatMode.none
-                            ? RepeatMode.all
-                            : currentMode == RepeatMode.all
-                            ? RepeatMode.one
-                            : RepeatMode.none;
+                        final nextMode = currentMode == audio.RepeatMode.none
+                            ? audio.RepeatMode.all
+                            : currentMode == audio.RepeatMode.all
+                            ? audio.RepeatMode.one
+                            : audio.RepeatMode.none;
                         audioHandler.setRepeatMode(nextMode);
                       },
                       isShuffled: audioHandler.shuffleEnabled ?? false,
-                      repeatMode: audioHandler.repeatMode ?? RepeatMode.none,
+                      repeatMode: audioHandler.repeatMode ?? audio.RepeatMode.none,
                       showShuffleRepeat: appState.showShuffleRepeatOnPlayerBar,
                     ),
                   ),
@@ -762,7 +762,7 @@ class _PlaybackControls extends StatelessWidget {
   final VoidCallback onShuffle;
   final VoidCallback onRepeat;
   final bool isShuffled;
-  final RepeatMode repeatMode;
+  final audio.RepeatMode repeatMode;
   final bool showShuffleRepeat;
 
   const _PlaybackControls({
@@ -816,10 +816,10 @@ class _PlaybackControls extends StatelessWidget {
           const SizedBox(width: DesktopTheme.spacingMd),
           // Repeat
           DesktopIconButton(
-            icon: repeatMode == RepeatMode.one
+            icon: repeatMode == audio.RepeatMode.one
                 ? Icons.repeat_one_rounded
                 : Icons.repeat_rounded,
-            isActive: repeatMode != RepeatMode.none,
+            isActive: repeatMode != audio.RepeatMode.none,
             activeColor: theme.colorScheme.primary,
             onPressed: onRepeat,
             tooltip: AppLocalizations.of(context).repeatTrack,

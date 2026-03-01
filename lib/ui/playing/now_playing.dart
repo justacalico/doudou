@@ -9,8 +9,7 @@ import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/models/jellyfin_models.dart';
 import 'package:doudou/models/download_models.dart';
 import 'package:doudou/services/album_art_color_service.dart';
-import 'package:doudou/services/audio/unified_audio_handler.dart'
-    show RepeatMode;
+import 'package:doudou/services/audio/unified_audio_handler.dart' as audio;
 import 'package:doudou/ui/playing/lyrics_overlay.dart';
 import 'package:doudou/ui/playing/queue_overlay.dart';
 import 'package:doudou/ui/widgets/cached_image_widget.dart';
@@ -1178,22 +1177,22 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                     if (audioHandler != null) {
                                       final currentMode =
                                           audioHandler.repeatMode ??
-                                          RepeatMode.none;
+                                          audio.RepeatMode.none;
 
                                       switch (currentMode) {
-                                        case RepeatMode.none:
+                                        case audio.RepeatMode.none:
                                           await audioHandler.setRepeatMode(
-                                            RepeatMode.all,
+                                            audio.RepeatMode.all,
                                           );
                                           break;
-                                        case RepeatMode.all:
+                                        case audio.RepeatMode.all:
                                           await audioHandler.setRepeatMode(
-                                            RepeatMode.one,
+                                            audio.RepeatMode.one,
                                           );
                                           break;
-                                        case RepeatMode.one:
+                                        case audio.RepeatMode.one:
                                           await audioHandler.setRepeatMode(
-                                            RepeatMode.none,
+                                            audio.RepeatMode.none,
                                           );
                                           break;
                                       }
@@ -1203,9 +1202,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                     builder: (context) {
                                       final repeatMode =
                                           audioHandler?.repeatMode ??
-                                          RepeatMode.none;
+                                          audio.RepeatMode.none;
                                       final isActive =
-                                          repeatMode != RepeatMode.none;
+                                          repeatMode != audio.RepeatMode.none;
 
                                       return ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
@@ -1239,7 +1238,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                               ),
                                             ),
                                             child: Icon(
-                                              repeatMode == RepeatMode.one
+                                              repeatMode == audio.RepeatMode.one
                                                   ? CupertinoIcons.repeat_1
                                                   : CupertinoIcons.repeat,
                                               color: isActive
@@ -2528,7 +2527,7 @@ class _ExpandedLeftColumnState extends State<_ExpandedLeftColumn> {
                       final isPlaying = pbSnapshot.data?.playing ?? false;
                       final isShuffled = audioHandler.shuffleEnabled ?? false;
                       final repeatMode =
-                          audioHandler.repeatMode ?? RepeatMode.none;
+                          audioHandler.repeatMode ?? audio.RepeatMode.none;
                       final trackId = currentTrack.id;
                       final isFavorite = appState.isFavorite(trackId);
 
@@ -2606,19 +2605,19 @@ class _ExpandedLeftColumnState extends State<_ExpandedLeftColumn> {
                           SizedBox(width: controlGapLg),
                           IconButton(
                             icon: Icon(
-                              repeatMode == RepeatMode.one
+                              repeatMode == audio.RepeatMode.one
                                   ? Icons.repeat_one_rounded
                                   : Icons.repeat_rounded,
-                              color: repeatMode != RepeatMode.none
+                              color: repeatMode != audio.RepeatMode.none
                                   ? theme.colorScheme.primary
                                   : null,
                             ),
                             onPressed: () {
-                              final next = repeatMode == RepeatMode.none
-                                  ? RepeatMode.all
-                                  : repeatMode == RepeatMode.all
-                                  ? RepeatMode.one
-                                  : RepeatMode.none;
+                              final next = repeatMode == audio.RepeatMode.none
+                                  ? audio.RepeatMode.all
+                                  : repeatMode == audio.RepeatMode.all
+                                  ? audio.RepeatMode.one
+                                  : audio.RepeatMode.none;
                               audioHandler.setRepeatMode(next);
                             },
                           ),
