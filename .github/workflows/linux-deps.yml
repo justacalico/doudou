@@ -1,0 +1,4 @@
+# Reusable workflow: install Linux deps for flutter build linux (tray_manager).
+# In your Linux build job, either:
+#   - Add libayatana-appindicator3-dev to your existing apt-get install list, or
+#   - Run: bash scripts/install-linux-deps.sh

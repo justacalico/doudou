@@ -90,6 +90,17 @@ cd doudou
 flutter pub get
 ```
 
+### Linux build (CI / desktop)
+
+For Linux desktop build, install the system dependency required by `tray_manager`:
+
+```bash
+# Debian/Ubuntu
+sudo apt-get install -y libayatana-appindicator3-dev
+```
+
+In CI, add `libayatana-appindicator3-dev` to your `apt-get install` list before `flutter build linux`.
+
 ### Build Commands
 
 ```bash
