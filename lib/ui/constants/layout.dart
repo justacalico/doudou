@@ -1,0 +1,15 @@
+const double kTopPaddingDesktop = 85.0;
+const double kTopPaddingLandscape = 50.0;
+const double kTopPaddingNarrow = 80.0;
+const double kTopPaddingDefault = 90.0;
+const double kTopPaddingSearch = 80.0;
+const double kContentLeftPaddingWithBottomNav = 20.0;
+const double kContentLeftPaddingWithoutBottomNav = 5.0;
+const double kContentRightPadding = 20.0;
+const double kContentLeftPaddingLibraryWithBottomNav = 15.0;
+const double kContentRightPaddingSettingsWithBottomNav = 15.0;
+const double kContentBottomPaddingWithPlayer = 200.0;
+const double kContentBottomPaddingWithBottomNav = 24.0;
+const double kSettingsListBottomPadding = 200.0;
+const double kSettingsListTopPadding = 20.0;
+const double kLayoutHeightBreakpointNarrow = 750.0;

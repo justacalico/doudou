@@ -1,8 +1,0 @@
-# Android signing configuration
-# This file should be created automatically when using the Makefile
-# Do not commit this file to version control!
-
-storePassword=${KEYSTORE_PASSWORD}
-keyPassword=${KEY_PASSWORD}
-keyAlias=${KEY_ALIAS}
-storeFile=${KEYSTORE_PATH}

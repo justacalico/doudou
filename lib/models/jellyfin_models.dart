@@ -28,12 +28,12 @@ class JellyfinServer {
 
   factory JellyfinServer.fromJson(Map<String, dynamic> json) {
     return JellyfinServer(
-      serverUrl: json['serverUrl'],
-      apiKey: json['apiKey'],
-      userId: json['userId'],
-      accessToken: json['accessToken'],
-      username: json['username'],
-      password: json['password'],
+      serverUrl: json['serverUrl'] as String,
+      apiKey: json['apiKey'] as String?,
+      userId: json['userId'] as String?,
+      accessToken: json['accessToken'] as String?,
+      username: json['username'] as String?,
+      password: json['password'] as String?,
     );
   }
 }
@@ -56,35 +56,6 @@ class Album {
     this.dateCreated,
     this.isFavorite = false,
   });
-
-  factory Album.fromJson(Map<String, dynamic> json) {
-    return Album(
-      id: json['Id'],
-      name: json['Name'],
-      artistName: json['AlbumArtist'],
-      imageUrl:
-          json['ImageTags'] != null && json['ImageTags']['Primary'] != null
-          ? json['Id'] // We'll construct the full URL in the service
-          : null,
-      year: json['ProductionYear'],
-      dateCreated: json['DateCreated'] != null
-          ? DateTime.tryParse(json['DateCreated'])
-          : null,
-      isFavorite: json['UserData']?['IsFavorite'] ?? false,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'Id': id,
-      'Name': name,
-      'AlbumArtist': artistName,
-      'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
-      'ProductionYear': year,
-      'DateCreated': dateCreated?.toIso8601String(),
-      'UserData': {'IsFavorite': isFavorite},
-    };
-  }
 
   Album copyWith({
     String? id,
@@ -114,7 +85,7 @@ class Track {
   final String? artistName;
   final String? albumId;
   final String? playlistItemId;
-  final int? duration; // in milliseconds
+  final int? duration; // in seconds
   final int? trackNumber;
   final String? imageUrl;
   final bool isFavorite;
@@ -133,43 +104,6 @@ class Track {
     this.isFavorite = false,
     this.playCount,
   });
-
-  factory Track.fromJson(Map<String, dynamic> json) {
-    return Track(
-      id: json['Id'],
-      name: json['Name'],
-      albumName: json['Album'],
-      artistName: json['Artists']?.join(', '),
-      albumId: json['AlbumId'],
-      playlistItemId: json['PlaylistItemId'] ?? json['PlaylistItemID'],
-      duration: json['RunTimeTicks'] != null
-          ? (json['RunTimeTicks'] / 10000)
-                .round() // Convert from ticks to milliseconds
-          : null,
-      trackNumber: json['IndexNumber'],
-      imageUrl:
-          json['ImageTags'] != null && json['ImageTags']['Primary'] != null
-          ? json['Id'] // We'll construct the full URL in the service
-          : json['AlbumId'], // Fallback to album image
-      isFavorite: json['UserData']?['IsFavorite'] ?? false,
-      playCount: json['UserData']?['PlayCount'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'Id': id,
-      'Name': name,
-      'Album': albumName,
-      'Artists': artistName?.split(', '),
-      'AlbumId': albumId,
-      'PlaylistItemId': playlistItemId,
-      'RunTimeTicks': duration != null ? duration! * 10000 : null,
-      'IndexNumber': trackNumber,
-      'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
-      'UserData': {'IsFavorite': isFavorite, 'PlayCount': playCount},
-    };
-  }
 }
 
 class Artist {
@@ -177,26 +111,11 @@ class Artist {
   final String name;
   final String? imageUrl;
 
-  Artist({required this.id, required this.name, this.imageUrl});
-
-  factory Artist.fromJson(Map<String, dynamic> json) {
-    return Artist(
-      id: json['Id'],
-      name: json['Name'],
-      imageUrl:
-          json['ImageTags'] != null && json['ImageTags']['Primary'] != null
-          ? json['Id'] // We'll construct the full URL in the service
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'Id': id,
-      'Name': name,
-      'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
-    };
-  }
+  Artist({
+    required this.id,
+    required this.name,
+    this.imageUrl,
+  });
 }
 
 class Playlist {
@@ -211,27 +130,6 @@ class Playlist {
     this.imageUrl,
     required this.trackCount,
   });
-
-  factory Playlist.fromJson(Map<String, dynamic> json) {
-    return Playlist(
-      id: json['Id'],
-      name: json['Name'],
-      imageUrl:
-          json['ImageTags'] != null && json['ImageTags']['Primary'] != null
-          ? json['Id'] // We'll construct the full URL in the service
-          : null,
-      trackCount: json['ChildCount'] ?? 0,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'Id': id,
-      'Name': name,
-      'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
-      'ChildCount': trackCount,
-    };
-  }
 }
 
 class Library {
@@ -246,25 +144,16 @@ class Library {
     required this.collectionType,
     this.imageUrl,
   });
+}
 
-  factory Library.fromJson(Map<String, dynamic> json) {
-    return Library(
-      id: json['Id'],
-      name: json['Name'],
-      collectionType: json['CollectionType'] ?? 'unknown',
-      imageUrl:
-          json['ImageTags'] != null && json['ImageTags']['Primary'] != null
-          ? json['Id'] // We'll construct the full URL in the service
-          : null,
-    );
-  }
+class SearchResults {
+  final List<Album> albums;
+  final List<Artist> artists;
+  final List<Track> tracks;
 
-  Map<String, dynamic> toJson() {
-    return {
-      'Id': id,
-      'Name': name,
-      'CollectionType': collectionType,
-      'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
-    };
-  }
+  const SearchResults({
+    this.albums = const [],
+    this.artists = const [],
+    this.tracks = const [],
+  });
 }

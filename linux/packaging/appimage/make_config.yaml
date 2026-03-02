@@ -1,24 +1,11 @@
 display_name: Doudou
-
 icon: assets/icons/icon.png
 
 keywords:
   - Music
-  - Audio
-  - Streaming
-  - Jellyfin
   - Media
-  - Player
+  - Streaming
 
-generic_name: Music Streaming Client
-
-categories:
-  - Audio
-  - Music
-  - Player
+generic_name: Music Application
+categories: 
   - AudioVideo
-
-startup_notify: true
-
-# Automatically detect shared libraries
-include: []

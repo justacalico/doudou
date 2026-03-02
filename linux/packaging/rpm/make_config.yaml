@@ -1,22 +1,26 @@
-display_name: Doudou
 icon: assets/icons/icon.png
+summary: An application to stream Music
+group: Application/Multimedia
+vendor: openlyst
+packager: openlyst
+license: GPLv3
+url: https://gitlab.com/Openlyst/doudou
+
+requires:
+  - mpv-libs
+  - libappindicator
+
+display_name: Doudou
+
 keywords:
+  - Opensource
   - Music
-  - Audio
   - Streaming
-  - Jellyfin
-  - Media
-  - Player
-generic_name: Music Streaming Client
+  - Flutter
+
+generic_name: Music Application
+
 categories:
-  - Audio
   - Music
-  - Player
-  - AudioVideo
+
 startup_notify: true
-summary: Music Streaming Client
-vendor: httpanimations
-packager: httpanimations
-packagerEmail: httpanimations@gmail.com
-AGPL
-url: https://openlyst.ink

@@ -1,114 +1,121 @@
 name: doudou
-description: "Play your music with ease and style."
-publish_to: 'none'
-version: 15.1.0
+description: Play any music from anywhere.
+publish_to: "none"
+version: 16.0.0
 
 environment:
-  sdk: '^3.8.0'
+  sdk: ">=3.1.5 <4.0.0"
 
 dependencies:
+  animations: ^2.0.11
+  app_links: ^3.5.1
+  archive: ^3.1.6
+  audio_service: ^0.18.17
+  audio_service_mpris: ^0.1.5
+  audio_video_progress_bar: ^2.0.3
+  audiotags: ^1.4.1
+  buttons_tabbar: ^1.3.13
+  cached_network_image: ^3.4.0
+  dio: ^5.7.0
+  file_picker: ^8.0.6
   flutter:
     sdk: flutter
-  flutter_localizations:
-    sdk: flutter
-  intl: any
-  
-  # HTTP requests
-  dio: ^5.9.1
-  http: ^1.6.0
-  
-  # Audio playbook - comprehensive cross-platform support
-  just_audio: ^0.10.5
-  just_audio_media_kit: ^2.1.0
-  media_kit: ^1.2.6
-  media_kit_libs_linux: ^1.0.3
-  media_kit_libs_windows_audio: ^1.0.9
-  media_kit_libs_macos_audio: ^1.0.10+1
-  media_kit_libs_ios_audio: ^1.0.1+5
-  media_kit_libs_android_audio: ^1.0.2
-  audio_service: ^0.18.18
-  audio_session: ^0.2.2
-  wakelock_plus: ^1.4.0
-  
-  # Desktop system media controls (taskbar/system tray)
-  audioplayers: ^6.0.0              # Linux audio (GStreamer via audioplayers_linux)
-  audio_service_mpris: ^0.2.0       # Linux MPRIS (D-Bus media controls)
-  audio_service_win: ^0.0.2         # Windows System Media Transport Controls
-  
-  # State management
-  provider: ^6.1.5
-  
-  # RxDart for streams
-  rxdart: ^0.28.0
-  
-  # URL launcher for opening downloads
-  url_launcher: ^6.3.1
-  
-  # UI components
-  cached_network_image: ^3.4.1
-  google_fonts: ^6.2.1
-  
-  # Storage and Caching
-  shared_preferences: ^2.5.4
-  sqflite: ^2.4.1
-  sqflite_common_ffi: ^2.4.0+1
-  path: ^1.9.0
-  path_provider: ^2.1.4
-  flutter_cache_manager: ^3.4.1
-  
-  # App info
-  package_info_plus: ^9.0.0
-  
-  # Icons
-  cupertino_icons: ^1.0.8
-  logging: ^1.3.0
-  flutter_svg: ^2.2.3
-  
-  # Cryptography
-  crypto: ^3.0.7
-  
-  # Haptic feedback
-  vibration: ^3.1.7
-  
-  # File picker for local music
-  file_picker: ^10.3.10
-  device_info_plus: ^12.3.0
-  permission_handler: ^12.0.1
-  
-  # Audio metadata reading (ID3 tags) - pure Dart, no native code
-  audio_metadata_reader: ^1.4.2
-
-  # YouTube Music provider - stream URL resolution only (isolated from audio stack)
-  youtube_explode_dart: ^2.2.1
-
+  flutter_keyboard_visibility: ^6.0.0
+  flutter_lyric: ^2.0.4+6
+  flutter_slidable: ^3.1.2
+  get: ^4.7.1
+  google_fonts: ^7.0.0
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  html: ^0.15.6
+  jellyfin_dart: ^0.1.2
+  ionicons: ^0.2.2
+  jni: ^0.14.0
+  just_audio: ^0.9.46
+  just_audio_media_kit:
+    git:
+      url: https://github.com/anandnet/just_audio_media_kit.git
+      ref: 6672eb82657d9e671abbf42122031c88aa9e6d80
+  palette_generator: ^0.3.3+4
+  flutter_colorpicker: ^1.1.0
+  path: ^1.8.3
+  path_provider: ^2.1.1
+  permission_handler: ^11.0.1
+  package_info_plus: ^8.0.0
+  wakelock_plus: ^1.3.3
+  shimmer: ^3.0.0
+  sidebar_with_animation:
+    git:
+      url: https://github.com/anandnet/animated_side_bar.git
+      branch: main
+      ref: b53567a42b4ba3793a3cf00d478bdba0ecce33d7
+  smtc_windows: ^0.1.2
+  terminate_restart:
+    git:
+      url: https://github.com/anandnet/terminate_restart.git
+      branch: main
+      ref: eb505e07e11d0fe1f5c03993e707c6678428c353
+  toggle_switch: ^2.1.0
+  tray_manager: ^0.2.3
+  url_launcher: ^6.2.1
+  widget_marquee: ^0.0.8
+  window_manager: ^0.4.2
+  youtube_explode_dart:
+    git:
+      url: https://github.com/anandnet/youtube_explode_dart.git
+      ref: 1d9ec9baa806705b1d859260eeb389ec28c6b024
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.3
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^4.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
-  flutter_launcher_icons: ^0.14.4
+  jnigen: ^0.14.0
 
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+# The following section is specific to Flutter packages.
 flutter:
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
   uses-material-design: true
-  generate: true
+
+  # To add assets to your application, add an assets section, like this:
   assets:
     - assets/icons/
+  #   - images/a_dot_ham.jpeg
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/assets-and-images/#from-packages
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+  #   - family: Trajan Pro
+  #     fonts:
+  #       - asset: fonts/TrajanPro.ttf
+  #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/custom-fonts/#from-packages
 
-# Flutter Launcher Icons configuration
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: true
   ios: true
-  image_path: "assets/icons/icon.png"
-  min_sdk_android: 21 # android min sdk min:16, default 21
-  remove_alpha_ios: true # Remove alpha channel for App Store compliance
-  web:
-    generate: true
-    image_path: "assets/icons/icon.png"
-    background_color: "#hexcode"
-    theme_color: "#hexcode"
-  windows:
-    generate: true
-    image_path: "assets/icons/icon.png"
-    icon_size: 48 # min:48, max:256, default: 48
-  macos:
-    generate: true
-    image_path: "assets/icons/icon.png"
+  image_path: assets/icons/doudou_icon.png
+  adaptive_icon_background: "#7c3aed"
+  adaptive_icon_foreground: assets/icons/doudou_icon.png

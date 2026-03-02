@@ -90,12 +90,6 @@ cd doudou
 flutter pub get
 ```
 
-### Generate Localization Files
-
-```bash
-flutter gen-l10n
-```
-
 ### Build Commands
 
 ```bash
@@ -132,8 +126,3 @@ Built with these open-source projects:
 - [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Subsonic](http://www.subsonic.org/), [Youtube Music](https://music.youtube.com) - Media servers
 - [Harmony-Music](https://github.com/anandnet/Harmony-Music) - YouTube Music support
 - [Flutter](https://flutter.dev/) - Cross-platform framework
-
-
-## License
-
-AGPL-3.0
