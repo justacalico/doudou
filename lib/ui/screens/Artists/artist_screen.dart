@@ -10,6 +10,7 @@ import '../../widgets/adaptive_tab_screen.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/separate_tab_item_widget.dart';
 import 'artist_screen_controller.dart';
+import '../Library/library_controller.dart';
 
 class ArtistScreen extends StatelessWidget {
   const ArtistScreen({super.key});
@@ -126,12 +127,12 @@ class _TabBody extends StatelessWidget {
         return const Center(child: SizedBox.shrink());
       }
 
-      return SeparateTabItemWidget(
+      final items = controller.sepataredContent[currentTabName]['results'];
+
+      Widget body = SeparateTabItemWidget(
         artistControllerTag: tag,
         isResultWidget: false,
-        items: controller.sepataredContent.containsKey(currentTabName)
-            ? controller.sepataredContent[currentTabName]['results']
-            : [],
+        items: items,
         title: currentTabName,
         topPadding: 8,
         scrollController: currentTabName == "Songs"
@@ -144,6 +145,27 @@ class _TabBody extends StatelessWidget {
                         ? controller.singlesScrollController
                         : null,
       );
+
+      if (currentTabName == "Songs" &&
+          items is List &&
+          items.isEmpty &&
+          Get.isRegistered<LibrarySongsController>() &&
+          !Get.find<LibrarySongsController>().isSongFetched.value) {
+        body = Column(
+          children: [
+            Expanded(child: body),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Loading your library in background...',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ],
+        );
+      }
+
+      return body;
     });
   }
 }

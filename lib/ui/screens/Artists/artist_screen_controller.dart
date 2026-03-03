@@ -8,7 +8,6 @@ import '/services/utils.dart';
 import '/ui/widgets/sort_widget.dart';
 import '../../../models/album.dart';
 import '../../../models/artist.dart';
-import '../../../models/media_Item_builder.dart';
 import '../../../models/server.dart';
 import '../../../utils/helper.dart';
 import '../Library/library_controller.dart';
@@ -99,7 +98,10 @@ class ArtistScreenController extends GetxController
   }
 
   _init(bool isIdOnly, dynamic artist) {
-    if (!isIdOnly) artist_ = artist as Artist;
+    if (!isIdOnly) {
+      artist_ = artist as Artist;
+      _hydrateArtistFromLibraryIfPossible();
+    }
     _fetchArtistContent(isIdOnly ? artist as String : artist.browseId);
     _checkIfAddedToLibrary(isIdOnly ? artist as String : artist.browseId);
   }
@@ -141,45 +143,25 @@ class ArtistScreenController extends GetxController
 
     // For Subsonic / Plex / Jellyfin style backends, derive a simple artist view
     // from the library content instead of calling the YouTube-specific endpoint.
-    final backend = settings.currentBackend;
     final artistName = artist_.name.toLowerCase();
 
     // Prefer already-fetched library controllers to avoid repeated backend calls.
-    List<MediaItem> songs;
-    if (Get.isRegistered<LibrarySongsController>() &&
-        Get.find<LibrarySongsController>().isSongFetched.isTrue) {
+    // If the library is not ready yet, start warming it up in the background and
+    // let the UI render immediately with an empty list that will be filled later.
+    List<MediaItem> songs = [];
+    if (Get.isRegistered<LibrarySongsController>()) {
       final librarySongsCtrl = Get.find<LibrarySongsController>();
-      songs = librarySongsCtrl.librarySongsList.where((item) {
-        final name = item.artist?.toLowerCase() ?? '';
-        return name == artistName;
-      }).toList();
+      if (librarySongsCtrl.isSongFetched.isTrue) {
+        songs = librarySongsCtrl.librarySongsList.where((item) {
+          final name = item.artist?.toLowerCase() ?? '';
+          return name == artistName;
+        }).toList();
+      } else {
+        _warmArtistSongsFromLibrary(librarySongsCtrl, artistName);
+      }
     } else {
-      final allTracks = await backend.getLibrarySongs();
-      songs = allTracks
-          .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
-          .whereType<MediaItem>()
-          .where((item) => (item.artist?.toLowerCase() ?? '') == artistName)
-          .toList();
-    }
-
-    List<Album> albums;
-    if (Get.isRegistered<LibraryAlbumsController>() &&
-        Get.find<LibraryAlbumsController>().isContentFetched.isTrue) {
-      final libraryAlbumsCtrl = Get.find<LibraryAlbumsController>();
-      albums = libraryAlbumsCtrl.libraryAlbums.where((album) {
-        final artists = album.artists ?? [];
-        return artists.any(
-          (a) => (a['name']?.toString().toLowerCase() ?? '') == artistName,
-        );
-      }).toList();
-    } else {
-      final allAlbums = await backend.getLibraryAlbums();
-      albums = allAlbums.where((album) {
-        final artists = album.artists ?? [];
-        return artists.any(
-          (a) => (a['name']?.toString().toLowerCase() ?? '') == artistName,
-        );
-      }).toList();
+      final librarySongsCtrl = Get.put(LibrarySongsController());
+      _warmArtistSongsFromLibrary(librarySongsCtrl, artistName);
     }
 
     artistData.value = {
@@ -191,20 +173,75 @@ class ArtistScreenController extends GetxController
       'Songs': {
         'content': songs,
       },
-      'Videos': {
-        'content': <dynamic>[],
-      },
-      'Albums': {
-        'content': albums,
-      },
-      'Singles': {
-        'content': <dynamic>[],
-      },
     };
 
     final initialIndex = tabController?.index ?? 0;
     await onDestinationSelected(initialIndex);
     isArtistContentFetced.value = true;
+  }
+
+  Future<void> _warmArtistSongsFromLibrary(
+      LibrarySongsController librarySongsCtrl, String artistName) async {
+    if (!librarySongsCtrl.isSongFetched.value) {
+      await librarySongsCtrl.init();
+    }
+
+    final songs = librarySongsCtrl.librarySongsList.where((item) {
+      final name = item.artist?.toLowerCase() ?? '';
+      return name == artistName;
+    }).toList();
+
+    artistData['Songs'] = {
+      'content': songs,
+    };
+
+    if (sepataredContent.containsKey('Songs')) {
+      sepataredContent['Songs']['results'] = songs;
+      sepataredContent.refresh();
+    }
+  }
+
+  void _hydrateArtistFromLibraryIfPossible() {
+    if (!Get.isRegistered<LibraryArtistsController>()) return;
+    final artistsCtrl = Get.find<LibraryArtistsController>();
+    if (!artistsCtrl.isContentFetched.value) return;
+
+    final name = artist_.name.toLowerCase();
+    for (final a in artistsCtrl.libraryArtists) {
+      if (a.name.toLowerCase() == name) {
+        artist_ = a;
+        break;
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>> _loadAlbumsForArtist() async {
+    final artistName = artist_.name.toLowerCase();
+
+    List<Album> albums;
+    if (Get.isRegistered<LibraryAlbumsController>() &&
+        Get.find<LibraryAlbumsController>().isContentFetched.isTrue) {
+      final libraryAlbumsCtrl = Get.find<LibraryAlbumsController>();
+      albums = libraryAlbumsCtrl.libraryAlbums.where((album) {
+        final artists = album.artists ?? [];
+        return artists.any(
+          (a) => (a['name']?.toString().toLowerCase() ?? '') == artistName,
+        );
+      }).toList();
+    } else if (Get.isRegistered<LibraryAlbumsController>()) {
+      // LibraryAlbumsController exists but content is not ready yet; trigger a
+      // background refresh and return an empty list immediately so the tab
+      // switch is instant.
+      Get.find<LibraryAlbumsController>().refreshLib();
+      albums = <Album>[];
+    } else {
+      // Instantiate the controller so it can start loading in the background,
+      // but don't wait for it here.
+      Get.put(LibraryAlbumsController());
+      albums = <Album>[];
+    }
+
+    return {'content': albums};
   }
 
   Future<bool> addNremoveFromLibrary({bool add = true}) async {
@@ -234,14 +271,36 @@ class ArtistScreenController extends GetxController
     }
 
     if (sepataredContent.containsKey(tabName)) return;
+
+    final settings = Get.find<SettingsScreenController>();
+    final server = settings.activeServer;
+    final isYouTubeServer = server == null ||
+        server.type == ServerType.youtubeMusic; // matches YT branch above
+
+    // Lazy loading for non‑YouTube backends
+    if (!isYouTubeServer && tabName != "Songs") {
+      isSeparatedArtistContentFetced.value = false;
+
+      if (tabName == "Albums") {
+        artistData[tabName] = await _loadAlbumsForArtist();
+      } else {
+        artistData[tabName] = {'content': <dynamic>[]};
+      }
+
+      sepataredContent[tabName] = {
+        "results": artistData[tabName]['content'],
+      };
+      isSeparatedArtistContentFetced.value = true;
+      return;
+    }
+
     if (artistData[tabName] == null) {
       isSeparatedArtistContentFetced.value = true;
       return;
     }
     isSeparatedArtistContentFetced.value = false;
 
-    //check if params available for continuation
-    //tab browse endpoint & top result stored in [artistData], tabContent & addtionalParams for continuation stored in Separated Content
+    // Existing YouTube Music behavior with continuation params
     if ((artistData[tabName]).containsKey("params")) {
       sepataredContent[tabName] = await musicServices.getArtistRealtedContent(
           artistData[tabName], tabName);

@@ -65,26 +65,12 @@ class LibrarySongsController extends GetxController {
   }
 
   Future<List<MediaItem>> loadAllSongsForShuffle() async {
-    final localSongs = await _loadLocalSongs();
-    final settings = Get.find<SettingsScreenController>();
-    final server = settings.activeServer;
-    final useBackend =
-        server != null && server.type != ServerType.youtubeMusic;
-
-    if (!useBackend) {
-      return localSongs;
+    // Ensure the library is initialized once, then reuse the in-memory list
+    // so shuffle operations are instant even for large libraries.
+    if (!isSongFetched.value) {
+      await init();
     }
-
-    try {
-      final tracks = await settings.currentBackend.getLibrarySongs();
-      final remoteSongs = tracks
-          .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
-          .whereType<MediaItem>()
-          .toList();
-      return [...remoteSongs, ...localSongs];
-    } catch (_) {
-      return localSongs;
-    }
+    return librarySongsList.toList();
   }
 
   Future<List<MediaItem>> _loadLocalSongs() async {
