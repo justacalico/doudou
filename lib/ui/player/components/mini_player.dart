@@ -173,8 +173,11 @@ class _MobileMiniPlayer extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(18),
                                   ),
                                   child: const Center(
-                                    child: AnimatedPlayButton(
-                                      iconSize: 26,
+                                    child: IconTheme(
+                                      data: IconThemeData(color: Colors.white),
+                                      child: AnimatedPlayButton(
+                                        iconSize: 26,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -379,8 +382,11 @@ class _DesktopMiniPlayer extends StatelessWidget {
                           width: 58,
                           height: 58,
                           child: const Center(
-                            child: AnimatedPlayButton(
-                              iconSize: 43,
+                            child: IconTheme(
+                              data: IconThemeData(color: Colors.white),
+                              child: AnimatedPlayButton(
+                                iconSize: 43,
+                              ),
                             ),
                           ),
                         ),

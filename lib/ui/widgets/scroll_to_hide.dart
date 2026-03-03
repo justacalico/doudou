@@ -11,7 +11,7 @@ class ScrollToHideWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      height: isVisible ? 80.0 + Get.mediaQuery.viewPadding.bottom : 0.0,
+      height: isVisible ? 90.0 + Get.mediaQuery.viewPadding.bottom : 0.0,
       child: child,
     );
   }

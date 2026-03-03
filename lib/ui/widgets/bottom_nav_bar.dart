@@ -75,17 +75,16 @@ class BottomNavBar extends StatelessWidget {
                     ],
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: List.generate(items.length, (index) {
                       final selected = index == safeIdx;
                       final item = items[index];
-                      final color = selected
-                          ? theme.colorScheme.primary
-                          : onSurface.withValues(alpha: 0.65);
+                      final iconColor = selected
+                          ? theme.colorScheme.onSurface
+                          : onSurface.withValues(alpha: 0.4);
                       final labelStyle = theme.textTheme.labelSmall?.copyWith(
-                        color: selected
-                            ? theme.colorScheme.primary
-                            : onSurface.withValues(alpha: 0.75),
+                        color:
+                            selected ? Colors.white : onSurface.withValues(alpha: 0.4),
                         fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                       );
                       return Expanded(
@@ -96,21 +95,47 @@ class BottomNavBar extends StatelessWidget {
                             HapticFeedback.selectionClick();
                             homeScreenController.onBottonBarTabSelected(index);
                           },
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(item.icon, size: 22, color: color),
-                              if (!iconOnly)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 2),
-                                  child: Text(
-                                    item.label,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: labelStyle,
+                          child: TweenAnimationBuilder<double>(
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOut,
+                            tween: Tween(begin: selected ? 1.0 : 0.0, end: selected ? 1.0 : 0.0),
+                            builder: (context, value, child) {
+                              final scale = 1.0 + 0.1 * value;
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 220),
+                                    curve: Curves.easeOut,
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: selected
+                                          ? Colors.white.withValues(alpha: 0.1)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(18),
+                                    ),
+                                    child: Transform.scale(
+                                      scale: scale,
+                                      child: Icon(
+                                        item.icon,
+                                        size: 20,
+                                        color: iconColor,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                            ],
+                                  if (!iconOnly)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: Text(
+                                        item.label,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: labelStyle,
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
                           ),
                         ),
                       );
