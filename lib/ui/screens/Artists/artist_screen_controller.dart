@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 import '../../widgets/add_to_playlist.dart';
 import '/services/utils.dart';
 import '/ui/widgets/sort_widget.dart';
+import '../../../models/album.dart';
 import '../../../models/artist.dart';
 import '../../../models/media_Item_builder.dart';
 import '../../../models/server.dart';
@@ -141,29 +142,45 @@ class ArtistScreenController extends GetxController
     // For Subsonic / Plex / Jellyfin style backends, derive a simple artist view
     // from the library content instead of calling the YouTube-specific endpoint.
     final backend = settings.currentBackend;
-    final allTracks = await backend.getLibrarySongs();
     final artistName = artist_.name.toLowerCase();
 
-    final artistTracks = allTracks.where((m) {
-      final artists = m['artists'];
-      if (artists is! List) return false;
-      return artists.any((a) {
-        final name = (a is Map ? a['name'] : null)?.toString().toLowerCase();
+    // Prefer already-fetched library controllers to avoid repeated backend calls.
+    List<MediaItem> songs;
+    if (Get.isRegistered<LibrarySongsController>() &&
+        Get.find<LibrarySongsController>().isSongFetched.isTrue) {
+      final librarySongsCtrl = Get.find<LibrarySongsController>();
+      songs = librarySongsCtrl.librarySongsList.where((item) {
+        final name = item.artist?.toLowerCase() ?? '';
         return name == artistName;
-      });
-    }).toList();
+      }).toList();
+    } else {
+      final allTracks = await backend.getLibrarySongs();
+      songs = allTracks
+          .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
+          .whereType<MediaItem>()
+          .where((item) => (item.artist?.toLowerCase() ?? '') == artistName)
+          .toList();
+    }
 
-    final songs = artistTracks
-        .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
-        .whereType<MediaItem>()
-        .toList();
-
-    final allAlbums = await backend.getLibraryAlbums();
-    final albums = allAlbums.where((album) {
-      final artists = album.artists ?? [];
-      return artists.any((a) =>
-          (a['name']?.toString().toLowerCase() ?? '') == artistName);
-    }).toList();
+    List<Album> albums;
+    if (Get.isRegistered<LibraryAlbumsController>() &&
+        Get.find<LibraryAlbumsController>().isContentFetched.isTrue) {
+      final libraryAlbumsCtrl = Get.find<LibraryAlbumsController>();
+      albums = libraryAlbumsCtrl.libraryAlbums.where((album) {
+        final artists = album.artists ?? [];
+        return artists.any(
+          (a) => (a['name']?.toString().toLowerCase() ?? '') == artistName,
+        );
+      }).toList();
+    } else {
+      final allAlbums = await backend.getLibraryAlbums();
+      albums = allAlbums.where((album) {
+        final artists = album.artists ?? [];
+        return artists.any(
+          (a) => (a['name']?.toString().toLowerCase() ?? '') == artistName,
+        );
+      }).toList();
+    }
 
     artistData.value = {
       'name': artist_.name,
