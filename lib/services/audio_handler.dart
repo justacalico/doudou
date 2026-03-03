@@ -120,7 +120,11 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   void _listenSessionIdStream() {
     _player.androidAudioSessionIdStream.listen((int? id) {
       if (id != null) {
-        EqualizerService.initAudioEffect(id);
+        try {
+          EqualizerService.initAudioEffect(id);
+        } catch (e, st) {
+          printERROR('Equalizer init failed: $e\n$st');
+        }
       }
     });
   }

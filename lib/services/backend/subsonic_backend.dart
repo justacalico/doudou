@@ -12,7 +12,7 @@ class SubsonicBackend extends MusicBackend {
 
   final SettingsServer server;
 
-  static const _clientName = 'HarmonyMusic';
+  static const _clientName = 'Doudou';
   static const _version = '1.16.0';
 
   String get _baseUrl {

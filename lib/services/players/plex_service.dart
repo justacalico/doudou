@@ -22,8 +22,8 @@ class PlexService {
       ..sendTimeout = const Duration(seconds: 30);
 
     _dio.options.headers['Accept'] = 'application/json';
-    _dio.options.headers['X-Plex-Client-Identifier'] = 'harmony-music';
-    _dio.options.headers['X-Plex-Product'] = 'Harmony Music';
+    _dio.options.headers['X-Plex-Client-Identifier'] = 'doudou';
+    _dio.options.headers['X-Plex-Product'] = 'Doudou';
     _dio.options.headers['X-Plex-Version'] = '1.0.0';
 
     if (Platform.isLinux) {

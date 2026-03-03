@@ -27,7 +27,7 @@ class JellyfinBackend extends MusicBackend {
     final url = _baseUrl;
     if (url.isEmpty || server.username == null || server.password == null) return;
     _client = JellyfinDart(basePathOverride: url);
-    _client!.setDeviceId('harmony-music-${server.id}');
+    _client!.setDeviceId('doudou-${server.id}');
     _client!.setVersion('1.0');
     try {
       final auth = await _client!.getUserApi().authenticateUserByName(
