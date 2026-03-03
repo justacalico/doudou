@@ -179,9 +179,12 @@ class Body extends StatelessWidget {
                     isYouTubeServer ? hasLocalFavorites : true;
                 final hasDownloads = Hive.box("SongDownloads").length > 0;
 
-                final shuffleTrackCount = isYouTubeServer
-                    ? libSongs.librarySongsList.length
-                    : libSongs.librarySongsList.length;
+                int extraFavCount = 0;
+                if (isYouTubeServer && Hive.isBoxOpen(favBoxName)) {
+                  extraFavCount = Hive.box(favBoxName).length;
+                }
+                final shuffleTrackCount =
+                    libSongs.librarySongsList.length + extraFavCount;
                 const kLibraryCardHeight = 120.0;
                 const kLibraryCardGap = 8.0;
 
@@ -348,9 +351,33 @@ class Body extends StatelessWidget {
                                                 final messenger =
                                                     ScaffoldMessenger.of(context);
                                                 if (isYouTubeServer) {
-                                                  final list = libSongs
-                                                      .librarySongsList
-                                                      .toList();
+                                                  final list =
+                                                      libSongs.librarySongsList
+                                                          .toList();
+                                                  try {
+                                                    final favBox =
+                                                        await Hive.openBox(
+                                                            libFavBoxName(
+                                                                currentServerId()));
+                                                    final favSongs = favBox
+                                                        .values
+                                                        .map<MediaItem?>((e) =>
+                                                            MediaItemBuilder
+                                                                .fromJson(
+                                                                    e as Map))
+                                                        .whereType<MediaItem>()
+                                                        .toList();
+                                                    final seenIds = list
+                                                        .map((s) => s.id)
+                                                        .toSet();
+                                                    for (final s
+                                                        in favSongs) {
+                                                      if (seenIds.add(s.id)) {
+                                                        list.add(s);
+                                                      }
+                                                    }
+                                                  } catch (_) {}
+
                                                   if (list.isEmpty) {
                                                     messenger.showSnackBar(
                                                         SnackBar(

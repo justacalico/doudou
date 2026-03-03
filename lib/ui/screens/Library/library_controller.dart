@@ -128,6 +128,74 @@ class LibrarySongsController extends GetxController {
         .whereType<MediaItem>()
         .toList());
 
+    // For YouTube Music, also include songs from library albums, playlists,
+    // and favorites so the Library Songs view reflects the full library.
+    final settings = Get.find<SettingsScreenController>();
+    final server = settings.activeServer;
+    final isYouTube =
+        server != null && server.type == ServerType.youtubeMusic;
+
+    if (isYouTube) {
+      final serverId = currentServerId();
+      final seenIds = songs.map((s) => s.id).toSet();
+
+      // Songs from library albums (stored per-album by browseId).
+      try {
+        final albumsBox = await Hive.openBox(libraryAlbumsBoxName(serverId));
+        for (final raw in albumsBox.values) {
+          final album = Album.fromJson(raw as Map);
+          final albumSongsBox = await Hive.openBox(album.browseId);
+          for (final v in albumSongsBox.values) {
+            final m = MediaItemBuilder.fromJson(v as Map);
+            if (seenIds.add(m.id)) {
+              songs.add(m);
+            }
+          }
+          await albumSongsBox.close();
+        }
+        await albumsBox.close();
+      } catch (_) {}
+
+      // Songs from library playlists (excluding special local playlists).
+      try {
+        if (Get.isRegistered<LibraryPlaylistsController>()) {
+          final playlists = Get.find<LibraryPlaylistsController>()
+              .libraryPlaylists
+              .toList();
+          for (final pl in playlists) {
+            final id = pl.playlistId;
+            if (id == 'LIBRP' ||
+                id == 'LIBFAV' ||
+                id == 'SongsCache' ||
+                id == 'SongDownloads') {
+              continue;
+            }
+            final boxId = playlistSongsBoxName(id);
+            final plSongsBox = await Hive.openBox(boxId);
+            for (final v in plSongsBox.values) {
+              final m = MediaItemBuilder.fromJson(v as Map);
+              if (seenIds.add(m.id)) {
+                songs.add(m);
+              }
+            }
+            await plSongsBox.close();
+          }
+        }
+      } catch (_) {}
+
+      // Songs from favorites box (YouTube Music stores favorites locally).
+      try {
+        final favBox = await Hive.openBox(libFavBoxName(serverId));
+        for (final v in favBox.values) {
+          final m = MediaItemBuilder.fromJson(v as Map);
+          if (seenIds.add(m.id)) {
+            songs.add(m);
+          }
+        }
+        await favBox.close();
+      } catch (_) {}
+    }
+
     return songs;
   }
 
