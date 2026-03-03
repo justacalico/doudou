@@ -884,36 +884,45 @@ class Body extends StatelessWidget {
                 padding: EdgeInsets.only(
                   right: index < albums.length - 1 ? 12 : 0,
                 ),
-                child: SizedBox(
-                  width: 180,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: ImageWidget(
-                          album: album,
-                          size: 180,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    ScreenNavigationSetup.pushContentRoute(
+                      ScreenNavigationSetup.albumScreen,
+                      arguments: (album, album.browseId),
+                    );
+                  },
+                  child: SizedBox(
+                    width: 180,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: ImageWidget(
+                            album: album,
+                            size: 180,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        album.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        artistName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.7),
+                        const SizedBox(height: 8),
+                        Text(
+                          album.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleSmall,
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(
+                          artistName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -958,23 +967,32 @@ class Body extends StatelessWidget {
                 padding: EdgeInsets.only(
                   right: index < artists.length - 1 ? 12 : 0,
                 ),
-                child: SizedBox(
-                  width: 180,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ImageWidget(
-                        artist: artist,
-                        size: 180,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        artist.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall,
-                      ),
-                    ],
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    ScreenNavigationSetup.pushContentRoute(
+                      ScreenNavigationSetup.artistScreen,
+                      arguments: [false, artist],
+                    );
+                  },
+                  child: SizedBox(
+                    width: 180,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ImageWidget(
+                          artist: artist,
+                          size: 180,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          artist.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleSmall,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
