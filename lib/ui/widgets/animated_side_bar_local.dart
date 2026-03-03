@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SideBarAnimatedLocal extends StatefulWidget {
   final ValueChanged<int>? onTap;
@@ -117,6 +118,7 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
   }
 
   void moveToNewIndex(int index) {
+    HapticFeedback.selectionClick();
     setState(() => _itemIndex = index.toDouble());
     widget.onTap?.call(index);
   }

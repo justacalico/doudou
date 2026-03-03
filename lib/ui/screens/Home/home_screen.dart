@@ -97,9 +97,8 @@ class HomeScreen extends StatelessWidget {
             resverse: homeScreenController.reverseAnimationtransiton,
             horizontalTransition: shellController.useBottomNav.value,
             duration: Duration(milliseconds: effectiveMs),
-            child: Center(
-              key: ValueKey<int>(homeScreenController.tabIndex.value),
-              child: const Body(),
+            child: const Body(
+              key: ValueKey<int>(0),
             ),
           );
         }));
