@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -18,26 +17,25 @@ class BottomNavBar extends StatelessWidget {
     final iconOnly = width < _iconOnlyBreakpoint;
     final theme = Theme.of(context);
     final surface = theme.colorScheme.surface;
-    final onSurface = theme.colorScheme.onSurface;
 
     return Obx(() {
       final idx = homeScreenController.tabIndex.value;
       final safeIdx = idx < 0 ? 0 : (idx > 3 ? 3 : idx);
       final items = [
         _NavItem(
-          icon: CupertinoIcons.house_fill,
+          icon: Icons.home_rounded,
           label: modifyNgetlabel('home'.tr),
         ),
         _NavItem(
-          icon: CupertinoIcons.search,
+          icon: Icons.search_rounded,
           label: modifyNgetlabel('search'.tr),
         ),
         _NavItem(
-          icon: CupertinoIcons.music_albums,
+          icon: Icons.library_music_rounded,
           label: modifyNgetlabel('library'.tr),
         ),
         _NavItem(
-          icon: CupertinoIcons.settings_solid,
+          icon: Icons.settings_rounded,
           label: modifyNgetlabel('settings'.tr),
         ),
       ];
@@ -80,11 +78,12 @@ class BottomNavBar extends StatelessWidget {
                       final selected = index == safeIdx;
                       final item = items[index];
                       final iconColor = selected
-                          ? theme.colorScheme.onSurface
-                          : onSurface.withValues(alpha: 0.4);
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.4);
                       final labelStyle = theme.textTheme.labelSmall?.copyWith(
-                        color:
-                            selected ? Colors.white : onSurface.withValues(alpha: 0.4),
+                        color: selected
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.4),
                         fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                       );
                       return Expanded(
@@ -98,8 +97,11 @@ class BottomNavBar extends StatelessWidget {
                           child: TweenAnimationBuilder<double>(
                             duration: const Duration(milliseconds: 220),
                             curve: Curves.easeOut,
-                            tween: Tween(begin: selected ? 1.0 : 0.0, end: selected ? 1.0 : 0.0),
-                            builder: (context, value, child) {
+                            tween: Tween<double>(
+                              begin: 0.0,
+                              end: selected ? 1.0 : 0.0,
+                            ),
+                            builder: (context, value, _) {
                               final scale = 1.0 + 0.1 * value;
                               return Column(
                                 mainAxisSize: MainAxisSize.min,
