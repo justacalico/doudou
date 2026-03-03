@@ -59,6 +59,7 @@ class SettingsScreenController extends GetxController {
   final animationSpeed = AnimationSpeed.fast.obs;
   final isBottomNavBarEnabled = false.obs;
   final sidebarMode = SidebarMode.auto.obs;
+  final lyricsDynamicColorEnabled = true.obs;
   final backgroundPlayEnabled = true.obs;
   final keepScreenAwake = false.obs;
   final restorePlaybackSession = false.obs;
@@ -219,6 +220,8 @@ class SettingsScreenController extends GetxController {
     }
     autoDownloadFavoriteSongEnabled.value =
         setBox.get("autoDownloadFavoriteSongEnabled") ?? false;
+    lyricsDynamicColorEnabled.value =
+        setBox.get("lyricsDynamicColorEnabled") ?? true;
 
     final defaultServer = SettingsServer(
       id: SettingsServer.defaultServerId,
@@ -298,6 +301,11 @@ class SettingsScreenController extends GetxController {
     if (mode == null) return;
     sidebarMode.value = mode;
     setBox.put("sidebarMode", mode.index);
+  }
+
+  void setLyricsDynamicColorEnabled(bool value) {
+    lyricsDynamicColorEnabled.value = value;
+    setBox.put("lyricsDynamicColorEnabled", value);
   }
 
   void setAnimationSpeed(AnimationSpeed speed) {

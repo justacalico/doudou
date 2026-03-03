@@ -59,14 +59,17 @@ class SettingsPersonalisationSection extends StatelessWidget {
             return const SizedBox.shrink();
           }
           final color = themeController.dynamicColor.value;
-          return ListTile(
-            contentPadding: const EdgeInsets.only(left: 5, right: 10),
-            title: Text("dynamicColor".tr),
-            subtitle: Text(
-              "dynamicColorDes".tr,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            trailing: InkWell(
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                title: Text("dynamicColor".tr),
+                subtitle: Text(
+                  "dynamicColorDes".tr,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                trailing: InkWell(
               onTap: () async {
                 final initial = themeController.dynamicColor.value;
                 Color tempColor = initial;
@@ -189,6 +192,22 @@ class SettingsPersonalisationSection extends StatelessWidget {
                 ],
               ),
             ),
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                title: Text("lyricsDynamicColor".tr),
+                subtitle: Text(
+                  "lyricsDynamicColorDes".tr,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                trailing: Obx(
+                  () => CustSwitch(
+                    value: settingsController.lyricsDynamicColorEnabled.value,
+                    onChanged: settingsController.setLyricsDynamicColorEnabled,
+                  ),
+                ),
+              ),
+            ],
           );
         }),
         ListTile(

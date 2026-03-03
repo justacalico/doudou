@@ -1933,6 +1933,8 @@ Map<String, Map<String, String>> get keys => {
     "sidebarModeCollapsed": "Collapsed",
     "sidebarModeExpanded": "Full view",
     "dynamicColorDes": "Dynamic theme using a fixed colour (not now playing).",
+    "lyricsDynamicColor": "Lyrics change accent colour",
+    "lyricsDynamicColorDes": "When a song has synced lyrics, colour words in the lyrics can change the app accent (Dynamic Colour theme only).",
     "pickDynamicColor": "Pick dynamic colour",
     "advanced": "Advanced…",
     "change": "Change",
