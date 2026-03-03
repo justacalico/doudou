@@ -842,26 +842,35 @@ class Body extends StatelessWidget {
                 padding: EdgeInsets.only(
                   right: index < playlists.length - 1 ? 12 : 0,
                 ),
-                child: SizedBox(
-                  width: 180,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: ImageWidget(
-                          playlist: playlist,
-                          size: 180,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    ScreenNavigationSetup.pushContentRoute(
+                      ScreenNavigationSetup.playlistScreen,
+                      arguments: [playlist, playlist.playlistId],
+                    );
+                  },
+                  child: SizedBox(
+                    width: 180,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: ImageWidget(
+                            playlist: playlist,
+                            size: 180,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        playlist.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall,
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          playlist.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleSmall,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
