@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -13,39 +16,111 @@ class BottomNavBar extends StatelessWidget {
     final homeScreenController = Get.find<HomeScreenController>();
     final width = MediaQuery.sizeOf(context).width;
     final iconOnly = width < _iconOnlyBreakpoint;
+    final theme = Theme.of(context);
+    final surface = theme.colorScheme.surface;
+    final onSurface = theme.colorScheme.onSurface;
+
     return Obx(() {
       final idx = homeScreenController.tabIndex.value;
       final safeIdx = idx < 0 ? 0 : (idx > 3 ? 3 : idx);
-      return NavigationBar(
-        onDestinationSelected: (index) {
-          HapticFeedback.selectionClick();
-          homeScreenController.onBottonBarTabSelected(index);
-        },
-        selectedIndex: safeIdx,
-        backgroundColor: Theme.of(context).primaryColor,
-        indicatorColor: Theme.of(context).colorScheme.secondary,
-        labelBehavior: iconOnly
-            ? NavigationDestinationLabelBehavior.alwaysHide
-            : NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: [
-          NavigationDestination(
-            selectedIcon: const Icon(Icons.home),
-            icon: const Icon(Icons.home_outlined),
-            label: modifyNgetlabel('home'.tr),
+      final items = [
+        _NavItem(
+          icon: CupertinoIcons.house_fill,
+          label: modifyNgetlabel('home'.tr),
+        ),
+        _NavItem(
+          icon: CupertinoIcons.search,
+          label: modifyNgetlabel('search'.tr),
+        ),
+        _NavItem(
+          icon: CupertinoIcons.music_albums,
+          label: modifyNgetlabel('library'.tr),
+        ),
+        _NavItem(
+          icon: CupertinoIcons.settings_solid,
+          label: modifyNgetlabel('settings'.tr),
+        ),
+      ];
+
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).padding.bottom,
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.search),
-            label: modifyNgetlabel('search'.tr),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: iconOnly ? 12 : 18,
+                    vertical: iconOnly ? 8 : 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: surface.withValues(alpha: 0.88),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 20,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(items.length, (index) {
+                      final selected = index == safeIdx;
+                      final item = items[index];
+                      final color = selected
+                          ? theme.colorScheme.primary
+                          : onSurface.withValues(alpha: 0.65);
+                      final labelStyle = theme.textTheme.labelSmall?.copyWith(
+                        color: selected
+                            ? theme.colorScheme.primary
+                            : onSurface.withValues(alpha: 0.75),
+                        fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                      );
+                      return Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            if (index == safeIdx) return;
+                            HapticFeedback.selectionClick();
+                            homeScreenController.onBottonBarTabSelected(index);
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(item.icon, size: 22, color: color),
+                              if (!iconOnly)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(
+                                    item.label,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: labelStyle,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            ),
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.library_music),
-            label: modifyNgetlabel('library'.tr),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.settings),
-            label: modifyNgetlabel('settings'.tr),
-          ),
-        ],
+        ),
       );
     });
   }
@@ -56,4 +131,11 @@ class BottomNavBar extends StatelessWidget {
     }
     return label;
   }
+}
+
+class _NavItem {
+  _NavItem({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
 }
