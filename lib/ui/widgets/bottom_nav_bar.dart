@@ -16,8 +16,9 @@ class BottomNavBar extends StatelessWidget {
     final width = MediaQuery.sizeOf(context).width;
     final iconOnly = width < _iconOnlyBreakpoint;
     final theme = Theme.of(context);
-    final surface = Colors.white.withValues(alpha: 0.16);
-    final activeColor = theme.colorScheme.primary;
+    final dockColor = theme.brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.06)
+        : Colors.black.withValues(alpha: 0.06);
 
     return Obx(() {
       final idx = homeScreenController.tabIndex.value;
@@ -56,20 +57,20 @@ class BottomNavBar extends StatelessWidget {
                 filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: iconOnly ? 14 : 18,
+                    horizontal: iconOnly ? 12 : 18,
                     vertical: iconOnly ? 8 : 10,
                   ),
                   decoration: BoxDecoration(
-                    color: surface,
+                    color: dockColor,
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.35),
-                      width: 0.8,
+                      color: Colors.white.withValues(alpha: 0.08),
+                      width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.35),
-                        blurRadius: 26,
-                        offset: const Offset(0, 18),
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 20,
+                        offset: const Offset(0, 12),
                       ),
                     ],
                   ),
@@ -79,12 +80,12 @@ class BottomNavBar extends StatelessWidget {
                       final selected = index == safeIdx;
                       final item = items[index];
                       final iconColor = selected
-                          ? activeColor
-                          : Colors.white.withValues(alpha: 0.5);
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.4);
                       final labelStyle = theme.textTheme.labelSmall?.copyWith(
                         color: selected
-                            ? activeColor
-                            : Colors.white.withValues(alpha: 0.5),
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.4),
                         fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                       );
                       return Expanded(
@@ -104,20 +105,24 @@ class BottomNavBar extends StatelessWidget {
                             ),
                             builder: (context, value, _) {
                               final scale = 1.0 + 0.1 * value;
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  AnimatedContainer(
-                                    duration: const Duration(milliseconds: 220),
-                                    curve: Curves.easeOut,
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: selected
-                                          ? Colors.white.withValues(alpha: 0.1)
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                    child: Transform.scale(
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 220),
+                                curve: Curves.easeOut,
+                                padding: EdgeInsets.symmetric(
+                                  vertical: iconOnly ? 6 : 8,
+                                  horizontal: iconOnly ? 10 : 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: selected
+                                      ? theme.colorScheme.primary
+                                          .withValues(alpha: 0.18)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Transform.scale(
                                       scale: scale,
                                       child: Icon(
                                         item.icon,
@@ -125,18 +130,18 @@ class BottomNavBar extends StatelessWidget {
                                         color: iconColor,
                                       ),
                                     ),
-                                  ),
-                                  if (!iconOnly)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 4),
-                                      child: Text(
-                                        item.label,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: labelStyle,
+                                    if (!iconOnly)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 4),
+                                        child: Text(
+                                          item.label,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: labelStyle,
+                                        ),
                                       ),
-                                    ),
-                                ],
+                                  ],
+                                ),
                               );
                             },
                           ),
