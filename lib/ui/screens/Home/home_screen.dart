@@ -86,6 +86,7 @@ class HomeScreen extends StatelessWidget {
           final settings = Get.find<SettingsScreenController>();
           final factor = settings.animationSpeedFactor;
           final enabled = factor > 0;
+          final tab = homeScreenController.tabIndex.value;
           const verticalBaseMs = 380;
           const horizontalBaseMs = 320;
           final baseMs =
@@ -97,8 +98,8 @@ class HomeScreen extends StatelessWidget {
             resverse: homeScreenController.reverseAnimationtransiton,
             horizontalTransition: shellController.useBottomNav.value,
             duration: Duration(milliseconds: effectiveMs),
-            child: const Body(
-              key: ValueKey<int>(0),
+            child: Body(
+              key: ValueKey<int>(tab),
             ),
           );
         }));

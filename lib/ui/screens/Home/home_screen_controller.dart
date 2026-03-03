@@ -359,6 +359,40 @@ class HomeScreenController extends GetxController {
     }
   }
 
+  void remapTabIndexForNavModeChange({required bool useBottomNav}) {
+    final current = tabIndex.value;
+
+    if (useBottomNav) {
+      // Switching to bottom navigation (mobile).
+      if (current == 0) {
+        return;
+      }
+
+      if (current == 5) {
+        tabIndex.value = 3;
+      } else if (current >= 1 && current <= 4) {
+        tabIndex.value = 2;
+      } else if (current < 0 || current > 5) {
+        tabIndex.value = 0;
+      }
+    } else {
+      // Switching to sidebar (desktop).
+      if (current == 0) {
+        return;
+      }
+
+      if (current == 1) {
+        tabIndex.value = 1;
+      } else if (current == 2) {
+        tabIndex.value = 2;
+      } else if (current == 3) {
+        tabIndex.value = 5;
+      } else if (current < 0 || current > 5) {
+        tabIndex.value = 0;
+      }
+    }
+  }
+
   void _checkNewVersion() {
     showVersionDialog.value =
         Hive.box("AppPrefs").get("newVersionVisibility") ?? true;

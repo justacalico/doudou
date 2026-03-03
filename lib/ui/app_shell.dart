@@ -50,11 +50,17 @@ class _AppShellState extends State<AppShell> {
     final settingsController = Get.find<SettingsScreenController>();
     final homeScreenController = Get.find<HomeScreenController>();
     final shellController = Get.find<ShellController>();
+    final wasBottomNav = shellController.useBottomNav.value;
     final size = MediaQuery.sizeOf(context);
     final width = size.width;
     final isWideScreen = width > 800;
     final useBottomNav =
         width < kSidebarMinWidth || settingsController.isBottomNavBarEnabled.isTrue;
+
+    if (wasBottomNav != useBottomNav) {
+      homeScreenController.remapTabIndexForNavModeChange(
+          useBottomNav: useBottomNav);
+    }
 
     shellController.setUseBottomNav(useBottomNav);
 
