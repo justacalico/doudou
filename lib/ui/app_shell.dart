@@ -134,8 +134,7 @@ class _AppShellState extends State<AppShell> {
                             child: const MiniPlayer(),
                           ),
                         ScrollToHideWidget(
-                          isVisible: homeScreenController.isHomeSreenOnTop.isTrue &&
-                              playerController.isPanelGTHOpened.isFalse,
+                          isVisible: playerController.isPanelGTHOpened.isFalse,
                           child: const BottomNavBar(),
                         ),
                       ],
