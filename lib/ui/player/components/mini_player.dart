@@ -205,19 +205,32 @@ class _MobileMiniPlayer extends StatelessWidget {
                                 );
                               }),
                               const SizedBox(width: 8),
-                              _CircleButton(
-                                backgroundColor:
-                                    Colors.white.withValues(alpha: 0.12),
-                                onTap: () {
-                                  controller.homeScaffoldkey.currentState
-                                      ?.openEndDrawer();
-                                },
-                                child: const Icon(
-                                  Icons.queue_music_rounded,
-                                  size: 20,
-                                  color: Colors.white,
-                                ),
-                              ),
+                              Obx(() {
+                                final isLastSong =
+                                    controller.currentQueue.isEmpty ||
+                                        (!(controller.isShuffleModeEnabled
+                                                .isTrue ||
+                                            controller.isQueueLoopModeEnabled
+                                                .isTrue) &&
+                                            (controller.currentQueue.last.id ==
+                                                controller.currentSong.value
+                                                    ?.id));
+                                final iconColor = Colors.white.withValues(
+                                  alpha: isLastSong ? 0.35 : 1.0,
+                                );
+                                final bg = Colors.white.withValues(
+                                  alpha: isLastSong ? 0.06 : 0.12,
+                                );
+                                return _CircleButton(
+                                  backgroundColor: bg,
+                                  onTap: isLastSong ? null : controller.next,
+                                  child: Icon(
+                                    Icons.skip_next_rounded,
+                                    size: 20,
+                                    color: iconColor,
+                                  ),
+                                );
+                              }),
                             ],
                           ),
                         ),
@@ -624,12 +637,12 @@ class _DesktopMiniPlayer extends StatelessWidget {
 class _CircleButton extends StatelessWidget {
   const _CircleButton({
     required this.backgroundColor,
-    required this.onTap,
     required this.child,
+    this.onTap,
   });
 
   final Color backgroundColor;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final Widget child;
 
   @override
