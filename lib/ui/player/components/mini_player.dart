@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/shell_controller.dart';
@@ -74,19 +73,12 @@ class _MobileMiniPlayer extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.18),
+                color: theme.colorScheme.surface.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.4),
-                  width: 0.8,
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 1,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 24,
-                    offset: const Offset(0, 16),
-                  ),
-                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -168,52 +160,64 @@ class _MobileMiniPlayer extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         SizedBox(
-                          width: 92,
+                          width: 96,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              SizedBox.square(
-                                dimension: 40,
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary,
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: const Center(
-                                    child: IconTheme(
-                                      data: IconThemeData(color: Colors.white),
-                                      child: AnimatedPlayButton(
-                                        iconSize: 26,
+                              Obx(() {
+                                final state = controller.buttonState.value;
+                                final isPlaying =
+                                    state == PlayButtonState.playing;
+                                final isLoading =
+                                    state == PlayButtonState.loading;
+
+                                Widget icon;
+                                if (isLoading) {
+                                  icon = SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        theme.colorScheme.primary,
                                       ),
                                     ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Obx(() {
-                                final isLastSong =
-                                    controller.currentQueue.isEmpty ||
-                                        (!(controller.isShuffleModeEnabled
-                                                .isTrue ||
-                                            controller
-                                                .isQueueLoopModeEnabled
-                                                .isTrue) &&
-                                            (controller.currentQueue.last.id ==
-                                                controller.currentSong.value
-                                                    ?.id));
-                                final color = isLastSong
-                                    ? theme.iconTheme.color
-                                        ?.withValues(alpha: 0.25)
-                                    : theme.iconTheme.color;
-                                return GestureDetector(
-                                  onTap: isLastSong ? null : controller.next,
-                                  child: Icon(
-                                    CupertinoIcons.forward_end_fill,
-                                    size: 22,
-                                    color: color,
-                                  ),
+                                  );
+                                } else {
+                                  icon = Icon(
+                                    isPlaying
+                                        ? Icons.pause_rounded
+                                        : Icons.play_arrow_rounded,
+                                    size: 20,
+                                    color: Colors.black,
+                                  );
+                                }
+
+                                return _CircleButton(
+                                  backgroundColor: Colors.white,
+                                  onTap: () {
+                                    if (isLoading) return;
+                                    isPlaying
+                                        ? controller.pause()
+                                        : controller.play();
+                                  },
+                                  child: icon,
                                 );
                               }),
+                              const SizedBox(width: 8),
+                              _CircleButton(
+                                backgroundColor:
+                                    Colors.white.withValues(alpha: 0.12),
+                                onTap: () {
+                                  controller.homeScaffoldkey.currentState
+                                      ?.openEndDrawer();
+                                },
+                                child: const Icon(
+                                  Icons.queue_music_rounded,
+                                  size: 20,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -611,6 +615,35 @@ class _DesktopMiniPlayer extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CircleButton extends StatelessWidget {
+  const _CircleButton({
+    required this.backgroundColor,
+    required this.onTap,
+    required this.child,
+  });
+
+  final Color backgroundColor;
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 36,
+      height: 36,
+      child: Material(
+        color: backgroundColor,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: Center(child: child),
         ),
       ),
     );
