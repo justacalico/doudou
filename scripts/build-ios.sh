@@ -11,6 +11,16 @@ patch_terminate_restart_swift() {
   perl -0777 -i -pe 's/^([ \t]*)if\s+let\s+flutterEngine\s*=\s*registrar\.messenger\(\)\s*as!\s*FlutterEngine\s*\{/$1if true {\n$1    let flutterEngine = registrar.messenger() as! FlutterEngine/gm' "$file"
 }
 
+patch_audiotags_ios_podspec() {
+  local podspec="$1"
+  [ -f "$podspec" ] || return 0
+
+  # audiotags podspec shipped with a broken conditional:
+  # if [ ! -d ios.zip ]d
+  # which prevents downloading the xcframework and causes undefined Rust symbols.
+  perl -i -pe 's/mkdir Frameworks/mkdir -p Frameworks/g; s/if \[ ! -d ios\.zip \]d/if [ ! -f ios.zip ]/g; s/unzip ios\.zip -d '\''audiotags\.xcframework'\''/unzip -o ios.zip -d '\''audiotags.xcframework'\''/g' "$podspec"
+}
+
 # Local vendored plugin (preferred)
 patch_terminate_restart_swift "packages/terminate_restart/ios/Classes/TerminateRestartPlugin.swift"
 
@@ -22,6 +32,13 @@ if [ -d "$HOME/.pub-cache" ]; then
   while IFS= read -r plugin_file; do
     patch_terminate_restart_swift "$plugin_file"
   done < <(find "$HOME/.pub-cache" -type f -path "*/terminate_restart*/ios/Classes/TerminateRestartPlugin.swift" 2>/dev/null || true)
+fi
+
+# Patch audiotags iOS podspec so it can actually fetch/link the Rust xcframework.
+if [ -d "$HOME/.pub-cache" ]; then
+  while IFS= read -r podspec; do
+    patch_audiotags_ios_podspec "$podspec"
+  done < <(find "$HOME/.pub-cache" -type f -path "*/audiotags*/ios/audiotags.podspec" 2>/dev/null || true)
 fi
 
 echo "iOS prebuild patch complete"
