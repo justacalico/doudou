@@ -428,9 +428,9 @@ class HomeScreenController extends GetxController {
 
       isHomeSreenOnTop.value = isHomeOnTop;
 
-      // Set miniplayer height accordingly (keep 75 when bottom nav so it stays flush with navbar)
+      // Set miniplayer height accordingly (keep 80 when bottom nav so it stays flush with navbar)
       if (!playerCon.initFlagForPlayer) {
-        playerCon.playerPanelMinHeight.value = 75.0;
+        playerCon.playerPanelMinHeight.value = 80.0;
       }
     }
   }

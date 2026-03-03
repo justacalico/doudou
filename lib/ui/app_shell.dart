@@ -65,7 +65,7 @@ class _AppShellState extends State<AppShell> {
     shellController.setUseBottomNav(useBottomNav);
 
     if (useBottomNav) {
-      const minHeight = 75.0;
+      const minHeight = 80.0;
       if (playerController.playerPanelMinHeight.value != minHeight) {
         playerController.playerPanelMinHeight.value = minHeight;
       }
