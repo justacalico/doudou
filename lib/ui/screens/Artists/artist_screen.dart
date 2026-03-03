@@ -110,12 +110,22 @@ class _TabBody extends StatelessWidget {
     return Obx(() {
       final isSelected = controller.navigationRailCurrentIndex.value == tabIndex;
       final hasContent = controller.sepataredContent.containsKey(currentTabName);
+
       if (isSelected && !hasContent) {
+        // Proactively trigger load for the initially selected tab when content
+        // hasn't been separated yet (common on non‑YouTube backends).
+        if (currentTabName == "Songs") {
+          controller.ensureSongsLoaded();
+        } else {
+          controller.onDestinationSelected(tabIndex);
+        }
         return const Center(child: LoadingIndicator());
       }
+
       if (!hasContent) {
         return const Center(child: SizedBox.shrink());
       }
+
       return SeparateTabItemWidget(
         artistControllerTag: tag,
         isResultWidget: false,

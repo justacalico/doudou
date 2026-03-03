@@ -1,11 +1,13 @@
+import 'dart:ui';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:widget_marquee/widget_marquee.dart';
 import 'package:doudou/models/playling_from.dart';
 import 'package:doudou/models/thumbnail.dart';
 import 'package:doudou/ui/widgets/playlist_album_scroll_behaviour.dart';
-import 'package:widget_marquee/widget_marquee.dart';
 
 import '../../../services/downloader.dart';
 import '../../navigator.dart';
@@ -29,436 +31,321 @@ class AlbumScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final playerController = Get.find<PlayerController>();
     final landscape = size.width > size.height;
+    final isDesktop = Theme.of(context).platform == TargetPlatform.linux ||
+        Theme.of(context).platform == TargetPlatform.macOS ||
+        Theme.of(context).platform == TargetPlatform.windows;
+    final headerHeight = isDesktop
+        ? size.height * 0.4
+        : (landscape ? size.height : size.width);
+    final showMetaOverlay = !landscape || isDesktop;
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification scrollInfo) {
           final scrollOffset = scrollInfo.metrics.pixels;
-
           if (landscape) {
             albumController.scrollOffset.value = 0;
           } else {
             albumController.scrollOffset.value = scrollOffset;
           }
-          if (scrollOffset > 270 || (landscape && scrollOffset > 225)) {
-            albumController.appBarTitleVisible.value = true;
-          } else {
-            albumController.appBarTitleVisible.value = false;
-          }
+          albumController.appBarTitleVisible.value = scrollOffset > (size.width * 0.8);
           return true;
         },
         child: Stack(
           children: [
-            Obx(
-              () => albumController.isContentFetched.isTrue
+            // Background / Header Image
+            Obx(() {
+              final album = albumController.album.value;
+              return albumController.isContentFetched.isTrue
                   ? Positioned(
-                      top: landscape
-                          ? 0
-                          : -.25 * albumController.scrollOffset.value,
-                      right: landscape ? 0 : null,
-                      child: Obx(() {
-                        final opacityValue = 1 -
-                            albumController.scrollOffset.value /
-                                (size.width - 100);
-                        return Opacity(
-                            opacity: opacityValue < 0 ||
-                                    albumController.isSearchingOn.isTrue
-                                ? 0
-                                : opacityValue,
-                            child: DecoratedBox(
-                                position: DecorationPosition.foreground,
-                                decoration: BoxDecoration(
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Theme.of(context).canvasColor,
-                                      spreadRadius: 200,
-                                      blurRadius: 100,
-                                      offset: Offset(-size.height, 0),
-                                    ),
-                                    BoxShadow(
-                                      color: Theme.of(context).canvasColor,
-                                      spreadRadius: 200,
-                                      blurRadius: 100,
-                                      offset: Offset(
-                                          0,
-                                          landscape
-                                              ? size.height
-                                              : size.width + 80),
-                                    )
+                      top: landscape ? 0 : -.3 * albumController.scrollOffset.value,
+                      left: 0,
+                      right: 0,
+                      child: Stack(
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: Thumbnail(album.thumbnailUrl).extraHigh,
+                            width: size.width,
+                            height: headerHeight,
+                            fit: BoxFit.cover,
+                          ),
+                          // Gradient Overlay
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.black.withValues(alpha: 0.2),
+                                    Colors.transparent,
+                                    theme.canvasColor.withValues(alpha: 0.8),
+                                    theme.canvasColor,
                                   ],
+                                  stops: const [0.0, 0.4, 0.8, 1.0],
                                 ),
-                                child: CachedNetworkImage(
-                                  imageUrl: Thumbnail(albumController
-                                          .album.value.thumbnailUrl)
-                                      .extraHigh,
-                                  fit: landscape
-                                      ? BoxFit.fitHeight
-                                      : BoxFit.fitWidth,
-                                  width: landscape ? null : size.width,
-                                  height: landscape ? size.height : null,
-                                  // placeholder: (context, n) => Align(
-                                  //   alignment:landscape?Alignment.centerLeft: Alignment.topCenter,
-                                  //   child: SizedBox(
-                                  //     width: landscape ? size.height : size.width,
-                                  //     height: landscape ? size.height : size.width,
-                                  //     child: Center(
-                                  //       child: Icon(Icons.album,
-                                  //           size: 150,
-                                  //           color: Theme.of(context)
-                                  //               .textTheme.titleSmall!.color
-                                  //         ),
-                                  //     ),
-                                  //   ),
-                                  // ),
-                                )));
-                      }))
-                  : SizedBox(
-                      height: size.width,
-                      width: size.width,
-                    ),
-            ),
-            Column(
-              children: [
-                Container(
-                  padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top + 10,
-                      left: 10,
-                      right: 10),
-                  height: 80,
-                  child: Center(
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 50,
-                          child: IconButton(
-                              tooltip: "back".tr,
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              icon: const Icon(Icons.arrow_back_ios)),
-                        ),
-                        Expanded(
-                          child: Obx(
-                            () => Marquee(
-                              delay: const Duration(milliseconds: 300),
-                              duration: const Duration(seconds: 5),
-                              id: "${albumController.album.value.title.hashCode.toString()}_appbar",
-                              child: Text(
-                                albumController.appBarTitleVisible.isTrue
-                                    ? albumController.album.value.title
-                                    : "",
-                                maxLines: 1,
-                                style: Theme.of(context).textTheme.titleLarge,
                               ),
                             ),
                           ),
+                          // Meta Info Overlay (only visible when not scrolled much)
+                          if (showMetaOverlay)
+                            Positioned(
+                              bottom: 40,
+                              left: 24,
+                              right: 24,
+                              child: Opacity(
+                                opacity: (1 - (albumController.scrollOffset.value / 200)).clamp(0.0, 1.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(4),
+                                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                                          ),
+                                          child: Text(
+                                            "ALBUM",
+                                            style: theme.textTheme.labelSmall?.copyWith(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 1,
+                                            ),
+                                          ),
+                                        ),
+                                        if (album.year != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(left: 8.0),
+                                            child: Text(
+                                              "• ${album.year}",
+                                              style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      album.title,
+                                      style: theme.textTheme.headlineMedium?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        height: 1.1,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      album.artists?.map((e) => e['name']).join(", ") ?? "",
+                                      style: theme.textTheme.titleMedium?.copyWith(color: Colors.white70),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink();
+            }),
+
+            // Main Content
+            Obx(() => ScrollConfiguration(
+              behavior: PlaylistAlbumScrollBehaviour(),
+              child: ListView.builder(
+                padding: EdgeInsets.only(
+                  top: isDesktop
+                      ? headerHeight - 60
+                      : (landscape ? 0 : headerHeight - 60),
+                  bottom: 120,
+                ),
+                itemCount: albumController.isContentFetched.isFalse || albumController.songList.isEmpty
+                    ? 1
+                    : albumController.songList.length + 2,
+                itemBuilder: (context, index) {
+                  if (albumController.isContentFetched.isFalse) {
+                    return const SizedBox(height: 300, child: Center(child: LoadingIndicator()));
+                  }
+                  if (albumController.songList.isEmpty) {
+                    return SizedBox(height: 300, child: Center(child: Text("emptyPlaylist".tr)));
+                  }
+
+                  if (index == 0) {
+                    // Action Buttons Row
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              final add = albumController.isAddedToLibrary.isFalse;
+                              albumController.addNremoveFromLibrary(albumController.album.value, add: add).then((value) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(snackbar(
+                                  context,
+                                  value ? (add ? "albumBookmarkAddAlert".tr : "albumBookmarkRemoveAlert".tr) : "operationFailed".tr,
+                                  size: SnackBarSize.MEDIUM,
+                                ));
+                              });
+                            },
+                            icon: Icon(albumController.isAddedToLibrary.isTrue ? Icons.bookmark : Icons.bookmark_border),
+                          ),
+                          GetX<Downloader>(builder: (controller) {
+                            final id = albumController.album.value.browseId;
+                            return IconButton(
+                              onPressed: () {
+                                if (albumController.isDownloaded.isTrue) return;
+                                controller.downloadPlaylist(id, albumController.songList.toList());
+                              },
+                              icon: albumController.isDownloaded.isTrue ? const Icon(Icons.download_done) : const Icon(Icons.file_download_outlined),
+                            );
+                          }),
+                          IconButton(onPressed: () {}, icon: const Icon(Icons.share_outlined)),
+                          const Spacer(),
+                          IconButton(
+                            onPressed: () {
+                              final songsToplay = List<MediaItem>.from(albumController.songList);
+                              songsToplay.shuffle();
+                              playerController.playPlayListSong(songsToplay, 0, playfrom: PlaylingFrom(name: albumController.album.value.title, type: PlaylingFromType.ALBUM));
+                            },
+                            icon: const Icon(Icons.shuffle, size: 20, color: Colors.white38),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {
+                              playerController.playPlayListSong(List<MediaItem>.from(albumController.songList), 0, playfrom: PlaylingFrom(name: albumController.album.value.title, type: PlaylingFromType.ALBUM));
+                            },
+                            child: Container(
+                              width: 56,
+                              height: 56,
+                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))]),
+                              child: const Icon(Icons.play_arrow_rounded, color: Colors.black, size: 32),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (index == 1) {
+                    // Sorting and Search
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: SortWidget(
+                        tag: albumController.album.value.browseId,
+                        screenController: albumController,
+                        isSearchFeatureRequired: true,
+                        itemCountTitle: "${albumController.songList.length}",
+                        itemIcon: Icons.music_note,
+                        titleLeftPadding: 9,
+                        requiredSortTypes: buildSortTypeSet(false, true),
+                        onSort: albumController.onSort,
+                        onSearch: albumController.onSearch,
+                        onSearchClose: albumController.onSearchClose,
+                        onSearchStart: albumController.onSearchStart,
+                        startAdditionalOperation: albumController.startAdditionalOperation,
+                        selectAll: albumController.selectAll,
+                        performAdditionalOperation: albumController.performAdditionalOperation,
+                        cancelAdditionalOperation: albumController.cancelAdditionalOperation,
+                      ),
+                    );
+                  }
+
+                  final songIndex = index - 2;
+                  final song = albumController.songList[songIndex];
+                  return Obx(() => SongListTile(
+                    onTap: () {
+                      playerController.playPlayListSong(List<MediaItem>.from(albumController.songList), songIndex, playfrom: PlaylingFrom(name: albumController.album.value.title, type: PlaylingFromType.ALBUM));
+                    },
+                    song: song,
+                    isPlaylistOrAlbum: true,
+                    thumbReplacementWithIndex: true,
+                    index: songIndex + 1,
+                    isActive: playerController.currentSong.value?.id == song.id,
+                  ));
+                },
+              ),
+            )),
+
+            // Top Navigation Bar
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: albumController.appBarTitleVisible.value ? 10 : 0,
+                    sigmaY: albumController.appBarTitleVisible.value ? 10 : 0,
+                  ),
+                  child: Container(
+                    height: 100,
+                    padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, left: 16, right: 16),
+                    color: albumController.appBarTitleVisible.value ? theme.canvasColor.withValues(alpha: 0.8) : Colors.transparent,
+                    child: Row(
+                      children: [
+                        _blurButton(
+                          icon: Icons.chevron_left,
+                          onPressed: () => Navigator.of(context).pop(),
+                          visible: !albumController.appBarTitleVisible.value,
+                        ),
+                        if (albumController.appBarTitleVisible.value)
+                          IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.chevron_left)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Opacity(
+                            opacity: albumController.appBarTitleVisible.value ? 1.0 : 0.0,
+                            child: Text(
+                              albumController.album.value.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                        _blurButton(
+                          icon: Icons.more_vert,
+                          onPressed: () {},
+                          visible: !albumController.appBarTitleVisible.value,
                         ),
                       ],
                     ),
                   ),
                 ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: 800,
-                      ),
-                      child: Obx(
-                        () => ScrollConfiguration(
-                          behavior: PlaylistAlbumScrollBehaviour(),
-                          child: ListView.builder(
-                            padding: EdgeInsets.only(
-                              top: albumController.isSearchingOn.isTrue
-                                  ? 0
-                                  : landscape
-                                      ? 150
-                                      : 200,
-                              bottom: 200,
-                            ),
-                            itemCount: albumController.songList.isEmpty
-                                ? 4
-                                : albumController.songList.length + 3,
-                            itemBuilder: (_, index) {
-                              if (index == 0) {
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                      left:
-                                          GetPlatform.isDesktop ? 15.0 : 10.0),
-                                  child: SizedBox(
-                                      height: 40,
-                                      child: Row(
-                                        children: [
-                                          // Bookmark button
-                                          Obx(() => IconButton(
-                                            tooltip: albumController
-                                                      .isAddedToLibrary.isFalse
-                                                  ? "addToLibrary".tr
-                                                  : "removeFromLibrary".tr,
-                                              splashRadius: 10,
-                                              onPressed: () {
-                                                final add = albumController
-                                                    .isAddedToLibrary.isFalse;
-                                                albumController
-                                                    .addNremoveFromLibrary(
-                                                        albumController
-                                                            .album.value,
-                                                        add: add)
-                                                    .then((value) {
-                                                  if (!context.mounted) return;
-
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(snackbar(
-                                                          context,
-                                                          value
-                                                              ? add
-                                                                  ? "albumBookmarkAddAlert"
-                                                                      .tr
-                                                                  : "albumBookmarkRemoveAlert"
-                                                                      .tr
-                                                              : "operationFailed"
-                                                                  .tr,
-                                                          size: SnackBarSize
-                                                              .MEDIUM));
-                                                });
-                                              },
-                                              icon: Icon(albumController
-                                                      .isAddedToLibrary.isFalse
-                                                  ? Icons.bookmark_add
-                                                  : Icons.bookmark_added))),
-                                          // Play button
-                                          IconButton(
-                                            tooltip: "play".tr,
-                                              onPressed: () {
-                                                playerController
-                                                    .playPlayListSong(
-                                                        List<MediaItem>.from(
-                                                            albumController
-                                                                .songList),
-                                                        0,
-                                                        playfrom: PlaylingFrom(
-                                                            name:
-                                                                albumController
-                                                                    .album
-                                                                    .value
-                                                                    .title,
-                                                            type:
-                                                                PlaylingFromType
-                                                                    .ALBUM));
-                                              },
-                                              icon: Icon(
-                                                Icons.play_circle,
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .titleMedium!
-                                                    .color,
-                                              )),
-                                          // Enqueue button
-                                          IconButton(
-                                            tooltip: "enqueueAlbumSongs".tr,
-                                              onPressed: () {
-                                                Get.find<PlayerController>()
-                                                    .enqueueSongList(
-                                                        albumController.songList
-                                                            .toList())
-                                                    .whenComplete(() {
-                                                  if (context.mounted) {
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .showSnackBar(snackbar(
-                                                            context,
-                                                            "songEnqueueAlert"
-                                                                .tr,
-                                                            size: SnackBarSize
-                                                                .MEDIUM));
-                                                  }
-                                                });
-                                              },
-                                              icon: Icon(
-                                                Icons.merge,
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .titleMedium!
-                                                    .color,
-                                              )),
-
-                                          // Download button
-                                          GetX<Downloader>(
-                                              builder: (controller) {
-                                            final id = albumController
-                                                .album.value.browseId;
-                                            return IconButton(
-                                              tooltip: "downloadAlbumSongs".tr,
-                                              onPressed: () {
-                                                if (albumController
-                                                    .isDownloaded.isTrue) {
-                                                  return;
-                                                }
-                                                controller.downloadPlaylist(
-                                                    id,
-                                                    albumController.songList
-                                                        .toList());
-                                              },
-                                              icon: albumController
-                                                      .isDownloaded.isTrue
-                                                  ? const Icon(
-                                                      Icons.download_done)
-                                                  : controller.playlistQueue
-                                                              .containsKey(
-                                                                  id) &&
-                                                          controller
-                                                                  .currentPlaylistId
-                                                                  .toString() ==
-                                                              id
-                                                      ? Stack(
-                                                          children: [
-                                                            Center(
-                                                                child: Text(
-                                                                    "${controller.playlistDownloadingProgress.value}/${albumController.songList.length}",
-                                                                    style: Theme.of(
-                                                                            context)
-                                                                        .textTheme
-                                                                        .titleMedium!
-                                                                        .copyWith(
-                                                                            fontSize:
-                                                                                10,
-                                                                            fontWeight:
-                                                                                FontWeight.bold))),
-                                                            const Center(
-                                                                child:
-                                                                    LoadingIndicator(
-                                                              dimension: 30,
-                                                            ))
-                                                          ],
-                                                        )
-                                                      : controller.playlistQueue
-                                                              .containsKey(id)
-                                                          ? const Stack(
-                                                              children: [
-                                                                Center(
-                                                                    child: Icon(
-                                                                  Icons
-                                                                      .hourglass_bottom,
-                                                                  size: 20,
-                                                                )),
-                                                                Center(
-                                                                    child:
-                                                                        LoadingIndicator(
-                                                                  dimension: 30,
-                                                                ))
-                                                              ],
-                                                            )
-                                                          : const Icon(
-                                                              Icons.download),
-                                            );
-                                          }),
-
-                                          // if (albumController
-                                          //     .isAddedToLibrary.isTrue)
-                                          //   IconButton(
-                                          //       onPressed: () {
-                                          //         albumController
-                                          //             .syncPlaylistSongs();
-                                          //       },
-                                          //       icon: const Icon(
-                                          //           Icons.cloud_sync)),
-
-                                        ],
-                                      )),
-                                );
-                              } else if (index == 1) {
-                                return buildTitleSubTitle(
-                                    context, albumController);
-                              } else if (index == 2) {
-                                return SizedBox(
-                                    height: albumController.isSearchingOn.isTrue
-                                        ? 60
-                                        : 40,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: 15.0, right: 10),
-                                      child: Obx(
-                                        () => SortWidget(
-                                          tag: albumController
-                                              .album.value.browseId,
-                                          screenController: albumController,
-                                          isSearchFeatureRequired: true,
-                                          itemCountTitle:
-                                              "${albumController.songList.length}",
-                                          itemIcon: Icons.music_note,
-                                          titleLeftPadding: 9,
-                                          requiredSortTypes:
-                                              buildSortTypeSet(false, true),
-                                          onSort: albumController.onSort,
-                                          onSearch: albumController.onSearch,
-                                          onSearchClose:
-                                              albumController.onSearchClose,
-                                          onSearchStart:
-                                              albumController.onSearchStart,
-                                          startAdditionalOperation:
-                                              albumController
-                                                  .startAdditionalOperation,
-                                          selectAll: albumController.selectAll,
-                                          performAdditionalOperation:
-                                              albumController
-                                                  .performAdditionalOperation,
-                                          cancelAdditionalOperation:
-                                              albumController
-                                                  .cancelAdditionalOperation,
-                                        ),
-                                      ),
-                                    ));
-                              } else if (albumController
-                                      .isContentFetched.isFalse ||
-                                  albumController.songList.isEmpty) {
-                                return SizedBox(
-                                  height: 300,
-                                  child: Center(
-                                    child:
-                                        albumController.isContentFetched.isFalse
-                                            ? const LoadingIndicator()
-                                            : Text(
-                                                "emptyPlaylist".tr,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleSmall,
-                                              ),
-                                  ),
-                                );
-                              }
-
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 20.0, right: 5),
-                                child: SongListTile(
-                                    onTap: () {
-                                      playerController.playPlayListSong(
-                                          List<MediaItem>.from(
-                                              albumController.songList),
-                                          index - 3,
-                                          playfrom: PlaylingFrom(
-                                              name: albumController
-                                                  .album.value.title,
-                                              type: PlaylingFromType.ALBUM));
-                                    },
-                                    song: albumController.songList[index - 3],
-                                    isPlaylistOrAlbum: true,
-                                    thumbReplacementWithIndex: true,
-                                    index: index - 2),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _blurButton({required IconData icon, required VoidCallback onPressed, bool visible = true}) {
+    if (!visible) return const SizedBox(width: 40);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.2),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            onPressed: onPressed,
+            icon: Icon(icon, color: Colors.white, size: 20),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
   Widget buildTitleSubTitle(
       BuildContext context, AlbumScreenController albumController) {
@@ -552,4 +439,3 @@ class AlbumScreen extends StatelessWidget {
       builder: (context) => SongInfoBottomSheet(song),
     ).whenComplete(() => Get.delete<SongInfoController>());
   }
-}

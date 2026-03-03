@@ -22,11 +22,13 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
       this.playlist,
       this.isPlaylistOrAlbum = false,
       this.thumbReplacementWithIndex = false,
+      this.isActive = false,
       this.index});
   final Playlist? playlist;
   final MediaItem song;
   final VoidCallback? onTap;
   final bool isPlaylistOrAlbum;
+  final bool isActive;
 
   /// Valid for Album songs
   final bool thumbReplacementWithIndex;
@@ -35,6 +37,8 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
   @override
   Widget build(BuildContext context) {
     final playerController = Get.find<PlayerController>();
+    final theme = Theme.of(context);
+    
     return Listener(
         onPointerDown: (PointerDownEvent event) {
           if (event.buttons == kSecondaryMouseButton) {
@@ -65,8 +69,8 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                   builder: (context) => AddToPlaylist([song]),
                 ).whenComplete(() => Get.delete<AddToPlaylistController>());
               },
-              backgroundColor: Theme.of(context).colorScheme.secondary,
-              foregroundColor: Theme.of(context).textTheme.titleMedium!.color,
+              backgroundColor: theme.colorScheme.secondary,
+              foregroundColor: theme.textTheme.titleMedium!.color,
               icon: Icons.playlist_add,
               //label: 'Add to playlist',
             ),
@@ -75,8 +79,8 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                 onPressed: (context) {
                   removeSongFromPlaylist(song, playlist!);
                 },
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                foregroundColor: Theme.of(context).textTheme.titleMedium!.color,
+                backgroundColor: theme.colorScheme.secondary,
+                foregroundColor: theme.textTheme.titleMedium!.color,
                 icon: Icons.delete,
                 //label: 'delete',
               ),
@@ -89,8 +93,8 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                       size: SnackBarSize.MEDIUM);
                 });
               },
-              backgroundColor: Theme.of(context).colorScheme.secondary,
-              foregroundColor: Theme.of(context).textTheme.titleMedium!.color,
+              backgroundColor: theme.colorScheme.secondary,
+              foregroundColor: theme.textTheme.titleMedium!.color,
               icon: Icons.merge,
               //label: 'Enqueue',
             ),
@@ -100,83 +104,88 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                 showAppSnackBar("${"playnextMsg".tr} ${(song).title}",
                     size: SnackBarSize.BIG);
               },
-              backgroundColor: Theme.of(context).colorScheme.secondary,
-              foregroundColor: Theme.of(context).textTheme.titleMedium!.color,
+              backgroundColor: theme.colorScheme.secondary,
+              foregroundColor: theme.textTheme.titleMedium!.color,
               icon: Icons.next_plan_outlined,
               //label: 'Play Next',
             ),
           ]),
-          child: ListTile(
-            onTap: onTap,
-            onLongPress: () async {
-              showModalBottomSheet(
-                constraints: const BoxConstraints(maxWidth: 500),
-                shape: const RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(10.0)),
-                ),
-                isScrollControlled: true,
-                context: Get.find<ShellController>().overlayContextOrFallback!,
-                barrierColor: Colors.transparent.withAlpha(100),
-                builder: (context) => SongInfoBottomSheet(
-                  song,
-                  playlist: playlist,
-                ),
-              ).whenComplete(() => Get.delete<SongInfoController>());
-            },
-            contentPadding: const EdgeInsets.only(top: 0, left: 5, right: 30),
-            leading: thumbReplacementWithIndex
-                ? SizedBox(
-                    width: 27.5,
-                    height: 55,
-                    child: Center(
-                      child: Text(
-                        "$index.",
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                  )
-                : ImageWidget(
-                    size: 55,
-                    song: song,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+            decoration: BoxDecoration(
+              color: isActive ? theme.colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+              border: isActive 
+                  ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2), width: 1)
+                  : null,
+            ),
+            child: ListTile(
+              onTap: onTap,
+              onLongPress: () async {
+                showModalBottomSheet(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(10.0)),
                   ),
-            title: Marquee(
-              delay: const Duration(milliseconds: 300),
-              duration: const Duration(seconds: 5),
-              id: song.title.hashCode.toString(),
-              child: Text(
-                song.title.length > 50
-                    ? song.title.substring(0, 50)
-                    : song.title,
-                maxLines: 1,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            subtitle: Text(
-              "${song.artist}",
-              maxLines: 1,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            trailing: SizedBox(
-              width: Get.size.width > 800 ? 80 : 40,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (isPlaylistOrAlbum)
-                        Obx(() =>
-                            playerController.currentSong.value?.id == song.id
-                                ? const Icon(
-                                    Icons.equalizer,
-                                  )
-                                : const SizedBox.shrink()),
-                      Text(
-                        song.extras!['length'] ?? "",
-                        style: Theme.of(context).textTheme.titleSmall,
+                  isScrollControlled: true,
+                  context: Get.find<ShellController>().overlayContextOrFallback!,
+                  barrierColor: Colors.transparent.withAlpha(100),
+                  builder: (context) => SongInfoBottomSheet(
+                    song,
+                    playlist: playlist,
+                  ),
+                ).whenComplete(() => Get.delete<SongInfoController>());
+              },
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              leading: thumbReplacementWithIndex
+                  ? SizedBox(
+                      width: 24,
+                      child: Center(
+                        child: Text(
+                          "$index",
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                            color: isActive ? theme.colorScheme.primary : theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                          ),
+                        ),
                       ),
-                    ],
+                    )
+                  : ImageWidget(
+                      size: 48,
+                      song: song,
+                    ),
+              title: Text(
+                song.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                  fontSize: 14,
+                  color: isActive ? theme.colorScheme.primary : null,
+                ),
+              ),
+              subtitle: Text(
+                "${song.artist}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isActive)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Icon(Icons.equalizer, size: 16, color: theme.colorScheme.primary),
+                    ),
+                  Text(
+                    song.extras!['length'] ?? "",
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                    ),
                   ),
                   if (GetPlatform.isDesktop)
                     IconButton(
@@ -199,7 +208,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                           ).whenComplete(
                               () => Get.delete<SongInfoController>());
                         },
-                        icon: const Icon(Icons.more_vert))
+                        icon: const Icon(Icons.more_vert, size: 20))
                 ],
               ),
             ),

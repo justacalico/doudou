@@ -64,55 +64,51 @@ class _MobileMiniPlayer extends StatelessWidget {
     final song = controller.currentSong.value;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Align(
         alignment: Alignment.topCenter,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(24),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
             child: Container(
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(22),
+                color: theme.brightness == Brightness.dark 
+                    ? const Color(0xFF1C1C1E).withValues(alpha: 0.9)
+                    : Colors.white.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.08),
-                  width: 1,
+                  width: 0.5,
                 ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    height: 3,
-                    child: GetX<PlayerController>(
-                      init: controller,
-                      builder: (c) => MiniPlayerProgressBar(
-                        progressBarStatus: c.progressBarStatus.value,
-                        progressBarColor:
-                            theme.colorScheme.primary.withValues(alpha: 0.9),
-                      ),
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
                   ),
+                ],
+              ),
+              child: Stack(
+                children: [
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
                     child: Row(
                       children: [
                         if (song != null)
                           GestureDetector(
                             onTap: controller.playerPanelController.open,
-                            child: ImageWidget(
-                              size: 44,
-                              song: song,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: ImageWidget(
+                                size: 48,
+                                song: song,
+                              ),
                             ),
                           )
                         else
-                          const SizedBox(
-                            height: 44,
-                            width: 44,
-                          ),
-                        const SizedBox(width: 10),
+                          const SizedBox(height: 48, width: 48),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
@@ -133,25 +129,16 @@ class _MobileMiniPlayer extends StatelessWidget {
                                   song?.title ?? '',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: textTheme.titleMedium,
+                                  style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
                                 ),
                                 const SizedBox(height: 2),
-                                SizedBox(
-                                  height: 18,
-                                  child: Marquee(
-                                    id: "${song}_mini",
-                                    delay:
-                                        const Duration(milliseconds: 400),
-                                    duration: const Duration(seconds: 6),
-                                    child: Text(
-                                      song?.artist ?? '',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: textTheme.bodySmall?.color
-                                            ?.withValues(alpha: 0.8),
-                                      ),
-                                    ),
+                                Text(
+                                  song?.artist ?? '',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    fontSize: 11,
+                                    color: textTheme.bodySmall?.color?.withValues(alpha: 0.6),
                                   ),
                                 ),
                               ],
@@ -159,82 +146,59 @@ class _MobileMiniPlayer extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        SizedBox(
-                          width: 96,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Obx(() {
-                                final state = controller.buttonState.value;
-                                final isPlaying =
-                                    state == PlayButtonState.playing;
-                                final isLoading =
-                                    state == PlayButtonState.loading;
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Obx(() {
+                              final state = controller.buttonState.value;
+                              final isPlaying = state == PlayButtonState.playing;
+                              final isLoading = state == PlayButtonState.loading;
 
-                                Widget icon;
-                                if (isLoading) {
-                                  icon = SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        theme.colorScheme.primary,
+                              return IconButton(
+                                iconSize: 28,
+                                onPressed: () {
+                                  if (isLoading) return;
+                                  isPlaying ? controller.pause() : controller.play();
+                                },
+                                icon: isLoading
+                                    ? SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                                        ),
+                                      )
+                                    : Icon(
+                                        isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                        color: theme.iconTheme.color,
                                       ),
-                                    ),
-                                  );
-                                } else {
-                                  icon = Icon(
-                                    isPlaying
-                                        ? Icons.pause_rounded
-                                        : Icons.play_arrow_rounded,
-                                    size: 20,
-                                    color: Colors.black,
-                                  );
-                                }
-
-                                return _CircleButton(
-                                  backgroundColor: Colors.white,
-                                  onTap: () {
-                                    if (isLoading) return;
-                                    isPlaying
-                                        ? controller.pause()
-                                        : controller.play();
-                                  },
-                                  child: icon,
-                                );
-                              }),
-                              const SizedBox(width: 8),
-                              Obx(() {
-                                final isLastSong =
-                                    controller.currentQueue.isEmpty ||
-                                        (!(controller.isShuffleModeEnabled
-                                                .isTrue ||
-                                            controller.isQueueLoopModeEnabled
-                                                .isTrue) &&
-                                            (controller.currentQueue.last.id ==
-                                                controller.currentSong.value
-                                                    ?.id));
-                                final iconColor = Colors.white.withValues(
-                                  alpha: isLastSong ? 0.35 : 1.0,
-                                );
-                                final bg = Colors.white.withValues(
-                                  alpha: isLastSong ? 0.06 : 0.12,
-                                );
-                                return _CircleButton(
-                                  backgroundColor: bg,
-                                  onTap: isLastSong ? null : controller.next,
-                                  child: Icon(
-                                    Icons.skip_next_rounded,
-                                    size: 20,
-                                    color: iconColor,
-                                  ),
-                                );
-                              }),
-                            ],
-                          ),
+                              );
+                            }),
+                            IconButton(
+                              iconSize: 28,
+                              onPressed: controller.next,
+                              icon: Icon(Icons.skip_next_rounded, color: theme.iconTheme.color),
+                            ),
+                          ],
                         ),
                       ],
+                    ),
+                  ),
+                  // Progress bar at the bottom
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: SizedBox(
+                      height: 2,
+                      child: GetX<PlayerController>(
+                        init: controller,
+                        builder: (c) => MiniPlayerProgressBar(
+                          progressBarStatus: c.progressBarStatus.value,
+                          progressBarColor: theme.colorScheme.primary,
+                        ),
+                      ),
                     ),
                   ),
                 ],

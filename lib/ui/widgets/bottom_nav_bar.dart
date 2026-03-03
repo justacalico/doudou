@@ -26,18 +26,22 @@ class BottomNavBar extends StatelessWidget {
       final items = [
         _NavItem(
           icon: Icons.home_rounded,
+          outlinedIcon: Icons.home_outlined,
           label: modifyNgetlabel('home'.tr),
         ),
         _NavItem(
           icon: Icons.search_rounded,
+          outlinedIcon: Icons.search_outlined,
           label: modifyNgetlabel('search'.tr),
         ),
         _NavItem(
           icon: Icons.library_music_rounded,
+          outlinedIcon: Icons.library_music_outlined,
           label: modifyNgetlabel('library'.tr),
         ),
         _NavItem(
           icon: Icons.settings_rounded,
+          outlinedIcon: Icons.settings_outlined,
           label: modifyNgetlabel('settings'.tr),
         ),
       ];
@@ -45,32 +49,35 @@ class BottomNavBar extends StatelessWidget {
       return Center(
         child: Padding(
           padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            bottom: MediaQuery.of(context).padding.bottom,
+            left: 20,
+            right: 20,
+            bottom: MediaQuery.of(context).padding.bottom + 10,
           ),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
+            constraints: const BoxConstraints(maxWidth: 500),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(32),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
                 child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: iconOnly ? 12 : 18,
-                    vertical: iconOnly ? 8 : 10,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: dockColor,
+                    color: theme.brightness == Brightness.dark 
+                        ? const Color(0xFF1C1C1E).withValues(alpha: 0.85)
+                        : Colors.white.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(32),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.08),
-                      width: 1,
+                      width: 0.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 20,
-                        offset: const Offset(0, 12),
+                        color: Colors.black.withValues(alpha: 0.4),
+                        blurRadius: 24,
+                        offset: const Offset(0, 10),
                       ),
                     ],
                   ),
@@ -79,15 +86,7 @@ class BottomNavBar extends StatelessWidget {
                     children: List.generate(items.length, (index) {
                       final selected = index == safeIdx;
                       final item = items[index];
-                      final iconColor = selected
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.4);
-                      final labelStyle = theme.textTheme.labelSmall?.copyWith(
-                        color: selected
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.4),
-                        fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                      );
+                      
                       return Expanded(
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
@@ -96,54 +95,42 @@ class BottomNavBar extends StatelessWidget {
                             HapticFeedback.selectionClick();
                             homeScreenController.onBottonBarTabSelected(index);
                           },
-                          child: TweenAnimationBuilder<double>(
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOut,
-                            tween: Tween<double>(
-                              begin: 0.0,
-                              end: selected ? 1.0 : 0.0,
-                            ),
-                            builder: (context, value, _) {
-                              final scale = 1.0 + 0.1 * value;
-                              return AnimatedContainer(
-                                duration: const Duration(milliseconds: 220),
-                                curve: Curves.easeOut,
-                                padding: EdgeInsets.symmetric(
-                                  vertical: iconOnly ? 6 : 8,
-                                  horizontal: iconOnly ? 10 : 14,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 250),
+                                curve: Curves.easeInOut,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                  horizontal: 16,
                                 ),
                                 decoration: BoxDecoration(
                                   color: selected
-                                      ? theme.colorScheme.primary
-                                          .withValues(alpha: 0.18)
+                                      ? theme.colorScheme.primary.withValues(alpha: 0.15)
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Transform.scale(
-                                      scale: scale,
-                                      child: Icon(
-                                        item.icon,
-                                        size: 20,
-                                        color: iconColor,
-                                      ),
-                                    ),
-                                    if (!iconOnly)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 4),
-                                        child: Text(
-                                          item.label,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: labelStyle,
-                                        ),
-                                      ),
-                                  ],
+                                child: Icon(
+                                  selected ? item.icon : item.outlinedIcon,
+                                  size: 22,
+                                  color: selected
+                                      ? theme.colorScheme.primary
+                                      : theme.iconTheme.color?.withValues(alpha: 0.4),
                                 ),
-                              );
-                            },
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item.label,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  fontSize: 10,
+                                  fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                                  color: selected
+                                      ? theme.colorScheme.primary
+                                      : theme.textTheme.labelSmall?.color?.withValues(alpha: 0.4),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -167,8 +154,9 @@ class BottomNavBar extends StatelessWidget {
 }
 
 class _NavItem {
-  _NavItem({required this.icon, required this.label});
+  _NavItem({required this.icon, required this.outlinedIcon, required this.label});
 
   final IconData icon;
+  final IconData outlinedIcon;
   final String label;
 }

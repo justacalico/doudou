@@ -51,50 +51,55 @@ class SettingsScreen extends GetView<SettingsScreenController> {
           ? EdgeInsets.only(left: kContentLeftPaddingWithBottomNav, top: topPadding, right: kContentRightPaddingSettingsWithBottomNav)
           : EdgeInsets.only(top: topPadding, left: kContentLeftPaddingWithoutBottomNav, right: kContentLeftPaddingWithoutBottomNav),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
             child: Text(
               "settings".tr,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
           Expanded(
               child: ListView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: kSettingsListBottomPadding, top: kSettingsListTopPadding),
+            padding: const EdgeInsets.only(bottom: kSettingsListBottomPadding + 20, top: kSettingsListTopPadding),
             children: [
               Obx(
                 () => settingsController.isNewVersionAvailable.value
                     ? Padding(
                         padding: const EdgeInsets.only(
-                            top: 8.0, right: 10, bottom: 8.0),
-                        child: Material(
-                          type: MaterialType.transparency,
-                          child: ListTile(
-                            onTap: () {
-                              launchUrl(
-                                Uri.parse('https://openlyst.ink/'),
-                                mode: LaunchMode.externalApplication,
-                              );
-                            },
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                            tileColor: Theme.of(context).colorScheme.secondary,
-                            contentPadding:
-                                const EdgeInsets.only(left: 8, right: 10),
-                            leading:
-                                const CircleAvatar(child: Icon(Icons.download)),
-                            title: Text("newVersionAvailable".tr),
-                            visualDensity: const VisualDensity(horizontal: -2),
-                            subtitle: Text(
-                              "goToDownloadPage".tr,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium!
-                                  .copyWith(
-                                      color: Colors.white70, fontSize: 13),
+                            top: 8.0, right: 8, bottom: 16.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: ListTile(
+                              onTap: () {
+                                launchUrl(
+                                  Uri.parse('https://openlyst.ink/'),
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              },
+                              tileColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              leading: CircleAvatar(
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                child: const Icon(Icons.download, color: Colors.white)),
+                              title: Text("newVersionAvailable".tr, style: const TextStyle(fontWeight: FontWeight.w600)),
+                              visualDensity: const VisualDensity(horizontal: -2),
+                              subtitle: Text(
+                                "goToDownloadPage".tr,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .copyWith(
+                                        color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13),
+                              ),
                             ),
                           ),
                         ),
@@ -112,7 +117,7 @@ class SettingsScreen extends GetView<SettingsScreenController> {
               ),
               CustomExpansionTile(
                   title: "content".tr,
-                  icon: Icons.music_video,
+                  icon: Icons.movie_outlined,
                   expansionKey: sectionKeys[1],
                   onExpansionChanged: (expanded) =>
                       handleSectionExpansion(1, expanded),
@@ -124,7 +129,7 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       if (!isYt) return const SizedBox.shrink();
                       return ListTile(
                         contentPadding:
-                            const EdgeInsets.only(left: 5, right: 10),
+                            const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("setDiscoverContent".tr),
                         subtitle: Obx(() => Text(
                             settingsController.discoverContentType.value == "QP"
@@ -137,7 +142,9 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                             "TR"
                                         ? "trending".tr
                                         : "basedOnLast".tr,
-                            style: Theme.of(context).textTheme.bodyMedium)),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            ))),
                         onTap: () => showDialog(
                           context: context,
                           builder: (context) =>
@@ -152,13 +159,16 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       if (!isYt) return const SizedBox.shrink();
                       return ListTile(
                         contentPadding:
-                            const EdgeInsets.only(left: 5, right: 10),
+                            const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("homeContentCount".tr),
                         subtitle: Text("homeContentCountDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                         trailing: Obx(
                           () => DropdownButton(
                             dropdownColor: Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(16),
                             underline: const SizedBox.shrink(),
                             value:
                                 settingsController.noOfHomeScreenContent.value,
@@ -174,15 +184,18 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     if (isDesktop)
                       ListTile(
                         contentPadding:
-                            const EdgeInsets.only(left: 5, right: 10),
+                            const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("sidebarMode".tr),
                         subtitle: Text(
                           "sidebarModeDes".tr,
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          ),
                         ),
                         trailing: Obx(
                           () => DropdownButton<SidebarMode>(
                             dropdownColor: Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(16),
                             underline: const SizedBox.shrink(),
                             value: settingsController.sidebarMode.value,
                             items: [
@@ -205,10 +218,12 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       ),
                     ListTile(
                         contentPadding:
-                            const EdgeInsets.only(left: 5, right: 10),
+                            const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("cacheHomeScreenData".tr),
                         subtitle: Text("cacheHomeScreenDataDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                         trailing: Obx(
                           () => CustSwitch(
                               value:
@@ -223,10 +238,12 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       if (!isYt) return const SizedBox.shrink();
                       return ListTile(
                         contentPadding:
-                            const EdgeInsets.only(left: 5, right: 10, top: 0),
+                            const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("Piped".tr),
                         subtitle: Text("linkPipedDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                         trailing: TextButton(
                             child: Obx(() => Text(
                                   settingsController.isLinkedWithPiped.value
@@ -235,7 +252,7 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleMedium!
-                                      .copyWith(fontSize: 15),
+                                      .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
                                 )),
                             onPressed: () {
                               if (settingsController.isLinkedWithPiped.isFalse) {
@@ -258,18 +275,19 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                         return const SizedBox.shrink();
                       }
                       return ListTile(
-                        contentPadding: const EdgeInsets.only(
-                            left: 5, right: 10, top: 0),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("resetblacklistedplaylist".tr),
                         subtitle: Text("resetblacklistedplaylistDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                         trailing: TextButton(
                             child: Text(
                               "reset".tr,
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium!
-                                  .copyWith(fontSize: 15),
+                                  .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
                             ),
                             onPressed: () async {
                               await Get.find<LibraryPlaylistsController>()
@@ -282,13 +300,14 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       );
                     }),
                     ListTile(
-                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("clearImgCache".tr),
                       subtitle: Text(
                         "clearImgCacheDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        ),
                       ),
-                      isThreeLine: true,
                       onTap: () {
                         settingsController.clearImagesCache().then((value) =>
                             ScaffoldMessenger.of(Get.context!).showSnackBar(
@@ -299,19 +318,22 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                   ]),
               CustomExpansionTile(
                 title: "music&Playback".tr,
-                icon: Icons.music_note,
+                icon: Icons.music_note_outlined,
                 expansionKey: sectionKeys[2],
                 onExpansionChanged: (expanded) =>
                     handleSectionExpansion(2, expanded),
                 children: [
                   ListTile(
-                    contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     title: Text("streamingQuality".tr),
                     subtitle: Text("streamingQualityDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        )),
                     trailing: Obx(
                       () => DropdownButton(
                         dropdownColor: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(16),
                         underline: const SizedBox.shrink(),
                         value: settingsController.streamingQuality.value,
                         items: [
@@ -329,10 +351,12 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                   if (GetPlatform.isAndroid)
                     ListTile(
                         contentPadding:
-                            const EdgeInsets.only(left: 5, right: 10),
+                            const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("loudnessNormalization".tr),
                         subtitle: Text("loudnessNormalizationDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                         trailing: Obx(
                           () => CustSwitch(
                               value: settingsController
@@ -343,10 +367,12 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                   if (!isDesktop)
                     ListTile(
                         contentPadding:
-                            const EdgeInsets.only(left: 5, right: 10),
+                            const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("cacheSongs".tr),
                         subtitle: Text("cacheSongsDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                         trailing: Obx(
                           () => CustSwitch(
                               value: settingsController.cacheSongs.value,
@@ -356,10 +382,12 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                   if (!isDesktop)
                     ListTile(
                         contentPadding:
-                            const EdgeInsets.only(left: 5, right: 10),
+                            const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("skipSilence".tr),
                         subtitle: Text("skipSilenceDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                         trailing: Obx(
                           () => CustSwitch(
                               value:
@@ -369,10 +397,12 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                   if (isDesktop)
                     ListTile(
                         contentPadding:
-                            const EdgeInsets.only(left: 5, right: 10),
+                            const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("backgroundPlay".tr),
                         subtitle: Text("backgroundPlayDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                         trailing: Obx(
                           () => CustSwitch(
                               value: settingsController
@@ -381,10 +411,12 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                   settingsController.toggleBackgroundPlay),
                         )),
                   ListTile(
-                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("keepScreenOnWhilePlaying".tr),
                       subtitle: Text("keepScreenOnWhilePlayingDes".tr,
-                          style: Theme.of(context).textTheme.bodyMedium),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          )),
                       trailing: Obx(
                         () => CustSwitch(
                             value: settingsController.keepScreenAwake.value,
@@ -392,10 +424,12 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                 settingsController.toggleKeepScreenAwake),
                       )),
                   ListTile(
-                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("restoreLastPlaybackSession".tr),
                       subtitle: Text("restoreLastPlaybackSessionDes".tr,
-                          style: Theme.of(context).textTheme.bodyMedium),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          )),
                       trailing: Obx(
                         () => CustSwitch(
                             value:
@@ -404,10 +438,12 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                 .toggleRestorePlaybackSession),
                       )),
                   ListTile(
-                    contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     title: Text("autoOpenPlayer".tr),
                     subtitle: Text("autoOpenPlayerDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        )),
                     trailing: Obx(
                       () => CustSwitch(
                           value: settingsController.autoOpenPlayer.value,
@@ -416,11 +452,12 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                   ),
                   if (!isDesktop)
                     ListTile(
-                      contentPadding:
-                          const EdgeInsets.only(left: 5, right: 10, top: 0),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("equalizer".tr),
                       subtitle: Text("equalizerDes".tr,
-                          style: Theme.of(context).textTheme.bodyMedium),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          )),
                       onTap: () async {
                         try {
                           await Get.find<PlayerController>().openEqualizer();
@@ -431,10 +468,12 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     ),
                   if (!isDesktop)
                     ListTile(
-                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("stopMusicOnTaskClear".tr),
                       subtitle: Text("stopMusicOnTaskClearDes".tr,
-                          style: Theme.of(context).textTheme.bodyMedium),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          )),
                       trailing: Obx(
                         () => CustSwitch(
                             value: settingsController
@@ -447,7 +486,7 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       ? Obx(
                           () => ListTile(
                             contentPadding:
-                                const EdgeInsets.only(left: 5, right: 10),
+                                const EdgeInsets.symmetric(horizontal: 12),
                             title: Text("ignoreBatOpt".tr),
                             onTap: settingsController
                                     .isIgnoringBatteryOptimizations.isFalse
@@ -461,13 +500,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyMedium!
-                                        .copyWith(fontWeight: FontWeight.bold),
+                                        .copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodySmall?.color),
                                     children: <TextSpan>[
                                       TextSpan(
                                           text: "ignoreBatOptDes".tr,
                                           style: Theme.of(context)
                                               .textTheme
-                                              .bodyMedium),
+                                              .bodyMedium?.copyWith(
+                                                color: Theme.of(context).textTheme.bodySmall?.color,
+                                              )),
                                     ],
                                   ),
                                 )),
@@ -478,7 +519,7 @@ class SettingsScreen extends GetView<SettingsScreenController> {
               ),
               CustomExpansionTile(
                 title: "servers".tr,
-                icon: Icons.dns,
+                icon: Icons.dns_outlined,
                 expansionKey: sectionKeys[3],
                 onExpansionChanged: (expanded) =>
                     handleSectionExpansion(3, expanded),
@@ -489,7 +530,7 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     if (servers.isEmpty) {
                       return ListTile(
                         contentPadding:
-                            const EdgeInsets.only(left: 5, right: 10),
+                            const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("noServersConfigured".tr),
                       );
                     }
@@ -497,17 +538,21 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       children: [
                         ...servers.map(
                           (server) => ListTile(
-                            contentPadding: const EdgeInsets.only(
-                                left: 5, right: 10, top: 0),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                             leading: Icon(
                               _serverIcon(server.type),
                             ),
                             title: Row(
                               children: [
-                                Expanded(child: Text(server.name)),
+                                Expanded(child: Text(server.name, style: const TextStyle(fontWeight: FontWeight.w600))),
                                 if (server.isDefault)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 6),
+                                  Container(
+                                    margin: const EdgeInsets.only(left: 8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
                                     child: Text(
                                       'default'.tr,
                                       style: Theme.of(context)
@@ -517,6 +562,7 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                             color: Theme.of(context)
                                                 .colorScheme
                                                 .primary,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                     ),
                                   ),
@@ -529,25 +575,24 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                           server.serverUrl!.isNotEmpty
                                       ? server.serverUrl!
                                       : _serverTypeLabelText(server.type).tr),
+                              style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                RadioGroup<int>(
+                                Radio<int>(
+                                  value: server.id,
                                   groupValue: activeId,
                                   onChanged: (val) {
                                     if (val != null) {
                                       settingsController.setActiveServer(val);
                                     }
                                   },
-                                  child: Radio<int>(
-                                    value: server.id,
-                                  ),
                                 ),
                                 if (!server.isDefault) ...[
                                   if (server.type != ServerType.youtubeMusic)
                                     IconButton(
-                                      icon: const Icon(Icons.wifi_find),
+                                      icon: const Icon(Icons.wifi_find, size: 20),
                                       tooltip: "testConnection".tr,
                                       onPressed: () async {
                                         final err = await settingsController
@@ -562,7 +607,7 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                       },
                                     ),
                                   IconButton(
-                                    icon: const Icon(Icons.edit_outlined),
+                                    icon: const Icon(Icons.edit_outlined, size: 20),
                                     onPressed: () => showDialog(
                                       context: context,
                                       builder: (context) => AddServerDialog(
@@ -572,7 +617,7 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline),
+                                    icon: const Icon(Icons.delete_outline, size: 20),
                                     onPressed: () =>
                                         settingsController.removeServer(server.id),
                                   ),
@@ -581,21 +626,21 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                             ),
                           ),
                         ),
-                        const Divider(),
+                        const Divider(indent: 12, endIndent: 12),
                         Padding(
                           padding:
-                              const EdgeInsets.only(left: 5, right: 10, top: 4),
+                              const EdgeInsets.only(left: 12, right: 12, top: 8),
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
                               "activeServer".tr,
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ),
                         ),
                         Padding(
                           padding:
-                              const EdgeInsets.only(left: 5, right: 10, top: 4),
+                              const EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 12),
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
@@ -604,61 +649,74 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                           (s) => s.id == activeId)
                                       ?.name ??
                                   "none".tr,
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
                         Padding(
                           padding:
-                              const EdgeInsets.only(left: 5, right: 10, top: 4),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Wrap(
-                              spacing: 8,
-                              children: [
-                                FilledButton.tonalIcon(
-                                  onPressed: () => showDialog(
-                                    context: context,
-                                    builder: (context) => const AddServerDialog(
-                                      serverType: ServerType.youtubeMusic,
-                                    ),
+                              const EdgeInsets.symmetric(horizontal: 12),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              FilledButton.tonalIcon(
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (context) => const AddServerDialog(
+                                    serverType: ServerType.youtubeMusic,
                                   ),
-                                  icon: const Icon(Icons.play_circle_outline),
-                                  label: Text("youtubeMusic".tr),
                                 ),
-                                FilledButton.tonalIcon(
-                                  onPressed: () => showDialog(
-                                    context: context,
-                                    builder: (context) => const AddServerDialog(
-                                      serverType: ServerType.subsonic,
-                                    ),
-                                  ),
-                                  icon: const Icon(Icons.waves),
-                                  label: Text("subsonic".tr),
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 ),
-                                FilledButton.tonalIcon(
-                                  onPressed: () => showDialog(
-                                    context: context,
-                                    builder: (context) => const AddServerDialog(
-                                      serverType: ServerType.jellyfin,
-                                    ),
-                                  ),
-                                  icon: const Icon(Icons.tv),
-                                  label: Text("jellyfin".tr),
-                            ),
-                            FilledButton.tonalIcon(
-                              onPressed: () => showDialog(
-                                context: context,
-                                builder: (context) => const AddServerDialog(
-                                  serverType: ServerType.plex,
-                                ),
+                                icon: const Icon(Icons.play_circle_outline, size: 18),
+                                label: Text("youtubeMusic".tr, style: const TextStyle(fontSize: 12)),
                               ),
-                              icon: const Icon(Icons.cloud),
-                              label: Text("plex".tr),
+                              FilledButton.tonalIcon(
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (context) => const AddServerDialog(
+                                    serverType: ServerType.subsonic,
+                                  ),
                                 ),
-                              ],
-                            ),
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                icon: const Icon(Icons.waves, size: 18),
+                                label: Text("subsonic".tr, style: const TextStyle(fontSize: 12)),
+                              ),
+                              FilledButton.tonalIcon(
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (context) => const AddServerDialog(
+                                    serverType: ServerType.jellyfin,
+                                  ),
+                                ),
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                icon: const Icon(Icons.tv, size: 18),
+                                label: Text("jellyfin".tr, style: const TextStyle(fontSize: 12)),
+                              ),
+                              FilledButton.tonalIcon(
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (context) => const AddServerDialog(
+                                    serverType: ServerType.plex,
+                                  ),
+                                ),
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                icon: const Icon(Icons.cloud_outlined, size: 18),
+                                label: Text("plex".tr, style: const TextStyle(fontSize: 12)),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -669,16 +727,18 @@ class SettingsScreen extends GetView<SettingsScreenController> {
               ),
               CustomExpansionTile(
                 title: "download".tr,
-                icon: Icons.download,
+                icon: Icons.download_outlined,
                 expansionKey: sectionKeys[4],
                 onExpansionChanged: (expanded) =>
                     handleSectionExpansion(4, expanded),
                 children: [
                   ListTile(
-                    contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     title: Text("autoDownFavSong".tr),
                     subtitle: Text("autoDownFavSongDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        )),
                     trailing: Obx(
                       () => CustSwitch(
                           value: settingsController
@@ -688,13 +748,16 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     ),
                   ),
                   ListTile(
-                    contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     title: Text("downloadingFormat".tr),
                     subtitle: Text("downloadingFormatDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        )),
                     trailing: Obx(
                       () => DropdownButton(
                         dropdownColor: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(16),
                         underline: const SizedBox.shrink(),
                         value: settingsController.downloadingFormat.value,
                         items: const [
@@ -716,33 +779,36 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                         style: Theme.of(context)
                             .textTheme
                             .titleMedium!
-                            .copyWith(fontSize: 15),
+                            .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       onPressed: () {
                         settingsController.resetDownloadLocation();
                       },
                     ),
                     contentPadding:
-                        const EdgeInsets.only(left: 5, right: 10, top: 0),
+                        const EdgeInsets.symmetric(horizontal: 12),
                     title: Text("downloadLocation".tr),
                     subtitle: Obx(() => Text(
                         settingsController.isCurrentPathsupportDownDir
                             ? "In App storage directory"
                             : settingsController.downloadLocationPath.value,
-                        style: Theme.of(context).textTheme.bodyMedium)),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        ))),
                     onTap: () async {
                       settingsController.setDownloadLocation();
                     },
                   ),
                   if (GetPlatform.isAndroid)
                     ListTile(
-                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("exportDowloadedFiles".tr),
                       subtitle: Text(
                         "exportDowloadedFilesDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        ),
                       ),
-                      isThreeLine: true,
                       onTap: () => showDialog(
                         context: context,
                         builder: (context) => const ExportFileDialog(),
@@ -752,11 +818,13 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                   if (GetPlatform.isAndroid)
                     ListTile(
                       contentPadding:
-                          const EdgeInsets.only(left: 5, right: 10, top: 0),
+                          const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("exportedFileLocation".tr),
                       subtitle: Obx(() => Text(
                           settingsController.exportLocationPath.value,
-                          style: Theme.of(context).textTheme.bodyMedium)),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          ))),
                       onTap: () async {
                         settingsController.setExportedLocation();
                       },
@@ -765,19 +833,20 @@ class SettingsScreen extends GetView<SettingsScreenController> {
               ),
               CustomExpansionTile(
                   title: "${"backup".tr} & ${"restore".tr}",
-                  icon: Icons.restore,
+                  icon: Icons.restore_outlined,
                   expansionKey: sectionKeys[5],
                   onExpansionChanged: (expanded) =>
                       handleSectionExpansion(5, expanded),
                   children: [
                     ListTile(
-                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("backupAppData".tr),
                       subtitle: Text(
                         "backupSettingsAndPlaylistsDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        ),
                       ),
-                      isThreeLine: true,
                       onTap: () => showDialog(
                         context: context,
                         builder: (context) => const BackupDialog(),
@@ -785,13 +854,14 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                           () => Get.delete<BackupDialogController>()),
                     ),
                     ListTile(
-                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("restoreAppData".tr),
                       subtitle: Text(
                         "restoreSettingsAndPlaylistsDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        ),
                       ),
-                      isThreeLine: true,
                       onTap: () => showDialog(
                         context: context,
                         builder: (context) => const RestoreDialog(),
@@ -800,18 +870,20 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     ),
                   ]),
               CustomExpansionTile(
-                  icon: Icons.miscellaneous_services,
+                  icon: Icons.miscellaneous_services_outlined,
                   title: "misc".tr,
                   expansionKey: sectionKeys[6],
                   onExpansionChanged: (expanded) =>
                       handleSectionExpansion(6, expanded),
                   children: [
                     ListTile(
-                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("resetToDefault".tr),
                       subtitle: Text(
                         "resetToDefaultDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        ),
                       ),
                       onTap: () {
                         settingsController
@@ -826,15 +898,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     ),
                   ]),
               CustomExpansionTile(
-                icon: Icons.info,
+                icon: Icons.info_outline,
                 title: "appInfo".tr,
                 expansionKey: sectionKeys[7],
                 onExpansionChanged: (expanded) =>
                     handleSectionExpansion(7, expanded),
                 children: [
                   ListTile(
-                    contentPadding: const EdgeInsets.only(left: 5, right: 10),
-                    leading: const Icon(Icons.system_update_alt),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    leading: const Icon(Icons.system_update_alt, size: 20),
                     title: Text("checkForUpdatesOnStartup".tr),
                     trailing: Obx(
                       () => CustSwitch(
@@ -845,8 +917,8 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     ),
                   ),
                   ListTile(
-                    contentPadding: const EdgeInsets.only(left: 5, right: 10),
-                    leading: const Icon(Icons.system_update),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    leading: const Icon(Icons.system_update, size: 20),
                     title: Text("checkForUpdates".tr),
                     onTap: () async {
                       final upToDate = "upToDate".tr;
@@ -877,8 +949,8 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     },
                   ),
                   ListTile(
-                    contentPadding: const EdgeInsets.only(left: 5, right: 10),
-                    leading: const Icon(Icons.language),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    leading: const Icon(Icons.language, size: 20),
                     title: Text("openOpenlystWebsite".tr),
                     onTap: () {
                       launchUrl(
@@ -888,8 +960,8 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     },
                   ),
                   ListTile(
-                    contentPadding: const EdgeInsets.only(left: 5, right: 10),
-                    leading: const Icon(Icons.code),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    leading: const Icon(Icons.code, size: 20),
                     title: Text("openGitlab".tr),
                     subtitle: Text(
                       "gitlabDes".tr,
@@ -902,16 +974,17 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       );
                     },
                   ),
-                  const Divider(),
-                  SizedBox(
+                  const Divider(indent: 12, endIndent: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     child: Column(
                       children: [
                         Text(
                           "Doudou",
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(settingsController.currentVersion,
-                            style: Theme.of(context).textTheme.titleMedium)
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).textTheme.bodySmall?.color))
                       ],
                     ),
                   ),
@@ -919,11 +992,14 @@ class SettingsScreen extends GetView<SettingsScreenController> {
               )
             ],
           )),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 20.0),
-            child: Text(
-              "${settingsController.currentVersion} ${"by".tr} openlyst",
-              style: Theme.of(context).textTheme.bodySmall,
+          Align(
+            alignment: Alignment.center,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 24.0, top: 8.0),
+              child: Text(
+                "${settingsController.currentVersion} ${"by".tr} openlyst",
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(letterSpacing: 0.5),
+              ),
             ),
           ),
         ],
@@ -940,22 +1016,24 @@ class ThemeSelectorDialog extends StatelessWidget {
     final settingsController = Get.find<SettingsScreenController>();
     return CommonDialog(
       child: Container(
-        height: 300,
-        //color: Theme.of(context).cardColor,
-        padding: const EdgeInsets.only(top: 30, left: 5, right: 30, bottom: 10),
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+        ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 20.0, bottom: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "themeMode".tr,
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
-            Expanded(
+            Flexible(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
@@ -989,15 +1067,16 @@ class ThemeSelectorDialog extends StatelessWidget {
                 ),
               ),
             ),
-            Align(
-                alignment: Alignment.centerRight,
-                child: InkWell(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text("cancel".tr),
-                  ),
-                  onTap: () => Navigator.of(context).pop(),
-                ))
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text("cancel".tr, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  )),
+            )
           ],
         ),
       ),
@@ -1013,56 +1092,59 @@ class DiscoverContentSelectorDialog extends StatelessWidget {
     final settingsController = Get.find<SettingsScreenController>();
     return CommonDialog(
       child: Container(
-        height: 300,
-        //color: Theme.of(context).cardColor,
-        padding: const EdgeInsets.only(top: 30, left: 5, right: 30, bottom: 10),
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 20.0, bottom: 5),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "setDiscoverContent".tr,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 180,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  radioWidget(
-                      label: "quickpicks".tr,
-                      controller: settingsController,
-                      value: "QP"),
-                  radioWidget(
-                      label: "topmusicvideos".tr,
-                      controller: settingsController,
-                      value: "TMV"),
-                  radioWidget(
-                      label: "trending".tr,
-                      controller: settingsController,
-                      value: "TR"),
-                  radioWidget(
-                      label: "basedOnLast".tr,
-                      controller: settingsController,
-                      value: "BOLI"),
-                ],
-              ),
-            ),
-          ),
-          const Expanded(child: SizedBox()),
-          Align(
-              alignment: Alignment.centerRight,
-              child: InkWell(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text("cancel".tr),
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "setDiscoverContent".tr,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                onTap: () => Navigator.of(context).pop(),
-              ))
-        ]),
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    radioWidget(
+                        label: "quickpicks".tr,
+                        controller: settingsController,
+                        value: "QP"),
+                    radioWidget(
+                        label: "topmusicvideos".tr,
+                        controller: settingsController,
+                        value: "TMV"),
+                    radioWidget(
+                        label: "trending".tr,
+                        controller: settingsController,
+                        value: "TR"),
+                    radioWidget(
+                        label: "basedOnLast".tr,
+                        controller: settingsController,
+                        value: "BOLI"),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text("cancel".tr, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  )),
+            )
+          ],
+        ),
       ),
     );
   }

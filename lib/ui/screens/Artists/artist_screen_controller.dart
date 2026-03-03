@@ -7,8 +7,11 @@ import '../../widgets/add_to_playlist.dart';
 import '/services/utils.dart';
 import '/ui/widgets/sort_widget.dart';
 import '../../../models/artist.dart';
+import '../../../models/media_Item_builder.dart';
+import '../../../models/server.dart';
 import '../../../utils/helper.dart';
 import '../Library/library_controller.dart';
+import '../Settings/settings_screen_controller.dart';
 import '/services/music_service.dart';
 import '../../../utils/server_storage.dart';
 import '/ui/screens/Home/home_screen_controller.dart';
@@ -108,25 +111,83 @@ class ArtistScreenController extends GetxController
   }
 
   Future<void> _fetchArtistContent(String id) async {
-    artistData.value = await musicServices.getArtist(id);
-    artistData["Singles"] = artistData["Singles & EPs"];
-    artistData["Songs"] = artistData["Top songs"];
-    isArtistContentFetced.value = true;
-    final data = artistData;
-    artist_ = Artist(
-        browseId: id,
-        name: data['name'],
-        thumbnailUrl:
-            data['thumbnails'] != null ? data['thumbnails'][0]['url'] : "",
-        subscribers: "${data['subscribers']} subscribers",
-        radioId: data["radioId"]);
-    final initialIndex = tabController?.index ?? 0;
-    if (artistData["Songs"] != null ||
-        artistData["Videos"] != null ||
-        artistData["Albums"] != null ||
-        artistData["Singles"] != null) {
-      onDestinationSelected(initialIndex);
+    final settings = Get.find<SettingsScreenController>();
+    final server = settings.activeServer;
+
+    // Use YouTube Music specific endpoint only when the active server is YT Music.
+    if (server == null || server.type == ServerType.youtubeMusic) {
+      artistData.value = await musicServices.getArtist(id);
+      artistData["Singles"] = artistData["Singles & EPs"];
+      artistData["Songs"] = artistData["Top songs"];
+      isArtistContentFetced.value = true;
+      final data = artistData;
+      artist_ = Artist(
+          browseId: id,
+          name: data['name'],
+          thumbnailUrl:
+              data['thumbnails'] != null ? data['thumbnails'][0]['url'] : "",
+          subscribers: "${data['subscribers']} subscribers",
+          radioId: data["radioId"]);
+      final initialIndex = tabController?.index ?? 0;
+      if (artistData["Songs"] != null ||
+          artistData["Videos"] != null ||
+          artistData["Albums"] != null ||
+          artistData["Singles"] != null) {
+        onDestinationSelected(initialIndex);
+      }
+      return;
     }
+
+    // For Subsonic / Plex / Jellyfin style backends, derive a simple artist view
+    // from the library content instead of calling the YouTube-specific endpoint.
+    final backend = settings.currentBackend;
+    final allTracks = await backend.getLibrarySongs();
+    final artistName = artist_.name.toLowerCase();
+
+    final artistTracks = allTracks.where((m) {
+      final artists = m['artists'];
+      if (artists is! List) return false;
+      return artists.any((a) {
+        final name = (a is Map ? a['name'] : null)?.toString().toLowerCase();
+        return name == artistName;
+      });
+    }).toList();
+
+    final songs = artistTracks
+        .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
+        .whereType<MediaItem>()
+        .toList();
+
+    final allAlbums = await backend.getLibraryAlbums();
+    final albums = allAlbums.where((album) {
+      final artists = album.artists ?? [];
+      return artists.any((a) =>
+          (a['name']?.toString().toLowerCase() ?? '') == artistName);
+    }).toList();
+
+    artistData.value = {
+      'name': artist_.name,
+      'thumbnails': [
+        {'url': artist_.thumbnailUrl}
+      ],
+      'subscribers': artist_.subscribers,
+      'Songs': {
+        'content': songs,
+      },
+      'Videos': {
+        'content': <dynamic>[],
+      },
+      'Albums': {
+        'content': albums,
+      },
+      'Singles': {
+        'content': <dynamic>[],
+      },
+    };
+
+    final initialIndex = tabController?.index ?? 0;
+    await onDestinationSelected(initialIndex);
+    isArtistContentFetced.value = true;
   }
 
   Future<bool> addNremoveFromLibrary({bool add = true}) async {
