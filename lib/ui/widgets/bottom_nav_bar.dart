@@ -16,7 +16,8 @@ class BottomNavBar extends StatelessWidget {
     final width = MediaQuery.sizeOf(context).width;
     final iconOnly = width < _iconOnlyBreakpoint;
     final theme = Theme.of(context);
-    final surface = theme.colorScheme.surface;
+    final surface = Colors.white.withValues(alpha: 0.16);
+    final activeColor = theme.colorScheme.primary;
 
     return Obx(() {
       final idx = homeScreenController.tabIndex.value;
@@ -55,20 +56,20 @@ class BottomNavBar extends StatelessWidget {
                 filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: iconOnly ? 12 : 18,
+                    horizontal: iconOnly ? 14 : 18,
                     vertical: iconOnly ? 8 : 10,
                   ),
                   decoration: BoxDecoration(
-                    color: surface.withValues(alpha: 0.88),
+                    color: surface,
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      width: 1,
+                      color: Colors.white.withValues(alpha: 0.35),
+                      width: 0.8,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 20,
-                        offset: const Offset(0, 12),
+                        color: Colors.black.withValues(alpha: 0.35),
+                        blurRadius: 26,
+                        offset: const Offset(0, 18),
                       ),
                     ],
                   ),
@@ -78,12 +79,12 @@ class BottomNavBar extends StatelessWidget {
                       final selected = index == safeIdx;
                       final item = items[index];
                       final iconColor = selected
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.4);
+                          ? activeColor
+                          : Colors.white.withValues(alpha: 0.5);
                       final labelStyle = theme.textTheme.labelSmall?.copyWith(
                         color: selected
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.4),
+                            ? activeColor
+                            : Colors.white.withValues(alpha: 0.5),
                         fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                       );
                       return Expanded(
