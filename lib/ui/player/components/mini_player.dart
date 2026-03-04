@@ -24,10 +24,9 @@ class MiniPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final playerController = Get.find<PlayerController>();
     final size = MediaQuery.of(context).size;
-    final isWideScreen = size.width > 800;
-    final bottomNavEnabled = Get.find<ShellController>().useBottomNav.value;
-    final isMobilePill = !isWideScreen || bottomNavEnabled;
     return Obx(() {
+      final bottomNavEnabled = Get.find<ShellController>().useBottomNav.value;
+      final isMobilePill = bottomNavEnabled;
       return Visibility(
         visible: playerController.isPlayerpanelTopVisible.value &&
             playerController.currentSong.value != null,
