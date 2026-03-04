@@ -239,6 +239,8 @@ class _DesktopMiniPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final compactDesktop = size.width < 980;
+    final controlClusterWidth = compactDesktop ? 300.0 : 450.0;
 
     return Container(
       color: theme.bottomSheetTheme.backgroundColor,
@@ -333,7 +335,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    width: 450,
+                    width: controlClusterWidth,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -348,17 +350,18 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                           : Icons.favorite,
                                       color: textTheme.titleMedium!.color,
                                     ))),
-                            IconButton(
-                                iconSize: 20,
-                                onPressed: controller.toggleShuffleMode,
-                                icon: Obx(() => Icon(
-                                      Ionicons.shuffle,
-                                      color:
-                                          controller.isShuffleModeEnabled.value
-                                              ? textTheme.titleLarge!.color
-                                              : textTheme.titleLarge!.color!
-                                                  .withValues(alpha: 0.2),
-                                    ))),
+                            if (!compactDesktop)
+                              IconButton(
+                                  iconSize: 20,
+                                  onPressed: controller.toggleShuffleMode,
+                                  icon: Obx(() => Icon(
+                                        Ionicons.shuffle,
+                                        color: controller
+                                                .isShuffleModeEnabled.value
+                                            ? textTheme.titleLarge!.color
+                                            : textTheme.titleLarge!.color!
+                                                .withValues(alpha: 0.2),
+                                      ))),
                           ],
                         ),
                         SizedBox(
@@ -417,16 +420,17 @@ class _DesktopMiniPlayer extends StatelessWidget {
                         ),
                         Row(
                           children: [
-                            IconButton(
-                                iconSize: 20,
-                                onPressed: controller.toggleLoopMode,
-                                icon: Icon(
-                                  Icons.all_inclusive,
-                                  color: controller.isLoopModeEnabled.value
-                                      ? textTheme.titleLarge!.color
-                                      : textTheme.titleLarge!.color!
-                                          .withValues(alpha: 0.2),
-                                )),
+                            if (!compactDesktop)
+                              IconButton(
+                                  iconSize: 20,
+                                  onPressed: controller.toggleLoopMode,
+                                  icon: Icon(
+                                    Icons.all_inclusive,
+                                    color: controller.isLoopModeEnabled.value
+                                        ? textTheme.titleLarge!.color
+                                        : textTheme.titleLarge!.color!
+                                            .withValues(alpha: 0.2),
+                                  )),
                             IconButton(
                                 iconSize: 20,
                                 onPressed: () {
@@ -464,7 +468,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.only(right: 20, left: 10),
                             height: 20,
-                            width: (size.width > 860) ? 220 : 180,
+                            width: compactDesktop ? 160 : 220,
                             child: Obx(() {
                               final volume = controller.volume.value;
                               return Row(
@@ -520,7 +524,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                   },
                                   icon: const Icon(Icons.queue_music),
                                 ),
-                                if (size.width > 860)
+                                if (!compactDesktop)
                                   Padding(
                                     padding: const EdgeInsets.only(left: 10.0),
                                     child: IconButton(
