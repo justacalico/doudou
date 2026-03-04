@@ -64,144 +64,160 @@ class _MobileMiniPlayer extends StatelessWidget {
     final song = controller.currentSong.value;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Align(
         alignment: Alignment.topCenter,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.brightness == Brightness.dark 
-                    ? const Color(0xFF1C1C1E).withValues(alpha: 0.9)
-                    : Colors.white.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  width: 0.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: theme.brightness == Brightness.dark
+                      ? const Color(0xFF1C1C1E).withValues(alpha: 0.85)
+                      : Colors.white.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    width: 0.5,
                   ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
-                    child: Row(
-                      children: [
-                        if (song != null)
-                          GestureDetector(
-                            onTap: controller.playerPanelController.open,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: ImageWidget(
-                                size: 48,
-                                song: song,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
+                      child: Row(
+                        children: [
+                          if (song != null)
+                            GestureDetector(
+                              onTap: controller.playerPanelController.open,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: ImageWidget(
+                                  size: 48,
+                                  song: song,
+                                ),
+                              ),
+                            )
+                          else
+                            const SizedBox(height: 48, width: 48),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onHorizontalDragEnd: (details) {
+                                final v = details.primaryVelocity ?? 0;
+                                if (v < 0) {
+                                  controller.next();
+                                } else if (v > 0) {
+                                  controller.prev();
+                                }
+                              },
+                              onTap: controller.playerPanelController.open,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    song?.title ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    song?.artist ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      fontSize: 11,
+                                      color: textTheme.bodySmall?.color
+                                          ?.withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          )
-                        else
-                          const SizedBox(height: 48, width: 48),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onHorizontalDragEnd: (details) {
-                              final v = details.primaryVelocity ?? 0;
-                              if (v < 0) {
-                                controller.next();
-                              } else if (v > 0) {
-                                controller.prev();
-                              }
-                            },
-                            onTap: controller.playerPanelController.open,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  song?.title ?? '',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  song?.artist ?? '',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: textTheme.bodySmall?.copyWith(
-                                    fontSize: 11,
-                                    color: textTheme.bodySmall?.color?.withValues(alpha: 0.6),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Obx(() {
-                              final state = controller.buttonState.value;
-                              final isPlaying = state == PlayButtonState.playing;
-                              final isLoading = state == PlayButtonState.loading;
+                          const SizedBox(width: 8),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Obx(() {
+                                final state = controller.buttonState.value;
+                                final isPlaying =
+                                    state == PlayButtonState.playing;
+                                final isLoading =
+                                    state == PlayButtonState.loading;
 
-                              return IconButton(
-                                iconSize: 28,
-                                onPressed: () {
-                                  if (isLoading) return;
-                                  isPlaying ? controller.pause() : controller.play();
-                                },
-                                icon: isLoading
-                                    ? SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                                return IconButton(
+                                  iconSize: 28,
+                                  onPressed: () {
+                                    if (isLoading) return;
+                                    isPlaying
+                                        ? controller.pause()
+                                        : controller.play();
+                                  },
+                                  icon: isLoading
+                                      ? SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                              theme.colorScheme.primary,
+                                            ),
+                                          ),
+                                        )
+                                      : Icon(
+                                          isPlaying
+                                              ? Icons.pause_rounded
+                                              : Icons.play_arrow_rounded,
+                                          color: theme.iconTheme.color,
                                         ),
-                                      )
-                                    : Icon(
-                                        isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                        color: theme.iconTheme.color,
-                                      ),
-                              );
-                            }),
-                            IconButton(
-                              iconSize: 28,
-                              onPressed: controller.next,
-                              icon: Icon(Icons.skip_next_rounded, color: theme.iconTheme.color),
-                            ),
-                          ],
-                        ),
-                      ],
+                                );
+                              }),
+                              IconButton(
+                                iconSize: 28,
+                                onPressed: controller.next,
+                                icon: Icon(Icons.skip_next_rounded,
+                                    color: theme.iconTheme.color),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  // Progress bar at the bottom
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: SizedBox(
-                      height: 2,
-                      child: GetX<PlayerController>(
-                        init: controller,
-                        builder: (c) => MiniPlayerProgressBar(
-                          progressBarStatus: c.progressBarStatus.value,
-                          progressBarColor: theme.colorScheme.primary,
+                    // Progress bar at the bottom
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: SizedBox(
+                        height: 2,
+                        child: GetX<PlayerController>(
+                          init: controller,
+                          builder: (c) => MiniPlayerProgressBar(
+                            progressBarStatus: c.progressBarStatus.value,
+                            progressBarColor: theme.colorScheme.primary,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -232,8 +248,8 @@ class _DesktopMiniPlayer extends StatelessWidget {
           children: [
             GetX<PlayerController>(builder: (c) {
               return Padding(
-                padding:
-                    const EdgeInsets.only(left: 15, top: 8, right: 15, bottom: 0),
+                padding: const EdgeInsets.only(
+                    left: 15, top: 8, right: 15, bottom: 0),
                 child: ProgressBar(
                   timeLabelLocation: TimeLabelLocation.sides,
                   thumbRadius: 7,
@@ -302,8 +318,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                             SizedBox(
                               height: 20,
                               child: Marquee(
-                                id:
-                                    "${controller.currentSong.value}_mini_desktop",
+                                id: "${controller.currentSong.value}_mini_desktop",
                                 delay: const Duration(milliseconds: 300),
                                 duration: const Duration(seconds: 5),
                                 child: Text(
@@ -339,11 +354,11 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                 onPressed: controller.toggleShuffleMode,
                                 icon: Obx(() => Icon(
                                       Ionicons.shuffle,
-                                      color: controller
-                                              .isShuffleModeEnabled.value
-                                          ? textTheme.titleLarge!.color
-                                          : textTheme.titleLarge!.color!
-                                              .withValues(alpha: 0.2),
+                                      color:
+                                          controller.isShuffleModeEnabled.value
+                                              ? textTheme.titleLarge!.color
+                                              : textTheme.titleLarge!.color!
+                                                  .withValues(alpha: 0.2),
                                     ))),
                           ],
                         ),
@@ -448,8 +463,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
-                            padding:
-                                const EdgeInsets.only(right: 20, left: 10),
+                            padding: const EdgeInsets.only(right: 20, left: 10),
                             height: 20,
                             width: (size.width > 860) ? 220 : 180,
                             child: Obx(() {
@@ -474,8 +488,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                     child: SliderTheme(
                                       data: SliderTheme.of(context).copyWith(
                                         trackHeight: 2,
-                                        thumbShape:
-                                            const RoundSliderThumbShape(
+                                        thumbShape: const RoundSliderThumbShape(
                                           enabledThumbRadius: 6.0,
                                         ),
                                         overlayShape:
@@ -510,27 +523,23 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                 ),
                                 if (size.width > 860)
                                   Padding(
-                                    padding:
-                                        const EdgeInsets.only(left: 10.0),
+                                    padding: const EdgeInsets.only(left: 10.0),
                                     child: IconButton(
                                       onPressed: () {
                                         showModalBottomSheet(
                                           constraints: const BoxConstraints(
                                             maxWidth: 500,
                                           ),
-                                          shape:
-                                              const RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.vertical(
+                                          shape: const RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.vertical(
                                               top: Radius.circular(10.0),
                                             ),
                                           ),
                                           isScrollControlled: true,
-                                          context:
-                                              Get.find<ShellController>()
-                                                  .overlayContextOrFallback!,
-                                          barrierColor: Colors.transparent
-                                              .withAlpha(100),
+                                          context: Get.find<ShellController>()
+                                              .overlayContextOrFallback!,
+                                          barrierColor:
+                                              Colors.transparent.withAlpha(100),
                                           builder: (context) =>
                                               const SleepTimerBottomSheet(),
                                         );
@@ -556,8 +565,8 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                         context: context,
                                         builder: (context) =>
                                             AddToPlaylist([currentSong]),
-                                      ).whenComplete(() =>
-                                          Get.delete<AddToPlaylistController>());
+                                      ).whenComplete(() => Get.delete<
+                                          AddToPlaylistController>());
                                     }
                                   },
                                   icon: const Icon(Icons.playlist_add),

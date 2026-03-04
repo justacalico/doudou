@@ -365,6 +365,7 @@ class HomeScreenController extends GetxController {
   }
 
   void onBottonBarTabSelected(int index) {
+    final isOnHome = Get.currentRoute == ScreenNavigationSetup.homeScreen;
     final wasHomeTab = tabIndex.value == 0;
     reverseAnimationtransiton = index > tabIndex.value;
     tabIndex.value = index;
@@ -374,6 +375,9 @@ class HomeScreenController extends GetxController {
       final search = Get.find<SearchScreenController>();
       search.hideSuggestions();
       search.focusNode.unfocus();
+    }
+    if (!isOnHome) {
+      ScreenNavigationSetup.offContentRoute(ScreenNavigationSetup.homeScreen);
     }
   }
 
