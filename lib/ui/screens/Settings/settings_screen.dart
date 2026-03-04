@@ -18,8 +18,7 @@ import '/services/library_sync_service.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/utils/theme_controller.dart';
 import '/ui/constants/layout.dart';
-import 'components/custom_expansion_tile.dart';
-import 'sections/settings_personalisation_section.dart';
+import '/utils/lang_mapping.dart';
 import '/models/server.dart';
 import 'settings_screen_controller.dart';
 
@@ -29,37 +28,71 @@ class SettingsScreen extends GetView<SettingsScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    final settingsController = controller;
-    final syncService = Get.find<LibrarySyncService>();
-    final sectionKeys = settingsController.settingsSectionKeys;
-    void handleSectionExpansion(int index, bool expanded) {
-      if (!expanded) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-        for (var i = 0; i < sectionKeys.length; i++) {
-          if (i == index) continue;
-          final state = sectionKeys[i].currentState;
-          if (state == null) continue;
-          try {
-            (state as dynamic).collapse();
-          } catch (_) {}
-        }
-      });
-    }
+    return _IOSSettingsView(isBottomNavActive: isBottomNavActive);
+  }
+}
 
+enum _SettingsSectionId {
+  personalisation,
+  content,
+  playback,
+  servers,
+  download,
+  backup,
+  misc,
+  info,
+}
+
+class _IOSSettingsView extends StatefulWidget {
+  const _IOSSettingsView({required this.isBottomNavActive});
+
+  final bool isBottomNavActive;
+
+  @override
+  State<_IOSSettingsView> createState() => _IOSSettingsViewState();
+}
+
+class _IOSSettingsViewState extends State<_IOSSettingsView> {
+  _SettingsSectionId _selected = _SettingsSectionId.personalisation;
+
+  static const _sectionMeta = <(_SettingsSectionId, IconData, String)>[
+    (
+      _SettingsSectionId.personalisation,
+      Icons.palette_outlined,
+      "personalisation"
+    ),
+    (_SettingsSectionId.content, Icons.movie_outlined, "content"),
+    (_SettingsSectionId.playback, Icons.music_note_outlined, "music&Playback"),
+    (_SettingsSectionId.servers, Icons.dns_outlined, "servers"),
+    (_SettingsSectionId.download, Icons.download_outlined, "download"),
+    (_SettingsSectionId.backup, Icons.restore_outlined, "backup"),
+    (_SettingsSectionId.misc, Icons.miscellaneous_services_outlined, "misc"),
+    (_SettingsSectionId.info, Icons.info_outline, "appInfo"),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = Get.find<SettingsScreenController>();
+    final syncService = Get.find<LibrarySyncService>();
     final topPadding =
         context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault;
     final isDesktop = GetPlatform.isDesktop;
+    final useTwoPane = isDesktop && MediaQuery.sizeOf(context).width >= 980;
+
+    final outerPadding = widget.isBottomNavActive
+        ? EdgeInsets.only(
+            left: kContentLeftPaddingWithBottomNav,
+            top: topPadding,
+            right: kContentRightPaddingSettingsWithBottomNav,
+          )
+        : EdgeInsets.only(
+            top: topPadding,
+            left: kContentLeftPaddingWithoutBottomNav,
+            right: kContentLeftPaddingWithoutBottomNav,
+          );
+
     return Padding(
-      padding: isBottomNavActive
-          ? EdgeInsets.only(
-              left: kContentLeftPaddingWithBottomNav,
-              top: topPadding,
-              right: kContentRightPaddingSettingsWithBottomNav)
-          : EdgeInsets.only(
-              top: topPadding,
-              left: kContentLeftPaddingWithoutBottomNav,
-              right: kContentLeftPaddingWithoutBottomNav),
+      padding: outerPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -70,1201 +103,40 @@ class SettingsScreen extends GetView<SettingsScreenController> {
               "settings".tr,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
+                    letterSpacing: -0.4,
                   ),
             ),
           ),
           Expanded(
-              child: ListView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(
-                bottom: kSettingsListBottomPadding + 20,
-                top: kSettingsListTopPadding),
-            children: [
-              Obx(
-                () => settingsController.isNewVersionAvailable.value
-                    ? Padding(
-                        padding: const EdgeInsets.only(
-                            top: 8.0, right: 8, bottom: 16.0),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Material(
-                            type: MaterialType.transparency,
-                            child: ListTile(
-                              onTap: () {
-                                launchUrl(
-                                  Uri.parse('https://openlyst.ink/'),
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              },
-                              tileColor: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer
-                                  .withValues(alpha: 0.3),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              leading: CircleAvatar(
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.primary,
-                                  child: const Icon(Icons.download,
-                                      color: Colors.white)),
-                              title: Text("newVersionAvailable".tr,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w600)),
-                              visualDensity:
-                                  const VisualDensity(horizontal: -2),
-                              subtitle: Text(
-                                "goToDownloadPage".tr,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium!
-                                    .copyWith(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.color,
-                                        fontSize: 13),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-              SettingsPersonalisationSection(
-                expansionKey: sectionKeys[0],
-                onExpansionChanged: (expanded) =>
-                    handleSectionExpansion(0, expanded),
-                onThemeTap: () => showDialog(
-                  context: context,
-                  builder: (context) => const ThemeSelectorDialog(),
-                ),
-              ),
-              CustomExpansionTile(
-                  title: "content".tr,
-                  icon: Icons.movie_outlined,
-                  expansionKey: sectionKeys[1],
-                  onExpansionChanged: (expanded) =>
-                      handleSectionExpansion(1, expanded),
-                  children: [
-                    Obx(() {
-                      final isYt = settingsController.activeServer?.type ==
-                          ServerType.youtubeMusic;
-                      if (!isYt) return const SizedBox.shrink();
-                      return ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        title: Text("setDiscoverContent".tr),
-                        subtitle: Obx(() => Text(
-                            settingsController.discoverContentType.value == "QP"
-                                ? "quickpicks".tr
-                                : settingsController
-                                            .discoverContentType.value ==
-                                        "TMV"
-                                    ? "topmusicvideos".tr
-                                    : settingsController
-                                                .discoverContentType.value ==
-                                            "TR"
-                                        ? "trending".tr
-                                        : "basedOnLast".tr,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color,
-                                ))),
-                        onTap: () => showDialog(
-                          context: context,
-                          builder: (context) =>
-                              const DiscoverContentSelectorDialog(),
-                        ),
-                      );
-                    }),
-                    Obx(() {
-                      final isYt = settingsController.activeServer?.type ==
-                          ServerType.youtubeMusic;
-                      if (!isYt) return const SizedBox.shrink();
-                      return ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        title: Text("homeContentCount".tr),
-                        subtitle: Text("homeContentCountDes".tr,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color,
-                                )),
-                        trailing: Obx(
-                          () => DropdownButton(
-                            dropdownColor: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(16),
-                            underline: const SizedBox.shrink(),
-                            value:
-                                settingsController.noOfHomeScreenContent.value,
-                            items: ([3, 5, 7, 9, 11])
-                                .map((e) => DropdownMenuItem(
-                                    value: e, child: Text("$e")))
-                                .toList(),
-                            onChanged: settingsController.setContentNumber,
-                          ),
-                        ),
-                      );
-                    }),
-                    if (isDesktop)
-                      ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        title: Text("sidebarMode".tr),
-                        subtitle: Text(
-                          "sidebarModeDes".tr,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.color,
-                                  ),
-                        ),
-                        trailing: Obx(
-                          () => DropdownButton<SidebarMode>(
-                            dropdownColor: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(16),
-                            underline: const SizedBox.shrink(),
-                            value: settingsController.sidebarMode.value,
-                            items: [
-                              DropdownMenuItem(
-                                value: SidebarMode.auto,
-                                child: Text("sidebarModeAuto".tr),
-                              ),
-                              DropdownMenuItem(
-                                value: SidebarMode.collapsed,
-                                child: Text("sidebarModeCollapsed".tr),
-                              ),
-                              DropdownMenuItem(
-                                value: SidebarMode.expanded,
-                                child: Text("sidebarModeExpanded".tr),
-                              ),
-                            ],
-                            onChanged: settingsController.setSidebarMode,
+            child: useTwoPane
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        width: 280,
+                        child: _buildSectionNav(context),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 220),
+                          child: KeyedSubtree(
+                            key: ValueKey(_selected),
+                            child: _buildSingleSection(
+                                context, settings, syncService, _selected),
                           ),
                         ),
                       ),
-                    ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        title: Text("cacheHomeScreenData".tr),
-                        subtitle: Text("cacheHomeScreenDataDes".tr,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color,
-                                )),
-                        trailing: Obx(
-                          () => CustSwitch(
-                              value:
-                                  settingsController.cacheHomeScreenData.value,
-                              onChanged:
-                                  settingsController.toggleCacheHomeScreenData),
-                        )),
-                    Obx(() {
-                      final isYt = settingsController.activeServer?.type ==
-                          ServerType.youtubeMusic;
-                      if (!isYt) return const SizedBox.shrink();
-                      return ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        title: Text("Piped".tr),
-                        subtitle: Text("linkPipedDes".tr,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color,
-                                )),
-                        trailing: TextButton(
-                            child: Obx(() => Text(
-                                  settingsController.isLinkedWithPiped.value
-                                      ? "unLink".tr
-                                      : "link".tr,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium!
-                                      .copyWith(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold),
-                                )),
-                            onPressed: () {
-                              if (settingsController
-                                  .isLinkedWithPiped.isFalse) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => const LinkPiped(),
-                                ).whenComplete(
-                                    () => Get.delete<PipedLinkedController>());
-                              } else {
-                                settingsController.unlinkPiped();
-                              }
-                            }),
-                      );
-                    }),
-                    Obx(() {
-                      final isYt = settingsController.activeServer?.type ==
-                          ServerType.youtubeMusic;
-                      if (!isYt ||
-                          !settingsController.isLinkedWithPiped.isTrue) {
-                        return const SizedBox.shrink();
-                      }
-                      return ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        title: Text("resetblacklistedplaylist".tr),
-                        subtitle: Text("resetblacklistedplaylistDes".tr,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color,
-                                )),
-                        trailing: TextButton(
-                            child: Text(
-                              "reset".tr,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium!
-                                  .copyWith(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold),
-                            ),
-                            onPressed: () async {
-                              await Get.find<LibraryPlaylistsController>()
-                                  .resetBlacklistedPlaylist();
-                              ScaffoldMessenger.of(Get.context!).showSnackBar(
-                                  snackbar(Get.context!,
-                                      "blacklistPlstResetAlert".tr,
-                                      size: SnackBarSize.MEDIUM));
-                            }),
-                      );
-                    }),
-                    ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      title: Text("clearImgCache".tr),
-                      subtitle: Text(
-                        "clearImgCacheDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  Theme.of(context).textTheme.bodySmall?.color,
-                            ),
-                      ),
-                      onTap: () {
-                        settingsController.clearImagesCache().then((value) =>
-                            ScaffoldMessenger.of(Get.context!).showSnackBar(
-                                snackbar(Get.context!, "clearImgCacheAlert".tr,
-                                    size: SnackBarSize.BIG)));
-                      },
-                    ),
-                  ]),
-              CustomExpansionTile(
-                title: "music&Playback".tr,
-                icon: Icons.music_note_outlined,
-                expansionKey: sectionKeys[2],
-                onExpansionChanged: (expanded) =>
-                    handleSectionExpansion(2, expanded),
-                children: [
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    title: Text("streamingQuality".tr),
-                    subtitle: Text("streamingQualityDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  Theme.of(context).textTheme.bodySmall?.color,
-                            )),
-                    trailing: Obx(
-                      () => DropdownButton(
-                        dropdownColor: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                        underline: const SizedBox.shrink(),
-                        value: settingsController.streamingQuality.value,
-                        items: [
-                          DropdownMenuItem(
-                              value: AudioQuality.Low, child: Text("low".tr)),
-                          DropdownMenuItem(
-                            value: AudioQuality.High,
-                            child: Text("high".tr),
-                          ),
-                        ],
-                        onChanged: settingsController.setStreamingQuality,
-                      ),
-                    ),
-                  ),
-                  if (GetPlatform.isAndroid)
-                    ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        title: Text("loudnessNormalization".tr),
-                        subtitle: Text("loudnessNormalizationDes".tr,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color,
-                                )),
-                        trailing: Obx(
-                          () => CustSwitch(
-                              value: settingsController
-                                  .loudnessNormalizationEnabled.value,
-                              onChanged: settingsController
-                                  .toggleLoudnessNormalization),
-                        )),
-                  if (!isDesktop)
-                    ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        title: Text("cacheSongs".tr),
-                        subtitle: Text("cacheSongsDes".tr,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color,
-                                )),
-                        trailing: Obx(
-                          () => CustSwitch(
-                              value: settingsController.cacheSongs.value,
-                              onChanged:
-                                  settingsController.toggleCachingSongsValue),
-                        )),
-                  if (!isDesktop)
-                    ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        title: Text("skipSilence".tr),
-                        subtitle: Text("skipSilenceDes".tr,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color,
-                                )),
-                        trailing: Obx(
-                          () => CustSwitch(
-                              value:
-                                  settingsController.skipSilenceEnabled.value,
-                              onChanged: settingsController.toggleSkipSilence),
-                        )),
-                  if (isDesktop)
-                    ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        title: Text("backgroundPlay".tr),
-                        subtitle: Text("backgroundPlayDes".tr,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color,
-                                )),
-                        trailing: Obx(
-                          () => CustSwitch(
-                              value: settingsController
-                                  .backgroundPlayEnabled.value,
-                              onChanged:
-                                  settingsController.toggleBackgroundPlay),
-                        )),
-                  ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      title: Text("keepScreenOnWhilePlaying".tr),
-                      subtitle: Text("keepScreenOnWhilePlayingDes".tr,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.color,
-                                  )),
-                      trailing: Obx(
-                        () => CustSwitch(
-                            value: settingsController.keepScreenAwake.value,
-                            onChanged:
-                                settingsController.toggleKeepScreenAwake),
-                      )),
-                  ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      title: Text("restoreLastPlaybackSession".tr),
-                      subtitle: Text("restoreLastPlaybackSessionDes".tr,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.color,
-                                  )),
-                      trailing: Obx(
-                        () => CustSwitch(
-                            value:
-                                settingsController.restorePlaybackSession.value,
-                            onChanged: settingsController
-                                .toggleRestorePlaybackSession),
-                      )),
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    title: Text("autoOpenPlayer".tr),
-                    subtitle: Text("autoOpenPlayerDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  Theme.of(context).textTheme.bodySmall?.color,
-                            )),
-                    trailing: Obx(
-                      () => CustSwitch(
-                          value: settingsController.autoOpenPlayer.value,
-                          onChanged: settingsController.toggleAutoOpenPlayer),
-                    ),
-                  ),
-                  if (!isDesktop)
-                    ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      title: Text("equalizer".tr),
-                      subtitle: Text("equalizerDes".tr,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.color,
-                                  )),
-                      onTap: () async {
-                        try {
-                          await Get.find<PlayerController>().openEqualizer();
-                        } catch (e) {
-                          printERROR(e);
-                        }
-                      },
-                    ),
-                  if (!isDesktop)
-                    ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      title: Text("stopMusicOnTaskClear".tr),
-                      subtitle: Text("stopMusicOnTaskClearDes".tr,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.color,
-                                  )),
-                      trailing: Obx(
-                        () => CustSwitch(
-                            value: settingsController
-                                .stopPlyabackOnSwipeAway.value,
-                            onChanged: settingsController
-                                .toggleStopPlyabackOnSwipeAway),
-                      ),
-                    ),
-                  GetPlatform.isAndroid
-                      ? Obx(
-                          () => ListTile(
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 12),
-                            title: Text("ignoreBatOpt".tr),
-                            onTap: settingsController
-                                    .isIgnoringBatteryOptimizations.isFalse
-                                ? settingsController
-                                    .enableIgnoringBatteryOptimizations
-                                : null,
-                            subtitle: Obx(() => RichText(
-                                  text: TextSpan(
-                                    text:
-                                        "${"status".tr}: ${settingsController.isIgnoringBatteryOptimizations.isTrue ? "enabled".tr : "disabled".tr}\n",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium!
-                                        .copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.color),
-                                    children: <TextSpan>[
-                                      TextSpan(
-                                          text: "ignoreBatOptDes".tr,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.copyWith(
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall
-                                                    ?.color,
-                                              )),
-                                    ],
-                                  ),
-                                )),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ],
-              ),
-              CustomExpansionTile(
-                title: "servers".tr,
-                icon: Icons.dns_outlined,
-                expansionKey: sectionKeys[3],
-                onExpansionChanged: (expanded) =>
-                    handleSectionExpansion(3, expanded),
-                children: [
-                  Obx(() {
-                    final servers = settingsController.servers;
-                    final activeId = settingsController.activeServerId.value;
-                    if (servers.isEmpty) {
-                      return ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        title: Text("noServersConfigured".tr),
-                      );
-                    }
-                    return Column(
-                      children: [
-                        ...servers.map(
-                          (server) => ListTile(
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 12),
-                            leading: Icon(
-                              _serverIcon(server.type),
-                            ),
-                            title: Row(
-                              children: [
-                                Expanded(
-                                    child: Text(server.name,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.w600))),
-                                if (server.isDefault)
-                                  Container(
-                                    margin: const EdgeInsets.only(left: 8),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      'default'.tr,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            subtitle: Text(
-                              server.isDefault
-                                  ? _serverTypeLabelText(server.type).tr
-                                  : (server.serverUrl != null &&
-                                          server.serverUrl!.isNotEmpty
-                                      ? server.serverUrl!
-                                      : _serverTypeLabelText(server.type).tr),
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Radio<int>(
-                                  value: server.id,
-                                  groupValue: activeId,
-                                  onChanged: (val) {
-                                    if (val != null) {
-                                      settingsController.setActiveServer(val);
-                                    }
-                                  },
-                                ),
-                                if (!server.isDefault) ...[
-                                  if (server.type != ServerType.youtubeMusic)
-                                    IconButton(
-                                      icon:
-                                          const Icon(Icons.wifi_find, size: 20),
-                                      tooltip: "testConnection".tr,
-                                      onPressed: () async {
-                                        final err = await settingsController
-                                            .testServerConnection(server);
-                                        if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(SnackBar(
-                                          content: Text(err == null
-                                              ? "connectionSuccess".tr
-                                              : "${"connectionFailed".tr}: $err"),
-                                        ));
-                                      },
-                                    ),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined,
-                                        size: 20),
-                                    onPressed: () => showDialog(
-                                      context: context,
-                                      builder: (context) => AddServerDialog(
-                                        serverType: server.type,
-                                        existing: server,
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline,
-                                        size: 20),
-                                    onPressed: () => settingsController
-                                        .removeServer(server.id),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                        const Divider(indent: 12, endIndent: 12),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 12, right: 12, top: 8),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "activeServer".tr,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 12, right: 12, top: 4, bottom: 12),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              servers
-                                      .firstWhereOrNull((s) => s.id == activeId)
-                                      ?.name ??
-                                  "none".tr,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                        Obx(() {
-                          final active = settingsController.activeServer;
-                          final isNonYouTube = active != null &&
-                              active.type != ServerType.youtubeMusic;
-                          if (!isNonYouTube) return const SizedBox.shrink();
-
-                          String buildKindStatus(LibraryKind kind) {
-                            final isSyncing =
-                                syncService.isSyncingByKind[kind] == true;
-                            final err = syncService.lastErrorByKind[kind] ?? '';
-                            final ts = syncService.lastSuccessMsByKind[kind];
-                            if (isSyncing) return "${kind.name}: syncing...";
-                            if (err.isNotEmpty) {
-                              return "${kind.name}: error";
-                            }
-                            if (ts == null) return "${kind.name}: never";
-                            final syncText =
-                                DateTime.fromMillisecondsSinceEpoch(ts)
-                                    .toLocal()
-                                    .toString()
-                                    .split('.')
-                                    .first;
-                            return "${kind.name}: $syncText";
-                          }
-
-                          final subtitle = [
-                            buildKindStatus(LibraryKind.songs),
-                            buildKindStatus(LibraryKind.playlists),
-                            buildKindStatus(LibraryKind.albums),
-                            buildKindStatus(LibraryKind.artists),
-                          ].join("\\n");
-
-                          return ListTile(
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 12),
-                            title: const Text("Resync Library Now"),
-                            subtitle: Text(
-                              syncService.lastError.value.isEmpty
-                                  ? subtitle
-                                  : "$subtitle\nError: ${syncService.lastError.value}",
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.color,
-                                  ),
-                            ),
-                            trailing: TextButton(
-                              onPressed: syncService.isSyncing.value
-                                  ? null
-                                  : () async {
-                                      await settingsController
-                                          .resyncLibraryNow();
-                                      if (!context.mounted) return;
-                                      final failed = LibraryKind.values.any(
-                                          (k) =>
-                                              (syncService.lastErrorByKind[k] ??
-                                                      '')
-                                                  .isNotEmpty);
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            failed
-                                                ? "Library sync failed"
-                                                : "Library sync completed",
-                                          ),
-                                        ),
-                                      );
-                                    },
-                              child: Text(
-                                syncService.isSyncing.value
-                                    ? "Syncing..."
-                                    : "Sync",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ),
-                          );
-                        }),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              FilledButton.tonalIcon(
-                                onPressed: () => showDialog(
-                                  context: context,
-                                  builder: (context) => const AddServerDialog(
-                                    serverType: ServerType.youtubeMusic,
-                                  ),
-                                ),
-                                style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
-                                ),
-                                icon: const Icon(Icons.play_circle_outline,
-                                    size: 18),
-                                label: Text("youtubeMusic".tr,
-                                    style: const TextStyle(fontSize: 12)),
-                              ),
-                              FilledButton.tonalIcon(
-                                onPressed: () => showDialog(
-                                  context: context,
-                                  builder: (context) => const AddServerDialog(
-                                    serverType: ServerType.subsonic,
-                                  ),
-                                ),
-                                style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
-                                ),
-                                icon: const Icon(Icons.waves, size: 18),
-                                label: Text("subsonic".tr,
-                                    style: const TextStyle(fontSize: 12)),
-                              ),
-                              FilledButton.tonalIcon(
-                                onPressed: () => showDialog(
-                                  context: context,
-                                  builder: (context) => const AddServerDialog(
-                                    serverType: ServerType.jellyfin,
-                                  ),
-                                ),
-                                style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
-                                ),
-                                icon: const Icon(Icons.tv, size: 18),
-                                label: Text("jellyfin".tr,
-                                    style: const TextStyle(fontSize: 12)),
-                              ),
-                              FilledButton.tonalIcon(
-                                onPressed: () => showDialog(
-                                  context: context,
-                                  builder: (context) => const AddServerDialog(
-                                    serverType: ServerType.plex,
-                                  ),
-                                ),
-                                style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
-                                ),
-                                icon:
-                                    const Icon(Icons.cloud_outlined, size: 18),
-                                label: Text("plex".tr,
-                                    style: const TextStyle(fontSize: 12)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-                    );
-                  }),
-                ],
-              ),
-              CustomExpansionTile(
-                title: "download".tr,
-                icon: Icons.download_outlined,
-                expansionKey: sectionKeys[4],
-                onExpansionChanged: (expanded) =>
-                    handleSectionExpansion(4, expanded),
-                children: [
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    title: Text("autoDownFavSong".tr),
-                    subtitle: Text("autoDownFavSongDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  Theme.of(context).textTheme.bodySmall?.color,
-                            )),
-                    trailing: Obx(
-                      () => CustSwitch(
-                          value: settingsController
-                              .autoDownloadFavoriteSongEnabled.value,
-                          onChanged: settingsController
-                              .toggleAutoDownloadFavoriteSong),
-                    ),
-                  ),
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    title: Text("downloadingFormat".tr),
-                    subtitle: Text("downloadingFormatDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  Theme.of(context).textTheme.bodySmall?.color,
-                            )),
-                    trailing: Obx(
-                      () => DropdownButton(
-                        dropdownColor: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                        underline: const SizedBox.shrink(),
-                        value: settingsController.downloadingFormat.value,
-                        items: const [
-                          DropdownMenuItem(
-                              value: "opus", child: Text("Opus/Ogg")),
-                          DropdownMenuItem(
-                            value: "m4a",
-                            child: Text("M4a"),
-                          ),
-                        ],
-                        onChanged: settingsController.changeDownloadingFormat,
-                      ),
-                    ),
-                  ),
-                  ListTile(
-                    trailing: TextButton(
-                      child: Text(
-                        "reset".tr,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium!
-                            .copyWith(
-                                fontSize: 14, fontWeight: FontWeight.bold),
-                      ),
-                      onPressed: () {
-                        settingsController.resetDownloadLocation();
-                      },
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    title: Text("downloadLocation".tr),
-                    subtitle: Obx(() => Text(
-                        settingsController.isCurrentPathsupportDownDir
-                            ? "In App storage directory"
-                            : settingsController.downloadLocationPath.value,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  Theme.of(context).textTheme.bodySmall?.color,
-                            ))),
-                    onTap: () async {
-                      settingsController.setDownloadLocation();
-                    },
-                  ),
-                  if (GetPlatform.isAndroid)
-                    ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      title: Text("exportDowloadedFiles".tr),
-                      subtitle: Text(
-                        "exportDowloadedFilesDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  Theme.of(context).textTheme.bodySmall?.color,
-                            ),
-                      ),
-                      onTap: () => showDialog(
-                        context: context,
-                        builder: (context) => const ExportFileDialog(),
-                      ).whenComplete(
-                          () => Get.delete<ExportFileDialogController>()),
-                    ),
-                  if (GetPlatform.isAndroid)
-                    ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      title: Text("exportedFileLocation".tr),
-                      subtitle: Obx(() => Text(
-                          settingsController.exportLocationPath.value,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.color,
-                                  ))),
-                      onTap: () async {
-                        settingsController.setExportedLocation();
-                      },
-                    ),
-                ],
-              ),
-              CustomExpansionTile(
-                  title: "${"backup".tr} & ${"restore".tr}",
-                  icon: Icons.restore_outlined,
-                  expansionKey: sectionKeys[5],
-                  onExpansionChanged: (expanded) =>
-                      handleSectionExpansion(5, expanded),
-                  children: [
-                    ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      title: Text("backupAppData".tr),
-                      subtitle: Text(
-                        "backupSettingsAndPlaylistsDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  Theme.of(context).textTheme.bodySmall?.color,
-                            ),
-                      ),
-                      onTap: () => showDialog(
-                        context: context,
-                        builder: (context) => const BackupDialog(),
-                      ).whenComplete(
-                          () => Get.delete<BackupDialogController>()),
-                    ),
-                    ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      title: Text("restoreAppData".tr),
-                      subtitle: Text(
-                        "restoreSettingsAndPlaylistsDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  Theme.of(context).textTheme.bodySmall?.color,
-                            ),
-                      ),
-                      onTap: () => showDialog(
-                        context: context,
-                        builder: (context) => const RestoreDialog(),
-                      ).whenComplete(
-                          () => Get.delete<RestoreDialogController>()),
-                    ),
-                  ]),
-              CustomExpansionTile(
-                  icon: Icons.miscellaneous_services_outlined,
-                  title: "misc".tr,
-                  expansionKey: sectionKeys[6],
-                  onExpansionChanged: (expanded) =>
-                      handleSectionExpansion(6, expanded),
-                  children: [
-                    ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      title: Text("resetToDefault".tr),
-                      subtitle: Text(
-                        "resetToDefaultDes".tr,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  Theme.of(context).textTheme.bodySmall?.color,
-                            ),
-                      ),
-                      onTap: () {
-                        settingsController
-                            .resetAppSettingsToDefault()
-                            .then((_) {
-                          ScaffoldMessenger.of(Get.context!).showSnackBar(
-                              snackbar(Get.context!, "resetToDefaultMsg".tr,
-                                  size: SnackBarSize.BIG,
-                                  duration: const Duration(seconds: 2)));
-                        });
-                      },
-                    ),
-                  ]),
-              CustomExpansionTile(
-                icon: Icons.info_outline,
-                title: "appInfo".tr,
-                expansionKey: sectionKeys[7],
-                onExpansionChanged: (expanded) =>
-                    handleSectionExpansion(7, expanded),
-                children: [
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    leading: const Icon(Icons.system_update_alt, size: 20),
-                    title: Text("checkForUpdatesOnStartup".tr),
-                    trailing: Obx(
-                      () => CustSwitch(
-                        value:
-                            settingsController.checkForUpdatesOnStartup.value,
-                        onChanged:
-                            settingsController.toggleCheckForUpdatesOnStartup,
-                      ),
-                    ),
-                  ),
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    leading: const Icon(Icons.system_update, size: 20),
-                    title: Text("checkForUpdates".tr),
-                    onTap: () async {
-                      final upToDate = "upToDate".tr;
-                      final checking = "checkingForUpdates".tr;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(checking)),
-                      );
-                      final info = await PackageInfo.fromPlatform();
-                      final latest = await newVersionCheck(info.version);
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      if (latest != null) {
-                        Get.find<SettingsScreenController>()
-                            .latestAvailableVersion
-                            .value = latest;
-                        Get.find<SettingsScreenController>()
-                            .isNewVersionAvailable
-                            .value = true;
-                        showDialog(
-                          context: context,
-                          builder: (_) =>
-                              NewVersionDialog(latestVersion: latest),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(upToDate)),
-                        );
-                      }
-                    },
-                  ),
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    leading: const Icon(Icons.language, size: 20),
-                    title: Text("openOpenlystWebsite".tr),
-                    onTap: () {
-                      launchUrl(
-                        Uri.parse('https://openlyst.ink/'),
-                        mode: LaunchMode.externalApplication,
-                      );
-                    },
-                  ),
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    leading: const Icon(Icons.code, size: 20),
-                    title: Text("openGitlab".tr),
-                    subtitle: Text(
-                      "gitlabDes".tr,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    onTap: () {
-                      launchUrl(
-                        Uri.parse('https://gitlab.com/Openlyst/doudou/'),
-                        mode: LaunchMode.externalApplication,
-                      );
-                    },
-                  ),
-                  const Divider(indent: 12, endIndent: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Column(
-                      children: [
-                        Text(
-                          "Doudou",
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        Text(settingsController.currentVersion,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.color))
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            ],
-          )),
+                    ],
+                  )
+                : _buildMobileSectionList(context, settings, syncService),
+          ),
           Align(
             alignment: Alignment.center,
             child: Padding(
               padding: const EdgeInsets.only(bottom: 24.0, top: 8.0),
               child: Text(
-                "${settingsController.currentVersion} ${"by".tr} openlyst",
+                "${settings.currentVersion} ${"by".tr} openlyst",
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall
@@ -1273,6 +145,893 @@ class SettingsScreen extends GetView<SettingsScreenController> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSectionNav(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color:
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.22)),
+      ),
+      child: ListView.separated(
+        itemCount: _sectionMeta.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 6),
+        itemBuilder: (context, i) {
+          final (id, icon, titleKey) = _sectionMeta[i];
+          final selected = id == _selected;
+          return Material(
+            color: selected
+                ? theme.colorScheme.primary.withValues(alpha: 0.16)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => setState(() => _selected = id),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Row(
+                  children: [
+                    Icon(
+                      icon,
+                      size: 20,
+                      color: selected
+                          ? theme.colorScheme.primary
+                          : theme.iconTheme.color?.withValues(alpha: 0.8),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        titleKey.tr,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: selected
+                              ? theme.colorScheme.primary
+                              : theme.textTheme.titleSmall?.color,
+                          fontWeight:
+                              selected ? FontWeight.w700 : FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMobileSectionList(
+    BuildContext context,
+    SettingsScreenController settings,
+    LibrarySyncService syncService,
+  ) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.2)),
+      ),
+      child: ListView.separated(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: _sectionMeta.length,
+        separatorBuilder: (_, __) =>
+            Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.2)),
+        itemBuilder: (context, index) {
+          final (id, icon, titleKey) = _sectionMeta[index];
+          return ListTile(
+            leading: Icon(icon, size: 20, color: theme.colorScheme.primary),
+            title: Text(
+              titleKey.tr,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => _openSectionSubPage(context, settings, syncService, id),
+          );
+        },
+      ),
+    );
+  }
+
+  void _openSectionSubPage(
+    BuildContext context,
+    SettingsScreenController settings,
+    LibrarySyncService syncService,
+    _SettingsSectionId id,
+  ) {
+    final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _SettingsSubPage(
+          icon: meta.$2,
+          title: meta.$3.tr,
+          children: _buildSectionChildren(context, settings, syncService, id),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSingleSection(
+    BuildContext context,
+    SettingsScreenController settings,
+    LibrarySyncService syncService,
+    _SettingsSectionId id,
+  ) {
+    final children = _buildSectionChildren(context, settings, syncService, id);
+    final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
+    return _SettingsCard(
+      icon: meta.$2,
+      title: meta.$3.tr,
+      children: children,
+    );
+  }
+
+  List<Widget> _buildSectionChildren(
+    BuildContext context,
+    SettingsScreenController settings,
+    LibrarySyncService syncService,
+    _SettingsSectionId id,
+  ) {
+    return switch (id) {
+      _SettingsSectionId.personalisation =>
+        _buildPersonalisation(context, settings),
+      _SettingsSectionId.content => _buildContent(context, settings),
+      _SettingsSectionId.playback => _buildPlayback(context, settings),
+      _SettingsSectionId.servers =>
+        _buildServers(context, settings, syncService),
+      _SettingsSectionId.download => _buildDownload(context, settings),
+      _SettingsSectionId.backup => _buildBackup(context),
+      _SettingsSectionId.misc => _buildMisc(context, settings),
+      _SettingsSectionId.info => _buildInfo(context, settings),
+    };
+  }
+
+  List<Widget> _buildPersonalisation(
+      BuildContext context, SettingsScreenController settings) {
+    final isDesktop = GetPlatform.isDesktop;
+    return [
+      ListTile(
+        title: Text("themeMode".tr),
+        subtitle: Obx(() => Text(
+              settings.themeModetype.value == ThemeType.dynamic
+                  ? "dynamic".tr
+                  : settings.themeModetype.value == ThemeType.dynamicColor
+                      ? "dynamicColor".tr
+                      : settings.themeModetype.value == ThemeType.system
+                          ? "systemDefault".tr
+                          : settings.themeModetype.value == ThemeType.dark
+                              ? "dark".tr
+                              : settings.themeModetype.value == ThemeType.oled
+                                  ? "oled".tr
+                                  : "light".tr,
+            )),
+        onTap: () => showDialog(
+          context: context,
+          builder: (context) => const ThemeSelectorDialog(),
+        ),
+      ),
+      Obx(() => ListTile(
+            title: Text("lyricsDynamicColor".tr),
+            subtitle: Text("lyricsDynamicColorDes".tr),
+            trailing: CustSwitch(
+              value: settings.lyricsDynamicColorEnabled.value,
+              onChanged: settings.setLyricsDynamicColorEnabled,
+            ),
+          )),
+      ListTile(
+        title: Text("syncedLyricsHighlightStyle".tr),
+        subtitle: Text("syncedLyricsHighlightStyleDes".tr),
+        trailing: Obx(
+          () => DropdownButton<SyncedLyricsHighlightStyle>(
+            value: settings.syncedLyricsHighlightStyle.value,
+            underline: const SizedBox.shrink(),
+            items: [
+              DropdownMenuItem(
+                value: SyncedLyricsHighlightStyle.block,
+                child: Text("lyricsHighlightBlock".tr),
+              ),
+              DropdownMenuItem(
+                value: SyncedLyricsHighlightStyle.karaoke,
+                child: Text("lyricsHighlightKaraoke".tr),
+              ),
+            ],
+            onChanged: (v) {
+              if (v != null) settings.setSyncedLyricsHighlightStyle(v);
+            },
+          ),
+        ),
+      ),
+      ListTile(
+        title: Text("language".tr),
+        subtitle: Text("languageDes".tr),
+        trailing: Obx(
+          () => DropdownButton(
+            menuMaxHeight: Get.height - 250,
+            underline: const SizedBox.shrink(),
+            value: settings.currentAppLanguageCode.value,
+            items: langMap.entries
+                .map((lang) =>
+                    DropdownMenuItem(value: lang.key, child: Text(lang.value)))
+                .whereType<DropdownMenuItem<String>>()
+                .toList(),
+            onChanged: settings.setAppLanguage,
+          ),
+        ),
+      ),
+      if (!isDesktop)
+        ListTile(
+          title: Text("playerUi".tr),
+          subtitle: Text("playerUiDes".tr),
+          trailing: Obx(
+            () => DropdownButton(
+              underline: const SizedBox.shrink(),
+              value: settings.playerUi.value,
+              items: [
+                DropdownMenuItem(value: 0, child: Text("standard".tr)),
+                DropdownMenuItem(value: 1, child: Text("gesture".tr)),
+              ],
+              onChanged: settings.setPlayerUi,
+            ),
+          ),
+        ),
+      ListTile(
+        title: Text("animationSpeed".tr),
+        subtitle: Text("animationSpeedDes".tr),
+        trailing: Obx(
+          () => DropdownButton<AnimationSpeed>(
+            underline: const SizedBox.shrink(),
+            value: settings.animationSpeed.value,
+            items: [
+              DropdownMenuItem(
+                  value: AnimationSpeed.off,
+                  child: Text("animationSpeedOff".tr)),
+              DropdownMenuItem(
+                  value: AnimationSpeed.fast,
+                  child: Text("animationSpeedFast".tr)),
+              DropdownMenuItem(
+                  value: AnimationSpeed.normal,
+                  child: Text("animationSpeedNormal".tr)),
+              DropdownMenuItem(
+                  value: AnimationSpeed.slow,
+                  child: Text("animationSpeedSlow".tr)),
+            ],
+            onChanged: (v) {
+              if (v != null) settings.setAnimationSpeed(v);
+            },
+          ),
+        ),
+      ),
+      Obx(() => ListTile(
+            title: Text("enableSlidableAction".tr),
+            subtitle: Text("enableSlidableActionDes".tr),
+            trailing: CustSwitch(
+              value: settings.slidableActionEnabled.value,
+              onChanged: settings.toggleSlidableAction,
+            ),
+          )),
+    ];
+  }
+
+  List<Widget> _buildContent(
+      BuildContext context, SettingsScreenController settings) {
+    final isDesktop = GetPlatform.isDesktop;
+    return [
+      Obx(() {
+        final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
+        if (!isYt) return const SizedBox.shrink();
+        return ListTile(
+          title: Text("setDiscoverContent".tr),
+          subtitle: Text(
+            settings.discoverContentType.value == "QP"
+                ? "quickpicks".tr
+                : settings.discoverContentType.value == "TMV"
+                    ? "topmusicvideos".tr
+                    : settings.discoverContentType.value == "TR"
+                        ? "trending".tr
+                        : "basedOnLast".tr,
+          ),
+          onTap: () => showDialog(
+            context: context,
+            builder: (_) => const DiscoverContentSelectorDialog(),
+          ),
+        );
+      }),
+      Obx(() {
+        final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
+        if (!isYt) return const SizedBox.shrink();
+        return ListTile(
+          title: Text("homeContentCount".tr),
+          subtitle: Text("homeContentCountDes".tr),
+          trailing: DropdownButton(
+            underline: const SizedBox.shrink(),
+            value: settings.noOfHomeScreenContent.value,
+            items: ([3, 5, 7, 9, 11])
+                .map((e) => DropdownMenuItem(value: e, child: Text("$e")))
+                .toList(),
+            onChanged: settings.setContentNumber,
+          ),
+        );
+      }),
+      if (isDesktop)
+        ListTile(
+          title: Text("sidebarMode".tr),
+          subtitle: Text("sidebarModeDes".tr),
+          trailing: Obx(
+            () => DropdownButton<SidebarMode>(
+              underline: const SizedBox.shrink(),
+              value: settings.sidebarMode.value,
+              items: [
+                DropdownMenuItem(
+                    value: SidebarMode.auto, child: Text("sidebarModeAuto".tr)),
+                DropdownMenuItem(
+                    value: SidebarMode.collapsed,
+                    child: Text("sidebarModeCollapsed".tr)),
+                DropdownMenuItem(
+                    value: SidebarMode.expanded,
+                    child: Text("sidebarModeExpanded".tr)),
+              ],
+              onChanged: settings.setSidebarMode,
+            ),
+          ),
+        ),
+      Obx(() => ListTile(
+            title: Text("cacheHomeScreenData".tr),
+            subtitle: Text("cacheHomeScreenDataDes".tr),
+            trailing: CustSwitch(
+              value: settings.cacheHomeScreenData.value,
+              onChanged: settings.toggleCacheHomeScreenData,
+            ),
+          )),
+      Obx(() {
+        final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
+        if (!isYt) return const SizedBox.shrink();
+        return ListTile(
+          title: Text("Piped".tr),
+          subtitle: Text("linkPipedDes".tr),
+          trailing: TextButton(
+            onPressed: () {
+              if (settings.isLinkedWithPiped.isFalse) {
+                showDialog(context: context, builder: (_) => const LinkPiped())
+                    .whenComplete(() => Get.delete<PipedLinkedController>());
+              } else {
+                settings.unlinkPiped();
+              }
+            },
+            child: Text(
+                settings.isLinkedWithPiped.value ? "unLink".tr : "link".tr),
+          ),
+        );
+      }),
+      Obx(() {
+        final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
+        if (!isYt || !settings.isLinkedWithPiped.value) {
+          return const SizedBox.shrink();
+        }
+        return ListTile(
+          title: Text("resetblacklistedplaylist".tr),
+          subtitle: Text("resetblacklistedplaylistDes".tr),
+          trailing: TextButton(
+            onPressed: () async {
+              await Get.find<LibraryPlaylistsController>()
+                  .resetBlacklistedPlaylist();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                snackbar(context, "blacklistPlstResetAlert".tr,
+                    size: SnackBarSize.MEDIUM),
+              );
+            },
+            child: Text("reset".tr),
+          ),
+        );
+      }),
+      ListTile(
+        title: Text("clearImgCache".tr),
+        subtitle: Text("clearImgCacheDes".tr),
+        onTap: () async {
+          await settings.clearImagesCache();
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            snackbar(context, "clearImgCacheAlert".tr, size: SnackBarSize.BIG),
+          );
+        },
+      ),
+    ];
+  }
+
+  List<Widget> _buildPlayback(
+      BuildContext context, SettingsScreenController settings) {
+    final isDesktop = GetPlatform.isDesktop;
+    return [
+      ListTile(
+        title: Text("streamingQuality".tr),
+        subtitle: Text("streamingQualityDes".tr),
+        trailing: Obx(
+          () => DropdownButton(
+            underline: const SizedBox.shrink(),
+            value: settings.streamingQuality.value,
+            items: [
+              DropdownMenuItem(value: AudioQuality.Low, child: Text("low".tr)),
+              DropdownMenuItem(
+                  value: AudioQuality.High, child: Text("high".tr)),
+            ],
+            onChanged: settings.setStreamingQuality,
+          ),
+        ),
+      ),
+      if (GetPlatform.isAndroid)
+        Obx(() => ListTile(
+              title: Text("loudnessNormalization".tr),
+              subtitle: Text("loudnessNormalizationDes".tr),
+              trailing: CustSwitch(
+                value: settings.loudnessNormalizationEnabled.value,
+                onChanged: settings.toggleLoudnessNormalization,
+              ),
+            )),
+      if (!isDesktop)
+        Obx(() => ListTile(
+              title: Text("cacheSongs".tr),
+              subtitle: Text("cacheSongsDes".tr),
+              trailing: CustSwitch(
+                value: settings.cacheSongs.value,
+                onChanged: settings.toggleCachingSongsValue,
+              ),
+            )),
+      if (!isDesktop)
+        Obx(() => ListTile(
+              title: Text("skipSilence".tr),
+              subtitle: Text("skipSilenceDes".tr),
+              trailing: CustSwitch(
+                value: settings.skipSilenceEnabled.value,
+                onChanged: settings.toggleSkipSilence,
+              ),
+            )),
+      if (isDesktop)
+        Obx(() => ListTile(
+              title: Text("backgroundPlay".tr),
+              subtitle: Text("backgroundPlayDes".tr),
+              trailing: CustSwitch(
+                value: settings.backgroundPlayEnabled.value,
+                onChanged: settings.toggleBackgroundPlay,
+              ),
+            )),
+      Obx(() => ListTile(
+            title: Text("keepScreenOnWhilePlaying".tr),
+            subtitle: Text("keepScreenOnWhilePlayingDes".tr),
+            trailing: CustSwitch(
+              value: settings.keepScreenAwake.value,
+              onChanged: settings.toggleKeepScreenAwake,
+            ),
+          )),
+      Obx(() => ListTile(
+            title: Text("restoreLastPlaybackSession".tr),
+            subtitle: Text("restoreLastPlaybackSessionDes".tr),
+            trailing: CustSwitch(
+              value: settings.restorePlaybackSession.value,
+              onChanged: settings.toggleRestorePlaybackSession,
+            ),
+          )),
+      Obx(() => ListTile(
+            title: Text("autoOpenPlayer".tr),
+            subtitle: Text("autoOpenPlayerDes".tr),
+            trailing: CustSwitch(
+              value: settings.autoOpenPlayer.value,
+              onChanged: settings.toggleAutoOpenPlayer,
+            ),
+          )),
+      if (!isDesktop)
+        ListTile(
+          title: Text("equalizer".tr),
+          subtitle: Text("equalizerDes".tr),
+          onTap: () async {
+            try {
+              await Get.find<PlayerController>().openEqualizer();
+            } catch (e) {
+              printERROR(e);
+            }
+          },
+        ),
+      if (!isDesktop)
+        Obx(() => ListTile(
+              title: Text("stopMusicOnTaskClear".tr),
+              subtitle: Text("stopMusicOnTaskClearDes".tr),
+              trailing: CustSwitch(
+                value: settings.stopPlyabackOnSwipeAway.value,
+                onChanged: settings.toggleStopPlyabackOnSwipeAway,
+              ),
+            )),
+      if (GetPlatform.isAndroid)
+        Obx(() => ListTile(
+              title: Text("ignoreBatOpt".tr),
+              onTap: settings.isIgnoringBatteryOptimizations.isFalse
+                  ? settings.enableIgnoringBatteryOptimizations
+                  : null,
+              subtitle: Text(
+                "${"status".tr}: ${settings.isIgnoringBatteryOptimizations.isTrue ? "enabled".tr : "disabled".tr}\n${"ignoreBatOptDes".tr}",
+              ),
+            )),
+    ];
+  }
+
+  List<Widget> _buildServers(
+    BuildContext context,
+    SettingsScreenController settings,
+    LibrarySyncService syncService,
+  ) {
+    return [
+      Obx(() {
+        final servers = settings.servers;
+        final activeId = settings.activeServerId.value;
+        if (servers.isEmpty) {
+          return ListTile(title: Text("noServersConfigured".tr));
+        }
+        return Column(
+          children: [
+            ...servers.map((server) => ListTile(
+                  leading: Icon(_serverIcon(server.type)),
+                  title: Text(server.name),
+                  subtitle: Text(server.serverUrl?.isNotEmpty == true
+                      ? server.serverUrl!
+                      : _serverTypeLabelText(server.type).tr),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Radio<int>(
+                        value: server.id,
+                        groupValue: activeId,
+                        onChanged: (v) {
+                          if (v != null) settings.setActiveServer(v);
+                        },
+                      ),
+                      if (!server.isDefault) ...[
+                        if (server.type != ServerType.youtubeMusic)
+                          IconButton(
+                            icon: const Icon(Icons.wifi_find, size: 18),
+                            tooltip: "testConnection".tr,
+                            onPressed: () async {
+                              final err =
+                                  await settings.testServerConnection(server);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(err == null
+                                      ? "connectionSuccess".tr
+                                      : "${"connectionFailed".tr}: $err"),
+                                ),
+                              );
+                            },
+                          ),
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          onPressed: () => showDialog(
+                            context: context,
+                            builder: (_) => AddServerDialog(
+                              serverType: server.type,
+                              existing: server,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 18),
+                          onPressed: () => settings.removeServer(server.id),
+                        ),
+                      ]
+                    ],
+                  ),
+                )),
+            Obx(() {
+              final active = settings.activeServer;
+              final isNonYouTube =
+                  active != null && active.type != ServerType.youtubeMusic;
+              if (!isNonYouTube) return const SizedBox.shrink();
+              return ListTile(
+                title: const Text("Resync Library Now"),
+                trailing: TextButton(
+                  onPressed: syncService.isSyncing.value
+                      ? null
+                      : () async {
+                          await settings.resyncLibraryNow();
+                        },
+                  child:
+                      Text(syncService.isSyncing.value ? "Syncing..." : "Sync"),
+                ),
+              );
+            }),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.tonalIcon(
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (_) => const AddServerDialog(
+                        serverType: ServerType.youtubeMusic),
+                  ),
+                  icon: const Icon(Icons.play_circle_outline, size: 18),
+                  label: Text("youtubeMusic".tr),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (_) =>
+                        const AddServerDialog(serverType: ServerType.subsonic),
+                  ),
+                  icon: const Icon(Icons.waves, size: 18),
+                  label: Text("subsonic".tr),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (_) =>
+                        const AddServerDialog(serverType: ServerType.jellyfin),
+                  ),
+                  icon: const Icon(Icons.tv, size: 18),
+                  label: Text("jellyfin".tr),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (_) =>
+                        const AddServerDialog(serverType: ServerType.plex),
+                  ),
+                  icon: const Icon(Icons.cloud_outlined, size: 18),
+                  label: Text("plex".tr),
+                ),
+              ],
+            ),
+          ],
+        );
+      }),
+    ];
+  }
+
+  List<Widget> _buildDownload(
+      BuildContext context, SettingsScreenController settings) {
+    return [
+      Obx(() => ListTile(
+            title: Text("autoDownFavSong".tr),
+            subtitle: Text("autoDownFavSongDes".tr),
+            trailing: CustSwitch(
+              value: settings.autoDownloadFavoriteSongEnabled.value,
+              onChanged: settings.toggleAutoDownloadFavoriteSong,
+            ),
+          )),
+      ListTile(
+        title: Text("downloadingFormat".tr),
+        subtitle: Text("downloadingFormatDes".tr),
+        trailing: Obx(
+          () => DropdownButton(
+            underline: const SizedBox.shrink(),
+            value: settings.downloadingFormat.value,
+            items: const [
+              DropdownMenuItem(value: "opus", child: Text("Opus/Ogg")),
+              DropdownMenuItem(value: "m4a", child: Text("M4a")),
+            ],
+            onChanged: settings.changeDownloadingFormat,
+          ),
+        ),
+      ),
+      ListTile(
+        title: Text("downloadLocation".tr),
+        subtitle: Obx(() => Text(settings.isCurrentPathsupportDownDir
+            ? "In App storage directory"
+            : settings.downloadLocationPath.value)),
+        trailing: TextButton(
+          onPressed: settings.resetDownloadLocation,
+          child: Text("reset".tr),
+        ),
+        onTap: settings.setDownloadLocation,
+      ),
+      if (GetPlatform.isAndroid)
+        ListTile(
+          title: Text("exportDowloadedFiles".tr),
+          subtitle: Text("exportDowloadedFilesDes".tr),
+          onTap: () => showDialog(
+            context: context,
+            builder: (_) => const ExportFileDialog(),
+          ).whenComplete(() => Get.delete<ExportFileDialogController>()),
+        ),
+      if (GetPlatform.isAndroid)
+        ListTile(
+          title: Text("exportedFileLocation".tr),
+          subtitle: Obx(() => Text(settings.exportLocationPath.value)),
+          onTap: settings.setExportedLocation,
+        ),
+    ];
+  }
+
+  List<Widget> _buildBackup(BuildContext context) {
+    return [
+      ListTile(
+        title: Text("backupAppData".tr),
+        subtitle: Text("backupSettingsAndPlaylistsDes".tr),
+        onTap: () => showDialog(
+          context: context,
+          builder: (_) => const BackupDialog(),
+        ).whenComplete(() => Get.delete<BackupDialogController>()),
+      ),
+      ListTile(
+        title: Text("restoreAppData".tr),
+        subtitle: Text("restoreSettingsAndPlaylistsDes".tr),
+        onTap: () => showDialog(
+          context: context,
+          builder: (_) => const RestoreDialog(),
+        ).whenComplete(() => Get.delete<RestoreDialogController>()),
+      ),
+    ];
+  }
+
+  List<Widget> _buildMisc(
+      BuildContext context, SettingsScreenController settings) {
+    return [
+      ListTile(
+        title: Text("resetToDefault".tr),
+        subtitle: Text("resetToDefaultDes".tr),
+        onTap: () async {
+          await settings.resetAppSettingsToDefault();
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            snackbar(context, "resetToDefaultMsg".tr, size: SnackBarSize.BIG),
+          );
+        },
+      ),
+    ];
+  }
+
+  List<Widget> _buildInfo(
+      BuildContext context, SettingsScreenController settings) {
+    return [
+      Obx(() => ListTile(
+            leading: const Icon(Icons.system_update_alt, size: 20),
+            title: Text("checkForUpdatesOnStartup".tr),
+            trailing: CustSwitch(
+              value: settings.checkForUpdatesOnStartup.value,
+              onChanged: settings.toggleCheckForUpdatesOnStartup,
+            ),
+          )),
+      ListTile(
+        leading: const Icon(Icons.system_update, size: 20),
+        title: Text("checkForUpdates".tr),
+        onTap: () async {
+          final upToDate = "upToDate".tr;
+          final checking = "checkingForUpdates".tr;
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(checking)));
+          final info = await PackageInfo.fromPlatform();
+          final latest = await newVersionCheck(info.version);
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          if (latest != null) {
+            settings.latestAvailableVersion.value = latest;
+            settings.isNewVersionAvailable.value = true;
+            showDialog(
+              context: context,
+              builder: (_) => NewVersionDialog(latestVersion: latest),
+            );
+          } else {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(upToDate)));
+          }
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.language, size: 20),
+        title: Text("openOpenlystWebsite".tr),
+        onTap: () => launchUrl(
+          Uri.parse('https://openlyst.ink/'),
+          mode: LaunchMode.externalApplication,
+        ),
+      ),
+      ListTile(
+        leading: const Icon(Icons.code, size: 20),
+        title: Text("openGitlab".tr),
+        subtitle: Text("gitlabDes".tr),
+        onTap: () => launchUrl(
+          Uri.parse('https://gitlab.com/Openlyst/doudou/'),
+          mode: LaunchMode.externalApplication,
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          children: [
+            Text(
+              "Doudou",
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            Text(settings.currentVersion),
+          ],
+        ),
+      ),
+    ];
+  }
+}
+
+class _SettingsCard extends StatelessWidget {
+  const _SettingsCard({
+    required this.icon,
+    required this.title,
+    required this.children,
+  });
+
+  final IconData icon;
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color:
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: theme.colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsSubPage extends StatelessWidget {
+  const _SettingsSubPage({
+    required this.icon,
+    required this.title,
+    required this.children,
+  });
+
+  final IconData icon;
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          children: [
+            _SettingsCard(
+              icon: icon,
+              title: title,
+              children: children,
+            ),
+          ],
+        ),
       ),
     );
   }
