@@ -7,6 +7,9 @@ import 'package:widget_marquee/widget_marquee.dart';
 import '../../services/piped_service.dart';
 import '../../utils/server_storage.dart';
 import '/models/media_Item_builder.dart';
+import '/models/server.dart';
+import '/ui/screens/Settings/settings_screen_controller.dart';
+import '/ui/screens/Library/library_controller.dart';
 import '/ui/widgets/create_playlist_dialog.dart';
 import '../../models/playlist.dart';
 import 'common_dialog_widget.dart';
@@ -168,17 +171,42 @@ class AddToPlaylistController extends GetxController {
   }
 
   Future<void> _getAllPlaylist() async {
-    final plstsBox = await Hive.openBox("LibraryPlaylists");
-    final prefix = 's_${currentServerId()}_';
-    final serverKeys = plstsBox.keys
-        .where((k) => k is String && k.toString().startsWith(prefix))
-        .toList();
-    playlists.value = serverKeys
-        .map((k) => plstsBox.get(k.toString()))
-        .whereType<Map>()
-        .map((e) => Playlist.fromJson(Map<dynamic, dynamic>.from(e)))
-        .where((e) => !e.isPipedPlaylist)
-        .toList();
+    final settings = Get.find<SettingsScreenController>();
+    final activeServer = settings.activeServer;
+    final isYouTube = activeServer?.type == ServerType.youtubeMusic;
+
+    if (!isYouTube) {
+      if (Get.isRegistered<LibraryPlaylistsController>()) {
+        final list = Get.find<LibraryPlaylistsController>()
+            .libraryPlaylists
+            .where((p) =>
+                !LibraryPlaylistsController.initPlst
+                    .any((init) => init.playlistId == p.playlistId) &&
+                !p.isPipedPlaylist)
+            .toList();
+        playlists.value = list;
+      } else {
+        final box =
+            await Hive.openBox(libraryPlaylistsCacheBoxName(currentServerId()));
+        playlists.value = box.values
+            .map((e) => Playlist.fromJson(Map<dynamic, dynamic>.from(e)))
+            .where((p) => !p.isPipedPlaylist)
+            .toList();
+      }
+    } else {
+      final plstsBox = await Hive.openBox("LibraryPlaylists");
+      final prefix = 's_${currentServerId()}_';
+      final serverKeys = plstsBox.keys
+          .where((k) => k is String && k.toString().startsWith(prefix))
+          .toList();
+      playlists.value = serverKeys
+          .map((k) => plstsBox.get(k.toString()))
+          .whereType<Map>()
+          .map((e) => Playlist.fromJson(Map<dynamic, dynamic>.from(e)))
+          .where((e) => !e.isPipedPlaylist)
+          .toList();
+    }
+
     localPlaylists = playlists.toList();
     final res = await Get.find<PipedServices>().getAllPlaylists();
     if (res.code == 1) {
