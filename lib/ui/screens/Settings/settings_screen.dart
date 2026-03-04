@@ -70,6 +70,21 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     (_SettingsSectionId.info, Icons.info_outline, "appInfo"),
   ];
 
+  static const _mobileSectionGroups = <List<_SettingsSectionId>>[
+    [
+      _SettingsSectionId.personalisation,
+      _SettingsSectionId.content,
+      _SettingsSectionId.playback,
+    ],
+    [
+      _SettingsSectionId.servers,
+      _SettingsSectionId.download,
+      _SettingsSectionId.backup,
+      _SettingsSectionId.misc,
+      _SettingsSectionId.info,
+    ],
+  ];
+
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsScreenController>();
@@ -97,13 +112,16 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
             child: Text(
               "settings".tr,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              textAlign: useTwoPane ? TextAlign.left : TextAlign.center,
+              style: (useTwoPane
+                      ? Theme.of(context).textTheme.headlineMedium
+                      : Theme.of(context).textTheme.titleLarge)
+                  ?.copyWith(
                     fontWeight: FontWeight.bold,
-                    letterSpacing: -0.4,
+                    letterSpacing: useTwoPane ? -0.4 : -0.2,
                   ),
             ),
           ),
@@ -214,33 +232,81 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     LibrarySyncService syncService,
   ) {
     final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.22),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.2)),
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 40),
+      itemCount: _mobileSectionGroups.length,
+      itemBuilder: (context, groupIndex) {
+        final group = _mobileSectionGroups[groupIndex];
+        return Container(
+          margin: EdgeInsets.only(
+            left: 4,
+            right: 4,
+            bottom: groupIndex == _mobileSectionGroups.length - 1 ? 0 : 14,
+          ),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest
+                .withValues(alpha: 0.22),
+            borderRadius: BorderRadius.circular(18),
+            border:
+                Border.all(color: theme.dividerColor.withValues(alpha: 0.20)),
+          ),
+          child: Column(
+            children: [
+              for (int i = 0; i < group.length; i++) ...[
+                _buildMobileSectionRow(
+                  context,
+                  settings,
+                  syncService,
+                  group[i],
+                ),
+                if (i < group.length - 1)
+                  Divider(
+                    height: 1,
+                    indent: 54,
+                    endIndent: 12,
+                    color: theme.dividerColor.withValues(alpha: 0.20),
+                  ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileSectionRow(
+    BuildContext context,
+    SettingsScreenController settings,
+    LibrarySyncService syncService,
+    _SettingsSectionId id,
+  ) {
+    final theme = Theme.of(context);
+    final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
+    return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      leading: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primary.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(meta.$2, size: 16, color: theme.colorScheme.primary),
       ),
-      child: ListView.separated(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: _sectionMeta.length,
-        separatorBuilder: (_, __) =>
-            Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.2)),
-        itemBuilder: (context, index) {
-          final (id, icon, titleKey) = _sectionMeta[index];
-          return ListTile(
-            leading: Icon(icon, size: 20, color: theme.colorScheme.primary),
-            title: Text(
-              titleKey.tr,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => _openSectionSubPage(context, settings, syncService, id),
-          );
-        },
+      title: Text(
+        meta.$3.tr,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontSize: 20 * 0.8,
+          fontWeight: FontWeight.w600,
+        ),
       ),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: theme.iconTheme.color?.withValues(alpha: 0.75),
+      ),
+      onTap: () => _openSectionSubPage(context, settings, syncService, id),
     );
   }
 
