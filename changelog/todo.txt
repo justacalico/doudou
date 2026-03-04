@@ -3,4 +3,4 @@
 ## -v16
 
 [] Fix createing playlists and adding to playlist not working when not using youtube music.
-
+[] Fix the mobile pills having a background

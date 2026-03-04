@@ -8,17 +8,18 @@ import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
 class BottomNavBar extends StatelessWidget {
   const BottomNavBar({super.key});
 
-  static const double _iconOnlyBreakpoint = 400;
-
   @override
   Widget build(BuildContext context) {
     final homeScreenController = Get.find<HomeScreenController>();
-    final width = MediaQuery.sizeOf(context).width;
-    final iconOnly = width < _iconOnlyBreakpoint;
     final theme = Theme.of(context);
-    final dockColor = theme.brightness == Brightness.dark
-        ? Colors.white.withValues(alpha: 0.06)
-        : Colors.black.withValues(alpha: 0.06);
+    final glassBase = theme.colorScheme.surface;
+    final glassTint = theme.colorScheme.primary
+        .withValues(alpha: theme.brightness == Brightness.dark ? 0.16 : 0.10);
+    final dockColor = Color.alphaBlend(
+      glassTint,
+      glassBase.withValues(
+          alpha: theme.brightness == Brightness.dark ? 0.42 : 0.58),
+    );
 
     return Obx(() {
       final idx = homeScreenController.tabIndex.value;
@@ -65,18 +66,19 @@ class BottomNavBar extends StatelessWidget {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.brightness == Brightness.dark 
-                        ? const Color(0xFF1C1C1E).withValues(alpha: 0.85)
-                        : Colors.white.withValues(alpha: 0.85),
+                    color: dockColor,
                     borderRadius: BorderRadius.circular(32),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.08),
+                      color: Colors.white.withValues(
+                          alpha: theme.brightness == Brightness.dark
+                              ? 0.14
+                              : 0.22),
                       width: 0.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        blurRadius: 24,
+                        color: Colors.black.withValues(alpha: 0.22),
+                        blurRadius: 18,
                         offset: const Offset(0, 10),
                       ),
                     ],
@@ -86,7 +88,7 @@ class BottomNavBar extends StatelessWidget {
                     children: List.generate(items.length, (index) {
                       final selected = index == safeIdx;
                       final item = items[index];
-                      
+
                       return Expanded(
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
@@ -107,7 +109,8 @@ class BottomNavBar extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: selected
-                                      ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                                      ? theme.colorScheme.primary
+                                          .withValues(alpha: 0.15)
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
@@ -116,7 +119,8 @@ class BottomNavBar extends StatelessWidget {
                                   size: 22,
                                   color: selected
                                       ? theme.colorScheme.primary
-                                      : theme.iconTheme.color?.withValues(alpha: 0.4),
+                                      : theme.iconTheme.color
+                                          ?.withValues(alpha: 0.4),
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -124,10 +128,13 @@ class BottomNavBar extends StatelessWidget {
                                 item.label,
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   fontSize: 10,
-                                  fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                                  fontWeight: selected
+                                      ? FontWeight.bold
+                                      : FontWeight.w500,
                                   color: selected
                                       ? theme.colorScheme.primary
-                                      : theme.textTheme.labelSmall?.color?.withValues(alpha: 0.4),
+                                      : theme.textTheme.labelSmall?.color
+                                          ?.withValues(alpha: 0.4),
                                 ),
                               ),
                             ],
@@ -154,7 +161,8 @@ class BottomNavBar extends StatelessWidget {
 }
 
 class _NavItem {
-  _NavItem({required this.icon, required this.outlinedIcon, required this.label});
+  _NavItem(
+      {required this.icon, required this.outlinedIcon, required this.label});
 
   final IconData icon;
   final IconData outlinedIcon;
