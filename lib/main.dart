@@ -9,6 +9,7 @@ import 'package:terminate_restart/terminate_restart.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
 import '/utils/get_localization.dart';
 import '/services/downloader.dart';
+import '/services/library_sync_service.dart';
 import '/services/piped_service.dart';
 import 'utils/app_link_controller.dart';
 import '/services/audio_handler.dart';
@@ -104,6 +105,7 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => LibraryArtistsController(), fenix: true);
   Get.lazyPut(() => SettingsScreenController(), fenix: true);
   Get.lazyPut(() => Downloader(), fenix: true);
+  Get.lazyPut(() => LibrarySyncService(), fenix: true);
   Get.lazyPut(() => SearchScreenController(), fenix: true);
   if (GetPlatform.isDesktop) {
     Get.put(DesktopSystemTray());
@@ -178,6 +180,9 @@ class LifecycleHandler extends WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      if (Get.isRegistered<LibrarySyncService>()) {
+        Get.find<LibrarySyncService>().onAppResumed();
+      }
     } else if (state == AppLifecycleState.detached) {
       await Get.find<AudioHandler>().customAction("saveSession");
     }

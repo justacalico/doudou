@@ -32,6 +32,22 @@ String searchQueryBoxName(int serverId) =>
 String blacklistedPlaylistBoxName(int serverId) =>
     serverId == 0 ? 'blacklistedPlaylist' : 'blacklistedPlaylist_s_$serverId';
 
+String librarySongsCacheBoxName(int serverId) =>
+    serverId == 0 ? 'LibrarySongsCache' : 'LibrarySongsCache_s_$serverId';
+
+String libraryPlaylistsCacheBoxName(int serverId) => serverId == 0
+    ? 'LibraryPlaylistsCache'
+    : 'LibraryPlaylistsCache_s_$serverId';
+
+String libraryAlbumsCacheBoxName(int serverId) =>
+    serverId == 0 ? 'LibraryAlbumsCache' : 'LibraryAlbumsCache_s_$serverId';
+
+String libraryArtistsCacheBoxName(int serverId) =>
+    serverId == 0 ? 'LibraryArtistsCache' : 'LibraryArtistsCache_s_$serverId';
+
+String librarySyncMetaBoxName(int serverId) =>
+    serverId == 0 ? 'LibrarySyncMeta' : 'LibrarySyncMeta_s_$serverId';
+
 String playlistSongsBoxName(String playlistId) {
   if (playlistId == 'LIBFAV') return libFavBoxName(currentServerId());
   if (playlistId == 'LIBRP') return recentlyPlayedBoxName(currentServerId());

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -12,6 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../utils/server_storage.dart';
 import '../../../utils/update_check_flag_file.dart';
 import '/services/piped_service.dart';
+import '/services/library_sync_service.dart';
 import '../Library/library_controller.dart';
 import '../../widgets/snackbar.dart';
 import '../../../utils/helper.dart';
@@ -162,8 +164,7 @@ class SettingsScreenController extends GetxController {
             : SidebarMode.auto;
     noOfHomeScreenContent.value = setBox.get("noOfHomeScreenContent") ?? 3;
 
-    final legacyDisabled =
-        setBox.get("isTransitionAnimationDisabled") ?? false;
+    final legacyDisabled = setBox.get("isTransitionAnimationDisabled") ?? false;
     final rawAnimSpeed = setBox.get("animationSpeed");
     if (rawAnimSpeed is int &&
         rawAnimSpeed >= 0 &&
@@ -241,7 +242,8 @@ class SettingsScreenController extends GetxController {
       servers.assignAll([defaultServer]);
     }
     final savedActive = setBox.get('activeServerId');
-    if (savedActive is int && servers.any((server) => server.id == savedActive)) {
+    if (savedActive is int &&
+        servers.any((server) => server.id == savedActive)) {
       activeServerId.value = savedActive;
     } else if (servers.isNotEmpty) {
       final nonDefault =
@@ -250,6 +252,12 @@ class SettingsScreenController extends GetxController {
     }
     _persistServers();
     _onActiveServerChanged();
+    if (Get.isRegistered<LibrarySyncService>()) {
+      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
+    } else {
+      Get.find<LibrarySyncService>();
+      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
+    }
   }
 
   void setAppLanguage(String? val) {
@@ -399,7 +407,10 @@ class SettingsScreenController extends GetxController {
       name = _serverTypeLabel(type);
     } else {
       name = serverUrl?.trim().isNotEmpty == true
-          ? (serverUrl!.replaceFirst(RegExp(r'^https?://'), '').split('/').first)
+          ? (serverUrl!
+              .replaceFirst(RegExp(r'^https?://'), '')
+              .split('/')
+              .first)
           : _serverTypeLabel(type);
       final existingOfType = servers.where((s) => s.type == type).length;
       if (existingOfType > 0) name = '$name #${existingOfType + 1}';
@@ -430,7 +441,8 @@ class SettingsScreenController extends GetxController {
     servers[idx] = s.copyWith(
       serverUrl: serverUrl ?? s.serverUrl,
       username: username ?? s.username,
-      password: password != null ? (password.isEmpty ? null : password) : s.password,
+      password:
+          password != null ? (password.isEmpty ? null : password) : s.password,
     );
     _persistServers();
   }
@@ -521,6 +533,9 @@ class SettingsScreenController extends GetxController {
       // ignore: discarded_futures
       ctrl.refreshLib();
     }
+    if (Get.isRegistered<LibrarySyncService>()) {
+      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
+    }
   }
 
   void onThemeChange(dynamic val) {
@@ -589,16 +604,15 @@ class SettingsScreenController extends GetxController {
     setBox.put('keepScreenAwake', val);
     keepScreenAwake.value = val;
     try {
-        if (val) {
-          // enable wakelock immediately if music is playing
-          if (Get.find<PlayerController>().buttonState.value ==
-              PlayButtonState.playing) {
-            WakelockPlus.enable();
-          }
-        } else {
-          WakelockPlus.disable();
+      if (val) {
+        // enable wakelock immediately if music is playing
+        if (Get.find<PlayerController>().buttonState.value ==
+            PlayButtonState.playing) {
+          WakelockPlus.enable();
         }
-     
+      } else {
+        WakelockPlus.disable();
+      }
     } catch (e) {
       // ignore if player/controller not available
     }
@@ -638,6 +652,10 @@ class SettingsScreenController extends GetxController {
 
   Future<void> closeAllDatabases() async {
     await Hive.close();
+  }
+
+  Future<void> resyncLibraryNow() async {
+    await Get.find<LibrarySyncService>().syncNow(force: true);
   }
 
   Future<String> get dbDir async {

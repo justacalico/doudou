@@ -14,6 +14,7 @@ import '../../widgets/snackbar.dart';
 import '../../widgets/new_version_dialog.dart';
 import '/ui/widgets/link_piped.dart';
 import '/services/music_service.dart';
+import '/services/library_sync_service.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/utils/theme_controller.dart';
 import '/ui/constants/layout.dart';
@@ -29,6 +30,7 @@ class SettingsScreen extends GetView<SettingsScreenController> {
   @override
   Widget build(BuildContext context) {
     final settingsController = controller;
+    final syncService = Get.find<LibrarySyncService>();
     final sectionKeys = settingsController.settingsSectionKeys;
     void handleSectionExpansion(int index, bool expanded) {
       if (!expanded) return;
@@ -44,29 +46,40 @@ class SettingsScreen extends GetView<SettingsScreenController> {
         }
       });
     }
-    final topPadding = context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault;
+
+    final topPadding =
+        context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault;
     final isDesktop = GetPlatform.isDesktop;
     return Padding(
       padding: isBottomNavActive
-          ? EdgeInsets.only(left: kContentLeftPaddingWithBottomNav, top: topPadding, right: kContentRightPaddingSettingsWithBottomNav)
-          : EdgeInsets.only(top: topPadding, left: kContentLeftPaddingWithoutBottomNav, right: kContentLeftPaddingWithoutBottomNav),
+          ? EdgeInsets.only(
+              left: kContentLeftPaddingWithBottomNav,
+              top: topPadding,
+              right: kContentRightPaddingSettingsWithBottomNav)
+          : EdgeInsets.only(
+              top: topPadding,
+              left: kContentLeftPaddingWithoutBottomNav,
+              right: kContentLeftPaddingWithoutBottomNav),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
             child: Text(
               "settings".tr,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
-              ),
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
+                  ),
             ),
           ),
           Expanded(
               child: ListView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: kSettingsListBottomPadding + 20, top: kSettingsListTopPadding),
+            padding: const EdgeInsets.only(
+                bottom: kSettingsListBottomPadding + 20,
+                top: kSettingsListTopPadding),
             children: [
               Obx(
                 () => settingsController.isNewVersionAvailable.value
@@ -84,21 +97,33 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                   mode: LaunchMode.externalApplication,
                                 );
                               },
-                              tileColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              tileColor: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer
+                                  .withValues(alpha: 0.3),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
                               leading: CircleAvatar(
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                child: const Icon(Icons.download, color: Colors.white)),
-                              title: Text("newVersionAvailable".tr, style: const TextStyle(fontWeight: FontWeight.w600)),
-                              visualDensity: const VisualDensity(horizontal: -2),
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.primary,
+                                  child: const Icon(Icons.download,
+                                      color: Colors.white)),
+                              title: Text("newVersionAvailable".tr,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w600)),
+                              visualDensity:
+                                  const VisualDensity(horizontal: -2),
                               subtitle: Text(
                                 "goToDownloadPage".tr,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium!
                                     .copyWith(
-                                        color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13),
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.color,
+                                        fontSize: 13),
                               ),
                             ),
                           ),
@@ -123,9 +148,8 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       handleSectionExpansion(1, expanded),
                   children: [
                     Obx(() {
-                      final isYt =
-                          settingsController.activeServer?.type ==
-                              ServerType.youtubeMusic;
+                      final isYt = settingsController.activeServer?.type ==
+                          ServerType.youtubeMusic;
                       if (!isYt) return const SizedBox.shrink();
                       return ListTile(
                         contentPadding:
@@ -134,7 +158,8 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                         subtitle: Obx(() => Text(
                             settingsController.discoverContentType.value == "QP"
                                 ? "quickpicks".tr
-                                : settingsController.discoverContentType.value ==
+                                : settingsController
+                                            .discoverContentType.value ==
                                         "TMV"
                                     ? "topmusicvideos".tr
                                     : settingsController
@@ -142,9 +167,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                             "TR"
                                         ? "trending".tr
                                         : "basedOnLast".tr,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                            ))),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color,
+                                ))),
                         onTap: () => showDialog(
                           context: context,
                           builder: (context) =>
@@ -153,18 +184,23 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       );
                     }),
                     Obx(() {
-                      final isYt =
-                          settingsController.activeServer?.type ==
-                              ServerType.youtubeMusic;
+                      final isYt = settingsController.activeServer?.type ==
+                          ServerType.youtubeMusic;
                       if (!isYt) return const SizedBox.shrink();
                       return ListTile(
                         contentPadding:
                             const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("homeContentCount".tr),
                         subtitle: Text("homeContentCountDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                            )),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color,
+                                )),
                         trailing: Obx(
                           () => DropdownButton(
                             dropdownColor: Theme.of(context).cardColor,
@@ -188,9 +224,13 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                         title: Text("sidebarMode".tr),
                         subtitle: Text(
                           "sidebarModeDes".tr,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  ),
                         ),
                         trailing: Obx(
                           () => DropdownButton<SidebarMode>(
@@ -221,9 +261,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                             const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("cacheHomeScreenData".tr),
                         subtitle: Text("cacheHomeScreenDataDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                            )),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color,
+                                )),
                         trailing: Obx(
                           () => CustSwitch(
                               value:
@@ -232,18 +278,23 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                   settingsController.toggleCacheHomeScreenData),
                         )),
                     Obx(() {
-                      final isYt =
-                          settingsController.activeServer?.type ==
-                              ServerType.youtubeMusic;
+                      final isYt = settingsController.activeServer?.type ==
+                          ServerType.youtubeMusic;
                       if (!isYt) return const SizedBox.shrink();
                       return ListTile(
                         contentPadding:
                             const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("Piped".tr),
                         subtitle: Text("linkPipedDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                            )),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color,
+                                )),
                         trailing: TextButton(
                             child: Obx(() => Text(
                                   settingsController.isLinkedWithPiped.value
@@ -252,61 +303,75 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleMedium!
-                                      .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
+                                      .copyWith(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold),
                                 )),
                             onPressed: () {
-                              if (settingsController.isLinkedWithPiped.isFalse) {
-                              showDialog(
-                                context: context,
-                                builder: (context) => const LinkPiped(),
-                              ).whenComplete(
-                                  () => Get.delete<PipedLinkedController>());
-                            } else {
-                              settingsController.unlinkPiped();
-                            }
-                          }),
+                              if (settingsController
+                                  .isLinkedWithPiped.isFalse) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => const LinkPiped(),
+                                ).whenComplete(
+                                    () => Get.delete<PipedLinkedController>());
+                              } else {
+                                settingsController.unlinkPiped();
+                              }
+                            }),
                       );
                     }),
                     Obx(() {
-                      final isYt =
-                          settingsController.activeServer?.type ==
-                              ServerType.youtubeMusic;
-                      if (!isYt || !settingsController.isLinkedWithPiped.isTrue) {
+                      final isYt = settingsController.activeServer?.type ==
+                          ServerType.youtubeMusic;
+                      if (!isYt ||
+                          !settingsController.isLinkedWithPiped.isTrue) {
                         return const SizedBox.shrink();
                       }
                       return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("resetblacklistedplaylist".tr),
                         subtitle: Text("resetblacklistedplaylistDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                            )),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color,
+                                )),
                         trailing: TextButton(
                             child: Text(
                               "reset".tr,
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium!
-                                  .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
+                                  .copyWith(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold),
                             ),
                             onPressed: () async {
                               await Get.find<LibraryPlaylistsController>()
                                   .resetBlacklistedPlaylist();
-                              ScaffoldMessenger.of(Get.context!)
-                                  .showSnackBar(snackbar(Get.context!,
+                              ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                  snackbar(Get.context!,
                                       "blacklistPlstResetAlert".tr,
                                       size: SnackBarSize.MEDIUM));
                             }),
                       );
                     }),
                     ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("clearImgCache".tr),
                       subtitle: Text(
                         "clearImgCacheDes".tr,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                            ),
                       ),
                       onTap: () {
                         settingsController.clearImagesCache().then((value) =>
@@ -328,8 +393,9 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     title: Text("streamingQuality".tr),
                     subtitle: Text("streamingQualityDes".tr,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        )),
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                     trailing: Obx(
                       () => DropdownButton(
                         dropdownColor: Theme.of(context).cardColor,
@@ -354,9 +420,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                             const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("loudnessNormalization".tr),
                         subtitle: Text("loudnessNormalizationDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                            )),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color,
+                                )),
                         trailing: Obx(
                           () => CustSwitch(
                               value: settingsController
@@ -370,9 +442,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                             const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("cacheSongs".tr),
                         subtitle: Text("cacheSongsDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                            )),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color,
+                                )),
                         trailing: Obx(
                           () => CustSwitch(
                               value: settingsController.cacheSongs.value,
@@ -385,9 +463,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                             const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("skipSilence".tr),
                         subtitle: Text("skipSilenceDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                            )),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color,
+                                )),
                         trailing: Obx(
                           () => CustSwitch(
                               value:
@@ -400,9 +484,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                             const EdgeInsets.symmetric(horizontal: 12),
                         title: Text("backgroundPlay".tr),
                         subtitle: Text("backgroundPlayDes".tr,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                            )),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color,
+                                )),
                         trailing: Obx(
                           () => CustSwitch(
                               value: settingsController
@@ -411,12 +501,17 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                   settingsController.toggleBackgroundPlay),
                         )),
                   ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("keepScreenOnWhilePlaying".tr),
                       subtitle: Text("keepScreenOnWhilePlayingDes".tr,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                          )),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  )),
                       trailing: Obx(
                         () => CustSwitch(
                             value: settingsController.keepScreenAwake.value,
@@ -424,12 +519,17 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                 settingsController.toggleKeepScreenAwake),
                       )),
                   ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("restoreLastPlaybackSession".tr),
                       subtitle: Text("restoreLastPlaybackSessionDes".tr,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                          )),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  )),
                       trailing: Obx(
                         () => CustSwitch(
                             value:
@@ -442,8 +542,9 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     title: Text("autoOpenPlayer".tr),
                     subtitle: Text("autoOpenPlayerDes".tr,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        )),
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                     trailing: Obx(
                       () => CustSwitch(
                           value: settingsController.autoOpenPlayer.value,
@@ -452,12 +553,17 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                   ),
                   if (!isDesktop)
                     ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("equalizer".tr),
                       subtitle: Text("equalizerDes".tr,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                          )),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  )),
                       onTap: () async {
                         try {
                           await Get.find<PlayerController>().openEqualizer();
@@ -468,12 +574,17 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     ),
                   if (!isDesktop)
                     ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("stopMusicOnTaskClear".tr),
                       subtitle: Text("stopMusicOnTaskClearDes".tr,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                          )),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  )),
                       trailing: Obx(
                         () => CustSwitch(
                             value: settingsController
@@ -500,14 +611,23 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyMedium!
-                                        .copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodySmall?.color),
+                                        .copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.color),
                                     children: <TextSpan>[
                                       TextSpan(
                                           text: "ignoreBatOptDes".tr,
                                           style: Theme.of(context)
                                               .textTheme
-                                              .bodyMedium?.copyWith(
-                                                color: Theme.of(context).textTheme.bodySmall?.color,
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.color,
                                               )),
                                     ],
                                   ),
@@ -538,19 +658,27 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       children: [
                         ...servers.map(
                           (server) => ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 12),
                             leading: Icon(
                               _serverIcon(server.type),
                             ),
                             title: Row(
                               children: [
-                                Expanded(child: Text(server.name, style: const TextStyle(fontWeight: FontWeight.w600))),
+                                Expanded(
+                                    child: Text(server.name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w600))),
                                 if (server.isDefault)
                                   Container(
                                     margin: const EdgeInsets.only(left: 8),
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary
+                                          .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
@@ -575,7 +703,11 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                           server.serverUrl!.isNotEmpty
                                       ? server.serverUrl!
                                       : _serverTypeLabelText(server.type).tr),
-                              style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color),
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -592,7 +724,8 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                 if (!server.isDefault) ...[
                                   if (server.type != ServerType.youtubeMusic)
                                     IconButton(
-                                      icon: const Icon(Icons.wifi_find, size: 20),
+                                      icon:
+                                          const Icon(Icons.wifi_find, size: 20),
                                       tooltip: "testConnection".tr,
                                       onPressed: () async {
                                         final err = await settingsController
@@ -607,7 +740,8 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                       },
                                     ),
                                   IconButton(
-                                    icon: const Icon(Icons.edit_outlined, size: 20),
+                                    icon: const Icon(Icons.edit_outlined,
+                                        size: 20),
                                     onPressed: () => showDialog(
                                       context: context,
                                       builder: (context) => AddServerDialog(
@@ -617,9 +751,10 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline, size: 20),
-                                    onPressed: () =>
-                                        settingsController.removeServer(server.id),
+                                    icon: const Icon(Icons.delete_outline,
+                                        size: 20),
+                                    onPressed: () => settingsController
+                                        .removeServer(server.id),
                                   ),
                                 ],
                               ],
@@ -628,8 +763,8 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                         ),
                         const Divider(indent: 12, endIndent: 12),
                         Padding(
-                          padding:
-                              const EdgeInsets.only(left: 12, right: 12, top: 8),
+                          padding: const EdgeInsets.only(
+                              left: 12, right: 12, top: 8),
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
@@ -639,23 +774,97 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                           ),
                         ),
                         Padding(
-                          padding:
-                              const EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 12),
+                          padding: const EdgeInsets.only(
+                              left: 12, right: 12, top: 4, bottom: 12),
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
                               servers
-                                      .firstWhereOrNull(
-                                          (s) => s.id == activeId)
+                                      .firstWhereOrNull((s) => s.id == activeId)
                                       ?.name ??
                                   "none".tr,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
+                        Obx(() {
+                          final active = settingsController.activeServer;
+                          final isNonYouTube = active != null &&
+                              active.type != ServerType.youtubeMusic;
+                          if (!isNonYouTube) return const SizedBox.shrink();
+
+                          final lastSyncMs = syncService.lastSyncTimeMs.value;
+                          final syncText = lastSyncMs == null
+                              ? "Never synced"
+                              : DateTime.fromMillisecondsSinceEpoch(lastSyncMs)
+                                  .toLocal()
+                                  .toString()
+                                  .split('.')
+                                  .first;
+                          final subtitle = syncService.isSyncing.value
+                              ? "Syncing library..."
+                              : "Last sync: $syncText";
+
+                          return ListTile(
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 12),
+                            title: const Text("Resync Library Now"),
+                            subtitle: Text(
+                              syncService.lastError.value.isEmpty
+                                  ? subtitle
+                                  : "$subtitle\nError: ${syncService.lastError.value}",
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  ),
+                            ),
+                            trailing: TextButton(
+                              onPressed: syncService.isSyncing.value
+                                  ? null
+                                  : () async {
+                                      await settingsController
+                                          .resyncLibraryNow();
+                                      if (!context.mounted) return;
+                                      final failed = syncService
+                                          .lastError.value.isNotEmpty;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            failed
+                                                ? "Library sync failed"
+                                                : "Library sync completed",
+                                          ),
+                                        ),
+                                      );
+                                    },
+                              child: Text(
+                                syncService.isSyncing.value
+                                    ? "Syncing..."
+                                    : "Sync",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                          );
+                        }),
                         Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Wrap(
                             spacing: 8,
                             runSpacing: 8,
@@ -668,11 +877,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                   ),
                                 ),
                                 style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
                                 ),
-                                icon: const Icon(Icons.play_circle_outline, size: 18),
-                                label: Text("youtubeMusic".tr, style: const TextStyle(fontSize: 12)),
+                                icon: const Icon(Icons.play_circle_outline,
+                                    size: 18),
+                                label: Text("youtubeMusic".tr,
+                                    style: const TextStyle(fontSize: 12)),
                               ),
                               FilledButton.tonalIcon(
                                 onPressed: () => showDialog(
@@ -682,11 +895,14 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                   ),
                                 ),
                                 style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
                                 ),
                                 icon: const Icon(Icons.waves, size: 18),
-                                label: Text("subsonic".tr, style: const TextStyle(fontSize: 12)),
+                                label: Text("subsonic".tr,
+                                    style: const TextStyle(fontSize: 12)),
                               ),
                               FilledButton.tonalIcon(
                                 onPressed: () => showDialog(
@@ -696,11 +912,14 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                   ),
                                 ),
                                 style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
                                 ),
                                 icon: const Icon(Icons.tv, size: 18),
-                                label: Text("jellyfin".tr, style: const TextStyle(fontSize: 12)),
+                                label: Text("jellyfin".tr,
+                                    style: const TextStyle(fontSize: 12)),
                               ),
                               FilledButton.tonalIcon(
                                 onPressed: () => showDialog(
@@ -710,11 +929,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                   ),
                                 ),
                                 style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
                                 ),
-                                icon: const Icon(Icons.cloud_outlined, size: 18),
-                                label: Text("plex".tr, style: const TextStyle(fontSize: 12)),
+                                icon:
+                                    const Icon(Icons.cloud_outlined, size: 18),
+                                label: Text("plex".tr,
+                                    style: const TextStyle(fontSize: 12)),
                               ),
                             ],
                           ),
@@ -737,8 +960,9 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     title: Text("autoDownFavSong".tr),
                     subtitle: Text("autoDownFavSongDes".tr,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        )),
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                     trailing: Obx(
                       () => CustSwitch(
                           value: settingsController
@@ -752,8 +976,9 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     title: Text("downloadingFormat".tr),
                     subtitle: Text("downloadingFormatDes".tr,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        )),
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                            )),
                     trailing: Obx(
                       () => DropdownButton(
                         dropdownColor: Theme.of(context).cardColor,
@@ -779,35 +1004,38 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                         style: Theme.of(context)
                             .textTheme
                             .titleMedium!
-                            .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
+                            .copyWith(
+                                fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       onPressed: () {
                         settingsController.resetDownloadLocation();
                       },
                     ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     title: Text("downloadLocation".tr),
                     subtitle: Obx(() => Text(
                         settingsController.isCurrentPathsupportDownDir
                             ? "In App storage directory"
                             : settingsController.downloadLocationPath.value,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ))),
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                            ))),
                     onTap: () async {
                       settingsController.setDownloadLocation();
                     },
                   ),
                   if (GetPlatform.isAndroid)
                     ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("exportDowloadedFiles".tr),
                       subtitle: Text(
                         "exportDowloadedFilesDes".tr,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                            ),
                       ),
                       onTap: () => showDialog(
                         context: context,
@@ -822,9 +1050,13 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       title: Text("exportedFileLocation".tr),
                       subtitle: Obx(() => Text(
                           settingsController.exportLocationPath.value,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                          ))),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  ))),
                       onTap: () async {
                         settingsController.setExportedLocation();
                       },
@@ -839,13 +1071,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       handleSectionExpansion(5, expanded),
                   children: [
                     ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("backupAppData".tr),
                       subtitle: Text(
                         "backupSettingsAndPlaylistsDes".tr,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                            ),
                       ),
                       onTap: () => showDialog(
                         context: context,
@@ -854,13 +1088,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                           () => Get.delete<BackupDialogController>()),
                     ),
                     ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("restoreAppData".tr),
                       subtitle: Text(
                         "restoreSettingsAndPlaylistsDes".tr,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                            ),
                       ),
                       onTap: () => showDialog(
                         context: context,
@@ -877,13 +1113,15 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       handleSectionExpansion(6, expanded),
                   children: [
                     ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12),
                       title: Text("resetToDefault".tr),
                       subtitle: Text(
                         "resetToDefaultDes".tr,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                            ),
                       ),
                       onTap: () {
                         settingsController
@@ -910,7 +1148,8 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                     title: Text("checkForUpdatesOnStartup".tr),
                     trailing: Obx(
                       () => CustSwitch(
-                        value: settingsController.checkForUpdatesOnStartup.value,
+                        value:
+                            settingsController.checkForUpdatesOnStartup.value,
                         onChanged:
                             settingsController.toggleCheckForUpdatesOnStartup,
                       ),
@@ -939,7 +1178,8 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                             .value = true;
                         showDialog(
                           context: context,
-                          builder: (_) => NewVersionDialog(latestVersion: latest),
+                          builder: (_) =>
+                              NewVersionDialog(latestVersion: latest),
                         );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -981,10 +1221,20 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                       children: [
                         Text(
                           "Doudou",
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(settingsController.currentVersion,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).textTheme.bodySmall?.color))
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color))
                       ],
                     ),
                   ),
@@ -998,7 +1248,10 @@ class SettingsScreen extends GetView<SettingsScreenController> {
               padding: const EdgeInsets.only(bottom: 24.0, top: 8.0),
               child: Text(
                 "${settingsController.currentVersion} ${"by".tr} openlyst",
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(letterSpacing: 0.5),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(letterSpacing: 0.5),
               ),
             ),
           ),
@@ -1024,12 +1277,16 @@ class ThemeSelectorDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "themeMode".tr,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -1074,7 +1331,8 @@ class ThemeSelectorDialog extends StatelessWidget {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text("cancel".tr, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text("cancel".tr,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                   )),
             )
           ],
@@ -1100,12 +1358,16 @@ class DiscoverContentSelectorDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "setDiscoverContent".tr,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -1140,7 +1402,8 @@ class DiscoverContentSelectorDialog extends StatelessWidget {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text("cancel".tr, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text("cancel".tr,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                   )),
             )
           ],
@@ -1172,9 +1435,12 @@ class _AddServerDialogState extends State<AddServerDialog> {
   @override
   void initState() {
     super.initState();
-    _urlController = TextEditingController(text: widget.existing?.serverUrl ?? '');
-    _usernameController = TextEditingController(text: widget.existing?.username ?? '');
-    _passwordController = TextEditingController(text: widget.existing?.password ?? '');
+    _urlController =
+        TextEditingController(text: widget.existing?.serverUrl ?? '');
+    _usernameController =
+        TextEditingController(text: widget.existing?.username ?? '');
+    _passwordController =
+        TextEditingController(text: widget.existing?.password ?? '');
   }
 
   @override
@@ -1289,7 +1555,8 @@ class _AddServerDialogState extends State<AddServerDialog> {
                           password: _passwordController.text,
                         );
                       } else {
-                        controller.addServerWithCredentials(ServerType.youtubeMusic);
+                        controller
+                            .addServerWithCredentials(ServerType.youtubeMusic);
                       }
                     }
                     Navigator.of(context).pop();

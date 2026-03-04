@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import '/ui/widgets/sort_widget.dart';
 import '../../../utils/server_storage.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/services/piped_service.dart';
+import '/services/library_sync_service.dart';
 import '../../../utils/helper.dart';
 import '/models/album.dart';
 import '/models/artist.dart';
@@ -27,6 +29,7 @@ class LibrarySongsController extends GetxController {
   List<MediaItem> tempListContainer = [];
   SortWidgetController? sortWidgetController;
   final additionalOperationMode = OperationMode.none.obs;
+  Worker? _syncWorker;
 
   @override
   void onInit() {
@@ -35,28 +38,28 @@ class LibrarySongsController extends GetxController {
       if (!Get.isRegistered<LibrarySongsController>()) return;
       await init();
     });
+    _syncWorker = ever(Get.find<LibrarySyncService>().syncVersion, (_) async {
+      if (!Get.isRegistered<LibrarySongsController>()) return;
+      final settings = Get.find<SettingsScreenController>();
+      final server = settings.activeServer;
+      if (server == null || server.type == ServerType.youtubeMusic) return;
+      await init();
+    });
     super.onInit();
   }
 
   Future<void> init() async {
     final settings = Get.find<SettingsScreenController>();
     final server = settings.activeServer;
-    final useBackend =
-        server != null && server.type != ServerType.youtubeMusic;
+    final useBackend = server != null && server.type != ServerType.youtubeMusic;
 
     final localSongs = await _loadLocalSongs();
 
     if (useBackend) {
-      try {
-        final tracks = await settings.currentBackend.getLibrarySongs();
-        final remoteSongs = tracks
-            .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
-            .whereType<MediaItem>()
-            .toList();
-        librarySongsList.value = [...remoteSongs, ...localSongs];
-      } catch (_) {
-        librarySongsList.value = localSongs;
-      }
+      final remoteSongs = await Get.find<LibrarySyncService>()
+          .getCachedSongs(currentServerId());
+      librarySongsList.value = [...remoteSongs, ...localSongs];
+      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
     } else {
       librarySongsList.value = localSongs;
     }
@@ -118,8 +121,7 @@ class LibrarySongsController extends GetxController {
     // and favorites so the Library Songs view reflects the full library.
     final settings = Get.find<SettingsScreenController>();
     final server = settings.activeServer;
-    final isYouTube =
-        server != null && server.type == ServerType.youtubeMusic;
+    final isYouTube = server != null && server.type == ServerType.youtubeMusic;
 
     if (isYouTube) {
       final serverId = currentServerId();
@@ -145,9 +147,8 @@ class LibrarySongsController extends GetxController {
       // Songs from library playlists (excluding special local playlists).
       try {
         if (Get.isRegistered<LibraryPlaylistsController>()) {
-          final playlists = Get.find<LibraryPlaylistsController>()
-              .libraryPlaylists
-              .toList();
+          final playlists =
+              Get.find<LibraryPlaylistsController>().libraryPlaylists.toList();
           for (final pl in playlists) {
             final id = pl.playlistId;
             if (id == 'LIBRP' ||
@@ -312,6 +313,12 @@ class LibrarySongsController extends GetxController {
     additionalOperationTempList.clear();
     additionalOperationTempMap.clear();
   }
+
+  @override
+  void onClose() {
+    _syncWorker?.dispose();
+    super.onClose();
+  }
 }
 
 int _currentServerId() => currentServerId();
@@ -319,6 +326,7 @@ int _currentServerId() => currentServerId();
 class LibraryPlaylistsController extends GetxController
     with GetTickerProviderStateMixin {
   late AnimationController controller;
+  Worker? _syncWorker;
 
   final playlistCreationMode = "local".obs;
   static final initPlst = [
@@ -365,6 +373,13 @@ class LibraryPlaylistsController extends GetxController
       await Hive.openBox(recentlyPlayedBoxName(id));
       refreshLib();
     });
+    _syncWorker = ever(Get.find<LibrarySyncService>().syncVersion, (_) async {
+      if (!Get.isRegistered<LibraryPlaylistsController>()) return;
+      final settings = Get.find<SettingsScreenController>();
+      final server = settings.activeServer;
+      if (server == null || server.type == ServerType.youtubeMusic) return;
+      refreshLib();
+    });
     super.onInit();
   }
 
@@ -375,8 +390,10 @@ class LibraryPlaylistsController extends GetxController
     final useBackend = server != null && server.type != ServerType.youtubeMusic;
 
     if (useBackend) {
-      final backendPlaylists = await settings.currentBackend.getLibraryPlaylists();
+      final backendPlaylists = await Get.find<LibrarySyncService>()
+          .getCachedPlaylists(currentServerId());
       libraryPlaylists.value = [...initPlst, ...backendPlaylists];
+      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
       isContentFetched.value = true;
       return;
     }
@@ -421,8 +438,7 @@ class LibraryPlaylistsController extends GetxController
 
   void updatePlaylistIntoDb(Playlist playlist) async {
     final box = await Hive.openBox("LibraryPlaylists");
-    box.put(
-        libraryPlaylistKey(_currentServerId(), playlist.playlistId),
+    box.put(libraryPlaylistKey(_currentServerId(), playlist.playlistId),
         playlist.toJson());
     refreshLib();
   }
@@ -437,8 +453,8 @@ class LibraryPlaylistsController extends GetxController
 
   Future<void> syncPipedPlaylist() async {
     final res = await Get.find<PipedServices>().getAllPlaylists();
-    final box = await Hive.openBox(
-        blacklistedPlaylistBoxName(_currentServerId()));
+    final box =
+        await Hive.openBox(blacklistedPlaylistBoxName(_currentServerId()));
     final blacklistedPlaylist = box.values.whereType<String>().toList();
     final libPipedPlaylistsId = libraryPlaylists
             .toList()
@@ -496,8 +512,7 @@ class LibraryPlaylistsController extends GetxController
         final box = await Hive.openBox("LibraryPlaylists");
         title = "${title[0].toUpperCase()}${title.substring(1).toLowerCase()}";
         playlist.newTitle = title;
-        box.put(
-            libraryPlaylistKey(_currentServerId(), playlist.playlistId),
+        box.put(libraryPlaylistKey(_currentServerId(), playlist.playlistId),
             playlist.toJson());
       }
       refreshLib();
@@ -543,8 +558,7 @@ class LibraryPlaylistsController extends GetxController
             description: "Library Playlist",
             isCloudPlaylist: false);
         final box = await Hive.openBox("LibraryPlaylists");
-        box.put(
-            libraryPlaylistKey(_currentServerId(), newplst.playlistId),
+        box.put(libraryPlaylistKey(_currentServerId(), newplst.playlistId),
             newplst.toJson());
       }
 
@@ -569,16 +583,16 @@ class LibraryPlaylistsController extends GetxController
   }
 
   Future<void> blacklistPipedPlaylist(Playlist playlist) async {
-    final box = await Hive.openBox(
-        blacklistedPlaylistBoxName(_currentServerId()));
+    final box =
+        await Hive.openBox(blacklistedPlaylistBoxName(_currentServerId()));
     box.add(playlist.playlistId);
     libraryPlaylists.remove(playlist);
     box.close();
   }
 
   Future<void> resetBlacklistedPlaylist() async {
-    final box = await Hive.openBox(
-        blacklistedPlaylistBoxName(_currentServerId()));
+    final box =
+        await Hive.openBox(blacklistedPlaylistBoxName(_currentServerId()));
     box.clear();
     syncPipedPlaylist();
   }
@@ -612,6 +626,7 @@ class LibraryPlaylistsController extends GetxController
   void dispose() {
     textInputController.dispose();
     controller.dispose();
+    _syncWorker?.dispose();
     super.dispose();
   }
 
@@ -681,8 +696,7 @@ class LibraryPlaylistsController extends GetxController
       importProgress.value = 0.6;
 
       final box = await Hive.openBox("LibraryPlaylists");
-      box.put(
-          libraryPlaylistKey(_currentServerId(), newPlaylistId),
+      box.put(libraryPlaylistKey(_currentServerId(), newPlaylistId),
           newPlaylist.toJson());
       importProgress.value = 0.7;
 
@@ -790,12 +804,20 @@ class LibraryAlbumsController extends GetxController {
   late RxList<Album> libraryAlbums = RxList();
   final isContentFetched = false.obs;
   List<Album> tempListContainer = [];
+  Worker? _syncWorker;
 
   @override
   void onInit() {
     refreshLib();
     ever(Get.find<SettingsScreenController>().activeServerId, (_) {
       if (!Get.isRegistered<LibraryAlbumsController>()) return;
+      refreshLib();
+    });
+    _syncWorker = ever(Get.find<LibrarySyncService>().syncVersion, (_) {
+      if (!Get.isRegistered<LibraryAlbumsController>()) return;
+      final settings = Get.find<SettingsScreenController>();
+      final server = settings.activeServer;
+      if (server == null || server.type == ServerType.youtubeMusic) return;
       refreshLib();
     });
     super.onInit();
@@ -806,7 +828,9 @@ class LibraryAlbumsController extends GetxController {
     final server = settings.activeServer;
     final useBackend = server != null && server.type != ServerType.youtubeMusic;
     if (useBackend) {
-      libraryAlbums.value = await settings.currentBackend.getLibraryAlbums();
+      libraryAlbums.value = await Get.find<LibrarySyncService>()
+          .getCachedAlbums(currentServerId());
+      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
     } else {
       final box = await Hive.openBox(libraryAlbumsBoxName(currentServerId()));
       libraryAlbums.value = box.values
@@ -815,6 +839,12 @@ class LibraryAlbumsController extends GetxController {
           .toList();
     }
     isContentFetched.value = true;
+  }
+
+  @override
+  void onClose() {
+    _syncWorker?.dispose();
+    super.onClose();
   }
 
   void onSort(SortType sortType, bool isAscending) {
@@ -845,12 +875,20 @@ class LibraryArtistsController extends GetxController {
   RxList<Artist> libraryArtists = RxList();
   final isContentFetched = false.obs;
   List<Artist> tempListContainer = [];
+  Worker? _syncWorker;
 
   @override
   void onInit() {
     refreshLib();
     ever(Get.find<SettingsScreenController>().activeServerId, (_) {
       if (!Get.isRegistered<LibraryArtistsController>()) return;
+      refreshLib();
+    });
+    _syncWorker = ever(Get.find<LibrarySyncService>().syncVersion, (_) {
+      if (!Get.isRegistered<LibraryArtistsController>()) return;
+      final settings = Get.find<SettingsScreenController>();
+      final server = settings.activeServer;
+      if (server == null || server.type == ServerType.youtubeMusic) return;
       refreshLib();
     });
     super.onInit();
@@ -861,7 +899,9 @@ class LibraryArtistsController extends GetxController {
     final server = settings.activeServer;
     final useBackend = server != null && server.type != ServerType.youtubeMusic;
     if (useBackend) {
-      libraryArtists.value = await settings.currentBackend.getLibraryArtists();
+      libraryArtists.value = await Get.find<LibrarySyncService>()
+          .getCachedArtists(currentServerId());
+      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
     } else {
       final box = await Hive.openBox(libraryArtistsBoxName(currentServerId()));
       libraryArtists.value = box.values
@@ -870,6 +910,12 @@ class LibraryArtistsController extends GetxController {
           .toList();
     }
     isContentFetched.value = true;
+  }
+
+  @override
+  void onClose() {
+    _syncWorker?.dispose();
+    super.onClose();
   }
 
   void onSort(SortType sortType, bool isAscending) {
