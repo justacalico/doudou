@@ -37,7 +37,7 @@ class AddToPlaylist extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 8.0),
                         child: Marquee(
-                          id:"createNewPlaylistx",
+                          id: "createNewPlaylistx",
                           delay: const Duration(milliseconds: 300),
                           child: Text(
                             "CreateNewPlaylist".tr,
@@ -46,7 +46,9 @@ class AddToPlaylist extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10,),
+                    const SizedBox(
+                      width: 10,
+                    ),
                     InkWell(
                       child: const Icon(Icons.playlist_add),
                       onTap: () {
@@ -64,10 +66,8 @@ class AddToPlaylist extends StatelessWidget {
               if (isPipedLinked)
                 Obx(
                   () => RadioGroup<String>(
-                    groupValue:
-                        addToPlaylistController.playlistType.value,
-                    onChanged:
-                        addToPlaylistController.changePlaylistType,
+                    groupValue: addToPlaylistController.playlistType.value,
+                    onChanged: addToPlaylistController.changePlaylistType,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -176,8 +176,8 @@ class AddToPlaylistController extends GetxController {
     playlists.value = serverKeys
         .map((k) => plstsBox.get(k.toString()))
         .whereType<Map>()
-        .where((e) => e["isCloudPlaylist"] != true)
         .map((e) => Playlist.fromJson(Map<dynamic, dynamic>.from(e)))
+        .where((e) => !e.isPipedPlaylist)
         .toList();
     localPlaylists = playlists.toList();
     final res = await Get.find<PipedServices>().getAllPlaylists();
@@ -204,16 +204,22 @@ class AddToPlaylistController extends GetxController {
       List<MediaItem> songs, String playlistId, BuildContext context) async {
     additionInProgress.value = true;
     if (playlistType.value == "local") {
-      final plstBox = await Hive.openBox(playlistId);
-      final playlistSongIds = plstBox.values.map((item) => item['videoId']);
+      final plstBox = await Hive.openBox(playlistSongsBoxName(playlistId));
+      final playlistSongIds = plstBox.values
+          .whereType<Map>()
+          .map((item) => item['videoId'])
+          .toSet();
+      var added = 0;
       for (MediaItem element in songs) {
         if (!playlistSongIds.contains(element.id)) {
           await plstBox.add(MediaItemBuilder.toJson(element));
+          playlistSongIds.add(element.id);
+          added++;
         }
       }
       await plstBox.close();
       additionInProgress.value = false;
-      return true;
+      return added > 0;
     } else {
       final videosId = songs.map((e) => e.id).toList();
       final res =
