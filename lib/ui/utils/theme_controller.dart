@@ -18,6 +18,8 @@ TextTheme _interTextTheme(TextTheme base) {
 class ThemeController extends GetxController {
   final primaryColor = Colors.deepPurple[400].obs;
   final dynamicColor = Colors.deepPurple[400]!.obs;
+  final customAccentColor = Colors.deepPurple[400]!.obs;
+  final useCustomAccentColor = false.obs;
   final textColor = Colors.white24.obs;
   final themedata = Rxn<ThemeData>();
 
@@ -34,12 +36,14 @@ class ThemeController extends GetxController {
     final primaryInt = appPrefs.get("themePrimaryColor") ?? 4278199603;
     primaryColor.value = Color(primaryInt);
 
-    final dynamicColorInt =
-        appPrefs.get("dynamicColorPrimary") ?? primaryInt;
+    final dynamicColorInt = appPrefs.get("dynamicColorPrimary") ?? primaryInt;
     dynamicColor.value = Color(dynamicColorInt);
+    final customAccentInt =
+        appPrefs.get("customAccentColor") ?? dynamicColorInt;
+    customAccentColor.value = Color(customAccentInt);
+    useCustomAccentColor.value = appPrefs.get("useCustomAccentColor") ?? false;
 
-    changeThemeModeType(
-        ThemeType.values[appPrefs.get("themeModeType") ?? 0]);
+    changeThemeModeType(ThemeType.values[appPrefs.get("themeModeType") ?? 0]);
 
     _listenSystemBrightness();
 
@@ -71,10 +75,9 @@ class ThemeController extends GetxController {
         swatch = _createMaterialColor(primaryColor.value!);
       } else if (type == ThemeType.dynamicColor) {
         final appPrefs = Hive.box('AppPrefs');
-        final dynamicInt =
-            appPrefs.get("dynamicColorPrimary") ??
-                appPrefs.get("themePrimaryColor") ??
-                4278199603;
+        final dynamicInt = appPrefs.get("dynamicColorPrimary") ??
+            appPrefs.get("themePrimaryColor") ??
+            4278199603;
         dynamicColor.value = Color(dynamicInt);
         swatch = _createMaterialColor(dynamicColor.value);
       }
@@ -101,13 +104,19 @@ class ThemeController extends GetxController {
       textColor.value = Colors.white54;
     }
     final primarySwatch = _createMaterialColor(primaryColor.value!);
-    themedata.value = _createThemeData(primarySwatch, ThemeType.dynamic,
-        textColor: textColor.value,
-        titleColorSwatch: _createMaterialColor(textColor.value));
+    final appPrefs = Hive.box('AppPrefs');
     currentSongId = songId;
-    Hive.box('AppPrefs')
-        .put("themePrimaryColor", (primaryColor.value!).toARGB32());
-    setWindowsTitleBarColor(themedata.value!.scaffoldBackgroundColor);
+    appPrefs.put("themePrimaryColor", (primaryColor.value!).toARGB32());
+    final savedIndex = appPrefs.get("themeModeType") ?? 0;
+    final savedType = ThemeType.values[savedIndex];
+    if (savedType == ThemeType.dynamic && useCustomAccentColor.isFalse) {
+      themedata.value = _createThemeData(primarySwatch, ThemeType.dynamic,
+          textColor: textColor.value,
+          titleColorSwatch: _createMaterialColor(textColor.value));
+      setWindowsTitleBarColor(themedata.value!.scaffoldBackgroundColor);
+      return;
+    }
+    changeThemeModeType(savedType);
   }
 
   void setDynamicColor(Color color) {
@@ -117,17 +126,52 @@ class ThemeController extends GetxController {
 
     final savedIndex = appPrefs.get("themeModeType") ?? 0;
     final savedType = ThemeType.values[savedIndex];
-    if (savedType == ThemeType.dynamicColor) {
+    if (savedType == ThemeType.dynamicColor && useCustomAccentColor.isFalse) {
       final swatch = _createMaterialColor(color);
       themedata.value = _createThemeData(swatch, ThemeType.dynamicColor);
       setWindowsTitleBarColor(themedata.value!.scaffoldBackgroundColor);
+      return;
     }
+    changeThemeModeType(savedType);
+  }
+
+  void setCustomAccentColor(Color color) {
+    customAccentColor.value = color;
+    final appPrefs = Hive.box('AppPrefs');
+    appPrefs.put("customAccentColor", color.toARGB32());
+    final savedIndex = appPrefs.get("themeModeType") ?? 0;
+    changeThemeModeType(ThemeType.values[savedIndex]);
+  }
+
+  void setUseCustomAccentColor(bool enabled) {
+    useCustomAccentColor.value = enabled;
+    final appPrefs = Hive.box('AppPrefs');
+    appPrefs.put("useCustomAccentColor", enabled);
+    final savedIndex = appPrefs.get("themeModeType") ?? 0;
+    changeThemeModeType(ThemeType.values[savedIndex]);
+  }
+
+  Color get effectiveAccentColor =>
+      useCustomAccentColor.value ? customAccentColor.value : dynamicColor.value;
+
+  MaterialColor _resolveAccentSwatch(
+      ThemeType themeType, MaterialColor? primarySwatch) {
+    if (useCustomAccentColor.isTrue) {
+      return _createMaterialColor(customAccentColor.value);
+    }
+    if (themeType == ThemeType.dynamic || themeType == ThemeType.dynamicColor) {
+      return primarySwatch ?? _createMaterialColor(dynamicColor.value);
+    }
+    return _createMaterialColor(dynamicColor.value);
   }
 
   ThemeData _createThemeData(MaterialColor? primarySwatch, ThemeType themeType,
       {MaterialColor? titleColorSwatch, Color? textColor}) {
-    if (themeType == ThemeType.dynamic ||
-        themeType == ThemeType.dynamicColor) {
+    final accentSwatch = _resolveAccentSwatch(themeType, primarySwatch);
+    if (themeType == ThemeType.dynamic || themeType == ThemeType.dynamicColor) {
+      final dynamicSwatch = useCustomAccentColor.isTrue
+          ? accentSwatch
+          : (primarySwatch ?? accentSwatch);
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.light,
@@ -140,79 +184,80 @@ class ThemeController extends GetxController {
       );
 
       final baseScheme = ColorScheme.fromSwatch(
-          accentColor: primarySwatch![600],
+          accentColor: dynamicSwatch[600],
           brightness: Brightness.dark,
-          backgroundColor: primarySwatch[700],
-          primarySwatch: primarySwatch);
+          backgroundColor: dynamicSwatch[700],
+          primarySwatch: dynamicSwatch);
       final scheme = baseScheme.copyWith(
-          surface: primarySwatch[800],
-          surfaceContainerHighest: primarySwatch[600],
+          primary: accentSwatch[500],
+          surface: dynamicSwatch[800],
+          surfaceContainerHighest: dynamicSwatch[600],
           onSurface: Colors.white,
-          secondary: primarySwatch[600],
+          secondary: accentSwatch[600],
           onSecondary: Colors.white);
       final baseTheme = ThemeData(
           useMaterial3: false,
-          primaryColor: primarySwatch[500],
+          primaryColor: accentSwatch[500],
           colorScheme: scheme,
           //accentColor: primarySwatch[200],
-          dialogTheme: DialogThemeData(backgroundColor: primarySwatch[700]),
-          cardColor: primarySwatch[600],
-          primaryColorLight: primarySwatch[400],
-          primaryColorDark: primarySwatch[700],
+          dialogTheme: DialogThemeData(backgroundColor: dynamicSwatch[700]),
+          cardColor: dynamicSwatch[600],
+          primaryColorLight: accentSwatch[400],
+          primaryColorDark: dynamicSwatch[700],
           //secondaryHeaderColor: primarySwatch[50],
-          canvasColor: primarySwatch[700],
+          canvasColor: dynamicSwatch[700],
           //scaffoldBackgroundColor: primarySwatch[700],
           bottomSheetTheme: BottomSheetThemeData(
-              backgroundColor: primarySwatch[600],
-              modalBarrierColor: primarySwatch[400]),
+              backgroundColor: dynamicSwatch[600],
+              modalBarrierColor: dynamicSwatch[400]),
           textTheme: TextTheme(
             titleLarge: const TextStyle(
                 fontSize: 23, fontWeight: FontWeight.bold, color: Colors.white),
             titleMedium: const TextStyle(
                 fontWeight: FontWeight.bold, color: Colors.white),
-            titleSmall: TextStyle(color: primarySwatch[100]),
-            bodyMedium: TextStyle(color: primarySwatch[100]),
+            titleSmall: TextStyle(color: dynamicSwatch[100]),
+            bodyMedium: TextStyle(color: dynamicSwatch[100]),
             labelMedium: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 23,
-                color: textColor ?? primarySwatch[50]),
+                color: textColor ?? dynamicSwatch[50]),
             labelSmall: TextStyle(
                 fontSize: 15,
                 color: titleColorSwatch != null
                     ? titleColorSwatch[900]
-                    : primarySwatch[100],
+                    : dynamicSwatch[100],
                 letterSpacing: 0,
                 fontWeight: FontWeight.bold),
           ),
           tabBarTheme: const TabBarThemeData(indicatorColor: Colors.white),
           progressIndicatorTheme: ProgressIndicatorThemeData(
-              linearTrackColor: (primarySwatch[300])!.computeLuminance() > 0.3
+              linearTrackColor: (dynamicSwatch[300])!.computeLuminance() > 0.3
                   ? Colors.black54
                   : Colors.white70,
               color: textColor),
           navigationRailTheme: NavigationRailThemeData(
-              backgroundColor: primarySwatch[700],
+              backgroundColor: dynamicSwatch[700],
               selectedIconTheme: const IconThemeData(color: Colors.white),
-              unselectedIconTheme: IconThemeData(color: primarySwatch[100]),
+              unselectedIconTheme: IconThemeData(color: dynamicSwatch[100]),
               selectedLabelTextStyle: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 15),
               unselectedLabelTextStyle: TextStyle(
-                  color: primarySwatch[100], fontWeight: FontWeight.bold)),
+                  color: dynamicSwatch[100], fontWeight: FontWeight.bold)),
           sliderTheme: SliderThemeData(
-            inactiveTrackColor: primarySwatch[300],
+            inactiveTrackColor: dynamicSwatch[300],
             activeTrackColor: textColor,
-            valueIndicatorColor: primarySwatch[400],
+            valueIndicatorColor: accentSwatch[400],
             thumbColor: Colors.white,
           ),
           textSelectionTheme: TextSelectionThemeData(
-              cursorColor: primarySwatch[200],
-              selectionColor: primarySwatch[200],
-              selectionHandleColor: primarySwatch[200]),
+              cursorColor: accentSwatch[200],
+              selectionColor: accentSwatch[200],
+              selectionHandleColor: accentSwatch[200]),
           inputDecorationTheme: InputDecorationTheme(
               filled: true,
-              fillColor: primarySwatch[700],
+              fillColor: dynamicSwatch[700],
               focusColor: Colors.white,
               focusedBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.white)))
@@ -224,6 +269,14 @@ class ThemeController extends GetxController {
       const darkSurface = Color(0xFF121212);
       const darkBackground = Color(0xFF1E1E1E);
       const darkSurfaceContainer = Color(0xFF2C2C2C);
+      final darkAccent500 =
+          useCustomAccentColor.isTrue ? accentSwatch[500]! : Colors.grey[600]!;
+      final darkAccent600 =
+          useCustomAccentColor.isTrue ? accentSwatch[600]! : Colors.grey[700]!;
+      final darkAccent400 =
+          useCustomAccentColor.isTrue ? accentSwatch[400]! : Colors.grey[600]!;
+      final darkAccent300 =
+          useCustomAccentColor.isTrue ? accentSwatch[300]! : Colors.grey[600]!;
       SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.light,
@@ -235,14 +288,15 @@ class ThemeController extends GetxController {
             systemNavigationBarContrastEnforced: true),
       );
       final darkScheme = ColorScheme.fromSwatch(
-          accentColor: Colors.grey[600],
+          accentColor: darkAccent600,
           brightness: Brightness.dark,
           backgroundColor: darkSurface);
       final scheme = darkScheme.copyWith(
+          primary: darkAccent500,
           surface: darkSurface,
           surfaceContainerHighest: darkSurfaceContainer,
           onSurface: Colors.white,
-          secondary: Colors.grey[700],
+          secondary: darkAccent600,
           onSecondary: Colors.white);
       final baseTheme = ThemeData(
           useMaterial3: false,
@@ -251,10 +305,10 @@ class ThemeController extends GetxController {
           scaffoldBackgroundColor: darkSurface,
           primaryColor: darkSurface,
           primaryColorDark: darkBackground,
-          primaryColorLight: Colors.grey[700],
+          primaryColorLight: darkAccent600,
           colorScheme: scheme,
           progressIndicatorTheme: ProgressIndicatorThemeData(
-              color: Colors.grey[600], linearTrackColor: Colors.white70),
+              color: darkAccent500, linearTrackColor: Colors.white70),
           textTheme: const TextTheme(
               titleLarge: TextStyle(
                 fontSize: 23,
@@ -284,17 +338,16 @@ class ThemeController extends GetxController {
               unselectedLabelTextStyle: TextStyle(
                   color: Colors.grey[500], fontWeight: FontWeight.bold)),
           bottomSheetTheme: const BottomSheetThemeData(
-              backgroundColor: darkSurface,
-              modalBarrierColor: darkBackground),
+              backgroundColor: darkSurface, modalBarrierColor: darkBackground),
           sliderTheme: SliderThemeData(
               inactiveTrackColor: Colors.grey[600],
-              activeTrackColor: Colors.white,
-              valueIndicatorColor: Colors.grey[700],
-              thumbColor: Colors.white),
+              activeTrackColor: darkAccent500,
+              valueIndicatorColor: darkAccent600,
+              thumbColor: darkAccent500),
           textSelectionTheme: TextSelectionThemeData(
-              cursorColor: Colors.grey[600],
-              selectionColor: Colors.grey[600],
-              selectionHandleColor: Colors.grey[600]),
+              cursorColor: darkAccent400,
+              selectionColor: darkAccent300,
+              selectionHandleColor: darkAccent400),
           inputDecorationTheme: const InputDecorationTheme(
               filled: true,
               fillColor: darkSurfaceContainer,
@@ -305,6 +358,14 @@ class ThemeController extends GetxController {
           textTheme: _interTextTheme(baseTheme.textTheme));
     } else if (themeType == ThemeType.oled) {
       const oledSurfaceContainer = Color(0xFF1A1A1A);
+      final oledAccent500 =
+          useCustomAccentColor.isTrue ? accentSwatch[500]! : Colors.grey[700]!;
+      final oledAccent600 =
+          useCustomAccentColor.isTrue ? accentSwatch[600]! : Colors.grey[800]!;
+      final oledAccent400 =
+          useCustomAccentColor.isTrue ? accentSwatch[400]! : Colors.grey[700]!;
+      final oledAccent300 =
+          useCustomAccentColor.isTrue ? accentSwatch[300]! : Colors.grey[700]!;
       SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.light,
@@ -316,12 +377,13 @@ class ThemeController extends GetxController {
             systemNavigationBarContrastEnforced: true),
       );
       final oledScheme = ColorScheme.fromSwatch(
-          accentColor: Colors.grey[700], brightness: Brightness.dark);
+          accentColor: oledAccent600, brightness: Brightness.dark);
       final scheme = oledScheme.copyWith(
+          primary: oledAccent500,
           surface: Colors.black,
           surfaceContainerHighest: oledSurfaceContainer,
           onSurface: Colors.white38,
-          secondary: Colors.grey[800],
+          secondary: oledAccent600,
           onSecondary: Colors.white);
       final baseTheme = ThemeData(
           useMaterial3: false,
@@ -330,10 +392,10 @@ class ThemeController extends GetxController {
           scaffoldBackgroundColor: Colors.black,
           primaryColor: Colors.black,
           primaryColorDark: Colors.black,
-          primaryColorLight: Colors.grey[850],
+          primaryColorLight: oledAccent600,
           colorScheme: scheme,
           progressIndicatorTheme: ProgressIndicatorThemeData(
-              color: Colors.grey[700], linearTrackColor: Colors.white),
+              color: oledAccent500, linearTrackColor: Colors.white),
           textTheme: const TextTheme(
               titleLarge: TextStyle(
                 fontSize: 23,
@@ -370,9 +432,9 @@ class ThemeController extends GetxController {
               valueIndicatorColor: Colors.black38,
               thumbColor: Colors.white),
           textSelectionTheme: TextSelectionThemeData(
-              cursorColor: Colors.grey[700],
-              selectionColor: Colors.grey[700],
-              selectionHandleColor: Colors.grey[700]),
+              cursorColor: oledAccent400,
+              selectionColor: oledAccent300,
+              selectionHandleColor: oledAccent400),
           inputDecorationTheme: const InputDecorationTheme(
               filled: true,
               fillColor: oledSurfaceContainer,
@@ -382,6 +444,12 @@ class ThemeController extends GetxController {
       return baseTheme.copyWith(
           textTheme: _interTextTheme(baseTheme.textTheme));
     } else {
+      final lightAccent500 =
+          useCustomAccentColor.isTrue ? accentSwatch[500]! : Colors.grey[400]!;
+      final lightAccent600 =
+          useCustomAccentColor.isTrue ? accentSwatch[600]! : Colors.grey[800]!;
+      final lightAccent200 =
+          useCustomAccentColor.isTrue ? accentSwatch[200]! : Colors.grey[300]!;
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.dark,
@@ -397,14 +465,18 @@ class ThemeController extends GetxController {
           brightness: Brightness.light,
           canvasColor: Colors.white,
           colorScheme: ColorScheme.fromSwatch(
-              accentColor: Colors.grey[400],
-              backgroundColor: Colors.white,
-              cardColor: Colors.white,
-              brightness: Brightness.light),
+                  accentColor: lightAccent500,
+                  backgroundColor: Colors.white,
+                  cardColor: Colors.white,
+                  brightness: Brightness.light)
+              .copyWith(
+            primary: lightAccent500,
+            secondary: lightAccent500,
+          ),
           primaryColor: Colors.white,
-          primaryColorLight: Colors.grey[300],
+          primaryColorLight: lightAccent200,
           progressIndicatorTheme: ProgressIndicatorThemeData(
-              linearTrackColor: Colors.grey[700], color: Colors.grey[400]),
+              linearTrackColor: Colors.grey[700], color: lightAccent500),
           textTheme: TextTheme(
               titleLarge: const TextStyle(
                 fontSize: 23,
@@ -437,15 +509,15 @@ class ThemeController extends GetxController {
             //base bar color
             inactiveTrackColor: Colors.black38,
             //buffered progress
-            activeTrackColor: Colors.grey[800],
+            activeTrackColor: lightAccent600,
             //progress bar color
             valueIndicatorColor: Colors.white38,
-            thumbColor: Colors.grey[800],
+            thumbColor: lightAccent600,
           ),
           textSelectionTheme: TextSelectionThemeData(
-              cursorColor: Colors.grey[400],
-              selectionColor: Colors.grey[400],
-              selectionHandleColor: Colors.grey[400]),
+              cursorColor: lightAccent500,
+              selectionColor: lightAccent200,
+              selectionHandleColor: lightAccent500),
           dialogTheme: DialogThemeData(backgroundColor: Colors.grey[200]),
           inputDecorationTheme: const InputDecorationTheme(
               focusColor: Colors.black,

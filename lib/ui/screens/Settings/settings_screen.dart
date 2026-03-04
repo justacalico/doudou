@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:doudou/utils/helper.dart';
@@ -112,7 +113,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
             child: Text(
               "settings".tr,
               textAlign: useTwoPane ? TextAlign.left : TextAlign.center,
@@ -120,9 +122,9 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                       ? Theme.of(context).textTheme.headlineMedium
                       : Theme.of(context).textTheme.titleLarge)
                   ?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: useTwoPane ? -0.4 : -0.2,
-                  ),
+                fontWeight: FontWeight.bold,
+                letterSpacing: useTwoPane ? -0.4 : -0.2,
+              ),
             ),
           ),
           Expanded(
@@ -366,6 +368,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   List<Widget> _buildPersonalisation(
       BuildContext context, SettingsScreenController settings) {
     final isDesktop = GetPlatform.isDesktop;
+    final themeController = Get.find<ThemeController>();
     return [
       ListTile(
         title: Text("themeMode".tr),
@@ -387,6 +390,37 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           builder: (context) => const ThemeSelectorDialog(),
         ),
       ),
+      Obx(() => ListTile(
+            title: Text("useCustomAccentColor".tr),
+            subtitle: Text("useCustomAccentColorDes".tr),
+            trailing: CustSwitch(
+              value: themeController.useCustomAccentColor.value,
+              onChanged: themeController.setUseCustomAccentColor,
+            ),
+          )),
+      Obx(() {
+        if (!themeController.useCustomAccentColor.value) {
+          return const SizedBox.shrink();
+        }
+        final color = themeController.customAccentColor.value;
+        return ListTile(
+          title: Text("customAccentColor".tr),
+          subtitle: Text("customAccentColorDes".tr),
+          trailing: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.8),
+                width: 1,
+              ),
+            ),
+          ),
+          onTap: () => _showCustomAccentColorDialog(context, themeController),
+        );
+      }),
       Obx(() => ListTile(
             title: Text("lyricsDynamicColor".tr),
             subtitle: Text("lyricsDynamicColorDes".tr),
@@ -487,6 +521,116 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             ),
           )),
     ];
+  }
+
+  Future<void> _showCustomAccentColorDialog(
+    BuildContext context,
+    ThemeController themeController,
+  ) async {
+    final presets = <Color>[
+      Colors.deepPurple,
+      Colors.indigo,
+      Colors.blue,
+      Colors.teal,
+      Colors.green,
+      Colors.lime.shade700,
+      Colors.amber.shade700,
+      Colors.orange,
+      Colors.deepOrange,
+      Colors.redAccent,
+      Colors.pinkAccent,
+      Colors.cyan,
+    ];
+    Color tempColor = themeController.customAccentColor.value;
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Text("pickDynamicColor".tr),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: presets
+                      .map(
+                        (c) => GestureDetector(
+                          onTap: () {
+                            themeController.setCustomAccentColor(c);
+                            Navigator.of(dialogContext).pop();
+                          },
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: c,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () async {
+                      await showDialog(
+                        context: dialogContext,
+                        builder: (ctx) {
+                          return AlertDialog(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24)),
+                            title: Text("pickDynamicColor".tr),
+                            content: SingleChildScrollView(
+                              child: ColorPicker(
+                                pickerColor: tempColor,
+                                onColorChanged: (c) {
+                                  tempColor = c;
+                                },
+                                labelTypes: const [],
+                                pickerAreaBorderRadius:
+                                    BorderRadius.circular(16),
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(),
+                                child: Text("cancel".tr),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  themeController
+                                      .setCustomAccentColor(tempColor);
+                                  Navigator.of(ctx).pop();
+                                  Navigator.of(dialogContext).pop();
+                                },
+                                child: Text("apply".tr),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    child: Text("advanced".tr),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   List<Widget> _buildContent(

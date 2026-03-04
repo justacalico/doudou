@@ -138,6 +138,9 @@ void _setAppInitPrefs() {
       "skipSilenceEnabled": false,
       'streamingQuality': 1,
       'themePrimaryColor': 4278199603,
+      'dynamicColorPrimary': 4278199603,
+      'customAccentColor': 4278199603,
+      'useCustomAccentColor': false,
       'discoverContentType': "QP",
       'newVersionVisibility': updateCheckFlag,
       "cacheHomeScreenData": true
