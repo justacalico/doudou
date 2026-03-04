@@ -776,7 +776,9 @@ class PlayerController extends GetxController
     recentItem = mediaItem;
   }
 
-  static final RegExp _lrcLineRegex = RegExp(r'^\[(\d{1,2}):(\d{2})(?:\.(\d{2,3}))?\]\s*(.*)$', multiLine: true);
+  static final RegExp _lrcLineRegex = RegExp(
+      r'^\[(\d{1,2}):(\d{2})(?:\.(\d{2,3}))?\]\s*(.*)$',
+      multiLine: true);
 
   void _parseSyncedLyrics(String raw) {
     _syncedLyricLines = [];
@@ -797,7 +799,8 @@ class PlayerController extends GetxController
       }
       final text = (m.group(4) ?? '').trim();
       if (text.isEmpty) continue;
-      final timestamp = Duration(minutes: minutes, seconds: seconds, milliseconds: ms);
+      final timestamp =
+          Duration(minutes: minutes, seconds: seconds, milliseconds: ms);
       _syncedLyricLines.add(_SyncedLyricLine(timestamp: timestamp, text: text));
     }
     _syncedLyricLines.sort((a, b) => a.timestamp.compareTo(b.timestamp));
@@ -856,6 +859,21 @@ class PlayerController extends GetxController
     }
   }
 
+  void _syncLyricsModeWithAvailability() {
+    final hasSynced = (lyrics['synced']?.toString() ?? '').trim().isNotEmpty;
+    final plain = (lyrics['plainLyrics']?.toString() ?? '').trim();
+    final hasPlain = plain.isNotEmpty && plain != 'NA';
+
+    if (hasSynced && lyricsMode.value != 0) {
+      lyricsMode.value = 0;
+      return;
+    }
+
+    if (!hasSynced && hasPlain && lyricsMode.value != 1) {
+      lyricsMode.value = 1;
+    }
+  }
+
   Future<void> _loadLyricsForCurrentSong() async {
     if (currentSong.value == null) return;
     isLyricsLoading.value = true;
@@ -872,6 +890,7 @@ class PlayerController extends GetxController
           _syncedLyricLines = [];
           _lastLyricLineIndex = -1;
         }
+        _syncLyricsModeWithAvailability();
         isLyricsLoading.value = false;
         return;
       }
@@ -886,10 +905,12 @@ class PlayerController extends GetxController
       }
       _syncedLyricLines = [];
       _lastLyricLineIndex = -1;
+      _syncLyricsModeWithAvailability();
     } catch (e) {
       lyrics.value = {"synced": "", "plainLyrics": "NA"};
       _syncedLyricLines = [];
       _lastLyricLineIndex = -1;
+      _syncLyricsModeWithAvailability();
     }
     isLyricsLoading.value = false;
   }
