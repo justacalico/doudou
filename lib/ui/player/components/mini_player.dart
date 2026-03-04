@@ -61,13 +61,8 @@ class _MobileMiniPlayer extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final song = controller.currentSong.value;
-    final glassBase = theme.colorScheme.surface;
-    final glassTint = theme.colorScheme.primary
-        .withValues(alpha: theme.brightness == Brightness.dark ? 0.16 : 0.10);
-    final pillColor = Color.alphaBlend(
-      glassTint,
-      glassBase.withValues(
-          alpha: theme.brightness == Brightness.dark ? 0.42 : 0.58),
+    final pillColor = theme.colorScheme.surface.withValues(
+      alpha: theme.brightness == Brightness.dark ? 0.14 : 0.24,
     );
 
     return Padding(
@@ -90,13 +85,7 @@ class _MobileMiniPlayer extends StatelessWidget {
                             theme.brightness == Brightness.dark ? 0.14 : 0.22),
                     width: 0.5,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.22),
-                      blurRadius: 18,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+                  boxShadow: const [],
                 ),
                 child: Stack(
                   children: [

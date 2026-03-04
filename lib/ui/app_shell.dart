@@ -54,8 +54,8 @@ class _AppShellState extends State<AppShell> {
     final size = MediaQuery.sizeOf(context);
     final width = size.width;
     final isWideScreen = width > 800;
-    final useBottomNav =
-        width < kSidebarMinWidth || settingsController.isBottomNavBarEnabled.isTrue;
+    final useBottomNav = width < kSidebarMinWidth ||
+        settingsController.isBottomNavBarEnabled.isTrue;
 
     if (wasBottomNav != useBottomNav) {
       homeScreenController.remapTabIndexForNavModeChange(
@@ -103,7 +103,8 @@ class _AppShellState extends State<AppShell> {
               useBottomNav
                   ? homeScreenController.onBottonBarTabSelected(0)
                   : homeScreenController.onSideBarTabSelected(0);
-            } else if (playerController.buttonState.value == PlayButtonState.playing) {
+            } else if (playerController.buttonState.value ==
+                PlayButtonState.playing) {
               SystemNavigator.pop();
             } else {
               await Get.find<AudioHandler>().customAction("saveSession");
@@ -118,11 +119,12 @@ class _AppShellState extends State<AppShell> {
         },
         child: Obx(
           () {
-            final useBottomNavObx =
-                width < kSidebarMinWidth || settingsController.isBottomNavBarEnabled.isTrue;
+            final useBottomNavObx = width < kSidebarMinWidth ||
+                settingsController.isBottomNavBarEnabled.isTrue;
             final hasCurrentSong = playerController.currentSong.value != null;
             return Scaffold(
               key: playerController.homeScaffoldkey,
+              extendBody: true,
               drawerScrimColor: Colors.transparent,
               bottomNavigationBar: useBottomNavObx
                   ? Column(
@@ -148,9 +150,8 @@ class _AppShellState extends State<AppShell> {
                   shellController.setOverlayContext(shellContext);
                   return Obx(
                     () {
-                      final useBottomNavBody =
-                          width < kSidebarMinWidth ||
-                              settingsController.isBottomNavBarEnabled.isTrue;
+                      final useBottomNavBody = width < kSidebarMinWidth ||
+                          settingsController.isBottomNavBarEnabled.isTrue;
                       final hasCurrentSongBody =
                           playerController.currentSong.value != null;
                       final panelMinHeight = useBottomNavBody
@@ -170,54 +171,57 @@ class _AppShellState extends State<AppShell> {
                                   : const MiniPlayer())
                               : null);
                       return SlidingUpPanel(
-                    onPanelSlide: playerController.panellistener,
-                    controller: playerController.playerPanelController,
-                    minHeight: panelMinHeight,
-                    maxHeight: size.height,
-                    isDraggable: !isWideScreen,
-                    onSwipeUp: () {
-                      playerController.queuePanelController.open();
-                    },
-                    panel: const Player(),
-                    body: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        useBottomNavBody
-                            ? const SizedBox.shrink()
-                            : AnimatedContainer(
-                                duration: () {
-                                  final settings =
-                                      Get.find<SettingsScreenController>();
-                                  final factor = settings.animationSpeedFactor;
-                                  if (factor == 0) {
-                                    return Duration.zero;
-                                  }
-                                  const baseMs = 500;
-                                  final effectiveMs =
-                                      (baseMs * factor).round();
-                                  return Duration(milliseconds: effectiveMs);
-                                }(),
-                                curve: Curves.easeOut,
-                                width: sidebarWidth,
-                                child: SideNavBar(
-                                  minimized: effectiveSidebarMinimized,
-                                  onMinimizeChanged:
-                                      sidebarMode == SidebarMode.auto
-                                          ? (v) => setState(
-                                              () => _sidebarMinimized = v)
-                                          : (_) {},
-                                ),
+                        onPanelSlide: playerController.panellistener,
+                        controller: playerController.playerPanelController,
+                        minHeight: panelMinHeight,
+                        maxHeight: size.height,
+                        isDraggable: !isWideScreen,
+                        onSwipeUp: () {
+                          playerController.queuePanelController.open();
+                        },
+                        panel: const Player(),
+                        body: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            useBottomNavBody
+                                ? const SizedBox.shrink()
+                                : AnimatedContainer(
+                                    duration: () {
+                                      final settings =
+                                          Get.find<SettingsScreenController>();
+                                      final factor =
+                                          settings.animationSpeedFactor;
+                                      if (factor == 0) {
+                                        return Duration.zero;
+                                      }
+                                      const baseMs = 500;
+                                      final effectiveMs =
+                                          (baseMs * factor).round();
+                                      return Duration(
+                                          milliseconds: effectiveMs);
+                                    }(),
+                                    curve: Curves.easeOut,
+                                    width: sidebarWidth,
+                                    child: SideNavBar(
+                                      minimized: effectiveSidebarMinimized,
+                                      onMinimizeChanged:
+                                          sidebarMode == SidebarMode.auto
+                                              ? (v) => setState(
+                                                  () => _sidebarMinimized = v)
+                                              : (_) {},
+                                    ),
+                                  ),
+                            Expanded(
+                              child: Navigator(
+                                key: Get.nestedKey(
+                                    ScreenNavigationSetup.contentId),
+                                initialRoute: ScreenNavigationSetup.homeScreen,
+                                onGenerateRoute: _contentRouteGenerator,
                               ),
-                        Expanded(
-                          child: Navigator(
-                            key: Get.nestedKey(ScreenNavigationSetup.contentId),
-                            initialRoute: ScreenNavigationSetup.homeScreen,
-                            onGenerateRoute: _contentRouteGenerator,
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    header: panelHeader,
+                        header: panelHeader,
                       );
                     },
                   );
@@ -235,21 +239,17 @@ Route<dynamic>? _contentRouteGenerator(RouteSettings settings) {
   Get.routing.args = settings.arguments;
   switch (settings.name) {
     case ScreenNavigationSetup.homeScreen:
-      return GetPageRoute(
-          page: () => const HomeScreen(), settings: settings);
+      return GetPageRoute(page: () => const HomeScreen(), settings: settings);
     case ScreenNavigationSetup.albumScreen:
       final id = (settings.arguments as (Album?, String)).$2;
       return GetPageRoute(
-          page: () => AlbumScreen(key: Key(id)),
-          settings: settings);
+          page: () => AlbumScreen(key: Key(id)), settings: settings);
     case ScreenNavigationSetup.playlistScreen:
       final id = (settings.arguments as List)[1] as String;
       return GetPageRoute(
-          page: () => PlaylistScreen(key: Key(id)),
-          settings: settings);
+          page: () => PlaylistScreen(key: Key(id)), settings: settings);
     case ScreenNavigationSetup.searchScreen:
-      return GetPageRoute(
-          page: () => const SearchScreen(), settings: settings);
+      return GetPageRoute(page: () => const SearchScreen(), settings: settings);
     case ScreenNavigationSetup.searchResultScreen:
       return GetPageRoute(
           page: () => const SearchResultScreen(), settings: settings);
@@ -257,8 +257,7 @@ Route<dynamic>? _contentRouteGenerator(RouteSettings settings) {
       final args = settings.arguments as List;
       final id = args[0] ? args[1] : (args[1] as Artist).browseId;
       return GetPageRoute(
-          page: () => ArtistScreen(key: Key(id)),
-          settings: settings);
+          page: () => ArtistScreen(key: Key(id)), settings: settings);
     default:
       return null;
   }
