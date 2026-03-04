@@ -253,10 +253,10 @@ class SettingsScreenController extends GetxController {
     _persistServers();
     _onActiveServerChanged();
     if (Get.isRegistered<LibrarySyncService>()) {
-      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
+      unawaited(Get.find<LibrarySyncService>().maybeSyncAllIfStale());
     } else {
       Get.find<LibrarySyncService>();
-      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
+      unawaited(Get.find<LibrarySyncService>().maybeSyncAllIfStale());
     }
   }
 
@@ -534,7 +534,7 @@ class SettingsScreenController extends GetxController {
       ctrl.refreshLib();
     }
     if (Get.isRegistered<LibrarySyncService>()) {
-      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
+      unawaited(Get.find<LibrarySyncService>().maybeSyncAllIfStale());
     }
   }
 
@@ -655,7 +655,7 @@ class SettingsScreenController extends GetxController {
   }
 
   Future<void> resyncLibraryNow() async {
-    await Get.find<LibrarySyncService>().syncNow(force: true);
+    await Get.find<LibrarySyncService>().syncAll(force: true);
   }
 
   Future<String> get dbDir async {

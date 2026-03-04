@@ -796,17 +796,31 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                               active.type != ServerType.youtubeMusic;
                           if (!isNonYouTube) return const SizedBox.shrink();
 
-                          final lastSyncMs = syncService.lastSyncTimeMs.value;
-                          final syncText = lastSyncMs == null
-                              ? "Never synced"
-                              : DateTime.fromMillisecondsSinceEpoch(lastSyncMs)
-                                  .toLocal()
-                                  .toString()
-                                  .split('.')
-                                  .first;
-                          final subtitle = syncService.isSyncing.value
-                              ? "Syncing library..."
-                              : "Last sync: $syncText";
+                          String buildKindStatus(LibraryKind kind) {
+                            final isSyncing =
+                                syncService.isSyncingByKind[kind] == true;
+                            final err = syncService.lastErrorByKind[kind] ?? '';
+                            final ts = syncService.lastSuccessMsByKind[kind];
+                            if (isSyncing) return "${kind.name}: syncing...";
+                            if (err.isNotEmpty) {
+                              return "${kind.name}: error";
+                            }
+                            if (ts == null) return "${kind.name}: never";
+                            final syncText =
+                                DateTime.fromMillisecondsSinceEpoch(ts)
+                                    .toLocal()
+                                    .toString()
+                                    .split('.')
+                                    .first;
+                            return "${kind.name}: $syncText";
+                          }
+
+                          final subtitle = [
+                            buildKindStatus(LibraryKind.songs),
+                            buildKindStatus(LibraryKind.playlists),
+                            buildKindStatus(LibraryKind.albums),
+                            buildKindStatus(LibraryKind.artists),
+                          ].join("\\n");
 
                           return ListTile(
                             contentPadding:
@@ -835,8 +849,11 @@ class SettingsScreen extends GetView<SettingsScreenController> {
                                       await settingsController
                                           .resyncLibraryNow();
                                       if (!context.mounted) return;
-                                      final failed = syncService
-                                          .lastError.value.isNotEmpty;
+                                      final failed = LibraryKind.values.any(
+                                          (k) =>
+                                              (syncService.lastErrorByKind[k] ??
+                                                      '')
+                                                  .isNotEmpty);
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(

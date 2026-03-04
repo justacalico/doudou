@@ -30,6 +30,7 @@ class LibrarySongsController extends GetxController {
   SortWidgetController? sortWidgetController;
   final additionalOperationMode = OperationMode.none.obs;
   Worker? _syncWorker;
+  int _lastSongsSyncVersion = -1;
 
   @override
   void onInit() {
@@ -38,7 +39,12 @@ class LibrarySongsController extends GetxController {
       if (!Get.isRegistered<LibrarySongsController>()) return;
       await init();
     });
-    _syncWorker = ever(Get.find<LibrarySyncService>().syncVersion, (_) async {
+    _syncWorker =
+        ever(Get.find<LibrarySyncService>().syncVersionByKind, (_) async {
+      final syncService = Get.find<LibrarySyncService>();
+      final currVersion = syncService.syncVersionByKind[LibraryKind.songs] ?? 0;
+      if (currVersion == _lastSongsSyncVersion) return;
+      _lastSongsSyncVersion = currVersion;
       if (!Get.isRegistered<LibrarySongsController>()) return;
       final settings = Get.find<SettingsScreenController>();
       final server = settings.activeServer;
@@ -59,7 +65,9 @@ class LibrarySongsController extends GetxController {
       final remoteSongs = await Get.find<LibrarySyncService>()
           .getCachedSongs(currentServerId());
       librarySongsList.value = [...remoteSongs, ...localSongs];
-      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
+      unawaited(
+        Get.find<LibrarySyncService>().maybeSyncKindIfStale(LibraryKind.songs),
+      );
     } else {
       librarySongsList.value = localSongs;
     }
@@ -327,6 +335,7 @@ class LibraryPlaylistsController extends GetxController
     with GetTickerProviderStateMixin {
   late AnimationController controller;
   Worker? _syncWorker;
+  int _lastPlaylistSyncVersion = -1;
 
   final playlistCreationMode = "local".obs;
   static final initPlst = [
@@ -373,7 +382,13 @@ class LibraryPlaylistsController extends GetxController
       await Hive.openBox(recentlyPlayedBoxName(id));
       refreshLib();
     });
-    _syncWorker = ever(Get.find<LibrarySyncService>().syncVersion, (_) async {
+    _syncWorker =
+        ever(Get.find<LibrarySyncService>().syncVersionByKind, (_) async {
+      final syncService = Get.find<LibrarySyncService>();
+      final currVersion =
+          syncService.syncVersionByKind[LibraryKind.playlists] ?? 0;
+      if (currVersion == _lastPlaylistSyncVersion) return;
+      _lastPlaylistSyncVersion = currVersion;
       if (!Get.isRegistered<LibraryPlaylistsController>()) return;
       final settings = Get.find<SettingsScreenController>();
       final server = settings.activeServer;
@@ -393,7 +408,8 @@ class LibraryPlaylistsController extends GetxController
       final backendPlaylists = await Get.find<LibrarySyncService>()
           .getCachedPlaylists(currentServerId());
       libraryPlaylists.value = [...initPlst, ...backendPlaylists];
-      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
+      unawaited(Get.find<LibrarySyncService>()
+          .maybeSyncKindIfStale(LibraryKind.playlists));
       isContentFetched.value = true;
       return;
     }
@@ -805,6 +821,7 @@ class LibraryAlbumsController extends GetxController {
   final isContentFetched = false.obs;
   List<Album> tempListContainer = [];
   Worker? _syncWorker;
+  int _lastAlbumSyncVersion = -1;
 
   @override
   void onInit() {
@@ -813,7 +830,12 @@ class LibraryAlbumsController extends GetxController {
       if (!Get.isRegistered<LibraryAlbumsController>()) return;
       refreshLib();
     });
-    _syncWorker = ever(Get.find<LibrarySyncService>().syncVersion, (_) {
+    _syncWorker = ever(Get.find<LibrarySyncService>().syncVersionByKind, (_) {
+      final syncService = Get.find<LibrarySyncService>();
+      final currVersion =
+          syncService.syncVersionByKind[LibraryKind.albums] ?? 0;
+      if (currVersion == _lastAlbumSyncVersion) return;
+      _lastAlbumSyncVersion = currVersion;
       if (!Get.isRegistered<LibraryAlbumsController>()) return;
       final settings = Get.find<SettingsScreenController>();
       final server = settings.activeServer;
@@ -830,7 +852,9 @@ class LibraryAlbumsController extends GetxController {
     if (useBackend) {
       libraryAlbums.value = await Get.find<LibrarySyncService>()
           .getCachedAlbums(currentServerId());
-      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
+      unawaited(
+        Get.find<LibrarySyncService>().maybeSyncKindIfStale(LibraryKind.albums),
+      );
     } else {
       final box = await Hive.openBox(libraryAlbumsBoxName(currentServerId()));
       libraryAlbums.value = box.values
@@ -876,6 +900,7 @@ class LibraryArtistsController extends GetxController {
   final isContentFetched = false.obs;
   List<Artist> tempListContainer = [];
   Worker? _syncWorker;
+  int _lastArtistSyncVersion = -1;
 
   @override
   void onInit() {
@@ -884,7 +909,12 @@ class LibraryArtistsController extends GetxController {
       if (!Get.isRegistered<LibraryArtistsController>()) return;
       refreshLib();
     });
-    _syncWorker = ever(Get.find<LibrarySyncService>().syncVersion, (_) {
+    _syncWorker = ever(Get.find<LibrarySyncService>().syncVersionByKind, (_) {
+      final syncService = Get.find<LibrarySyncService>();
+      final currVersion =
+          syncService.syncVersionByKind[LibraryKind.artists] ?? 0;
+      if (currVersion == _lastArtistSyncVersion) return;
+      _lastArtistSyncVersion = currVersion;
       if (!Get.isRegistered<LibraryArtistsController>()) return;
       final settings = Get.find<SettingsScreenController>();
       final server = settings.activeServer;
@@ -901,7 +931,8 @@ class LibraryArtistsController extends GetxController {
     if (useBackend) {
       libraryArtists.value = await Get.find<LibrarySyncService>()
           .getCachedArtists(currentServerId());
-      unawaited(Get.find<LibrarySyncService>().maybeSyncIfStale());
+      unawaited(Get.find<LibrarySyncService>()
+          .maybeSyncKindIfStale(LibraryKind.artists));
     } else {
       final box = await Hive.openBox(libraryArtistsBoxName(currentServerId()));
       libraryArtists.value = box.values

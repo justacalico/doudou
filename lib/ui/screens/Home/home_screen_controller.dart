@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,6 +13,7 @@ import '/models/playlist.dart';
 import '/models/quick_picks.dart';
 import '/models/server.dart';
 import '/services/backend/music_backend.dart';
+import '/services/library_sync_service.dart';
 import '/services/music_service.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
@@ -46,6 +49,7 @@ class HomeScreenController extends GetxController {
   bool _isHomeSectionsRefreshing = false;
   final homeLibrarySectionsVersion = 0.obs;
   static const Duration _homeSectionsCacheTtl = Duration(hours: 8);
+  Worker? _librarySyncWorker;
 
   @override
   onInit() {
@@ -58,6 +62,14 @@ class HomeScreenController extends GetxController {
       _albumsFromFollowedLoadStarted = false;
       albumsFromFollowedArtists.value = [];
       loadContentFromNetwork(silent: true);
+    });
+    _librarySyncWorker =
+        ever(Get.find<LibrarySyncService>().syncVersionByKind, (_) {
+      final settings = Get.find<SettingsScreenController>();
+      final server = settings.activeServer;
+      if (server == null || server.type == ServerType.youtubeMusic) return;
+      // Rebuild immediately so sections appear as each library kind finishes.
+      unawaited(refreshHomeLibrarySectionsFromControllers());
     });
   }
 
@@ -490,6 +502,22 @@ class HomeScreenController extends GetxController {
     homeLibrarySectionsVersion.value++;
   }
 
+  Future<void> refreshHomeLibrarySectionsFromControllers() async {
+    if (_isHomeSectionsRefreshing) return;
+    _isHomeSectionsRefreshing = true;
+    try {
+      final fresh = await _buildHomeLibrarySections();
+      _cachedHomeSections = fresh;
+      _homeSectionsFuture = Future<HomeLibrarySections>.value(fresh);
+      homeLibrarySectionsVersion.value++;
+      await _cacheHomeLibrarySections(fresh);
+    } catch (e) {
+      printERROR("Failed to refresh home sections from libraries: $e");
+    } finally {
+      _isHomeSectionsRefreshing = false;
+    }
+  }
+
   Future<HomeLibrarySections>
       _loadHomeLibrarySectionsStaleWhileRevalidate() async {
     final cached = await _loadHomeLibrarySectionsFromDb();
@@ -767,6 +795,7 @@ class HomeScreenController extends GetxController {
 
   @override
   void dispose() {
+    _librarySyncWorker?.dispose();
     disposeDetachedScrollControllers(disposeAll: true);
     super.dispose();
   }
