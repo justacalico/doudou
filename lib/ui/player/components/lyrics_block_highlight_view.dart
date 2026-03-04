@@ -51,8 +51,10 @@ class _LyricsBlockHighlightViewState extends State<LyricsBlockHighlightView> {
         : theme.textTheme.titleMedium?.copyWith(color: Colors.white);
 
     return Obx(() {
+      final syncedRaw = pc.lyrics['synced']?.toString() ?? '';
+      final currentPosition = pc.progressBarStatus.value.current;
       final lines = pc.syncedLyricLines;
-      if (lines.isEmpty) {
+      if (syncedRaw.trim().isEmpty || lines.isEmpty) {
         return Center(
           child: Text(
             "syncedLyricsNotAvailable".tr,
@@ -61,9 +63,7 @@ class _LyricsBlockHighlightViewState extends State<LyricsBlockHighlightView> {
         );
       }
 
-      final current = pc.currentSyncedLyricLineIndex(
-        pc.progressBarStatus.value.current,
-      );
+      final current = pc.currentSyncedLyricLineIndex(currentPosition);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _autoScrollToLine(current);
       });
