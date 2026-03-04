@@ -42,6 +42,10 @@ class HomeScreenController extends GetxController {
   final albumsFromFollowedArtists = <Album>[].obs;
   bool _albumsFromFollowedLoadStarted = false;
   Future<HomeLibrarySections>? _homeSectionsFuture;
+  HomeLibrarySections? _cachedHomeSections;
+  bool _isHomeSectionsRefreshing = false;
+  final homeLibrarySectionsVersion = 0.obs;
+  static const Duration _homeSectionsCacheTtl = Duration(hours: 8);
 
   @override
   onInit() {
@@ -198,8 +202,7 @@ class HomeScreenController extends GetxController {
 
       // set home content last update time
       cachedHomeScreenData(updateAll: true);
-      await Hive.box("AppPrefs").put(
-          "homeScreenDataTime_${currentServerId()}",
+      await Hive.box("AppPrefs").put("homeScreenDataTime_${currentServerId()}",
           DateTime.now().millisecondsSinceEpoch);
       // ignore: unused_catch_stack
     } on NetworkError catch (r, e) {
@@ -253,7 +256,7 @@ class HomeScreenController extends GetxController {
   ) {
     List contentTemp = [];
     for (var content in contents) {
-      if((content["contents"]).isEmpty) continue;
+      if ((content["contents"]).isEmpty) continue;
       if ((content["contents"][0]).runtimeType == Playlist) {
         final tmp = PlaylistContent(
             playlistList: (content["contents"]).whereType<Playlist>().toList(),
@@ -299,8 +302,8 @@ class HomeScreenController extends GetxController {
       songId ??= Hive.box("AppPrefs").get(songIdKey);
       if (songId != null) {
         try {
-          final value = await backend.getContentRelatedToSong(
-              songId, getContentHlCode());
+          final value =
+              await backend.getContentRelatedToSong(songId, getContentHlCode());
           middleContent.value = _setContentList(value);
           if (value.isNotEmpty && (value[0]['title']).contains("like")) {
             quickPicks_ =
@@ -317,8 +320,7 @@ class HomeScreenController extends GetxController {
 
     // set home content last update time
     cachedHomeScreenData(updateQuickPicksNMiddleContent: true);
-    await Hive.box("AppPrefs").put(
-        "homeScreenDataTime_${currentServerId()}",
+    await Hive.box("AppPrefs").put("homeScreenDataTime_${currentServerId()}",
         DateTime.now().millisecondsSinceEpoch);
   }
 
@@ -338,7 +340,9 @@ class HomeScreenController extends GetxController {
     }
     reverseAnimationtransiton = index > tabIndex.value;
     tabIndex.value = index;
-    if (wasHomeTab && index != 0 && Get.isRegistered<SearchScreenController>()) {
+    if (wasHomeTab &&
+        index != 0 &&
+        Get.isRegistered<SearchScreenController>()) {
       final search = Get.find<SearchScreenController>();
       search.hideSuggestions();
       search.focusNode.unfocus();
@@ -352,7 +356,9 @@ class HomeScreenController extends GetxController {
     final wasHomeTab = tabIndex.value == 0;
     reverseAnimationtransiton = index > tabIndex.value;
     tabIndex.value = index;
-    if (wasHomeTab && index != 0 && Get.isRegistered<SearchScreenController>()) {
+    if (wasHomeTab &&
+        index != 0 &&
+        Get.isRegistered<SearchScreenController>()) {
       final search = Get.find<SearchScreenController>();
       search.hideSuggestions();
       search.focusNode.unfocus();
@@ -469,13 +475,98 @@ class HomeScreenController extends GetxController {
     printINFO("Saved Homescreen data data");
   }
 
-  Future<HomeLibrarySections> loadHomeLibrarySections() {
-    _homeSectionsFuture ??= _buildHomeLibrarySections();
+  Future<HomeLibrarySections> loadHomeLibrarySections() async {
+    if (_cachedHomeSections != null) {
+      _refreshHomeLibrarySectionsInBackground();
+      return _cachedHomeSections!;
+    }
+    _homeSectionsFuture ??= _loadHomeLibrarySectionsStaleWhileRevalidate();
     return _homeSectionsFuture!;
   }
 
   void invalidateHomeLibrarySections() {
+    _cachedHomeSections = null;
     _homeSectionsFuture = null;
+    homeLibrarySectionsVersion.value++;
+  }
+
+  Future<HomeLibrarySections>
+      _loadHomeLibrarySectionsStaleWhileRevalidate() async {
+    final cached = await _loadHomeLibrarySectionsFromDb();
+    if (cached != null) {
+      _cachedHomeSections = cached;
+      _homeSectionsFuture = Future<HomeLibrarySections>.value(cached);
+      _refreshHomeLibrarySectionsInBackground();
+      return cached;
+    }
+
+    final fresh = await _buildHomeLibrarySections();
+    _cachedHomeSections = fresh;
+    _homeSectionsFuture = Future<HomeLibrarySections>.value(fresh);
+    homeLibrarySectionsVersion.value++;
+    await _cacheHomeLibrarySections(fresh);
+    return fresh;
+  }
+
+  void _refreshHomeLibrarySectionsInBackground() {
+    if (_isHomeSectionsRefreshing) return;
+    if (!_isHomeLibrarySectionsCacheStale()) return;
+    _isHomeSectionsRefreshing = true;
+    Future<void>(() async {
+      try {
+        final fresh = await _buildHomeLibrarySections();
+        _cachedHomeSections = fresh;
+        _homeSectionsFuture = Future<HomeLibrarySections>.value(fresh);
+        homeLibrarySectionsVersion.value++;
+        await _cacheHomeLibrarySections(fresh);
+      } catch (e) {
+        printERROR("Failed to refresh home library sections: $e");
+      } finally {
+        _isHomeSectionsRefreshing = false;
+      }
+    });
+  }
+
+  bool _isHomeLibrarySectionsCacheStale() {
+    final appPrefs = Hive.box("AppPrefs");
+    final key = "homeLibrarySectionsTime_${currentServerId()}";
+    final ts = appPrefs.get(key);
+    if (ts is! int) return true;
+    final ageMs = DateTime.now().millisecondsSinceEpoch - ts;
+    return ageMs > _homeSectionsCacheTtl.inMilliseconds;
+  }
+
+  Future<HomeLibrarySections?> _loadHomeLibrarySectionsFromDb() async {
+    if (Get.find<SettingsScreenController>().cacheHomeScreenData.isFalse) {
+      return null;
+    }
+    final boxName = "homeLibrarySectionsData_${currentServerId()}";
+    try {
+      final box = Hive.isBoxOpen(boxName)
+          ? Hive.box(boxName)
+          : await Hive.openBox(boxName);
+      final raw = box.get("sections");
+      if (raw is Map) {
+        return HomeLibrarySections.fromJson(Map<dynamic, dynamic>.from(raw));
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> _cacheHomeLibrarySections(HomeLibrarySections sections) async {
+    if (Get.find<SettingsScreenController>().cacheHomeScreenData.isFalse) {
+      return;
+    }
+    final serverId = currentServerId();
+    final boxName = "homeLibrarySectionsData_$serverId";
+    final box = Hive.isBoxOpen(boxName)
+        ? Hive.box(boxName)
+        : await Hive.openBox(boxName);
+    await box.put("sections", sections.toJson());
+    await Hive.box("AppPrefs").put(
+      "homeLibrarySectionsTime_$serverId",
+      DateTime.now().millisecondsSinceEpoch,
+    );
   }
 
   Future<HomeLibrarySections> _buildHomeLibrarySections() async {
@@ -510,8 +601,7 @@ class HomeScreenController extends GetxController {
       }
     }
 
-    final latestAlbums =
-        albumsController?.libraryAlbums.toList() ?? <Album>[];
+    final latestAlbums = albumsController?.libraryAlbums.toList() ?? <Album>[];
 
     final artistsToExplore = artistsController != null
         ? _pickVaried<Artist>(
@@ -586,8 +676,8 @@ class HomeScreenController extends GetxController {
       try {
         final box = await Hive.openBox(favBoxName);
         favorites = box.values
-            .map<MediaItem?>((e) =>
-                MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
+            .map<MediaItem?>(
+                (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
             .whereType<MediaItem>()
             .toList();
       } catch (_) {
@@ -640,8 +730,7 @@ class HomeScreenController extends GetxController {
     required String Function(T) keyOf,
   }) {
     if (source.isEmpty || count <= 0) return const [];
-    final seed =
-        DateTime.now().toUtc().difference(DateTime.utc(2024)).inDays;
+    final seed = DateTime.now().toUtc().difference(DateTime.utc(2024)).inDays;
     final sorted = List<T>.from(source)
       ..sort((a, b) {
         final ah = Object.hash(seed, salt, keyOf(a));
@@ -701,4 +790,63 @@ class HomeLibrarySections {
   final List<Artist> artistsToExplore;
   final List<MediaItem> freshPicks;
   final int favoriteCount;
+
+  factory HomeLibrarySections.fromJson(Map<dynamic, dynamic> json) {
+    List<MediaItem> parseMediaItems(dynamic value) {
+      if (value is! List) return const [];
+      return value
+          .map<MediaItem?>((e) => MediaItemBuilder.fromJson(e))
+          .whereType<MediaItem>()
+          .toList();
+    }
+
+    List<Playlist> parsePlaylists(dynamic value) {
+      if (value is! List) return const [];
+      return value
+          .map<Playlist?>(
+              (e) => Playlist.fromJson(Map<dynamic, dynamic>.from(e)))
+          .whereType<Playlist>()
+          .toList();
+    }
+
+    List<Album> parseAlbums(dynamic value) {
+      if (value is! List) return const [];
+      return value
+          .map<Album?>((e) => Album.fromJson(Map<dynamic, dynamic>.from(e)))
+          .whereType<Album>()
+          .toList();
+    }
+
+    List<Artist> parseArtists(dynamic value) {
+      if (value is! List) return const [];
+      return value
+          .map<Artist?>((e) => Artist.fromJson(Map<dynamic, dynamic>.from(e)))
+          .whereType<Artist>()
+          .toList();
+    }
+
+    return HomeLibrarySections(
+      continueListening: parseMediaItems(json["continueListening"]),
+      basedOnFavorites: parseMediaItems(json["basedOnFavorites"]),
+      playlistsFromCollection: parsePlaylists(json["playlistsFromCollection"]),
+      latestAlbums: parseAlbums(json["latestAlbums"]),
+      artistsToExplore: parseArtists(json["artistsToExplore"]),
+      freshPicks: parseMediaItems(json["freshPicks"]),
+      favoriteCount: json["favoriteCount"] is int ? json["favoriteCount"] : 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        "continueListening":
+            continueListening.map((e) => MediaItemBuilder.toJson(e)).toList(),
+        "basedOnFavorites":
+            basedOnFavorites.map((e) => MediaItemBuilder.toJson(e)).toList(),
+        "playlistsFromCollection":
+            playlistsFromCollection.map((e) => e.toJson()).toList(),
+        "latestAlbums": latestAlbums.map((e) => e.toJson()).toList(),
+        "artistsToExplore": artistsToExplore.map((e) => e.toJson()).toList(),
+        "freshPicks":
+            freshPicks.map((e) => MediaItemBuilder.toJson(e)).toList(),
+        "favoriteCount": favoriteCount,
+      };
 }

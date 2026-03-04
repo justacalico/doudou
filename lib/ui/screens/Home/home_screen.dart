@@ -89,10 +89,10 @@ class HomeScreen extends StatelessWidget {
           final tab = homeScreenController.tabIndex.value;
           const verticalBaseMs = 380;
           const horizontalBaseMs = 320;
-          final baseMs =
-              shellController.useBottomNav.value ? horizontalBaseMs : verticalBaseMs;
-          final effectiveMs =
-              (baseMs * (factor == 0 ? 1.0 : factor)).round();
+          final baseMs = shellController.useBottomNav.value
+              ? horizontalBaseMs
+              : verticalBaseMs;
+          final effectiveMs = (baseMs * (factor == 0 ? 1.0 : factor)).round();
           return AnimatedScreenTransition(
             enabled: enabled,
             resverse: homeScreenController.reverseAnimationtransiton,
@@ -123,7 +123,9 @@ class Body extends StatelessWidget {
             : size.height < kLayoutHeightBreakpointNarrow
                 ? kTopPaddingNarrow
                 : kTopPaddingDesktop;
-    final leftPadding = useBottomNav ? kContentLeftPaddingWithBottomNav : kContentLeftPaddingWithoutBottomNav;
+    final leftPadding = useBottomNav
+        ? kContentLeftPaddingWithBottomNav
+        : kContentLeftPaddingWithoutBottomNav;
     if (homeScreenController.tabIndex.value == 0) {
       return Padding(
         padding: EdgeInsets.only(left: leftPadding),
@@ -162,8 +164,7 @@ class Body extends StatelessWidget {
                 }
 
                 final playerController = Get.find<PlayerController>();
-                final settingsController =
-                    Get.find<SettingsScreenController>();
+                final settingsController = Get.find<SettingsScreenController>();
                 final theme = Theme.of(context);
                 final activeServer = settingsController.activeServer;
                 final isYouTubeServer =
@@ -175,8 +176,7 @@ class Body extends StatelessWidget {
                 final hasLocalFavorites = Hive.isBoxOpen(favBoxName)
                     ? Hive.box(favBoxName).length > 0
                     : false;
-                final hasFavorites =
-                    isYouTubeServer ? hasLocalFavorites : true;
+                final hasFavorites = isYouTubeServer ? hasLocalFavorites : true;
                 final hasDownloads = Hive.box("SongDownloads").length > 0;
 
                 int extraFavCount = 0;
@@ -198,7 +198,8 @@ class Body extends StatelessWidget {
                   Color? iconColor,
                   bool useGradient = false,
                 }) {
-                  final surfaceElevated = theme.colorScheme.surfaceContainerHighest;
+                  final surfaceElevated =
+                      theme.colorScheme.surfaceContainerHighest;
                   final primary = theme.colorScheme.primary;
                   final secondary = theme.colorScheme.secondary;
                   final decoration = useGradient && enabled
@@ -284,34 +285,27 @@ class Body extends StatelessWidget {
 
                 String formatTracksInCollection(int count) {
                   final t = "tracksInYourCollection".tr;
-                  return t.contains("%s") ? t.replaceFirst("%s", count.toString()) : "$count tracks in your collection";
+                  return t.contains("%s")
+                      ? t.replaceFirst("%s", count.toString())
+                      : "$count tracks in your collection";
                 }
 
                 String formatShuffleLiked(int count) {
                   final t = "shuffleLikedSongs".tr;
-                  return t.contains("%s") ? t.replaceFirst("%s", count.toString()) : "Shuffle $count liked songs";
+                  return t.contains("%s")
+                      ? t.replaceFirst("%s", count.toString())
+                      : "Shuffle $count liked songs";
                 }
+
+                // Listen for background refreshes of cached home sections.
+                homeScreenController.homeLibrarySectionsVersion.value;
 
                 return FutureBuilder<HomeLibrarySections>(
                   future: homeScreenController.loadHomeLibrarySections(),
                   builder: (context, snapshot) {
                     final sections = snapshot.data;
-
-                    if (sections == null &&
-                        snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                      return Center(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            top: topPadding,
-                            bottom: useBottomNav
-                                ? kContentBottomPaddingWithBottomNav
-                                : kContentBottomPaddingWithPlayer,
-                          ),
-                          child: const CircularProgressIndicator(),
-                        ),
-                      );
-                    }
+                    final isLoading = sections == null &&
+                        snapshot.connectionState == ConnectionState.waiting;
 
                     final resolved = sections ??
                         HomeLibrarySections(
@@ -341,7 +335,8 @@ class Body extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     child: Padding(
-                                      padding: const EdgeInsets.only(right: kLibraryCardGap),
+                                      padding: const EdgeInsets.only(
+                                          right: kLibraryCardGap),
                                       child: libraryCard(
                                         useGradient: false,
                                         enabled: hasLibrarySongs,
@@ -349,16 +344,16 @@ class Body extends StatelessWidget {
                                         onTap: hasLibrarySongs
                                             ? () async {
                                                 final messenger =
-                                                    ScaffoldMessenger.of(context);
+                                                    ScaffoldMessenger.of(
+                                                        context);
                                                 if (isYouTubeServer) {
-                                                  final list =
-                                                      libSongs.librarySongsList
-                                                          .toList();
+                                                  final list = libSongs
+                                                      .librarySongsList
+                                                      .toList();
                                                   try {
-                                                    final favBox =
-                                                        await Hive.openBox(
-                                                            libFavBoxName(
-                                                                currentServerId()));
+                                                    final favBox = await Hive
+                                                        .openBox(libFavBoxName(
+                                                            currentServerId()));
                                                     final favSongs = favBox
                                                         .values
                                                         .map<MediaItem?>((e) =>
@@ -370,8 +365,7 @@ class Body extends StatelessWidget {
                                                     final seenIds = list
                                                         .map((s) => s.id)
                                                         .toSet();
-                                                    for (final s
-                                                        in favSongs) {
+                                                    for (final s in favSongs) {
                                                       if (seenIds.add(s.id)) {
                                                         list.add(s);
                                                       }
@@ -382,7 +376,8 @@ class Body extends StatelessWidget {
                                                     messenger.showSnackBar(
                                                         SnackBar(
                                                             content: Text(
-                                                                "noSongsInLibrary".tr)));
+                                                                "noSongsInLibrary"
+                                                                    .tr)));
                                                     return;
                                                   }
                                                   list.shuffle();
@@ -397,17 +392,18 @@ class Body extends StatelessWidget {
                                                     ),
                                                   );
                                                 } else {
-                                                  final allSongs =
-                                                      await libSongs
-                                                          .loadAllSongsForShuffle();
+                                                  final allSongs = await libSongs
+                                                      .loadAllSongsForShuffle();
                                                   if (allSongs.isEmpty) {
                                                     messenger.showSnackBar(
                                                         SnackBar(
                                                             content: Text(
-                                                                "noSongsInLibrary".tr)));
+                                                                "noSongsInLibrary"
+                                                                    .tr)));
                                                     return;
                                                   }
-                                                  final list = allSongs.toList();
+                                                  final list =
+                                                      allSongs.toList();
                                                   list.shuffle();
                                                   await playerController
                                                       .playPlayListSong(
@@ -424,33 +420,39 @@ class Body extends StatelessWidget {
                                             : null,
                                         icon: Icons.shuffle,
                                         title: "shuffleAll".tr,
-                                        subtitle: formatTracksInCollection(shuffleTrackCount),
+                                        subtitle: formatTracksInCollection(
+                                            shuffleTrackCount),
                                       ),
                                     ),
                                   ),
                                   Expanded(
                                     child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 4),
                                       child: libraryCard(
                                         enabled: hasFavorites,
                                         emptyMessage: "favoritesEmpty".tr,
                                         onTap: hasFavorites
                                             ? () async {
                                                 final messenger =
-                                                    ScaffoldMessenger.of(context);
+                                                    ScaffoldMessenger.of(
+                                                        context);
                                                 if (isYouTubeServer) {
-                                                  final box = Hive.box(favBoxName);
+                                                  final box =
+                                                      Hive.box(favBoxName);
                                                   final list = box.values
                                                       .map<MediaItem?>((e) =>
-                                                          MediaItemBuilder.fromJson(
-                                                              e as Map))
+                                                          MediaItemBuilder
+                                                              .fromJson(
+                                                                  e as Map))
                                                       .whereType<MediaItem>()
                                                       .toList();
                                                   if (list.isEmpty) {
                                                     messenger.showSnackBar(
                                                         SnackBar(
                                                             content: Text(
-                                                                "favoritesEmpty".tr)));
+                                                                "favoritesEmpty"
+                                                                    .tr)));
                                                     return;
                                                   }
                                                   list.shuffle();
@@ -471,15 +473,16 @@ class Body extends StatelessWidget {
                                                           .getFavoriteSongs();
                                                   final list = tracks
                                                       .map<MediaItem?>((e) =>
-                                                          MediaItemBuilder.fromJson(
-                                                              e))
+                                                          MediaItemBuilder
+                                                              .fromJson(e))
                                                       .whereType<MediaItem>()
                                                       .toList();
                                                   if (list.isEmpty) {
                                                     messenger.showSnackBar(
                                                         SnackBar(
                                                             content: Text(
-                                                                "favoritesEmpty".tr)));
+                                                                "favoritesEmpty"
+                                                                    .tr)));
                                                     return;
                                                   }
                                                   list.shuffle();
@@ -501,13 +504,15 @@ class Body extends StatelessWidget {
                                             ? theme.colorScheme.error
                                             : null,
                                         title: "favorites".tr,
-                                        subtitle: formatShuffleLiked(resolved.favoriteCount),
+                                        subtitle: formatShuffleLiked(
+                                            resolved.favoriteCount),
                                       ),
                                     ),
                                   ),
                                   Expanded(
                                     child: Padding(
-                                      padding: const EdgeInsets.only(left: kLibraryCardGap),
+                                      padding: const EdgeInsets.only(
+                                          left: kLibraryCardGap),
                                       child: libraryCard(
                                         enabled: hasDownloads,
                                         emptyMessage: "noOfflineSong".tr,
@@ -517,8 +522,8 @@ class Body extends StatelessWidget {
                                                     Hive.box("SongDownloads");
                                                 final list = box.values
                                                     .map<MediaItem?>((e) =>
-                                                        MediaItemBuilder.fromJson(
-                                                            e as Map))
+                                                        MediaItemBuilder
+                                                            .fromJson(e as Map))
                                                     .whereType<MediaItem>()
                                                     .toList();
                                                 list.shuffle();
@@ -627,7 +632,20 @@ class Body extends StatelessWidget {
                       );
                     }
 
-                    if (content.length <= 2) {
+                    if (isLoading) {
+                      content.add(
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: Text(
+                            "loading".tr,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ),
+                      );
+                    } else if (content.length <= 2) {
                       content.add(
                         Padding(
                           padding: const EdgeInsets.only(top: 20),
