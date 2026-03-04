@@ -17,12 +17,10 @@ class SearchItem extends StatelessWidget {
       contentPadding: const EdgeInsets.only(left: 10, right: 20),
       onTap: () {
         ScreenNavigationSetup.pushContentRoute(
-            ScreenNavigationSetup.searchResultScreen, arguments: queryString);
+            ScreenNavigationSetup.searchResultScreen,
+            arguments: queryString);
         searchScreenController.addToHistryQueryList(queryString);
-        // for Desktop searchbar
-        if (GetPlatform.isDesktop) {
-          searchScreenController.focusNode.unfocus();
-        }
+        searchScreenController.hideSuggestions();
       },
       leading: isHistoryString
           ? const Icon(Icons.history)

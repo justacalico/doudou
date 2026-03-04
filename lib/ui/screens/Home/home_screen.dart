@@ -9,7 +9,6 @@ import '/models/artist.dart';
 import '/models/media_Item_builder.dart';
 import '/models/playling_from.dart';
 import '/models/playlist.dart';
-import '/ui/screens/Search/search_screen_controller.dart';
 import '/ui/widgets/animated_screen_transition.dart';
 import '../Library/library_combined.dart';
 import '../Library/library_controller.dart';
@@ -131,555 +130,538 @@ class Body extends StatelessWidget {
         padding: EdgeInsets.only(left: leftPadding),
         child: Stack(
           children: [
-            GestureDetector(
-              onTap: () {
-                if (GetPlatform.isDesktop) {
-                  final sscontroller = Get.find<SearchScreenController>();
-                  if (sscontroller.focusNode.hasFocus) {
-                    sscontroller.focusNode.unfocus();
-                  }
-                }
-              },
-              child: Obx(() {
-                final libSongs = Get.find<LibrarySongsController>();
-                final libAlbums = Get.find<LibraryAlbumsController>();
-                final libArtists = Get.find<LibraryArtistsController>();
-                final libPlaylists = Get.find<LibraryPlaylistsController>();
-                final hasLibraryContent =
-                    libSongs.librarySongsList.isNotEmpty ||
-                        libAlbums.libraryAlbums.isNotEmpty ||
-                        libArtists.libraryArtists.isNotEmpty ||
-                        libPlaylists.libraryPlaylists.length > 4;
-                if (!hasLibraryContent) {
-                  return SizedBox(
-                    height: MediaQuery.of(context).size.height - 180,
-                    child: Center(
-                      child: Text(
-                        "addMusicToLibraryHint".tr,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+            Obx(() {
+              final libSongs = Get.find<LibrarySongsController>();
+              final libAlbums = Get.find<LibraryAlbumsController>();
+              final libArtists = Get.find<LibraryArtistsController>();
+              final libPlaylists = Get.find<LibraryPlaylistsController>();
+              final hasLibraryContent = libSongs.librarySongsList.isNotEmpty ||
+                  libAlbums.libraryAlbums.isNotEmpty ||
+                  libArtists.libraryArtists.isNotEmpty ||
+                  libPlaylists.libraryPlaylists.length > 4;
+              if (!hasLibraryContent) {
+                return SizedBox(
+                  height: MediaQuery.of(context).size.height - 180,
+                  child: Center(
+                    child: Text(
+                      "addMusicToLibraryHint".tr,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                  );
-                }
+                  ),
+                );
+              }
 
-                final playerController = Get.find<PlayerController>();
-                final settingsController = Get.find<SettingsScreenController>();
-                final theme = Theme.of(context);
-                final activeServer = settingsController.activeServer;
-                final isYouTubeServer =
-                    activeServer?.type == ServerType.youtubeMusic;
-                final hasLibrarySongs = isYouTubeServer
-                    ? libSongs.librarySongsList.isNotEmpty
-                    : true;
-                final favBoxName = libFavBoxName(currentServerId());
-                final hasLocalFavorites = Hive.isBoxOpen(favBoxName)
-                    ? Hive.box(favBoxName).length > 0
-                    : false;
-                final hasFavorites = isYouTubeServer ? hasLocalFavorites : true;
-                final hasDownloads = Hive.box("SongDownloads").length > 0;
+              final playerController = Get.find<PlayerController>();
+              final settingsController = Get.find<SettingsScreenController>();
+              final theme = Theme.of(context);
+              final activeServer = settingsController.activeServer;
+              final isYouTubeServer =
+                  activeServer?.type == ServerType.youtubeMusic;
+              final hasLibrarySongs =
+                  isYouTubeServer ? libSongs.librarySongsList.isNotEmpty : true;
+              final favBoxName = libFavBoxName(currentServerId());
+              final hasLocalFavorites = Hive.isBoxOpen(favBoxName)
+                  ? Hive.box(favBoxName).length > 0
+                  : false;
+              final hasFavorites = isYouTubeServer ? hasLocalFavorites : true;
+              final hasDownloads = Hive.box("SongDownloads").length > 0;
 
-                int extraFavCount = 0;
-                if (isYouTubeServer && Hive.isBoxOpen(favBoxName)) {
-                  extraFavCount = Hive.box(favBoxName).length;
-                }
-                final shuffleTrackCount =
-                    libSongs.librarySongsList.length + extraFavCount;
-                const kLibraryCardHeight = 120.0;
-                const kLibraryCardGap = 8.0;
+              int extraFavCount = 0;
+              if (isYouTubeServer && Hive.isBoxOpen(favBoxName)) {
+                extraFavCount = Hive.box(favBoxName).length;
+              }
+              final shuffleTrackCount =
+                  libSongs.librarySongsList.length + extraFavCount;
+              const kLibraryCardHeight = 120.0;
+              const kLibraryCardGap = 8.0;
 
-                Widget libraryCard({
-                  required VoidCallback? onTap,
-                  required IconData icon,
-                  required String title,
-                  required String subtitle,
-                  required bool enabled,
-                  required String emptyMessage,
-                  Color? iconColor,
-                  bool useGradient = false,
-                }) {
-                  final surfaceElevated =
-                      theme.colorScheme.surfaceContainerHighest;
-                  final primary = theme.colorScheme.primary;
-                  final secondary = theme.colorScheme.secondary;
-                  final decoration = useGradient && enabled
-                      ? BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              primary,
-                              primary.withValues(alpha: 0.85),
-                              secondary,
-                            ],
-                          ),
-                        )
-                      : BoxDecoration(
-                          color: surfaceElevated,
-                          borderRadius: BorderRadius.circular(16),
-                        );
-                  final fgColor = (useGradient && enabled)
-                      ? theme.colorScheme.onPrimary
-                      : (enabled
-                          ? theme.colorScheme.onSurface
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.5));
-                  final subColor = (useGradient && enabled)
-                      ? theme.colorScheme.onPrimary.withValues(alpha: 0.85)
-                      : theme.colorScheme.onSurface.withValues(alpha: 0.7);
-                  final effectiveIconColor = iconColor ?? fgColor;
-                  return Material(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(16),
-                    child: InkWell(
-                      onTap: enabled
-                          ? onTap
-                          : () => ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(emptyMessage)),
-                              ),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        height: kLibraryCardHeight,
-                        padding: const EdgeInsets.all(14),
-                        decoration: decoration,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Icon(
-                              icon,
-                              size: 26,
-                              color: effectiveIconColor,
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  title,
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    color: fgColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  subtitle,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: subColor,
-                                    fontSize: 12,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
+              Widget libraryCard({
+                required VoidCallback? onTap,
+                required IconData icon,
+                required String title,
+                required String subtitle,
+                required bool enabled,
+                required String emptyMessage,
+                Color? iconColor,
+                bool useGradient = false,
+              }) {
+                final surfaceElevated =
+                    theme.colorScheme.surfaceContainerHighest;
+                final primary = theme.colorScheme.primary;
+                final secondary = theme.colorScheme.secondary;
+                final decoration = useGradient && enabled
+                    ? BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            primary,
+                            primary.withValues(alpha: 0.85),
+                            secondary,
                           ],
                         ),
+                      )
+                    : BoxDecoration(
+                        color: surfaceElevated,
+                        borderRadius: BorderRadius.circular(16),
+                      );
+                final fgColor = (useGradient && enabled)
+                    ? theme.colorScheme.onPrimary
+                    : (enabled
+                        ? theme.colorScheme.onSurface
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.5));
+                final subColor = (useGradient && enabled)
+                    ? theme.colorScheme.onPrimary.withValues(alpha: 0.85)
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.7);
+                final effectiveIconColor = iconColor ?? fgColor;
+                return Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    onTap: enabled
+                        ? onTap
+                        : () => ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(emptyMessage)),
+                            ),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      height: kLibraryCardHeight,
+                      padding: const EdgeInsets.all(14),
+                      decoration: decoration,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(
+                            icon,
+                            size: 26,
+                            color: effectiveIconColor,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                title,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: fgColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                subtitle,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: subColor,
+                                  fontSize: 12,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  );
-                }
+                  ),
+                );
+              }
 
-                String formatTracksInCollection(int count) {
-                  final t = "tracksInYourCollection".tr;
-                  return t.contains("%s")
-                      ? t.replaceFirst("%s", count.toString())
-                      : "$count tracks in your collection";
-                }
+              String formatTracksInCollection(int count) {
+                final t = "tracksInYourCollection".tr;
+                return t.contains("%s")
+                    ? t.replaceFirst("%s", count.toString())
+                    : "$count tracks in your collection";
+              }
 
-                String formatShuffleLiked(int count) {
-                  final t = "shuffleLikedSongs".tr;
-                  return t.contains("%s")
-                      ? t.replaceFirst("%s", count.toString())
-                      : "Shuffle $count liked songs";
-                }
+              String formatShuffleLiked(int count) {
+                final t = "shuffleLikedSongs".tr;
+                return t.contains("%s")
+                    ? t.replaceFirst("%s", count.toString())
+                    : "Shuffle $count liked songs";
+              }
 
-                // Listen for background refreshes of cached home sections.
-                homeScreenController.homeLibrarySectionsVersion.value;
+              // Listen for background refreshes of cached home sections.
+              homeScreenController.homeLibrarySectionsVersion.value;
 
-                return FutureBuilder<HomeLibrarySections>(
-                  future: homeScreenController.loadHomeLibrarySections(),
-                  builder: (context, snapshot) {
-                    final sections = snapshot.data;
-                    final isLoading = sections == null &&
-                        snapshot.connectionState == ConnectionState.waiting;
+              return FutureBuilder<HomeLibrarySections>(
+                future: homeScreenController.loadHomeLibrarySections(),
+                builder: (context, snapshot) {
+                  final sections = snapshot.data;
+                  final isLoading = sections == null &&
+                      snapshot.connectionState == ConnectionState.waiting;
 
-                    final resolved = sections ??
-                        HomeLibrarySections(
-                          continueListening: const [],
-                          basedOnFavorites: const [],
-                          playlistsFromCollection: const [],
-                          latestAlbums: const [],
-                          artistsToExplore: const [],
-                          freshPicks: const [],
-                        );
+                  final resolved = sections ??
+                      HomeLibrarySections(
+                        continueListening: const [],
+                        basedOnFavorites: const [],
+                        playlistsFromCollection: const [],
+                        latestAlbums: const [],
+                        artistsToExplore: const [],
+                        freshPicks: const [],
+                      );
 
-                    final content = <Widget>[];
+                  final content = <Widget>[];
 
-                    content.add(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "yourLibrary".tr,
-                            style: theme.textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 12),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              return Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          right: kLibraryCardGap),
-                                      child: libraryCard(
-                                        useGradient: false,
-                                        enabled: hasLibrarySongs,
-                                        emptyMessage: "noSongsInLibrary".tr,
-                                        onTap: hasLibrarySongs
-                                            ? () async {
-                                                final messenger =
-                                                    ScaffoldMessenger.of(
-                                                        context);
-                                                if (isYouTubeServer) {
-                                                  final list = libSongs
-                                                      .librarySongsList
-                                                      .toList();
-                                                  try {
-                                                    final favBox = await Hive
-                                                        .openBox(libFavBoxName(
-                                                            currentServerId()));
-                                                    final favSongs = favBox
-                                                        .values
-                                                        .map<MediaItem?>((e) =>
-                                                            MediaItemBuilder
-                                                                .fromJson(
-                                                                    e as Map))
-                                                        .whereType<MediaItem>()
-                                                        .toList();
-                                                    final seenIds = list
-                                                        .map((s) => s.id)
-                                                        .toSet();
-                                                    for (final s in favSongs) {
-                                                      if (seenIds.add(s.id)) {
-                                                        list.add(s);
-                                                      }
-                                                    }
-                                                  } catch (_) {}
-
-                                                  if (list.isEmpty) {
-                                                    messenger.showSnackBar(
-                                                        SnackBar(
-                                                            content: Text(
-                                                                "noSongsInLibrary"
-                                                                    .tr)));
-                                                    return;
-                                                  }
-                                                  list.shuffle();
-                                                  await playerController
-                                                      .playPlayListSong(
-                                                    list,
-                                                    0,
-                                                    playfrom: PlaylingFrom(
-                                                      name: "shuffleAll".tr,
-                                                      type: PlaylingFromType
-                                                          .SELECTION,
-                                                    ),
-                                                  );
-                                                } else {
-                                                  final allSongs = await libSongs
-                                                      .loadAllSongsForShuffle();
-                                                  if (allSongs.isEmpty) {
-                                                    messenger.showSnackBar(
-                                                        SnackBar(
-                                                            content: Text(
-                                                                "noSongsInLibrary"
-                                                                    .tr)));
-                                                    return;
-                                                  }
-                                                  final list =
-                                                      allSongs.toList();
-                                                  list.shuffle();
-                                                  await playerController
-                                                      .playPlayListSong(
-                                                    list,
-                                                    0,
-                                                    playfrom: PlaylingFrom(
-                                                      name: "shuffleAll".tr,
-                                                      type: PlaylingFromType
-                                                          .SELECTION,
-                                                    ),
-                                                  );
-                                                }
-                                              }
-                                            : null,
-                                        icon: Icons.shuffle,
-                                        title: "shuffleAll".tr,
-                                        subtitle: formatTracksInCollection(
-                                            shuffleTrackCount),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 4),
-                                      child: libraryCard(
-                                        enabled: hasFavorites,
-                                        emptyMessage: "favoritesEmpty".tr,
-                                        onTap: hasFavorites
-                                            ? () async {
-                                                final messenger =
-                                                    ScaffoldMessenger.of(
-                                                        context);
-                                                if (isYouTubeServer) {
-                                                  final box =
-                                                      Hive.box(favBoxName);
-                                                  final list = box.values
+                  content.add(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "yourLibrary".tr,
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 12),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                        right: kLibraryCardGap),
+                                    child: libraryCard(
+                                      useGradient: false,
+                                      enabled: hasLibrarySongs,
+                                      emptyMessage: "noSongsInLibrary".tr,
+                                      onTap: hasLibrarySongs
+                                          ? () async {
+                                              final messenger =
+                                                  ScaffoldMessenger.of(context);
+                                              if (isYouTubeServer) {
+                                                final list = libSongs
+                                                    .librarySongsList
+                                                    .toList();
+                                                try {
+                                                  final favBox = await Hive
+                                                      .openBox(libFavBoxName(
+                                                          currentServerId()));
+                                                  final favSongs = favBox.values
                                                       .map<MediaItem?>((e) =>
                                                           MediaItemBuilder
                                                               .fromJson(
                                                                   e as Map))
                                                       .whereType<MediaItem>()
                                                       .toList();
-                                                  if (list.isEmpty) {
-                                                    messenger.showSnackBar(
-                                                        SnackBar(
-                                                            content: Text(
-                                                                "favoritesEmpty"
-                                                                    .tr)));
-                                                    return;
+                                                  final seenIds = list
+                                                      .map((s) => s.id)
+                                                      .toSet();
+                                                  for (final s in favSongs) {
+                                                    if (seenIds.add(s.id)) {
+                                                      list.add(s);
+                                                    }
                                                   }
-                                                  list.shuffle();
-                                                  await playerController
-                                                      .playPlayListSong(
-                                                    list,
-                                                    0,
-                                                    playfrom: PlaylingFrom(
-                                                      name: "favorites".tr,
-                                                      type: PlaylingFromType
-                                                          .PLAYLIST,
-                                                    ),
-                                                  );
-                                                } else {
-                                                  final tracks =
-                                                      await settingsController
-                                                          .currentBackend
-                                                          .getFavoriteSongs();
-                                                  final list = tracks
-                                                      .map<MediaItem?>((e) =>
-                                                          MediaItemBuilder
-                                                              .fromJson(e))
-                                                      .whereType<MediaItem>()
-                                                      .toList();
-                                                  if (list.isEmpty) {
-                                                    messenger.showSnackBar(
-                                                        SnackBar(
-                                                            content: Text(
-                                                                "favoritesEmpty"
-                                                                    .tr)));
-                                                    return;
-                                                  }
-                                                  list.shuffle();
-                                                  await playerController
-                                                      .playPlayListSong(
-                                                    list,
-                                                    0,
-                                                    playfrom: PlaylingFrom(
-                                                      name: "favorites".tr,
-                                                      type: PlaylingFromType
-                                                          .PLAYLIST,
-                                                    ),
-                                                  );
+                                                } catch (_) {}
+
+                                                if (list.isEmpty) {
+                                                  messenger.showSnackBar(
+                                                      SnackBar(
+                                                          content: Text(
+                                                              "noSongsInLibrary"
+                                                                  .tr)));
+                                                  return;
                                                 }
-                                              }
-                                            : null,
-                                        icon: Icons.favorite_border,
-                                        iconColor: hasFavorites
-                                            ? theme.colorScheme.error
-                                            : null,
-                                        title: "favorites".tr,
-                                        subtitle: formatShuffleLiked(
-                                            resolved.favoriteCount),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: kLibraryCardGap),
-                                      child: libraryCard(
-                                        enabled: hasDownloads,
-                                        emptyMessage: "noOfflineSong".tr,
-                                        onTap: hasDownloads
-                                            ? () async {
-                                                final box =
-                                                    Hive.box("SongDownloads");
-                                                final list = box.values
-                                                    .map<MediaItem?>((e) =>
-                                                        MediaItemBuilder
-                                                            .fromJson(e as Map))
-                                                    .whereType<MediaItem>()
-                                                    .toList();
                                                 list.shuffle();
                                                 await playerController
                                                     .playPlayListSong(
                                                   list,
                                                   0,
                                                   playfrom: PlaylingFrom(
-                                                    name: "downloads".tr,
+                                                    name: "shuffleAll".tr,
+                                                    type: PlaylingFromType
+                                                        .SELECTION,
+                                                  ),
+                                                );
+                                              } else {
+                                                final allSongs = await libSongs
+                                                    .loadAllSongsForShuffle();
+                                                if (allSongs.isEmpty) {
+                                                  messenger.showSnackBar(
+                                                      SnackBar(
+                                                          content: Text(
+                                                              "noSongsInLibrary"
+                                                                  .tr)));
+                                                  return;
+                                                }
+                                                final list = allSongs.toList();
+                                                list.shuffle();
+                                                await playerController
+                                                    .playPlayListSong(
+                                                  list,
+                                                  0,
+                                                  playfrom: PlaylingFrom(
+                                                    name: "shuffleAll".tr,
+                                                    type: PlaylingFromType
+                                                        .SELECTION,
+                                                  ),
+                                                );
+                                              }
+                                            }
+                                          : null,
+                                      icon: Icons.shuffle,
+                                      title: "shuffleAll".tr,
+                                      subtitle: formatTracksInCollection(
+                                          shuffleTrackCount),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4),
+                                    child: libraryCard(
+                                      enabled: hasFavorites,
+                                      emptyMessage: "favoritesEmpty".tr,
+                                      onTap: hasFavorites
+                                          ? () async {
+                                              final messenger =
+                                                  ScaffoldMessenger.of(context);
+                                              if (isYouTubeServer) {
+                                                final box =
+                                                    Hive.box(favBoxName);
+                                                final list = box.values
+                                                    .map<MediaItem?>((e) =>
+                                                        MediaItemBuilder
+                                                            .fromJson(e as Map))
+                                                    .whereType<MediaItem>()
+                                                    .toList();
+                                                if (list.isEmpty) {
+                                                  messenger.showSnackBar(
+                                                      SnackBar(
+                                                          content: Text(
+                                                              "favoritesEmpty"
+                                                                  .tr)));
+                                                  return;
+                                                }
+                                                list.shuffle();
+                                                await playerController
+                                                    .playPlayListSong(
+                                                  list,
+                                                  0,
+                                                  playfrom: PlaylingFrom(
+                                                    name: "favorites".tr,
+                                                    type: PlaylingFromType
+                                                        .PLAYLIST,
+                                                  ),
+                                                );
+                                              } else {
+                                                final tracks =
+                                                    await settingsController
+                                                        .currentBackend
+                                                        .getFavoriteSongs();
+                                                final list = tracks
+                                                    .map<MediaItem?>((e) =>
+                                                        MediaItemBuilder
+                                                            .fromJson(e))
+                                                    .whereType<MediaItem>()
+                                                    .toList();
+                                                if (list.isEmpty) {
+                                                  messenger.showSnackBar(
+                                                      SnackBar(
+                                                          content: Text(
+                                                              "favoritesEmpty"
+                                                                  .tr)));
+                                                  return;
+                                                }
+                                                list.shuffle();
+                                                await playerController
+                                                    .playPlayListSong(
+                                                  list,
+                                                  0,
+                                                  playfrom: PlaylingFrom(
+                                                    name: "favorites".tr,
                                                     type: PlaylingFromType
                                                         .PLAYLIST,
                                                   ),
                                                 );
                                               }
-                                            : null,
-                                        icon: Icons.download,
-                                        iconColor: hasDownloads
-                                            ? theme.colorScheme.tertiary
-                                            : null,
-                                        title: "downloads".tr,
-                                        subtitle: "availableOffline".tr,
-                                      ),
+                                            }
+                                          : null,
+                                      icon: Icons.favorite_border,
+                                      iconColor: hasFavorites
+                                          ? theme.colorScheme.error
+                                          : null,
+                                      title: "favorites".tr,
+                                      subtitle: formatShuffleLiked(
+                                          resolved.favoriteCount),
                                     ),
                                   ),
-                                ],
-                              );
-                            },
-                          ),
-                        ],
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: kLibraryCardGap),
+                                    child: libraryCard(
+                                      enabled: hasDownloads,
+                                      emptyMessage: "noOfflineSong".tr,
+                                      onTap: hasDownloads
+                                          ? () async {
+                                              final box =
+                                                  Hive.box("SongDownloads");
+                                              final list = box.values
+                                                  .map<MediaItem?>((e) =>
+                                                      MediaItemBuilder.fromJson(
+                                                          e as Map))
+                                                  .whereType<MediaItem>()
+                                                  .toList();
+                                              list.shuffle();
+                                              await playerController
+                                                  .playPlayListSong(
+                                                list,
+                                                0,
+                                                playfrom: PlaylingFrom(
+                                                  name: "downloads".tr,
+                                                  type:
+                                                      PlaylingFromType.PLAYLIST,
+                                                ),
+                                              );
+                                            }
+                                          : null,
+                                      icon: Icons.download,
+                                      iconColor: hasDownloads
+                                          ? theme.colorScheme.tertiary
+                                          : null,
+                                      title: "downloads".tr,
+                                      subtitle: "availableOffline".tr,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+
+                  content.add(const SizedBox(height: 32));
+
+                  if (resolved.continueListening.isNotEmpty) {
+                    content.add(
+                      _buildTrackRowSection(
+                        context: context,
+                        title: "homeContinueListening".tr,
+                        subtitle: "homeContinueListeningSubtitle".tr,
+                        items: resolved.continueListening,
+                        playLabel: "homeContinueListening".tr,
+                        playerController: playerController,
                       ),
                     );
-
                     content.add(const SizedBox(height: 32));
+                  }
 
-                    if (resolved.continueListening.isNotEmpty) {
-                      content.add(
-                        _buildTrackRowSection(
-                          context: context,
-                          title: "homeContinueListening".tr,
-                          subtitle: "homeContinueListeningSubtitle".tr,
-                          items: resolved.continueListening,
-                          playLabel: "homeContinueListening".tr,
-                          playerController: playerController,
-                        ),
-                      );
-                      content.add(const SizedBox(height: 32));
-                    }
+                  if (resolved.basedOnFavorites.isNotEmpty) {
+                    content.add(
+                      _buildTrackRowSection(
+                        context: context,
+                        title: "homeBecauseYouLikeArtists".tr,
+                        subtitle: "homeBecauseYouLikeArtistsSubtitle".tr,
+                        items: resolved.basedOnFavorites,
+                        playLabel: "homeBecauseYouLikeArtists".tr,
+                        playerController: playerController,
+                      ),
+                    );
+                    content.add(const SizedBox(height: 32));
+                  }
 
-                    if (resolved.basedOnFavorites.isNotEmpty) {
-                      content.add(
-                        _buildTrackRowSection(
-                          context: context,
-                          title: "homeBecauseYouLikeArtists".tr,
-                          subtitle: "homeBecauseYouLikeArtistsSubtitle".tr,
-                          items: resolved.basedOnFavorites,
-                          playLabel: "homeBecauseYouLikeArtists".tr,
-                          playerController: playerController,
-                        ),
-                      );
-                      content.add(const SizedBox(height: 32));
-                    }
+                  if (resolved.playlistsFromCollection.isNotEmpty) {
+                    content.add(
+                      _buildPlaylistRowSection(
+                        context: context,
+                        title: "playlists".tr,
+                        subtitle: "homePlaylistsSubtitle".tr,
+                        playlists: resolved.playlistsFromCollection,
+                      ),
+                    );
+                    content.add(const SizedBox(height: 32));
+                  }
 
-                    if (resolved.playlistsFromCollection.isNotEmpty) {
-                      content.add(
-                        _buildPlaylistRowSection(
-                          context: context,
-                          title: "playlists".tr,
-                          subtitle: "homePlaylistsSubtitle".tr,
-                          playlists: resolved.playlistsFromCollection,
-                        ),
-                      );
-                      content.add(const SizedBox(height: 32));
-                    }
+                  if (resolved.latestAlbums.isNotEmpty) {
+                    content.add(
+                      _buildAlbumRowSection(
+                        context: context,
+                        title: "recentlyAddedAlbums".tr,
+                        subtitle: "yourNewestAdditions".tr,
+                        albums: resolved.latestAlbums,
+                      ),
+                    );
+                    content.add(const SizedBox(height: 32));
+                  }
 
-                    if (resolved.latestAlbums.isNotEmpty) {
-                      content.add(
-                        _buildAlbumRowSection(
-                          context: context,
-                          title: "recentlyAddedAlbums".tr,
-                          subtitle: "yourNewestAdditions".tr,
-                          albums: resolved.latestAlbums,
-                        ),
-                      );
-                      content.add(const SizedBox(height: 32));
-                    }
+                  if (resolved.artistsToExplore.isNotEmpty) {
+                    content.add(
+                      _buildArtistRowSection(
+                        context: context,
+                        title: "yourArtists".tr,
+                        subtitle: "homeArtistsSubtitle".tr,
+                        artists: resolved.artistsToExplore,
+                      ),
+                    );
+                    content.add(const SizedBox(height: 32));
+                  }
 
-                    if (resolved.artistsToExplore.isNotEmpty) {
-                      content.add(
-                        _buildArtistRowSection(
-                          context: context,
-                          title: "yourArtists".tr,
-                          subtitle: "homeArtistsSubtitle".tr,
-                          artists: resolved.artistsToExplore,
-                        ),
-                      );
-                      content.add(const SizedBox(height: 32));
-                    }
+                  if (resolved.freshPicks.isNotEmpty) {
+                    content.add(
+                      _buildFreshPicksSection(
+                        context: context,
+                        items: resolved.freshPicks,
+                        playerController: playerController,
+                      ),
+                    );
+                  }
 
-                    if (resolved.freshPicks.isNotEmpty) {
-                      content.add(
-                        _buildFreshPicksSection(
-                          context: context,
-                          items: resolved.freshPicks,
-                          playerController: playerController,
-                        ),
-                      );
-                    }
-
-                    if (isLoading) {
-                      content.add(
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20),
-                          child: Text(
-                            "loading".tr,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.7),
-                            ),
+                  if (isLoading) {
+                    content.add(
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Text(
+                          "loading".tr,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.7),
                           ),
-                        ),
-                      );
-                    } else if (content.length <= 2) {
-                      content.add(
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20),
-                          child: Text(
-                            "homeEmptyLibraryMessage".tr,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.7),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    return SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          top: topPadding,
-                          right: kContentRightPadding,
-                          bottom: useBottomNav
-                              ? kContentBottomPaddingWithBottomNav
-                              : kContentBottomPaddingWithPlayer,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: content,
                         ),
                       ),
                     );
-                  },
-                );
-              }),
-            ),
+                  } else if (content.length <= 2) {
+                    content.add(
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Text(
+                          "homeEmptyLibraryMessage".tr,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        top: topPadding,
+                        right: kContentRightPadding,
+                        bottom: useBottomNav
+                            ? kContentBottomPaddingWithBottomNav
+                            : kContentBottomPaddingWithPlayer,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: content,
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
             if (GetPlatform.isDesktop)
               Align(
                 alignment: Alignment.topCenter,

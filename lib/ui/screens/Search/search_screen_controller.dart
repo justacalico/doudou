@@ -18,7 +18,6 @@ class SearchScreenController extends GetxController with ProcessLink {
   final urlPasted = false.obs;
 
   // Desktop search bar related
-  final focusNode = FocusNode();
   final isSearchBarInFocus = false.obs;
 
   @override
@@ -28,15 +27,6 @@ class SearchScreenController extends GetxController with ProcessLink {
   }
 
   _init() async {
-    if (GetPlatform.isDesktop) {
-      focusNode.addListener(() {
-        final hasFocus = focusNode.hasFocus;
-        isSearchBarInFocus.value = hasFocus;
-        if (!hasFocus) {
-          hideSuggestions();
-        }
-      });
-    }
     await _loadQueryBox();
     ever(Get.find<SettingsScreenController>().activeServerId, (_) async {
       await _loadQueryBox();
@@ -55,7 +45,7 @@ class SearchScreenController extends GetxController with ProcessLink {
 
   Future<void> onChanged(String text) async {
     if (text.contains("https://")) {
-      urlPasted.value = true; 
+      urlPasted.value = true;
       return;
     }
     urlPasted.value = false;
@@ -101,8 +91,13 @@ class SearchScreenController extends GetxController with ProcessLink {
   void hideSuggestions() {
     urlPasted.value = false;
     suggestionList.clear();
-    if (GetPlatform.isDesktop) {
-      isSearchBarInFocus.value = false;
+    isSearchBarInFocus.value = false;
+  }
+
+  void setDesktopSearchFocus(bool hasFocus) {
+    isSearchBarInFocus.value = hasFocus;
+    if (!hasFocus) {
+      hideSuggestions();
     }
   }
 
@@ -115,7 +110,6 @@ class SearchScreenController extends GetxController with ProcessLink {
 
   @override
   void dispose() {
-    focusNode.dispose();
     textInputController.dispose();
     if (_queryBoxServerId != null) queryBox.close();
     super.dispose();

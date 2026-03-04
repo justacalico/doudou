@@ -357,7 +357,6 @@ class HomeScreenController extends GetxController {
         Get.isRegistered<SearchScreenController>()) {
       final search = Get.find<SearchScreenController>();
       search.hideSuggestions();
-      search.focusNode.unfocus();
     }
     if (!isOnHome) {
       ScreenNavigationSetup.offContentRoute(ScreenNavigationSetup.homeScreen);
@@ -374,7 +373,6 @@ class HomeScreenController extends GetxController {
         Get.isRegistered<SearchScreenController>()) {
       final search = Get.find<SearchScreenController>();
       search.hideSuggestions();
-      search.focusNode.unfocus();
     }
     if (!isOnHome) {
       ScreenNavigationSetup.offContentRoute(ScreenNavigationSetup.homeScreen);

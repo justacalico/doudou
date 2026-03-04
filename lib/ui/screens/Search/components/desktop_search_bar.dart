@@ -14,13 +14,25 @@ class DesktopSearchBar extends StatefulWidget {
 }
 
 class _DesktopSearchBarState extends State<DesktopSearchBar> {
+  final FocusNode _focusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
+    final search = Get.find<SearchScreenController>();
+    _focusNode.addListener(() {
+      search.setDesktopSearchFocus(_focusNode.hasFocus);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      Get.find<SearchScreenController>().focusNode.unfocus();
+      _focusNode.unfocus();
     });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -34,38 +46,37 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
             LogicalKeySet(LogicalKeyboardKey.space):
                 const DoNothingAndStopPropagationTextIntent()
           },
-          child: GestureDetector(
-            behavior: HitTestBehavior.deferToChild,
+          child: SearchBar(
+            controller: searchScreenController.textInputController,
             onTap: () {
-              if (!searchScreenController.focusNode.hasFocus) {
-                searchScreenController.focusNode.requestFocus();
+              if (!_focusNode.hasFocus) {
+                _focusNode.requestFocus();
               }
             },
-            child: SearchBar(
-              controller: searchScreenController.textInputController,
-              onTapOutside: (event) {
-                searchScreenController.focusNode.unfocus();
-              },
-              onChanged: searchScreenController.onChanged,
-              onSubmitted: (val) {
+            onTapOutside: (event) {
+              _focusNode.unfocus();
+            },
+            onChanged: searchScreenController.onChanged,
+            onSubmitted: (val) {
               if (val.contains("https://")) {
                 searchScreenController.filterLinks(Uri.parse(val));
                 searchScreenController.reset();
                 return;
               }
               ScreenNavigationSetup.pushContentRoute(
-                  ScreenNavigationSetup.searchResultScreen, arguments: val);
+                  ScreenNavigationSetup.searchResultScreen,
+                  arguments: val);
               searchScreenController.addToHistryQueryList(val);
-              searchScreenController.focusNode.unfocus();
+              _focusNode.unfocus();
             },
-            focusNode: searchScreenController.focusNode,
+            focusNode: _focusNode,
             backgroundColor: WidgetStatePropertyAll<Color>(
                 Theme.of(context).colorScheme.secondary),
             hintText: "searchDes".tr,
             leading: IconButton(
                 onPressed: () {
-                  if (searchScreenController.focusNode.hasFocus) {
-                    searchScreenController.focusNode.unfocus();
+                  if (_focusNode.hasFocus) {
+                    _focusNode.unfocus();
                   }
                 },
                 icon: Obx(() => Icon(
@@ -82,7 +93,6 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
             padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
                 EdgeInsets.only(left: 15, right: 15)),
           ),
-        ),
         ),
         Padding(
             padding: const EdgeInsets.only(top: 10.0),
