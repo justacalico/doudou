@@ -33,6 +33,8 @@ enum SidebarMode { auto, collapsed, expanded }
 
 enum AnimationSpeed { off, fast, normal, slow }
 
+enum SyncedLyricsHighlightStyle { block, karaoke }
+
 class SettingsScreenController extends GetxController {
   final settingsSectionKeys = List.generate(8, (_) => GlobalKey());
   late String _supportDir;
@@ -62,6 +64,7 @@ class SettingsScreenController extends GetxController {
   final isBottomNavBarEnabled = false.obs;
   final sidebarMode = SidebarMode.auto.obs;
   final lyricsDynamicColorEnabled = true.obs;
+  final syncedLyricsHighlightStyle = SyncedLyricsHighlightStyle.block.obs;
   final backgroundPlayEnabled = true.obs;
   final keepScreenAwake = false.obs;
   final restorePlaybackSession = false.obs;
@@ -223,6 +226,19 @@ class SettingsScreenController extends GetxController {
         setBox.get("autoDownloadFavoriteSongEnabled") ?? false;
     lyricsDynamicColorEnabled.value =
         setBox.get("lyricsDynamicColorEnabled") ?? true;
+    final rawLyricsHighlightStyle = setBox.get("syncedLyricsHighlightStyle");
+    final styleIndex =
+        rawLyricsHighlightStyle is int ? rawLyricsHighlightStyle : 0;
+    syncedLyricsHighlightStyle.value = (styleIndex >= 0 &&
+            styleIndex < SyncedLyricsHighlightStyle.values.length)
+        ? SyncedLyricsHighlightStyle.values[styleIndex]
+        : SyncedLyricsHighlightStyle.block;
+    if (rawLyricsHighlightStyle is! int ||
+        styleIndex < 0 ||
+        styleIndex >= SyncedLyricsHighlightStyle.values.length) {
+      setBox.put(
+          "syncedLyricsHighlightStyle", SyncedLyricsHighlightStyle.block.index);
+    }
 
     final defaultServer = SettingsServer(
       id: SettingsServer.defaultServerId,
@@ -314,6 +330,11 @@ class SettingsScreenController extends GetxController {
   void setLyricsDynamicColorEnabled(bool value) {
     lyricsDynamicColorEnabled.value = value;
     setBox.put("lyricsDynamicColorEnabled", value);
+  }
+
+  void setSyncedLyricsHighlightStyle(SyncedLyricsHighlightStyle style) {
+    syncedLyricsHighlightStyle.value = style;
+    setBox.put("syncedLyricsHighlightStyle", style.index);
   }
 
   void setAnimationSpeed(AnimationSpeed speed) {

@@ -10,10 +10,7 @@ import '../settings_screen_controller.dart';
 
 class SettingsPersonalisationSection extends StatelessWidget {
   const SettingsPersonalisationSection(
-      {super.key,
-      this.onThemeTap,
-      this.expansionKey,
-      this.onExpansionChanged});
+      {super.key, this.onThemeTap, this.expansionKey, this.onExpansionChanged});
   final VoidCallback? onThemeTap;
   final Key? expansionKey;
   final ValueChanged<bool>? onExpansionChanged;
@@ -50,8 +47,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
                                     ? "oled".tr
                                     : "light".tr,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                )),
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    )),
           ),
           onTap: onThemeTap ?? () {},
         ),
@@ -70,8 +67,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
                 subtitle: Text(
                   "dynamicColorDes".tr,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                  ),
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
                 ),
                 trailing: InkWell(
                   borderRadius: BorderRadius.circular(20),
@@ -82,7 +79,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
                       context: context,
                       builder: (dialogContext) {
                         return AlertDialog(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24)),
                           title: Text("pickDynamicColor".tr),
                           content: SingleChildScrollView(
                             child: Column(
@@ -115,8 +113,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
                                               color: c,
                                               shape: BoxShape.circle,
                                               border: Border.all(
-                                                color: Colors.white.withValues(
-                                                    alpha: 0.8),
+                                                color: Colors.white
+                                                    .withValues(alpha: 0.8),
                                                 width: 1,
                                               ),
                                             ),
@@ -134,7 +132,9 @@ class SettingsPersonalisationSection extends StatelessWidget {
                                         context: dialogContext,
                                         builder: (ctx) {
                                           return AlertDialog(
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(24)),
                                             title: Text("pickDynamicColor".tr),
                                             content: SingleChildScrollView(
                                               child: ColorPicker(
@@ -180,9 +180,11 @@ class SettingsPersonalisationSection extends StatelessWidget {
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: themeController.dynamicColor.value.withValues(alpha: 0.1),
+                      color: themeController.dynamicColor.value
+                          .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -201,7 +203,11 @@ class SettingsPersonalisationSection extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text("change".tr, style: TextStyle(color: themeController.dynamicColor.value, fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text("change".tr,
+                            style: TextStyle(
+                                color: themeController.dynamicColor.value,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13)),
                       ],
                     ),
                   ),
@@ -213,8 +219,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
                 subtitle: Text(
                   "lyricsDynamicColorDes".tr,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                  ),
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
                 ),
                 trailing: Obx(
                   () => CustSwitch(
@@ -228,11 +234,44 @@ class SettingsPersonalisationSection extends StatelessWidget {
         }),
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          title: Text("syncedLyricsHighlightStyle".tr),
+          subtitle: Text(
+            "syncedLyricsHighlightStyleDes".tr,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
+          ),
+          trailing: Obx(
+            () => DropdownButton<SyncedLyricsHighlightStyle>(
+              dropdownColor: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(16),
+              underline: const SizedBox.shrink(),
+              value: settingsController.syncedLyricsHighlightStyle.value,
+              items: [
+                DropdownMenuItem(
+                  value: SyncedLyricsHighlightStyle.block,
+                  child: Text("lyricsHighlightBlock".tr),
+                ),
+                DropdownMenuItem(
+                  value: SyncedLyricsHighlightStyle.karaoke,
+                  child: Text("lyricsHighlightKaraoke".tr),
+                ),
+              ],
+              onChanged: (val) {
+                if (val != null) {
+                  settingsController.setSyncedLyricsHighlightStyle(val);
+                }
+              },
+            ),
+          ),
+        ),
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
           title: Text("language".tr),
           subtitle: Text("languageDes".tr,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              )),
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  )),
           trailing: Obx(
             () => DropdownButton(
               menuMaxHeight: Get.height - 250,
@@ -253,7 +292,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
                 return Container(
                   alignment: Alignment.centerRight,
                   constraints: const BoxConstraints(minWidth: 50),
-                  child: Text(item.value, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  child: Text(item.value,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
                 );
               }).toList(),
               onChanged: settingsController.setAppLanguage,
@@ -266,8 +306,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
             title: Text("playerUi".tr),
             subtitle: Text("playerUiDes".tr,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                )),
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    )),
             trailing: Obx(
               () => DropdownButton(
                 dropdownColor: Theme.of(context).cardColor,
@@ -288,8 +328,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
           subtitle: Text(
             "animationSpeedDes".tr,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).textTheme.bodySmall?.color,
-            ),
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
           ),
           trailing: Obx(
             () => DropdownButton<AnimationSpeed>(
@@ -328,8 +368,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
           title: Text("enableSlidableAction".tr),
           subtitle: Text("enableSlidableActionDes".tr,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              )),
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  )),
           trailing: Obx(
             () => CustSwitch(
                 value: settingsController.slidableActionEnabled.isTrue,
@@ -340,4 +380,3 @@ class SettingsPersonalisationSection extends StatelessWidget {
     );
   }
 }
-

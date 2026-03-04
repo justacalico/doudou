@@ -26,8 +26,8 @@ import '../widgets/sliding_up_panel.dart';
 import '/models/durationstate.dart';
 import '/services/music_service.dart';
 
-class _SyncedLyricLine {
-  _SyncedLyricLine({required this.timestamp, required this.text});
+class SyncedLyricLine {
+  SyncedLyricLine({required this.timestamp, required this.text});
   final Duration timestamp;
   final String text;
 }
@@ -92,9 +92,12 @@ class PlayerController extends GetxController
   var _newSongFlag = true;
   final isCurrentSongBuffered = false.obs;
 
-  List<_SyncedLyricLine> _syncedLyricLines = [];
+  List<SyncedLyricLine> _syncedLyricLines = [];
   int _lastLyricLineIndex = -1;
   Color? _lastLyricsColor;
+
+  List<SyncedLyricLine> get syncedLyricLines =>
+      List<SyncedLyricLine>.unmodifiable(_syncedLyricLines);
 
   late StreamSubscription<bool> keyboardSubscription;
 
@@ -801,9 +804,22 @@ class PlayerController extends GetxController
       if (text.isEmpty) continue;
       final timestamp =
           Duration(minutes: minutes, seconds: seconds, milliseconds: ms);
-      _syncedLyricLines.add(_SyncedLyricLine(timestamp: timestamp, text: text));
+      _syncedLyricLines.add(SyncedLyricLine(timestamp: timestamp, text: text));
     }
     _syncedLyricLines.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+  }
+
+  int currentSyncedLyricLineIndex(Duration position) {
+    if (_syncedLyricLines.isEmpty) return -1;
+    int i = -1;
+    for (var j = 0; j < _syncedLyricLines.length; j++) {
+      if (_syncedLyricLines[j].timestamp <= position) {
+        i = j;
+      } else {
+        break;
+      }
+    }
+    return i;
   }
 
   static const Map<String, Color> _lyricColorMap = {
@@ -845,10 +861,7 @@ class PlayerController extends GetxController
     final settings = Get.find<SettingsScreenController>();
     if (settings.themeModetype.value != ThemeType.dynamicColor) return;
     if (!settings.lyricsDynamicColorEnabled.value) return;
-    int i = -1;
-    for (var j = 0; j < _syncedLyricLines.length; j++) {
-      if (_syncedLyricLines[j].timestamp <= position) i = j;
-    }
+    final i = currentSyncedLyricLineIndex(position);
     if (i < 0 || i == _lastLyricLineIndex) return;
     _lastLyricLineIndex = i;
     final lineText = _syncedLyricLines[i].text;

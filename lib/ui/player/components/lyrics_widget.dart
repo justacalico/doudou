@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lyric/lyrics_reader.dart';
 import 'package:get/get.dart';
 
+import '../../screens/Settings/settings_screen_controller.dart';
 import '../../widgets/loader.dart';
+import 'lyrics_block_highlight_view.dart';
 import '../player_controller.dart';
 
 class LyricsWidget extends StatefulWidget {
@@ -31,6 +33,7 @@ class _LyricsWidgetState extends State<LyricsWidget> {
   @override
   Widget build(BuildContext context) {
     final playerController = Get.find<PlayerController>();
+    final settingsController = Get.find<SettingsScreenController>();
     return Obx(
       () {
         if (playerController.isLyricsLoading.isTrue) {
@@ -66,9 +69,17 @@ class _LyricsWidgetState extends State<LyricsWidget> {
           );
         }
 
+        final lyricsStyle = settingsController.syncedLyricsHighlightStyle.value;
+        if (lyricsStyle == SyncedLyricsHighlightStyle.block) {
+          return LyricsBlockHighlightView(padding: widget.padding);
+        }
+        final karaokePadding = widget.padding is EdgeInsets
+            ? widget.padding as EdgeInsets
+            : const EdgeInsets.only(left: 5, right: 5);
+
         return IgnorePointer(
           child: LyricsReader(
-            padding: const EdgeInsets.only(left: 5, right: 5),
+            padding: karaokePadding,
             lyricUi: playerController.lyricUi,
             playing:
                 playerController.buttonState.value == PlayButtonState.playing,
