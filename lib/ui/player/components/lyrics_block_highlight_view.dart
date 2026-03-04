@@ -15,22 +15,19 @@ class LyricsBlockHighlightView extends StatefulWidget {
 
 class _LyricsBlockHighlightViewState extends State<LyricsBlockHighlightView> {
   final ScrollController _scrollController = ScrollController();
+  final Map<int, GlobalKey> _lineKeys = {};
   int _lastAutoScrolledIndex = -1;
 
   void _autoScrollToLine(int index) {
-    if (index < 0 || !_scrollController.hasClients) return;
+    if (index < 0) return;
     if (_lastAutoScrolledIndex == index) return;
     _lastAutoScrolledIndex = index;
-
-    const itemHeight = 68.0;
-    final viewport = _scrollController.position.viewportDimension;
-    final target = (index * itemHeight) - (viewport * 0.38);
-    final clamped = target.clamp(
-      0.0,
-      _scrollController.position.maxScrollExtent,
-    );
-    _scrollController.animateTo(
-      clamped,
+    final key = _lineKeys[index];
+    final ctx = key?.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      alignment: 0.35,
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
     );
@@ -78,8 +75,10 @@ class _LyricsBlockHighlightViewState extends State<LyricsBlockHighlightView> {
         padding: widget.padding,
         itemCount: lines.length,
         itemBuilder: (context, index) {
+          final lineKey = _lineKeys.putIfAbsent(index, () => GlobalKey());
           final isActive = index == current;
           return Padding(
+            key: lineKey,
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
