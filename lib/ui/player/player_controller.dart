@@ -90,6 +90,8 @@ class PlayerController extends GetxController
 
   // track whether wakelock is currently enabled to avoid repeated calls
   bool _wakelockActive = false;
+  bool _wakelockUnavailable = false;
+  bool _wakelockUnavailableLogged = false;
 
   var _newSongFlag = true;
   final isCurrentSongBuffered = false.obs;
@@ -211,6 +213,10 @@ class PlayerController extends GetxController
   }
 
   Future<void> _setWakelock(bool enable) async {
+    if (_wakelockUnavailable) {
+      _wakelockActive = enable;
+      return;
+    }
     if (_wakelockActive == enable) return; // no-op if already in desired state
 
     try {
@@ -224,6 +230,20 @@ class PlayerController extends GetxController
         _wakelockActive = false;
       }
     } catch (e) {
+      final err = e.toString();
+      final isLinuxDbusUnavailable = GetPlatform.isLinux &&
+          (err.contains('org.freedesktop.DBus.Error.ServiceUnknown') ||
+              err.contains('name is not activatable'));
+      if (isLinuxDbusUnavailable) {
+        _wakelockUnavailable = true;
+        _wakelockActive = enable;
+        if (!_wakelockUnavailableLogged) {
+          _wakelockUnavailableLogged = true;
+          printERROR(
+              "Wakelock unavailable on this Linux session (DBus ServiceUnknown); disabling wakelock attempts.");
+        }
+        return;
+      }
       printERROR(e);
     }
   }

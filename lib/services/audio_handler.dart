@@ -861,11 +861,20 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         extras?['backendType'] == 'subsonic' ||
         extras?['backendType'] == 'plex') {
       try {
-        final backend = _resolveBackendForExtras(extras);
-        final url = await backend.getStreamUrl(songId);
+        final existingUrl = extras?['url']?.toString();
+        String? url;
+        if (!generateNewUrl &&
+            existingUrl != null &&
+            existingUrl.isNotEmpty &&
+            existingUrl.startsWith('http')) {
+          url = existingUrl;
+        } else {
+          final backend = _resolveBackendForExtras(extras);
+          url = await backend.getStreamUrl(songId);
+        }
         if (url != null && url.isNotEmpty) {
           final audio = Audio(
-              itag: 0,
+            itag: 0,
               audioCodec: Codec.opus,
               bitrate: 0,
               duration: 0,
