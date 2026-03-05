@@ -113,6 +113,6 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/icons/doudou_icon.png
+  image_path: assets/icons/icon.png
   adaptive_icon_background: "#7c3aed"
-  adaptive_icon_foreground: assets/icons/doudou_icon.png
+  adaptive_icon_foreground: assets/icons/icon.png
