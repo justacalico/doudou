@@ -57,6 +57,8 @@ class PlayerController extends GetxController
   final isSleepTimerActive = false.obs;
   final isSleepEndOfSongActive = false.obs;
   final volume = 100.obs;
+  static const int _minInternalAudibleVolume = 20;
+  int _lastNonZeroVolume = 100;
 
   final progressBarStatus = ProgressBarState(
           buffered: Duration.zero, current: Duration.zero, total: Duration.zero)
@@ -661,24 +663,31 @@ class PlayerController extends GetxController
   }
 
   Future<void> setVolume(int value) async {
-    _audioHandler.customAction("setVolume", {"value": value});
-    volume.value = value;
-    await Hive.box("AppPrefs").put("volume", value);
+    final uiVolume = value.clamp(0, 100);
+    if (uiVolume > 0) {
+      _lastNonZeroVolume = uiVolume;
+    }
+    final internalVolume = uiVolume == 0
+        ? 0
+        : (_minInternalAudibleVolume + (uiVolume * 0.8))
+            .round()
+            .clamp(_minInternalAudibleVolume, 100);
+    _audioHandler.customAction("setVolume", {"value": internalVolume});
+    volume.value = uiVolume;
+    await Hive.box("AppPrefs").put("volume", uiVolume);
   }
 
   Future<void> mute() async {
-    int? vol;
+    int vol;
     if (volume.value != 0) {
       vol = 0;
     } else {
-      vol = await Hive.box("AppPrefs").get("volume", defaultValue: 10);
+      vol = await Hive.box("AppPrefs").get("volume", defaultValue: 100);
       if (vol == 0) {
-        vol = 10;
-        await Hive.box("AppPrefs").put("volume", vol);
+        vol = _lastNonZeroVolume > 0 ? _lastNonZeroVolume : 100;
       }
     }
-    _audioHandler.customAction("setVolume", {"value": vol!});
-    volume.value = vol;
+    await setVolume(vol);
   }
 
   Future<void> _checkFav() async {
