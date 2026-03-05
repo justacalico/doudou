@@ -320,6 +320,9 @@ class ThemeController extends GetxController {
           brightness: Brightness.dark,
           canvasColor: darkSurface,
           scaffoldBackgroundColor: darkSurface,
+          cardColor: darkSurfaceContainer,
+          dialogTheme:
+              const DialogThemeData(backgroundColor: darkSurfaceContainer),
           primaryColor: darkSurface,
           primaryColorDark: darkBackground,
           primaryColorLight: darkAccent600,
@@ -403,6 +406,9 @@ class ThemeController extends GetxController {
           brightness: Brightness.dark,
           canvasColor: Colors.black,
           scaffoldBackgroundColor: Colors.black,
+          cardColor: oledSurfaceContainer,
+          dialogTheme:
+              const DialogThemeData(backgroundColor: oledSurfaceContainer),
           primaryColor: Colors.black,
           primaryColorDark: Colors.black,
           primaryColorLight: oledAccent600,

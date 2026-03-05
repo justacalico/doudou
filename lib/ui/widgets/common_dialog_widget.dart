@@ -11,6 +11,7 @@ class CommonDialog extends StatelessWidget {
       child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
           child: Dialog(
+            backgroundColor: Theme.of(context).dialogTheme.backgroundColor,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             child: child,

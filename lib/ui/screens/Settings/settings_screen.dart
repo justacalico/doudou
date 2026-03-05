@@ -203,12 +203,14 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   }
 
   Widget _buildSectionNav(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF101010),
+        color: theme.cardColor.withValues(alpha: 0.75),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF252525)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.25)),
       ),
       child: ListView(
         children: [
@@ -217,11 +219,11 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
               padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
               child: Text(
                 cluster.title,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.78),
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.0,
-                    ),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.72),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.0,
+                ),
               ),
             ),
             ...cluster.sections.map((id) {
@@ -232,13 +234,13 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 margin: const EdgeInsets.only(bottom: 6),
                 decoration: BoxDecoration(
                   color: selected
-                      ? Colors.white.withValues(alpha: 0.12)
-                      : const Color(0xFF0C0C0C),
+                      ? colorScheme.onSurface.withValues(alpha: 0.10)
+                      : theme.cardColor.withValues(alpha: 0.45),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: selected
-                        ? Colors.white.withValues(alpha: 0.40)
-                        : const Color(0xFF202020),
+                        ? colorScheme.primary.withValues(alpha: 0.50)
+                        : theme.dividerColor.withValues(alpha: 0.18),
                   ),
                 ),
                 child: ListTile(
@@ -248,35 +250,34 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                     icon,
                     size: 18,
                     color: selected
-                        ? Colors.white
-                        : Colors.white.withValues(alpha: 0.76),
+                        ? colorScheme.onSurface
+                        : colorScheme.onSurface.withValues(alpha: 0.78),
                   ),
                   title: Text(
                     titleKey.tr,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   trailing: selected
                       ? Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.88),
+                            color: colorScheme.primary.withValues(alpha: 0.85),
                             borderRadius: BorderRadius.circular(999),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Active',
                             style: TextStyle(
-                              color: Colors.black,
+                              color: colorScheme.onPrimary,
                               fontWeight: FontWeight.w700,
                               fontSize: 11,
                             ),
                           ),
                         )
                       : Icon(Icons.chevron_right_rounded,
-                          color: Colors.white.withValues(alpha: 0.6)),
+                          color: colorScheme.onSurface.withValues(alpha: 0.6)),
                 ),
               );
             }),
@@ -294,6 +295,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     final bottomPadding = widget.isBottomNavActive
         ? kSettingsListBottomPadding
         : kContentBottomPaddingWithPlayer;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.only(bottom: bottomPadding),
@@ -308,19 +311,20 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                   EdgeInsets.fromLTRB(10, clusterIndex == 0 ? 2 : 14, 10, 8),
               child: Text(
                 cluster.title,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.78),
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.0,
-                    ),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.78),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.0,
+                ),
               ),
             ),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF101010),
+                color: theme.cardColor.withValues(alpha: 0.80),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF242424)),
+                border: Border.all(
+                    color: theme.dividerColor.withValues(alpha: 0.25)),
               ),
               child: Column(
                 children: [
@@ -336,7 +340,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                         height: 1,
                         indent: 56,
                         endIndent: 12,
-                        color: Colors.white.withValues(alpha: 0.08),
+                        color: theme.dividerColor.withValues(alpha: 0.35),
                       ),
                   ],
                 ],
@@ -354,6 +358,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     LibrarySyncService syncService,
     _SettingsSectionId id,
   ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
     final badge = _sectionBadge(id);
     return ListTile(
@@ -363,46 +369,45 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         width: 34,
         height: 34,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.10),
+          color: colorScheme.onSurface.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
           meta.$2,
           size: 18,
-          color: Colors.white.withValues(alpha: 0.82),
+          color: colorScheme.onSurface.withValues(alpha: 0.82),
         ),
       ),
       title: Text(
         meta.$3.tr,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-            ),
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+        ),
       ),
       subtitle: Text(
         _sectionSubtitle(id),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white.withValues(alpha: 0.62),
-            ),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurface.withValues(alpha: 0.62),
+        ),
       ),
       trailing: badge == null
           ? Icon(Icons.chevron_right_rounded,
-              color: Colors.white.withValues(alpha: 0.6))
+              color: colorScheme.onSurface.withValues(alpha: 0.6))
           : Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.88),
+                color: colorScheme.primary.withValues(alpha: 0.85),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
                 badge,
-                style: const TextStyle(
-                  color: Colors.black,
+                style: TextStyle(
+                  color: colorScheme.onPrimary,
                   fontWeight: FontWeight.w800,
                   fontSize: 11,
                 ),
@@ -857,6 +862,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     SettingsScreenController settings,
     LibrarySyncService syncService,
   ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return [
       Obx(() {
         final servers = settings.servers;
@@ -873,10 +880,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 onTap: () => _showAddProviderPicker(context),
                 child: Ink(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF141414),
+                    color: theme.cardColor.withValues(alpha: 0.82),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.10),
+                      color: theme.dividerColor.withValues(alpha: 0.28),
                     ),
                   ),
                   child: ListTile(
@@ -887,22 +894,20 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.12),
+                        color: colorScheme.onSurface.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child:
-                          const Icon(Icons.add, size: 16, color: Colors.white),
+                      child: Icon(Icons.add,
+                          size: 16, color: colorScheme.onSurface),
                     ),
                     title: Text(
                       "addServer".tr,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
+                      style: theme.textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     trailing: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.white.withValues(alpha: 0.6),
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ),
@@ -915,52 +920,58 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 if (v != null) settings.setActiveServer(v);
               },
               child: Column(
-                children: servers.map((server) => ListTile(
-                  leading: Icon(_serverIcon(server.type)),
-                  title: Text(server.name),
-                  subtitle: Text(server.serverUrl?.isNotEmpty == true
-                      ? server.serverUrl!
-                      : _serverTypeLabelText(server.type).tr),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Radio<int>(value: server.id),
-                      if (!server.isDefault) ...[
-                        if (server.type != ServerType.youtubeMusic)
-                          IconButton(
-                            icon: const Icon(Icons.wifi_find, size: 18),
-                            tooltip: "testConnection".tr,
-                            onPressed: () async {
-                              final err =
-                                  await settings.testServerConnection(server);
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(err == null
-                                      ? "connectionSuccess".tr
-                                      : "${"connectionFailed".tr}: $err"),
+                children: servers
+                    .map((server) => ListTile(
+                          leading: Icon(_serverIcon(server.type)),
+                          title: Text(server.name),
+                          subtitle: Text(server.serverUrl?.isNotEmpty == true
+                              ? server.serverUrl!
+                              : _serverTypeLabelText(server.type).tr),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Radio<int>(value: server.id),
+                              if (!server.isDefault) ...[
+                                if (server.type != ServerType.youtubeMusic)
+                                  IconButton(
+                                    icon: const Icon(Icons.wifi_find, size: 18),
+                                    tooltip: "testConnection".tr,
+                                    onPressed: () async {
+                                      final err = await settings
+                                          .testServerConnection(server);
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(err == null
+                                              ? "connectionSuccess".tr
+                                              : "${"connectionFailed".tr}: $err"),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                IconButton(
+                                  icon:
+                                      const Icon(Icons.edit_outlined, size: 18),
+                                  onPressed: () => showDialog(
+                                    context: context,
+                                    builder: (_) => AddServerDialog(
+                                      serverType: server.type,
+                                      existing: server,
+                                    ),
+                                  ),
                                 ),
-                              );
-                            },
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline,
+                                      size: 18),
+                                  onPressed: () =>
+                                      settings.removeServer(server.id),
+                                ),
+                              ]
+                            ],
                           ),
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined, size: 18),
-                          onPressed: () => showDialog(
-                            context: context,
-                            builder: (_) => AddServerDialog(
-                              serverType: server.type,
-                              existing: server,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, size: 18),
-                          onPressed: () => settings.removeServer(server.id),
-                        ),
-                      ]
-                    ],
-                  ),
-                )).toList(),
+                        ))
+                    .toList(),
               ),
             ),
             Obx(() {
@@ -1205,12 +1216,14 @@ class _SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F0F0F),
+        color: theme.cardColor.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF252525)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.25)),
       ),
       child: Column(
         children: [
@@ -1219,24 +1232,28 @@ class _SettingsCard extends StatelessWidget {
             child: Row(
               children: [
                 Icon(icon,
-                    size: 18, color: Colors.white.withValues(alpha: 0.82)),
+                    size: 18,
+                    color: colorScheme.onSurface.withValues(alpha: 0.82)),
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
           ),
-          Divider(height: 1, color: Colors.white.withValues(alpha: 0.08)),
+          Divider(
+            height: 1,
+            color: theme.dividerColor.withValues(alpha: 0.28),
+          ),
           Theme(
-            data: Theme.of(context).copyWith(
-              listTileTheme: const ListTileThemeData(
-                iconColor: Colors.white70,
-                textColor: Colors.white,
+            data: theme.copyWith(
+              listTileTheme: ListTileThemeData(
+                iconColor: colorScheme.onSurface.withValues(alpha: 0.78),
+                textColor: colorScheme.onSurface,
               ),
             ),
             child: Column(children: children),
@@ -1260,17 +1277,19 @@ class _SettingsSubPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Scaffold(
-      backgroundColor: const Color(0xFF070707),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF070707),
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         title: Text(
           title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
       body: SafeArea(
@@ -1301,7 +1320,8 @@ class ThemeSelectorDialog extends StatelessWidget {
     final settingsController = Get.find<SettingsScreenController>();
     return CommonDialog(
       child: Material(
-        color: theme.dialogTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
+        color:
+            theme.dialogTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(10),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -1309,8 +1329,8 @@ class ThemeSelectorDialog extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0, vertical: 12.0),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -1478,7 +1498,10 @@ class _AddProviderDialog extends StatelessWidget {
                 onTap: () => Navigator.of(context).pop(ServerType.values[i]),
               ),
               if (i < ServerType.values.length - 1)
-                Divider(height: 1, color: Colors.white.withValues(alpha: 0.08)),
+                Divider(
+                  height: 1,
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.28),
+                ),
             ],
             const SizedBox(height: 8),
             Align(
