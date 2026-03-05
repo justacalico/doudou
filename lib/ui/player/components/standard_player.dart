@@ -17,6 +17,7 @@ const double _kNowPlayingExpandedBreakpoint = 900.0;
 class _NowPlayingLayoutMetrics {
   const _NowPlayingLayoutMetrics({
     required this.useStackedLayout,
+    required this.useWideShortLayout,
     required this.isDense,
     required this.horizontalPadding,
     required this.verticalPadding,
@@ -29,6 +30,7 @@ class _NowPlayingLayoutMetrics {
   });
 
   final bool useStackedLayout;
+  final bool useWideShortLayout;
   final bool isDense;
   final double horizontalPadding;
   final double verticalPadding;
@@ -46,6 +48,7 @@ class _NowPlayingLayoutMetrics {
 
     final isDense = width < 1160 || height < 730;
     final useStackedLayout = width < 1180 || height < 680 || aspect < 1.45;
+    final useWideShortLayout = width >= 1000 && height < 470 && aspect > 2.0;
 
     final horizontalPadding = isDense ? 18.0 : 32.0;
     final verticalPadding = isDense ? 10.0 : 16.0;
@@ -58,6 +61,7 @@ class _NowPlayingLayoutMetrics {
 
     return _NowPlayingLayoutMetrics(
       useStackedLayout: useStackedLayout,
+      useWideShortLayout: useWideShortLayout,
       isDense: isDense,
       horizontalPadding: horizontalPadding,
       verticalPadding: verticalPadding,
@@ -793,36 +797,75 @@ class _ExpandedNowPlaying extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: metrics.useStackedLayout
-                    ? LayoutBuilder(
-                        builder: (context, constraints) {
-                          final availableHeight = constraints.maxHeight;
-                          final suggestedRight =
-                              (availableHeight * 0.42).clamp(220.0, 420.0);
-                          final maxRight = (availableHeight * 0.55)
-                              .clamp(0.0, double.infinity);
-                          final rightPanelHeight = suggestedRight < maxRight
-                              ? suggestedRight
-                              : maxRight;
-                          return Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: metrics.sidePanelMargin,
-                              vertical: metrics.verticalPadding,
-                            ),
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  child: _ExpandedLeftColumn(
-                                    pc: pc,
-                                    textColor: textColor,
-                                    mutedColor: mutedColor,
-                                    surfaceColor: surfaceColor,
-                                    metrics: metrics,
-                                  ),
+                child: metrics.useWideShortLayout
+                    ? _WideShortNowPlayingStrip(
+                        pc: pc,
+                        textColor: textColor,
+                        mutedColor: mutedColor,
+                        metrics: metrics,
+                      )
+                    : metrics.useStackedLayout
+                        ? LayoutBuilder(
+                            builder: (context, constraints) {
+                              final availableHeight = constraints.maxHeight;
+                              final suggestedRight =
+                                  (availableHeight * 0.42).clamp(140.0, 420.0);
+                              final maxRight = (availableHeight * 0.55)
+                                  .clamp(0.0, double.infinity);
+                              final rightPanelHeight = suggestedRight < maxRight
+                                  ? suggestedRight
+                                  : maxRight;
+                              return Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: metrics.sidePanelMargin,
+                                  vertical: metrics.verticalPadding,
                                 ),
-                                SizedBox(height: metrics.panelGap),
-                                SizedBox(
-                                  height: rightPanelHeight,
+                                child: Column(
+                                  children: [
+                                    Expanded(
+                                      child: _ExpandedLeftColumn(
+                                        pc: pc,
+                                        textColor: textColor,
+                                        mutedColor: mutedColor,
+                                        surfaceColor: surfaceColor,
+                                        metrics: metrics,
+                                      ),
+                                    ),
+                                    SizedBox(height: metrics.panelGap),
+                                    SizedBox(
+                                      height: rightPanelHeight,
+                                      child: _buildRightPanelCard(
+                                        theme: theme,
+                                        surfaceColor: surfaceColor,
+                                        pc: pc,
+                                        textColor: textColor,
+                                        mutedColor: mutedColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          )
+                        : Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: _ExpandedLeftColumn(
+                                  pc: pc,
+                                  textColor: textColor,
+                                  mutedColor: mutedColor,
+                                  surfaceColor: surfaceColor,
+                                  metrics: metrics,
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Container(
+                                  margin: EdgeInsets.only(
+                                    right: metrics.sidePanelMargin,
+                                    bottom: metrics.sidePanelMargin,
+                                  ),
                                   child: _buildRightPanelCard(
                                     theme: theme,
                                     surfaceColor: surfaceColor,
@@ -831,41 +874,9 @@ class _ExpandedNowPlaying extends StatelessWidget {
                                     mutedColor: mutedColor,
                                   ),
                                 ),
-                              ],
-                            ),
-                          );
-                        },
-                      )
-                    : Row(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: _ExpandedLeftColumn(
-                              pc: pc,
-                              textColor: textColor,
-                              mutedColor: mutedColor,
-                              surfaceColor: surfaceColor,
-                              metrics: metrics,
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Container(
-                              margin: EdgeInsets.only(
-                                right: metrics.sidePanelMargin,
-                                bottom: metrics.sidePanelMargin,
                               ),
-                              child: _buildRightPanelCard(
-                                theme: theme,
-                                surfaceColor: surfaceColor,
-                                pc: pc,
-                                textColor: textColor,
-                                mutedColor: mutedColor,
-                              ),
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
               ),
             ],
           ),
@@ -913,6 +924,242 @@ class _ExpandedLeftColumn extends StatefulWidget {
 
   @override
   State<_ExpandedLeftColumn> createState() => _ExpandedLeftColumnState();
+}
+
+class _WideShortNowPlayingStrip extends StatelessWidget {
+  const _WideShortNowPlayingStrip({
+    required this.pc,
+    required this.textColor,
+    required this.mutedColor,
+    required this.metrics,
+  });
+
+  final PlayerController pc;
+  final Color textColor;
+  final Color mutedColor;
+  final _NowPlayingLayoutMetrics metrics;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final ultraCompact = constraints.maxHeight < 170;
+        final artByHeight =
+            constraints.maxHeight * (ultraCompact ? 0.72 : 0.80);
+        final artByWidth = constraints.maxWidth * 0.18;
+        final artSize = (artByHeight < artByWidth ? artByHeight : artByWidth)
+            .clamp(96.0, 180.0);
+
+        return Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: metrics.horizontalPadding,
+            vertical: metrics.verticalPadding,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Obx(() {
+                if (pc.currentSong.value == null) {
+                  return SizedBox(width: artSize, height: artSize);
+                }
+                return Container(
+                  width: artSize,
+                  height: artSize,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        blurRadius: 18,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ImageWidget(
+                    size: artSize,
+                    song: pc.currentSong.value!,
+                    isPlayerArtImage: true,
+                  ),
+                );
+              }),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Obx(() {
+                      final song = pc.currentSong.value;
+                      return Text(
+                        song?.title ?? '—',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w700,
+                          fontSize: ultraCompact ? 18 : 20,
+                        ),
+                      );
+                    }),
+                    if (!ultraCompact) ...[
+                      const SizedBox(height: 3),
+                      Obx(() {
+                        final song = pc.currentSong.value;
+                        return Text(
+                          song?.artist ?? '—',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: mutedColor,
+                            fontSize: 13,
+                          ),
+                        );
+                      }),
+                    ],
+                    SizedBox(height: ultraCompact ? 8 : 10),
+                    Obx(() {
+                      final status = pc.progressBarStatus.value;
+                      final total = status.total;
+                      final current = status.current;
+                      final progress = total.inMilliseconds > 0
+                          ? (current.inMilliseconds / total.inMilliseconds)
+                              .clamp(0.0, 1.0)
+                          : 0.0;
+                      return Column(
+                        children: [
+                          SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              trackHeight: 3,
+                              thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 5),
+                              overlayShape: const RoundSliderOverlayShape(
+                                  overlayRadius: 10),
+                              activeTrackColor: textColor,
+                              inactiveTrackColor:
+                                  textColor.withValues(alpha: 0.25),
+                              thumbColor: textColor,
+                            ),
+                            child: Slider(
+                              value: progress,
+                              onChanged: (v) {
+                                pc.seek(Duration(
+                                    milliseconds:
+                                        (v * total.inMilliseconds).round()));
+                              },
+                            ),
+                          ),
+                          if (!ultraCompact)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _formatDuration(current),
+                                    style: TextStyle(
+                                        fontSize: 11, color: mutedColor),
+                                  ),
+                                  Text(
+                                    _formatDuration(total),
+                                    style: TextStyle(
+                                        fontSize: 11, color: mutedColor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      );
+                    }),
+                    SizedBox(height: ultraCompact ? 6 : 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          Obx(() => IconButton(
+                                onPressed: pc.toggleShuffleMode,
+                                icon: Icon(
+                                  Icons.shuffle_rounded,
+                                  color: pc.isShuffleModeEnabled.isTrue
+                                      ? Theme.of(context).colorScheme.primary
+                                      : mutedColor,
+                                ),
+                              )),
+                          IconButton(
+                            onPressed: pc.prev,
+                            icon: Icon(Icons.skip_previous_rounded,
+                                size: 28, color: textColor),
+                          ),
+                          Obx(() {
+                            final playing =
+                                pc.buttonState.value == PlayButtonState.playing;
+                            return GestureDetector(
+                              onTap: () => pc.playPause(),
+                              child: Container(
+                                width: ultraCompact ? 48 : 52,
+                                height: ultraCompact ? 48 : 52,
+                                decoration: BoxDecoration(
+                                  color: textColor,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  playing
+                                      ? Icons.pause_rounded
+                                      : Icons.play_arrow_rounded,
+                                  color:
+                                      Theme.of(context).scaffoldBackgroundColor,
+                                  size: 30,
+                                ),
+                              ),
+                            );
+                          }),
+                          IconButton(
+                            onPressed: pc.next,
+                            icon: Icon(Icons.skip_next_rounded,
+                                size: 28, color: textColor),
+                          ),
+                          Obx(() => IconButton(
+                                onPressed: pc.toggleLoopMode,
+                                icon: Icon(
+                                  pc.isLoopModeEnabled.isTrue
+                                      ? Icons.repeat_one_rounded
+                                      : Icons.repeat_rounded,
+                                  color: pc.isLoopModeEnabled.isTrue
+                                      ? Theme.of(context).colorScheme.primary
+                                      : mutedColor,
+                                ),
+                              )),
+                          Obx(() => IconButton(
+                                onPressed: pc.toggleFavourite,
+                                icon: Icon(
+                                  pc.isCurrentSongFav.isTrue
+                                      ? Icons.favorite_rounded
+                                      : Icons.favorite_border_rounded,
+                                  color: pc.isCurrentSongFav.isTrue
+                                      ? const Color(0xFFEC4899)
+                                      : mutedColor,
+                                ),
+                              )),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatDuration(Duration d) {
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
 }
 
 class _ExpandedLeftColumnState extends State<_ExpandedLeftColumn> {
@@ -1338,107 +1585,116 @@ class _UpNextList extends StatelessWidget {
           : null;
       final queueIndices = List.generate(queue.length, (i) => i);
 
-      return Column(
-        children: [
-          if (current != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.4),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    ImageWidget(size: 44, song: current),
-                    const SizedBox(width: 10),
-                    Icon(Icons.graphic_eq_rounded,
-                        size: 18, color: Theme.of(context).colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            current.title,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: textColor,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            current.artist ?? '—',
-                            style: TextStyle(fontSize: 12, color: mutedColor),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: queueIndices.length,
-              itemBuilder: (context, index) {
-                final i = queueIndices[index];
-                final item = queue[i];
-                final isCurrent = i == currentIndex;
-                return ListTile(
-                  dense: true,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  tileColor: isCurrent
-                      ? Theme.of(context)
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final showPinnedCurrent =
+              current != null && constraints.maxHeight >= 180;
+          return Column(
+            children: [
+              if (showPinnedCurrent)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withValues(alpha: 0.12)
-                      : null,
-                  leading: SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: ImageWidget(size: 40, song: item),
-                  ),
-                  title: Text(
-                    item.title,
-                    style: TextStyle(
-                      color: textColor,
-                      fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
+                          .withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.4),
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      children: [
+                        ImageWidget(size: 44, song: current),
+                        const SizedBox(width: 10),
+                        Icon(Icons.graphic_eq_rounded,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.primary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                current.title,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: textColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                current.artist ?? '—',
+                                style:
+                                    TextStyle(fontSize: 12, color: mutedColor),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  subtitle: Text(
-                    item.artist ?? '—',
-                    style: TextStyle(fontSize: 12, color: mutedColor),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  onTap: () => pc.seekByIndex(i),
-                );
-              },
-            ),
-          ),
-        ],
+                ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: queueIndices.length,
+                  itemBuilder: (context, index) {
+                    final i = queueIndices[index];
+                    final item = queue[i];
+                    final isCurrent = i == currentIndex;
+                    return ListTile(
+                      dense: true,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      tileColor: isCurrent
+                          ? Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.12)
+                          : null,
+                      leading: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: ImageWidget(size: 40, song: item),
+                      ),
+                      title: Text(
+                        item.title,
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight:
+                              isCurrent ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        item.artist ?? '—',
+                        style: TextStyle(fontSize: 12, color: mutedColor),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onTap: () => pc.seekByIndex(i),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
       );
     });
   }
