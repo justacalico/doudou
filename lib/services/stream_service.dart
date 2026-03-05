@@ -65,8 +65,12 @@ class StreamProvider {
   }
 
   Audio? get highestQualityAudio =>
-      audioFormats?.lastWhere((item) => item.itag == 251 || item.itag == 140,
-          orElse: () => audioFormats!.first);
+      (Platform.isIOS
+          ? highestBitrateMp4aAudio
+          : audioFormats?.lastWhere(
+              (item) => item.itag == 251 || item.itag == 140,
+              orElse: () => audioFormats!.first)) ??
+      audioFormats?.first;
 
   Audio? get highestBitrateMp4aAudio =>
       audioFormats?.lastWhere((item) => item.itag == 140 || item.itag == 139,
@@ -77,8 +81,14 @@ class StreamProvider {
           orElse: () => audioFormats!.first);
 
   Audio? get lowQualityAudio =>
-      audioFormats?.lastWhere((item) => item.itag == 249 || item.itag == 139,
-          orElse: () => audioFormats!.first);
+      (Platform.isIOS
+          ? audioFormats?.lastWhere(
+              (item) => item.itag == 139 || item.itag == 140,
+              orElse: () => highestBitrateMp4aAudio ?? audioFormats!.first)
+          : audioFormats?.lastWhere(
+              (item) => item.itag == 249 || item.itag == 139,
+              orElse: () => audioFormats!.first)) ??
+      audioFormats?.first;
 
   Map<String, dynamic> get hmStreamingData {
     return {

@@ -110,6 +110,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsScreenController>();
     final syncService = Get.find<LibrarySyncService>();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final topPadding =
         context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault;
     final isDesktop = GetPlatform.isDesktop;
@@ -127,100 +129,75 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             right: kContentLeftPaddingWithoutBottomNav,
           );
 
-    const accent = Color(0xFFE0E0E0);
-    const panel = Color(0xFF0A0A0A);
-    const panelSoft = Color(0xFF111111);
-    const line = Color(0xFF232323);
-
     return Padding(
       padding: outerPadding,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: line),
-          gradient: const LinearGradient(
-            colors: [panel, Color(0xFF070707)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(useTwoPane ? 0 : 8, 10, 8, 12),
+            child: Row(
+              children: [
+                if (useTwoPane)
+                  Icon(
+                    Icons.settings_outlined,
+                    color: theme.textTheme.bodyMedium?.color
+                        ?.withValues(alpha: 0.75),
+                    size: 18,
+                  ),
+                if (useTwoPane) const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "settings".tr,
+                    textAlign: useTwoPane ? TextAlign.left : TextAlign.center,
+                    style: (useTwoPane
+                            ? theme.textTheme.headlineSmall
+                            : theme.textTheme.titleLarge)
+                        ?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.1,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                child: Row(
-                  children: [
-                    if (useTwoPane)
-                      const Icon(Icons.settings_outlined,
-                          color: Colors.white70, size: 18),
-                    if (useTwoPane) const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        "settings".tr,
-                        textAlign:
-                            useTwoPane ? TextAlign.left : TextAlign.center,
-                        style: (useTwoPane
-                                ? Theme.of(context).textTheme.headlineSmall
-                                : Theme.of(context).textTheme.titleLarge)
-                            ?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.1,
+          Expanded(
+            child: useTwoPane
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        width: 300,
+                        child: _buildSectionNav(context),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 220),
+                          child: KeyedSubtree(
+                            key: ValueKey(_selected),
+                            child: _buildSingleSection(
+                                context, settings, syncService, _selected),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: useTwoPane
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(
-                            width: 310,
-                            child: _buildSectionNav(context),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 220),
-                              child: KeyedSubtree(
-                                key: ValueKey(_selected),
-                                child: _buildSingleSection(
-                                    context, settings, syncService, _selected),
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : _buildMobileSectionList(context, settings, syncService),
-              ),
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(top: 8, bottom: 14),
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: panelSoft,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: line),
-                ),
-                child: Text(
-                  "${settings.currentVersion} ${"by".tr} openlyst",
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: accent.withValues(alpha: 0.75),
-                        letterSpacing: 0.4,
-                      ),
-                ),
-              ),
-            ],
+                    ],
+                  )
+                : _buildMobileSectionList(context, settings, syncService),
           ),
-        ),
+          if (useTwoPane)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 0, 12),
+              child: Text(
+                "${settings.currentVersion} ${"by".tr} openlyst",
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.55),
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -394,6 +371,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       ),
       title: Text(
         meta.$3.tr,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w600,
@@ -402,6 +381,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       ),
       subtitle: Text(
         _sectionSubtitle(id),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Colors.white.withValues(alpha: 0.62),
             ),
