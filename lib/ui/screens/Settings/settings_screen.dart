@@ -1297,71 +1297,74 @@ class ThemeSelectorDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final settingsController = Get.find<SettingsScreenController>();
     return CommonDialog(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "themeMode".tr,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
+      child: Material(
+        color: theme.dialogTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "themeMode".tr,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.textTheme.bodyLarge?.color),
+                  ),
                 ),
               ),
-            ),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    radioWidget(
-                      label: "dynamic".tr,
-                      controller: settingsController,
-                      value: ThemeType.dynamic,
-                    ),
-                    radioWidget(
-                        label: "systemDefault".tr,
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      radioWidget(
+                        label: "dynamic".tr,
                         controller: settingsController,
-                        value: ThemeType.system),
-                    radioWidget(
-                        label: "dark".tr,
-                        controller: settingsController,
-                        value: ThemeType.dark),
-                    radioWidget(
-                        label: "oled".tr,
-                        controller: settingsController,
-                        value: ThemeType.oled),
-                    radioWidget(
-                        label: "light".tr,
-                        controller: settingsController,
-                        value: ThemeType.light),
-                  ],
+                        value: ThemeType.dynamic,
+                      ),
+                      radioWidget(
+                          label: "systemDefault".tr,
+                          controller: settingsController,
+                          value: ThemeType.system),
+                      radioWidget(
+                          label: "dark".tr,
+                          controller: settingsController,
+                          value: ThemeType.dark),
+                      radioWidget(
+                          label: "oled".tr,
+                          controller: settingsController,
+                          value: ThemeType.oled),
+                      radioWidget(
+                          label: "light".tr,
+                          controller: settingsController,
+                          value: ThemeType.light),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text("cancel".tr,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                  )),
-            )
-          ],
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text("cancel".tr,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary)),
+                    )),
+              )
+            ],
+          ),
         ),
       ),
     );
