@@ -882,6 +882,49 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         }
         return Column(
           children: [
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => _showAddProviderPicker(context),
+                child: Ink(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF141414),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.10),
+                    ),
+                  ),
+                  child: ListTile(
+                    dense: true,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                    leading: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child:
+                          const Icon(Icons.add, size: 16, color: Colors.white),
+                    ),
+                    title: Text(
+                      "addServer".tr,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right_rounded,
+                      color: Colors.white.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
             ...servers.map((server) => ListTile(
                   leading: Icon(_serverIcon(server.type)),
                   title: Text(server.name),
@@ -952,49 +995,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 ),
               );
             }),
-            const SizedBox(height: 10),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () => _showAddProviderPicker(context),
-                child: Ink(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF141414),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.10),
-                    ),
-                  ),
-                  child: ListTile(
-                    dense: true,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                    leading: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child:
-                          const Icon(Icons.add, size: 16, color: Colors.white),
-                    ),
-                    title: Text(
-                      "addServer".tr,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                    trailing: Icon(
-                      Icons.chevron_right_rounded,
-                      color: Colors.white.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-              ),
-            ),
           ],
         );
       }),
