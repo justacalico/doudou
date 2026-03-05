@@ -91,57 +91,80 @@ class AlbumScreen extends StatelessWidget {
                           // Meta Info Overlay (only visible when not scrolled much)
                           if (showMetaOverlay)
                             Positioned(
-                              bottom: 40,
+                              bottom: 92,
                               left: 24,
                               right: 24,
                               child: Opacity(
                                 opacity: (1 - (albumController.scrollOffset.value / 200)).clamp(0.0, 1.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(4),
-                                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                    child: Container(
+                                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.18),
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: Colors.white.withValues(alpha: 0.12),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withValues(alpha: 0.1),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                                                ),
+                                                child: Text(
+                                                  "ALBUM",
+                                                  style: theme.textTheme.labelSmall?.copyWith(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    letterSpacing: 1,
+                                                  ),
+                                                ),
+                                              ),
+                                              if (album.year != null)
+                                                Padding(
+                                                  padding: const EdgeInsets.only(left: 8.0),
+                                                  child: Text(
+                                                    "• ${album.year}",
+                                                    style: theme.textTheme.bodySmall
+                                                        ?.copyWith(color: Colors.white70),
+                                                  ),
+                                                ),
+                                            ],
                                           ),
-                                          child: Text(
-                                            "ALBUM",
-                                            style: theme.textTheme.labelSmall?.copyWith(
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            album.title,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.headlineMedium?.copyWith(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold,
-                                              letterSpacing: 1,
+                                              height: 1.1,
                                             ),
                                           ),
-                                        ),
-                                        if (album.year != null)
-                                          Padding(
-                                            padding: const EdgeInsets.only(left: 8.0),
-                                            child: Text(
-                                              "• ${album.year}",
-                                              style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70),
-                                            ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            album.artists?.map((e) => e['name']).join(", ") ?? "",
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.titleMedium
+                                                ?.copyWith(color: Colors.white70),
                                           ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      album.title,
-                                      style: theme.textTheme.headlineMedium?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        height: 1.1,
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      album.artists?.map((e) => e['name']).join(", ") ?? "",
-                                      style: theme.textTheme.titleMedium?.copyWith(color: Colors.white70),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
