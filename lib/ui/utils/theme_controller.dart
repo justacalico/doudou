@@ -43,6 +43,8 @@ class ThemeController extends GetxController {
   final dynamicColor = Colors.deepPurple[400]!.obs;
   final textColor = Colors.white24.obs;
   final themedata = Rxn<ThemeData>();
+  bool _hasTemporaryDynamicAccent = false;
+  Color? _temporaryDynamicAccent;
 
   /// The method channel for setting the title bar color on Windows.
   final platform = const MethodChannel('win_titlebar_color');
@@ -95,7 +97,10 @@ class ThemeController extends GetxController {
       if (sysCall) return;
       MaterialColor? swatch;
       if (type == ThemeType.dynamic) {
-        swatch = _createMaterialColor(primaryColor.value!);
+        swatch = _currentDynamicSwatch();
+      } else {
+        _hasTemporaryDynamicAccent = false;
+        _temporaryDynamicAccent = null;
       }
       themedata.value = _createThemeData(swatch, type);
     }
@@ -138,6 +143,8 @@ class ThemeController extends GetxController {
     dynamicColor.value = color;
     final appPrefs = Hive.box('AppPrefs');
     appPrefs.put("dynamicColorPrimary", color.toARGB32());
+    _hasTemporaryDynamicAccent = false;
+    _temporaryDynamicAccent = null;
     final savedType = themeTypeFromStorage(appPrefs.get("themeModeType"));
     if (savedType == ThemeType.dynamic) {
       primaryColor.value = color;
@@ -147,6 +154,37 @@ class ThemeController extends GetxController {
       return;
     }
     changeThemeModeType(savedType);
+  }
+
+  MaterialColor _currentDynamicSwatch() {
+    if (_hasTemporaryDynamicAccent && _temporaryDynamicAccent != null) {
+      return _createMaterialColor(_temporaryDynamicAccent!);
+    }
+    return _createMaterialColor(primaryColor.value!);
+  }
+
+  void applyTemporaryDynamicAccent(Color color) {
+    final savedType =
+        themeTypeFromStorage(Hive.box('AppPrefs').get("themeModeType"));
+    if (savedType != ThemeType.dynamic) return;
+    _hasTemporaryDynamicAccent = true;
+    _temporaryDynamicAccent = color;
+    themedata.value =
+        _createThemeData(_createMaterialColor(color), ThemeType.dynamic);
+    setWindowsTitleBarColor(themedata.value!.scaffoldBackgroundColor);
+  }
+
+  void clearTemporaryDynamicAccent() {
+    if (!_hasTemporaryDynamicAccent && _temporaryDynamicAccent == null) return;
+    _hasTemporaryDynamicAccent = false;
+    _temporaryDynamicAccent = null;
+    final savedType =
+        themeTypeFromStorage(Hive.box('AppPrefs').get("themeModeType"));
+    if (savedType == ThemeType.dynamic) {
+      themedata.value = _createThemeData(
+          _createMaterialColor(primaryColor.value!), ThemeType.dynamic);
+      setWindowsTitleBarColor(themedata.value!.scaffoldBackgroundColor);
+    }
   }
 
   ThemeData _createThemeData(MaterialColor? primarySwatch, ThemeType themeType,

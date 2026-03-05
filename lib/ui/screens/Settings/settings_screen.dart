@@ -43,6 +43,16 @@ enum _SettingsSectionId {
   info,
 }
 
+class _SettingsCluster {
+  const _SettingsCluster({
+    required this.title,
+    required this.sections,
+  });
+
+  final String title;
+  final List<_SettingsSectionId> sections;
+}
+
 class _IOSSettingsView extends StatefulWidget {
   const _IOSSettingsView({required this.isBottomNavActive});
 
@@ -70,19 +80,30 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     (_SettingsSectionId.info, Icons.info_outline, "appInfo"),
   ];
 
-  static const _mobileSectionGroups = <List<_SettingsSectionId>>[
-    [
-      _SettingsSectionId.personalisation,
-      _SettingsSectionId.content,
-      _SettingsSectionId.playback,
-    ],
-    [
-      _SettingsSectionId.servers,
-      _SettingsSectionId.download,
-      _SettingsSectionId.backup,
-      _SettingsSectionId.misc,
-      _SettingsSectionId.info,
-    ],
+  static const _mobileClusters = <_SettingsCluster>[
+    _SettingsCluster(
+      title: 'ACCOUNTS',
+      sections: [
+        _SettingsSectionId.servers,
+        _SettingsSectionId.backup,
+      ],
+    ),
+    _SettingsCluster(
+      title: 'USER',
+      sections: [
+        _SettingsSectionId.content,
+        _SettingsSectionId.playback,
+        _SettingsSectionId.misc,
+      ],
+    ),
+    _SettingsCluster(
+      title: 'APPEARANCE',
+      sections: [
+        _SettingsSectionId.personalisation,
+        _SettingsSectionId.download,
+        _SettingsSectionId.info,
+      ],
+    ),
   ];
 
   @override
@@ -106,123 +127,185 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             right: kContentLeftPaddingWithoutBottomNav,
           );
 
+    const accent = Color(0xFFF7B733);
+    const panel = Color(0xFF0A0A0A);
+    const panelSoft = Color(0xFF111111);
+    const line = Color(0xFF232323);
+
     return Padding(
       padding: outerPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-            child: Text(
-              "settings".tr,
-              textAlign: useTwoPane ? TextAlign.left : TextAlign.center,
-              style: (useTwoPane
-                      ? Theme.of(context).textTheme.headlineMedium
-                      : Theme.of(context).textTheme.titleLarge)
-                  ?.copyWith(
-                fontWeight: FontWeight.bold,
-                letterSpacing: useTwoPane ? -0.4 : -0.2,
-              ),
-            ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: line),
+          gradient: const LinearGradient(
+            colors: [panel, Color(0xFF070707)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          Expanded(
-            child: useTwoPane
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(
-                        width: 280,
-                        child: _buildSectionNav(context),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 220),
-                          child: KeyedSubtree(
-                            key: ValueKey(_selected),
-                            child: _buildSingleSection(
-                                context, settings, syncService, _selected),
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                : _buildMobileSectionList(context, settings, syncService),
-          ),
-          Align(
-            alignment: Alignment.center,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 24.0, top: 8.0),
-              child: Text(
-                "${settings.currentVersion} ${"by".tr} openlyst",
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(letterSpacing: 0.5),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionNav(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color:
-            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.22)),
-      ),
-      child: ListView.separated(
-        itemCount: _sectionMeta.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 6),
-        itemBuilder: (context, i) {
-          final (id, icon, titleKey) = _sectionMeta[i];
-          final selected = id == _selected;
-          return Material(
-            color: selected
-                ? theme.colorScheme.primary.withValues(alpha: 0.16)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => setState(() => _selected = id),
-              child: Padding(
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
                 child: Row(
                   children: [
-                    Icon(
-                      icon,
-                      size: 20,
-                      color: selected
-                          ? theme.colorScheme.primary
-                          : theme.iconTheme.color?.withValues(alpha: 0.8),
-                    ),
-                    const SizedBox(width: 10),
+                    if (useTwoPane)
+                      const Icon(Icons.settings_outlined,
+                          color: Colors.white70, size: 18),
+                    if (useTwoPane) const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        titleKey.tr,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: selected
-                              ? theme.colorScheme.primary
-                              : theme.textTheme.titleSmall?.color,
-                          fontWeight:
-                              selected ? FontWeight.w700 : FontWeight.w600,
+                        "settings".tr,
+                        textAlign:
+                            useTwoPane ? TextAlign.left : TextAlign.center,
+                        style: (useTwoPane
+                                ? Theme.of(context).textTheme.headlineSmall
+                                : Theme.of(context).textTheme.titleLarge)
+                            ?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.1,
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
+              Expanded(
+                child: useTwoPane
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(
+                            width: 310,
+                            child: _buildSectionNav(context),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 220),
+                              child: KeyedSubtree(
+                                key: ValueKey(_selected),
+                                child: _buildSingleSection(
+                                    context, settings, syncService, _selected),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : _buildMobileSectionList(context, settings, syncService),
+              ),
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 8, bottom: 14),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: panelSoft,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: line),
+                ),
+                child: Text(
+                  "${settings.currentVersion} ${"by".tr} openlyst",
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: accent.withValues(alpha: 0.75),
+                        letterSpacing: 0.4,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionNav(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF101010),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF252525)),
+      ),
+      child: ListView(
+        children: [
+          for (final cluster in _mobileClusters) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
+              child: Text(
+                cluster.title,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: const Color(0xFFF7B733),
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.0,
+                    ),
+              ),
             ),
-          );
-        },
+            ...cluster.sections.map((id) {
+              final (sectionId, icon, titleKey) =
+                  _sectionMeta.firstWhere((e) => e.$1 == id);
+              final selected = sectionId == _selected;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? const Color(0xFFF7B733).withValues(alpha: 0.16)
+                      : const Color(0xFF0C0C0C),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: selected
+                        ? const Color(0xFFF7B733).withValues(alpha: 0.45)
+                        : const Color(0xFF202020),
+                  ),
+                ),
+                child: ListTile(
+                  dense: true,
+                  onTap: () => setState(() => _selected = sectionId),
+                  leading: Icon(
+                    icon,
+                    size: 18,
+                    color: selected
+                        ? const Color(0xFFF7B733)
+                        : Colors.white.withValues(alpha: 0.76),
+                  ),
+                  title: Text(
+                    titleKey.tr,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color:
+                              selected ? const Color(0xFFF7B733) : Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  trailing: selected
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF7B733),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: const Text(
+                            'Active',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                            ),
+                          ),
+                        )
+                      : Icon(Icons.chevron_right_rounded,
+                          color: Colors.white.withValues(alpha: 0.6)),
+                ),
+              );
+            }),
+          ],
+        ],
       ),
     );
   }
@@ -232,45 +315,55 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     SettingsScreenController settings,
     LibrarySyncService syncService,
   ) {
-    final theme = Theme.of(context);
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 40),
-      itemCount: _mobileSectionGroups.length,
-      itemBuilder: (context, groupIndex) {
-        final group = _mobileSectionGroups[groupIndex];
-        return Container(
-          margin: EdgeInsets.only(
-            left: 4,
-            right: 4,
-            bottom: groupIndex == _mobileSectionGroups.length - 1 ? 0 : 14,
-          ),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest
-                .withValues(alpha: 0.22),
-            borderRadius: BorderRadius.circular(18),
-            border:
-                Border.all(color: theme.dividerColor.withValues(alpha: 0.20)),
-          ),
-          child: Column(
-            children: [
-              for (int i = 0; i < group.length; i++) ...[
-                _buildMobileSectionRow(
-                  context,
-                  settings,
-                  syncService,
-                  group[i],
-                ),
-                if (i < group.length - 1)
-                  Divider(
-                    height: 1,
-                    indent: 54,
-                    endIndent: 12,
-                    color: theme.dividerColor.withValues(alpha: 0.20),
-                  ),
-              ],
-            ],
-          ),
+      padding: const EdgeInsets.only(bottom: 20),
+      itemCount: _mobileClusters.length,
+      itemBuilder: (context, clusterIndex) {
+        final cluster = _mobileClusters[clusterIndex];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding:
+                  EdgeInsets.fromLTRB(10, clusterIndex == 0 ? 2 : 14, 10, 8),
+              child: Text(
+                cluster.title,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: const Color(0xFFF7B733),
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.0,
+                    ),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF101010),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF242424)),
+              ),
+              child: Column(
+                children: [
+                  for (int i = 0; i < cluster.sections.length; i++) ...[
+                    _buildMobileSectionRow(
+                      context,
+                      settings,
+                      syncService,
+                      cluster.sections[i],
+                    ),
+                    if (i < cluster.sections.length - 1)
+                      Divider(
+                        height: 1,
+                        indent: 56,
+                        endIndent: 12,
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
@@ -282,33 +375,77 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     LibrarySyncService syncService,
     _SettingsSectionId id,
   ) {
-    final theme = Theme.of(context);
     final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
+    final badge = _sectionBadge(id);
     return ListTile(
       dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       leading: Container(
-        width: 28,
-        height: 28,
+        width: 34,
+        height: 34,
         decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(8),
+          color: const Color(0xFFF7B733).withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(meta.$2, size: 16, color: theme.colorScheme.primary),
+        child: Icon(meta.$2, size: 18, color: const Color(0xFFF7B733)),
       ),
       title: Text(
         meta.$3.tr,
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontSize: 20 * 0.8,
-          fontWeight: FontWeight.w600,
-        ),
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
       ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        color: theme.iconTheme.color?.withValues(alpha: 0.75),
+      subtitle: Text(
+        _sectionSubtitle(id),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Colors.white.withValues(alpha: 0.62),
+            ),
       ),
+      trailing: badge == null
+          ? Icon(Icons.chevron_right_rounded,
+              color: Colors.white.withValues(alpha: 0.6))
+          : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7B733),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                badge,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 11,
+                ),
+              ),
+            ),
       onTap: () => _openSectionSubPage(context, settings, syncService, id),
     );
+  }
+
+  String _sectionSubtitle(_SettingsSectionId id) {
+    return switch (id) {
+      _SettingsSectionId.servers => "servers".tr,
+      _SettingsSectionId.backup => "backupSettingsAndPlaylistsDes".tr,
+      _SettingsSectionId.content => "content".tr,
+      _SettingsSectionId.playback => "music&Playback".tr,
+      _SettingsSectionId.misc => "misc".tr,
+      _SettingsSectionId.personalisation => "themeMode".tr,
+      _SettingsSectionId.download => "download".tr,
+      _SettingsSectionId.info => "appInfo".tr,
+    };
+  }
+
+  String? _sectionBadge(_SettingsSectionId id) {
+    return switch (id) {
+      _SettingsSectionId.servers => 'Active',
+      _SettingsSectionId.personalisation => 'Theme',
+      _SettingsSectionId.playback => 'Audio',
+      _SettingsSectionId.download => 'Files',
+      _ => null,
+    };
   }
 
   void _openSectionSubPage(
@@ -1037,33 +1174,41 @@ class _SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color:
-            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.22),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.2)),
+        color: const Color(0xFF0F0F0F),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF252525)),
       ),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
             child: Row(
               children: [
-                Icon(icon, size: 18, color: theme.colorScheme.primary),
+                Icon(icon, size: 18, color: const Color(0xFFF7B733)),
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ],
             ),
           ),
-          ...children,
+          Divider(height: 1, color: Colors.white.withValues(alpha: 0.08)),
+          Theme(
+            data: Theme.of(context).copyWith(
+              listTileTheme: const ListTileThemeData(
+                iconColor: Color(0xFFF7B733),
+                textColor: Colors.white,
+              ),
+            ),
+            child: Column(children: children),
+          ),
         ],
       ),
     );
@@ -1084,18 +1229,31 @@ class _SettingsSubPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          children: [
-            _SettingsCard(
-              icon: icon,
-              title: title,
-              children: children,
-            ),
-          ],
+      backgroundColor: const Color(0xFF070707),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF070707),
+        elevation: 0,
+        title: Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ListView(
+            physics: const BouncingScrollPhysics(),
+            children: [
+              _SettingsCard(
+                icon: icon,
+                title: title,
+                children: children,
+              ),
+            ],
+          ),
         ),
       ),
     );
