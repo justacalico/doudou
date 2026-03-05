@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:doudou/services/permission_service.dart';
@@ -638,6 +639,25 @@ class SettingsScreenController extends GetxController {
 
   Future<String?> exportPlaybackDiagnostics() async {
     return Get.find<PlaybackDiagnosticsService>().exportToPickedLocation();
+  }
+
+  int get playbackDiagnosticsCount =>
+      Get.find<PlaybackDiagnosticsService>().eventCount;
+
+  String getPlaybackDiagnosticsText({int limit = 400, bool pretty = false}) {
+    final diag = Get.find<PlaybackDiagnosticsService>();
+    if (pretty) {
+      return diag.getEventsAsPrettyText(limit: limit);
+    }
+    return diag.getEventsAsJsonl(limit: limit);
+  }
+
+  Future<bool> copyPlaybackDiagnosticsToClipboard(
+      {int limit = 400, bool pretty = false}) async {
+    final text = getPlaybackDiagnosticsText(limit: limit, pretty: pretty);
+    if (text.trim().isEmpty) return false;
+    await Clipboard.setData(ClipboardData(text: text));
+    return true;
   }
 
   void toggleBackgroundPlay(bool val) {

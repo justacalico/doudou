@@ -28,6 +28,63 @@ class PlaybackDiagnosticsService extends GetxService {
     }
   }
 
+  int get eventCount {
+    try {
+      return Hive.box(boxName).length;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  List<Map<String, dynamic>> getEvents({int? limit}) {
+    try {
+      final box = Hive.box(boxName);
+      final events = box.values
+          .whereType<Map>()
+          .map((e) => _sanitizeMap(e.cast<dynamic, dynamic>()))
+          .toList();
+      if (limit == null || limit <= 0 || events.length <= limit) {
+        return events;
+      }
+      return events.sublist(events.length - limit);
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  String getEventsAsJsonl({int? limit}) {
+    final events = getEvents(limit: limit);
+    if (events.isEmpty) return '';
+    return '${events.map(jsonEncode).join('\n')}\n';
+  }
+
+  String getEventsAsPrettyText({int? limit}) {
+    final events = getEvents(limit: limit);
+    if (events.isEmpty) return '';
+    final lines = <String>[];
+    for (final event in events) {
+      final ts = event['ts']?.toString() ?? '';
+      final category = event['category']?.toString() ?? 'event';
+      final message = event['message']?.toString() ?? '';
+      lines.add('[$ts] $category: $message');
+      final songId = event['songId']?.toString();
+      final backend = event['backendType']?.toString();
+      final serverType = event['activeServerType']?.toString();
+      if ((songId ?? '').isNotEmpty ||
+          (backend ?? '').isNotEmpty ||
+          (serverType ?? '').isNotEmpty) {
+        lines.add(
+            '  songId=${songId ?? "-"} backend=${backend ?? "-"} server=${serverType ?? "-"}');
+      }
+      if (event['data'] is Map) {
+        final dataText = jsonEncode(event['data']);
+        lines.add('  data=$dataText');
+      }
+      lines.add('');
+    }
+    return lines.join('\n');
+  }
+
   void logEvent({
     required String category,
     required String message,

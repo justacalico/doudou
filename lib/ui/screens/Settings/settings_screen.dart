@@ -1102,17 +1102,13 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             ),
           )),
       ListTile(
-        title: const Text("Export playback diagnostics"),
-        subtitle: const Text("Save current diagnostics to a .jsonl file"),
-        onTap: () async {
-          final outPath = await settings.exportPlaybackDiagnostics();
-          if (!context.mounted) return;
-          final text = outPath == null
-              ? "Export cancelled"
-              : "Diagnostics exported to: $outPath";
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(text)));
-        },
+        title: const Text("View playback diagnostics"),
+        subtitle: const Text("Open logs and copy to clipboard"),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const _PlaybackDiagnosticsPage(),
+          ),
+        ),
       ),
       ListTile(
         title: const Text("Clear playback diagnostics"),
@@ -1522,6 +1518,112 @@ class AddServerDialog extends StatefulWidget {
 
   @override
   State<AddServerDialog> createState() => _AddServerDialogState();
+}
+
+class _PlaybackDiagnosticsPage extends StatefulWidget {
+  const _PlaybackDiagnosticsPage();
+
+  @override
+  State<_PlaybackDiagnosticsPage> createState() =>
+      _PlaybackDiagnosticsPageState();
+}
+
+class _PlaybackDiagnosticsPageState extends State<_PlaybackDiagnosticsPage> {
+  static const int _maxShownEvents = 400;
+  bool _prettyFormat = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = Get.find<SettingsScreenController>();
+    final text = settings.getPlaybackDiagnosticsText(
+      limit: _maxShownEvents,
+      pretty: _prettyFormat,
+    );
+    final count = settings.playbackDiagnosticsCount;
+    final isEmpty = text.trim().isEmpty;
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text("Playback diagnostics"),
+        actions: [
+          IconButton(
+            tooltip: "Toggle format",
+            onPressed: () => setState(() => _prettyFormat = !_prettyFormat),
+            icon: Icon(_prettyFormat ? Icons.code : Icons.notes),
+          ),
+          IconButton(
+            tooltip: "Copy diagnostics",
+            onPressed: () async {
+              final copied = await settings.copyPlaybackDiagnosticsToClipboard(
+                limit: _maxShownEvents,
+                pretty: _prettyFormat,
+              );
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(copied
+                      ? "Diagnostics copied to clipboard"
+                      : "No diagnostics to copy"),
+                ),
+              );
+            },
+            icon: const Icon(Icons.copy_all_outlined),
+          ),
+          IconButton(
+            tooltip: "Refresh",
+            onPressed: () => setState(() {}),
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Events: $count (showing up to $_maxShownEvents)",
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color:
+                        Theme.of(context).dividerColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: isEmpty
+                    ? const Center(
+                        child: Text(
+                          "No diagnostics yet.\nEnable diagnostics and reproduce the issue.",
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: SelectableText(
+                          text,
+                          style: const TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _AddServerDialogState extends State<AddServerDialog> {
