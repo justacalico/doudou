@@ -147,6 +147,8 @@ void _setAppInitPrefs() {
       "cacheHomeScreenData": true,
       PlaybackDiagnosticsService.enabledKey: false,
     });
+  } else if (!appPrefs.containsKey(PlaybackDiagnosticsService.enabledKey)) {
+    appPrefs.put(PlaybackDiagnosticsService.enabledKey, false);
   }
 }
 
