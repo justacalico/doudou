@@ -18,6 +18,7 @@ import '/ui/shell_controller.dart';
 import '/models/server.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../services/windows_audio_service.dart';
+import '/services/playback_diagnostics_service.dart';
 import '../../utils/helper.dart';
 import '../../utils/server_storage.dart';
 import '/models/media_Item_builder.dart';
@@ -36,6 +37,7 @@ class PlayerController extends GetxController
     with GetSingleTickerProviderStateMixin {
   final _audioHandler = Get.find<AudioHandler>();
   final _musicServices = Get.find<MusicServices>();
+  final _diag = Get.find<PlaybackDiagnosticsService>();
   final currentQueue = <MediaItem>[].obs;
 
   final playerPaneOpacity = (1.0).obs;
@@ -600,10 +602,22 @@ class PlayerController extends GetxController
   }
 
   void play() {
+    _diag.logEvent(
+      category: 'player_event',
+      message: 'ui_play_pressed',
+      songId: currentSong.value?.id,
+      backendType: currentSong.value?.extras?['backendType']?.toString(),
+    );
     _audioHandler.play();
   }
 
   void pause() {
+    _diag.logEvent(
+      category: 'player_event',
+      message: 'ui_pause_pressed',
+      songId: currentSong.value?.id,
+      backendType: currentSong.value?.extras?['backendType']?.toString(),
+    );
     _audioHandler.pause();
   }
 
@@ -624,6 +638,12 @@ class PlayerController extends GetxController
   }
 
   Future<void> next() async {
+    _diag.logEvent(
+      category: 'player_event',
+      message: 'ui_next_pressed',
+      songId: currentSong.value?.id,
+      backendType: currentSong.value?.extras?['backendType']?.toString(),
+    );
     await _audioHandler.skipToNext();
   }
 
@@ -632,6 +652,13 @@ class PlayerController extends GetxController
   }
 
   void seekByIndex(int index) {
+    _diag.logEvent(
+      category: 'player_event',
+      message: 'ui_seek_by_index',
+      songId: currentSong.value?.id,
+      backendType: currentSong.value?.extras?['backendType']?.toString(),
+      data: {'index': index},
+    );
     _audioHandler.customAction("playByIndex", {"index": index});
   }
 
@@ -1046,9 +1073,17 @@ class PlayerController extends GetxController
   /// Called from audio handler in case audio is not playable
   /// or returned streamInfo null due to network error
   void notifyPlayError(String message) {
-    ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-        Get.context!, message == "networkError" ? message.tr : message,
-        size: SnackBarSize.MEDIUM));
+    _diag.logEvent(
+      category: 'ui_error',
+      message: 'notify_play_error',
+      songId: currentSong.value?.id,
+      backendType: currentSong.value?.extras?['backendType']?.toString(),
+      data: {'status': message},
+    );
+    final displayMessage =
+        message.startsWith("networkError") ? "networkError".tr : message;
+    ScaffoldMessenger.of(Get.context!).showSnackBar(
+        snackbar(Get.context!, displayMessage, size: SnackBarSize.MEDIUM));
   }
 
   @override

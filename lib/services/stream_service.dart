@@ -10,7 +10,7 @@ class StreamProvider {
 
   static Future<StreamProvider> fetch(String videoId) async {
     final yt = YoutubeExplode();
-    
+
     try {
       final res = await yt.videos.streamsClient.getManifest(videoId);
       final audio = res.audioOnly;
@@ -32,32 +32,33 @@ class StreamProvider {
       if (e is SocketException) {
         return StreamProvider(
           playable: false,
-          statusMSG: "networkError",
+          statusMSG: "networkError: ${e.message}",
         );
       } else if (e is VideoUnplayableException) {
         return StreamProvider(
           playable: false,
-          statusMSG: e.reason ?? "Song is unplayable",
+          statusMSG:
+              "VideoUnplayableException: ${e.reason ?? "Song is unplayable"}",
         );
       } else if (e is VideoRequiresPurchaseException) {
         return StreamProvider(
           playable: false,
-          statusMSG: "Song requires purchase",
+          statusMSG: "VideoRequiresPurchaseException: Song requires purchase",
         );
       } else if (e is VideoUnavailableException) {
         return StreamProvider(
           playable: false,
-          statusMSG: "Song is unavailable",
+          statusMSG: "VideoUnavailableException: Song is unavailable",
         );
       } else if (e is YoutubeExplodeException) {
         return StreamProvider(
           playable: false,
-          statusMSG: e.message,
+          statusMSG: "YoutubeExplodeException: ${e.message}",
         );
       } else {
         return StreamProvider(
           playable: false,
-          statusMSG: "Unknown error occurred",
+          statusMSG: "${e.runtimeType}: $e",
         );
       }
     }

@@ -14,6 +14,7 @@ import '../../../utils/server_storage.dart';
 import '../../../utils/update_check_flag_file.dart';
 import '/services/piped_service.dart';
 import '/services/library_sync_service.dart';
+import '/services/playback_diagnostics_service.dart';
 import '../Library/library_controller.dart';
 import '../../widgets/snackbar.dart';
 import '../../../utils/helper.dart';
@@ -70,6 +71,7 @@ class SettingsScreenController extends GetxController {
   final restorePlaybackSession = false.obs;
   final cacheHomeScreenData = true.obs;
   final checkForUpdatesOnStartup = true.obs;
+  final playbackDiagnosticsEnabled = false.obs;
   final _currentVersion = ''.obs;
   final servers = <SettingsServer>[].obs;
   final activeServerId = RxnInt();
@@ -202,6 +204,8 @@ class SettingsScreenController extends GetxController {
     cacheHomeScreenData.value = setBox.get("cacheHomeScreenData") ?? true;
     checkForUpdatesOnStartup.value =
         setBox.get("checkForUpdatesOnStartup") ?? true;
+    playbackDiagnosticsEnabled.value =
+        setBox.get(PlaybackDiagnosticsService.enabledKey) ?? false;
     streamingQuality.value =
         AudioQuality.values[setBox.get('streamingQuality')];
     playerUi.value = isDesktop ? 0 : (setBox.get('playerUi') ?? 0);
@@ -621,6 +625,19 @@ class SettingsScreenController extends GetxController {
   void toggleCheckForUpdatesOnStartup(bool val) {
     setBox.put("checkForUpdatesOnStartup", val);
     checkForUpdatesOnStartup.value = val;
+  }
+
+  void togglePlaybackDiagnostics(bool val) {
+    setBox.put(PlaybackDiagnosticsService.enabledKey, val);
+    playbackDiagnosticsEnabled.value = val;
+  }
+
+  Future<void> clearPlaybackDiagnostics() async {
+    await Get.find<PlaybackDiagnosticsService>().clear();
+  }
+
+  Future<String?> exportPlaybackDiagnostics() async {
+    return Get.find<PlaybackDiagnosticsService>().exportToPickedLocation();
   }
 
   void toggleBackgroundPlay(bool val) {

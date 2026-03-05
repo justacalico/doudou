@@ -1092,6 +1092,39 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   List<Widget> _buildMisc(
       BuildContext context, SettingsScreenController settings) {
     return [
+      Obx(() => ListTile(
+            title: const Text("Playback diagnostics (release)"),
+            subtitle: const Text(
+                "Record bounded playback/network events for troubleshooting."),
+            trailing: CustSwitch(
+              value: settings.playbackDiagnosticsEnabled.value,
+              onChanged: settings.togglePlaybackDiagnostics,
+            ),
+          )),
+      ListTile(
+        title: const Text("Export playback diagnostics"),
+        subtitle: const Text("Save current diagnostics to a .jsonl file"),
+        onTap: () async {
+          final outPath = await settings.exportPlaybackDiagnostics();
+          if (!context.mounted) return;
+          final text = outPath == null
+              ? "Export cancelled"
+              : "Diagnostics exported to: $outPath";
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(text)));
+        },
+      ),
+      ListTile(
+        title: const Text("Clear playback diagnostics"),
+        subtitle: const Text("Delete all stored diagnostic events"),
+        onTap: () async {
+          await settings.clearPlaybackDiagnostics();
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Playback diagnostics cleared")),
+          );
+        },
+      ),
       ListTile(
         title: Text("resetToDefault".tr),
         subtitle: Text("resetToDefaultDes".tr),

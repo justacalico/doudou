@@ -23,6 +23,7 @@ import '../ui/screens/Home/home_screen_controller.dart';
 import '/services/background_task.dart';
 import '/services/permission_service.dart';
 import '/services/backend/backend_factory.dart';
+import '/services/playback_diagnostics_service.dart';
 import '../utils/helper.dart';
 import '../utils/server_storage.dart';
 import '/models/media_Item_builder.dart';
@@ -61,6 +62,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   bool loudnessNormalizationEnabled = false;
   // var networkErrorPause = false;
   bool isSongLoading = true;
+  ProcessingState? _lastLoggedProcessingState;
 
   // list of shuffled queue songs ids
   List<String> shuffledQueue = [];
@@ -69,6 +71,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
   final _playList =
       ConcatenatingAudioSource(children: [], useLazyPreparation: false);
+
+  PlaybackDiagnosticsService get _diag =>
+      Get.find<PlaybackDiagnosticsService>();
 
   MyAudioHandler() {
     if (GetPlatform.isWindows || GetPlatform.isLinux) {
@@ -134,6 +139,23 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   void _notifyAudioHandlerAboutPlaybackEvents() {
     _player.playbackEventStream.listen((PlaybackEvent event) {
       final playing = _player.playing;
+      if (_lastLoggedProcessingState != _player.processingState) {
+        _lastLoggedProcessingState = _player.processingState;
+        _diag.logEvent(
+          category: 'player_event',
+          message: 'processing_state_changed',
+          songId: _safeCurrentSongId(),
+          backendType: _safeBackendType(),
+          activeServerType: _safeServerType(),
+          data: {
+            'processingState': _player.processingState.name,
+            'playing': playing,
+            'queueIndex': currentIndex,
+            'positionMs': _player.position.inMilliseconds,
+            'bufferedMs': _player.bufferedPosition.inMilliseconds,
+          },
+        );
+      }
       playbackState.add(playbackState.value.copyWith(
         controls: [
           MediaControl.skipToPrevious,
@@ -171,6 +193,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       //print("set ${playbackState.value.queueIndex},${event.currentIndex}");
     }, onError: (Object e, StackTrace st) async {
       if (e is PlayerException) {
+        _diag.logEvent(
+          category: 'player_error',
+          message: 'player_exception',
+          songId: _safeCurrentSongId(),
+          backendType: _safeBackendType(),
+          activeServerType: _safeServerType(),
+          data: {'code': e.code, 'error': e.message},
+        );
         printERROR('Error code: ${e.code}');
         printERROR('Error message: ${e.message}');
         final currentQueue = queue.value;
@@ -181,12 +211,28 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           }
         }
       } else {
+        _diag.logEvent(
+          category: 'player_error',
+          message: 'playback_event_stream_error',
+          songId: _safeCurrentSongId(),
+          backendType: _safeBackendType(),
+          activeServerType: _safeServerType(),
+          data: {'error': e.toString()},
+        );
         printERROR('An error occurred: $e');
         Duration curPos = _player.position;
         await _player.stop();
 
         if (isPlayingUsingLockCachingSource &&
             e.toString().contains("Connection closed while receiving data")) {
+          _diag.logEvent(
+            category: 'recovery',
+            message: 'retry_current_from_cache_source',
+            songId: _safeCurrentSongId(),
+            backendType: _safeBackendType(),
+            activeServerType: _safeServerType(),
+            data: {'positionMs': curPos.inMilliseconds},
+          );
           await _player.seek(curPos, index: 0);
           await _player.play();
           return;
@@ -202,6 +248,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         //     _player.play();
         //   }
         // });
+        _diag.logEvent(
+          category: 'recovery',
+          message: 'force_new_url_for_current_song',
+          songId: _safeCurrentSongId(),
+          backendType: _safeBackendType(),
+          activeServerType: _safeServerType(),
+          data: {'positionMs': curPos.inMilliseconds},
+        );
         customAction("playByIndex", {'index': currentIndex, 'newUrl': true});
         await _player.seek(curPos, index: 0);
       }
@@ -306,6 +360,16 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (url.contains('/cache') ||
         (Get.find<SettingsScreenController>().cacheSongs.isTrue &&
             url.contains("http"))) {
+      _diag.logEvent(
+        category: 'audio_source',
+        message: 'using_lock_caching_audio_source',
+        songId: mediaItem.id,
+        backendType: mediaItem.extras?['backendType']?.toString(),
+        activeServerType: _safeServerType(),
+        data: {
+          'url': PlaybackDiagnosticsService.sanitizeUrl(url),
+        },
+      );
       printINFO("Playing Using LockCaching");
       isPlayingUsingLockCachingSource = true;
       return LockCachingAudioSource(
@@ -315,6 +379,16 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       );
     }
 
+    _diag.logEvent(
+      category: 'audio_source',
+      message: 'using_audio_source_uri',
+      songId: mediaItem.id,
+      backendType: mediaItem.extras?['backendType']?.toString(),
+      activeServerType: _safeServerType(),
+      data: {
+        'url': PlaybackDiagnosticsService.sanitizeUrl(url),
+      },
+    );
     printINFO("Playing Using AudioSource.uri");
     isPlayingUsingLockCachingSource = false;
     return AudioSource.uri(
@@ -478,6 +552,18 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         currentIndex = songIndex;
         final isNewUrlReq = extras['newUrl'] ?? false;
         final currentSong = queue.value[currentIndex];
+        _diag.logEvent(
+          category: 'player_event',
+          message: 'play_by_index_start',
+          songId: currentSong.id,
+          backendType: currentSong.extras?['backendType']?.toString(),
+          activeServerType: _safeServerType(),
+          data: {
+            'index': songIndex,
+            'newUrl': isNewUrlReq,
+            'restoreSession': extras['restoreSession'] ?? false,
+          },
+        );
         final futureStreamInfo = checkNGetUrl(currentSong.id,
             generateNewUrl: isNewUrlReq, extras: currentSong.extras);
         final bool restoreSession = extras['restoreSession'] ?? false;
@@ -491,9 +577,25 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         mediaItem.add(currentSong);
         final streamInfo = await futureStreamInfo;
         if (songIndex != currentIndex) {
+          _diag.logEvent(
+            category: 'player_event',
+            message: 'play_by_index_aborted_index_changed',
+            songId: currentSong.id,
+            backendType: currentSong.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'requestedIndex': songIndex, 'activeIndex': currentIndex},
+          );
           return;
         }
         if (!streamInfo.playable) {
+          _diag.logEvent(
+            category: 'player_error',
+            message: 'stream_not_playable',
+            songId: currentSong.id,
+            backendType: currentSong.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'status': streamInfo.statusMSG},
+          );
           currentSongUrl = null;
           isSongLoading = false;
           Get.find<PlayerController>().notifyPlayError(streamInfo.statusMSG);
@@ -512,6 +614,21 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           return;
         }
         currentSongUrl = currentSong.extras!['url'] = streamInfo.audio!.url;
+        _diag.logEvent(
+          category: 'stream_select',
+          message: 'stream_selected',
+          songId: currentSong.id,
+          backendType: currentSong.extras?['backendType']?.toString(),
+          activeServerType: _safeServerType(),
+          data: {
+            'itag': streamInfo.audio?.itag,
+            'codec': streamInfo.audio?.audioCodec.name,
+            'bitrate': streamInfo.audio?.bitrate,
+            'url':
+                PlaybackDiagnosticsService.sanitizeUrl(streamInfo.audio?.url),
+            'fromCache': !isNewUrlReq,
+          },
+        );
         playbackState
             .add(playbackState.value.copyWith(queueIndex: currentIndex));
         await _playList.add(_createAudioSource(currentSong));
@@ -539,6 +656,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         } else {
           await _player.play();
         }
+        _diag.logEvent(
+          category: 'player_event',
+          message: 'play_by_index_complete',
+          songId: currentSong.id,
+          backendType: currentSong.extras?['backendType']?.toString(),
+          activeServerType: _safeServerType(),
+          data: {'playing': _player.playing},
+        );
         break;
 
       case 'checkWithCacheDb':
@@ -575,6 +700,13 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
       case 'setSourceNPlay':
         final currMed = (extras!['mediaItem'] as MediaItem);
+        _diag.logEvent(
+          category: 'player_event',
+          message: 'set_source_n_play_start',
+          songId: currMed.id,
+          backendType: currMed.extras?['backendType']?.toString(),
+          activeServerType: _safeServerType(),
+        );
         final futureStreamInfo =
             checkNGetUrl(currMed.id, extras: currMed.extras);
         isSongLoading = true;
@@ -584,6 +716,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         queue.add([currMed]);
         final streamInfo = (await futureStreamInfo);
         if (!streamInfo.playable) {
+          _diag.logEvent(
+            category: 'player_error',
+            message: 'set_source_n_play_stream_not_playable',
+            songId: currMed.id,
+            backendType: currMed.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'status': streamInfo.statusMSG},
+          );
           currentSongUrl = null;
           isSongLoading = false;
           Get.find<PlayerController>().notifyPlayError(streamInfo.statusMSG);
@@ -592,6 +732,20 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           return;
         }
         currentSongUrl = currMed.extras!['url'] = streamInfo.audio!.url;
+        _diag.logEvent(
+          category: 'stream_select',
+          message: 'set_source_n_play_stream_selected',
+          songId: currMed.id,
+          backendType: currMed.extras?['backendType']?.toString(),
+          activeServerType: _safeServerType(),
+          data: {
+            'itag': streamInfo.audio?.itag,
+            'codec': streamInfo.audio?.audioCodec.name,
+            'bitrate': streamInfo.audio?.bitrate,
+            'url':
+                PlaybackDiagnosticsService.sanitizeUrl(streamInfo.audio?.url),
+          },
+        );
 
         await _playList.add(_createAudioSource(currMed));
         isSongLoading = false;
@@ -856,6 +1010,18 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       {bool generateNewUrl = false,
       bool offlineReplacementUrl = false,
       Map<String, dynamic>? extras}) async {
+    final backendType = extras?['backendType']?.toString();
+    _diag.logEvent(
+      category: 'stream_fetch',
+      message: 'check_n_get_url_start',
+      songId: songId,
+      backendType: backendType,
+      activeServerType: _safeServerType(),
+      data: {
+        'generateNewUrl': generateNewUrl,
+        'offlineReplacementUrl': offlineReplacementUrl,
+      },
+    );
     printINFO("Requested id : $songId");
     if (extras?['backendType'] == 'jellyfin' ||
         extras?['backendType'] == 'subsonic' ||
@@ -867,6 +1033,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             existingUrl != null &&
             existingUrl.isNotEmpty &&
             existingUrl.startsWith('http')) {
+          _diag.logEvent(
+            category: 'stream_fetch',
+            message: 'using_existing_backend_url',
+            songId: songId,
+            backendType: backendType,
+            activeServerType: _safeServerType(),
+            data: {'url': PlaybackDiagnosticsService.sanitizeUrl(existingUrl)},
+          );
           url = existingUrl;
         } else {
           final backend = _resolveBackendForExtras(extras);
@@ -874,7 +1048,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         }
         if (url != null && url.isNotEmpty) {
           final audio = Audio(
-            itag: 0,
+              itag: 0,
               audioCodec: Codec.opus,
               bitrate: 0,
               duration: 0,
@@ -888,12 +1062,27 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
               lowQualityAudio: audio);
         }
       } catch (e) {
+        _diag.logEvent(
+          category: 'stream_fetch',
+          message: 'backend_stream_url_failed',
+          songId: songId,
+          backendType: backendType,
+          activeServerType: _safeServerType(),
+          data: {'error': e.toString()},
+        );
         return HMStreamingData(playable: false, statusMSG: e.toString());
       }
     }
     final songDownloadsBox = Hive.box("SongDownloads");
     if (!offlineReplacementUrl &&
         (await Hive.openBox("SongsCache")).containsKey(songId)) {
+      _diag.logEvent(
+        category: 'stream_fetch',
+        message: 'hit_songs_cache',
+        songId: songId,
+        backendType: backendType,
+        activeServerType: _safeServerType(),
+      );
       printINFO("Got Song from cachedbox ($songId)");
       // if contains stream Info
       final streamInfo = Hive.box("SongsCache").get(songId)["streamInfo"];
@@ -918,12 +1107,26 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           lowQualityAudio: cacheAudioPlaceholder,
           highQualityAudio: cacheAudioPlaceholder);
     } else if (!offlineReplacementUrl && songDownloadsBox.containsKey(songId)) {
+      _diag.logEvent(
+        category: 'stream_fetch',
+        message: 'hit_downloads_box',
+        songId: songId,
+        backendType: backendType,
+        activeServerType: _safeServerType(),
+      );
       final song = songDownloadsBox.get(songId);
       final streamInfoJson = song["streamInfo"];
       Audio? audio;
       final dynamic rawPath = song['url'] ??
           (song['extras'] != null ? song['extras']['url'] : null);
       if (rawPath is! String || rawPath.isEmpty) {
+        _diag.logEvent(
+          category: 'stream_fetch',
+          message: 'downloaded_path_missing_fallback_online',
+          songId: songId,
+          backendType: backendType,
+          activeServerType: _safeServerType(),
+        );
         return checkNGetUrl(songId, offlineReplacementUrl: true);
       }
       final path = rawPath;
@@ -956,6 +1159,13 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       if (status && await File(path).exists()) {
         return streamInfo;
       }
+      _diag.logEvent(
+        category: 'stream_fetch',
+        message: 'downloaded_file_missing_fallback_online',
+        songId: songId,
+        backendType: backendType,
+        activeServerType: _safeServerType(),
+      );
       //in case file doesnot found in storage, song will be played online
       return checkNGetUrl(songId, offlineReplacementUrl: true);
     } else {
@@ -967,16 +1177,43 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         final streamInfoJson = songsUrlCacheBox.get(songId);
         if (streamInfoJson.runtimeType.toString().contains("Map") &&
             !isExpired(url: (streamInfoJson['lowQualityAudio']['url']))) {
+          _diag.logEvent(
+            category: 'stream_fetch',
+            message: 'hit_url_cache',
+            songId: songId,
+            backendType: backendType,
+            activeServerType: _safeServerType(),
+          );
           printINFO("Got cached Url ($songId)");
           streamInfo = HMStreamingData.fromJson(streamInfoJson);
         }
       }
 
       if (streamInfo == null) {
+        _diag.logEvent(
+          category: 'stream_fetch',
+          message: 'fetching_stream_info',
+          songId: songId,
+          backendType: backendType,
+          activeServerType: _safeServerType(),
+        );
+        final startedAt = DateTime.now();
         final token = RootIsolateToken.instance;
         final streamInfoJson =
             await Isolate.run(() => getStreamInfo(songId, token));
         streamInfo = HMStreamingData.fromJson(streamInfoJson);
+        _diag.logEvent(
+          category: 'stream_fetch',
+          message: 'fetched_stream_info',
+          songId: songId,
+          backendType: backendType,
+          activeServerType: _safeServerType(),
+          data: {
+            'playable': streamInfo.playable,
+            'status': streamInfo.statusMSG,
+            'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
+          },
+        );
         if (streamInfo.playable) songsUrlCacheBox.put(songId, streamInfoJson);
       }
 
@@ -1002,6 +1239,37 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       }
     }
     return settings.currentBackend;
+  }
+
+  String? _safeCurrentSongId() {
+    try {
+      if (currentIndex == null) return null;
+      if (queue.value.isEmpty) return null;
+      final idx = (currentIndex as int).clamp(0, queue.value.length - 1);
+      return queue.value[idx].id;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? _safeBackendType() {
+    try {
+      final songId = _safeCurrentSongId();
+      if (songId == null) return null;
+      final item = queue.value.firstWhereOrNull((e) => e.id == songId);
+      return item?.extras?['backendType']?.toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? _safeServerType() {
+    try {
+      final settings = Get.find<SettingsScreenController>();
+      return settings.activeServer?.type.name;
+    } catch (_) {
+      return null;
+    }
   }
 }
 

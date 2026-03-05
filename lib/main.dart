@@ -11,6 +11,7 @@ import '/utils/get_localization.dart';
 import '/services/downloader.dart';
 import '/services/library_sync_service.dart';
 import '/services/piped_service.dart';
+import '/services/playback_diagnostics_service.dart';
 import 'utils/app_link_controller.dart';
 import '/services/audio_handler.dart';
 import '/services/music_service.dart';
@@ -107,6 +108,7 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => Downloader(), fenix: true);
   Get.lazyPut(() => LibrarySyncService(), fenix: true);
   Get.lazyPut(() => SearchScreenController(), fenix: true);
+  Get.lazyPut(() => PlaybackDiagnosticsService(), fenix: true);
   if (GetPlatform.isDesktop) {
     Get.put(DesktopSystemTray());
   }
@@ -127,6 +129,7 @@ initHive() async {
   await Hive.openBox("LIBFAV");
   await Hive.openBox('SongsUrlCache');
   await Hive.openBox("AppPrefs");
+  await Hive.openBox(PlaybackDiagnosticsService.boxName);
 }
 
 void _setAppInitPrefs() {
@@ -141,7 +144,8 @@ void _setAppInitPrefs() {
       'dynamicColorPrimary': 4278199603,
       'discoverContentType': "QP",
       'newVersionVisibility': updateCheckFlag,
-      "cacheHomeScreenData": true
+      "cacheHomeScreenData": true,
+      PlaybackDiagnosticsService.enabledKey: false,
     });
   }
 }
