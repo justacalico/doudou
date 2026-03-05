@@ -127,7 +127,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             right: kContentLeftPaddingWithoutBottomNav,
           );
 
-    const accent = Color(0xFFF7B733);
+    const accent = Color(0xFFE0E0E0);
     const panel = Color(0xFF0A0A0A);
     const panelSoft = Color(0xFF111111);
     const line = Color(0xFF232323);
@@ -241,7 +241,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
               child: Text(
                 cluster.title,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: const Color(0xFFF7B733),
+                      color: Colors.white.withValues(alpha: 0.78),
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.0,
                     ),
@@ -255,12 +255,12 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 margin: const EdgeInsets.only(bottom: 6),
                 decoration: BoxDecoration(
                   color: selected
-                      ? const Color(0xFFF7B733).withValues(alpha: 0.16)
+                      ? Colors.white.withValues(alpha: 0.12)
                       : const Color(0xFF0C0C0C),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: selected
-                        ? const Color(0xFFF7B733).withValues(alpha: 0.45)
+                        ? Colors.white.withValues(alpha: 0.40)
                         : const Color(0xFF202020),
                   ),
                 ),
@@ -271,14 +271,13 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                     icon,
                     size: 18,
                     color: selected
-                        ? const Color(0xFFF7B733)
+                        ? Colors.white
                         : Colors.white.withValues(alpha: 0.76),
                   ),
                   title: Text(
                     titleKey.tr,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color:
-                              selected ? const Color(0xFFF7B733) : Colors.white,
+                          color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),
                   ),
@@ -287,7 +286,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF7B733),
+                            color: Colors.white.withValues(alpha: 0.88),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: const Text(
@@ -330,7 +329,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
               child: Text(
                 cluster.title,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: const Color(0xFFF7B733),
+                      color: Colors.white.withValues(alpha: 0.78),
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.0,
                     ),
@@ -384,10 +383,14 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         width: 34,
         height: 34,
         decoration: BoxDecoration(
-          color: const Color(0xFFF7B733).withValues(alpha: 0.16),
+          color: Colors.white.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(meta.$2, size: 18, color: const Color(0xFFF7B733)),
+        child: Icon(
+          meta.$2,
+          size: 18,
+          color: Colors.white.withValues(alpha: 0.82),
+        ),
       ),
       title: Text(
         meta.$3.tr,
@@ -409,7 +412,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           : Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: const Color(0xFFF7B733),
+                color: Colors.white.withValues(alpha: 0.88),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
@@ -1187,7 +1190,8 @@ class _SettingsCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
             child: Row(
               children: [
-                Icon(icon, size: 18, color: const Color(0xFFF7B733)),
+                Icon(icon,
+                    size: 18, color: Colors.white.withValues(alpha: 0.82)),
                 const SizedBox(width: 8),
                 Text(
                   title,
@@ -1203,7 +1207,7 @@ class _SettingsCard extends StatelessWidget {
           Theme(
             data: Theme.of(context).copyWith(
               listTileTheme: const ListTileThemeData(
-                iconColor: Color(0xFFF7B733),
+                iconColor: Colors.white70,
                 textColor: Colors.white,
               ),
             ),
