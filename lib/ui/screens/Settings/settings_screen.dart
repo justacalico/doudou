@@ -291,9 +291,12 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     SettingsScreenController settings,
     LibrarySyncService syncService,
   ) {
+    final bottomPadding = widget.isBottomNavActive
+        ? kSettingsListBottomPadding
+        : kContentBottomPaddingWithPlayer;
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: EdgeInsets.only(bottom: bottomPadding),
       itemCount: _mobileClusters.length,
       itemBuilder: (context, clusterIndex) {
         final cluster = _mobileClusters[clusterIndex];
