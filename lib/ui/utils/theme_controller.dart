@@ -15,11 +15,32 @@ TextTheme _interTextTheme(TextTheme base) {
   }
 }
 
+ThemeType themeTypeFromStorage(dynamic rawThemeModeType) {
+  if (rawThemeModeType is! int) return ThemeType.system;
+  switch (rawThemeModeType) {
+    case 0:
+      return ThemeType.dynamic;
+    case 1:
+      return ThemeType.system;
+    case 2:
+      return ThemeType.dark;
+    case 3:
+      return ThemeType.light;
+    case 4:
+      return ThemeType.oled;
+    case 5:
+      return ThemeType.system;
+    default:
+      return ThemeType.system;
+  }
+}
+
+int themeTypeToStorage(ThemeType themeType) =>
+    ThemeType.values.indexOf(themeType);
+
 class ThemeController extends GetxController {
   final primaryColor = Colors.deepPurple[400].obs;
   final dynamicColor = Colors.deepPurple[400]!.obs;
-  final customAccentColor = Colors.deepPurple[400]!.obs;
-  final useCustomAccentColor = false.obs;
   final textColor = Colors.white24.obs;
   final themedata = Rxn<ThemeData>();
 
@@ -38,12 +59,14 @@ class ThemeController extends GetxController {
 
     final dynamicColorInt = appPrefs.get("dynamicColorPrimary") ?? primaryInt;
     dynamicColor.value = Color(dynamicColorInt);
-    final customAccentInt =
-        appPrefs.get("customAccentColor") ?? dynamicColorInt;
-    customAccentColor.value = Color(customAccentInt);
-    useCustomAccentColor.value = appPrefs.get("useCustomAccentColor") ?? false;
-
-    changeThemeModeType(ThemeType.values[appPrefs.get("themeModeType") ?? 0]);
+    final rawThemeType = appPrefs.get("themeModeType");
+    final savedThemeType = themeTypeFromStorage(rawThemeType);
+    if (rawThemeType is! int ||
+        rawThemeType < 0 ||
+        rawThemeType >= ThemeType.values.length) {
+      appPrefs.put("themeModeType", themeTypeToStorage(savedThemeType));
+    }
+    changeThemeModeType(savedThemeType);
 
     _listenSystemBrightness();
 
@@ -55,7 +78,7 @@ class ThemeController extends GetxController {
     platformDispatcher.onPlatformBrightnessChanged = () {
       systemBrightness = platformDispatcher.platformBrightness;
       changeThemeModeType(
-          ThemeType.values[Hive.box('AppPrefs').get("themeModeType")],
+          themeTypeFromStorage(Hive.box('AppPrefs').get("themeModeType")),
           sysCall: true);
     };
   }
@@ -73,13 +96,6 @@ class ThemeController extends GetxController {
       MaterialColor? swatch;
       if (type == ThemeType.dynamic) {
         swatch = _createMaterialColor(primaryColor.value!);
-      } else if (type == ThemeType.dynamicColor) {
-        final appPrefs = Hive.box('AppPrefs');
-        final dynamicInt = appPrefs.get("dynamicColorPrimary") ??
-            appPrefs.get("themePrimaryColor") ??
-            4278199603;
-        dynamicColor.value = Color(dynamicInt);
-        swatch = _createMaterialColor(dynamicColor.value);
       }
       themedata.value = _createThemeData(swatch, type);
     }
@@ -107,9 +123,8 @@ class ThemeController extends GetxController {
     final appPrefs = Hive.box('AppPrefs');
     currentSongId = songId;
     appPrefs.put("themePrimaryColor", (primaryColor.value!).toARGB32());
-    final savedIndex = appPrefs.get("themeModeType") ?? 0;
-    final savedType = ThemeType.values[savedIndex];
-    if (savedType == ThemeType.dynamic && useCustomAccentColor.isFalse) {
+    final savedType = themeTypeFromStorage(appPrefs.get("themeModeType"));
+    if (savedType == ThemeType.dynamic) {
       themedata.value = _createThemeData(primarySwatch, ThemeType.dynamic,
           textColor: textColor.value,
           titleColorSwatch: _createMaterialColor(textColor.value));
@@ -123,55 +138,23 @@ class ThemeController extends GetxController {
     dynamicColor.value = color;
     final appPrefs = Hive.box('AppPrefs');
     appPrefs.put("dynamicColorPrimary", color.toARGB32());
-
-    final savedIndex = appPrefs.get("themeModeType") ?? 0;
-    final savedType = ThemeType.values[savedIndex];
-    if (savedType == ThemeType.dynamicColor && useCustomAccentColor.isFalse) {
+    final savedType = themeTypeFromStorage(appPrefs.get("themeModeType"));
+    if (savedType == ThemeType.dynamic) {
+      primaryColor.value = color;
       final swatch = _createMaterialColor(color);
-      themedata.value = _createThemeData(swatch, ThemeType.dynamicColor);
+      themedata.value = _createThemeData(swatch, ThemeType.dynamic);
       setWindowsTitleBarColor(themedata.value!.scaffoldBackgroundColor);
       return;
     }
     changeThemeModeType(savedType);
   }
 
-  void setCustomAccentColor(Color color) {
-    customAccentColor.value = color;
-    final appPrefs = Hive.box('AppPrefs');
-    appPrefs.put("customAccentColor", color.toARGB32());
-    final savedIndex = appPrefs.get("themeModeType") ?? 0;
-    changeThemeModeType(ThemeType.values[savedIndex]);
-  }
-
-  void setUseCustomAccentColor(bool enabled) {
-    useCustomAccentColor.value = enabled;
-    final appPrefs = Hive.box('AppPrefs');
-    appPrefs.put("useCustomAccentColor", enabled);
-    final savedIndex = appPrefs.get("themeModeType") ?? 0;
-    changeThemeModeType(ThemeType.values[savedIndex]);
-  }
-
-  Color get effectiveAccentColor =>
-      useCustomAccentColor.value ? customAccentColor.value : dynamicColor.value;
-
-  MaterialColor _resolveAccentSwatch(
-      ThemeType themeType, MaterialColor? primarySwatch) {
-    if (useCustomAccentColor.isTrue) {
-      return _createMaterialColor(customAccentColor.value);
-    }
-    if (themeType == ThemeType.dynamic || themeType == ThemeType.dynamicColor) {
-      return primarySwatch ?? _createMaterialColor(dynamicColor.value);
-    }
-    return _createMaterialColor(dynamicColor.value);
-  }
-
   ThemeData _createThemeData(MaterialColor? primarySwatch, ThemeType themeType,
       {MaterialColor? titleColorSwatch, Color? textColor}) {
-    final accentSwatch = _resolveAccentSwatch(themeType, primarySwatch);
-    if (themeType == ThemeType.dynamic || themeType == ThemeType.dynamicColor) {
-      final dynamicSwatch = useCustomAccentColor.isTrue
-          ? accentSwatch
-          : (primarySwatch ?? accentSwatch);
+    if (themeType == ThemeType.dynamic) {
+      final dynamicSwatch =
+          primarySwatch ?? _createMaterialColor(dynamicColor.value);
+      final accentSwatch = dynamicSwatch;
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.light,
@@ -269,14 +252,10 @@ class ThemeController extends GetxController {
       const darkSurface = Color(0xFF121212);
       const darkBackground = Color(0xFF1E1E1E);
       const darkSurfaceContainer = Color(0xFF2C2C2C);
-      final darkAccent500 =
-          useCustomAccentColor.isTrue ? accentSwatch[500]! : Colors.grey[600]!;
-      final darkAccent600 =
-          useCustomAccentColor.isTrue ? accentSwatch[600]! : Colors.grey[700]!;
-      final darkAccent400 =
-          useCustomAccentColor.isTrue ? accentSwatch[400]! : Colors.grey[600]!;
-      final darkAccent300 =
-          useCustomAccentColor.isTrue ? accentSwatch[300]! : Colors.grey[600]!;
+      final darkAccent500 = Colors.grey[600]!;
+      final darkAccent600 = Colors.grey[700]!;
+      final darkAccent400 = Colors.grey[600]!;
+      final darkAccent300 = Colors.grey[600]!;
       SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.light,
@@ -358,14 +337,10 @@ class ThemeController extends GetxController {
           textTheme: _interTextTheme(baseTheme.textTheme));
     } else if (themeType == ThemeType.oled) {
       const oledSurfaceContainer = Color(0xFF1A1A1A);
-      final oledAccent500 =
-          useCustomAccentColor.isTrue ? accentSwatch[500]! : Colors.grey[700]!;
-      final oledAccent600 =
-          useCustomAccentColor.isTrue ? accentSwatch[600]! : Colors.grey[800]!;
-      final oledAccent400 =
-          useCustomAccentColor.isTrue ? accentSwatch[400]! : Colors.grey[700]!;
-      final oledAccent300 =
-          useCustomAccentColor.isTrue ? accentSwatch[300]! : Colors.grey[700]!;
+      final oledAccent500 = Colors.grey[700]!;
+      final oledAccent600 = Colors.grey[800]!;
+      final oledAccent400 = Colors.grey[700]!;
+      final oledAccent300 = Colors.grey[700]!;
       SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.light,
@@ -444,12 +419,9 @@ class ThemeController extends GetxController {
       return baseTheme.copyWith(
           textTheme: _interTextTheme(baseTheme.textTheme));
     } else {
-      final lightAccent500 =
-          useCustomAccentColor.isTrue ? accentSwatch[500]! : Colors.grey[400]!;
-      final lightAccent600 =
-          useCustomAccentColor.isTrue ? accentSwatch[600]! : Colors.grey[800]!;
-      final lightAccent200 =
-          useCustomAccentColor.isTrue ? accentSwatch[200]! : Colors.grey[300]!;
+      final lightAccent500 = Colors.grey[400]!;
+      final lightAccent600 = Colors.grey[800]!;
+      final lightAccent200 = Colors.grey[300]!;
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.dark,
@@ -615,5 +587,4 @@ enum ThemeType {
   dark,
   light,
   oled,
-  dynamicColor,
 }

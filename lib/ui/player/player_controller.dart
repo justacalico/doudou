@@ -881,7 +881,7 @@ class PlayerController extends GetxController
     final synced = lyrics['synced']?.toString() ?? '';
     if (synced.isEmpty || _syncedLyricLines.isEmpty) return;
     final settings = Get.find<SettingsScreenController>();
-    if (settings.themeModetype.value != ThemeType.dynamicColor) return;
+    if (settings.themeModetype.value != ThemeType.dynamic) return;
     if (!settings.lyricsDynamicColorEnabled.value) return;
     final i = currentSyncedLyricLineIndex(position);
     if (i < 0 || i == _lastLyricLineIndex) return;

@@ -40,7 +40,7 @@ class SettingsScreenController extends GetxController {
   late String _supportDir;
   final cacheSongs = false.obs;
   final setBox = Hive.box("AppPrefs");
-  final themeModetype = ThemeType.dynamic.obs;
+  final themeModetype = ThemeType.system.obs;
   final skipSilenceEnabled = false.obs;
   final loudnessNormalizationEnabled = false.obs;
   final noOfHomeScreenContent = 3.obs;
@@ -183,7 +183,14 @@ class SettingsScreenController extends GetxController {
     setBox.put(
         "isTransitionAnimationDisabled", isTransitionAnimationDisabled.value);
     cacheSongs.value = setBox.get('cacheSongs') ?? false;
-    themeModetype.value = ThemeType.values[setBox.get('themeModeType') ?? 0];
+    final rawThemeModeType = setBox.get('themeModeType');
+    final parsedThemeModeType = themeTypeFromStorage(rawThemeModeType);
+    themeModetype.value = parsedThemeModeType;
+    if (rawThemeModeType is! int ||
+        rawThemeModeType < 0 ||
+        rawThemeModeType >= ThemeType.values.length) {
+      setBox.put('themeModeType', themeTypeToStorage(parsedThemeModeType));
+    }
     skipSilenceEnabled.value =
         isDesktop ? false : setBox.get("skipSilenceEnabled");
     loudnessNormalizationEnabled.value = isDesktop
@@ -560,7 +567,7 @@ class SettingsScreenController extends GetxController {
   }
 
   void onThemeChange(dynamic val) {
-    setBox.put('themeModeType', ThemeType.values.indexOf(val));
+    setBox.put('themeModeType', themeTypeToStorage(val));
     themeModetype.value = val;
     Get.find<ThemeController>().changeThemeModeType(val);
   }
