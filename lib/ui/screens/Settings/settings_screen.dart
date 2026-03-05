@@ -952,52 +952,31 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 ),
               );
             }),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                FilledButton.tonalIcon(
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (_) => const AddServerDialog(
-                        serverType: ServerType.youtubeMusic),
-                  ),
-                  icon: const Icon(Icons.play_circle_outline, size: 18),
-                  label: Text("youtubeMusic".tr),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (_) =>
-                        const AddServerDialog(serverType: ServerType.subsonic),
-                  ),
-                  icon: const Icon(Icons.waves, size: 18),
-                  label: Text("subsonic".tr),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (_) =>
-                        const AddServerDialog(serverType: ServerType.jellyfin),
-                  ),
-                  icon: const Icon(Icons.tv, size: 18),
-                  label: Text("jellyfin".tr),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (_) =>
-                        const AddServerDialog(serverType: ServerType.plex),
-                  ),
-                  icon: const Icon(Icons.cloud_outlined, size: 18),
-                  label: Text("plex".tr),
-                ),
-              ],
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.tonalIcon(
+                onPressed: () => _showAddProviderPicker(context),
+                icon: const Icon(Icons.add, size: 18),
+                label: Text("addServer".tr),
+              ),
             ),
           ],
         );
       }),
     ];
+  }
+
+  Future<void> _showAddProviderPicker(BuildContext context) async {
+    final selected = await showDialog<ServerType>(
+      context: context,
+      builder: (_) => const _AddProviderDialog(),
+    );
+    if (selected == null || !context.mounted) return;
+    showDialog(
+      context: context,
+      builder: (_) => AddServerDialog(serverType: selected),
+    );
   }
 
   List<Widget> _buildDownload(
@@ -1411,6 +1390,59 @@ class DiscoverContentSelectorDialog extends StatelessWidget {
   }
 }
 
+class _AddProviderDialog extends StatelessWidget {
+  const _AddProviderDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return CommonDialog(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
+              child: Row(
+                children: [
+                  Text(
+                    "addServer".tr,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            for (int i = 0; i < ServerType.values.length; i++) ...[
+              ListTile(
+                dense: true,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                leading: Icon(_serverIcon(ServerType.values[i])),
+                title: Text(_serverTypeLabelText(ServerType.values[i]).tr),
+                trailing: const Icon(Icons.chevron_right_rounded, size: 18),
+                onTap: () => Navigator.of(context).pop(ServerType.values[i]),
+              ),
+              if (i < ServerType.values.length - 1)
+                Divider(height: 1, color: Colors.white.withValues(alpha: 0.08)),
+            ],
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text("cancel".tr),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class AddServerDialog extends StatefulWidget {
   const AddServerDialog({
     super.key,
@@ -1600,27 +1632,21 @@ Widget radioWidget(
 }
 
 IconData _serverIcon(ServerType type) {
-  switch (type) {
-    case ServerType.youtubeMusic:
-      return Icons.play_circle_outline;
-    case ServerType.subsonic:
-      return Icons.waves;
-    case ServerType.jellyfin:
-      return Icons.tv;
-    case ServerType.plex:
-      return Icons.cloud;
-  }
+  const icons = <ServerType, IconData>{
+    ServerType.youtubeMusic: Icons.play_circle_outline,
+    ServerType.subsonic: Icons.waves,
+    ServerType.jellyfin: Icons.tv,
+    ServerType.plex: Icons.cloud,
+  };
+  return icons[type] ?? Icons.storage_outlined;
 }
 
 String _serverTypeLabelText(ServerType type) {
-  switch (type) {
-    case ServerType.youtubeMusic:
-      return "youtubeMusic";
-    case ServerType.subsonic:
-      return "subsonic";
-    case ServerType.jellyfin:
-      return "jellyfin";
-    case ServerType.plex:
-      return "plex";
-  }
+  const labels = <ServerType, String>{
+    ServerType.youtubeMusic: "youtubeMusic",
+    ServerType.subsonic: "subsonic",
+    ServerType.jellyfin: "jellyfin",
+    ServerType.plex: "plex",
+  };
+  return labels[type] ?? type.name;
 }
