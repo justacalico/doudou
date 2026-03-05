@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:flutter/services.dart';
 
-
 import 'package:hive/hive.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
@@ -23,6 +22,7 @@ import '/ui/player/player_controller.dart';
 import '../ui/screens/Home/home_screen_controller.dart';
 import '/services/background_task.dart';
 import '/services/permission_service.dart';
+import '/services/backend/backend_factory.dart';
 import '../utils/helper.dart';
 import '../utils/server_storage.dart';
 import '/models/media_Item_builder.dart';
@@ -262,7 +262,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       originalQueue.addAll(mediaItems);
       final effectiveQueue = newQueue.toList();
       final insertItems = mediaItems.toList()..shuffle();
-      final insertAt = ((currentIndex ?? 0) + 1).clamp(0, effectiveQueue.length);
+      final insertAt =
+          ((currentIndex ?? 0) + 1).clamp(0, effectiveQueue.length);
       effectiveQueue
         ..removeWhere((item) => insertItems.contains(item))
         ..insertAll(insertAt, insertItems);
@@ -288,7 +289,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (shuffleModeEnabled) {
       originalQueue.add(mediaItem);
       final effectiveQueue = newQueue.toList();
-      final insertAt = ((currentIndex ?? 0) + 1).clamp(0, effectiveQueue.length);
+      final insertAt =
+          ((currentIndex ?? 0) + 1).clamp(0, effectiveQueue.length);
       effectiveQueue
         ..remove(mediaItem)
         ..insert(insertAt, mediaItem);
@@ -466,7 +468,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   @override
   Future<void> customAction(String name, [Map<String, dynamic>? extras]) async {
     switch (name) {
-
       case 'dispose':
         await _player.dispose();
         super.stop();
@@ -797,8 +798,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           currQueue.map((e) => MediaItemBuilder.toJson(e)).toList();
       final currIndex = currentIndex ?? 0;
       final position = _player.position.inMilliseconds;
-      final prevSessionData = await Hive.openBox(
-          prevSessionDataBoxName(currentServerId()));
+      final prevSessionData =
+          await Hive.openBox(prevSessionDataBoxName(currentServerId()));
       await prevSessionData.clear();
       await prevSessionData.putAll(
           {"queue": queueData, "position": position, "index": currIndex});
@@ -857,19 +858,20 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       Map<String, dynamic>? extras}) async {
     printINFO("Requested id : $songId");
     if (extras?['backendType'] == 'jellyfin' ||
-        extras?['backendType'] == 'subsonic') {
+        extras?['backendType'] == 'subsonic' ||
+        extras?['backendType'] == 'plex') {
       try {
-        final backend = Get.find<SettingsScreenController>().currentBackend;
+        final backend = _resolveBackendForExtras(extras);
         final url = await backend.getStreamUrl(songId);
         if (url != null && url.isNotEmpty) {
           final audio = Audio(
-            itag: 0,
-            audioCodec: Codec.opus,
-            bitrate: 0,
-            duration: 0,
-            loudnessDb: 0,
-            url: url,
-            size: 0);
+              itag: 0,
+              audioCodec: Codec.opus,
+              bitrate: 0,
+              duration: 0,
+              loudnessDb: 0,
+              url: url,
+              size: 0);
           return HMStreamingData(
               playable: true,
               statusMSG: 'OK',
@@ -910,8 +912,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       final song = songDownloadsBox.get(songId);
       final streamInfoJson = song["streamInfo"];
       Audio? audio;
-      final dynamic rawPath =
-          song['url'] ?? (song['extras'] != null ? song['extras']['url'] : null);
+      final dynamic rawPath = song['url'] ??
+          (song['extras'] != null ? song['extras']['url'] : null);
       if (rawPath is! String || rawPath.isEmpty) {
         return checkNGetUrl(songId, offlineReplacementUrl: true);
       }
@@ -973,12 +975,30 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       return streamInfo;
     }
   }
+
+  dynamic _resolveBackendForExtras(Map<String, dynamic>? extras) {
+    final settings = Get.find<SettingsScreenController>();
+    final rawServerId = extras?['serverId'];
+    int? serverId;
+    if (rawServerId is int) {
+      serverId = rawServerId;
+    } else if (rawServerId is String) {
+      serverId = int.tryParse(rawServerId);
+    }
+    if (serverId != null) {
+      for (final server in settings.servers) {
+        if (server.id == serverId) {
+          return createBackend(server);
+        }
+      }
+    }
+    return settings.currentBackend;
+  }
 }
 
 class UrlError extends Error {
   String message() => 'Unable to fetch url';
 }
-
 
 // for Android Auto
 class MediaLibrary {
@@ -1032,8 +1052,7 @@ class MediaLibrary {
   }
 
   Future<List<MediaItem>> getAlbums() async {
-    final box =
-        await Hive.openBox(libraryAlbumsBoxName(currentServerId()));
+    final box = await Hive.openBox(libraryAlbumsBoxName(currentServerId()));
     final albums =
         box.values.map((item) => Album.fromJson(item).toMediaItem()).toList();
     await box.close();
@@ -1048,10 +1067,8 @@ class MediaLibrary {
         .toList();
     final playlists = [
       ...LibraryPlaylistsController.initPlst.map((e) => e.toMediaItem()),
-      ...serverKeys
-          .map((k) => box.get(k.toString()))
-          .whereType<Map>()
-          .map((item) =>
+      ...serverKeys.map((k) => box.get(k.toString())).whereType<Map>().map(
+          (item) =>
               Playlist.fromJson(Map<dynamic, dynamic>.from(item)).toMediaItem())
     ];
     await box.close();

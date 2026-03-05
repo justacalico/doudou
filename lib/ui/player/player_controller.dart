@@ -206,21 +206,21 @@ class PlayerController extends GetxController
       final settings = Get.find<SettingsScreenController>();
       // Keep the screen awake whenever playback is active and the setting is enabled.
       final shouldEnable = settings.keepScreenAwake.isTrue && isPlaying;
-      _setWakelock(shouldEnable);
+      unawaited(_setWakelock(shouldEnable));
     });
   }
 
-  void _setWakelock(bool enable) {
+  Future<void> _setWakelock(bool enable) async {
     if (_wakelockActive == enable) return; // no-op if already in desired state
 
     try {
       if (enable) {
         printINFO("Enabling wakelock");
-        WakelockPlus.enable();
+        await WakelockPlus.enable();
         _wakelockActive = true;
       } else {
         printINFO("Disabling wakelock");
-        WakelockPlus.disable();
+        await WakelockPlus.disable();
         _wakelockActive = false;
       }
     } catch (e) {
@@ -1011,7 +1011,7 @@ class PlayerController extends GetxController
     }
     // ensure wakelock disabled when player controller disposed
     try {
-      _setWakelock(false);
+      unawaited(_setWakelock(false));
     } catch (e) {
       printERROR(e);
     }

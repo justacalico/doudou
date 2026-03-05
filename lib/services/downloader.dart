@@ -209,7 +209,7 @@ class Downloader extends GetxService {
         printINFO("No backend stream URL available for download");
         return;
       }
-      final ext = _fileExtensionFromUrl(streamUrl);
+      final ext = _suggestedExtensionForBackend(backendType, streamUrl);
       final codec = (ext == 'opus' || ext == 'ogg' || ext == 'webm')
           ? Codec.opus
           : Codec.mp4a;
@@ -235,7 +235,7 @@ class Downloader extends GetxService {
 
     final dirPath = settingsScreenController.downloadLocationPath.string;
     final actualDownformat = isNonYouTube
-        ? _fileExtensionFromUrl(requiredAudioStream.url)
+        ? _suggestedExtensionForBackend(backendType, requiredAudioStream.url)
         : (requiredAudioStream.audioCodec.name.contains("mp") ? "m4a" : "opus");
     final RegExp invalidChar =
         RegExp(r'Container.|\/|\\|\"|\<|\>|\*|\?|\:|\!|\[|\]|\¡|\||\%');
@@ -246,8 +246,9 @@ class Downloader extends GetxService {
     printINFO("Downloading filePath: $filePath");
     final totalBytes = requiredAudioStream.size;
 
+    dynamic response;
     try {
-      await _dio.download(requiredAudioStream.url, filePath,
+      response = await _dio.download(requiredAudioStream.url, filePath,
           options: (!isNonYouTube && totalBytes > 0)
               ? Options(headers: {"Range": 'bytes=0-$totalBytes'})
               : null, onReceiveProgress: (count, total) {
@@ -262,6 +263,26 @@ class Downloader extends GetxService {
           top: !GetPlatform.isDesktop));
       printINFO(
           "Downloading failed due to network/stream error! Please try again");
+      return;
+    }
+    final statusCode = response?.statusCode;
+    if (statusCode != null && (statusCode < 200 || statusCode >= 300)) {
+      ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
+          Get.context!, "downloadError3".tr,
+          size: SnackBarSize.BIG,
+          duration: const Duration(seconds: 2),
+          top: !GetPlatform.isDesktop));
+      printINFO("Downloading failed with status code: $statusCode");
+      return;
+    }
+    final downloadedFile = File(filePath);
+    if (!await downloadedFile.exists() || await downloadedFile.length() == 0) {
+      ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
+          Get.context!, "downloadError3".tr,
+          size: SnackBarSize.BIG,
+          duration: const Duration(seconds: 2),
+          top: !GetPlatform.isDesktop));
+      printINFO("Downloading failed due to empty file output");
       return;
     }
 
@@ -301,6 +322,10 @@ class Downloader extends GetxService {
     final int? totalTracks = int.tryParse(trackDetails?[1] ?? "");
 
     try {
+      if (isNonYouTube || !_isTaggableExtension(normalizedExt)) {
+        return;
+      }
+
       /// Reverted -- Removed AudioTags as using this package, app is flagged as TROJ_GEN.R002V01K623 by TrendMicro-HouseCall
       final imageUrl = song.artUri!.toString();
       Tag tag = Tag(
@@ -332,7 +357,24 @@ class Downloader extends GetxService {
     final uri = Uri.tryParse(url);
     final path = uri?.path ?? '';
     final index = path.lastIndexOf('.');
-    if (index == -1 || index == path.length - 1) return 'm4a';
-    return path.substring(index + 1).toLowerCase();
+    if (index == -1 || index == path.length - 1) return '';
+    final ext = path.substring(index + 1).toLowerCase();
+    if (ext == 'view' || ext == 'php' || ext == 'asp' || ext == 'aspx') {
+      return '';
+    }
+    return ext;
+  }
+
+  String _suggestedExtensionForBackend(String? backendType, String url) {
+    final ext = _fileExtensionFromUrl(url);
+    if (ext.isNotEmpty) return ext;
+    if (backendType == 'subsonic') return 'mp3';
+    if (backendType == 'plex') return 'm4a';
+    if (backendType == 'jellyfin') return 'm4a';
+    return 'm4a';
+  }
+
+  bool _isTaggableExtension(String ext) {
+    return ext == 'mp3' || ext == 'm4a' || ext == 'opus' || ext == 'ogg';
   }
 }
