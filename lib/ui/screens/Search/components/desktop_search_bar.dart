@@ -38,6 +38,17 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
   @override
   Widget build(BuildContext context) {
     final searchScreenController = Get.find<SearchScreenController>();
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final searchSurface = isDark
+        ? Colors.white.withValues(alpha: 0.16)
+        : Colors.black.withValues(alpha: 0.08);
+    final searchDropdownSurface = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.black.withValues(alpha: 0.06);
+    final searchBorder = isDark
+        ? Colors.white.withValues(alpha: 0.18)
+        : Colors.black.withValues(alpha: 0.12);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -70,8 +81,7 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
               _focusNode.unfocus();
             },
             focusNode: _focusNode,
-            backgroundColor: WidgetStatePropertyAll<Color>(
-                Theme.of(context).colorScheme.secondary),
+            backgroundColor: WidgetStatePropertyAll<Color>(searchSurface),
             hintText: "searchDes".tr,
             leading: IconButton(
                 onPressed: () {
@@ -92,13 +102,17 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
             ],
             padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
                 EdgeInsets.only(left: 15, right: 15)),
+            side: WidgetStatePropertyAll<BorderSide>(
+              BorderSide(color: searchBorder, width: 1),
+            ),
           ),
         ),
         Padding(
             padding: const EdgeInsets.only(top: 10.0),
             child: Container(
               decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: searchDropdownSurface,
+                  border: Border.all(color: searchBorder, width: 1),
                   borderRadius: BorderRadius.circular(20)),
               constraints: const BoxConstraints(minHeight: 0, maxHeight: 300),
               child: Obx(() {
