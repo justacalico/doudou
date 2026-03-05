@@ -267,7 +267,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         ? 200
         : GetPlatform.isLinux
             ? 700
-            : 0;
+            : GetPlatform.isIOS
+                ? 500
+                : 0;
     _player.positionStream.listen((value) async {
       if (_player.duration != null && _player.duration?.inSeconds != 0) {
         if (value.inMilliseconds >=
@@ -301,7 +303,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       final currQueue = queue.value;
       if (currentIndex == null || currQueue.isEmpty || duration == null) return;
       final currentSong = queue.value[currentIndex];
-      if (currentSong.duration == null || currentIndex == 0) {
+      final usePlayerDuration = GetPlatform.isIOS ||
+          currentSong.duration == null ||
+          currentIndex == 0;
+      if (usePlayerDuration && duration.inSeconds > 0) {
         final newMediaItem = currentSong.copyWith(duration: duration);
         mediaItem.add(newMediaItem);
       }

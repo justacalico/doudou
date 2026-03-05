@@ -909,7 +909,13 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
               ),
             ),
             const SizedBox(height: 8),
-            ...servers.map((server) => ListTile(
+            RadioGroup<int>(
+              groupValue: activeId,
+              onChanged: (v) {
+                if (v != null) settings.setActiveServer(v);
+              },
+              child: Column(
+                children: servers.map((server) => ListTile(
                   leading: Icon(_serverIcon(server.type)),
                   title: Text(server.name),
                   subtitle: Text(server.serverUrl?.isNotEmpty == true
@@ -918,13 +924,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Radio<int>(
-                        value: server.id,
-                        groupValue: activeId,
-                        onChanged: (v) {
-                          if (v != null) settings.setActiveServer(v);
-                        },
-                      ),
+                      Radio<int>(value: server.id),
                       if (!server.isDefault) ...[
                         if (server.type != ServerType.youtubeMusic)
                           IconButton(
@@ -960,7 +960,9 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                       ]
                     ],
                   ),
-                )),
+                )).toList(),
+              ),
+            ),
             Obx(() {
               final active = settings.activeServer;
               final isNonYouTube =

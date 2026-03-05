@@ -261,12 +261,16 @@ class PlayerController extends GetxController
           cancelSleepTimer();
         }
       }
+      final clampedCurrent = oldState.total.inMilliseconds > 0 &&
+              position > oldState.total
+          ? oldState.total
+          : position;
       progressBarStatus.update((val) {
-        val!.current = position;
+        val!.current = clampedCurrent;
         val.buffered = oldState.buffered;
         val.total = oldState.total;
       });
-      _updateDynamicColorFromLyrics(position);
+      _updateDynamicColorFromLyrics(clampedCurrent);
     });
   }
 

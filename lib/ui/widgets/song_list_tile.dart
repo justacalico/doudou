@@ -3,7 +3,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
-import 'package:widget_marquee/widget_marquee.dart';
 
 import '../../models/playlist.dart';
 import '../player/player_controller.dart';

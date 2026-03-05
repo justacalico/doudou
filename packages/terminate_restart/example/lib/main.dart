@@ -344,7 +344,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   value: _clearData,
                   onChanged: (value) => setState(() => _clearData = value),
-                  activeColor: Colors.greenAccent,
+                  activeThumbColor: Colors.greenAccent,
                 ),
               ).animate().slideX(begin: -0.2).fadeIn(),
               const SizedBox(height: 48),

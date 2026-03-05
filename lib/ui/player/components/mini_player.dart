@@ -736,32 +736,3 @@ class _DesktopMiniPlayer extends StatelessWidget {
     );
   }
 }
-
-class _CircleButton extends StatelessWidget {
-  const _CircleButton({
-    required this.backgroundColor,
-    required this.child,
-    this.onTap,
-  });
-
-  final Color backgroundColor;
-  final VoidCallback? onTap;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 36,
-      height: 36,
-      child: Material(
-        color: backgroundColor,
-        shape: const CircleBorder(),
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: Center(child: child),
-        ),
-      ),
-    );
-  }
-}
