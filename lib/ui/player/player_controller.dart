@@ -562,13 +562,6 @@ class PlayerController extends GetxController
         : _audioHandler.setShuffleMode(AudioServiceShuffleMode.all);
     isShuffleModeEnabled.value = !shuffleModeEnabled;
     await Hive.box("AppPrefs").put("isShuffleModeEnabled", !shuffleModeEnabled);
-    // restrict queue loop mode when shuffle mode is enabled
-    if (isShuffleModeEnabled.isTrue && isQueueLoopModeEnabled.isFalse) {
-      isQueueLoopModeEnabled.value = true;
-    } else if (isShuffleModeEnabled.isFalse) {
-      isQueueLoopModeEnabled.value =
-          Hive.box("AppPrefs").get("queueLoopModeEnabled", defaultValue: false);
-    }
   }
 
   void onReorder(int oldIndex, int newIndex) {
