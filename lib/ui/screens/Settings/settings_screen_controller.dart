@@ -211,8 +211,7 @@ class SettingsScreenController extends GetxController {
         AudioQuality.values[setBox.get('streamingQuality')];
     playerUi.value = isDesktop ? 0 : (setBox.get('playerUi') ?? 0);
     backgroundPlayEnabled.value = setBox.get("backgroundPlayEnabled") ?? true;
-    keepScreenAwake.value =
-        setBox.get("keepScreenAwake") ?? GetPlatform.isDesktop ? true : false;
+    keepScreenAwake.value = setBox.get("keepScreenAwake") ?? false;
     final downloadPath =
         setBox.get('downloadLocationPath') ?? await _createInAppSongDownDir();
     downloadLocationPath.value =

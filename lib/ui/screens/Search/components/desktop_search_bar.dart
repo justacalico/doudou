@@ -39,16 +39,9 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
   Widget build(BuildContext context) {
     final searchScreenController = Get.find<SearchScreenController>();
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final searchSurface = isDark
-        ? Colors.white.withValues(alpha: 0.16)
-        : Colors.black.withValues(alpha: 0.08);
-    final searchDropdownSurface = isDark
-        ? Colors.white.withValues(alpha: 0.12)
-        : Colors.black.withValues(alpha: 0.06);
-    final searchBorder = isDark
-        ? Colors.white.withValues(alpha: 0.18)
-        : Colors.black.withValues(alpha: 0.12);
+    final searchSurface = theme.colorScheme.surfaceContainerHighest;
+    final searchDropdownSurface = theme.colorScheme.surfaceContainer;
+    final searchBorder = theme.colorScheme.outline;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

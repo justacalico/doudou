@@ -524,7 +524,7 @@ class Body extends StatelessWidget {
                                           : null,
                                       icon: Icons.download,
                                       iconColor: hasDownloads
-                                          ? theme.colorScheme.tertiary
+                                          ? theme.colorScheme.onSurface
                                           : null,
                                       title: "downloads".tr,
                                       subtitle: "availableOffline".tr,
