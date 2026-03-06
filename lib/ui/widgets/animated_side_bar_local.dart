@@ -1,8 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '/ui/constants/doudou_design.dart';
 import '/utils/app_l10n.dart';
 
 class SideBarAnimatedLocal extends StatefulWidget {
@@ -33,6 +33,7 @@ class SideBarAnimatedLocal extends StatefulWidget {
   final ValueListenable<int>? currentIndexListenable;
   final bool? minimized;
   final ValueChanged<bool>? onMinimizeChanged;
+  final bool useDoudouLogo;
 
   const SideBarAnimatedLocal({
     super.key,
@@ -64,6 +65,7 @@ class SideBarAnimatedLocal extends StatefulWidget {
     this.currentIndexListenable,
     this.minimized,
     this.onMinimizeChanged,
+    this.useDoudouLogo = false,
   });
 
   @override
@@ -154,45 +156,47 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
             children: [
               Padding(
                 padding: EdgeInsets.only(
-                    left: useWideLayout ? 20 : 18,
-                    right: useWideLayout ? 20 : 18,
+                    left: useWideLayout ? 24 : 18,
+                    right: useWideLayout ? 24 : 18,
                     top: 24),
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: useWideLayout ? 12 : 6,
-                    vertical: useWideLayout ? 10 : 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: widget.animatedContainerColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: useWideLayout
-                      ? Row(
-                          children: [
-                            Image.asset(
-                              widget.mainLogoImage,
-                              width: 40,
-                              height: 40,
-                            ),
-                            if (widget.appName != null) ...[
-                              const SizedBox(width: 12),
-                              Text(
-                                widget.appName!,
-                                style: widget.textStyle,
-                              ),
-                            ],
-                          ],
-                        )
-                      : Center(
-                          child: Image.asset(
-                            widget.mainLogoImage,
-                            width: 36,
-                            height: 36,
-                            fit: BoxFit.contain,
-                          ),
+                child: widget.useDoudouLogo
+                    ? _buildDoudouLogo(useWideLayout)
+                    : Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: useWideLayout ? 12 : 6,
+                          vertical: useWideLayout ? 10 : 8,
                         ),
-                ),
+                        decoration: BoxDecoration(
+                          color: widget.animatedContainerColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: useWideLayout
+                            ? Row(
+                                children: [
+                                  Image.asset(
+                                    widget.mainLogoImage,
+                                    width: 40,
+                                    height: 40,
+                                  ),
+                                  if (widget.appName != null) ...[
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      widget.appName!,
+                                      style: widget.textStyle,
+                                    ),
+                                  ],
+                                ],
+                              )
+                            : Center(
+                                child: Image.asset(
+                                  widget.mainLogoImage,
+                                  width: 36,
+                                  height: 36,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                      ),
               ),
               Expanded(
                 child: ClipRect(
@@ -212,66 +216,102 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
                 ),
               ),
               if (MediaQuery.sizeOf(context).width >= widget.widthSwitch)
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: isMinimized ? 18 : 20,
-                    right: isMinimized ? 18 : 20,
-                    bottom: 24,
-                    top: 8,
-                  ),
-                  child: Tooltip(
-                    message: widget.shrinkSidebarLabel ?? context.l10n.shrinkSidebar,
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      clipBehavior: Clip.antiAliasWithSaveLayer,
-                      child: InkWell(
-                        onTap: () {
-                          final next = !_effectiveMinimize;
-                          if (widget.onMinimizeChanged != null) {
-                            widget.onMinimizeChanged!(next);
-                          } else {
-                            setState(() => _minimize = next);
-                          }
-                        },
-                      borderRadius: BorderRadius.circular(12),
-                      hoverColor: widget.hoverColor,
-                      splashColor: widget.splashColor,
-                      highlightColor: widget.highlightColor,
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: sideBarItemHeight,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Row(
-                            children: [
-                              Icon(
-                                isMinimized
-                                    ? CupertinoIcons.arrow_right
-                                    : Icons.keyboard_double_arrow_left,
-                                color: widget.unselectedIconColor,
-                              ),
-                              if (!isMinimized && widget.shrinkSidebarLabel != null) ...[
-                                const SizedBox(width: 12),
-                                Text(
-                                  widget.shrinkSidebarLabel!,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: widget.textStyle.copyWith(
-                                      color: widget.unSelectedTextColor),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                )
+                _buildCollapseButton(),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildDoudouLogo(bool useWideLayout) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: kDoudouPurpleIndigoGradient,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: kDoudouPurple.withValues(alpha: 0.2),
+                blurRadius: 8,
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Center(
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ),
+        if (useWideLayout && widget.appName != null) ...[
+          const SizedBox(width: 12),
+          Text(
+            widget.appName!,
+            style: widget.textStyle.copyWith(
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCollapseButton() {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: _effectiveMinimize ? 18 : 20,
+        right: _effectiveMinimize ? 18 : 20,
+        bottom: 16,
+        top: 8,
+      ),
+      child: Tooltip(
+        message: widget.shrinkSidebarLabel ?? context.l10n.shrinkSidebar,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: InkWell(
+            onTap: () {
+              final next = !_effectiveMinimize;
+              if (widget.onMinimizeChanged != null) {
+                widget.onMinimizeChanged!(next);
+              } else {
+                setState(() => _minimize = next);
+              }
+            },
+            borderRadius: BorderRadius.circular(12),
+            hoverColor: widget.hoverColor,
+            splashColor: widget.splashColor,
+            highlightColor: widget.highlightColor,
+            child: SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: Center(
+                child: Icon(
+                  _effectiveMinimize ? Icons.menu : Icons.close,
+                  size: 20,
+                  color: kDoudouZinc500,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -281,8 +321,8 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
       if (i > 0) {
         if (i == widget.sidebarItems.length - 1 && widget.settingsDivider) {
           list.add(Divider(
-            height: 12,
-            thickness: 0.2,
+            height: 16,
+            thickness: 1,
             color: widget.dividerColor,
           ));
         } else {
@@ -327,6 +367,7 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
     required VoidCallback onTap,
     required TextStyle textStyle,
   }) {
+    final selectedColor = widget.selectedIconColor;
     return Tooltip(
       message: text,
       child: Material(
@@ -341,7 +382,7 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
           child: Container(
             height: height,
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: isSelected
                 ? BoxDecoration(
                     color: animatedContainerColor,
@@ -353,8 +394,8 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
               children: [
                 Icon(
                   isSelected ? selectedIcon : icon,
-                  color: isSelected ? Colors.white : unselectedIconColor,
-                  size: 24,
+                  color: isSelected ? selectedColor : unselectedIconColor,
+                  size: 22,
                 ),
                 if (showLabel) ...[
                   const SizedBox(width: 12),
@@ -364,11 +405,22 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: textStyle.copyWith(
-                        color: isSelected ? Colors.white : unSelectedTextColor,
+                        color: isSelected ? selectedColor : unSelectedTextColor,
+                        fontWeight: isSelected ? FontWeight.w500 : null,
                       ),
                     ),
                   ),
                 ],
+                if (isSelected && showLabel)
+                  Container(
+                    width: 6,
+                    height: 6,
+                    margin: const EdgeInsets.only(left: 8),
+                    decoration: BoxDecoration(
+                      color: kDoudouPurple,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
               ],
             ),
           ),

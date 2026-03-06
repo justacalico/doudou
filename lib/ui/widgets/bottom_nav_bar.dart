@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '/utils/app_l10n.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:doudou/ui/constants/doudou_design.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
 
 class BottomNavBar extends StatelessWidget {
@@ -13,15 +14,10 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final homeScreenController = Get.find<HomeScreenController>();
     final theme = Theme.of(context);
-    final surfaceLuminance = theme.colorScheme.surface.computeLuminance();
-    final isLightSurface = surfaceLuminance > 0.15;
-    final dockAlpha = isLightSurface ? 0.06 : (theme.brightness == Brightness.dark ? 0.14 : 0.24);
-    final borderAlpha = isLightSurface ? 0.06 : (theme.brightness == Brightness.dark ? 0.14 : 0.22);
-    final dockColor = theme.colorScheme.surface.withValues(alpha: dockAlpha);
 
     return Obx(() {
       final idx = homeScreenController.tabIndex.value;
-      final safeIdx = idx < 0 ? 0 : (idx > 3 ? 3 : idx);
+      final safeIdx = idx.clamp(0, 3);
       final items = [
         _NavItem(
           icon: Icons.home_rounded,
@@ -48,27 +44,31 @@ class BottomNavBar extends StatelessWidget {
       return Center(
         child: Padding(
           padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            bottom: MediaQuery.of(context).padding.bottom + 10,
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 8,
           ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 500),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(32),
+              borderRadius:
+                  BorderRadius.circular(kDoudouRadiusCard),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                filter: ImageFilter.blur(
+                    sigmaX: kDoudouBlurBar, sigmaY: kDoudouBlurBar),
                 child: Container(
+                  height: 64,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+                    horizontal: 16,
+                    vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: dockColor,
-                    borderRadius: BorderRadius.circular(32),
+                    color: Colors.black.withValues(alpha: 0.4),
+                    borderRadius:
+                        BorderRadius.circular(kDoudouRadiusCard),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: borderAlpha),
-                      width: 0.5,
+                      color: kDoudouBorder,
+                      width: 1,
                     ),
                     boxShadow: const [],
                   ),
@@ -88,28 +88,17 @@ class BottomNavBar extends StatelessWidget {
                           },
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 250),
-                                curve: Curves.easeInOut,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 6,
-                                  horizontal: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: selected
-                                      ? theme.colorScheme.primary
-                                          .withValues(alpha: 0.15)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
+                              AnimatedScale(
+                                scale: selected ? 1.1 : 1.0,
+                                duration: const Duration(milliseconds: 200),
                                 child: Icon(
                                   selected ? item.icon : item.outlinedIcon,
-                                  size: 22,
+                                  size: 20,
                                   color: selected
-                                      ? theme.colorScheme.primary
-                                      : theme.iconTheme.color
-                                          ?.withValues(alpha: 0.4),
+                                      ? kDoudouPurpleLight
+                                      : kDoudouZinc500,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -117,13 +106,10 @@ class BottomNavBar extends StatelessWidget {
                                 item.label,
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   fontSize: 10,
-                                  fontWeight: selected
-                                      ? FontWeight.bold
-                                      : FontWeight.w500,
+                                  fontWeight: FontWeight.w500,
                                   color: selected
-                                      ? theme.colorScheme.primary
-                                      : theme.textTheme.labelSmall?.color
-                                          ?.withValues(alpha: 0.4),
+                                      ? kDoudouPurpleLight
+                                      : kDoudouZinc500,
                                 ),
                               ),
                             ],

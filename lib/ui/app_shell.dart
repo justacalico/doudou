@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:doudou/models/album.dart';
 import 'package:doudou/models/artist.dart';
 import 'package:doudou/services/constant.dart';
+import 'package:doudou/ui/constants/doudou_design.dart';
 
 import 'navigator.dart';
 import 'player/player.dart';
@@ -212,11 +213,23 @@ class _AppShellState extends State<AppShell> {
                                     ),
                                   ),
                             Expanded(
-                              child: Navigator(
-                                key: Get.nestedKey(
-                                    ScreenNavigationSetup.contentId),
-                                initialRoute: ScreenNavigationSetup.homeScreen,
-                                onGenerateRoute: _contentRouteGenerator,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      kDoudouZinc900.withValues(alpha: 0.5),
+                                      kDoudouBackground,
+                                    ],
+                                  ),
+                                ),
+                                child: Navigator(
+                                  key: Get.nestedKey(
+                                      ScreenNavigationSetup.contentId),
+                                  initialRoute: ScreenNavigationSetup.homeScreen,
+                                  onGenerateRoute: _contentRouteGenerator,
+                                ),
                               ),
                             ),
                           ],

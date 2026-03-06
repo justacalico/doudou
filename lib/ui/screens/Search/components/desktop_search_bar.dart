@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '/utils/app_l10n.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:doudou/ui/constants/doudou_design.dart';
 import 'search_item.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
 
@@ -39,10 +40,6 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
   @override
   Widget build(BuildContext context) {
     final searchScreenController = Get.find<SearchScreenController>();
-    final theme = Theme.of(context);
-    final searchSurface = theme.colorScheme.surfaceContainerHighest;
-    final searchDropdownSurface = theme.colorScheme.surfaceContainer;
-    final searchBorder = theme.colorScheme.outline;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -51,66 +48,88 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
             LogicalKeySet(LogicalKeyboardKey.space):
                 const DoNothingAndStopPropagationTextIntent()
           },
-          child: SearchBar(
-            controller: searchScreenController.textInputController,
-            onTap: () {
-              if (!_focusNode.hasFocus) {
-                _focusNode.requestFocus();
-              }
-            },
-            onTapOutside: (event) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-                _focusNode.unfocus();
-              });
-            },
-            onChanged: searchScreenController.onChanged,
-            onSubmitted: (val) {
-              if (val.contains("https://")) {
-                searchScreenController.filterLinks(Uri.parse(val));
-                searchScreenController.reset();
-                return;
-              }
-              ScreenNavigationSetup.pushContentRoute(
-                  ScreenNavigationSetup.searchResultScreen,
-                  arguments: val);
-              searchScreenController.addToHistryQueryList(val);
-              _focusNode.unfocus();
-            },
-            focusNode: _focusNode,
-            backgroundColor: WidgetStatePropertyAll<Color>(searchSurface),
-            hintText: context.l10n.searchDes,
-            leading: IconButton(
-                onPressed: () {
-                  if (_focusNode.hasFocus) {
-                    _focusNode.unfocus();
+          child: Obx(
+            () => SearchBar(
+                controller: searchScreenController.textInputController,
+                onTap: () {
+                  if (!_focusNode.hasFocus) {
+                    _focusNode.requestFocus();
                   }
                 },
-                icon: Obx(() => Icon(
+                onTapOutside: (event) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    _focusNode.unfocus();
+                  });
+                },
+                onChanged: searchScreenController.onChanged,
+                onSubmitted: (val) {
+                  if (val.contains("https://")) {
+                    searchScreenController.filterLinks(Uri.parse(val));
+                    searchScreenController.reset();
+                    return;
+                  }
+                  ScreenNavigationSetup.pushContentRoute(
+                      ScreenNavigationSetup.searchResultScreen,
+                      arguments: val);
+                  searchScreenController.addToHistryQueryList(val);
+                  _focusNode.unfocus();
+                },
+                focusNode: _focusNode,
+                backgroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.focused)) {
+                    return kDoudouSurfaceHover;
+                  }
+                  return kDoudouSurface;
+                }),
+                hintText: context.l10n.searchDes,
+                leading: IconButton(
+                  onPressed: () {
+                    if (_focusNode.hasFocus) {
+                      _focusNode.unfocus();
+                    }
+                  },
+                  icon: Obx(() => Icon(
                     searchScreenController.isSearchBarInFocus.isTrue
                         ? Icons.arrow_back
-                        : Icons.search))),
-            trailing: [
-              Obx(() => searchScreenController.isSearchBarInFocus.isTrue
-                  ? IconButton(
-                      onPressed: searchScreenController.reset,
-                      icon: const Icon(Icons.clear))
-                  : const SizedBox.shrink())
-            ],
-            padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
-                EdgeInsets.only(left: 15, right: 15)),
-            side: WidgetStatePropertyAll<BorderSide>(
-              BorderSide(color: searchBorder, width: 1),
-            ),
+                        : Icons.search,
+                    color: searchScreenController.isSearchBarInFocus.isTrue
+                        ? kDoudouPurpleLight
+                        : kDoudouZinc500,
+                    size: 18,
+                  )),
+                ),
+                trailing: [
+                  Obx(() => searchScreenController.isSearchBarInFocus.isTrue
+                      ? IconButton(
+                          onPressed: searchScreenController.reset,
+                          icon: const Icon(Icons.clear))
+                      : const SizedBox.shrink())
+                ],
+                padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
+                side: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.focused)) {
+                    return BorderSide(
+                        color: kDoudouPurple.withValues(alpha: 0.5), width: 1);
+                  }
+                  return BorderSide(color: kDoudouBorderStrong, width: 1);
+                }),
+                shape: WidgetStatePropertyAll<OutlinedBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+              ),
           ),
         ),
         Padding(
             padding: const EdgeInsets.only(top: 10.0),
             child: Container(
               decoration: BoxDecoration(
-                  color: searchDropdownSurface,
-                  border: Border.all(color: searchBorder, width: 1),
-                  borderRadius: BorderRadius.circular(20)),
+                  color: kDoudouSurface,
+                  border: Border.all(color: kDoudouBorderStrong, width: 1),
+                  borderRadius: BorderRadius.circular(kDoudouRadiusCard)),
               constraints: const BoxConstraints(minHeight: 0, maxHeight: 300),
               child: Obx(() {
                 final isHistoryString =

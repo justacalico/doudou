@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:palette_generator/palette_generator.dart';
+import '/ui/constants/doudou_design.dart';
 import '/utils/helper.dart';
 
 TextTheme _interTextTheme(TextTheme base) {
@@ -290,15 +291,14 @@ class ThemeController extends GetxController {
       return baseTheme.copyWith(
           textTheme: _interTextTheme(baseTheme.textTheme));
     } else if (themeType == ThemeType.dark) {
-      const darkSurface = Color(0xFF121212);
-      const darkBackground = Color(0xFF1E1E1E);
-      const darkSurfaceContainer = Color(0xFF2C2C2C);
-      final darkAccent500 = Colors.grey[600]!;
-      final darkAccent600 = Colors.grey[700]!;
-      final darkAccent400 = Colors.grey[600]!;
-      final darkAccent300 = Colors.grey[600]!;
+      final darkSurface = kDoudouBackground;
+      final darkSurfaceContainer = kDoudouBackground;
+      final darkAccent500 = kDoudouPurple;
+      final darkAccent600 = kDoudouPurpleLight;
+      final darkAccent400 = kDoudouPurple;
+      final darkAccent300 = kDoudouPurple.withValues(alpha: 0.5);
       SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(
+        SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.light,
             statusBarColor: Colors.transparent,
             systemNavigationBarColor: darkSurface,
@@ -314,8 +314,8 @@ class ThemeController extends GetxController {
       final scheme = darkScheme.copyWith(
           primary: darkAccent500,
           surface: darkSurface,
-          surfaceContainerHighest: darkSurfaceContainer,
-          onSurface: Colors.white,
+          surfaceContainerHighest: const Color(0x14FFFFFF),
+          onSurface: kDoudouZinc100,
           secondary: darkAccent600,
           onSecondary: Colors.white);
       final baseTheme = ThemeData(
@@ -325,9 +325,9 @@ class ThemeController extends GetxController {
           scaffoldBackgroundColor: darkSurface,
           cardColor: darkSurfaceContainer,
           dialogTheme:
-              const DialogThemeData(backgroundColor: darkSurfaceContainer),
+              DialogThemeData(backgroundColor: const Color(0x14FFFFFF)),
           primaryColor: darkSurface,
-          primaryColorDark: darkBackground,
+          primaryColorDark: darkSurface,
           primaryColorLight: darkAccent600,
           colorScheme: scheme,
           progressIndicatorTheme: ProgressIndicatorThemeData(
@@ -353,15 +353,15 @@ class ThemeController extends GetxController {
               selectedIconTheme: const IconThemeData(
                 color: Colors.white,
               ),
-              unselectedIconTheme: IconThemeData(color: Colors.grey[500]),
-              selectedLabelTextStyle: const TextStyle(
+          unselectedIconTheme: IconThemeData(color: kDoudouZinc500),
+          selectedLabelTextStyle: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 15),
               unselectedLabelTextStyle: TextStyle(
-                  color: Colors.grey[500], fontWeight: FontWeight.bold)),
-          bottomSheetTheme: const BottomSheetThemeData(
-              backgroundColor: darkSurface, modalBarrierColor: darkBackground),
+                  color: kDoudouZinc500, fontWeight: FontWeight.bold)),
+          bottomSheetTheme: BottomSheetThemeData(
+              backgroundColor: darkSurface, modalBarrierColor: darkSurface),
           sliderTheme: SliderThemeData(
               inactiveTrackColor: Colors.grey[600],
               activeTrackColor: darkAccent500,
@@ -371,25 +371,25 @@ class ThemeController extends GetxController {
               cursorColor: darkAccent400,
               selectionColor: darkAccent300,
               selectionHandleColor: darkAccent400),
-          inputDecorationTheme: const InputDecorationTheme(
+          inputDecorationTheme: InputDecorationTheme(
               filled: true,
               fillColor: darkSurfaceContainer,
               focusColor: Colors.white,
-              focusedBorder: UnderlineInputBorder(
+              focusedBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.white))));
       return baseTheme.copyWith(
           textTheme: _interTextTheme(baseTheme.textTheme));
     } else if (themeType == ThemeType.oled) {
-      const oledSurfaceContainer = Color(0xFF1A1A1A);
-      final oledAccent500 = Colors.grey[700]!;
-      final oledAccent600 = Colors.grey[800]!;
-      final oledAccent400 = Colors.grey[700]!;
-      final oledAccent300 = Colors.grey[700]!;
+      final oledSurfaceContainer = kDoudouBackground;
+      final oledAccent500 = kDoudouPurple;
+      final oledAccent600 = kDoudouPurpleLight;
+      final oledAccent400 = kDoudouPurple;
+      final oledAccent300 = kDoudouPurple.withValues(alpha: 0.5);
       SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(
+        SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.light,
             statusBarColor: Colors.transparent,
-            systemNavigationBarColor: Colors.black,
+            systemNavigationBarColor: kDoudouBackground,
             systemNavigationBarDividerColor: Colors.transparent,
             systemNavigationBarIconBrightness: Brightness.light,
             systemStatusBarContrastEnforced: false,
@@ -399,21 +399,21 @@ class ThemeController extends GetxController {
           accentColor: oledAccent600, brightness: Brightness.dark);
       final scheme = oledScheme.copyWith(
           primary: oledAccent500,
-          surface: Colors.black,
-          surfaceContainerHighest: oledSurfaceContainer,
-          onSurface: Colors.white38,
+          surface: kDoudouBackground,
+          surfaceContainerHighest: const Color(0x14FFFFFF),
+          onSurface: kDoudouZinc100,
           secondary: oledAccent600,
           onSecondary: Colors.white);
       final baseTheme = ThemeData(
           useMaterial3: false,
           brightness: Brightness.dark,
-          canvasColor: Colors.black,
-          scaffoldBackgroundColor: Colors.black,
+          canvasColor: kDoudouBackground,
+          scaffoldBackgroundColor: kDoudouBackground,
           cardColor: oledSurfaceContainer,
           dialogTheme:
-              const DialogThemeData(backgroundColor: oledSurfaceContainer),
-          primaryColor: Colors.black,
-          primaryColorDark: Colors.black,
+              DialogThemeData(backgroundColor: const Color(0x14FFFFFF)),
+          primaryColor: kDoudouBackground,
+          primaryColorDark: kDoudouBackground,
           primaryColorLight: oledAccent600,
           colorScheme: scheme,
           progressIndicatorTheme: ProgressIndicatorThemeData(
@@ -434,20 +434,20 @@ class ThemeController extends GetxController {
               labelSmall: TextStyle(
                   fontSize: 15, letterSpacing: 0, fontWeight: FontWeight.bold),
               bodyMedium: TextStyle(color: Colors.grey)),
-          navigationRailTheme: const NavigationRailThemeData(
-              backgroundColor: Colors.black,
-              selectedIconTheme: IconThemeData(
+          navigationRailTheme: NavigationRailThemeData(
+              backgroundColor: kDoudouBackground,
+              selectedIconTheme: const IconThemeData(
                 color: Colors.white,
               ),
-              unselectedIconTheme: IconThemeData(color: Colors.white38),
-              selectedLabelTextStyle: TextStyle(
+              unselectedIconTheme: IconThemeData(color: kDoudouZinc500),
+              selectedLabelTextStyle: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 15),
               unselectedLabelTextStyle: TextStyle(
-                  color: Colors.white38, fontWeight: FontWeight.bold)),
+                  color: kDoudouZinc500, fontWeight: FontWeight.bold)),
           bottomSheetTheme: const BottomSheetThemeData(
-              backgroundColor: Colors.black, modalBarrierColor: Colors.black),
+              backgroundColor: kDoudouBackground, modalBarrierColor: kDoudouBackground),
           sliderTheme: const SliderThemeData(
               inactiveTrackColor: Colors.white30,
               activeTrackColor: Colors.white,
@@ -457,11 +457,11 @@ class ThemeController extends GetxController {
               cursorColor: oledAccent400,
               selectionColor: oledAccent300,
               selectionHandleColor: oledAccent400),
-          inputDecorationTheme: const InputDecorationTheme(
+          inputDecorationTheme: InputDecorationTheme(
               filled: true,
               fillColor: oledSurfaceContainer,
               focusColor: Colors.white,
-              focusedBorder: UnderlineInputBorder(
+              focusedBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.white))));
       return baseTheme.copyWith(
           textTheme: _interTextTheme(baseTheme.textTheme));

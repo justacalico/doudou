@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:doudou/ui/constants/doudou_design.dart';
 import 'package:doudou/ui/shell_controller.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:widget_marquee/widget_marquee.dart';
@@ -61,29 +62,28 @@ class _MobileMiniPlayer extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final song = controller.currentSong.value;
-    final pillColor = theme.colorScheme.surface.withValues(
-      alpha: theme.brightness == Brightness.dark ? 0.14 : 0.24,
-    );
-
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Align(
         alignment: Alignment.topCenter,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(32),
+            borderRadius:
+                BorderRadius.circular(kDoudouRadiusCard),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+              filter: ImageFilter.blur(
+                  sigmaX: kDoudouBlurSidebar,
+                  sigmaY: kDoudouBlurSidebar),
               child: Container(
+                height: 64,
                 decoration: BoxDecoration(
-                  color: pillColor,
-                  borderRadius: BorderRadius.circular(32),
+                  color: kDoudouZinc900.withValues(alpha: 0.9),
+                  borderRadius:
+                      BorderRadius.circular(kDoudouRadiusCard),
                   border: Border.all(
-                    color: Colors.white.withValues(
-                        alpha:
-                            theme.brightness == Brightness.dark ? 0.14 : 0.22),
-                    width: 0.5,
+                    color: kDoudouBorderStrong,
+                    width: 1,
                   ),
                   boxShadow: const [],
                 ),
@@ -196,7 +196,6 @@ class _MobileMiniPlayer extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Progress bar at the bottom
                     Positioned(
                       bottom: 0,
                       left: 0,
@@ -207,7 +206,7 @@ class _MobileMiniPlayer extends StatelessWidget {
                           init: controller,
                           builder: (c) => MiniPlayerProgressBar(
                             progressBarStatus: c.progressBarStatus.value,
-                            progressBarColor: theme.colorScheme.primary,
+                            progressBarColor: kDoudouPurple,
                           ),
                         ),
                       ),
@@ -246,8 +245,18 @@ class _DesktopMiniPlayer extends StatelessWidget {
 
         if (shortDesktop) {
           return Container(
-            color: theme.bottomSheetTheme.backgroundColor,
-            child: Stack(
+            height: 96,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.6),
+              border: Border(
+                top: BorderSide(color: kDoudouBorder),
+              ),
+            ),
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                    sigmaX: kDoudouBlurBar, sigmaY: kDoudouBlurBar),
+                child: Stack(
               children: [
                 Padding(
                   padding:
@@ -324,20 +333,32 @@ class _DesktopMiniPlayer extends StatelessWidget {
                       init: controller,
                       builder: (c) => MiniPlayerProgressBar(
                         progressBarStatus: c.progressBarStatus.value,
-                        progressBarColor: theme.colorScheme.primary,
+                        progressBarColor: kDoudouPurple,
                       ),
                     ),
                   ),
                 ),
               ],
+                ),
+              ),
             ),
           );
         }
 
         return Container(
-          color: theme.bottomSheetTheme.backgroundColor,
-          child: Center(
-            child: Column(
+          height: 96,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.6),
+            border: Border(
+              top: BorderSide(color: kDoudouBorder),
+            ),
+          ),
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                  sigmaX: kDoudouBlurBar, sigmaY: kDoudouBlurBar),
+              child: Center(
+                child: Column(
               children: [
                 GetX<PlayerController>(builder: (c) {
                   return Padding(
@@ -728,9 +749,11 @@ class _DesktopMiniPlayer extends StatelessWidget {
                     ],
                   ),
                 ),
-              ],
+                ],
+              ),
             ),
           ),
+        ),
         );
       },
     );

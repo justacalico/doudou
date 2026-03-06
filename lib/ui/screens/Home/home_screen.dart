@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 
 import '../Search/components/desktop_search_bar.dart';
 import '/models/album.dart';
+import '/ui/constants/doudou_design.dart';
 import '/models/artist.dart';
 import '/models/media_Item_builder.dart';
 import '/models/playling_from.dart';
@@ -174,7 +175,7 @@ class Body extends StatelessWidget {
               }
               final shuffleTrackCount =
                   libSongs.librarySongsList.length + extraFavCount;
-              const kLibraryCardHeight = 120.0;
+              const kLibraryCardHeight = 140.0;
               const kLibraryCardGap = 8.0;
 
               Widget libraryCard({
@@ -187,13 +188,11 @@ class Body extends StatelessWidget {
                 Color? iconColor,
                 bool useGradient = false,
               }) {
-                final surfaceElevated =
-                    theme.colorScheme.surfaceContainerHighest;
                 final primary = theme.colorScheme.primary;
                 final secondary = theme.colorScheme.secondary;
                 final decoration = useGradient && enabled
                     ? BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(kDoudouRadiusCard),
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -205,8 +204,10 @@ class Body extends StatelessWidget {
                         ),
                       )
                     : BoxDecoration(
-                        color: surfaceElevated,
-                        borderRadius: BorderRadius.circular(16),
+                        color: kDoudouSurface,
+                        border: Border.all(color: kDoudouBorder),
+                        borderRadius:
+                            BorderRadius.circular(kDoudouRadiusCard),
                       );
                 final fgColor = (useGradient && enabled)
                     ? theme.colorScheme.onPrimary
@@ -215,58 +216,88 @@ class Body extends StatelessWidget {
                         : theme.colorScheme.onSurface.withValues(alpha: 0.5));
                 final subColor = (useGradient && enabled)
                     ? theme.colorScheme.onPrimary.withValues(alpha: 0.85)
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.7);
+                    : kDoudouZinc500;
                 final effectiveIconColor = iconColor ?? fgColor;
+                final iconBoxColor = (useGradient && enabled)
+                    ? theme.colorScheme.onPrimary.withValues(alpha: 0.2)
+                    : (iconColor != null
+                        ? iconColor.withValues(alpha: 0.2)
+                        : theme.colorScheme.surfaceContainerHigh);
                 return Material(
                   color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius:
+                      BorderRadius.circular(kDoudouRadiusCard),
                   child: InkWell(
                     onTap: enabled
                         ? onTap
                         : () => ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(emptyMessage)),
                             ),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      height: kLibraryCardHeight,
-                      padding: const EdgeInsets.all(14),
-                      decoration: decoration,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Icon(
-                            icon,
-                            size: 26,
-                            color: effectiveIconColor,
-                          ),
-                          Column(
+                    borderRadius:
+                        BorderRadius.circular(kDoudouRadiusCard),
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: kLibraryCardHeight,
+                          padding: const EdgeInsets.all(24),
+                          decoration: decoration,
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
+                              Container(
+                                width: 48,
+                                height: 48,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: iconBoxColor,
+                                  borderRadius: BorderRadius.circular(
+                                      kDoudouRadiusIconBox),
+                                ),
+                                child: Icon(
+                                  icon,
+                                  size: 26,
+                                  color: effectiveIconColor,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
                               Text(
                                 title,
-                                style: theme.textTheme.titleSmall?.copyWith(
+                                style: theme.textTheme.titleMedium?.copyWith(
                                   color: fgColor,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 4),
                               Text(
                                 subtitle,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: subColor,
-                                  fontSize: 12,
+                                  fontSize: 14,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: IgnorePointer(
+                            child: Container(
+                              width: 96,
+                              height: 96,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: kDoudouPurple.withValues(alpha: 0.1),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -298,11 +329,27 @@ class Body extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          context.l10n.yourLibrary,
-                          style: theme.textTheme.titleLarge,
+                        Row(
+                          children: [
+                            Text(
+                              context.l10n.yourLibrary,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 4,
+                              height: 4,
+                              decoration: const BoxDecoration(
+                                color: kDoudouPurple,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 24),
                         LayoutBuilder(
                           builder: (context, constraints) {
                             return Row(
@@ -316,6 +363,9 @@ class Body extends StatelessWidget {
                                       useGradient: false,
                                       enabled: hasLibrarySongs,
                                       emptyMessage: context.l10n.noSongsInLibrary,
+                                      iconColor: hasLibrarySongs
+                                          ? kDoudouPurple
+                                          : null,
                                       onTap: hasLibrarySongs
                                           ? () async {
                                               final l10n = context.l10n;
@@ -469,7 +519,7 @@ class Body extends StatelessWidget {
                                           : null,
                                       icon: Icons.favorite_border,
                                       iconColor: hasFavorites
-                                          ? theme.colorScheme.error
+                                          ? kDoudouRed
                                           : null,
                                       title: context.l10n.favorites,
                                       subtitle: context.l10n.shuffleLikedSongs(
@@ -509,7 +559,7 @@ class Body extends StatelessWidget {
                                           : null,
                                       icon: Icons.download,
                                       iconColor: hasDownloads
-                                          ? theme.colorScheme.onSurface
+                                          ? kDoudouBlue
                                           : null,
                                       title: context.l10n.downloads,
                                       subtitle: context.l10n.availableOffline,
@@ -531,10 +581,12 @@ class Body extends StatelessWidget {
                       _buildTrackRowSection(
                         context: context,
                         title: context.l10n.homeContinueListening,
-                        subtitle: context.l10n.homeContinueListeningSubtitle,
+                        subtitle:
+                            context.l10n.homeContinueListeningSubtitle,
                         items: resolved.continueListening,
                         playLabel: context.l10n.homeContinueListening,
                         playerController: playerController,
+                        showViewAll: true,
                       ),
                     );
                     content.add(const SizedBox(height: 32));
@@ -705,21 +757,65 @@ class Body extends StatelessWidget {
     required List<MediaItem> items,
     required String playLabel,
     required PlayerController playerController,
+    bool showViewAll = false,
   }) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: theme.textTheme.titleLarge,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 4,
+                        height: 4,
+                        decoration: const BoxDecoration(
+                          color: kDoudouPurple,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: kDoudouZinc500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (showViewAll)
+              TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                  foregroundColor: kDoudouPurpleLight,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                child: Text(
+                  context.l10n.viewAll.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -734,54 +830,72 @@ class Body extends StatelessWidget {
                 padding: EdgeInsets.only(
                   right: index < items.length - 1 ? 12 : 0,
                 ),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () {
-                    playerController.playPlayListSong(
-                      items,
-                      index,
-                      playfrom: PlaylingFrom(
-                        name: playLabel,
-                        type: PlaylingFromType.SELECTION,
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius:
+                      BorderRadius.circular(kDoudouRadiusIconBox),
+                  child: InkWell(
+                    borderRadius:
+                        BorderRadius.circular(kDoudouRadiusIconBox),
+                    onTap: () {
+                      playerController.playPlayListSong(
+                        items,
+                        index,
+                        playfrom: PlaylingFrom(
+                          name: playLabel,
+                          type: PlaylingFromType.SELECTION,
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.transparent),
+                        borderRadius:
+                            BorderRadius.circular(kDoudouRadiusIconBox),
                       ),
-                    );
-                  },
-                  child: SizedBox(
-                    width: 280,
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 2),
-                        ImageWidget(
-                          song: track,
-                          size: 56,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                track.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.titleSmall
-                                    ?.copyWith(fontWeight: FontWeight.w600),
+                      child: SizedBox(
+                        width: 280,
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: ImageWidget(
+                                song: track,
+                                size: 56,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "${track.artist ?? context.l10n.unknownArtist} • ${track.album ?? context.l10n.unknownAlbum}",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.7),
-                                ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    track.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.titleSmall
+                                        ?.copyWith(
+                                            fontWeight: FontWeight.w600),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "${track.artist ?? context.l10n.unknownArtist} • ${track.album ?? context.l10n.unknownAlbum}",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodySmall
+                                        ?.copyWith(
+                                            color: kDoudouZinc500),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -803,17 +917,35 @@ class Body extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: theme.textTheme.titleLarge,
+        Row(
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: const BoxDecoration(
+                color: kDoudouPurple,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+        if (subtitle.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: kDoudouZinc500,
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 12),
         SizedBox(
           height: 230,
@@ -828,7 +960,8 @@ class Body extends StatelessWidget {
                   right: index < playlists.length - 1 ? 12 : 0,
                 ),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius:
+                      BorderRadius.circular(kDoudouRadiusCard),
                   onTap: () {
                     ScreenNavigationSetup.pushContentRoute(
                       ScreenNavigationSetup.playlistScreen,
@@ -841,7 +974,8 @@ class Body extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius:
+                              BorderRadius.circular(kDoudouRadiusCard),
                           child: ImageWidget(
                             playlist: playlist,
                             size: 180,
@@ -876,15 +1010,31 @@ class Body extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: theme.textTheme.titleLarge,
+        Row(
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: const BoxDecoration(
+                color: kDoudouPurple,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         Text(
           subtitle,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            color: kDoudouZinc500,
           ),
         ),
         const SizedBox(height: 12),
@@ -919,7 +1069,8 @@ class Body extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius:
+                              BorderRadius.circular(kDoudouRadiusCard),
                           child: ImageWidget(
                             album: album,
                             size: 180,

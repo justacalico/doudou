@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:doudou/ui/constants/doudou_design.dart';
 
 class CustomExpansionTile extends StatelessWidget {
   final String title;
@@ -18,26 +19,20 @@ class CustomExpansionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(kDoudouRadiusCard),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          filter: ImageFilter.blur(
+              sigmaX: kDoudouBlurSidebar * 0.6,
+              sigmaY: kDoudouBlurSidebar * 0.6),
           child: Container(
             decoration: BoxDecoration(
-              color: isDark 
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.black.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: isDark 
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.black.withValues(alpha: 0.1),
-                width: 0.5,
-              ),
+              color: kDoudouSurface,
+              borderRadius: BorderRadius.circular(kDoudouRadiusCard),
+              border: Border.all(color: kDoudouBorder, width: 1),
             ),
             child: Theme(
               data: theme.copyWith(dividerColor: Colors.transparent),
@@ -61,10 +56,11 @@ class CustomExpansionTile extends StatelessWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
+                    color: kDoudouPurple.withValues(alpha: 0.15),
+                    borderRadius:
+                        BorderRadius.circular(kDoudouRadiusIconBox),
                   ),
-                  child: Icon(icon, size: 22, color: theme.colorScheme.primary),
+                  child: Icon(icon, size: 22, color: kDoudouPurple),
                 ),
                 children: children,
               ),
