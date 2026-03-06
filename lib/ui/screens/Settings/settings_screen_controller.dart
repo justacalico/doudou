@@ -128,6 +128,10 @@ class SettingsScreenController extends GetxController {
 
   @override
   void onInit() {
+    if (servers.isEmpty) {
+      servers.assignAll([_defaultServer]);
+      activeServerId.value = _defaultServer.id;
+    }
     _setInitValue();
     _createInAppSongDownDir();
     PackageInfo.fromPlatform().then((info) {
