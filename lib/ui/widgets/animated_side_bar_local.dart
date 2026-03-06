@@ -228,34 +228,16 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
   }
 
   Widget _buildDoudouLogo(bool useWideLayout) {
-    final accent = widget.selectedIconColor;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                accent.withValues(alpha: 0.95),
-                accent.withValues(alpha: 0.75),
-              ],
-            ),
-            boxShadow: const [],
-          ),
-          child: Center(
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-            ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.asset(
+            widget.mainLogoImage,
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
           ),
         ),
         if (useWideLayout && widget.appName != null) ...[
