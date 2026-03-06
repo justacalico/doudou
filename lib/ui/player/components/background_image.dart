@@ -32,16 +32,9 @@ class BackgroundImage extends StatelessWidget {
                         if (snapshot.connectionState == ConnectionState.done &&
                             snapshot.hasData &&
                             snapshot.data == true) {
-
-                          /// if theme mode is dynamic then set the theme with image
-                          if (Get.find<SettingsScreenController>()
-                                  .themeModetype
-                                  .value ==
-                              ThemeType.dynamic) {
-                            Get.find<ThemeController>().setTheme(
-                                FileImage(imgFile),
-                                playerController.currentSong.value!.id);
-                          }
+                          Get.find<ThemeController>().setTheme(
+                              FileImage(imgFile),
+                              playerController.currentSong.value!.id);
 
                           return Image.file(
                             imgFile,
@@ -58,16 +51,12 @@ class BackgroundImage extends StatelessWidget {
                 : CachedNetworkImage(
                     memCacheHeight: cacheHeight,
                     imageBuilder: (context, imageProvider) {
-                      Get.find<SettingsScreenController>()
-                                  .themeModetype
-                                  .value ==
-                              ThemeType.dynamic
-                          ? Future.delayed(
-                              const Duration(milliseconds: 50),
-                              () => Get.find<ThemeController>().setTheme(
-                                  imageProvider,
-                                  playerController.currentSong.value!.id))
-                          : null;
+                      Future.delayed(
+                        const Duration(milliseconds: 50),
+                        () => Get.find<ThemeController>().setTheme(
+                            imageProvider,
+                            playerController.currentSong.value!.id),
+                      );
                       return Image(
                         image: imageProvider,
                         fit: BoxFit.cover,

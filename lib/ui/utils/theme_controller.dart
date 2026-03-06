@@ -30,6 +30,8 @@ ThemeType themeTypeFromStorage(dynamic rawThemeModeType) {
 int themeTypeToStorage(ThemeType themeType) =>
     ThemeType.values.indexOf(themeType);
 
+const Color _peachPinkFallback = Color(0xFFE8A598);
+
 class ThemeController extends GetxController {
   final primaryColor = Colors.deepPurple[400].obs;
   final dynamicColor = Colors.deepPurple[400]!.obs;
@@ -38,7 +40,6 @@ class ThemeController extends GetxController {
   bool _hasTemporaryDynamicAccent = false;
   Color? _temporaryDynamicAccent;
 
-  /// The method channel for setting the title bar color on Windows.
   final platform = const MethodChannel('win_titlebar_color');
   String? currentSongId;
   late Brightness systemBrightness;
@@ -48,7 +49,7 @@ class ThemeController extends GetxController {
         WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
     final appPrefs = Hive.box('AppPrefs');
-    final primaryInt = appPrefs.get("themePrimaryColor") ?? 4278199603;
+    final primaryInt = appPrefs.get("themePrimaryColor") ?? _peachPinkFallback.toARGB32();
     primaryColor.value = Color(primaryInt);
 
     final dynamicColorInt = appPrefs.get("dynamicColorPrimary") ?? primaryInt;
@@ -65,6 +66,17 @@ class ThemeController extends GetxController {
     _listenSystemBrightness();
 
     super.onInit();
+  }
+
+  void setNowPlayingAccent(Color? color) {
+    primaryColor.value = color ?? _peachPinkFallback;
+    currentSongId = null;
+    if (color != null) {
+      final appPrefs = Hive.box('AppPrefs');
+      appPrefs.put("themePrimaryColor", primaryColor.value!.toARGB32());
+    }
+    final savedType = themeTypeFromStorage(Hive.box('AppPrefs').get("themeModeType"));
+    changeThemeModeType(savedType);
   }
 
   void _listenSystemBrightness() {
@@ -116,18 +128,12 @@ class ThemeController extends GetxController {
       primaryColor.value = paletteColor.color.withLightness(0.10);
       textColor.value = Colors.white54;
     }
-    final primarySwatch = _createMaterialColor(primaryColor.value!);
     final appPrefs = Hive.box('AppPrefs');
     currentSongId = songId;
     appPrefs.put("themePrimaryColor", (primaryColor.value!).toARGB32());
+    dynamicColor.value = primaryColor.value!;
+    appPrefs.put("dynamicColorPrimary", primaryColor.value!.toARGB32());
     final savedType = themeTypeFromStorage(appPrefs.get("themeModeType"));
-    if (savedType == ThemeType.dynamic) {
-      themedata.value = _createThemeData(primarySwatch, ThemeType.dynamic,
-          textColor: textColor.value,
-          titleColorSwatch: _createMaterialColor(textColor.value));
-      setWindowsTitleBarColor(themedata.value!.scaffoldBackgroundColor);
-      return;
-    }
     changeThemeModeType(savedType);
   }
 
@@ -179,26 +185,18 @@ class ThemeController extends GetxController {
     }
   }
 
-  ThemeData _createThemeData(MaterialColor? primarySwatch, ThemeType themeType,
-      {MaterialColor? titleColorSwatch, Color? textColor}) {
+  ThemeData _createThemeData(MaterialColor? primarySwatch, ThemeType themeType) {
+    final accent = primaryColor.value ?? _peachPinkFallback;
     final theme = switch (themeType) {
       ThemeType.dynamic => DoudouTheme.dark(
           accent: (primarySwatch ?? _currentDynamicSwatch())[500] ??
               primaryColor.value ??
-              Colors.deepPurple[400]!,
+              _peachPinkFallback,
         ),
-      ThemeType.dark => DoudouTheme.dark(
-          accent: primaryColor.value ?? Colors.deepPurple[400]!,
-        ),
-      ThemeType.oled => DoudouTheme.oled(
-          accent: primaryColor.value ?? Colors.deepPurple[400]!,
-        ),
-      ThemeType.light => DoudouTheme.light(
-          accent: primaryColor.value ?? Colors.deepPurple[400]!,
-        ),
-      ThemeType.system => DoudouTheme.dark(
-          accent: primaryColor.value ?? Colors.deepPurple[400]!,
-        ),
+      ThemeType.dark => DoudouTheme.dark(accent: accent),
+      ThemeType.oled => DoudouTheme.oled(accent: accent),
+      ThemeType.light => DoudouTheme.light(accent: accent),
+      ThemeType.system => DoudouTheme.dark(accent: accent),
     };
 
     _applySystemUi(theme);

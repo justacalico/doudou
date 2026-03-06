@@ -120,7 +120,12 @@ class PlayerController extends GetxController
     if (GetPlatform.isWindows) {
       Get.put(WindowsAudioService());
     }
-    _restorePrevSession();
+    _restorePrevSession().then((_) {
+      if (currentSong.value == null &&
+          Get.isRegistered<ThemeController>()) {
+        Get.find<ThemeController>().setNowPlayingAccent(null);
+      }
+    });
     super.onReady();
   }
 
@@ -327,6 +332,11 @@ class PlayerController extends GetxController
         // reset player visible state when player is in gesture mode
         if (Get.find<SettingsScreenController>().playerUi.value == 1) {
           gesturePlayerVisibleState.value = 2;
+        }
+      } else {
+        currentSong.value = null;
+        if (Get.isRegistered<ThemeController>()) {
+          Get.find<ThemeController>().setNowPlayingAccent(null);
         }
       }
     });
