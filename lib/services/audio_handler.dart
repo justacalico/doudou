@@ -307,7 +307,18 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           currentSong.duration == null ||
           currentIndex == 0;
       if (usePlayerDuration && duration.inSeconds > 0) {
-        final newMediaItem = currentSong.copyWith(duration: duration);
+        Duration effectiveDuration = duration;
+        if (GetPlatform.isIOS &&
+            currentSong.duration != null &&
+            currentSong.duration!.inMilliseconds > 0) {
+          final metaMs = currentSong.duration!.inMilliseconds;
+          final playerMs = duration.inMilliseconds;
+          if (playerMs >= (metaMs * 1.8).round() &&
+              playerMs <= (metaMs * 2.2).round()) {
+            effectiveDuration = currentSong.duration!;
+          }
+        }
+        final newMediaItem = currentSong.copyWith(duration: effectiveDuration);
         mediaItem.add(newMediaItem);
       }
     });
