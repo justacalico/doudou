@@ -10,8 +10,10 @@ import 'package:doudou/models/thumbnail.dart';
 import 'package:doudou/ui/widgets/playlist_album_scroll_behaviour.dart';
 
 import '../../../services/downloader.dart';
+import '../../constants/layout.dart';
 import '../../navigator.dart';
 import '../../player/player_controller.dart';
+import '../../shell_controller.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/snackbar.dart';
 import '../../widgets/song_list_tile.dart';
@@ -38,6 +40,7 @@ class AlbumScreen extends StatelessWidget {
         isDesktop ? size.height * 0.4 : (landscape ? size.height : size.width);
     final showMetaOverlay = !landscape || isDesktop;
     final theme = Theme.of(context);
+    final useBottomNav = Get.find<ShellController>().useBottomNav.value;
 
     return Scaffold(
       body: NotificationListener<ScrollNotification>(
@@ -54,7 +57,10 @@ class AlbumScreen extends StatelessWidget {
             Obx(() => ScrollConfiguration(
                   behavior: PlaylistAlbumScrollBehaviour(),
                   child: ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 120),
+                    padding: EdgeInsets.only(
+                        bottom: useBottomNav
+                            ? kContentBottomPaddingWithBottomNav
+                            : 120),
                     itemCount: albumController.isContentFetched.isFalse
                         ? 1
                         : (albumController.songList.isEmpty

@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 
 import '/models/playling_from.dart';
 import '/models/thumbnail.dart';
+import '/ui/constants/layout.dart';
 import '/ui/widgets/playlist_album_scroll_behaviour.dart';
 import '../../../services/downloader.dart';
 import '../../navigator.dart';
@@ -41,6 +42,7 @@ class PlaylistScreen extends StatelessWidget {
         isDesktop ? size.height * 0.4 : (landscape ? size.height : size.width);
     final showMetaOverlay = !landscape || isDesktop;
     final theme = Theme.of(context);
+    final useBottomNav = Get.find<ShellController>().useBottomNav.value;
 
     return Scaffold(
       body: NotificationListener<ScrollNotification>(
@@ -57,7 +59,10 @@ class PlaylistScreen extends StatelessWidget {
             Obx(() => ScrollConfiguration(
                   behavior: PlaylistAlbumScrollBehaviour(),
                   child: ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 120),
+                    padding: EdgeInsets.only(
+                        bottom: useBottomNav
+                            ? kContentBottomPaddingWithBottomNav
+                            : 120),
                     itemCount: playlistController.isContentFetched.isFalse
                         ? 1
                         : (playlistController.songList.isEmpty
