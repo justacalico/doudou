@@ -235,8 +235,12 @@ class Body extends StatelessWidget {
                             ),
                     borderRadius:
                         BorderRadius.circular(kDoudouRadiusCard),
-                    child: Stack(
-                      children: [
+                    child: ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(kDoudouRadiusCard),
+                      child: Stack(
+                        clipBehavior: Clip.hardEdge,
+                        children: [
                         Container(
                           height: kLibraryCardHeight,
                           padding: const EdgeInsets.all(24),
@@ -298,6 +302,7 @@ class Body extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
                     ),
                   ),
                 );
