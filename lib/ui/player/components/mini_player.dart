@@ -11,6 +11,8 @@ import 'package:widget_marquee/widget_marquee.dart';
 import '/ui/widgets/lyrics_dialog.dart';
 import '/ui/widgets/song_info_dialog.dart';
 import '/ui/player/player_controller.dart';
+import '/ui/screens/Settings/settings_screen_controller.dart';
+import '/ui/utils/theme_controller.dart';
 import '../../widgets/add_to_playlist.dart';
 import '../../widgets/sleep_timer_bottom_sheet.dart';
 import '../../widgets/song_download_btn.dart';
@@ -235,6 +237,10 @@ class _DesktopMiniPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final useDynamicTheme = Get.find<SettingsScreenController>()
+            .themeModetype
+            .value ==
+        ThemeType.dynamic;
     return LayoutBuilder(
       builder: (context, constraints) {
         final shortDesktop = constraints.maxHeight < 90;
@@ -247,16 +253,16 @@ class _DesktopMiniPlayer extends StatelessWidget {
           return Container(
             height: 96,
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.6),
+              color: useDynamicTheme
+                  ? Colors.black.withValues(alpha: 0.6)
+                  : kDoudouZinc900.withValues(alpha: 0.9),
               border: Border(
                 top: BorderSide(color: kDoudouBorder),
               ),
             ),
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                    sigmaX: kDoudouBlurBar, sigmaY: kDoudouBlurBar),
-                child: Stack(
+            child: Builder(
+              builder: (context) {
+                final content = Stack(
               children: [
                 Padding(
                   padding:
@@ -339,8 +345,17 @@ class _DesktopMiniPlayer extends StatelessWidget {
                   ),
                 ),
               ],
-                ),
-              ),
+                );
+
+                if (!useDynamicTheme) return content;
+                return ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                        sigmaX: kDoudouBlurBar, sigmaY: kDoudouBlurBar),
+                    child: content,
+                  ),
+                );
+              },
             ),
           );
         }
@@ -348,16 +363,16 @@ class _DesktopMiniPlayer extends StatelessWidget {
         return Container(
           height: 96,
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.6),
+            color: useDynamicTheme
+                ? Colors.black.withValues(alpha: 0.6)
+                : kDoudouZinc900.withValues(alpha: 0.9),
             border: Border(
               top: BorderSide(color: kDoudouBorder),
             ),
           ),
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                  sigmaX: kDoudouBlurBar, sigmaY: kDoudouBlurBar),
-              child: Center(
+          child: Builder(
+            builder: (context) {
+              final content = Center(
                 child: Column(
               children: [
                 GetX<PlayerController>(builder: (c) {
@@ -751,9 +766,18 @@ class _DesktopMiniPlayer extends StatelessWidget {
                 ),
                 ],
               ),
-            ),
+            );
+
+              if (!useDynamicTheme) return content;
+              return ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                      sigmaX: kDoudouBlurBar, sigmaY: kDoudouBlurBar),
+                  child: content,
+                ),
+              );
+            },
           ),
-        ),
         );
       },
     );
