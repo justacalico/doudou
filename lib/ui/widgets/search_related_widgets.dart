@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../screens/Search/search_result_screen_controller.dart';
 import '/models/album.dart';
 import '/models/artist.dart';
+import '/models/media_Item_builder.dart';
 // import '/models/playlist.dart';
 import '/ui/widgets/content_list_widget.dart';
 import 'separate_tab_item_widget.dart';
@@ -61,7 +62,7 @@ class ResultWidget extends StatelessWidget {
     for (dynamic item in searchResScrController.resultContent.entries) {
       if (item.key == "Songs" || item.key == "Videos") {
         list.add(SeparateTabItemWidget(
-          items: List<MediaItem>.from(item.value),
+          items: _toMediaItemList(item.value),
           title: item.key,
           isCompleteList: false,
         ));
@@ -91,5 +92,18 @@ class ResultWidget extends StatelessWidget {
     }
 
     return list;
+  }
+
+  static List<MediaItem> _toMediaItemList(dynamic value) {
+    if (value == null || value is! List) return [];
+    final out = <MediaItem>[];
+    for (final e in value) {
+      if (e is MediaItem) {
+        out.add(e);
+      } else if (e is Map) {
+        out.add(MediaItemBuilder.fromJson(Map<String, dynamic>.from(e)));
+      }
+    }
+    return out;
   }
 }

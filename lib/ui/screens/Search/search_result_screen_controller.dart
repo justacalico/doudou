@@ -1,6 +1,8 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../utils/helper.dart';
+import '/models/media_Item_builder.dart';
 import '/ui/shell_controller.dart';
 import '../Home/home_screen_controller.dart';
 import '../Settings/settings_screen_controller.dart';
@@ -60,7 +62,10 @@ class SearchResultScreenController extends GetxController
           filter: tabName.replaceAll(" ", "_").toLowerCase(),
           limit: itemCount,
           filterParams: resultContent['searchEndpoint']?[tabName]);
-      separatedResultContent[tabName] = x[tabName];
+      final raw = x[tabName];
+      separatedResultContent[tabName] = (tabName == 'Songs' || tabName == 'Videos')
+          ? _toMediaItemList(raw)
+          : (raw ?? []);
       additionalParamNext[tabName] = x['params'];
       isSeparatedResultContentFetced.value = true;
       final scrollController = scrollControllers[tabName];
@@ -87,7 +92,12 @@ class SearchResultScreenController extends GetxController
     final x = await _backend.getSearchContinuation(
         Map<String, dynamic>.from(additionalParamNext[tabName] ?? {}));
     final list = x[tabName];
-    if (list != null) (separatedResultContent[tabName]).addAll(list);
+    if (list != null) {
+      final toAdd = (tabName == 'Songs' || tabName == 'Videos')
+          ? _toMediaItemList(list)
+          : list as List<dynamic>;
+      (separatedResultContent[tabName] as List).addAll(toAdd);
+    }
     if (x['params'] != null) additionalParamNext[tabName] = x['params'];
     separatedResultContent.refresh();
 
@@ -96,6 +106,19 @@ class SearchResultScreenController extends GetxController
 
   void viewAllCallback(String text) {
     onDestinationSelected(railItems.indexOf(text) + 1);
+  }
+
+  static List<MediaItem> _toMediaItemList(dynamic value) {
+    if (value == null || value is! List) return [];
+    final out = <MediaItem>[];
+    for (final e in value) {
+      if (e is MediaItem) {
+        out.add(e);
+      } else if (e is Map) {
+        out.add(MediaItemBuilder.fromJson(Map<String, dynamic>.from(e)));
+      }
+    }
+    return out;
   }
 
   bool _showSearchTab(String key, BackendCapabilities caps) {
