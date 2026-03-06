@@ -283,7 +283,7 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
               height: 48,
               child: Center(
                 child: Icon(
-                  _effectiveMinimize ? Icons.menu : Icons.close,
+                  _effectiveMinimize ? Icons.menu : Icons.keyboard_double_arrow_left,
                   size: 20,
                   color: widget.unselectedIconColor,
                 ),
