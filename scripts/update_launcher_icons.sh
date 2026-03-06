@@ -8,9 +8,9 @@ if ! command -v magick >/dev/null 2>&1 && ! command -v convert >/dev/null 2>&1; 
   exit 1
 fi
 if command -v magick >/dev/null 2>&1; then
-  magick -background none -resize 1024x1024 -density 300 assets/icons/doudou.svg assets/icons/icon.png
+  magick -background "#7c3aed" -density 300 assets/icons/doudou.svg -resize 1024x1024 -flatten assets/icons/icon.png
 elif command -v convert >/dev/null 2>&1; then
-  convert -background none -resize 1024x1024 -density 300 assets/icons/doudou.svg assets/icons/icon.png
+  convert -background "#7c3aed" -density 300 assets/icons/doudou.svg -resize 1024x1024 -flatten assets/icons/icon.png
 fi
 if [ ! -f assets/icons/icon.png ]; then
   echo "Failed to generate icon.png"

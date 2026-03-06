@@ -308,17 +308,38 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           currentIndex == 0;
       if (usePlayerDuration && duration.inSeconds > 0) {
         Duration effectiveDuration = duration;
-        if (GetPlatform.isIOS &&
-            currentSong.duration != null &&
-            currentSong.duration!.inMilliseconds > 0) {
-          final metaMs = currentSong.duration!.inMilliseconds;
-          final playerMs = duration.inMilliseconds;
-          if (playerMs >= (metaMs * 1.8).round() &&
-              playerMs <= (metaMs * 2.2).round()) {
-            effectiveDuration = currentSong.duration!;
+        Map<String, dynamic>? newExtras = currentSong.extras != null
+            ? Map<String, dynamic>.from(currentSong.extras!)
+            : null;
+        if (GetPlatform.isIOS) {
+          final raw = currentSong.extras?['originalDurationMs'];
+          int? originalMs = raw is int ? raw : null;
+          if (originalMs == null || originalMs <= 0) {
+            if (currentSong.duration != null &&
+                currentSong.duration!.inMilliseconds > 0) {
+              originalMs = currentSong.duration!.inMilliseconds;
+              newExtras ??= {};
+              newExtras['originalDurationMs'] = originalMs;
+            }
+          }
+          if (originalMs != null &&
+              originalMs > 0 &&
+              newExtras != null &&
+              !newExtras.containsKey('originalDurationMs')) {
+            newExtras['originalDurationMs'] = originalMs;
+          }
+          if (originalMs != null && originalMs > 0) {
+            final playerMs = duration.inMilliseconds;
+            if (playerMs >= (originalMs * 1.8).round() &&
+                playerMs <= (originalMs * 2.2).round()) {
+              effectiveDuration = Duration(milliseconds: originalMs);
+            }
           }
         }
-        final newMediaItem = currentSong.copyWith(duration: effectiveDuration);
+        final newMediaItem = currentSong.copyWith(
+          duration: effectiveDuration,
+          extras: newExtras ?? currentSong.extras,
+        );
         mediaItem.add(newMediaItem);
       }
     });
@@ -590,7 +611,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           await _playList.clear();
         }
 
-        mediaItem.add(currentSong);
+        final songToAdd = currentSong.duration != null
+            ? currentSong.copyWith(
+                extras: {
+                  ...?currentSong.extras,
+                  'originalDurationMs': currentSong.duration!.inMilliseconds,
+                },
+              )
+            : currentSong;
+        mediaItem.add(songToAdd);
         final streamInfo = await futureStreamInfo;
         if (songIndex != currentIndex) {
           _diag.logEvent(
