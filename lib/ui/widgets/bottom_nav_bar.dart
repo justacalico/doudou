@@ -12,9 +12,11 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final homeScreenController = Get.find<HomeScreenController>();
     final theme = Theme.of(context);
-    final dockColor = theme.colorScheme.surface.withValues(
-      alpha: theme.brightness == Brightness.dark ? 0.14 : 0.24,
-    );
+    final surfaceLuminance = theme.colorScheme.surface.computeLuminance();
+    final isLightSurface = surfaceLuminance > 0.15;
+    final dockAlpha = isLightSurface ? 0.06 : (theme.brightness == Brightness.dark ? 0.14 : 0.24);
+    final borderAlpha = isLightSurface ? 0.06 : (theme.brightness == Brightness.dark ? 0.14 : 0.22);
+    final dockColor = theme.colorScheme.surface.withValues(alpha: dockAlpha);
 
     return Obx(() {
       final idx = homeScreenController.tabIndex.value;
@@ -64,10 +66,7 @@ class BottomNavBar extends StatelessWidget {
                     color: dockColor,
                     borderRadius: BorderRadius.circular(32),
                     border: Border.all(
-                      color: Colors.white.withValues(
-                          alpha: theme.brightness == Brightness.dark
-                              ? 0.14
-                              : 0.22),
+                      color: Colors.white.withValues(alpha: borderAlpha),
                       width: 0.5,
                     ),
                     boxShadow: const [],
