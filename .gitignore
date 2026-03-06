@@ -72,4 +72,3 @@ android/app/.cxx/Debug/*
 /android/app/.cxx
 
 flutter_*.png
-lib/l10n/app_localizations.dart

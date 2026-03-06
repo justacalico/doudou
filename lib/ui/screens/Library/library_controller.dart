@@ -657,6 +657,7 @@ class LibraryPlaylistsController extends GetxController
   }
 
   Future<void> importPlaylistFromJson(BuildContext context) async {
+    final l10n = context.l10n;
     try {
       isImporting.value = true;
       importProgress.value = 0.1;
@@ -670,7 +671,7 @@ class LibraryPlaylistsController extends GetxController
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
-        dialogTitle: context.l10n.importPlaylist,
+        dialogTitle: l10n.importPlaylist,
       );
 
       if (result == null || result.files.isEmpty) {
@@ -687,7 +688,7 @@ class LibraryPlaylistsController extends GetxController
 
       final file = File(result.files.single.path!);
       if (!await file.exists()) {
-        throw FileSystemException(context.l10n.fileNotFound);
+        throw FileSystemException(l10n.fileNotFound);
       }
 
       final jsonString = await file.readAsString();
@@ -699,7 +700,7 @@ class LibraryPlaylistsController extends GetxController
       // Validate JSON structure
       if (!jsonData.containsKey('playlistInfo') ||
           !jsonData.containsKey('songs')) {
-        throw FormatException(context.l10n.invalidPlaylistFile);
+        throw FormatException(l10n.invalidPlaylistFile);
       }
 
       // Create new playlist ID
@@ -709,14 +710,14 @@ class LibraryPlaylistsController extends GetxController
 
       // Create playlist object
       final newPlaylist = Playlist(
-        title: "${playlistInfo['title']} (${context.l10n.imported})",
+        title: "${playlistInfo['title']} (${l10n.imported})",
         playlistId: newPlaylistId,
         thumbnailUrl: playlistInfo['thumbnailUrl'] ??
             (playlistInfo['thumbnails'] != null &&
                     playlistInfo['thumbnails'].isNotEmpty
                 ? playlistInfo['thumbnails'][0]['url']
                 : Playlist.thumbPlaceholderUrl),
-        description: playlistInfo['description'] ?? context.l10n.importedPlaylist,
+        description: playlistInfo['description'] ?? l10n.importedPlaylist,
         isCloudPlaylist: false,
       );
       importProgress.value = 0.6;
@@ -754,7 +755,7 @@ class LibraryPlaylistsController extends GetxController
         ScaffoldMessenger.of(context).showSnackBar(
           snackbar(
             context,
-            "${context.l10n.playlistImportedMsg}: ${newPlaylist.title}",
+            "${l10n.playlistImportedMsg}: ${newPlaylist.title}",
             size: SnackBarSize.MEDIUM,
           ),
         );
@@ -767,15 +768,15 @@ class LibraryPlaylistsController extends GetxController
 
       printERROR("Error importing playlist: $e");
 
-      String errorMsg = context.l10n.importError;
+      String errorMsg = l10n.importError;
       if (e is FileSystemException) {
-        errorMsg = context.l10n.importErrorFileAccess;
+        errorMsg = l10n.importErrorFileAccess;
       } else if (e is FormatException) {
-        errorMsg = context.l10n.importErrorFormat;
+        errorMsg = l10n.importErrorFormat;
       } else if (e.toString().contains("invalidPlaylistFile")) {
-        errorMsg = context.l10n.invalidPlaylistFile;
+        errorMsg = l10n.invalidPlaylistFile;
       } else if (e is HiveError) {
-        errorMsg = context.l10n.importErrorDatabase;
+        errorMsg = l10n.importErrorDatabase;
       }
 
       if (context.mounted) {

@@ -88,8 +88,9 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
           endActionPane: ActionPane(motion: const DrawerMotion(), children: [
             SlidableAction(
               onPressed: (context) {
+                final l10n = context.l10n;
                 playerController.enqueueSong(song).whenComplete(() {
-                  showAppSnackBar(context.l10n.songEnqueueAlert,
+                  showAppSnackBar(l10n.songEnqueueAlert,
                       size: SnackBarSize.MEDIUM);
                 });
               },
@@ -100,8 +101,9 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
             ),
             SlidableAction(
               onPressed: (context) {
+                final l10n = context.l10n;
                 playerController.playNext(song);
-                showAppSnackBar("${context.l10n.playnextMsg} ${(song).title}",
+                showAppSnackBar("${l10n.playnextMsg} ${(song).title}",
                     size: SnackBarSize.BIG);
               },
               backgroundColor: theme.colorScheme.secondary,

@@ -9,7 +9,7 @@ import '../../widgets/image_widget.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/songinfo_bottom_sheet.dart';
 import '../player_controller.dart';
-import 'backgroud_image.dart';
+import 'background_image.dart';
 import 'lyrics_widget.dart';
 import 'player_mobile_bottom_bar.dart';
 
@@ -171,7 +171,7 @@ class _CompactNowPlaying extends StatelessWidget {
           Obx(() {
             if (pc.currentSong.value == null) return const SizedBox.shrink();
             return Positioned.fill(
-              child: BackgroudImage(
+              child: BackgroundImage(
                 key: Key("${pc.currentSong.value?.id}_background"),
                 cacheHeight: 200,
               ),
@@ -735,7 +735,7 @@ class _ExpandedNowPlaying extends StatelessWidget {
 
     return Stack(
       children: [
-        BackgroudImage(
+        BackgroundImage(
           key: Key("${pc.currentSong.value?.id}_background"),
           cacheHeight: 400,
         ),

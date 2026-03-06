@@ -13,7 +13,7 @@ import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 
 import '../../../base_class/playlist_album_screen_con_base.dart';
-import '../../../mixins/additional_opeartion_mixin.dart';
+import '../../../mixins/additional_operation_mixin.dart';
 import '../../../models/album.dart' show Album;
 import '../../../models/media_Item_builder.dart';
 import '../../../models/playlist.dart';
@@ -29,7 +29,7 @@ import '/utils/server_storage.dart';
 ///
 ///Playlist title,image,songs
 class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
-    with AdditionalOpeartionMixin, GetSingleTickerProviderStateMixin {
+    with AdditionalOperationMixin, GetSingleTickerProviderStateMixin {
   final MusicServices _musicServices = Get.find<MusicServices>();
   final playlist = Playlist(
     title: "",
@@ -331,10 +331,11 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
   }
 
   Future<void> exportPlaylistToJson(BuildContext context) async {
+    final l10n = context.l10n;
     if (!await PermissionService.getExtStoragePermission()) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(snackbar(
-            context, context.l10n.permissionDenied,
+            context, l10n.permissionDenied,
             size: SnackBarSize.MEDIUM));
       }
       return;
@@ -346,7 +347,7 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
 
       // Show progress dialog
       if (context.mounted) {
-        _showProgressDialog(context, context.l10n.exportingPlaylist);
+        _showProgressDialog(context, l10n.exportingPlaylist);
       }
 
       // Get appropriate directory based on platform
@@ -394,7 +395,7 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
       String locationMsg = _getLocationMessage(exportDir.path);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(snackbar(
-            context, "${context.l10n.playlistExportedMsg}: $locationMsg",
+            context, "${l10n.playlistExportedMsg}: $locationMsg",
             size: SnackBarSize.MEDIUM));
       }
     } catch (e) {
@@ -405,15 +406,15 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
 
       printERROR("Error exporting playlist: $e");
       
-      String errorMsg = context.l10n.exportError;
+      String errorMsg = l10n.exportError;
       if (e is FileSystemException) {
         if (e.osError?.errorCode == 13) {
-          errorMsg = context.l10n.exportErrorPermission;
+          errorMsg = l10n.exportErrorPermission;
         } else if (e.osError?.errorCode == 28) {
-          errorMsg = context.l10n.exportErrorStorage;
+          errorMsg = l10n.exportErrorStorage;
         }
       } else if (e is FormatException) {
-        errorMsg = context.l10n.exportErrorFormat;
+        errorMsg = l10n.exportErrorFormat;
       }
 
       if (context.mounted) {
@@ -427,10 +428,11 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
   }
 
   Future<void> exportPlaylistToCsv(BuildContext context) async {
+    final l10n = context.l10n;
     if (!await PermissionService.getExtStoragePermission()) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(snackbar(
-            context, context.l10n.permissionDenied,
+            context, l10n.permissionDenied,
             size: SnackBarSize.MEDIUM));
       }
       return;
@@ -442,7 +444,7 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
 
       // Show progress dialog
       if (context.mounted) {
-        _showProgressDialog(context, context.l10n.exportingPlaylist);
+        _showProgressDialog(context, l10n.exportingPlaylist);
       }
 
       // Get appropriate directory based on platform
@@ -485,7 +487,7 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
       String locationMsg = _getLocationMessage(exportDir.path);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(snackbar(
-            context, "${context.l10n.playlistExportedMsg}: $locationMsg",
+            context, "${l10n.playlistExportedMsg}: $locationMsg",
             size: SnackBarSize.MEDIUM));
       }
     } catch (e) {
@@ -496,15 +498,15 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
 
       printERROR("Error exporting playlist to CSV: $e");
       
-      String errorMsg = context.l10n.exportError;
+      String errorMsg = l10n.exportError;
       if (e is FileSystemException) {
         if (e.osError?.errorCode == 13) {
-          errorMsg = context.l10n.exportErrorPermission;
+          errorMsg = l10n.exportErrorPermission;
         } else if (e.osError?.errorCode == 28) {
-          errorMsg = context.l10n.exportErrorStorage;
+          errorMsg = l10n.exportErrorStorage;
         }
       } else if (e is FormatException) {
-        errorMsg = context.l10n.exportErrorFormat;
+        errorMsg = l10n.exportErrorFormat;
       }
 
       if (context.mounted) {

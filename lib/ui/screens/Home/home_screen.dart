@@ -318,6 +318,7 @@ class Body extends StatelessWidget {
                                       emptyMessage: context.l10n.noSongsInLibrary,
                                       onTap: hasLibrarySongs
                                           ? () async {
+                                              final l10n = context.l10n;
                                               final messenger =
                                                   ScaffoldMessenger.of(context);
                                               if (isYouTubeServer) {
@@ -349,7 +350,7 @@ class Body extends StatelessWidget {
                                                   messenger.showSnackBar(
                                                       SnackBar(
                                                           content: Text(
-                                                              context.l10n.noSongsInLibrary)));
+                                                              l10n.noSongsInLibrary)));
                                                   return;
                                                 }
                                                 list.shuffle();
@@ -358,7 +359,7 @@ class Body extends StatelessWidget {
                                                   list,
                                                   0,
                                                   playfrom: PlaylingFrom(
-                                                    name: context.l10n.shuffleAll,
+                                                    name: l10n.shuffleAll,
                                                     type: PlaylingFromType
                                                         .SELECTION,
                                                   ),
@@ -370,7 +371,7 @@ class Body extends StatelessWidget {
                                                   messenger.showSnackBar(
                                                       SnackBar(
                                                           content: Text(
-                                                              context.l10n.noSongsInLibrary)));
+                                                              l10n.noSongsInLibrary)));
                                                   return;
                                                 }
                                                 final list = allSongs.toList();
@@ -380,7 +381,7 @@ class Body extends StatelessWidget {
                                                   list,
                                                   0,
                                                   playfrom: PlaylingFrom(
-                                                    name: context.l10n.shuffleAll,
+                                                    name: l10n.shuffleAll,
                                                     type: PlaylingFromType
                                                         .SELECTION,
                                                   ),
@@ -404,6 +405,7 @@ class Body extends StatelessWidget {
                                       emptyMessage: context.l10n.favoritesEmpty,
                                       onTap: hasFavorites
                                           ? () async {
+                                              final l10n = context.l10n;
                                               final messenger =
                                                   ScaffoldMessenger.of(context);
                                               if (isYouTubeServer) {
@@ -419,7 +421,7 @@ class Body extends StatelessWidget {
                                                   messenger.showSnackBar(
                                                       SnackBar(
                                                           content: Text(
-                                                              context.l10n.favoritesEmpty)));
+                                                              l10n.favoritesEmpty)));
                                                   return;
                                                 }
                                                 list.shuffle();
@@ -428,7 +430,7 @@ class Body extends StatelessWidget {
                                                   list,
                                                   0,
                                                   playfrom: PlaylingFrom(
-                                                    name: context.l10n.favorites,
+                                                    name: l10n.favorites,
                                                     type: PlaylingFromType
                                                         .PLAYLIST,
                                                   ),
@@ -448,7 +450,7 @@ class Body extends StatelessWidget {
                                                   messenger.showSnackBar(
                                                       SnackBar(
                                                           content: Text(
-                                                              context.l10n.favoritesEmpty)));
+                                                              l10n.favoritesEmpty)));
                                                   return;
                                                 }
                                                 list.shuffle();
@@ -457,7 +459,7 @@ class Body extends StatelessWidget {
                                                   list,
                                                   0,
                                                   playfrom: PlaylingFrom(
-                                                    name: context.l10n.favorites,
+                                                    name: l10n.favorites,
                                                     type: PlaylingFromType
                                                         .PLAYLIST,
                                                   ),

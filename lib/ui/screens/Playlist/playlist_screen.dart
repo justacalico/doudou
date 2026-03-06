@@ -97,6 +97,7 @@ class PlaylistScreen extends StatelessWidget {
                                 onPressed: () {
                                   final add = playlistController
                                       .isAddedToLibrary.isFalse;
+                                  final l10n = context.l10n;
                                   playlistController
                                       .addNremoveFromLibrary(
                                           playlistController.playlist.value,
@@ -108,9 +109,9 @@ class PlaylistScreen extends StatelessWidget {
                                       context,
                                       value
                                           ? (add
-                                              ? context.l10n.playlistBookmarkAddAlert
-                                              : context.l10n.listBookmarkRemoveAlert)
-                                          : context.l10n.operationFailed,
+                                              ? l10n.playlistBookmarkAddAlert
+                                              : l10n.listBookmarkRemoveAlert)
+                                          : l10n.operationFailed,
                                       size: SnackBarSize.MEDIUM,
                                     ));
                                   });
@@ -488,7 +489,8 @@ class PlaylistScreen extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.delete),
               title: Text(context.l10n.removePlaylist),
-              onTap: () {
+                onTap: () {
+                final l10n = context.l10n;
                 Navigator.of(context).pop();
                 playlistController
                     .addNremoveFromLibrary(playlistController.playlist.value,
@@ -497,7 +499,7 @@ class PlaylistScreen extends StatelessWidget {
                   Get.nestedKey(ScreenNavigationSetup.id)!.currentState!.pop();
                   ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
                       Get.context!,
-                      value ? context.l10n.playlistRemovedAlert : context.l10n.operationFailed,
+                      value ? l10n.playlistRemovedAlert : l10n.operationFailed,
                       size: SnackBarSize.MEDIUM));
                 });
               },

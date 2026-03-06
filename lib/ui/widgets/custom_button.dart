@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '/utils/app_l10n.dart';
-import 'package:get/get.dart';
 
 class ProceedButton extends StatelessWidget {
   const ProceedButton({

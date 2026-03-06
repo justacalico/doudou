@@ -8,8 +8,8 @@ import '../../screens/Settings/settings_screen_controller.dart';
 import '../../utils/theme_controller.dart';
 import '../player_controller.dart';
 
-class BackgroudImage extends StatelessWidget {
-  const BackgroudImage({super.key, this.cacheHeight});
+class BackgroundImage extends StatelessWidget {
+  const BackgroundImage({super.key, this.cacheHeight});
 
   final int? cacheHeight;
 
