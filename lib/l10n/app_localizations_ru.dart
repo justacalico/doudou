@@ -30,7 +30,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get artists => 'Исполнители';
 
   @override
-  String get albumsFromYourArtists => 'From your artists';
+  String get albumsFromYourArtists => 'От ваших исполнителей';
 
   @override
   String get settings => 'Настройки';
@@ -39,23 +39,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get library => 'Библиотека';
 
   @override
-  String get yourLibrary => 'Your Library';
+  String get yourLibrary => 'Ваша библиотека';
 
   @override
-  String get manage => 'Manage';
+  String get manage => 'Управление';
 
   @override
   String tracksInYourCollection(int count) {
-    return '$count tracks in your collection';
+    return '$count в вашей коллекции';
   }
 
   @override
   String shuffleLikedSongs(int count) {
-    return 'Shuffle $count liked songs';
+    return 'Перемешать $count избранных';
   }
 
   @override
-  String get availableOffline => 'Available offline';
+  String get availableOffline => 'Доступно офлайн';
 
   @override
   String get libSongs => 'Библиотека песен';
@@ -149,63 +149,64 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addMusicToLibraryHint =>
-      'Add music to your library to see it here';
+      'Добавьте музыку в библиотеку, чтобы увидеть её здесь';
 
   @override
-  String get shuffleAll => 'Shuffle all';
+  String get shuffleAll => 'Перемешать всё';
 
   @override
-  String get shuffleFavorites => 'Shuffle favorites';
+  String get shuffleFavorites => 'Перемешать избранное';
 
   @override
-  String get shuffleDownloads => 'Shuffle downloads';
+  String get shuffleDownloads => 'Перемешать загрузки';
 
   @override
-  String get homeContinueListening => 'Continue listening';
+  String get homeContinueListening => 'Продолжить слушать';
 
   @override
-  String get homeContinueListeningSubtitle => 'Pick up where you left off';
+  String get homeContinueListeningSubtitle => 'С того места, где остановились';
 
   @override
-  String get homeBecauseYouLikeArtists => 'Because you like these artists';
+  String get homeBecauseYouLikeArtists =>
+      'Потому что вам нравятся эти исполнители';
 
   @override
   String get homeBecauseYouLikeArtistsSubtitle =>
-      'More tracks from artists you already favorite';
+      'Ещё треки от исполнителей из избранного';
 
   @override
-  String get homePlaylistsSubtitle => 'Playlists from your collection';
+  String get homePlaylistsSubtitle => 'Плейлисты из вашей библиотеки';
 
   @override
-  String get recentlyAddedAlbums => 'Recently added albums';
+  String get recentlyAddedAlbums => 'Недавно добавленные альбомы';
 
   @override
-  String get yourNewestAdditions => 'Your newest additions';
+  String get yourNewestAdditions => 'Недавно добавлено';
 
   @override
-  String get yourArtists => 'Your artists';
+  String get yourArtists => 'Ваши исполнители';
 
   @override
-  String get homeArtistsSubtitle => 'A rotating mix from your artists';
+  String get homeArtistsSubtitle => 'Подборка от ваших исполнителей';
 
   @override
-  String get homeFreshPicks => 'Fresh picks';
+  String get homeFreshPicks => 'Новая подборка';
 
   @override
   String get homeEmptyLibraryMessage =>
-      'Your library is empty. Add some music to get started.';
+      'Библиотека пуста. Добавьте музыку для начала.';
 
   @override
-  String get servers => 'Servers';
+  String get servers => 'Серверы';
 
   @override
-  String get addServer => 'Add server';
+  String get addServer => 'Добавить сервер';
 
   @override
-  String get noServersConfigured => 'No servers configured yet';
+  String get noServersConfigured => 'Серверы ещё не настроены';
 
   @override
-  String get activeServer => 'Active server';
+  String get activeServer => 'Активный сервер';
 
   @override
   String get youtubeMusic => 'YouTube Music';
@@ -220,62 +221,61 @@ class AppLocalizationsRu extends AppLocalizations {
   String get plex => 'Plex';
 
   @override
-  String get plexToken => 'Plex token';
+  String get plexToken => 'Токен Plex';
 
   @override
-  String get serverUrl => 'Server URL';
+  String get serverUrl => 'URL сервера';
 
   @override
-  String get editServer => 'Edit server';
+  String get editServer => 'Изменить сервер';
 
   @override
-  String get save => 'Save';
+  String get save => 'Сохранить';
 
   @override
-  String get add => 'Add';
+  String get add => 'Добавить';
 
   @override
-  String get defaultLabel => 'Default';
+  String get defaultLabel => 'По умолчанию';
 
   @override
-  String get youtubeMusicNoLogin =>
-      'YouTube Music does not require login details.';
+  String get youtubeMusicNoLogin => 'YouTube Music не требует учётных данных.';
 
   @override
-  String get serverUrlRequired => 'Server URL is required';
+  String get serverUrlRequired => 'Укажите URL сервера';
 
   @override
-  String get testConnection => 'Test connection';
+  String get testConnection => 'Проверить подключение';
 
   @override
-  String get connectionSuccess => 'Connection successful';
+  String get connectionSuccess => 'Подключение успешно';
 
   @override
-  String get connectionFailed => 'Connection failed';
+  String get connectionFailed => 'Ошибка подключения';
 
   @override
-  String get playAll => 'Play All';
+  String get playAll => 'Включить всё';
 
   @override
-  String get shuffle => 'Shuffle';
+  String get shuffle => 'Перемешать';
 
   @override
-  String get artistLabel => 'ARTIST';
+  String get artistLabel => 'ИСПОЛНИТЕЛЬ';
 
   @override
-  String get fromWikipedia => 'From Wikipedia';
+  String get fromWikipedia => 'Из Википедии';
 
   @override
-  String get songsCount => 'songs';
+  String get songsCount => 'песен';
 
   @override
-  String get addToLibrary => 'Add to library';
+  String get addToLibrary => 'Добавить в библиотеку';
 
   @override
-  String get noSongsInLibrary => 'No songs in library';
+  String get noSongsInLibrary => 'В библиотеке нет песен';
 
   @override
-  String get favoritesEmpty => 'Favorites is empty';
+  String get favoritesEmpty => 'Избранное пусто';
 
   @override
   String get startRadio => 'Запустить радио';
@@ -326,16 +326,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get upNext => 'Следующий';
 
   @override
-  String get lyrics => 'Lyrics';
+  String get lyrics => 'Текст песни';
 
   @override
-  String get fromAlbum => 'From: ';
+  String get fromAlbum => 'Из: ';
 
   @override
-  String get byArtist => 'By: ';
+  String get byArtist => 'Исполнитель: ';
 
   @override
-  String get playingFrom => 'Playing from ';
+  String get playingFrom => 'Воспроизведение из ';
 
   @override
   String get playingfromAlbum => 'Воспроизвести из альбома';
@@ -433,10 +433,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get themeMode => 'Режим темы';
 
   @override
-  String get dynamicTheme => 'Dynamic';
+  String get dynamicTheme => 'Динамическая';
 
   @override
-  String get dynamicColor => 'Dynamic Colour';
+  String get dynamicColor => 'Динамический цвет';
 
   @override
   String get systemDefault => 'По умолчанию системы';
@@ -516,67 +516,65 @@ class AppLocalizationsRu extends AppLocalizations {
       'Переключится на расположение навигационной панели снизу';
 
   @override
-  String get sidebarMode => 'Sidebar behavior';
+  String get sidebarMode => 'Поведение боковой панели';
 
   @override
-  String get sidebarModeDes =>
-      'Control whether the sidebar is automatic, always collapsed, or always full width.';
+  String get sidebarModeDes => 'Авто, всегда свёрнуто или всегда развёрнуто';
 
   @override
-  String get sidebarModeAuto => 'Auto';
+  String get sidebarModeAuto => 'Авто';
 
   @override
-  String get sidebarModeCollapsed => 'Collapsed';
+  String get sidebarModeCollapsed => 'Свёрнуто';
 
   @override
-  String get sidebarModeExpanded => 'Full view';
+  String get sidebarModeExpanded => 'Развёрнуто';
 
   @override
   String get dynamicColorDes =>
-      'Dynamic theme using a fixed colour (not now playing).';
+      'Динамическая тема с фиксированным цветом (не из воспроизведения)';
 
   @override
-  String get useCustomAccentColor => 'Use custom accent colour';
+  String get useCustomAccentColor => 'Свой цвет акцента';
 
   @override
   String get useCustomAccentColorDes =>
-      'Apply your selected accent colour across all theme modes.';
+      'Применить выбранный цвет во всех темах';
 
   @override
-  String get customAccentColor => 'Custom accent colour';
+  String get customAccentColor => 'Цвет акцента';
 
   @override
-  String get customAccentColorDes =>
-      'Pick the accent colour used across the app.';
+  String get customAccentColorDes => 'Выберите цвет акцента в приложении';
 
   @override
-  String get lyricsDynamicColor => 'Lyrics change accent colour';
+  String get lyricsDynamicColor => 'Цвет акцента из текста';
 
   @override
   String get lyricsDynamicColorDes =>
-      'When a song has synced lyrics, colour words in the lyrics can change the app accent (Dynamic theme only).';
+      'Слова в тексте могут менять цвет акцента (только динамическая тема)';
 
   @override
-  String get syncedLyricsHighlightStyle => 'Synced lyrics highlight style';
+  String get syncedLyricsHighlightStyle => 'Стиль подсветки текста';
 
   @override
   String get syncedLyricsHighlightStyleDes =>
-      'Choose how the active synced lyric line is highlighted.';
+      'Как выделять текущую строку текста';
 
   @override
-  String get lyricsHighlightBlock => 'Block highlight';
+  String get lyricsHighlightBlock => 'Блочная подсветка';
 
   @override
-  String get lyricsHighlightKaraoke => 'Karaoke fill';
+  String get lyricsHighlightKaraoke => 'Караноке-заливка';
 
   @override
-  String get pickDynamicColor => 'Pick dynamic colour';
+  String get pickDynamicColor => 'Выбрать динамический цвет';
 
   @override
-  String get advanced => 'Advanced…';
+  String get advanced => 'Дополнительно…';
 
   @override
-  String get change => 'Change';
+  String get change => 'Изменить';
 
   @override
   String get cacheSongs => 'Кэш песен';
@@ -613,23 +611,23 @@ class AppLocalizationsRu extends AppLocalizations {
       'Включите эту опцию, чтобы отключить анимацию перехода между вкладками';
 
   @override
-  String get animationSpeed => 'Animation speed';
+  String get animationSpeed => 'Скорость анимации';
 
   @override
   String get animationSpeedDes =>
-      'Control the speed of app transitions or turn them off.';
+      'Скорость переходов в приложении или отключение';
 
   @override
-  String get animationSpeedOff => 'Off';
+  String get animationSpeedOff => 'Выкл';
 
   @override
-  String get animationSpeedFast => 'Fast (default)';
+  String get animationSpeedFast => 'Быстро (по умолчанию)';
 
   @override
-  String get animationSpeedNormal => 'Normal';
+  String get animationSpeedNormal => 'Обычно';
 
   @override
-  String get animationSpeedSlow => 'Slow';
+  String get animationSpeedSlow => 'Медленно';
 
   @override
   String get enableSlidableAction => 'Включить скользящие действия';
@@ -751,25 +749,25 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get gitlabDes =>
-      'View GitLab source code\\nif you like this project, don\'t forget to give a ⭐';
+      'Исходный код на GitLab\\nесли нравится проект, поставьте ⭐';
 
   @override
-  String get checkForUpdates => 'Check for updates';
+  String get checkForUpdates => 'Проверить обновления';
 
   @override
-  String get checkForUpdatesOnStartup => 'Check for updates on startup';
+  String get checkForUpdatesOnStartup => 'Проверять обновления при запуске';
 
   @override
-  String get openOpenlystWebsite => 'Open Openlyst website';
+  String get openOpenlystWebsite => 'Открыть сайт Openlyst';
 
   @override
-  String get openGitlab => 'Open GitLab';
+  String get openGitlab => 'Открыть GitLab';
 
   @override
-  String get upToDate => 'You are up to date';
+  String get upToDate => 'Всё актуально';
 
   @override
-  String get checkingForUpdates => 'Checking for updates…';
+  String get checkingForUpdates => 'Проверка обновлений…';
 
   @override
   String get by => 'от';
@@ -919,7 +917,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get newVersionAvailable => 'Доступна новая версия!';
 
   @override
-  String get version => 'Version';
+  String get version => 'Версия';
 
   @override
   String get dontShowInfoAgain => 'Не показывать эту информацию снова';
@@ -1155,41 +1153,79 @@ class AppLocalizationsRu extends AppLocalizations {
       'Если включено, экран устройства будет оставаться включенным во время воспроизведения музыки';
 
   @override
-  String get importedPlaylist => 'Imported playlist';
+  String get importedPlaylist => 'Импортированный плейлист';
 
   @override
-  String get listBookmarkRemoveAlert => 'Bookmark removed!';
+  String get listBookmarkRemoveAlert => 'Закладка удалена!';
 
   @override
-  String get permissionDenied => 'Permission denied';
+  String get permissionDenied => 'Доступ запрещён';
 
   @override
-  String get loading => 'Loading';
+  String get loading => 'Загрузка';
 
   @override
-  String get unknownArtist => 'Unknown Artist';
+  String get unknownArtist => 'Неизвестный исполнитель';
 
   @override
-  String get unknownAlbum => 'Unknown Album';
+  String get unknownAlbum => 'Неизвестный альбом';
 
   @override
-  String get yourMusicCollection => 'Your music collection';
+  String get yourMusicCollection => 'Ваша коллекция музыки';
 
   @override
-  String get more => 'More';
+  String get more => 'Ещё';
 
   @override
-  String get sortByName => 'Sort by name';
+  String get sortByName => 'По имени';
 
   @override
-  String get sortByDate => 'Sort by date';
+  String get sortByDate => 'По дате';
 
   @override
-  String get sortByDuration => 'Sort by duration';
+  String get sortByDuration => 'По длительности';
 
   @override
-  String get sortAscendNDescend => 'Ascending & Descending';
+  String get sortAscendNDescend => 'По возрастанию и убыванию';
 
   @override
-  String get imported => 'Imported';
+  String get imported => 'Импортировано';
+
+  @override
+  String get resyncLibraryNow => 'Синхронизировать библиотеку';
+
+  @override
+  String get playbackDiagnosticsRelease =>
+      'Диагностика воспроизведения (релиз)';
+
+  @override
+  String get viewPlaybackDiagnostics => 'Просмотр диагностики';
+
+  @override
+  String get viewPlaybackDiagnosticsSubtitle => 'Открыть логи и скопировать';
+
+  @override
+  String get clearPlaybackDiagnostics => 'Очистить диагностику';
+
+  @override
+  String get clearPlaybackDiagnosticsSubtitle =>
+      'Удалить все сохранённые события';
+
+  @override
+  String get playbackDiagnostics => 'Диагностика воспроизведения';
+
+  @override
+  String get toggleFormat => 'Формат';
+
+  @override
+  String get copyDiagnostics => 'Копировать диагностику';
+
+  @override
+  String get shrinkSidebar => 'Свернуть панель';
+
+  @override
+  String get playlistTypeLabel => 'ПЛЕЙЛИСТ';
+
+  @override
+  String get playbackDiagnosticsCleared => 'Диагностика очищена';
 }

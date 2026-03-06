@@ -419,7 +419,7 @@ class PlaylistScreen extends StatelessWidget {
                                 color: Colors.white.withValues(alpha: 0.1)),
                           ),
                           child: Text(
-                            "PLAYLIST",
+                            context.l10n.playlistTypeLabel,
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,

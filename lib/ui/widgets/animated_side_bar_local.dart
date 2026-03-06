@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '/utils/app_l10n.dart';
+
 class SideBarAnimatedLocal extends StatefulWidget {
   final ValueChanged<int>? onTap;
   final Color sideBarColor;
@@ -218,7 +220,7 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
                     top: 8,
                   ),
                   child: Tooltip(
-                    message: widget.shrinkSidebarLabel ?? 'Shrink sidebar',
+                    message: widget.shrinkSidebarLabel ?? context.l10n.shrinkSidebar,
                     child: Material(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(12),

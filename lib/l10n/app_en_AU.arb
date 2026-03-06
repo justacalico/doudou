@@ -375,5 +375,17 @@
   "exportToYouTubeMusicSubtitle": "It will push your playlist (songs < 50) to current queue, don't forget to add to playlist/save after opening in YtMusic",
   "linkCopied": "Link copied to clipboard",
   "keepScreenOnWhilePlaying": "Keep screen on while playing",
-  "keepScreenOnWhilePlayingDes": "If enabled, the device screen will stay awake while music is playing"
+  "keepScreenOnWhilePlayingDes": "If enabled, the device screen will stay awake while music is playing",
+  "resyncLibraryNow": "Resync Library Now",
+  "playbackDiagnosticsRelease": "Playback diagnostics (release)",
+  "viewPlaybackDiagnostics": "View playback diagnostics",
+  "viewPlaybackDiagnosticsSubtitle": "Open logs and copy to clipboard",
+  "clearPlaybackDiagnostics": "Clear playback diagnostics",
+  "clearPlaybackDiagnosticsSubtitle": "Delete all stored diagnostic events",
+  "playbackDiagnostics": "Playback diagnostics",
+  "toggleFormat": "Toggle format",
+  "copyDiagnostics": "Copy diagnostics",
+  "shrinkSidebar": "Shrink sidebar",
+  "playlistTypeLabel": "PLAYLIST",
+  "playbackDiagnosticsCleared": "Playback diagnostics cleared"
 }

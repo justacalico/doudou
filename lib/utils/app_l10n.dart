@@ -22,6 +22,12 @@ extension AppL10n on BuildContext {
         return l.results;
       case 'quickpicks':
         return l.quickpicks;
+      case 'featuredplaylists':
+        return l.featuredplaylists;
+      case 'communityplaylists':
+        return l.communityplaylists;
+      case 'librarysongs':
+        return l.libSongs;
       default:
         return key;
     }

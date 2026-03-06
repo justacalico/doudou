@@ -1184,6 +1184,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get imported => 'Imported';
+
+  @override
+  String get resyncLibraryNow => 'Resync Library Now';
+
+  @override
+  String get playbackDiagnosticsRelease => 'Playback diagnostics (release)';
+
+  @override
+  String get viewPlaybackDiagnostics => 'View playback diagnostics';
+
+  @override
+  String get viewPlaybackDiagnosticsSubtitle =>
+      'Open logs and copy to clipboard';
+
+  @override
+  String get clearPlaybackDiagnostics => 'Clear playback diagnostics';
+
+  @override
+  String get clearPlaybackDiagnosticsSubtitle =>
+      'Delete all stored diagnostic events';
+
+  @override
+  String get playbackDiagnostics => 'Playback diagnostics';
+
+  @override
+  String get toggleFormat => 'Toggle format';
+
+  @override
+  String get copyDiagnostics => 'Copy diagnostics';
+
+  @override
+  String get shrinkSidebar => 'Shrink sidebar';
+
+  @override
+  String get playlistTypeLabel => 'PLAYLIST';
+
+  @override
+  String get playbackDiagnosticsCleared => 'Playback diagnostics cleared';
 }
 
 /// The translations for English, as used in Australia (`en_AU`).
@@ -2324,4 +2362,42 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   @override
   String get keepScreenOnWhilePlayingDes =>
       'If enabled, the device screen will stay awake while music is playing';
+
+  @override
+  String get resyncLibraryNow => 'Resync Library Now';
+
+  @override
+  String get playbackDiagnosticsRelease => 'Playback diagnostics (release)';
+
+  @override
+  String get viewPlaybackDiagnostics => 'View playback diagnostics';
+
+  @override
+  String get viewPlaybackDiagnosticsSubtitle =>
+      'Open logs and copy to clipboard';
+
+  @override
+  String get clearPlaybackDiagnostics => 'Clear playback diagnostics';
+
+  @override
+  String get clearPlaybackDiagnosticsSubtitle =>
+      'Delete all stored diagnostic events';
+
+  @override
+  String get playbackDiagnostics => 'Playback diagnostics';
+
+  @override
+  String get toggleFormat => 'Toggle format';
+
+  @override
+  String get copyDiagnostics => 'Copy diagnostics';
+
+  @override
+  String get shrinkSidebar => 'Shrink sidebar';
+
+  @override
+  String get playlistTypeLabel => 'PLAYLIST';
+
+  @override
+  String get playbackDiagnosticsCleared => 'Playback diagnostics cleared';
 }

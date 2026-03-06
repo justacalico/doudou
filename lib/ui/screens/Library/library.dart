@@ -75,7 +75,7 @@ class SongsLibraryWidget extends StatelessWidget {
                         true,
                         isPlaylistOrAlbum: true,
                         playlist: Playlist(
-                            title: "Library Songs",
+                            title: context.l10n.libSongs,
                             playlistId: "SongsDownloads",
                             thumbnailUrl: "",
                             isCloudPlaylist: false),

@@ -388,5 +388,17 @@
   "sortByDate": "Sort by date",
   "sortByDuration": "Sort by duration",
   "sortAscendNDescend": "Ascending & Descending",
-  "imported": "Imported"
+  "imported": "Imported",
+  "resyncLibraryNow": "Resync Library Now",
+  "playbackDiagnosticsRelease": "Playback diagnostics (release)",
+  "viewPlaybackDiagnostics": "View playback diagnostics",
+  "viewPlaybackDiagnosticsSubtitle": "Open logs and copy to clipboard",
+  "clearPlaybackDiagnostics": "Clear playback diagnostics",
+  "clearPlaybackDiagnosticsSubtitle": "Delete all stored diagnostic events",
+  "playbackDiagnostics": "Playback diagnostics",
+  "toggleFormat": "Toggle format",
+  "copyDiagnostics": "Copy diagnostics",
+  "shrinkSidebar": "Shrink sidebar",
+  "playlistTypeLabel": "PLAYLIST",
+  "playbackDiagnosticsCleared": "Playback diagnostics cleared"
 } 

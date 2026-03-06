@@ -995,7 +995,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                   active != null && active.type != ServerType.youtubeMusic;
               if (!isNonYouTube) return const SizedBox.shrink();
               return ListTile(
-                title: const Text("Resync Library Now"),
+                title: Text(context.l10n.resyncLibraryNow),
                 trailing: TextButton(
                   onPressed: syncService.isSyncing.value
                       ? null
@@ -1105,7 +1105,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       BuildContext context, SettingsScreenController settings) {
     return [
       Obx(() => ListTile(
-            title: const Text("Playback diagnostics (release)"),
+            title: Text(context.l10n.playbackDiagnosticsRelease),
             subtitle: const Text(
                 "Record bounded playback/network events for troubleshooting."),
             trailing: CustSwitch(
@@ -1114,8 +1114,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             ),
           )),
       ListTile(
-        title: const Text("View playback diagnostics"),
-        subtitle: const Text("Open logs and copy to clipboard"),
+        title: Text(context.l10n.viewPlaybackDiagnostics),
+        subtitle: Text(context.l10n.viewPlaybackDiagnosticsSubtitle),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => const _PlaybackDiagnosticsPage(),
@@ -1123,13 +1123,14 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         ),
       ),
       ListTile(
-        title: const Text("Clear playback diagnostics"),
-        subtitle: const Text("Delete all stored diagnostic events"),
+        title: Text(context.l10n.clearPlaybackDiagnostics),
+        subtitle: Text(context.l10n.clearPlaybackDiagnosticsSubtitle),
         onTap: () async {
+          final l10n = context.l10n;
           await settings.clearPlaybackDiagnostics();
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Playback diagnostics cleared")),
+            SnackBar(content: Text(l10n.playbackDiagnosticsCleared)),
           );
         },
       ),
@@ -1572,15 +1573,15 @@ class _PlaybackDiagnosticsPageState extends State<_PlaybackDiagnosticsPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("Playback diagnostics"),
+        title: Text(context.l10n.playbackDiagnostics),
         actions: [
           IconButton(
-            tooltip: "Toggle format",
+            tooltip: context.l10n.toggleFormat,
             onPressed: () => setState(() => _prettyFormat = !_prettyFormat),
             icon: Icon(_prettyFormat ? Icons.code : Icons.notes),
           ),
           IconButton(
-            tooltip: "Copy diagnostics",
+            tooltip: context.l10n.copyDiagnostics,
             onPressed: () async {
               final copied = await settings.copyPlaybackDiagnosticsToClipboard(
                 limit: _maxShownEvents,

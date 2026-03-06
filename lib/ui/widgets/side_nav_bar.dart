@@ -69,7 +69,7 @@ class _SideNavBarState extends State<SideNavBar> {
       widthSwitch: 800,
       mainLogoImage: 'assets/icons/icon.png',
       appName: 'Doudou',
-      shrinkSidebarLabel: 'Shrink sidebar',
+      shrinkSidebarLabel: context.l10n.shrinkSidebar,
       sidebarItems: [
         SideBarItemLocal(
           iconSelected: Icons.home,

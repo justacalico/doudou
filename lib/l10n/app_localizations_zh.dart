@@ -30,7 +30,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get artists => '音乐人';
 
   @override
-  String get albumsFromYourArtists => 'From your artists';
+  String get albumsFromYourArtists => '来自你的音乐人';
 
   @override
   String get settings => '设置';
@@ -39,23 +39,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get library => '音乐库';
 
   @override
-  String get yourLibrary => 'Your Library';
+  String get yourLibrary => '你的曲库';
 
   @override
-  String get manage => 'Manage';
+  String get manage => '管理';
 
   @override
   String tracksInYourCollection(int count) {
-    return '$count tracks in your collection';
+    return '曲库中共 $count 首';
   }
 
   @override
   String shuffleLikedSongs(int count) {
-    return 'Shuffle $count liked songs';
+    return '随机播放 $count 首收藏的歌曲';
   }
 
   @override
-  String get availableOffline => 'Available offline';
+  String get availableOffline => '可离线使用';
 
   @override
   String get libSongs => '曲库';
@@ -148,64 +148,61 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noBookmarks => '没有收藏！';
 
   @override
-  String get addMusicToLibraryHint =>
-      'Add music to your library to see it here';
+  String get addMusicToLibraryHint => '添加音乐到曲库即可在此查看';
 
   @override
-  String get shuffleAll => 'Shuffle all';
+  String get shuffleAll => '全部随机播放';
 
   @override
-  String get shuffleFavorites => 'Shuffle favorites';
+  String get shuffleFavorites => '随机播放收藏';
 
   @override
-  String get shuffleDownloads => 'Shuffle downloads';
+  String get shuffleDownloads => '随机播放下载';
 
   @override
-  String get homeContinueListening => 'Continue listening';
+  String get homeContinueListening => '继续收听';
 
   @override
-  String get homeContinueListeningSubtitle => 'Pick up where you left off';
+  String get homeContinueListeningSubtitle => '从上次离开处继续';
 
   @override
-  String get homeBecauseYouLikeArtists => 'Because you like these artists';
+  String get homeBecauseYouLikeArtists => '因为你喜欢这些音乐人';
 
   @override
-  String get homeBecauseYouLikeArtistsSubtitle =>
-      'More tracks from artists you already favorite';
+  String get homeBecauseYouLikeArtistsSubtitle => '来自你已收藏音乐人的更多曲目';
 
   @override
-  String get homePlaylistsSubtitle => 'Playlists from your collection';
+  String get homePlaylistsSubtitle => '你曲库中的播放列表';
 
   @override
-  String get recentlyAddedAlbums => 'Recently added albums';
+  String get recentlyAddedAlbums => '最近添加的专辑';
 
   @override
-  String get yourNewestAdditions => 'Your newest additions';
+  String get yourNewestAdditions => '你的最新添加';
 
   @override
-  String get yourArtists => 'Your artists';
+  String get yourArtists => '你的音乐人';
 
   @override
-  String get homeArtistsSubtitle => 'A rotating mix from your artists';
+  String get homeArtistsSubtitle => '来自你的音乐人的轮播';
 
   @override
-  String get homeFreshPicks => 'Fresh picks';
+  String get homeFreshPicks => '新推荐';
 
   @override
-  String get homeEmptyLibraryMessage =>
-      'Your library is empty. Add some music to get started.';
+  String get homeEmptyLibraryMessage => '你的曲库是空的。添加一些音乐开始吧。';
 
   @override
-  String get servers => 'Servers';
+  String get servers => '服务器';
 
   @override
-  String get addServer => 'Add server';
+  String get addServer => '添加服务器';
 
   @override
-  String get noServersConfigured => 'No servers configured yet';
+  String get noServersConfigured => '尚未配置服务器';
 
   @override
-  String get activeServer => 'Active server';
+  String get activeServer => '当前服务器';
 
   @override
   String get youtubeMusic => 'YouTube Music';
@@ -220,62 +217,61 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plex => 'Plex';
 
   @override
-  String get plexToken => 'Plex token';
+  String get plexToken => 'Plex 令牌';
 
   @override
-  String get serverUrl => 'Server URL';
+  String get serverUrl => '服务器 URL';
 
   @override
-  String get editServer => 'Edit server';
+  String get editServer => '编辑服务器';
 
   @override
-  String get save => 'Save';
+  String get save => '保存';
 
   @override
-  String get add => 'Add';
+  String get add => '添加';
 
   @override
-  String get defaultLabel => 'Default';
+  String get defaultLabel => '默认';
 
   @override
-  String get youtubeMusicNoLogin =>
-      'YouTube Music does not require login details.';
+  String get youtubeMusicNoLogin => 'YouTube Music 无需登录信息。';
 
   @override
-  String get serverUrlRequired => 'Server URL is required';
+  String get serverUrlRequired => '服务器 URL 为必填项';
 
   @override
-  String get testConnection => 'Test connection';
+  String get testConnection => '测试连接';
 
   @override
-  String get connectionSuccess => 'Connection successful';
+  String get connectionSuccess => '连接成功';
 
   @override
-  String get connectionFailed => 'Connection failed';
+  String get connectionFailed => '连接失败';
 
   @override
-  String get playAll => 'Play All';
+  String get playAll => '全部播放';
 
   @override
-  String get shuffle => 'Shuffle';
+  String get shuffle => '随机播放';
 
   @override
-  String get artistLabel => 'ARTIST';
+  String get artistLabel => '音乐人';
 
   @override
-  String get fromWikipedia => 'From Wikipedia';
+  String get fromWikipedia => '来自维基百科';
 
   @override
-  String get songsCount => 'songs';
+  String get songsCount => '首';
 
   @override
-  String get addToLibrary => 'Add to library';
+  String get addToLibrary => '添加到曲库';
 
   @override
-  String get noSongsInLibrary => 'No songs in library';
+  String get noSongsInLibrary => '曲库中无歌曲';
 
   @override
-  String get favoritesEmpty => 'Favorites is empty';
+  String get favoritesEmpty => '收藏夹为空';
 
   @override
   String get startRadio => '启动电台';
@@ -323,16 +319,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get upNext => '接下来';
 
   @override
-  String get lyrics => 'Lyrics';
+  String get lyrics => '歌词';
 
   @override
-  String get fromAlbum => 'From: ';
+  String get fromAlbum => '来自：';
 
   @override
-  String get byArtist => 'By: ';
+  String get byArtist => '演唱：';
 
   @override
-  String get playingFrom => 'Playing from ';
+  String get playingFrom => '正在播放自 ';
 
   @override
   String get playingfromAlbum => '从专辑播放';
@@ -425,10 +421,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get themeMode => '主题模式';
 
   @override
-  String get dynamicTheme => 'Dynamic';
+  String get dynamicTheme => '动态';
 
   @override
-  String get dynamicColor => 'Dynamic Colour';
+  String get dynamicColor => '动态色彩';
 
   @override
   String get systemDefault => '系统默认';
@@ -503,67 +499,61 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enableBottomNavDes => '切换到底部导航栏';
 
   @override
-  String get sidebarMode => 'Sidebar behavior';
+  String get sidebarMode => '侧边栏行为';
 
   @override
-  String get sidebarModeDes =>
-      'Control whether the sidebar is automatic, always collapsed, or always full width.';
+  String get sidebarModeDes => '侧边栏自动、始终收起或始终展开';
 
   @override
-  String get sidebarModeAuto => 'Auto';
+  String get sidebarModeAuto => '自动';
 
   @override
-  String get sidebarModeCollapsed => 'Collapsed';
+  String get sidebarModeCollapsed => '收起';
 
   @override
-  String get sidebarModeExpanded => 'Full view';
+  String get sidebarModeExpanded => '完整显示';
 
   @override
-  String get dynamicColorDes =>
-      'Dynamic theme using a fixed colour (not now playing).';
+  String get dynamicColorDes => '使用固定颜色的动态主题（非正在播放）';
 
   @override
-  String get useCustomAccentColor => 'Use custom accent colour';
+  String get useCustomAccentColor => '使用自定义强调色';
 
   @override
-  String get useCustomAccentColorDes =>
-      'Apply your selected accent colour across all theme modes.';
+  String get useCustomAccentColorDes => '在所有主题下应用所选强调色';
 
   @override
-  String get customAccentColor => 'Custom accent colour';
+  String get customAccentColor => '自定义强调色';
 
   @override
-  String get customAccentColorDes =>
-      'Pick the accent colour used across the app.';
+  String get customAccentColorDes => '选择应用内使用的强调色';
 
   @override
-  String get lyricsDynamicColor => 'Lyrics change accent colour';
+  String get lyricsDynamicColor => '歌词改变强调色';
 
   @override
-  String get lyricsDynamicColorDes =>
-      'When a song has synced lyrics, colour words in the lyrics can change the app accent (Dynamic theme only).';
+  String get lyricsDynamicColorDes => '当歌曲有滚动歌词时，歌词中的颜色词可改变应用强调色（仅动态主题）';
 
   @override
-  String get syncedLyricsHighlightStyle => 'Synced lyrics highlight style';
+  String get syncedLyricsHighlightStyle => '滚动歌词高亮样式';
 
   @override
-  String get syncedLyricsHighlightStyleDes =>
-      'Choose how the active synced lyric line is highlighted.';
+  String get syncedLyricsHighlightStyleDes => '选择当前歌词行的突出方式';
 
   @override
-  String get lyricsHighlightBlock => 'Block highlight';
+  String get lyricsHighlightBlock => '块高亮';
 
   @override
-  String get lyricsHighlightKaraoke => 'Karaoke fill';
+  String get lyricsHighlightKaraoke => '卡拉OK填充';
 
   @override
-  String get pickDynamicColor => 'Pick dynamic colour';
+  String get pickDynamicColor => '选择动态颜色';
 
   @override
-  String get advanced => 'Advanced…';
+  String get advanced => '高级…';
 
   @override
-  String get change => 'Change';
+  String get change => '更改';
 
   @override
   String get cacheSongs => '缓存歌曲';
@@ -597,23 +587,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get disableTransitionAnimationDes => '启用此选项可禁用选项卡过渡动画';
 
   @override
-  String get animationSpeed => 'Animation speed';
+  String get animationSpeed => '动画速度';
 
   @override
-  String get animationSpeedDes =>
-      'Control the speed of app transitions or turn them off.';
+  String get animationSpeedDes => '控制应用过渡速度或关闭';
 
   @override
-  String get animationSpeedOff => 'Off';
+  String get animationSpeedOff => '关';
 
   @override
-  String get animationSpeedFast => 'Fast (default)';
+  String get animationSpeedFast => '快（默认）';
 
   @override
-  String get animationSpeedNormal => 'Normal';
+  String get animationSpeedNormal => '普通';
 
   @override
-  String get animationSpeedSlow => 'Slow';
+  String get animationSpeedSlow => '慢';
 
   @override
   String get enableSlidableAction => '启用可滑动操作';
@@ -724,26 +713,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gitlab => 'GitLab';
 
   @override
-  String get gitlabDes =>
-      'View GitLab source code\\nif you like this project, don\'t forget to give a ⭐';
+  String get gitlabDes => '查看 GitLab 源码 \\n如果你喜欢本项目，别忘了给一颗 ⭐';
 
   @override
-  String get checkForUpdates => 'Check for updates';
+  String get checkForUpdates => '检查更新';
 
   @override
-  String get checkForUpdatesOnStartup => 'Check for updates on startup';
+  String get checkForUpdatesOnStartup => '启动时检查更新';
 
   @override
-  String get openOpenlystWebsite => 'Open Openlyst website';
+  String get openOpenlystWebsite => '打开 Openlyst 网站';
 
   @override
-  String get openGitlab => 'Open GitLab';
+  String get openGitlab => '打开 GitLab';
 
   @override
-  String get upToDate => 'You are up to date';
+  String get upToDate => '已是最新';
 
   @override
-  String get checkingForUpdates => 'Checking for updates…';
+  String get checkingForUpdates => '正在检查更新…';
 
   @override
   String get by => '由';
@@ -890,7 +878,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get newVersionAvailable => '新版本可用！';
 
   @override
-  String get version => 'Version';
+  String get version => '版本';
 
   @override
   String get dontShowInfoAgain => '不要再次显示此信息';
@@ -1114,41 +1102,77 @@ class AppLocalizationsZh extends AppLocalizations {
   String get keepScreenOnWhilePlayingDes => '启用后，播放音乐时设备屏幕将保持点亮';
 
   @override
-  String get importedPlaylist => 'Imported playlist';
+  String get importedPlaylist => '已导入的播放列表';
 
   @override
-  String get listBookmarkRemoveAlert => 'Bookmark removed!';
+  String get listBookmarkRemoveAlert => '已取消收藏！';
 
   @override
-  String get permissionDenied => 'Permission denied';
+  String get permissionDenied => '权限被拒绝';
 
   @override
-  String get loading => 'Loading';
+  String get loading => '加载中';
 
   @override
-  String get unknownArtist => 'Unknown Artist';
+  String get unknownArtist => '未知音乐人';
 
   @override
-  String get unknownAlbum => 'Unknown Album';
+  String get unknownAlbum => '未知专辑';
 
   @override
-  String get yourMusicCollection => 'Your music collection';
+  String get yourMusicCollection => '你的音乐收藏';
 
   @override
-  String get more => 'More';
+  String get more => '更多';
 
   @override
-  String get sortByName => 'Sort by name';
+  String get sortByName => '按名称';
 
   @override
-  String get sortByDate => 'Sort by date';
+  String get sortByDate => '按日期';
 
   @override
-  String get sortByDuration => 'Sort by duration';
+  String get sortByDuration => '按时长';
 
   @override
-  String get sortAscendNDescend => 'Ascending & Descending';
+  String get sortAscendNDescend => '升序与降序';
 
   @override
-  String get imported => 'Imported';
+  String get imported => '已导入';
+
+  @override
+  String get resyncLibraryNow => '立即重新同步曲库';
+
+  @override
+  String get playbackDiagnosticsRelease => '播放诊断（正式版）';
+
+  @override
+  String get viewPlaybackDiagnostics => '查看播放诊断';
+
+  @override
+  String get viewPlaybackDiagnosticsSubtitle => '打开日志并复制到剪贴板';
+
+  @override
+  String get clearPlaybackDiagnostics => '清除播放诊断';
+
+  @override
+  String get clearPlaybackDiagnosticsSubtitle => '删除所有已存储的诊断事件';
+
+  @override
+  String get playbackDiagnostics => '播放诊断';
+
+  @override
+  String get toggleFormat => '切换格式';
+
+  @override
+  String get copyDiagnostics => '复制诊断';
+
+  @override
+  String get shrinkSidebar => '收起侧边栏';
+
+  @override
+  String get playlistTypeLabel => '播放列表';
+
+  @override
+  String get playbackDiagnosticsCleared => '播放诊断已清除';
 }

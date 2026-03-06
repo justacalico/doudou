@@ -2350,6 +2350,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Imported'**
   String get imported;
+
+  /// No description provided for @resyncLibraryNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Resync Library Now'**
+  String get resyncLibraryNow;
+
+  /// No description provided for @playbackDiagnosticsRelease.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback diagnostics (release)'**
+  String get playbackDiagnosticsRelease;
+
+  /// No description provided for @viewPlaybackDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'View playback diagnostics'**
+  String get viewPlaybackDiagnostics;
+
+  /// No description provided for @viewPlaybackDiagnosticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open logs and copy to clipboard'**
+  String get viewPlaybackDiagnosticsSubtitle;
+
+  /// No description provided for @clearPlaybackDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear playback diagnostics'**
+  String get clearPlaybackDiagnostics;
+
+  /// No description provided for @clearPlaybackDiagnosticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all stored diagnostic events'**
+  String get clearPlaybackDiagnosticsSubtitle;
+
+  /// No description provided for @playbackDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback diagnostics'**
+  String get playbackDiagnostics;
+
+  /// No description provided for @toggleFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle format'**
+  String get toggleFormat;
+
+  /// No description provided for @copyDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy diagnostics'**
+  String get copyDiagnostics;
+
+  /// No description provided for @shrinkSidebar.
+  ///
+  /// In en, this message translates to:
+  /// **'Shrink sidebar'**
+  String get shrinkSidebar;
+
+  /// No description provided for @playlistTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PLAYLIST'**
+  String get playlistTypeLabel;
+
+  /// No description provided for @playbackDiagnosticsCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback diagnostics cleared'**
+  String get playbackDiagnosticsCleared;
 }
 
 class _AppLocalizationsDelegate
