@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/constants/doudou_design.dart';
 import 'search_item.dart';
+import '/ui/screens/Home/home_screen_controller.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
 
 import '../../../navigator.dart';
@@ -48,8 +49,7 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
             LogicalKeySet(LogicalKeyboardKey.space):
                 const DoNothingAndStopPropagationTextIntent()
           },
-          child: Obx(
-            () => SearchBar(
+          child: SearchBar(
                 controller: searchScreenController.textInputController,
                 onTap: () {
                   if (!_focusNode.hasFocus) {
@@ -100,6 +100,39 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
                   )),
                 ),
                 trailing: [
+                  IconButton(
+                    tooltip: context.l10n.shuffleAll,
+                    icon: const Icon(Icons.shuffle, size: 20),
+                    onPressed: () {
+                      final c = Get.find<HomeScreenController>();
+                      c.shuffleAll(
+                        emptyMessage: context.l10n.noSongsInLibrary,
+                        playFromName: context.l10n.shuffleAll,
+                      );
+                    },
+                  ),
+                  IconButton(
+                    tooltip: context.l10n.favorites,
+                    icon: const Icon(Icons.favorite_border, size: 20),
+                    onPressed: () {
+                      final c = Get.find<HomeScreenController>();
+                      c.shuffleFavorites(
+                        emptyMessage: context.l10n.favoritesEmpty,
+                        playFromName: context.l10n.favorites,
+                      );
+                    },
+                  ),
+                  IconButton(
+                    tooltip: context.l10n.downloads,
+                    icon: const Icon(Icons.download, size: 20),
+                    onPressed: () {
+                      final c = Get.find<HomeScreenController>();
+                      c.shuffleDownloads(
+                        emptyMessage: context.l10n.noOfflineSong,
+                        playFromName: context.l10n.downloads,
+                      );
+                    },
+                  ),
                   Obx(() => searchScreenController.isSearchBarInFocus.isTrue
                       ? IconButton(
                           onPressed: searchScreenController.reset,
@@ -121,7 +154,6 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
                   ),
                 ),
               ),
-          ),
         ),
         Padding(
             padding: const EdgeInsets.only(top: 10.0),

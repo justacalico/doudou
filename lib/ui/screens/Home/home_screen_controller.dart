@@ -9,6 +9,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '/models/media_Item_builder.dart';
 import '/models/album.dart';
 import '/models/artist.dart';
+import '/models/playling_from.dart';
 import '/models/playlist.dart';
 import '/models/quick_picks.dart';
 import '/models/server.dart';
@@ -768,6 +769,121 @@ class HomeScreenController extends GetxController {
         return ah.compareTo(bh);
       });
     return sorted.take(count).toList();
+  }
+
+  Future<void> shuffleAll({
+    required String emptyMessage,
+    required String playFromName,
+  }) async {
+    final settings = Get.find<SettingsScreenController>();
+    final server = settings.activeServer;
+    final isYouTubeServer = server?.type == ServerType.youtubeMusic;
+    List<MediaItem> list;
+    if (isYouTubeServer) {
+      final songsController = Get.isRegistered<LibrarySongsController>()
+          ? Get.find<LibrarySongsController>()
+          : null;
+      if (songsController == null) {
+        Get.snackbar('', emptyMessage);
+        return;
+      }
+      list = songsController.librarySongsList.toList();
+      try {
+        final favBox = await Hive.openBox(libFavBoxName(currentServerId()));
+        final favSongs = favBox.values
+            .map<MediaItem?>(
+                (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
+            .whereType<MediaItem>()
+            .toList();
+        final seenIds = list.map((s) => s.id).toSet();
+        for (final s in favSongs) {
+          if (seenIds.add(s.id)) list.add(s);
+        }
+      } catch (_) {}
+    } else {
+      final songsController = Get.isRegistered<LibrarySongsController>()
+          ? Get.find<LibrarySongsController>()
+          : null;
+      if (songsController == null) {
+        Get.snackbar('', emptyMessage);
+        return;
+      }
+      list = await songsController.loadAllSongsForShuffle();
+    }
+    if (list.isEmpty) {
+      Get.snackbar('', emptyMessage);
+      return;
+    }
+    list.shuffle();
+    await Get.find<PlayerController>().playPlayListSong(
+      list,
+      0,
+      playfrom: PlaylingFrom(name: playFromName, type: PlaylingFromType.SELECTION),
+    );
+  }
+
+  Future<void> shuffleFavorites({
+    required String emptyMessage,
+    required String playFromName,
+  }) async {
+    final settings = Get.find<SettingsScreenController>();
+    final server = settings.activeServer;
+    final isYouTubeServer = server?.type == ServerType.youtubeMusic;
+    List<MediaItem> list;
+    if (isYouTubeServer) {
+      try {
+        final box = await Hive.openBox(libFavBoxName(currentServerId()));
+        list = box.values
+            .map<MediaItem?>(
+                (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
+            .whereType<MediaItem>()
+            .toList();
+      } catch (_) {
+        list = [];
+      }
+    } else {
+      try {
+        final tracks = await _backend.getFavoriteSongs();
+        list = tracks
+            .map<MediaItem?>(
+                (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
+            .whereType<MediaItem>()
+            .toList();
+      } catch (_) {
+        list = [];
+      }
+    }
+    if (list.isEmpty) {
+      Get.snackbar('', emptyMessage);
+      return;
+    }
+    list.shuffle();
+    await Get.find<PlayerController>().playPlayListSong(
+      list,
+      0,
+      playfrom: PlaylingFrom(name: playFromName, type: PlaylingFromType.PLAYLIST),
+    );
+  }
+
+  Future<void> shuffleDownloads({
+    required String emptyMessage,
+    required String playFromName,
+  }) async {
+    final list = Hive.box("SongDownloads").values
+        .map<MediaItem?>(
+            (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
+        .whereType<MediaItem>()
+        .toList();
+    if (list.isEmpty) {
+      Get.snackbar('', emptyMessage);
+      return;
+    }
+    list.shuffle();
+    await Get.find<PlayerController>().playPlayListSong(
+      list,
+      0,
+      playfrom: PlaylingFrom(name: playFromName, type: PlaylingFromType.PLAYLIST),
+    );
   }
 
   List<Map<String, dynamic>> _getContentDataInJson(List content,
