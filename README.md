@@ -4,11 +4,11 @@ A privacy-focused music player for your media server. Stream your music collecti
 
 ## Supported Backends
 
-- **Subsonic** - Full support (recommended)
-- **Jellyfin** - Full API compatibility
-- **Plex** - Working with limitations
+- **Subsonic** - Full support (Recommanded)
+- **YouTube Music** - Full support (Recommanded)
+- **Plex** - Working without a bunch of testing. (This is supported just not bugtested all the time (open a issue if a bug accross))
+- **Jellyfin** - Supported unpritoized expect minor bugs
 - **Local Files** - Play music directly from your device without a server
-- **YouTube Music** - Available across platforms (can be toggled in Settings on desktop)
 
 ## Features
 
@@ -16,7 +16,6 @@ A privacy-focused music player for your media server. Stream your music collecti
 - No data collection, analytics, or telemetry
 - No ads or third-party trackers
 - Direct connection to your server only
-- All data stays on your devices
 
 ### Playback
 - Gapless audio
@@ -29,7 +28,7 @@ A privacy-focused music player for your media server. Stream your music collecti
 - Create and manage local playlists
 
 ### Platforms
-- Android, iOS, macOS, Linux, Windows
+- Android, iOS, macOS, Linux, Windows, Web* (web untested)
 - Background playback
 - Offline listening with downloads
 

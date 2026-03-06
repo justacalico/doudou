@@ -299,12 +299,16 @@ class SettingsScreenController extends GetxController {
   }
 
   void setAppLanguage(String? val) {
-    final locale = val == 'en_AU' ? const Locale('en', 'AU') : Locale(val!);
-    Get.updateLocale(locale);
-    Get.find<MusicServices>().hlCode = val!;
-    Get.find<HomeScreenController>().loadContentFromNetwork(silent: true);
-    currentAppLanguageCode.value = val;
-    setBox.put('currentAppLanguageCode', val);
+    if (val == null) return;
+    final locale = val == 'en_AU' ? const Locale('en', 'AU') : Locale(val);
+    final langCode = val;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.updateLocale(locale);
+      Get.find<MusicServices>().hlCode = langCode;
+      Get.find<HomeScreenController>().loadContentFromNetwork(silent: true);
+      currentAppLanguageCode.value = langCode;
+      setBox.put('currentAppLanguageCode', langCode);
+    });
   }
 
   void setContentNumber(int? no) {
