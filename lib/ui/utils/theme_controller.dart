@@ -193,13 +193,18 @@ class ThemeController extends GetxController {
       final dynamicSwatch =
           primarySwatch ?? _createMaterialColor(dynamicColor.value);
       final accentSwatch = dynamicSwatch;
+      final surfaceLuminance = (dynamicSwatch[700] ?? dynamicSwatch[500])!.computeLuminance();
+      final useDarkForeground = surfaceLuminance > 0.35;
+      final foregroundColor = useDarkForeground ? Colors.grey[800]! : dynamicSwatch[100]!;
+      final selectedForeground = useDarkForeground ? Colors.grey[900]! : Colors.white;
+
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
-            statusBarIconBrightness: Brightness.light,
+            statusBarIconBrightness: useDarkForeground ? Brightness.dark : Brightness.light,
             statusBarColor: Colors.transparent,
             systemNavigationBarColor: Colors.white.withValues(alpha: 0.002),
             systemNavigationBarDividerColor: Colors.transparent,
-            systemNavigationBarIconBrightness: Brightness.light,
+            systemNavigationBarIconBrightness: useDarkForeground ? Brightness.dark : Brightness.light,
             systemStatusBarContrastEnforced: false,
             systemNavigationBarContrastEnforced: true),
       );
@@ -213,44 +218,42 @@ class ThemeController extends GetxController {
           primary: accentSwatch[500],
           surface: dynamicSwatch[800],
           surfaceContainerHighest: dynamicSwatch[600],
-          onSurface: Colors.white,
+          onSurface: useDarkForeground ? Colors.grey[900] : Colors.white,
           secondary: accentSwatch[600],
-          onSecondary: Colors.white);
+          onSecondary: useDarkForeground ? Colors.grey[900] : Colors.white);
       final baseTheme = ThemeData(
           useMaterial3: false,
           primaryColor: accentSwatch[500],
           colorScheme: scheme,
-          //accentColor: primarySwatch[200],
           dialogTheme: DialogThemeData(backgroundColor: dynamicSwatch[700]),
           cardColor: dynamicSwatch[600],
           primaryColorLight: accentSwatch[400],
           primaryColorDark: dynamicSwatch[700],
-          //secondaryHeaderColor: primarySwatch[50],
           canvasColor: dynamicSwatch[700],
-          //scaffoldBackgroundColor: primarySwatch[700],
           bottomSheetTheme: BottomSheetThemeData(
               backgroundColor: dynamicSwatch[600],
               modalBarrierColor: dynamicSwatch[400]),
           textTheme: TextTheme(
-            titleLarge: const TextStyle(
-                fontSize: 23, fontWeight: FontWeight.bold, color: Colors.white),
-            titleMedium: const TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.white),
-            titleSmall: TextStyle(color: dynamicSwatch[100]),
-            bodyMedium: TextStyle(color: dynamicSwatch[100]),
+            titleLarge: TextStyle(
+                fontSize: 23, fontWeight: FontWeight.bold, color: selectedForeground),
+            titleMedium: TextStyle(
+                fontWeight: FontWeight.bold, color: selectedForeground),
+            titleSmall: TextStyle(color: foregroundColor),
+            bodyMedium: TextStyle(color: foregroundColor),
             labelMedium: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 23,
-                color: textColor ?? dynamicSwatch[50]),
+                color: textColor ?? (useDarkForeground ? Colors.grey[800] : dynamicSwatch[50])),
             labelSmall: TextStyle(
                 fontSize: 15,
                 color: titleColorSwatch != null
                     ? titleColorSwatch[900]
-                    : dynamicSwatch[100],
+                    : foregroundColor,
                 letterSpacing: 0,
                 fontWeight: FontWeight.bold),
           ),
-          tabBarTheme: const TabBarThemeData(indicatorColor: Colors.white),
+          tabBarTheme: TabBarThemeData(
+              indicatorColor: useDarkForeground ? Colors.grey[900] : Colors.white),
           progressIndicatorTheme: ProgressIndicatorThemeData(
               linearTrackColor: (dynamicSwatch[300])!.computeLuminance() > 0.3
                   ? Colors.black54
@@ -258,19 +261,19 @@ class ThemeController extends GetxController {
               color: textColor),
           navigationRailTheme: NavigationRailThemeData(
               backgroundColor: dynamicSwatch[700],
-              selectedIconTheme: const IconThemeData(color: Colors.white),
-              unselectedIconTheme: IconThemeData(color: dynamicSwatch[100]),
-              selectedLabelTextStyle: const TextStyle(
-                  color: Colors.white,
+              selectedIconTheme: IconThemeData(color: selectedForeground),
+              unselectedIconTheme: IconThemeData(color: foregroundColor),
+              selectedLabelTextStyle: TextStyle(
+                  color: selectedForeground,
                   fontWeight: FontWeight.bold,
                   fontSize: 15),
               unselectedLabelTextStyle: TextStyle(
-                  color: dynamicSwatch[100], fontWeight: FontWeight.bold)),
+                  color: foregroundColor, fontWeight: FontWeight.bold)),
           sliderTheme: SliderThemeData(
             inactiveTrackColor: dynamicSwatch[300],
             activeTrackColor: textColor,
             valueIndicatorColor: accentSwatch[400],
-            thumbColor: Colors.white,
+            thumbColor: useDarkForeground ? Colors.grey[800] : Colors.white,
           ),
           textSelectionTheme: TextSelectionThemeData(
               cursorColor: accentSwatch[200],
@@ -279,11 +282,11 @@ class ThemeController extends GetxController {
           inputDecorationTheme: InputDecorationTheme(
               filled: true,
               fillColor: dynamicSwatch[700],
-              focusColor: Colors.white,
-              focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white)))
-          //scaffoldBackgroundColor: primarySwatch[700]
-          );
+              focusColor: useDarkForeground ? Colors.grey[900] : Colors.white,
+              hintStyle: TextStyle(color: foregroundColor),
+              labelStyle: TextStyle(color: foregroundColor),
+              focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: useDarkForeground ? Colors.grey[900]! : Colors.white))));
       return baseTheme.copyWith(
           textTheme: _interTextTheme(baseTheme.textTheme));
     } else if (themeType == ThemeType.dark) {
