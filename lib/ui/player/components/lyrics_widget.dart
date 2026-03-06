@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter_lyric/lyrics_reader.dart';
 import 'package:get/get.dart';
 
@@ -53,7 +54,7 @@ class _LyricsWidgetState extends State<LyricsWidget> {
                   data: Theme.of(context).textSelectionTheme,
                   child: SelectableText(
                     playerController.lyrics["plainLyrics"] == "NA"
-                        ? "lyricsNotAvailable".tr
+                        ? context.l10n.lyricsNotAvailable
                         : playerController.lyrics["plainLyrics"],
                     textAlign: TextAlign.center,
                     style: playerController.isDesktopLyricsDialogOpen
@@ -88,7 +89,7 @@ class _LyricsWidgetState extends State<LyricsWidget> {
             model: _cachedModel,
             emptyBuilder: () => Center(
               child: Text(
-                "syncedLyricsNotAvailable".tr,
+                context.l10n.syncedLyricsNotAvailable,
                 style: playerController.isDesktopLyricsDialogOpen
                     ? Theme.of(context).textTheme.titleMedium!
                     : Theme.of(context)

@@ -1,4 +1,5 @@
 import 'dart:async';
+import '/l10n/app_localizations.dart';
 
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +70,7 @@ mixin ProcessLink {
         await openPlaylistOrAlbum(browseId!);
       } else if (uri.pathSegments[0] == "shorts") {
         ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-            Get.context!, "notaSongVideo".tr,
+            Get.context!, AppLocalizations.of(Get.context!)!.notaSongVideo,
             size: SnackBarSize.MEDIUM));
       } else if (uri.pathSegments[0] == "watch") {
         final songId = uri.queryParameters['v'];
@@ -84,7 +85,7 @@ mixin ProcessLink {
       }
     } else {
       ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, "notaValidLink".tr,
+          Get.context!, AppLocalizations.of(Get.context!)!.notaValidLink,
           size: SnackBarSize.MEDIUM));
     }
   }
@@ -119,7 +120,7 @@ mixin ProcessLink {
           playfrom: PlaylingFrom(type: PlaylingFromType.SELECTION));
     } else {
       ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, "notaSongVideo".tr,
+          Get.context!, AppLocalizations.of(Get.context!)!.notaSongVideo,
           size: SnackBarSize.MEDIUM));
     }
   }

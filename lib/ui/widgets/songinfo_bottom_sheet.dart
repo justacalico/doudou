@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -110,7 +111,7 @@ class SongInfoBottomSheet extends StatelessWidget {
               ListTile(
                 visualDensity: const VisualDensity(vertical: -1),
                 leading: const Icon(Icons.sensors),
-                title: Text("startRadio".tr),
+                title: Text(context.l10n.startRadio),
                 onTap: () {
                   Navigator.of(context).pop();
                   playerController.startRadio(song);
@@ -121,19 +122,19 @@ class SongInfoBottomSheet extends StatelessWidget {
                 : ListTile(
                     visualDensity: const VisualDensity(vertical: -1),
                     leading: const Icon(Icons.playlist_play),
-                    title: Text("playNext".tr),
+                    title: Text(context.l10n.playNext),
                     onTap: () {
                       Navigator.of(context).pop();
                       playerController.playNext(song);
                       ScaffoldMessenger.of(context).showSnackBar(snackbar(
-                          context, "${"playnextMsg".tr} ${song.title}",
+                          context, "${context.l10n.playnextMsg} ${song.title}",
                           size: SnackBarSize.BIG));
                     },
                   ),
             ListTile(
               visualDensity: const VisualDensity(vertical: -1),
               leading: const Icon(Icons.playlist_add),
-              title: Text("addToPlaylist".tr),
+              title: Text(context.l10n.addToPlaylist),
               onTap: () {
                 Navigator.of(context).pop();
                 showDialog(
@@ -147,12 +148,12 @@ class SongInfoBottomSheet extends StatelessWidget {
                 : ListTile(
                     visualDensity: const VisualDensity(vertical: -1),
                     leading: const Icon(Icons.merge),
-                    title: Text("enqueueSong".tr),
+                    title: Text(context.l10n.enqueueSong),
                     onTap: () {
                       playerController.enqueueSong(song).whenComplete(() {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(snackbar(
-                            context, "songEnqueueAlert".tr,
+                            context, context.l10n.songEnqueueAlert,
                             size: SnackBarSize.MEDIUM));
                       });
                       Navigator.of(context).pop();
@@ -162,7 +163,7 @@ class SongInfoBottomSheet extends StatelessWidget {
                 ? ListTile(
                     visualDensity: const VisualDensity(vertical: -1),
                     leading: const Icon(Icons.album),
-                    title: Text("goToAlbum".tr),
+                    title: Text(context.l10n.goToAlbum),
                     onTap: () {
                       Navigator.of(context).pop();
                       if (calledFromPlayer) {
@@ -186,8 +187,8 @@ class SongInfoBottomSheet extends StatelessWidget {
                     visualDensity: const VisualDensity(vertical: -1),
                     leading: const Icon(Icons.delete),
                     title: playlist!.title == "Library Songs"
-                        ? Text("removeFromLib".tr)
-                        : Text("removeFromPlaylist".tr),
+                        ? Text(context.l10n.removeFromLib)
+                        : Text(context.l10n.removeFromPlaylist),
                     onTap: () {
                       Navigator.of(context).pop();
                       songInfoController
@@ -203,17 +204,17 @@ class SongInfoBottomSheet extends StatelessWidget {
                 ? ListTile(
                     visualDensity: const VisualDensity(vertical: -1),
                     leading: const Icon(Icons.delete),
-                    title: Text("removeFromQueue".tr),
+                    title: Text(context.l10n.removeFromQueue),
                     onTap: () {
                       Navigator.of(context).pop();
                       if (playerController.currentSong.value!.id == song.id) {
                         ScaffoldMessenger.of(context).showSnackBar(snackbar(
-                            context, "songRemovedfromQueueCurrSong".tr,
+                            context, context.l10n.songRemovedfromQueueCurrSong,
                             size: SnackBarSize.BIG));
                       } else {
                         playerController.removeFromQueue(song);
                         ScaffoldMessenger.of(context).showSnackBar(snackbar(
-                            context, "songRemovedfromQueue".tr,
+                            context, context.l10n.songRemovedfromQueue,
                             size: SnackBarSize.MEDIUM));
                       }
                     })
@@ -226,7 +227,7 @@ class SongInfoBottomSheet extends StatelessWidget {
                       contentPadding: const EdgeInsets.only(left: 15),
                       visualDensity: const VisualDensity(vertical: -1),
                       leading: const Icon(Icons.delete),
-                      title: Text("deleteDownloadData".tr),
+                      title: Text(context.l10n.deleteDownloadData),
                       onTap: () {
                         Navigator.of(context).pop();
                         final box = Hive.box("SongDownloads");
@@ -245,7 +246,7 @@ class SongInfoBottomSheet extends StatelessWidget {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                   snackbar(
-                                      context, "deleteDownloadedDataAlert".tr,
+                                      context, context.l10n.deleteDownloadedDataAlert,
                                       size: SnackBarSize.BIG));
                             }
                           });
@@ -257,7 +258,7 @@ class SongInfoBottomSheet extends StatelessWidget {
             if (_isYouTubeServer)
               ListTile(
                 leading: const Icon(Icons.open_with),
-                title: Text("openIn".tr),
+                title: Text(context.l10n.openIn),
                 trailing: SizedBox(
                   width: 200,
                   child: Row(
@@ -288,7 +289,7 @@ class SongInfoBottomSheet extends StatelessWidget {
                 contentPadding: const EdgeInsets.only(left: 15),
                 visualDensity: const VisualDensity(vertical: -1),
                 leading: const Icon(Icons.timer),
-                title: Text("sleepTimer".tr),
+                title: Text(context.l10n.sleepTimer),
                 onTap: () {
                   Navigator.of(context).pop();
                   showModalBottomSheet(
@@ -340,7 +341,7 @@ class SongInfoBottomSheet extends StatelessWidget {
                   },
                   tileColor: Colors.transparent,
                   leading: const Icon(Icons.person),
-                  title: Text("${"viewArtist".tr} (${e['name']})"),
+                  title: Text("${context.l10n.viewArtist} (${e['name']})"),
                 ))
             .toList()
         : [const SizedBox.shrink()];

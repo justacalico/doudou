@@ -624,9 +624,9 @@ class HomeScreenController extends GetxController {
     final playlistsFromCollection = <Playlist>[];
     if (playlistsController != null) {
       final allPlaylists = playlistsController.libraryPlaylists.toList();
-      if (allPlaylists.length > LibraryPlaylistsController.initPlst.length) {
+      if (allPlaylists.length > Get.find<LibraryPlaylistsController>().initPlst.length) {
         playlistsFromCollection.addAll(
-          allPlaylists.skip(LibraryPlaylistsController.initPlst.length),
+          allPlaylists.skip(Get.find<LibraryPlaylistsController>().initPlst.length),
         );
       }
     }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import '/l10n/app_localizations.dart';
 
 import 'package:flutter_lyric/lyric_ui/ui_netease.dart';
 import 'package:hive/hive.dart';
@@ -377,7 +378,7 @@ class PlayerController extends GetxController
     /// update playing from value
     playinfrom.value = PlaylingFrom(
         type: PlaylingFromType.SELECTION,
-        name: radio ? "randomRadio".tr : "randomSelection".tr);
+        name: radio ? AppLocalizations.of(Get.context!)!.randomRadio : AppLocalizations.of(Get.context!)!.randomSelection);
 
     /// set global radio mode flag
     isRadioModeOn = radio;
@@ -689,7 +690,7 @@ class PlayerController extends GetxController
     if (isShuffleModeEnabled.isTrue && isQueueLoopModeEnabled.isTrue) {
       if (!showMessage) return;
       ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, "queueLoopNotDisMsg1".tr,
+          Get.context!, AppLocalizations.of(Get.context!)!.queueLoopNotDisMsg1,
           size: SnackBarSize.BIG, duration: const Duration(seconds: 2)));
       return;
     }
@@ -697,7 +698,7 @@ class PlayerController extends GetxController
     if (isRadioModeOn && isQueueLoopModeEnabled.isFalse) {
       if (!showMessage) return;
       ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, "queueLoopNotDisMsg2".tr,
+          Get.context!, AppLocalizations.of(Get.context!)!.queueLoopNotDisMsg2,
           size: SnackBarSize.BIG, duration: const Duration(seconds: 2)));
       return;
     }
@@ -1107,7 +1108,7 @@ class PlayerController extends GetxController
       data: {'status': message},
     );
     final displayMessage =
-        message.startsWith("networkError") ? "networkError".tr : message;
+        message.startsWith("networkError") ? AppLocalizations.of(Get.context!)!.networkError : message;
     ScaffoldMessenger.of(Get.context!).showSnackBar(
         snackbar(Get.context!, displayMessage, size: SnackBarSize.MEDIUM));
   }

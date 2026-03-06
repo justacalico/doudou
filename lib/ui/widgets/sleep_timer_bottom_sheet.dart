@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '/ui/player/player_controller.dart';
@@ -18,7 +19,7 @@ class SleepTimerBottomSheet extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.timer),
-              title: Text("sleepTimer".tr),
+              title: Text(context.l10n.sleepTimer),
             ),
             const Divider(),
             if (playerController.isSleepTimerActive.isTrue)
@@ -78,14 +79,14 @@ class SleepTimerBottomSheet extends StatelessWidget {
                                   .color!,
                             ),
                           ),
-                          child: Text("add5Minutes".tr)),
+                          child: Text(context.l10n.add5Minutes)),
                     OutlinedButton(
                         onPressed: () {
                           Future.delayed(const Duration(milliseconds: 200),
                               playerController.cancelSleepTimer);
                           Navigator.of(context).pop();
                           ScaffoldMessenger.of(context).showSnackBar(snackbar(
-                              context, "cancelTimerAlert".tr,
+                              context, context.l10n.cancelTimerAlert,
                               size: SnackBarSize.BIG));
                         },
                         style: OutlinedButton.styleFrom(
@@ -96,7 +97,7 @@ class SleepTimerBottomSheet extends StatelessWidget {
                                 Theme.of(context).textTheme.titleMedium!.color!,
                           ),
                         ),
-                        child: Text("cancelTimer".tr))
+                        child: Text(context.l10n.cancelTimer))
                   ],
                 ),
               ),
@@ -117,13 +118,13 @@ class SleepTimerBottomSheet extends StatelessWidget {
                   playerController.startSleepTimer(dur);
                 });
                 ScaffoldMessenger.of(context).showSnackBar(snackbar(
-                    context, "sleepTimeSetAlert".tr,
+                    context, context.l10n.sleepTimeSetAlert,
                     size: SnackBarSize.BIG));
               },
               leading: Padding(
                 padding: const EdgeInsets.only(left: 10.0),
                 child: Text(
-                  "$dur ${'minutes'.tr}",
+                  "$dur ${context.l10n.minutes}",
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -137,7 +138,7 @@ class SleepTimerBottomSheet extends StatelessWidget {
       leading: Padding(
         padding: const EdgeInsets.only(left: 10.0),
         child: Text(
-          "endOfThisSong".tr,
+          context.l10n.endOfThisSong,
           style: Theme.of(context).textTheme.titleMedium,
         ),
       ),

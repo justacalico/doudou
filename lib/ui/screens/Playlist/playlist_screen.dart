@@ -1,4 +1,5 @@
 import 'dart:ui';
+import '/utils/app_l10n.dart';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -107,9 +108,9 @@ class PlaylistScreen extends StatelessWidget {
                                       context,
                                       value
                                           ? (add
-                                              ? "playlistBookmarkAddAlert".tr
-                                              : "listBookmarkRemoveAlert".tr)
-                                          : "operationFailed".tr,
+                                              ? context.l10n.playlistBookmarkAddAlert
+                                              : context.l10n.listBookmarkRemoveAlert)
+                                          : context.l10n.operationFailed,
                                       size: SnackBarSize.MEDIUM,
                                     ));
                                   });
@@ -230,7 +231,7 @@ class PlaylistScreen extends StatelessWidget {
                       if (playlistController.songList.isEmpty) {
                         return SizedBox(
                           height: 300,
-                          child: Center(child: Text("emptyPlaylist".tr)),
+                          child: Center(child: Text(context.l10n.emptyPlaylist)),
                         );
                       }
 
@@ -473,7 +474,7 @@ class PlaylistScreen extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.edit),
-              title: Text("renamePlaylist".tr),
+              title: Text(context.l10n.renamePlaylist),
               onTap: () {
                 Navigator.of(context).pop();
                 showDialog(
@@ -486,7 +487,7 @@ class PlaylistScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.delete),
-              title: Text("removePlaylist".tr),
+              title: Text(context.l10n.removePlaylist),
               onTap: () {
                 Navigator.of(context).pop();
                 playlistController
@@ -496,7 +497,7 @@ class PlaylistScreen extends StatelessWidget {
                   Get.nestedKey(ScreenNavigationSetup.id)!.currentState!.pop();
                   ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
                       Get.context!,
-                      value ? "playlistRemovedAlert".tr : "operationFailed".tr,
+                      value ? context.l10n.playlistRemovedAlert : context.l10n.operationFailed,
                       size: SnackBarSize.MEDIUM));
                 });
               },

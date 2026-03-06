@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/widgets/modification_list.dart';
 
@@ -58,7 +59,7 @@ class SeparateTabItemWidget extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        title.toLowerCase().removeAllWhitespace.tr,
+                        context.trKey(title),
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       isCompleteList
@@ -67,7 +68,7 @@ class SeparateTabItemWidget extends StatelessWidget {
                               onPressed: () {
                                 searchResController!.viewAllCallback(title);
                               },
-                              child: Text("viewAll".tr,
+                              child: Text(context.l10n.viewAll,
                                   style:
                                       Theme.of(Get.context!).textTheme.titleSmall))
                     ],
@@ -82,7 +83,7 @@ class SeparateTabItemWidget extends StatelessWidget {
                         isSearchFeatureRequired: artistController != null,
                         titleLeftPadding: 9,
                         itemCountTitle:
-                            "${isResultWidget ? (searchResController?.separatedResultContent[title] ?? []).length : (artistController?.sepataredContent[title] != null ? artistController?.sepataredContent[title]['results'] : []).length} ${"items".tr}",
+                            "${isResultWidget ? (searchResController?.separatedResultContent[title] ?? []).length : (artistController?.sepataredContent[title] != null ? artistController?.sepataredContent[title]['results'] : []).length} ${context.l10n.items}",
                         requiredSortTypes: buildSortTypeSet(
                             title == 'Albums' || title == "Singles",
                             title == "Songs" || title == "Videos"),

@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart' show MediaItem;
+import '/utils/app_l10n.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -88,7 +89,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
             SlidableAction(
               onPressed: (context) {
                 playerController.enqueueSong(song).whenComplete(() {
-                  showAppSnackBar("songEnqueueAlert".tr,
+                  showAppSnackBar(context.l10n.songEnqueueAlert,
                       size: SnackBarSize.MEDIUM);
                 });
               },
@@ -100,7 +101,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
             SlidableAction(
               onPressed: (context) {
                 playerController.playNext(song);
-                showAppSnackBar("${"playnextMsg".tr} ${(song).title}",
+                showAppSnackBar("${context.l10n.playnextMsg} ${(song).title}",
                     size: SnackBarSize.BIG);
               },
               backgroundColor: theme.colorScheme.secondary,

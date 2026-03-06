@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
+import '/l10n/app_localizations.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:widget_marquee/widget_marquee.dart';
@@ -59,7 +61,7 @@ class UpNextQueue extends StatelessWidget {
                     ],
                   ),
                   IconButton(
-                    tooltip: "close".tr,
+                    tooltip: AppLocalizations.of(Get.context!)!.close,
                     onPressed: () {
                       if (isQueueInSlidePanel) {
                         Get.find<PlayerController>()
@@ -148,7 +150,7 @@ class UpNextQueue extends StatelessWidget {
                 onReorder: (int oldIndex, int newIndex) {
                   if (playerController.isShuffleModeEnabled.isTrue) {
                     ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-                        Get.context!, "queuerearrangingDeniedMsg".tr,
+                        Get.context!, AppLocalizations.of(Get.context!)!.queuerearrangingDeniedMsg,
                         size: SnackBarSize.BIG));
                     return;
                   }
@@ -221,8 +223,7 @@ class UpNextQueue extends StatelessWidget {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(snackbar(
                                                 context,
-                                                "songRemovedfromQueueCurrSong"
-                                                    .tr,
+                                                context.l10n.songRemovedfromQueueCurrSong,
                                                 size: SnackBarSize.BIG));
                                       } else {
                                         playerController.removeFromQueue(

@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -53,9 +54,9 @@ class ArtistHeader extends StatelessWidget {
                                 context,
                                 value
                                     ? add
-                                        ? "artistBookmarkAddAlert".tr
-                                        : "artistBookmarkRemoveAlert".tr
-                                    : "operationFailed".tr,
+                                        ? context.l10n.artistBookmarkAddAlert
+                                        : context.l10n.artistBookmarkRemoveAlert
+                                    : context.l10n.operationFailed,
                                 size: SnackBarSize.MEDIUM));
                           }
                         });
@@ -83,7 +84,7 @@ class ArtistHeader extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    "artistLabel".tr,
+                    context.l10n.artistLabel,
                     style: theme.textTheme.labelSmall?.copyWith(
                       letterSpacing: 1.2,
                       color: theme.textTheme.bodySmall?.color,
@@ -107,7 +108,7 @@ class ArtistHeader extends StatelessWidget {
                           if (count > 0) ...[
                             Flexible(
                               child: Text(
-                                '$count ${"songsCount".tr}',
+                                '$count ${context.l10n.songsCount}',
                                 style: theme.textTheme.bodySmall,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -143,7 +144,7 @@ class ArtistHeader extends StatelessWidget {
                     child: Row(
                       children: [
                         IconButton(
-                          tooltip: "playAll".tr,
+                          tooltip: context.l10n.playAll,
                           onPressed: () => _playAll(context),
                           icon: Icon(
                             Icons.play_circle,
@@ -151,7 +152,7 @@ class ArtistHeader extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          tooltip: "shuffle".tr,
+                          tooltip: context.l10n.shuffle,
                           onPressed: () => _shuffle(context),
                           icon: Icon(
                             Icons.shuffle,
@@ -159,7 +160,7 @@ class ArtistHeader extends StatelessWidget {
                           ),
                         ),
                         PopupMenuButton<String>(
-                          tooltip: "more".tr,
+                          tooltip: context.l10n.more,
                           icon: Icon(
                             Icons.more_horiz,
                             color: theme.textTheme.titleMedium?.color ??
@@ -187,7 +188,7 @@ class ArtistHeader extends StatelessWidget {
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
-                                          "startRadio".tr,
+                                          context.l10n.startRadio,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
@@ -205,8 +206,8 @@ class ArtistHeader extends StatelessWidget {
                                     Expanded(
                                       child: Text(
                                         controller.isAddedToLibrary.isTrue
-                                            ? "removeFromLib".tr
-                                            : "addToLibrary".tr,
+                                            ? context.l10n.removeFromLib
+                                            : context.l10n.addToLibrary,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -225,7 +226,7 @@ class ArtistHeader extends StatelessWidget {
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
-                                          "about".tr,
+                                          context.l10n.about,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
@@ -277,7 +278,7 @@ class ArtistHeader extends StatelessWidget {
     final radioId = controller.artist_.radioId;
     if (radioId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-          snackbar(context, "radioNotAvailable".tr, size: SnackBarSize.BIG));
+          snackbar(context, context.l10n.radioNotAvailable, size: SnackBarSize.BIG));
       return;
     }
     Get.find<PlayerController>().startRadio(null, playlistid: radioId);
@@ -320,9 +321,9 @@ class ArtistHeader extends StatelessWidget {
             context,
             value
                 ? add
-                    ? "artistBookmarkAddAlert".tr
-                    : "artistBookmarkRemoveAlert".tr
-                : "operationFailed".tr,
+                    ? context.l10n.artistBookmarkAddAlert
+                    : context.l10n.artistBookmarkRemoveAlert
+                : context.l10n.operationFailed,
             size: SnackBarSize.MEDIUM));
       }
     });

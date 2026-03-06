@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'dart:ui';
 
 import 'package:get/get.dart';
@@ -109,7 +110,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
             },
             icon: const Icon(Icons.mic_rounded, size: iconSize),
             color: iconColor,
-            tooltip: "lyrics".tr,
+            tooltip: context.l10n.lyrics,
           ),
           IconButton(
             onPressed: () {
@@ -135,7 +136,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
               ),
             ),
             color: iconColor,
-            tooltip: "sleepTimer".tr,
+            tooltip: context.l10n.sleepTimer,
           ),
           const SongDownloadButton(
             calledFromPlayer: true,

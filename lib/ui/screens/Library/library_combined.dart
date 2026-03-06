@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '/ui/screens/Settings/settings_screen_controller.dart';
@@ -55,16 +56,16 @@ class CombinedLibrary extends StatelessWidget {
           splashFactory: NoSplash.splashFactory,
           controller: tabCon.tabController,
           tabs: [
-            Tab(text: "songs".tr),
-            Tab(text: "playlists".tr),
-            Tab(text: "albums".tr),
-            Tab(text: "artists".tr),
+            Tab(text: context.l10n.songs),
+            Tab(text: context.l10n.playlists),
+            Tab(text: context.l10n.albums),
+            Tab(text: context.l10n.artists),
           ],
         ),
         title: Padding(
           padding: const EdgeInsets.only(top: 60.0, left: 5),
           child:
-              Text('library'.tr, style: Theme.of(context).textTheme.titleLarge),
+              Text(context.l10n.library, style: Theme.of(context).textTheme.titleLarge),
         ),
       ),
       body: TabBarView(

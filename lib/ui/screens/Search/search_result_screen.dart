@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '/ui/constants/layout.dart';
@@ -37,13 +38,13 @@ class SearchResultScreen extends StatelessWidget {
                                       .isResultContentFetced.value &&
                                   searchResScrController.railItems.isNotEmpty)
                               ? [
-                                  railDestination("results".tr),
+                                  railDestination(context, context.l10n.results),
                                   ...(searchResScrController.railItems.map(
-                                      (element) => railDestination(element))),
+                                      (element) => railDestination(context, element))),
                                 ]
                               : [
-                                  railDestination("results".tr),
-                                  railDestination("")
+                                  railDestination(context, context.l10n.results),
+                                  railDestination(context, "")
                                 ],
                           leading: Column(
                             children: [
@@ -106,12 +107,12 @@ class SearchResultScreen extends StatelessWidget {
     );
   }
 
-  NavigationRailDestination railDestination(String label) {
+  NavigationRailDestination railDestination(BuildContext context, String label) {
     return NavigationRailDestination(
       icon: const SizedBox.shrink(),
       label: RotatedBox(
           quarterTurns: -1,
-          child: Text(label.toLowerCase().removeAllWhitespace.tr)),
+          child: Text(context.trKey(label))),
     );
   }
 }
@@ -135,7 +136,7 @@ class Body extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "nomatch".tr,
+                  context.l10n.nomatch,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text("'${searchResScrController.queryString.value}'"),

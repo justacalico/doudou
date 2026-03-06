@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:doudou/services/downloader.dart';
@@ -76,7 +77,7 @@ class SongDownloadButton extends StatelessWidget {
                             if (!context.mounted) return;
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(snackbar(
-                                context, "songAlreadyOfflineAlert".tr,
+                                context, context.l10n.songAlreadyOfflineAlert,
                                 size: SnackBarSize.BIG));
                           } else {
                             downloader.download(song);

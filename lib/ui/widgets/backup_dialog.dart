@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '/utils/app_l10n.dart';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -32,7 +33,7 @@ class BackupDialog extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.only(bottom: 10.0, top: 10),
                 child: Text(
-                  "backupAppData".tr,
+                  context.l10n.backupAppData,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -54,14 +55,14 @@ class BackupDialog extends StatelessWidget {
                         children: [
                           Obx(() => Text(
                                 backupDialogController.scanning.isTrue
-                                    ? "scanning".tr
+                                    ? context.l10n.scanning
                                     : backupDialogController
                                             .backupRunning.isTrue
-                                        ? "backupInProgress".tr
+                                        ? context.l10n.backupInProgress
                                         : backupDialogController
                                                 .isbackupCompleted.isTrue
-                                            ? "backupMsg".tr
-                                            : "letsStrart".tr,
+                                            ? context.l10n.backupMsg
+                                            : context.l10n.letsStrart,
                                 textAlign: TextAlign.center,
                               )),
                           if (GetPlatform.isAndroid)
@@ -70,7 +71,7 @@ class BackupDialog extends StatelessWidget {
                                 ? Padding(
                                     padding: const EdgeInsets.only(top: 8.0),
                                     child: Text(
-                                      "androidBackupWarning".tr,
+                                      context.l10n.androidBackupWarning,
                                       textAlign: TextAlign.center,
                                       style: Theme.of(context)
                                           .textTheme
@@ -110,7 +111,7 @@ class BackupDialog extends StatelessWidget {
                                               .value = value!;
                                         },
                             ),
-                            Text("includeDownloadedFiles".tr),
+                            Text(context.l10n.includeDownloadedFiles),
                           ]),
                     )),
               SizedBox(
@@ -142,8 +143,8 @@ class BackupDialog extends StatelessWidget {
                             child: Obx(
                               () => Text(
                                 backupDialogController.isbackupCompleted.isTrue
-                                    ? "close".tr
-                                    : "backup".tr,
+                                    ? context.l10n.close
+                                    : context.l10n.backup,
                                 style: TextStyle(
                                     color: Theme.of(context).canvasColor),
                               ),

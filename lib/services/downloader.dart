@@ -1,4 +1,5 @@
 import 'dart:async';
+import '/l10n/app_localizations.dart';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
@@ -164,7 +165,7 @@ class Downloader extends GetxService {
         ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
             Get.context!,
             playerResponse.statusMSG == "networkError"
-                ? playerResponse.statusMSG.tr
+                ? AppLocalizations.of(Get.context!)!.networkError
                 : playerResponse.statusMSG,
             size: SnackBarSize.BIG,
             duration: const Duration(seconds: 2),
@@ -202,7 +203,7 @@ class Downloader extends GetxService {
 
       if (streamUrl == null || streamUrl.isEmpty) {
         ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-            Get.context!, "downloadError2".tr,
+            Get.context!, AppLocalizations.of(Get.context!)!.downloadError2,
             size: SnackBarSize.BIG,
             duration: const Duration(seconds: 2),
             top: !GetPlatform.isDesktop));
@@ -226,7 +227,7 @@ class Downloader extends GetxService {
 
     if (requiredAudioStream == null) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, "downloadError2".tr,
+          Get.context!, AppLocalizations.of(Get.context!)!.downloadError2,
           size: SnackBarSize.BIG,
           duration: const Duration(seconds: 2),
           top: !GetPlatform.isDesktop));
@@ -257,7 +258,7 @@ class Downloader extends GetxService {
       });
     } catch (_) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, "downloadError3".tr,
+          Get.context!, AppLocalizations.of(Get.context!)!.downloadError3,
           size: SnackBarSize.BIG,
           duration: const Duration(seconds: 2),
           top: !GetPlatform.isDesktop));
@@ -268,7 +269,7 @@ class Downloader extends GetxService {
     final statusCode = response?.statusCode;
     if (statusCode != null && (statusCode < 200 || statusCode >= 300)) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, "downloadError3".tr,
+          Get.context!, AppLocalizations.of(Get.context!)!.downloadError3,
           size: SnackBarSize.BIG,
           duration: const Duration(seconds: 2),
           top: !GetPlatform.isDesktop));
@@ -278,7 +279,7 @@ class Downloader extends GetxService {
     final downloadedFile = File(filePath);
     if (!await downloadedFile.exists() || await downloadedFile.length() == 0) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, "downloadError3".tr,
+          Get.context!, AppLocalizations.of(Get.context!)!.downloadError3,
           size: SnackBarSize.BIG,
           duration: const Duration(seconds: 2),
           top: !GetPlatform.isDesktop));

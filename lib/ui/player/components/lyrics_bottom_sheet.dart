@@ -1,4 +1,5 @@
 import 'dart:ui';
+import '/utils/app_l10n.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -69,7 +70,7 @@ class LyricsBottomSheet extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  "lyrics".tr,
+                  context.l10n.lyrics,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),

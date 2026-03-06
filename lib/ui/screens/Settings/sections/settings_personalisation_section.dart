@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '/ui/utils/theme_controller.dart';
 import '/ui/widgets/cust_switch.dart';
-import '/utils/lang_mapping.dart';
-import '../components/custom_expansion_tile.dart';
 import '../settings_screen_controller.dart';
+import '../components/custom_expansion_tile.dart';
 
 class SettingsPersonalisationSection extends StatelessWidget {
   const SettingsPersonalisationSection(
@@ -19,27 +19,27 @@ class SettingsPersonalisationSection extends StatelessWidget {
     final settingsController = Get.find<SettingsScreenController>();
     final isDesktop = GetPlatform.isDesktop;
     return CustomExpansionTile(
-      title: "personalisation".tr,
+      title: context.l10n.personalisation,
       icon: Icons.palette_outlined,
       expansionKey: expansionKey,
       onExpansionChanged: onExpansionChanged,
       children: [
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-          title: Text("themeMode".tr),
+          title: Text(context.l10n.themeMode),
           subtitle: Obx(
             () => Text(
                 settingsController.themeModetype.value == ThemeType.dynamic
-                    ? "dynamic".tr
+                    ? context.l10n.dynamicTheme
                     : settingsController.themeModetype.value == ThemeType.system
-                        ? "systemDefault".tr
+                        ? context.l10n.systemDefault
                         : settingsController.themeModetype.value ==
                                 ThemeType.dark
-                            ? "dark".tr
+                            ? context.l10n.dark
                             : settingsController.themeModetype.value ==
                                     ThemeType.oled
-                                ? "oled".tr
-                                : "light".tr,
+                                ? context.l10n.oled
+                                : context.l10n.light,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).textTheme.bodySmall?.color,
                     )),
@@ -48,9 +48,9 @@ class SettingsPersonalisationSection extends StatelessWidget {
         ),
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-          title: Text("lyricsDynamicColor".tr),
+          title: Text(context.l10n.lyricsDynamicColor),
           subtitle: Text(
-            "lyricsDynamicColorDes".tr,
+            context.l10n.lyricsDynamicColorDes,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).textTheme.bodySmall?.color,
                 ),
@@ -64,9 +64,9 @@ class SettingsPersonalisationSection extends StatelessWidget {
         ),
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-          title: Text("syncedLyricsHighlightStyle".tr),
+          title: Text(context.l10n.syncedLyricsHighlightStyle),
           subtitle: Text(
-            "syncedLyricsHighlightStyleDes".tr,
+            context.l10n.syncedLyricsHighlightStyleDes,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).textTheme.bodySmall?.color,
                 ),
@@ -80,11 +80,11 @@ class SettingsPersonalisationSection extends StatelessWidget {
               items: [
                 DropdownMenuItem(
                   value: SyncedLyricsHighlightStyle.block,
-                  child: Text("lyricsHighlightBlock".tr),
+                  child: Text(context.l10n.lyricsHighlightBlock),
                 ),
                 DropdownMenuItem(
                   value: SyncedLyricsHighlightStyle.karaoke,
-                  child: Text("lyricsHighlightKaraoke".tr),
+                  child: Text(context.l10n.lyricsHighlightKaraoke),
                 ),
               ],
               onChanged: (val) {
@@ -97,8 +97,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
         ),
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-          title: Text("language".tr),
-          subtitle: Text("languageDes".tr,
+          title: Text(context.l10n.language),
+          subtitle: Text(context.l10n.languageDes,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).textTheme.bodySmall?.color,
                   )),
@@ -110,7 +110,7 @@ class SettingsPersonalisationSection extends StatelessWidget {
               underline: const SizedBox.shrink(),
               style: Theme.of(context).textTheme.titleSmall,
               value: settingsController.currentAppLanguageCode.value,
-              items: langMap.entries
+              items: supportedLocalesDisplay.entries
                   .map((lang) => DropdownMenuItem(
                         value: lang.key,
                         child: Text(lang.value),
@@ -118,7 +118,7 @@ class SettingsPersonalisationSection extends StatelessWidget {
                   .whereType<DropdownMenuItem<String>>()
                   .toList(),
               selectedItemBuilder: (context) =>
-                  langMap.entries.map<Widget>((item) {
+                  supportedLocalesDisplay.entries.map<Widget>((item) {
                 return Container(
                   alignment: Alignment.centerRight,
                   constraints: const BoxConstraints(minWidth: 50),
@@ -133,8 +133,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
         if (!isDesktop)
           ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-            title: Text("playerUi".tr),
-            subtitle: Text("playerUiDes".tr,
+            title: Text(context.l10n.playerUi),
+            subtitle: Text(context.l10n.playerUiDes,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).textTheme.bodySmall?.color,
                     )),
@@ -145,8 +145,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
                 underline: const SizedBox.shrink(),
                 value: settingsController.playerUi.value,
                 items: [
-                  DropdownMenuItem(value: 0, child: Text("standard".tr)),
-                  DropdownMenuItem(value: 1, child: Text("gesture".tr)),
+                  DropdownMenuItem(value: 0, child: Text(context.l10n.standard)),
+                  DropdownMenuItem(value: 1, child: Text(context.l10n.gesture)),
                 ],
                 onChanged: settingsController.setPlayerUi,
               ),
@@ -154,9 +154,9 @@ class SettingsPersonalisationSection extends StatelessWidget {
           ),
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-          title: Text("animationSpeed".tr),
+          title: Text(context.l10n.animationSpeed),
           subtitle: Text(
-            "animationSpeedDes".tr,
+            context.l10n.animationSpeedDes,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).textTheme.bodySmall?.color,
                 ),
@@ -170,19 +170,19 @@ class SettingsPersonalisationSection extends StatelessWidget {
               items: [
                 DropdownMenuItem(
                   value: AnimationSpeed.off,
-                  child: Text("animationSpeedOff".tr),
+                  child: Text(context.l10n.animationSpeedOff),
                 ),
                 DropdownMenuItem(
                   value: AnimationSpeed.fast,
-                  child: Text("animationSpeedFast".tr),
+                  child: Text(context.l10n.animationSpeedFast),
                 ),
                 DropdownMenuItem(
                   value: AnimationSpeed.normal,
-                  child: Text("animationSpeedNormal".tr),
+                  child: Text(context.l10n.animationSpeedNormal),
                 ),
                 DropdownMenuItem(
                   value: AnimationSpeed.slow,
-                  child: Text("animationSpeedSlow".tr),
+                  child: Text(context.l10n.animationSpeedSlow),
                 ),
               ],
               onChanged: (val) {
@@ -195,8 +195,8 @@ class SettingsPersonalisationSection extends StatelessWidget {
         ),
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-          title: Text("enableSlidableAction".tr),
-          subtitle: Text("enableSlidableActionDes".tr,
+          title: Text(context.l10n.enableSlidableAction),
+          subtitle: Text(context.l10n.enableSlidableActionDes,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).textTheme.bodySmall?.color,
                   )),

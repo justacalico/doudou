@@ -1,4 +1,5 @@
 import 'dart:io';
+import '/utils/app_l10n.dart';
 
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
@@ -30,7 +31,7 @@ class RestoreDialog extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.only(bottom: 10.0, top: 10),
                 child: Text(
-                  "restoreAppData".tr,
+                  context.l10n.restoreAppData,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -41,11 +42,11 @@ class RestoreDialog extends StatelessWidget {
                               .toInt() ==
                           restoreDialogController.filesToRestore.toInt()
                       ? Text(
-                          "restoreMsg".tr,
+                          context.l10n.restoreMsg,
                           textAlign: TextAlign.center,
                         )
                       : restoreDialogController.processingFiles.isTrue
-                          ? Text("processFiles".tr)
+                          ? Text(context.l10n.processFiles)
                           : restoreDialogController.restoreRunning.isTrue
                               ? Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -58,10 +59,10 @@ class RestoreDialog extends StatelessWidget {
                                     const SizedBox(
                                       height: 10,
                                     ),
-                                    Text("restoring".tr)
+                                    Text(context.l10n.restoring)
                                   ],
                                 )
-                              : Text("letsStrart".tr)),
+                              : Text(context.l10n.letsStrart)),
                 ),
               ),
               SizedBox(
@@ -103,8 +104,8 @@ class RestoreDialog extends StatelessWidget {
                                             .toInt() ==
                                         restoreDialogController.filesToRestore
                                             .toInt()
-                                    ? "restartApp".tr
-                                    : "restore".tr,
+                                    ? context.l10n.restartApp
+                                    : context.l10n.restore,
                                 style: TextStyle(
                                     color: Theme.of(context).canvasColor),
                               ),

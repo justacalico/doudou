@@ -1,4 +1,5 @@
 import 'dart:async';
+import '/l10n/app_localizations.dart';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -32,6 +33,13 @@ import '/services/backend/music_backend.dart';
 import '/services/backend/subsonic_backend.dart';
 
 enum SidebarMode { auto, collapsed, expanded }
+
+const supportedLocalesDisplay = {
+  "en": "English",
+  "en_AU": "English (Australian)",
+  "zh": "简体中文",
+  "ru": "Русский",
+};
 
 enum AnimationSpeed { off, fast, normal, slow }
 
@@ -154,12 +162,15 @@ class SettingsScreenController extends GetxController {
 
   Future<void> _setInitValue() async {
     final isDesktop = GetPlatform.isDesktop;
+    const supported = ['en', 'en_AU', 'zh', 'ru'];
     final appLang = setBox.get('currentAppLanguageCode') ?? "en";
-    currentAppLanguageCode.value = appLang == "zh_Hant"
-        ? "zh-TW"
-        : appLang == "zh_Hans"
-            ? "zh-CN"
-            : appLang;
+    final normalized = appLang == "zh_Hant" || appLang == "zh_Hans" || appLang == "zh-CN" || appLang == "zh-TW"
+        ? "zh"
+        : supported.contains(appLang)
+            ? appLang
+            : "en";
+    currentAppLanguageCode.value = normalized;
+    if (normalized != appLang) setBox.put('currentAppLanguageCode', normalized);
     isBottomNavBarEnabled.value = false;
     setBox.put("isBottomNavBarEnabled", false);
     final rawSidebarMode = setBox.get("sidebarMode");
@@ -253,7 +264,7 @@ class SettingsScreenController extends GetxController {
 
     final defaultServer = SettingsServer(
       id: SettingsServer.defaultServerId,
-      name: 'youtubeMusic'.tr,
+      name: AppLocalizations.of(Get.context!)!.youtubeMusic,
       type: ServerType.youtubeMusic,
       isDefault: true,
     );
@@ -288,8 +299,9 @@ class SettingsScreenController extends GetxController {
   }
 
   void setAppLanguage(String? val) {
-    Get.updateLocale(Locale(val!));
-    Get.find<MusicServices>().hlCode = val;
+    final locale = val == 'en_AU' ? const Locale('en', 'AU') : Locale(val!);
+    Get.updateLocale(locale);
+    Get.find<MusicServices>().hlCode = val!;
     Get.find<HomeScreenController>().loadContentFromNetwork(silent: true);
     currentAppLanguageCode.value = val;
     setBox.put('currentAppLanguageCode', val);
@@ -506,13 +518,13 @@ class SettingsScreenController extends GetxController {
   String _serverTypeLabel(ServerType type) {
     switch (type) {
       case ServerType.youtubeMusic:
-        return 'youtubeMusic'.tr;
+        return AppLocalizations.of(Get.context!)!.youtubeMusic;
       case ServerType.subsonic:
-        return 'subsonic'.tr;
+        return AppLocalizations.of(Get.context!)!.subsonic;
       case ServerType.jellyfin:
-        return 'jellyfin'.tr;
+        return AppLocalizations.of(Get.context!)!.jellyfin;
       case ServerType.plex:
-        return 'plex'.tr;
+        return AppLocalizations.of(Get.context!)!.plex;
     }
   }
 
@@ -542,7 +554,7 @@ class SettingsScreenController extends GetxController {
     if (Get.isRegistered<LibraryPlaylistsController>()) {
       final ctrl = Get.find<LibraryPlaylistsController>();
       ctrl.tempListContainer = [];
-      ctrl.libraryPlaylists.value = LibraryPlaylistsController.initPlst;
+      ctrl.libraryPlaylists.value = Get.find<LibraryPlaylistsController>().initPlst;
       ctrl.isContentFetched.value = false;
       // ignore: discarded_futures
       ctrl.refreshLib();
@@ -701,7 +713,7 @@ class SettingsScreenController extends GetxController {
         blacklistedPlaylistBoxName(activeServerId.value ?? 0));
     box.clear();
     ScaffoldMessenger.of(Get.context!).showSnackBar(
-        snackbar(Get.context!, "unlinkAlert".tr, size: SnackBarSize.MEDIUM));
+        snackbar(Get.context!, AppLocalizations.of(Get.context!)!.unlinkAlert, size: SnackBarSize.MEDIUM));
     box.close();
   }
 

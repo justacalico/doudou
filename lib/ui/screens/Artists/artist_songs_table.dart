@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -26,7 +27,7 @@ class ArtistSongsTable extends StatelessWidget {
     if (items.isEmpty) {
       return Center(
         child: Text(
-          "noSongsInLibrary".tr,
+          context.l10n.noSongsInLibrary,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       );
@@ -42,8 +43,8 @@ class ArtistSongsTable extends StatelessWidget {
           child: Row(
             children: [
               SizedBox(width: 36, child: Text("#", style: theme.textTheme.labelSmall)),
-              Expanded(flex: 3, child: Text("title".tr, style: theme.textTheme.labelSmall)),
-              SizedBox(width: 64, child: Text("duration".tr, style: theme.textTheme.labelSmall)),
+              Expanded(flex: 3, child: Text(context.l10n.title, style: theme.textTheme.labelSmall)),
+              SizedBox(width: 64, child: Text(context.l10n.duration, style: theme.textTheme.labelSmall)),
               if (GetPlatform.isDesktop) const SizedBox(width: 40),
             ],
           ),

@@ -6,8 +6,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:terminate_restart/terminate_restart.dart';
 
+import '/l10n/app_localizations.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
-import '/utils/get_localization.dart';
 import '/services/downloader.dart';
 import '/services/library_sync_service.dart';
 import '/services/piped_service.dart';
@@ -45,15 +45,23 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!GetPlatform.isDesktop) Get.put(AppLinksController());
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    const supportedLocaleCodes = ['en', 'en_AU', 'zh', 'ru'];
+    final stored = Hive.box("AppPrefs").get('currentAppLanguageCode') as String?;
+    final code = stored != null && supportedLocaleCodes.contains(stored)
+        ? stored
+        : 'en';
+    final locale = code == 'en_AU'
+        ? const Locale('en', 'AU')
+        : Locale(code);
     return GetMaterialApp(
         title: 'Doudou',
         scrollBehavior: PlaylistAlbumScrollBehaviour(),
         home: const ScreenNavigation(),
         debugShowCheckedModeBanner: false,
-        translations: Languages(),
-        locale:
-            Locale(Hive.box("AppPrefs").get('currentAppLanguageCode') ?? "en"),
+        locale: locale,
         fallbackLocale: const Locale("en"),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         builder: (context, child) {
           final mQuery = MediaQuery.of(context);
           final scale =

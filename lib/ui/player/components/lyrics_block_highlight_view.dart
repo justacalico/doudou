@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '../player_controller.dart';
@@ -54,7 +55,7 @@ class _LyricsBlockHighlightViewState extends State<LyricsBlockHighlightView> {
       if (syncedRaw.trim().isEmpty || lines.isEmpty) {
         return Center(
           child: Text(
-            "syncedLyricsNotAvailable".tr,
+            context.l10n.syncedLyricsNotAvailable,
             style: textStyle,
           ),
         );

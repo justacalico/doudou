@@ -15,6 +15,7 @@ import '../Library/library_controller.dart';
 import '../Library/library.dart';
 import '../Search/search_screen.dart';
 import '/ui/constants/layout.dart';
+import '/utils/app_l10n.dart';
 import '/utils/server_storage.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/models/server.dart';
@@ -144,7 +145,7 @@ class Body extends StatelessWidget {
                   height: MediaQuery.of(context).size.height - 180,
                   child: Center(
                     child: Text(
-                      "addMusicToLibraryHint".tr,
+                      context.l10n.addMusicToLibraryHint,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
@@ -271,20 +272,6 @@ class Body extends StatelessWidget {
                 );
               }
 
-              String formatTracksInCollection(int count) {
-                final t = "tracksInYourCollection".tr;
-                return t.contains("%s")
-                    ? t.replaceFirst("%s", count.toString())
-                    : "$count tracks in your collection";
-              }
-
-              String formatShuffleLiked(int count) {
-                final t = "shuffleLikedSongs".tr;
-                return t.contains("%s")
-                    ? t.replaceFirst("%s", count.toString())
-                    : "Shuffle $count liked songs";
-              }
-
               // Listen for background refreshes of cached home sections.
               homeScreenController.homeLibrarySectionsVersion.value;
 
@@ -312,7 +299,7 @@ class Body extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "yourLibrary".tr,
+                          context.l10n.yourLibrary,
                           style: theme.textTheme.titleLarge,
                         ),
                         const SizedBox(height: 12),
@@ -328,7 +315,7 @@ class Body extends StatelessWidget {
                                     child: libraryCard(
                                       useGradient: false,
                                       enabled: hasLibrarySongs,
-                                      emptyMessage: "noSongsInLibrary".tr,
+                                      emptyMessage: context.l10n.noSongsInLibrary,
                                       onTap: hasLibrarySongs
                                           ? () async {
                                               final messenger =
@@ -362,8 +349,7 @@ class Body extends StatelessWidget {
                                                   messenger.showSnackBar(
                                                       SnackBar(
                                                           content: Text(
-                                                              "noSongsInLibrary"
-                                                                  .tr)));
+                                                              context.l10n.noSongsInLibrary)));
                                                   return;
                                                 }
                                                 list.shuffle();
@@ -372,7 +358,7 @@ class Body extends StatelessWidget {
                                                   list,
                                                   0,
                                                   playfrom: PlaylingFrom(
-                                                    name: "shuffleAll".tr,
+                                                    name: context.l10n.shuffleAll,
                                                     type: PlaylingFromType
                                                         .SELECTION,
                                                   ),
@@ -384,8 +370,7 @@ class Body extends StatelessWidget {
                                                   messenger.showSnackBar(
                                                       SnackBar(
                                                           content: Text(
-                                                              "noSongsInLibrary"
-                                                                  .tr)));
+                                                              context.l10n.noSongsInLibrary)));
                                                   return;
                                                 }
                                                 final list = allSongs.toList();
@@ -395,7 +380,7 @@ class Body extends StatelessWidget {
                                                   list,
                                                   0,
                                                   playfrom: PlaylingFrom(
-                                                    name: "shuffleAll".tr,
+                                                    name: context.l10n.shuffleAll,
                                                     type: PlaylingFromType
                                                         .SELECTION,
                                                   ),
@@ -404,8 +389,8 @@ class Body extends StatelessWidget {
                                             }
                                           : null,
                                       icon: Icons.shuffle,
-                                      title: "shuffleAll".tr,
-                                      subtitle: formatTracksInCollection(
+                                      title: context.l10n.shuffleAll,
+                                      subtitle: context.l10n.tracksInYourCollection(
                                           shuffleTrackCount),
                                     ),
                                   ),
@@ -416,7 +401,7 @@ class Body extends StatelessWidget {
                                         horizontal: 4),
                                     child: libraryCard(
                                       enabled: hasFavorites,
-                                      emptyMessage: "favoritesEmpty".tr,
+                                      emptyMessage: context.l10n.favoritesEmpty,
                                       onTap: hasFavorites
                                           ? () async {
                                               final messenger =
@@ -434,8 +419,7 @@ class Body extends StatelessWidget {
                                                   messenger.showSnackBar(
                                                       SnackBar(
                                                           content: Text(
-                                                              "favoritesEmpty"
-                                                                  .tr)));
+                                                              context.l10n.favoritesEmpty)));
                                                   return;
                                                 }
                                                 list.shuffle();
@@ -444,7 +428,7 @@ class Body extends StatelessWidget {
                                                   list,
                                                   0,
                                                   playfrom: PlaylingFrom(
-                                                    name: "favorites".tr,
+                                                    name: context.l10n.favorites,
                                                     type: PlaylingFromType
                                                         .PLAYLIST,
                                                   ),
@@ -464,8 +448,7 @@ class Body extends StatelessWidget {
                                                   messenger.showSnackBar(
                                                       SnackBar(
                                                           content: Text(
-                                                              "favoritesEmpty"
-                                                                  .tr)));
+                                                              context.l10n.favoritesEmpty)));
                                                   return;
                                                 }
                                                 list.shuffle();
@@ -474,7 +457,7 @@ class Body extends StatelessWidget {
                                                   list,
                                                   0,
                                                   playfrom: PlaylingFrom(
-                                                    name: "favorites".tr,
+                                                    name: context.l10n.favorites,
                                                     type: PlaylingFromType
                                                         .PLAYLIST,
                                                   ),
@@ -486,8 +469,8 @@ class Body extends StatelessWidget {
                                       iconColor: hasFavorites
                                           ? theme.colorScheme.error
                                           : null,
-                                      title: "favorites".tr,
-                                      subtitle: formatShuffleLiked(
+                                      title: context.l10n.favorites,
+                                      subtitle: context.l10n.shuffleLikedSongs(
                                           resolved.favoriteCount),
                                     ),
                                   ),
@@ -498,7 +481,7 @@ class Body extends StatelessWidget {
                                         left: kLibraryCardGap),
                                     child: libraryCard(
                                       enabled: hasDownloads,
-                                      emptyMessage: "noOfflineSong".tr,
+                                      emptyMessage: context.l10n.noOfflineSong,
                                       onTap: hasDownloads
                                           ? () async {
                                               final box =
@@ -515,7 +498,7 @@ class Body extends StatelessWidget {
                                                 list,
                                                 0,
                                                 playfrom: PlaylingFrom(
-                                                  name: "downloads".tr,
+                                                  name: context.l10n.downloads,
                                                   type:
                                                       PlaylingFromType.PLAYLIST,
                                                 ),
@@ -526,8 +509,8 @@ class Body extends StatelessWidget {
                                       iconColor: hasDownloads
                                           ? theme.colorScheme.onSurface
                                           : null,
-                                      title: "downloads".tr,
-                                      subtitle: "availableOffline".tr,
+                                      title: context.l10n.downloads,
+                                      subtitle: context.l10n.availableOffline,
                                     ),
                                   ),
                                 ),
@@ -545,10 +528,10 @@ class Body extends StatelessWidget {
                     content.add(
                       _buildTrackRowSection(
                         context: context,
-                        title: "homeContinueListening".tr,
-                        subtitle: "homeContinueListeningSubtitle".tr,
+                        title: context.l10n.homeContinueListening,
+                        subtitle: context.l10n.homeContinueListeningSubtitle,
                         items: resolved.continueListening,
-                        playLabel: "homeContinueListening".tr,
+                        playLabel: context.l10n.homeContinueListening,
                         playerController: playerController,
                       ),
                     );
@@ -559,10 +542,10 @@ class Body extends StatelessWidget {
                     content.add(
                       _buildTrackRowSection(
                         context: context,
-                        title: "homeBecauseYouLikeArtists".tr,
-                        subtitle: "homeBecauseYouLikeArtistsSubtitle".tr,
+                        title: context.l10n.homeBecauseYouLikeArtists,
+                        subtitle: context.l10n.homeBecauseYouLikeArtistsSubtitle,
                         items: resolved.basedOnFavorites,
-                        playLabel: "homeBecauseYouLikeArtists".tr,
+                        playLabel: context.l10n.homeBecauseYouLikeArtists,
                         playerController: playerController,
                       ),
                     );
@@ -573,8 +556,8 @@ class Body extends StatelessWidget {
                     content.add(
                       _buildPlaylistRowSection(
                         context: context,
-                        title: "playlists".tr,
-                        subtitle: "homePlaylistsSubtitle".tr,
+                        title: context.l10n.playlists,
+                        subtitle: context.l10n.homePlaylistsSubtitle,
                         playlists: resolved.playlistsFromCollection,
                       ),
                     );
@@ -585,8 +568,8 @@ class Body extends StatelessWidget {
                     content.add(
                       _buildAlbumRowSection(
                         context: context,
-                        title: "recentlyAddedAlbums".tr,
-                        subtitle: "yourNewestAdditions".tr,
+                        title: context.l10n.recentlyAddedAlbums,
+                        subtitle: context.l10n.yourNewestAdditions,
                         albums: resolved.latestAlbums,
                       ),
                     );
@@ -597,8 +580,8 @@ class Body extends StatelessWidget {
                     content.add(
                       _buildArtistRowSection(
                         context: context,
-                        title: "yourArtists".tr,
-                        subtitle: "homeArtistsSubtitle".tr,
+                        title: context.l10n.yourArtists,
+                        subtitle: context.l10n.homeArtistsSubtitle,
                         artists: resolved.artistsToExplore,
                       ),
                     );
@@ -620,7 +603,7 @@ class Body extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: 20),
                         child: Text(
-                          "loading".tr,
+                          context.l10n.loading,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurface
                                 .withValues(alpha: 0.7),
@@ -633,7 +616,7 @@ class Body extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: 20),
                         child: Text(
-                          "homeEmptyLibraryMessage".tr,
+                          context.l10n.homeEmptyLibraryMessage,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurface
                                 .withValues(alpha: 0.7),
@@ -785,7 +768,7 @@ class Body extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                "${track.artist ?? 'unknownArtist'.tr} • ${track.album ?? 'unknownAlbum'.tr}",
+                                "${track.artist ?? context.l10n.unknownArtist} • ${track.album ?? context.l10n.unknownAlbum}",
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: theme.textTheme.bodySmall?.copyWith(
@@ -915,7 +898,7 @@ class Body extends StatelessWidget {
                       album.artists!.isNotEmpty &&
                       (album.artists![0]['name'] as String?) != null)
                   ? album.artists![0]['name'] as String
-                  : "unknownArtist".tr;
+                  : context.l10n.unknownArtist;
               return Padding(
                 padding: EdgeInsets.only(
                   right: index < albums.length - 1 ? 12 : 0,
@@ -1049,12 +1032,12 @@ class Body extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "homeFreshPicks".tr,
+          context.l10n.homeFreshPicks,
           style: theme.textTheme.titleLarge,
         ),
         const SizedBox(height: 4),
         Text(
-          "yourMusicCollection".tr,
+          context.l10n.yourMusicCollection,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
@@ -1074,7 +1057,7 @@ class Body extends StatelessWidget {
                           items,
                           index,
                           playfrom: PlaylingFrom(
-                            name: "homeFreshPicks".tr,
+                            name: context.l10n.homeFreshPicks,
                             type: PlaylingFromType.SELECTION,
                           ),
                         );
@@ -1100,7 +1083,7 @@ class Body extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                "${track.artist ?? 'unknownArtist'.tr} • ${track.album ?? 'unknownAlbum'.tr}",
+                                "${track.artist ?? context.l10n.unknownArtist} • ${track.album ?? context.l10n.unknownAlbum}",
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: theme.textTheme.bodySmall?.copyWith(

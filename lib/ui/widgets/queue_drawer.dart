@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '../player/player_controller.dart';
@@ -43,9 +44,9 @@ class QueueDrawer extends StatelessWidget {
                           MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                            "${playerController.currentQueue.length} ${"songs".tr}"),
+                            "${playerController.currentQueue.length} ${context.l10n.songs}"),
                         Text(
-                          "upNext".tr,
+                          context.l10n.upNext,
                           style: Theme.of(context)
                               .textTheme
                               .titleLarge,
@@ -75,7 +76,7 @@ class QueueDrawer extends StatelessWidget {
                                   ),
                                   child: Center(
                                       child:
-                                          Text("queueLoop".tr)),
+                                          Text(context.l10n.queueLoop)),
                                 ),
                               ),
                             ),
@@ -85,8 +86,7 @@ class QueueDrawer extends StatelessWidget {
                                     .isShuffleModeEnabled
                                     .isTrue) {
                                   showAppSnackBar(
-                                      "queueShufflingDeniedMsg"
-                                          .tr,
+                                      context.l10n.queueShufflingDeniedMsg,
                                       size: SnackBarSize.BIG);
                                   return;
                                 }

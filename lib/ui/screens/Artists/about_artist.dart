@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import 'artist_screen_controller.dart';
@@ -44,7 +45,7 @@ class AboutArtist extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Text(
-                                "fromWikipedia".tr,
+                                context.l10n.fromWikipedia,
                                 style: Theme.of(context)
                                     .textTheme
                                     .labelMedium
@@ -64,7 +65,7 @@ class AboutArtist extends StatelessWidget {
                       height: 120,
                       child: Center(
                         child: Text(
-                          "artistDesNotAvailable".tr,
+                          context.l10n.artistDesNotAvailable,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ),

@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import '/l10n/app_localizations.dart';
+import '/utils/app_l10n.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -338,29 +340,9 @@ class LibraryPlaylistsController extends GetxController
   int _lastPlaylistSyncVersion = -1;
 
   final playlistCreationMode = "local".obs;
-  static final initPlst = [
-    Playlist(
-        title: "recentlyPlayed".tr,
-        playlistId: "LIBRP",
-        thumbnailUrl: Playlist.thumbPlaceholderUrl,
-        isCloudPlaylist: false),
-    Playlist(
-        title: "favorites".tr,
-        playlistId: "LIBFAV",
-        thumbnailUrl: Playlist.thumbPlaceholderUrl,
-        isCloudPlaylist: false),
-    Playlist(
-        title: "cachedOrOffline".tr,
-        playlistId: "SongsCache",
-        thumbnailUrl: Playlist.thumbPlaceholderUrl,
-        isCloudPlaylist: false),
-    Playlist(
-        title: "downloads".tr,
-        playlistId: "SongDownloads",
-        thumbnailUrl: Playlist.thumbPlaceholderUrl,
-        isCloudPlaylist: false)
-  ];
-  late RxList<Playlist> libraryPlaylists = RxList(initPlst);
+  List<Playlist> _initPlst = [];
+  List<Playlist> get initPlst => _initPlst;
+  late RxList<Playlist> libraryPlaylists;
   final isContentFetched = false.obs;
   final creationInProgress = false.obs;
   final textInputController = TextEditingController();
@@ -370,8 +352,36 @@ class LibraryPlaylistsController extends GetxController
   final isImporting = false.obs;
   final importProgress = 0.0.obs;
 
+  List<Playlist> _buildInitPlst() {
+    final l10n = AppLocalizations.of(Get.context!)!;
+    return [
+      Playlist(
+          title: l10n.recentlyPlayed,
+          playlistId: "LIBRP",
+          thumbnailUrl: Playlist.thumbPlaceholderUrl,
+          isCloudPlaylist: false),
+      Playlist(
+          title: l10n.favorites,
+          playlistId: "LIBFAV",
+          thumbnailUrl: Playlist.thumbPlaceholderUrl,
+          isCloudPlaylist: false),
+      Playlist(
+          title: l10n.cachedOrOffline,
+          playlistId: "SongsCache",
+          thumbnailUrl: Playlist.thumbPlaceholderUrl,
+          isCloudPlaylist: false),
+      Playlist(
+          title: l10n.downloads,
+          playlistId: "SongDownloads",
+          thumbnailUrl: Playlist.thumbPlaceholderUrl,
+          isCloudPlaylist: false)
+    ];
+  }
+
   @override
   void onInit() {
+    _initPlst = _buildInitPlst();
+    libraryPlaylists = RxList(_initPlst);
     controller =
         AnimationController(vsync: this, duration: const Duration(seconds: 5));
     refreshLib();
@@ -407,7 +417,7 @@ class LibraryPlaylistsController extends GetxController
     if (useBackend) {
       final backendPlaylists = await Get.find<LibrarySyncService>()
           .getCachedPlaylists(currentServerId());
-      libraryPlaylists.value = [...initPlst, ...backendPlaylists];
+      libraryPlaylists.value = [..._initPlst, ...backendPlaylists];
       unawaited(Get.find<LibrarySyncService>()
           .maybeSyncKindIfStale(LibraryKind.playlists));
       isContentFetched.value = true;
@@ -432,7 +442,7 @@ class LibraryPlaylistsController extends GetxController
         .where((k) => k is String && k.toString().startsWith(prefix))
         .toList();
     final list = <Playlist>[
-      ...initPlst,
+      ..._initPlst,
       ...keys
           .map((k) => box.get(k.toString()))
           .whereType<Map>()
@@ -617,7 +627,7 @@ class LibraryPlaylistsController extends GetxController
     final playlists = libraryPlaylists.toList();
     playlists.removeRange(0, 4);
     sortPlayLists(playlists, sortType, isAscending);
-    playlists.insertAll(0, initPlst);
+    playlists.insertAll(0, _initPlst);
     libraryPlaylists.value = playlists;
   }
 
@@ -660,7 +670,7 @@ class LibraryPlaylistsController extends GetxController
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
-        dialogTitle: 'importPlaylist'.tr,
+        dialogTitle: context.l10n.importPlaylist,
       );
 
       if (result == null || result.files.isEmpty) {
@@ -677,7 +687,7 @@ class LibraryPlaylistsController extends GetxController
 
       final file = File(result.files.single.path!);
       if (!await file.exists()) {
-        throw FileSystemException("fileNotFound".tr);
+        throw FileSystemException(context.l10n.fileNotFound);
       }
 
       final jsonString = await file.readAsString();
@@ -689,7 +699,7 @@ class LibraryPlaylistsController extends GetxController
       // Validate JSON structure
       if (!jsonData.containsKey('playlistInfo') ||
           !jsonData.containsKey('songs')) {
-        throw FormatException("invalidPlaylistFile".tr);
+        throw FormatException(context.l10n.invalidPlaylistFile);
       }
 
       // Create new playlist ID
@@ -699,14 +709,14 @@ class LibraryPlaylistsController extends GetxController
 
       // Create playlist object
       final newPlaylist = Playlist(
-        title: "${playlistInfo['title']} (${"imported".tr})",
+        title: "${playlistInfo['title']} (${context.l10n.imported})",
         playlistId: newPlaylistId,
         thumbnailUrl: playlistInfo['thumbnailUrl'] ??
             (playlistInfo['thumbnails'] != null &&
                     playlistInfo['thumbnails'].isNotEmpty
                 ? playlistInfo['thumbnails'][0]['url']
                 : Playlist.thumbPlaceholderUrl),
-        description: playlistInfo['description'] ?? "importedPlaylist".tr,
+        description: playlistInfo['description'] ?? context.l10n.importedPlaylist,
         isCloudPlaylist: false,
       );
       importProgress.value = 0.6;
@@ -744,7 +754,7 @@ class LibraryPlaylistsController extends GetxController
         ScaffoldMessenger.of(context).showSnackBar(
           snackbar(
             context,
-            "${"playlistImportedMsg".tr}: ${newPlaylist.title}",
+            "${context.l10n.playlistImportedMsg}: ${newPlaylist.title}",
             size: SnackBarSize.MEDIUM,
           ),
         );
@@ -757,15 +767,15 @@ class LibraryPlaylistsController extends GetxController
 
       printERROR("Error importing playlist: $e");
 
-      String errorMsg = "importError".tr;
+      String errorMsg = context.l10n.importError;
       if (e is FileSystemException) {
-        errorMsg = "importErrorFileAccess".tr;
+        errorMsg = context.l10n.importErrorFileAccess;
       } else if (e is FormatException) {
-        errorMsg = "importErrorFormat".tr;
+        errorMsg = context.l10n.importErrorFormat;
       } else if (e.toString().contains("invalidPlaylistFile")) {
-        errorMsg = "invalidPlaylistFile".tr;
+        errorMsg = context.l10n.invalidPlaylistFile;
       } else if (e is HiveError) {
-        errorMsg = "importErrorDatabase".tr;
+        errorMsg = context.l10n.importErrorDatabase;
       }
 
       if (context.mounted) {
@@ -787,7 +797,7 @@ class LibraryPlaylistsController extends GetxController
           borderRadius: BorderRadius.circular(15),
         ),
         title: Text(
-          "importingPlaylist".tr,
+          context.l10n.importingPlaylist,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         content: Obx(() => Column(

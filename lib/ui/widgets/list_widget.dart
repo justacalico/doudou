@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '/models/album.dart';
+import '/utils/app_l10n.dart';
 import '../../models/artist.dart';
 import '../../models/playling_from.dart';
 import '../../models/playlist.dart';
@@ -39,7 +40,7 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
       return Expanded(
         child: Center(
           child: Text(
-            "No ${title.toLowerCase().tr}!",
+            "No ${context.trKey(title.toLowerCase())}!",
             style: Theme.of(context).textTheme.titleSmall,
           ),
         ),

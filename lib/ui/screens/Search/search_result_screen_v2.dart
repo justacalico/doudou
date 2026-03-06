@@ -1,4 +1,5 @@
 import 'package:buttons_tabbar/buttons_tabbar.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/widgets/loader.dart';
@@ -41,7 +42,7 @@ class SearchResultScreenBN extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "searchRes".tr,
+                        context.l10n.searchRes,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
@@ -49,7 +50,7 @@ class SearchResultScreenBN extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: Obx(
                         () => Text(
-                          "${"for1".tr} \"${searchResScrController.queryString.value}\"",
+                          "${context.l10n.for1} \"${searchResScrController.queryString.value}\"",
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
@@ -67,7 +68,7 @@ class SearchResultScreenBN extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              "nomatch".tr,
+                              context.l10n.nomatch,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             Text(
@@ -112,13 +113,10 @@ class SearchResultScreenBN extends StatelessWidget {
                               ),
                               // Add your tabs here
                               tabs: [
-                                Tab(text: "results".tr),
+                                Tab(text: context.l10n.results),
                                 ...searchResScrController.railItems
                                     .map((item) => Tab(
-                                          text: item
-                                              .toLowerCase()
-                                              .removeAllWhitespace
-                                              .tr,
+                                          text: context.trKey(item),
                                         ))
                               ],
                             ),

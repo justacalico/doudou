@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import 'components/search_item.dart';
@@ -29,7 +30,7 @@ class SearchScreen extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "search".tr,
+                        context.l10n.search,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
@@ -56,7 +57,7 @@ class SearchScreen extends StatelessWidget {
                       cursorColor: Theme.of(context).textTheme.bodySmall!.color,
                       decoration: InputDecoration(
                           contentPadding: const EdgeInsets.only(left: 5),
-                          hintText: "searchDes".tr,
+                          hintText: context.l10n.searchDes,
                           suffix: IconButton(
                             onPressed: searchScreenController.reset,
                             icon: const Icon(Icons.close),
@@ -94,7 +95,7 @@ class SearchScreen extends StatelessWidget {
                                           height: 60,
                                           child: Center(
                                               child: Text(
-                                            "urlSearchDes".tr,
+                                            context.l10n.urlSearchDes,
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .titleMedium,

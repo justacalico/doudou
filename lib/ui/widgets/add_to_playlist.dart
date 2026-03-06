@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -43,7 +44,7 @@ class AddToPlaylist extends StatelessWidget {
                           id: "createNewPlaylistx",
                           delay: const Duration(milliseconds: 300),
                           child: Text(
-                            "CreateNewPlaylist".tr,
+                            context.l10n.createNewPlaylist,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
@@ -77,7 +78,7 @@ class AddToPlaylist extends StatelessWidget {
                         Row(
                           children: [
                             const Radio<String>(value: "piped"),
-                            Text("Piped".tr),
+                            Text(context.l10n.piped),
                           ],
                         ),
                         const SizedBox(
@@ -86,7 +87,7 @@ class AddToPlaylist extends StatelessWidget {
                         Row(
                           children: [
                             const Radio<String>(value: "local"),
-                            Text("local".tr),
+                            Text(context.l10n.local),
                           ],
                         )
                       ],
@@ -120,12 +121,12 @@ class AddToPlaylist extends StatelessWidget {
                                 if (value) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       snackbar(context,
-                                          "songAddedToPlaylistAlert".tr,
+                                          context.l10n.songAddedToPlaylistAlert,
                                           size: SnackBarSize.MEDIUM));
                                   Navigator.of(context).pop();
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                      snackbar(context, "songAlreadyExists".tr,
+                                      snackbar(context, context.l10n.songAlreadyExists,
                                           size: SnackBarSize.MEDIUM));
                                   Navigator.of(context).pop();
                                 }
@@ -134,7 +135,7 @@ class AddToPlaylist extends StatelessWidget {
                           ),
                         )
                       : Center(
-                          child: Text("noLibPlaylist".tr),
+                          child: Text(context.l10n.noLibPlaylist),
                         ),
                 ),
               )
@@ -180,7 +181,7 @@ class AddToPlaylistController extends GetxController {
         final list = Get.find<LibraryPlaylistsController>()
             .libraryPlaylists
             .where((p) =>
-                !LibraryPlaylistsController.initPlst
+                !Get.find<LibraryPlaylistsController>().initPlst
                     .any((init) => init.playlistId == p.playlistId) &&
                 !p.isPipedPlaylist)
             .toList();

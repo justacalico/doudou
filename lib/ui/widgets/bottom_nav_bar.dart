@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
@@ -25,22 +26,22 @@ class BottomNavBar extends StatelessWidget {
         _NavItem(
           icon: Icons.home_rounded,
           outlinedIcon: Icons.home_outlined,
-          label: modifyNgetlabel('home'.tr),
+          label: modifyNgetlabel(context.l10n.home),
         ),
         _NavItem(
           icon: Icons.search_rounded,
           outlinedIcon: Icons.search_outlined,
-          label: modifyNgetlabel('search'.tr),
+          label: modifyNgetlabel(context.l10n.search),
         ),
         _NavItem(
           icon: Icons.library_music_rounded,
           outlinedIcon: Icons.library_music_outlined,
-          label: modifyNgetlabel('library'.tr),
+          label: modifyNgetlabel(context.l10n.library),
         ),
         _NavItem(
           icon: Icons.settings_rounded,
           outlinedIcon: Icons.settings_outlined,
-          label: modifyNgetlabel('settings'.tr),
+          label: modifyNgetlabel(context.l10n.settings),
         ),
       ];
 

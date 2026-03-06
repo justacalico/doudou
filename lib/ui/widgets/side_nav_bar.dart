@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
@@ -73,31 +74,31 @@ class _SideNavBarState extends State<SideNavBar> {
         SideBarItemLocal(
           iconSelected: Icons.home,
           iconUnselected: Icons.home_outlined,
-          text: 'home'.tr,
+          text: context.l10n.home,
         ),
         SideBarItemLocal(
           iconSelected: Icons.audiotrack,
           iconUnselected: Icons.audiotrack,
-          text: 'songs'.tr,
+          text: context.l10n.songs,
         ),
         SideBarItemLocal(
           iconSelected: Icons.library_music,
           iconUnselected: Icons.library_music_outlined,
-          text: 'playlists'.tr,
+          text: context.l10n.playlists,
         ),
         SideBarItemLocal(
           iconSelected: Icons.album,
           iconUnselected: Icons.album_outlined,
-          text: 'albums'.tr,
+          text: context.l10n.albums,
         ),
         SideBarItemLocal(
           iconSelected: Icons.person,
-          text: 'artists'.tr,
+          text: context.l10n.artists,
         ),
         SideBarItemLocal(
           iconSelected: Icons.settings,
           iconUnselected: Icons.settings_outlined,
-          text: 'settings'.tr,
+          text: context.l10n.settings,
         ),
       ],
     );

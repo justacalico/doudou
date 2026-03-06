@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -21,7 +22,7 @@ class NewVersionDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              "newVersionAvailable".tr,
+              context.l10n.newVersionAvailable,
               style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
@@ -29,7 +30,7 @@ class NewVersionDialog extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '${"version".tr} $latestVersion',
+                  '${context.l10n.version} $latestVersion',
                   style: Theme.of(context).textTheme.titleMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -65,7 +66,7 @@ class NewVersionDialog extends StatelessWidget {
                         },
                         shape: const CircleBorder());
                   }),
-                  Text("dontShowInfoAgain".tr)
+                  Text(context.l10n.dontShowInfoAgain)
                 ],
               ),
             ),
@@ -77,7 +78,7 @@ class NewVersionDialog extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 15.0, vertical: 10),
-                    child: Text("dismiss".tr,
+                    child: Text(context.l10n.dismiss,
                         style: TextStyle(color: Theme.of(context).canvasColor)),
                   ),
                   onTap: () => Navigator.of(context).pop(),

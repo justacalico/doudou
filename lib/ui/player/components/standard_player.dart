@@ -1,4 +1,5 @@
 import 'dart:ui';
+import '/utils/app_l10n.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -1227,7 +1228,7 @@ class _ExpandedLeftColumnState extends State<_ExpandedLeftColumn> {
                   const SizedBox(height: 8),
                   Text.rich(
                     TextSpan(
-                      text: "fromAlbum".tr,
+                      text: context.l10n.fromAlbum,
                       style: TextStyle(
                         fontSize: metrics.isDense ? 13 : 14,
                         color: mutedColor,
@@ -1249,7 +1250,7 @@ class _ExpandedLeftColumnState extends State<_ExpandedLeftColumn> {
                   const SizedBox(height: 4),
                   Text.rich(
                     TextSpan(
-                      text: "byArtist".tr,
+                      text: context.l10n.byArtist,
                       style: TextStyle(
                         fontSize: metrics.isDense ? 13 : 14,
                         color: mutedColor,
@@ -1511,8 +1512,8 @@ class _RightPanel extends StatelessWidget {
               unselectedLabelColor: mutedColor,
               indicatorColor: theme.colorScheme.primary,
               tabs: [
-                Tab(text: "upNext".tr),
-                Tab(text: "lyrics".tr),
+                Tab(text: context.l10n.upNext),
+                Tab(text: context.l10n.lyrics),
               ],
             ),
           ),
@@ -1521,7 +1522,7 @@ class _RightPanel extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  "playingFrom".tr,
+                  context.l10n.playingFrom,
                   style: TextStyle(fontSize: 12, color: mutedColor),
                 ),
                 Expanded(
@@ -1575,7 +1576,7 @@ class _UpNextList extends StatelessWidget {
       if (queue.isEmpty) {
         return Center(
           child: Text(
-            "songs".tr,
+            context.l10n.songs,
             style: TextStyle(color: mutedColor, fontSize: 14),
           ),
         );

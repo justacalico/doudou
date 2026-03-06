@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:isolate';
+import '/l10n/app_localizations.dart';
+import '/ui/screens/Library/library_controller.dart';
 import 'dart:math';
 
 import 'package:flutter/services.dart';
@@ -29,7 +31,6 @@ import '../utils/server_storage.dart';
 import '/models/media_Item_builder.dart';
 import '/services/utils.dart';
 import '../ui/screens/Settings/settings_screen_controller.dart';
-import '../ui/screens/Library/library_controller.dart';
 // ignore: unused_import, implementation_imports, depend_on_referenced_packages
 import "package:media_kit/src/player/platform_player.dart" show MPVLogLevel;
 
@@ -1349,25 +1350,26 @@ class MediaLibrary {
   }
 
   List<MediaItem> getRoot() {
+    final l10n = AppLocalizations.of(Get.context!)!;
     return [
       MediaItem(
         id: songsRootId,
-        title: "songs".tr,
+        title: l10n.songs,
         playable: false,
       ),
       MediaItem(
         id: favoritesRootId,
-        title: "favorites".tr,
+        title: l10n.favorites,
         playable: false,
       ),
       MediaItem(
         id: albumsRootId,
-        title: "albums".tr,
+        title: l10n.albums,
         playable: false,
       ),
       MediaItem(
         id: playlistsRootId,
-        title: "playlists".tr,
+        title: l10n.playlists,
         playable: false,
       ),
     ];
@@ -1388,7 +1390,7 @@ class MediaLibrary {
         .where((k) => k is String && k.toString().startsWith(prefix))
         .toList();
     final playlists = [
-      ...LibraryPlaylistsController.initPlst.map((e) => e.toMediaItem()),
+      ...Get.find<LibraryPlaylistsController>().initPlst.map((e) => e.toMediaItem()),
       ...serverKeys.map((k) => box.get(k.toString())).whereType<Map>().map(
           (item) =>
               Playlist.fromJson(Map<dynamic, dynamic>.from(item)).toMediaItem())

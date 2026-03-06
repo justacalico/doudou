@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart' show kSecondaryMouseButton;
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '/models/quick_picks.dart';
@@ -26,7 +27,7 @@ class QuickPicksWidget extends StatelessWidget {
           Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                content.title.toLowerCase().removeAllWhitespace.tr,
+                context.trKey(content.title),
                 style: Theme.of(context).textTheme.titleLarge,
               )),
           const SizedBox(height: 10),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/widgets/common_dialog_widget.dart';
 import 'package:doudou/ui/widgets/sort_widget.dart';
@@ -30,8 +31,8 @@ class AdditionalOperationDialog extends StatelessWidget {
               child: Text(
                 operationMode == OperationMode.delete ||
                         operationMode == OperationMode.addToPlaylist
-                    ? "selectSongs".tr
-                    : "reArrangeSongs".tr,
+                    ? context.l10n.selectSongs
+                    : context.l10n.reArrangeSongs,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
@@ -64,7 +65,7 @@ class AdditionalOperationDialog extends StatelessWidget {
                         ),
                         const SizedBox(width: 18),
                         Text(
-                          "selectAll".tr,
+                          context.l10n.selectAll,
                           style: Theme.of(context).textTheme.titleMedium,
                         )
                       ],

@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -19,29 +20,29 @@ class SongInfoDialog extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: Text("songInfo".tr,
+              child: Text(context.l10n.songInfo,
                   style: Theme.of(context).textTheme.titleLarge),
             ),
             const Divider(),
             Expanded(
                 child: ListView(
               children: [
-                InfoItem(title: "id".tr, value: song.id),
-                InfoItem(title: "title".tr, value: song.title),
-                InfoItem(title: "album".tr, value: song.album ?? "NA"),
-                InfoItem(title: "artists".tr, value: song.artist ?? "NA"),
+                InfoItem(title: context.l10n.id, value: song.id),
+                InfoItem(title: context.l10n.title, value: song.title),
+                InfoItem(title: context.l10n.album, value: song.album ?? "NA"),
+                InfoItem(title: context.l10n.artists, value: song.artist ?? "NA"),
                 InfoItem(
-                    title: "duration".tr,
+                    title: context.l10n.duration,
                     value:
                         "${streamInfo["approxDurationMs"] ?? song.duration?.inMilliseconds ?? "NA"} ms"),
                 InfoItem(
-                    title: "audioCodec".tr,
+                    title: context.l10n.audioCodec,
                     value: streamInfo["audioCodec"] ?? "NA"),
                 InfoItem(
-                    title: "bitrate".tr,
+                    title: context.l10n.bitrate,
                     value: "${streamInfo["bitrate"] ?? "NA"}"),
                 InfoItem(
-                    title: "loudnessDb".tr,
+                    title: context.l10n.loudnessDb,
                     value: "${streamInfo["loudnessDb"] ?? "NA"}"),
               ],
             )),
@@ -57,7 +58,7 @@ class SongInfoDialog extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                           vertical: 10.0, horizontal: 25),
-                      child: Text("close".tr),
+                      child: Text(context.l10n.close),
                     )),
               ),
             )

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '../navigator.dart';
@@ -53,7 +54,7 @@ class ContentListWidget extends StatelessWidget {
                               Get.find<SearchResultScreenController>();
                           scrresController.viewAllCallback(title);
                         },
-                        child: Text("viewAll".tr,
+                        child: Text(context.l10n.viewAll,
                             style: Theme.of(Get.context!).textTheme.titleSmall))
                     : const SizedBox.shrink()
               ],

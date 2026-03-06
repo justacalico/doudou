@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/l10n/app_localizations.dart';
 import 'package:get/get.dart';
 import 'package:doudou/utils/helper.dart';
 
@@ -32,11 +33,11 @@ class PipedSyncWidget extends StatelessWidget {
                 librplstCntrller.controller.stop();
                 librplstCntrller.controller.reset();
                 ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-                    Get.context!, "pipedplstSyncAlert".tr,
+                    Get.context!, AppLocalizations.of(Get.context!)!.pipedplstSyncAlert,
                     size: SnackBarSize.MEDIUM));
               } catch (e) {
                 ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-                    Get.context!, "errorOccuredAlert".tr,
+                    Get.context!, AppLocalizations.of(Get.context!)!.errorOccuredAlert,
                     size: SnackBarSize.BIG));
                 printERROR(e);
               }

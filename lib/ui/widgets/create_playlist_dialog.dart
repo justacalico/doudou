@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:widget_marquee/widget_marquee.dart';
@@ -45,8 +46,8 @@ class CreateNRenamePlaylistPopup extends StatelessWidget {
                     id: "createPlaylist",
                     child: Text(
                       renamePlaylist
-                          ? "renamePlaylist".tr
-                          : "CreateNewPlaylist".tr,
+                          ? context.l10n.renamePlaylist
+                          : context.l10n.createNewPlaylist,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
@@ -64,7 +65,7 @@ class CreateNRenamePlaylistPopup extends StatelessWidget {
                         Row(
                           children: [
                             const Radio<String>(value: "piped"),
-                            Text("Piped".tr),
+                            Text(context.l10n.piped),
                           ],
                         ),
                         const SizedBox(
@@ -73,7 +74,7 @@ class CreateNRenamePlaylistPopup extends StatelessWidget {
                         Row(
                           children: [
                             const Radio<String>(value: "local"),
-                            Text("local".tr),
+                            Text(context.l10n.local),
                           ],
                         )
                       ],
@@ -98,7 +99,7 @@ class CreateNRenamePlaylistPopup extends StatelessWidget {
                     InkWell(
                       child: Padding(
                         padding: const EdgeInsets.all(10.0),
-                        child: Text("cancel".tr),
+                        child: Text(context.l10n.cancel),
                       ),
                       onTap: () => Navigator.of(context).pop(),
                     ),
@@ -112,10 +113,10 @@ class CreateNRenamePlaylistPopup extends StatelessWidget {
                               horizontal: 15.0, vertical: 10),
                           child: Text(
                             isCreateNadd
-                                ? "createnAdd".tr
+                                ? context.l10n.createnAdd
                                 : renamePlaylist
-                                    ? "rename".tr
-                                    : "create".tr,
+                                    ? context.l10n.rename
+                                    : context.l10n.create,
                             style:
                                 TextStyle(color: Theme.of(context).canvasColor),
                           ),
@@ -129,7 +130,7 @@ class CreateNRenamePlaylistPopup extends StatelessWidget {
                                 if (!context.mounted) return;
                                 Navigator.of(context).pop();
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    snackbar(context, "playlistRenameAlert".tr,
+                                    snackbar(context, context.l10n.playlistRenameAlert,
                                         size: SnackBarSize.MEDIUM));
                               }
                             });
@@ -145,13 +146,12 @@ class CreateNRenamePlaylistPopup extends StatelessWidget {
                                     snackbar(
                                         context,
                                         isCreateNadd
-                                            ? "playlistCreatednsongAddedAlert"
-                                                .tr
-                                            : "playlistCreatedAlert".tr,
+                                            ? context.l10n.playlistCreatednsongAddedAlert
+                                            : context.l10n.playlistCreatedAlert,
                                         size: SnackBarSize.MEDIUM));
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    snackbar(context, "errorOccuredAlert".tr,
+                                    snackbar(context, context.l10n.errorOccuredAlert,
                                         size: SnackBarSize.MEDIUM));
                               }
                               Navigator.of(context).pop();

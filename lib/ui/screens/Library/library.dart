@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '/ui/constants/layout.dart';
@@ -34,7 +35,7 @@ class SongsLibraryWidget extends StatelessWidget {
               : Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "libSongs".tr,
+                    context.l10n.libSongs,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -86,7 +87,7 @@ class SongsLibraryWidget extends StatelessWidget {
                 : Expanded(
                     child: Center(
                         child: Text(
-                      "noOfflineSong".tr,
+                      context.l10n.noOfflineSong,
                       style: Theme.of(context).textTheme.titleMedium,
                     )),
                   );
@@ -135,7 +136,7 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                     : Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          isAlbumContent ? "libAlbums".tr : "libPlaylists".tr,
+                          isAlbumContent ? context.l10n.libAlbums : context.l10n.libPlaylists,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
@@ -157,7 +158,7 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                     isAdditionalOperationRequired: false,
                     isSearchFeatureRequired: true,
                     itemCountTitle:
-                        "${libralbumCntrller.libraryAlbums.length} ${"items".tr}",
+                        "${libralbumCntrller.libraryAlbums.length} ${context.l10n.items}",
                     requiredSortTypes: buildSortTypeSet(true),
                     onSort: (type, ascending) {
                       libralbumCntrller.onSort(type, ascending);
@@ -172,7 +173,7 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                     isAdditionalOperationRequired: false,
                     isSearchFeatureRequired: true,
                     itemCountTitle:
-                        "${librplstCntrller.libraryPlaylists.length} ${"items".tr}",
+                        "${librplstCntrller.libraryPlaylists.length} ${context.l10n.items}",
                     requiredSortTypes: buildSortTypeSet(),
                     onSort: (type, ascending) {
                       librplstCntrller.onSort(type, ascending);
@@ -226,7 +227,7 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                     })
                   : Center(
                       child: Text(
-                      "noBookmarks".tr,
+                      context.l10n.noBookmarks,
                       style: Theme.of(context).textTheme.titleMedium,
                     )),
             ),
@@ -259,7 +260,7 @@ class LibraryArtistWidget extends StatelessWidget {
               : Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                    "libArtists".tr,
+                    context.l10n.libArtists,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -269,7 +270,7 @@ class LibraryArtistWidget extends StatelessWidget {
               screenController: cntrller,
               isAdditionalOperationRequired: false,
               isSearchFeatureRequired: true,
-              itemCountTitle: "${cntrller.libraryArtists.length} ${"items".tr}",
+              itemCountTitle: "${cntrller.libraryArtists.length} ${context.l10n.items}",
               onSort: (type, ascending) {
                 cntrller.onSort(type, ascending);
               },
@@ -283,7 +284,7 @@ class LibraryArtistWidget extends StatelessWidget {
               : Expanded(
                   child: Center(
                       child: Text(
-                  "noBookmarks".tr,
+                  context.l10n.noBookmarks,
                   style: Theme.of(context).textTheme.titleMedium,
                 ))))
         ],

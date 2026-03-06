@@ -1,4 +1,5 @@
 import 'dart:ui';
+import '/utils/app_l10n.dart';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -105,9 +106,9 @@ class AlbumScreen extends StatelessWidget {
                                       context,
                                       value
                                           ? (add
-                                              ? "albumBookmarkAddAlert".tr
-                                              : "albumBookmarkRemoveAlert".tr)
-                                          : "operationFailed".tr,
+                                              ? context.l10n.albumBookmarkAddAlert
+                                              : context.l10n.albumBookmarkRemoveAlert)
+                                          : context.l10n.operationFailed,
                                       size: SnackBarSize.MEDIUM,
                                     ));
                                   });
@@ -216,7 +217,7 @@ class AlbumScreen extends StatelessWidget {
                       if (albumController.songList.isEmpty) {
                         return SizedBox(
                           height: 300,
-                          child: Center(child: Text("emptyPlaylist".tr)),
+                          child: Center(child: Text(context.l10n.emptyPlaylist)),
                         );
                       }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '/ui/screens/Artists/artist_header.dart';
@@ -65,7 +66,7 @@ class ArtistScreenBN extends StatelessWidget {
             onTap: artistScreenController.onDestinationSelected,
             splashFactory: NoSplash.splashFactory,
             isScrollable: true,
-            tabs: ["songs".tr, "videos".tr, "albums".tr, "singles".tr]
+            tabs: [context.l10n.songs, context.l10n.videos, context.l10n.albums, context.l10n.singles]
                 .map((e) => Tab(text: e))
                 .toList(),
           ),

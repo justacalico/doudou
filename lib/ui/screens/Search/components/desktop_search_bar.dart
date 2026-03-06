@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'search_item.dart';
@@ -78,7 +79,7 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
             },
             focusNode: _focusNode,
             backgroundColor: WidgetStatePropertyAll<Color>(searchSurface),
-            hintText: "searchDes".tr,
+            hintText: context.l10n.searchDes,
             leading: IconButton(
                 onPressed: () {
                   if (_focusNode.hasFocus) {
@@ -130,7 +131,7 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
                           height: 50,
                           child: Center(
                               child: Text(
-                            "urlSearchDes".tr,
+                            context.l10n.urlSearchDes,
                             style: Theme.of(context).textTheme.titleMedium,
                           )),
                         ),

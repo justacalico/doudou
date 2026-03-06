@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:doudou/utils/helper.dart';
@@ -18,7 +19,6 @@ import '/services/library_sync_service.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/utils/theme_controller.dart';
 import '/ui/constants/layout.dart';
-import '/utils/lang_mapping.dart';
 import '/models/server.dart';
 import 'settings_screen_controller.dart';
 
@@ -72,7 +72,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       "personalisation"
     ),
     (_SettingsSectionId.content, Icons.movie_outlined, "content"),
-    (_SettingsSectionId.playback, Icons.music_note_outlined, "music&Playback"),
+    (_SettingsSectionId.playback, Icons.music_note_outlined, "musicPlayback"),
     (_SettingsSectionId.servers, Icons.dns_outlined, "servers"),
     (_SettingsSectionId.download, Icons.download_outlined, "download"),
     (_SettingsSectionId.backup, Icons.restore_outlined, "backup"),
@@ -148,7 +148,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 if (useTwoPane) const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "settings".tr,
+                    context.l10n.settings,
                     textAlign: useTwoPane ? TextAlign.left : TextAlign.center,
                     style: (useTwoPane
                             ? theme.textTheme.headlineSmall
@@ -190,7 +190,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 8, 0, 12),
               child: Text(
-                "${settings.currentVersion} ${"by".tr} openlyst",
+                "${settings.currentVersion} ${context.l10n.by} openlyst",
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.55),
                   letterSpacing: 0.2,
@@ -254,7 +254,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                         : colorScheme.onSurface.withValues(alpha: 0.78),
                   ),
                   title: Text(
-                    titleKey.tr,
+                    _sectionTitle(context, titleKey),
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -379,7 +379,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         ),
       ),
       title: Text(
-        meta.$3.tr,
+        _sectionTitle(context, meta.$3),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: theme.textTheme.titleMedium?.copyWith(
@@ -417,16 +417,31 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     );
   }
 
+  String _sectionTitle(BuildContext context, String key) {
+    final l10n = context.l10n;
+    return switch (key) {
+      'personalisation' => l10n.personalisation,
+      'content' => l10n.content,
+      'musicPlayback' => l10n.musicPlayback,
+      'servers' => l10n.servers,
+      'download' => l10n.download,
+      'backup' => l10n.backup,
+      'misc' => l10n.misc,
+      'appInfo' => l10n.appInfo,
+      _ => key,
+    };
+  }
+
   String _sectionSubtitle(_SettingsSectionId id) {
     return switch (id) {
-      _SettingsSectionId.servers => "servers".tr,
-      _SettingsSectionId.backup => "backupSettingsAndPlaylistsDes".tr,
-      _SettingsSectionId.content => "content".tr,
-      _SettingsSectionId.playback => "music&Playback".tr,
-      _SettingsSectionId.misc => "misc".tr,
-      _SettingsSectionId.personalisation => "themeMode".tr,
-      _SettingsSectionId.download => "download".tr,
-      _SettingsSectionId.info => "appInfo".tr,
+      _SettingsSectionId.servers => context.l10n.servers,
+      _SettingsSectionId.backup => context.l10n.backupSettingsAndPlaylistsDes,
+      _SettingsSectionId.content => context.l10n.content,
+      _SettingsSectionId.playback => context.l10n.musicPlayback,
+      _SettingsSectionId.misc => context.l10n.misc,
+      _SettingsSectionId.personalisation => context.l10n.themeMode,
+      _SettingsSectionId.download => context.l10n.download,
+      _SettingsSectionId.info => context.l10n.appInfo,
     };
   }
 
@@ -451,7 +466,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       MaterialPageRoute(
         builder: (_) => _SettingsSubPage(
           icon: meta.$2,
-          title: meta.$3.tr,
+          title: _sectionTitle(context, meta.$3),
           children: _buildSectionChildren(context, settings, syncService, id),
         ),
       ),
@@ -468,7 +483,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
     return _SettingsCard(
       icon: meta.$2,
-      title: meta.$3.tr,
+      title: _sectionTitle(context, meta.$3),
       children: children,
     );
   }
@@ -498,17 +513,17 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     final isDesktop = GetPlatform.isDesktop;
     return [
       ListTile(
-        title: Text("themeMode".tr),
+        title: Text(context.l10n.themeMode),
         subtitle: Obx(() => Text(
               settings.themeModetype.value == ThemeType.dynamic
-                  ? "dynamic".tr
+                  ? context.l10n.dynamicTheme
                   : settings.themeModetype.value == ThemeType.system
-                      ? "systemDefault".tr
+                      ? context.l10n.systemDefault
                       : settings.themeModetype.value == ThemeType.dark
-                          ? "dark".tr
+                          ? context.l10n.dark
                           : settings.themeModetype.value == ThemeType.oled
-                              ? "oled".tr
-                              : "light".tr,
+                              ? context.l10n.oled
+                              : context.l10n.light,
             )),
         onTap: () => showDialog(
           context: context,
@@ -516,16 +531,16 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         ),
       ),
       Obx(() => ListTile(
-            title: Text("lyricsDynamicColor".tr),
-            subtitle: Text("lyricsDynamicColorDes".tr),
+            title: Text(context.l10n.lyricsDynamicColor),
+            subtitle: Text(context.l10n.lyricsDynamicColorDes),
             trailing: CustSwitch(
               value: settings.lyricsDynamicColorEnabled.value,
               onChanged: settings.setLyricsDynamicColorEnabled,
             ),
           )),
       ListTile(
-        title: Text("syncedLyricsHighlightStyle".tr),
-        subtitle: Text("syncedLyricsHighlightStyleDes".tr),
+        title: Text(context.l10n.syncedLyricsHighlightStyle),
+        subtitle: Text(context.l10n.syncedLyricsHighlightStyleDes),
         trailing: Obx(
           () => DropdownButton<SyncedLyricsHighlightStyle>(
             value: settings.syncedLyricsHighlightStyle.value,
@@ -533,11 +548,11 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             items: [
               DropdownMenuItem(
                 value: SyncedLyricsHighlightStyle.block,
-                child: Text("lyricsHighlightBlock".tr),
+                child: Text(context.l10n.lyricsHighlightBlock),
               ),
               DropdownMenuItem(
                 value: SyncedLyricsHighlightStyle.karaoke,
-                child: Text("lyricsHighlightKaraoke".tr),
+                child: Text(context.l10n.lyricsHighlightKaraoke),
               ),
             ],
             onChanged: (v) {
@@ -547,14 +562,14 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         ),
       ),
       ListTile(
-        title: Text("language".tr),
-        subtitle: Text("languageDes".tr),
+        title: Text(context.l10n.language),
+        subtitle: Text(context.l10n.languageDes),
         trailing: Obx(
           () => DropdownButton(
             menuMaxHeight: Get.height - 250,
             underline: const SizedBox.shrink(),
             value: settings.currentAppLanguageCode.value,
-            items: langMap.entries
+            items: supportedLocalesDisplay.entries
                 .map((lang) =>
                     DropdownMenuItem(value: lang.key, child: Text(lang.value)))
                 .whereType<DropdownMenuItem<String>>()
@@ -565,23 +580,23 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       ),
       if (!isDesktop)
         ListTile(
-          title: Text("playerUi".tr),
-          subtitle: Text("playerUiDes".tr),
+          title: Text(context.l10n.playerUi),
+          subtitle: Text(context.l10n.playerUiDes),
           trailing: Obx(
             () => DropdownButton(
               underline: const SizedBox.shrink(),
               value: settings.playerUi.value,
               items: [
-                DropdownMenuItem(value: 0, child: Text("standard".tr)),
-                DropdownMenuItem(value: 1, child: Text("gesture".tr)),
+                DropdownMenuItem(value: 0, child: Text(context.l10n.standard)),
+                DropdownMenuItem(value: 1, child: Text(context.l10n.gesture)),
               ],
               onChanged: settings.setPlayerUi,
             ),
           ),
         ),
       ListTile(
-        title: Text("animationSpeed".tr),
-        subtitle: Text("animationSpeedDes".tr),
+        title: Text(context.l10n.animationSpeed),
+        subtitle: Text(context.l10n.animationSpeedDes),
         trailing: Obx(
           () => DropdownButton<AnimationSpeed>(
             underline: const SizedBox.shrink(),
@@ -589,16 +604,16 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             items: [
               DropdownMenuItem(
                   value: AnimationSpeed.off,
-                  child: Text("animationSpeedOff".tr)),
+                  child: Text(context.l10n.animationSpeedOff)),
               DropdownMenuItem(
                   value: AnimationSpeed.fast,
-                  child: Text("animationSpeedFast".tr)),
+                  child: Text(context.l10n.animationSpeedFast)),
               DropdownMenuItem(
                   value: AnimationSpeed.normal,
-                  child: Text("animationSpeedNormal".tr)),
+                  child: Text(context.l10n.animationSpeedNormal)),
               DropdownMenuItem(
                   value: AnimationSpeed.slow,
-                  child: Text("animationSpeedSlow".tr)),
+                  child: Text(context.l10n.animationSpeedSlow)),
             ],
             onChanged: (v) {
               if (v != null) settings.setAnimationSpeed(v);
@@ -607,8 +622,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         ),
       ),
       Obx(() => ListTile(
-            title: Text("enableSlidableAction".tr),
-            subtitle: Text("enableSlidableActionDes".tr),
+            title: Text(context.l10n.enableSlidableAction),
+            subtitle: Text(context.l10n.enableSlidableActionDes),
             trailing: CustSwitch(
               value: settings.slidableActionEnabled.value,
               onChanged: settings.toggleSlidableAction,
@@ -625,15 +640,15 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
         if (!isYt) return const SizedBox.shrink();
         return ListTile(
-          title: Text("setDiscoverContent".tr),
+          title: Text(context.l10n.setDiscoverContent),
           subtitle: Text(
             settings.discoverContentType.value == "QP"
-                ? "quickpicks".tr
+                ? context.l10n.quickpicks
                 : settings.discoverContentType.value == "TMV"
-                    ? "topmusicvideos".tr
+                    ? context.l10n.topmusicvideos
                     : settings.discoverContentType.value == "TR"
-                        ? "trending".tr
-                        : "basedOnLast".tr,
+                        ? context.l10n.trending
+                        : context.l10n.basedOnLast,
           ),
           onTap: () => showDialog(
             context: context,
@@ -645,8 +660,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
         if (!isYt) return const SizedBox.shrink();
         return ListTile(
-          title: Text("homeContentCount".tr),
-          subtitle: Text("homeContentCountDes".tr),
+          title: Text(context.l10n.homeContentCount),
+          subtitle: Text(context.l10n.homeContentCountDes),
           trailing: DropdownButton(
             underline: const SizedBox.shrink(),
             value: settings.noOfHomeScreenContent.value,
@@ -659,29 +674,29 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       }),
       if (isDesktop)
         ListTile(
-          title: Text("sidebarMode".tr),
-          subtitle: Text("sidebarModeDes".tr),
+          title: Text(context.l10n.sidebarMode),
+          subtitle: Text(context.l10n.sidebarModeDes),
           trailing: Obx(
             () => DropdownButton<SidebarMode>(
               underline: const SizedBox.shrink(),
               value: settings.sidebarMode.value,
               items: [
                 DropdownMenuItem(
-                    value: SidebarMode.auto, child: Text("sidebarModeAuto".tr)),
+                    value: SidebarMode.auto, child: Text(context.l10n.sidebarModeAuto)),
                 DropdownMenuItem(
                     value: SidebarMode.collapsed,
-                    child: Text("sidebarModeCollapsed".tr)),
+                    child: Text(context.l10n.sidebarModeCollapsed)),
                 DropdownMenuItem(
                     value: SidebarMode.expanded,
-                    child: Text("sidebarModeExpanded".tr)),
+                    child: Text(context.l10n.sidebarModeExpanded)),
               ],
               onChanged: settings.setSidebarMode,
             ),
           ),
         ),
       Obx(() => ListTile(
-            title: Text("cacheHomeScreenData".tr),
-            subtitle: Text("cacheHomeScreenDataDes".tr),
+            title: Text(context.l10n.cacheHomeScreenData),
+            subtitle: Text(context.l10n.cacheHomeScreenDataDes),
             trailing: CustSwitch(
               value: settings.cacheHomeScreenData.value,
               onChanged: settings.toggleCacheHomeScreenData,
@@ -691,8 +706,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
         if (!isYt) return const SizedBox.shrink();
         return ListTile(
-          title: Text("Piped".tr),
-          subtitle: Text("linkPipedDes".tr),
+          title: Text(context.l10n.piped),
+          subtitle: Text(context.l10n.linkPipedDes),
           trailing: TextButton(
             onPressed: () {
               if (settings.isLinkedWithPiped.isFalse) {
@@ -703,7 +718,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
               }
             },
             child: Text(
-                settings.isLinkedWithPiped.value ? "unLink".tr : "link".tr),
+                settings.isLinkedWithPiped.value ? context.l10n.unLink : context.l10n.link),
           ),
         );
       }),
@@ -713,30 +728,30 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           return const SizedBox.shrink();
         }
         return ListTile(
-          title: Text("resetblacklistedplaylist".tr),
-          subtitle: Text("resetblacklistedplaylistDes".tr),
+          title: Text(context.l10n.resetblacklistedplaylist),
+          subtitle: Text(context.l10n.resetblacklistedplaylistDes),
           trailing: TextButton(
             onPressed: () async {
               await Get.find<LibraryPlaylistsController>()
                   .resetBlacklistedPlaylist();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                snackbar(context, "blacklistPlstResetAlert".tr,
+                snackbar(context, context.l10n.blacklistPlstResetAlert,
                     size: SnackBarSize.MEDIUM),
               );
             },
-            child: Text("reset".tr),
+            child: Text(context.l10n.reset),
           ),
         );
       }),
       ListTile(
-        title: Text("clearImgCache".tr),
-        subtitle: Text("clearImgCacheDes".tr),
+        title: Text(context.l10n.clearImgCache),
+        subtitle: Text(context.l10n.clearImgCacheDes),
         onTap: () async {
           await settings.clearImagesCache();
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            snackbar(context, "clearImgCacheAlert".tr, size: SnackBarSize.BIG),
+            snackbar(context, context.l10n.clearImgCacheAlert, size: SnackBarSize.BIG),
           );
         },
       ),
@@ -748,16 +763,16 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     final isDesktop = GetPlatform.isDesktop;
     return [
       ListTile(
-        title: Text("streamingQuality".tr),
-        subtitle: Text("streamingQualityDes".tr),
+        title: Text(context.l10n.streamingQuality),
+        subtitle: Text(context.l10n.streamingQualityDes),
         trailing: Obx(
           () => DropdownButton(
             underline: const SizedBox.shrink(),
             value: settings.streamingQuality.value,
             items: [
-              DropdownMenuItem(value: AudioQuality.Low, child: Text("low".tr)),
+              DropdownMenuItem(value: AudioQuality.Low, child: Text(context.l10n.low)),
               DropdownMenuItem(
-                  value: AudioQuality.High, child: Text("high".tr)),
+                  value: AudioQuality.High, child: Text(context.l10n.high)),
             ],
             onChanged: settings.setStreamingQuality,
           ),
@@ -765,8 +780,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       ),
       if (GetPlatform.isAndroid)
         Obx(() => ListTile(
-              title: Text("loudnessNormalization".tr),
-              subtitle: Text("loudnessNormalizationDes".tr),
+              title: Text(context.l10n.loudnessNormalization),
+              subtitle: Text(context.l10n.loudnessNormalizationDes),
               trailing: CustSwitch(
                 value: settings.loudnessNormalizationEnabled.value,
                 onChanged: settings.toggleLoudnessNormalization,
@@ -774,8 +789,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             )),
       if (!isDesktop)
         Obx(() => ListTile(
-              title: Text("cacheSongs".tr),
-              subtitle: Text("cacheSongsDes".tr),
+              title: Text(context.l10n.cacheSongs),
+              subtitle: Text(context.l10n.cacheSongsDes),
               trailing: CustSwitch(
                 value: settings.cacheSongs.value,
                 onChanged: settings.toggleCachingSongsValue,
@@ -783,8 +798,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             )),
       if (!isDesktop)
         Obx(() => ListTile(
-              title: Text("skipSilence".tr),
-              subtitle: Text("skipSilenceDes".tr),
+              title: Text(context.l10n.skipSilence),
+              subtitle: Text(context.l10n.skipSilenceDes),
               trailing: CustSwitch(
                 value: settings.skipSilenceEnabled.value,
                 onChanged: settings.toggleSkipSilence,
@@ -792,32 +807,32 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             )),
       if (isDesktop)
         Obx(() => ListTile(
-              title: Text("backgroundPlay".tr),
-              subtitle: Text("backgroundPlayDes".tr),
+              title: Text(context.l10n.backgroundPlay),
+              subtitle: Text(context.l10n.backgroundPlayDes),
               trailing: CustSwitch(
                 value: settings.backgroundPlayEnabled.value,
                 onChanged: settings.toggleBackgroundPlay,
               ),
             )),
       Obx(() => ListTile(
-            title: Text("keepScreenOnWhilePlaying".tr),
-            subtitle: Text("keepScreenOnWhilePlayingDes".tr),
+            title: Text(context.l10n.keepScreenOnWhilePlaying),
+            subtitle: Text(context.l10n.keepScreenOnWhilePlayingDes),
             trailing: CustSwitch(
               value: settings.keepScreenAwake.value,
               onChanged: settings.toggleKeepScreenAwake,
             ),
           )),
       Obx(() => ListTile(
-            title: Text("restoreLastPlaybackSession".tr),
-            subtitle: Text("restoreLastPlaybackSessionDes".tr),
+            title: Text(context.l10n.restoreLastPlaybackSession),
+            subtitle: Text(context.l10n.restoreLastPlaybackSessionDes),
             trailing: CustSwitch(
               value: settings.restorePlaybackSession.value,
               onChanged: settings.toggleRestorePlaybackSession,
             ),
           )),
       Obx(() => ListTile(
-            title: Text("autoOpenPlayer".tr),
-            subtitle: Text("autoOpenPlayerDes".tr),
+            title: Text(context.l10n.autoOpenPlayer),
+            subtitle: Text(context.l10n.autoOpenPlayerDes),
             trailing: CustSwitch(
               value: settings.autoOpenPlayer.value,
               onChanged: settings.toggleAutoOpenPlayer,
@@ -825,8 +840,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           )),
       if (!isDesktop)
         ListTile(
-          title: Text("equalizer".tr),
-          subtitle: Text("equalizerDes".tr),
+          title: Text(context.l10n.equalizer),
+          subtitle: Text(context.l10n.equalizerDes),
           onTap: () async {
             try {
               await Get.find<PlayerController>().openEqualizer();
@@ -837,8 +852,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         ),
       if (!isDesktop)
         Obx(() => ListTile(
-              title: Text("stopMusicOnTaskClear".tr),
-              subtitle: Text("stopMusicOnTaskClearDes".tr),
+              title: Text(context.l10n.stopMusicOnTaskClear),
+              subtitle: Text(context.l10n.stopMusicOnTaskClearDes),
               trailing: CustSwitch(
                 value: settings.stopPlyabackOnSwipeAway.value,
                 onChanged: settings.toggleStopPlyabackOnSwipeAway,
@@ -846,12 +861,12 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             )),
       if (GetPlatform.isAndroid)
         Obx(() => ListTile(
-              title: Text("ignoreBatOpt".tr),
+              title: Text(context.l10n.ignoreBatOpt),
               onTap: settings.isIgnoringBatteryOptimizations.isFalse
                   ? settings.enableIgnoringBatteryOptimizations
                   : null,
               subtitle: Text(
-                "${"status".tr}: ${settings.isIgnoringBatteryOptimizations.isTrue ? "enabled".tr : "disabled".tr}\n${"ignoreBatOptDes".tr}",
+                "${context.l10n.status}: ${settings.isIgnoringBatteryOptimizations.isTrue ? context.l10n.enabled : context.l10n.disabled}\n${context.l10n.ignoreBatOptDes}",
               ),
             )),
     ];
@@ -869,7 +884,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         final servers = settings.servers;
         final activeId = settings.activeServerId.value;
         if (servers.isEmpty) {
-          return ListTile(title: Text("noServersConfigured".tr));
+          return ListTile(title: Text(context.l10n.noServersConfigured));
         }
         return Column(
           children: [
@@ -901,7 +916,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                           size: 16, color: colorScheme.onSurface),
                     ),
                     title: Text(
-                      "addServer".tr,
+                      context.l10n.addServer,
                       style: theme.textTheme.titleSmall
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
@@ -926,7 +941,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                           title: Text(server.name),
                           subtitle: Text(server.serverUrl?.isNotEmpty == true
                               ? server.serverUrl!
-                              : _serverTypeLabelText(server.type).tr),
+                              : _serverTypeLabel(context, server.type)),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -935,7 +950,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                                 if (server.type != ServerType.youtubeMusic)
                                   IconButton(
                                     icon: const Icon(Icons.wifi_find, size: 18),
-                                    tooltip: "testConnection".tr,
+                                    tooltip: context.l10n.testConnection,
                                     onPressed: () async {
                                       final err = await settings
                                           .testServerConnection(server);
@@ -944,8 +959,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                                           .showSnackBar(
                                         SnackBar(
                                           content: Text(err == null
-                                              ? "connectionSuccess".tr
-                                              : "${"connectionFailed".tr}: $err"),
+                                              ? context.l10n.connectionSuccess
+                                              : "${context.l10n.connectionFailed}: $err"),
                                         ),
                                       );
                                     },
@@ -1014,16 +1029,16 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       BuildContext context, SettingsScreenController settings) {
     return [
       Obx(() => ListTile(
-            title: Text("autoDownFavSong".tr),
-            subtitle: Text("autoDownFavSongDes".tr),
+            title: Text(context.l10n.autoDownFavSong),
+            subtitle: Text(context.l10n.autoDownFavSongDes),
             trailing: CustSwitch(
               value: settings.autoDownloadFavoriteSongEnabled.value,
               onChanged: settings.toggleAutoDownloadFavoriteSong,
             ),
           )),
       ListTile(
-        title: Text("downloadingFormat".tr),
-        subtitle: Text("downloadingFormatDes".tr),
+        title: Text(context.l10n.downloadingFormat),
+        subtitle: Text(context.l10n.downloadingFormatDes),
         trailing: Obx(
           () => DropdownButton(
             underline: const SizedBox.shrink(),
@@ -1037,20 +1052,20 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         ),
       ),
       ListTile(
-        title: Text("downloadLocation".tr),
+        title: Text(context.l10n.downloadLocation),
         subtitle: Obx(() => Text(settings.isCurrentPathsupportDownDir
             ? "In App storage directory"
             : settings.downloadLocationPath.value)),
         trailing: TextButton(
           onPressed: settings.resetDownloadLocation,
-          child: Text("reset".tr),
+          child: Text(context.l10n.reset),
         ),
         onTap: settings.setDownloadLocation,
       ),
       if (GetPlatform.isAndroid)
         ListTile(
-          title: Text("exportDowloadedFiles".tr),
-          subtitle: Text("exportDowloadedFilesDes".tr),
+          title: Text(context.l10n.exportDowloadedFiles),
+          subtitle: Text(context.l10n.exportDowloadedFilesDes),
           onTap: () => showDialog(
             context: context,
             builder: (_) => const ExportFileDialog(),
@@ -1058,7 +1073,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         ),
       if (GetPlatform.isAndroid)
         ListTile(
-          title: Text("exportedFileLocation".tr),
+          title: Text(context.l10n.exportedFileLocation),
           subtitle: Obx(() => Text(settings.exportLocationPath.value)),
           onTap: settings.setExportedLocation,
         ),
@@ -1068,16 +1083,16 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   List<Widget> _buildBackup(BuildContext context) {
     return [
       ListTile(
-        title: Text("backupAppData".tr),
-        subtitle: Text("backupSettingsAndPlaylistsDes".tr),
+        title: Text(context.l10n.backupAppData),
+        subtitle: Text(context.l10n.backupSettingsAndPlaylistsDes),
         onTap: () => showDialog(
           context: context,
           builder: (_) => const BackupDialog(),
         ).whenComplete(() => Get.delete<BackupDialogController>()),
       ),
       ListTile(
-        title: Text("restoreAppData".tr),
-        subtitle: Text("restoreSettingsAndPlaylistsDes".tr),
+        title: Text(context.l10n.restoreAppData),
+        subtitle: Text(context.l10n.restoreSettingsAndPlaylistsDes),
         onTap: () => showDialog(
           context: context,
           builder: (_) => const RestoreDialog(),
@@ -1119,13 +1134,13 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         },
       ),
       ListTile(
-        title: Text("resetToDefault".tr),
-        subtitle: Text("resetToDefaultDes".tr),
+        title: Text(context.l10n.resetToDefault),
+        subtitle: Text(context.l10n.resetToDefaultDes),
         onTap: () async {
           await settings.resetAppSettingsToDefault();
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            snackbar(context, "resetToDefaultMsg".tr, size: SnackBarSize.BIG),
+            snackbar(context, context.l10n.resetToDefaultMsg, size: SnackBarSize.BIG),
           );
         },
       ),
@@ -1137,7 +1152,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     return [
       Obx(() => ListTile(
             leading: const Icon(Icons.system_update_alt, size: 20),
-            title: Text("checkForUpdatesOnStartup".tr),
+            title: Text(context.l10n.checkForUpdatesOnStartup),
             trailing: CustSwitch(
               value: settings.checkForUpdatesOnStartup.value,
               onChanged: settings.toggleCheckForUpdatesOnStartup,
@@ -1145,10 +1160,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           )),
       ListTile(
         leading: const Icon(Icons.system_update, size: 20),
-        title: Text("checkForUpdates".tr),
+        title: Text(context.l10n.checkForUpdates),
         onTap: () async {
-          final upToDate = "upToDate".tr;
-          final checking = "checkingForUpdates".tr;
+          final upToDate = context.l10n.upToDate;
+          final checking = context.l10n.checkingForUpdates;
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(checking)));
           final info = await PackageInfo.fromPlatform();
@@ -1170,7 +1185,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       ),
       ListTile(
         leading: const Icon(Icons.language, size: 20),
-        title: Text("openOpenlystWebsite".tr),
+        title: Text(context.l10n.openOpenlystWebsite),
         onTap: () => launchUrl(
           Uri.parse('https://openlyst.ink/'),
           mode: LaunchMode.externalApplication,
@@ -1178,8 +1193,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       ),
       ListTile(
         leading: const Icon(Icons.code, size: 20),
-        title: Text("openGitlab".tr),
-        subtitle: Text("gitlabDes".tr),
+        title: Text(context.l10n.openGitlab),
+        subtitle: Text(context.l10n.gitlabDes),
         onTap: () => launchUrl(
           Uri.parse('https://gitlab.com/Openlyst/doudou/'),
           mode: LaunchMode.externalApplication,
@@ -1334,7 +1349,7 @@ class ThemeSelectorDialog extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "themeMode".tr,
+                    context.l10n.themeMode,
                     style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: theme.textTheme.bodyLarge?.color),
@@ -1346,24 +1361,24 @@ class ThemeSelectorDialog extends StatelessWidget {
                   child: Column(
                     children: [
                       radioWidget(
-                        label: "dynamic".tr,
+                        label: context.l10n.dynamicTheme,
                         controller: settingsController,
                         value: ThemeType.dynamic,
                       ),
                       radioWidget(
-                          label: "systemDefault".tr,
+                          label: context.l10n.systemDefault,
                           controller: settingsController,
                           value: ThemeType.system),
                       radioWidget(
-                          label: "dark".tr,
+                          label: context.l10n.dark,
                           controller: settingsController,
                           value: ThemeType.dark),
                       radioWidget(
-                          label: "oled".tr,
+                          label: context.l10n.oled,
                           controller: settingsController,
                           value: ThemeType.oled),
                       radioWidget(
-                          label: "light".tr,
+                          label: context.l10n.light,
                           controller: settingsController,
                           value: ThemeType.light),
                     ],
@@ -1377,7 +1392,7 @@ class ThemeSelectorDialog extends StatelessWidget {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: Text("cancel".tr,
+                      child: Text(context.l10n.cancel,
                           style: theme.textTheme.labelLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: theme.colorScheme.primary)),
@@ -1412,7 +1427,7 @@ class DiscoverContentSelectorDialog extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "setDiscoverContent".tr,
+                  context.l10n.setDiscoverContent,
                   style: Theme.of(context)
                       .textTheme
                       .titleLarge
@@ -1425,19 +1440,19 @@ class DiscoverContentSelectorDialog extends StatelessWidget {
                 child: Column(
                   children: [
                     radioWidget(
-                        label: "quickpicks".tr,
+                        label: context.l10n.quickpicks,
                         controller: settingsController,
                         value: "QP"),
                     radioWidget(
-                        label: "topmusicvideos".tr,
+                        label: context.l10n.topmusicvideos,
                         controller: settingsController,
                         value: "TMV"),
                     radioWidget(
-                        label: "trending".tr,
+                        label: context.l10n.trending,
                         controller: settingsController,
                         value: "TR"),
                     radioWidget(
-                        label: "basedOnLast".tr,
+                        label: context.l10n.basedOnLast,
                         controller: settingsController,
                         value: "BOLI"),
                   ],
@@ -1451,7 +1466,7 @@ class DiscoverContentSelectorDialog extends StatelessWidget {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text("cancel".tr,
+                    child: Text(context.l10n.cancel,
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                   )),
             )
@@ -1478,7 +1493,7 @@ class _AddProviderDialog extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    "addServer".tr,
+                    context.l10n.addServer,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -1493,7 +1508,7 @@ class _AddProviderDialog extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 leading: Icon(_serverIcon(ServerType.values[i])),
-                title: Text(_serverTypeLabelText(ServerType.values[i]).tr),
+                title: Text(_serverTypeLabel(context, ServerType.values[i])),
                 trailing: const Icon(Icons.chevron_right_rounded, size: 18),
                 onTap: () => Navigator.of(context).pop(ServerType.values[i]),
               ),
@@ -1508,7 +1523,7 @@ class _AddProviderDialog extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text("cancel".tr),
+                child: Text(context.l10n.cancel),
               ),
             ),
           ],
@@ -1667,23 +1682,25 @@ class _AddServerDialogState extends State<AddServerDialog> {
       widget.serverType == ServerType.jellyfin ||
       widget.serverType == ServerType.plex;
 
-  String get _titleKey {
-    if (widget.existing != null) return 'editServer'.tr;
+  String _title(BuildContext context) {
+    final l10n = context.l10n;
+    if (widget.existing != null) return l10n.editServer;
     switch (widget.serverType) {
       case ServerType.youtubeMusic:
-        return '${'addServer'.tr} - ${'youtubeMusic'.tr}';
+        return '${l10n.addServer} - ${l10n.youtubeMusic}';
       case ServerType.subsonic:
-        return '${'addServer'.tr} - ${'subsonic'.tr}';
+        return '${l10n.addServer} - ${l10n.subsonic}';
       case ServerType.jellyfin:
-        return '${'addServer'.tr} - ${'jellyfin'.tr}';
+        return '${l10n.addServer} - ${l10n.jellyfin}';
       case ServerType.plex:
-        return '${'addServer'.tr} - ${'plex'.tr}';
+        return '${l10n.addServer} - ${l10n.plex}';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<SettingsScreenController>();
+    final l10n = context.l10n;
     return CommonDialog(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -1692,7 +1709,7 @@ class _AddServerDialogState extends State<AddServerDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              _titleKey,
+              _title(context),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             if (_needsCredentials) ...[
@@ -1700,7 +1717,7 @@ class _AddServerDialogState extends State<AddServerDialog> {
               TextField(
                 controller: _urlController,
                 decoration: InputDecoration(
-                  labelText: 'serverUrl'.tr,
+                  labelText: l10n.serverUrl,
                   hintText: 'https://example.com',
                 ),
                 keyboardType: TextInputType.url,
@@ -1710,24 +1727,24 @@ class _AddServerDialogState extends State<AddServerDialog> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _usernameController,
-                  decoration: InputDecoration(labelText: 'username'.tr),
+                  decoration: InputDecoration(labelText: l10n.username),
                   textInputAction: TextInputAction.next,
                 ),
               ],
               const SizedBox(height: 12),
               TextField(
                 controller: _passwordController,
-                decoration: InputDecoration(
+                  decoration: InputDecoration(
                   labelText: widget.serverType == ServerType.plex
-                      ? 'plexToken'.tr
-                      : 'password'.tr,
+                      ? l10n.plexToken
+                      : l10n.password,
                 ),
                 obscureText: true,
               ),
             ] else ...[
               const SizedBox(height: 12),
               Text(
-                'youtubeMusicNoLogin'.tr,
+                l10n.youtubeMusicNoLogin,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
@@ -1737,7 +1754,7 @@ class _AddServerDialogState extends State<AddServerDialog> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text('cancel'.tr),
+                  child: Text(l10n.cancel),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
@@ -1755,7 +1772,7 @@ class _AddServerDialogState extends State<AddServerDialog> {
                       if (_needsCredentials) {
                         if (_urlController.text.trim().isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('serverUrlRequired'.tr)),
+                            SnackBar(content: Text(l10n.serverUrlRequired)),
                           );
                           return;
                         }
@@ -1772,7 +1789,7 @@ class _AddServerDialogState extends State<AddServerDialog> {
                     }
                     Navigator.of(context).pop();
                   },
-                  child: Text(widget.existing != null ? 'save'.tr : 'add'.tr),
+                  child: Text(widget.existing != null ? l10n.save : l10n.add),
                 ),
               ],
             ),
@@ -1822,12 +1839,12 @@ IconData _serverIcon(ServerType type) {
   return icons[type] ?? Icons.storage_outlined;
 }
 
-String _serverTypeLabelText(ServerType type) {
-  const labels = <ServerType, String>{
-    ServerType.youtubeMusic: "youtubeMusic",
-    ServerType.subsonic: "subsonic",
-    ServerType.jellyfin: "jellyfin",
-    ServerType.plex: "plex",
+String _serverTypeLabel(BuildContext context, ServerType type) {
+  final l10n = context.l10n;
+  return switch (type) {
+    ServerType.youtubeMusic => l10n.youtubeMusic,
+    ServerType.subsonic => l10n.subsonic,
+    ServerType.jellyfin => l10n.jellyfin,
+    ServerType.plex => l10n.plex,
   };
-  return labels[type] ?? type.name;
 }

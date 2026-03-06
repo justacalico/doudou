@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -32,7 +33,7 @@ class ResultWidget extends StatelessWidget {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          "searchRes".tr,
+                          context.l10n.searchRes,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
@@ -40,7 +41,7 @@ class ResultWidget extends StatelessWidget {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          "${"for1".tr} \"${searchResScrController.queryString.value}\"",
+                          "${context.l10n.for1} \"${searchResScrController.queryString.value}\"",
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),

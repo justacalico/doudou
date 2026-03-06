@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 class ProceedButton extends StatelessWidget {
@@ -39,7 +40,7 @@ class CancelButton extends StatelessWidget {
     return InkWell(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
-        child: Text("cancel".tr),
+        child: Text(context.l10n.cancel),
       ),
       onTap: () {
         Navigator.of(context).pop();

@@ -1,4 +1,5 @@
 import 'dart:ui';
+import '/utils/app_l10n.dart';
 
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -75,7 +76,7 @@ class Player extends StatelessWidget {
                               /// number of songs in queue
                               Obx(
                                 () => Text(
-                                  "${playerController.currentQueue.length} ${"songs".tr}",
+                                  "${playerController.currentQueue.length} ${context.l10n.songs}",
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleSmall!
@@ -104,7 +105,7 @@ class Player extends StatelessWidget {
                                           : Colors.white.withValues(alpha: 0.8),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
-                                    child: Center(child: Text("queueLoop".tr)),
+                                    child: Center(child: Text(context.l10n.queueLoop)),
                                   ),
                                 ),
                               ),
@@ -116,7 +117,7 @@ class Player extends StatelessWidget {
                                       .isShuffleModeEnabled.isTrue) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         snackbar(context,
-                                            "queueShufflingDeniedMsg".tr,
+                                            context.l10n.queueShufflingDeniedMsg,
                                             size: SnackBarSize.BIG));
                                     return;
                                   }

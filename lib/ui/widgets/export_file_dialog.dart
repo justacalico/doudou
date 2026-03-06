@@ -1,4 +1,5 @@
 import 'dart:io';
+import '/utils/app_l10n.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -25,7 +26,7 @@ class ExportFileDialog extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.only(bottom: 10.0, top: 10),
                 child: Text(
-                  "exportDowloadedFiles".tr,
+                  context.l10n.exportDowloadedFiles,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -35,7 +36,7 @@ class ExportFileDialog extends StatelessWidget {
                   child: Obx(() => exportFileDialogController.exportProgress
                               .toInt() ==
                           exportFileDialogController.filesToExport.length
-                      ? Text("exportMsg".tr)
+                      ? Text(context.l10n.exportMsg)
                       : exportFileDialogController.exportRunning.isTrue
                           ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -47,12 +48,12 @@ class ExportFileDialog extends StatelessWidget {
                                 const SizedBox(
                                   height: 10,
                                 ),
-                                Text("exporting".tr)
+                                Text(context.l10n.exporting)
                               ],
                             )
                           : exportFileDialogController.ready.isTrue
                               ? Text(
-                                  "${exportFileDialogController.filesToExport.length} ${"downFilesFound".tr}")
+                                  "${exportFileDialogController.filesToExport.length} ${context.l10n.downFilesFound}")
                               : exportFileDialogController.scanning.isTrue
                                   ? Column(
                                       mainAxisAlignment:
@@ -62,7 +63,7 @@ class ExportFileDialog extends StatelessWidget {
                                         const SizedBox(
                                           height: 10,
                                         ),
-                                        Text("scanning".tr)
+                                        Text(context.l10n.scanning)
                                       ],
                                     )
                                   : const SizedBox()),
@@ -92,8 +93,8 @@ class ExportFileDialog extends StatelessWidget {
                             exportFileDialogController.exportProgress.toInt() ==
                                     exportFileDialogController
                                         .filesToExport.length
-                                ? "close".tr
-                                : "export".tr,
+                                ? context.l10n.close
+                                : context.l10n.export,
                             style:
                                 TextStyle(color: Theme.of(context).canvasColor),
                           ),
