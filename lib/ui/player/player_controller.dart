@@ -453,7 +453,8 @@ class PlayerController extends GetxController
     if (isShuffleModeEnabled.value) {
       await _audioHandler.customAction("shuffleCmd", {"index": index});
     }
-    await _audioHandler.customAction("playByIndex", {"index": index});
+    final playIndex = isShuffleModeEnabled.value ? 0 : index;
+    await _audioHandler.customAction("playByIndex", {"index": playIndex});
   }
 
   Future<void> startRadio(MediaItem? mediaItem, {String? playlistid}) async {
