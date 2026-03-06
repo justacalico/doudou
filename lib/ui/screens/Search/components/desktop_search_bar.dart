@@ -84,6 +84,11 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
                 }),
                 hintText: context.l10n.searchDes,
                 leading: IconButton(
+                  style: IconButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(32, 32),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   onPressed: () {
                     if (_focusNode.hasFocus) {
                       _focusNode.unfocus();
@@ -101,8 +106,13 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
                 ),
                 trailing: [
                   IconButton(
+                    style: IconButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(32, 32),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     tooltip: context.l10n.shuffleAll,
-                    icon: const Icon(Icons.shuffle, size: 20),
+                    icon: const Icon(Icons.shuffle, size: 18),
                     onPressed: () {
                       final c = Get.find<HomeScreenController>();
                       c.shuffleAll(
@@ -112,8 +122,13 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
                     },
                   ),
                   IconButton(
+                    style: IconButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(32, 32),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     tooltip: context.l10n.favorites,
-                    icon: const Icon(Icons.favorite_border, size: 20),
+                    icon: const Icon(Icons.favorite_border, size: 18),
                     onPressed: () {
                       final c = Get.find<HomeScreenController>();
                       c.shuffleFavorites(
@@ -123,8 +138,13 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
                     },
                   ),
                   IconButton(
+                    style: IconButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(32, 32),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     tooltip: context.l10n.downloads,
-                    icon: const Icon(Icons.download, size: 20),
+                    icon: const Icon(Icons.download, size: 18),
                     onPressed: () {
                       final c = Get.find<HomeScreenController>();
                       c.shuffleDownloads(
@@ -135,8 +155,13 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
                   ),
                   Obx(() => searchScreenController.isSearchBarInFocus.isTrue
                       ? IconButton(
+                          style: IconButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(32, 32),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           onPressed: searchScreenController.reset,
-                          icon: const Icon(Icons.clear))
+                          icon: const Icon(Icons.clear, size: 18))
                       : const SizedBox.shrink())
                 ],
                 padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(

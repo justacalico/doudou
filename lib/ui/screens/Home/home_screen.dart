@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -334,9 +335,21 @@ class Body extends StatelessWidget {
                 child: LayoutBuilder(builder: (context, constraints) {
                   return SizedBox(
                     width: constraints.maxWidth,
-                    child: const Padding(
-                      padding: EdgeInsets.only(top: 15.0),
-                      child: DesktopSearchBar(),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: kDoudouBlurBar,
+                          sigmaY: kDoudouBlurBar,
+                        ),
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          child: const Padding(
+                            padding: EdgeInsets.only(top: 15.0),
+                            child: DesktopSearchBar(),
+                          ),
+                        ),
+                      ),
                     ),
                   );
                 }),
