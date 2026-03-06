@@ -4,10 +4,10 @@ A privacy-focused music player for your media server. Stream your music collecti
 
 ## Supported Backends
 
-- **Subsonic** - Full support (recommended)
-- **YouTube Music** - Full support (recommended)
-- **Plex** - Working but not extensively tested (supported; please open an issue if you hit a bug)
-- **Jellyfin** - Supported but unprioritized; expect minor bugs
+- **Subsonic** - Full support (Recommanded)
+- **YouTube Music** - Full support (Recommanded)
+- **Plex** - Working without a bunch of testing. (This is supported just not bugtested all the time (open a issue if a bug accross))
+- **Jellyfin** - Supported unpritoized expect minor bugs
 - **Local Files** - Play music directly from your device without a server
 
 ## Features
@@ -66,7 +66,7 @@ Long-press any song, album, or playlist and select "Download for offline listeni
 Jellyfin offers the best experience with full feature support and is completely free.
 
 **Is the desktop version different?**
-Desktop and mobile share one responsive codepath for now-playing and details, with adaptive layouts.
+Desktop and mobile use one responsive now-playing/details codepath with adaptive layouts.
 
 ## Building from Source
 
@@ -133,6 +133,6 @@ flutter clean
 
 Built with these open-source projects:
 
-- [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Subsonic](http://www.subsonic.org/), [YouTube Music](https://music.youtube.com) - Media servers
+- [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Subsonic](http://www.subsonic.org/), [Youtube Music](https://music.youtube.com) - Media servers
 - [Harmony-Music](https://github.com/anandnet/Harmony-Music) - YouTube Music support
 - [Flutter](https://flutter.dev/) - Cross-platform framework
