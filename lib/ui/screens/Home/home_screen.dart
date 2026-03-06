@@ -175,7 +175,7 @@ class Body extends StatelessWidget {
               }
               final shuffleTrackCount =
                   libSongs.librarySongsList.length + extraFavCount;
-              const kLibraryCardHeight = 140.0;
+              const kLibraryCardHeight = 165.0;
               const kLibraryCardGap = 8.0;
 
               Widget libraryCard({
