@@ -1,9 +1,8 @@
-import 'dart:ui';
-
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/constants/doudou_design.dart';
+import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/shell_controller.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:widget_marquee/widget_marquee.dart';
@@ -11,8 +10,6 @@ import 'package:widget_marquee/widget_marquee.dart';
 import '/ui/widgets/lyrics_dialog.dart';
 import '/ui/widgets/song_info_dialog.dart';
 import '/ui/player/player_controller.dart';
-import '/ui/screens/Settings/settings_screen_controller.dart';
-import '/ui/utils/theme_controller.dart';
 import '../../widgets/add_to_playlist.dart';
 import '../../widgets/sleep_timer_bottom_sheet.dart';
 import '../../widgets/song_download_btn.dart';
@@ -30,24 +27,19 @@ class MiniPlayer extends StatelessWidget {
     return Obx(() {
       final bottomNavEnabled = Get.find<ShellController>().useBottomNav.value;
       final isMobilePill = bottomNavEnabled;
+      final content = isMobilePill
+          ? _MobileMiniPlayer(controller: playerController)
+          : _DesktopMiniPlayer(controller: playerController, size: size);
       return Visibility(
         visible: playerController.isPlayerpanelTopVisible.value &&
             playerController.currentSong.value != null,
-        child: AnimatedOpacity(
-          opacity: playerController.playerPaneOpacity.value,
-          duration: Duration.zero,
-          child: SizedBox(
-            height: playerController.playerPanelMinHeight.value,
-            width: size.width,
-            child: isMobilePill
-                ? _MobileMiniPlayer(
-                    controller: playerController,
-                  )
-                : _DesktopMiniPlayer(
-                    controller: playerController,
-                    size: size,
-                  ),
-          ),
+        child: SizedBox(
+          height: playerController.playerPanelMinHeight.value,
+          width: size.width,
+          child: Obx(() => Opacity(
+                opacity: playerController.playerPaneOpacity.value,
+                child: content,
+              )),
         ),
       );
     });
@@ -63,6 +55,7 @@ class _MobileMiniPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final c = context.doudouColors;
     final song = controller.currentSong.value;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -71,27 +64,18 @@ class _MobileMiniPlayer extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
           child: ClipRRect(
-            borderRadius:
-                BorderRadius.circular(kDoudouRadiusCard),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                  sigmaX: kDoudouBlurSidebar,
-                  sigmaY: kDoudouBlurSidebar),
-              child: Container(
-                height: 64,
-                decoration: BoxDecoration(
-                  color: kDoudouZinc900.withValues(alpha: 0.9),
-                  borderRadius:
-                      BorderRadius.circular(kDoudouRadiusCard),
-                  border: Border.all(
-                    color: kDoudouBorderStrong,
-                    width: 1,
-                  ),
-                  boxShadow: const [],
-                ),
-                child: Stack(
-                  children: [
-                    Padding(
+            borderRadius: BorderRadius.circular(kDoudouRadiusCard),
+            child: Container(
+              height: 64,
+              decoration: BoxDecoration(
+                color: c.surfaceOverlay,
+                borderRadius: BorderRadius.circular(kDoudouRadiusCard),
+                border: Border.all(color: c.borderSubtle),
+                boxShadow: const [],
+              ),
+              child: Stack(
+                children: [
+                  Padding(
                       padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
                       child: Row(
                         children: [
@@ -130,8 +114,9 @@ class _MobileMiniPlayer extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: textTheme.titleSmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
@@ -175,7 +160,7 @@ class _MobileMiniPlayer extends StatelessWidget {
                                             strokeWidth: 2,
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
-                                              theme.colorScheme.primary,
+                                              c.accentPrimary,
                                             ),
                                           ),
                                         )
@@ -183,7 +168,7 @@ class _MobileMiniPlayer extends StatelessWidget {
                                           isPlaying
                                               ? Icons.pause_rounded
                                               : Icons.play_arrow_rounded,
-                                          color: theme.iconTheme.color,
+                                          color: c.textPrimary,
                                         ),
                                 );
                               }),
@@ -191,7 +176,7 @@ class _MobileMiniPlayer extends StatelessWidget {
                                 iconSize: 28,
                                 onPressed: controller.next,
                                 icon: Icon(Icons.skip_next_rounded,
-                                    color: theme.iconTheme.color),
+                                    color: c.textPrimary),
                               ),
                             ],
                           ),
@@ -206,15 +191,14 @@ class _MobileMiniPlayer extends StatelessWidget {
                         height: 2,
                         child: GetX<PlayerController>(
                           init: controller,
-                          builder: (c) => MiniPlayerProgressBar(
-                            progressBarStatus: c.progressBarStatus.value,
-                            progressBarColor: kDoudouPurple,
+                          builder: (pc) => MiniPlayerProgressBar(
+                            progressBarStatus: pc.progressBarStatus.value,
+                            progressBarColor: context.doudouColors.accentPrimary,
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
           ),
@@ -237,10 +221,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final useDynamicTheme = Get.find<SettingsScreenController>()
-            .themeModetype
-            .value ==
-        ThemeType.dynamic;
+    final c = context.doudouColors;
     return LayoutBuilder(
       builder: (context, constraints) {
         final shortDesktop = constraints.maxHeight < 90;
@@ -253,16 +234,12 @@ class _DesktopMiniPlayer extends StatelessWidget {
           return Container(
             height: 96,
             decoration: BoxDecoration(
-              color: useDynamicTheme
-                  ? Colors.black.withValues(alpha: 0.6)
-                  : kDoudouZinc900.withValues(alpha: 0.9),
+              color: c.raisedBackground,
               border: Border(
-                top: BorderSide(color: kDoudouBorder),
+                top: BorderSide(color: c.borderSubtle),
               ),
             ),
-            child: Builder(
-              builder: (context) {
-                final content = Stack(
+            child: Stack(
               children: [
                 Padding(
                   padding:
@@ -301,7 +278,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                       IconButton(
                         iconSize: 18,
                         onPressed: controller.prev,
-                        icon: const Icon(Icons.skip_previous),
+                        icon: Icon(Icons.skip_previous, color: c.textPrimary),
                       ),
                       const SizedBox(
                         width: 38,
@@ -316,7 +293,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                       IconButton(
                         iconSize: 18,
                         onPressed: controller.next,
-                        icon: const Icon(Icons.skip_next),
+                        icon: Icon(Icons.skip_next, color: c.textPrimary),
                       ),
                       IconButton(
                         iconSize: 18,
@@ -324,7 +301,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                           controller.homeScaffoldkey.currentState
                               ?.openEndDrawer();
                         },
-                        icon: const Icon(Icons.queue_music),
+                        icon: Icon(Icons.queue_music, color: c.textPrimary),
                       ),
                     ],
                   ),
@@ -337,25 +314,14 @@ class _DesktopMiniPlayer extends StatelessWidget {
                     height: 2,
                     child: GetX<PlayerController>(
                       init: controller,
-                      builder: (c) => MiniPlayerProgressBar(
-                        progressBarStatus: c.progressBarStatus.value,
-                        progressBarColor: kDoudouPurple,
+                      builder: (pc) => MiniPlayerProgressBar(
+                        progressBarStatus: pc.progressBarStatus.value,
+                        progressBarColor: context.doudouColors.accentPrimary,
                       ),
                     ),
                   ),
                 ),
               ],
-                );
-
-                if (!useDynamicTheme) return content;
-                return ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                        sigmaX: kDoudouBlurBar, sigmaY: kDoudouBlurBar),
-                    child: content,
-                  ),
-                );
-              },
             ),
           );
         }
@@ -363,47 +329,47 @@ class _DesktopMiniPlayer extends StatelessWidget {
         return Container(
           height: 96,
           decoration: BoxDecoration(
-            color: useDynamicTheme
-                ? Colors.black.withValues(alpha: 0.6)
-                : kDoudouZinc900.withValues(alpha: 0.9),
+            color: c.raisedBackground,
             border: Border(
-              top: BorderSide(color: kDoudouBorder),
+              top: BorderSide(color: c.borderSubtle),
             ),
           ),
-          child: Builder(
-            builder: (context) {
-              final content = Center(
-                child: Column(
+          child: Center(
+            child: Column(
               children: [
-                GetX<PlayerController>(builder: (c) {
+                GetX<PlayerController>(builder: (pc) {
                   return Padding(
                     padding: EdgeInsets.only(
-                        left: 15,
-                        top: compactDesktop ? 4 : 8,
-                        right: 15,
-                        bottom: 0),
+                      left: 16,
+                      top: compactDesktop ? 6 : 10,
+                      right: 16,
+                      bottom: 0,
+                    ),
                     child: ProgressBar(
                       timeLabelLocation: compactDesktop
                           ? TimeLabelLocation.none
                           : TimeLabelLocation.sides,
-                      thumbRadius: 7,
-                      barHeight: 4,
-                      thumbGlowRadius: 15,
-                      baseBarColor: theme.sliderTheme.inactiveTrackColor,
-                      bufferedBarColor: theme.sliderTheme.valueIndicatorColor,
-                      progressBarColor: theme.sliderTheme.activeTrackColor,
-                      thumbColor: theme.sliderTheme.thumbColor,
-                      timeLabelTextStyle: textTheme.titleMedium,
-                      progress: c.progressBarStatus.value.current,
-                      total: c.progressBarStatus.value.total,
-                      buffered: c.progressBarStatus.value.buffered,
-                      onSeek: c.seek,
+                      thumbRadius: compactDesktop ? 6 : 7,
+                      barHeight: 3,
+                      thumbGlowRadius: 0,
+                      baseBarColor: c.borderStrong,
+                      bufferedBarColor: context.doudouColors.accentMuted
+                          .withValues(alpha: 0.35),
+                      progressBarColor: context.doudouColors.accentPrimary,
+                      thumbColor: context.doudouColors.accentPrimary,
+                      timeLabelTextStyle: textTheme.labelSmall?.copyWith(
+                        color: context.doudouColors.textTertiary,
+                      ),
+                      progress: pc.progressBarStatus.value.current,
+                      total: pc.progressBarStatus.value.total,
+                      buffered: pc.progressBarStatus.value.buffered,
+                      onSeek: pc.seek,
                     ),
                   );
                 }),
                 Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: 17.0, vertical: compactDesktop ? 4 : 7),
+                      horizontal: 16.0, vertical: compactDesktop ? 6 : 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -482,7 +448,9 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                           controller.isCurrentSongFav.isFalse
                                               ? Icons.favorite_border
                                               : Icons.favorite,
-                                          color: textTheme.titleMedium!.color,
+                                          color: controller.isCurrentSongFav.isTrue
+                                              ? c.accentPrimary
+                                              : c.textSecondary,
                                         ))),
                                 if (!compactDesktop)
                                   IconButton(
@@ -492,9 +460,8 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                             Ionicons.shuffle,
                                             color: controller
                                                     .isShuffleModeEnabled.value
-                                                ? textTheme.titleLarge!.color
-                                                : textTheme.titleLarge!.color!
-                                                    .withValues(alpha: 0.2),
+                                                ? c.textPrimary
+                                                : c.textDisabled,
                                           ))),
                               ],
                             ),
@@ -508,14 +475,14 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                     : controller.prev,
                                 child: Icon(
                                   Icons.skip_previous,
-                                  color: textTheme.titleMedium!.color,
+                                  color: c.textPrimary,
                                   size: primaryControlSize,
                                 ),
                               ),
                             ),
                             Container(
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.secondary,
+                                color: c.accentPrimary,
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               width: playButtonSize,
@@ -544,9 +511,8 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                   child: Icon(
                                     Icons.skip_next,
                                     color: isLastSong
-                                        ? textTheme.titleLarge!.color!
-                                            .withValues(alpha: 0.2)
-                                        : textTheme.titleMedium!.color,
+                                        ? c.textDisabled
+                                        : c.textPrimary,
                                     size: primaryControlSize,
                                   ),
                                 );
@@ -560,11 +526,9 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                       onPressed: controller.toggleLoopMode,
                                       icon: Icon(
                                         Icons.all_inclusive,
-                                        color:
-                                            controller.isLoopModeEnabled.value
-                                                ? textTheme.titleLarge!.color
-                                                : textTheme.titleLarge!.color!
-                                                    .withValues(alpha: 0.2),
+                                        color: controller.isLoopModeEnabled.value
+                                            ? c.textPrimary
+                                            : c.textDisabled,
                                       )),
                                 IconButton(
                                     iconSize: 20,
@@ -584,7 +548,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                     },
                                     icon: Icon(
                                       Icons.lyrics_outlined,
-                                      color: textTheme.titleLarge!.color,
+                                      color: c.textSecondary,
                                     )),
                               ],
                             ),
@@ -622,6 +586,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                                       ? Icons.volume_down
                                                       : Icons.volume_up,
                                               size: 20,
+                                              color: c.textSecondary,
                                             ),
                                           ),
                                         ),
@@ -663,7 +628,8 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                         controller.homeScaffoldkey.currentState!
                                             .openEndDrawer();
                                       },
-                                      icon: const Icon(Icons.queue_music),
+                                      icon: Icon(Icons.queue_music,
+                                          color: c.textSecondary),
                                     ),
                                     if (!compactDesktop)
                                       Padding(
@@ -696,6 +662,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                             controller.isSleepTimerActive.isTrue
                                                 ? Icons.timer
                                                 : Icons.timer_outlined,
+                                            color: c.textSecondary,
                                           ),
                                         ),
                                       ),
@@ -712,6 +679,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                                     ? Icons.volume_down
                                                     : Icons.volume_up,
                                             size: 20,
+                                            color: c.textSecondary,
                                           ),
                                         );
                                       }),
@@ -732,7 +700,8 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                               AddToPlaylistController>());
                                         }
                                       },
-                                      icon: const Icon(Icons.playlist_add),
+                                      icon: Icon(Icons.playlist_add,
+                                          color: c.textSecondary),
                                     ),
                                     if (size.width > 965)
                                       IconButton(
@@ -749,9 +718,10 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                             );
                                           }
                                         },
-                                        icon: const Icon(
+                                        icon: Icon(
                                           Icons.info,
                                           size: 22,
+                                          color: c.textSecondary,
                                         ),
                                       ),
                                   ],
@@ -764,19 +734,8 @@ class _DesktopMiniPlayer extends StatelessWidget {
                     ],
                   ),
                 ),
-                ],
-              ),
-            );
-
-              if (!useDynamicTheme) return content;
-              return ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                      sigmaX: kDoudouBlurBar, sigmaY: kDoudouBlurBar),
-                  child: content,
-                ),
-              );
-            },
+              ],
+            ),
           ),
         );
       },

@@ -2,19 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:palette_generator/palette_generator.dart';
-import '/ui/constants/doudou_design.dart';
+import '/ui/design/doudou_theme.dart';
 import '/utils/helper.dart';
-
-TextTheme _interTextTheme(TextTheme base) {
-  try {
-    return GoogleFonts.interTextTheme(base);
-  } catch (_) {
-    return base;
-  }
-}
 
 ThemeType themeTypeFromStorage(dynamic rawThemeModeType) {
   if (rawThemeModeType is! int) return ThemeType.system;
@@ -190,361 +181,44 @@ class ThemeController extends GetxController {
 
   ThemeData _createThemeData(MaterialColor? primarySwatch, ThemeType themeType,
       {MaterialColor? titleColorSwatch, Color? textColor}) {
-    if (themeType == ThemeType.dynamic) {
-      final dynamicSwatch =
-          primarySwatch ?? _createMaterialColor(dynamicColor.value);
-      final accentSwatch = dynamicSwatch;
-      final surfaceLuminance = (dynamicSwatch[700] ?? dynamicSwatch[500])!.computeLuminance();
-      final useDarkForeground = surfaceLuminance > 0.35;
-      final foregroundColor = useDarkForeground ? Colors.grey[800]! : dynamicSwatch[100]!;
-      final selectedForeground = useDarkForeground ? Colors.grey[900]! : Colors.white;
+    final theme = switch (themeType) {
+      ThemeType.dynamic => DoudouTheme.dark(
+          accent: (primarySwatch ?? _currentDynamicSwatch())[500] ??
+              primaryColor.value ??
+              Colors.deepPurple[400]!,
+        ),
+      ThemeType.dark => DoudouTheme.dark(
+          accent: primaryColor.value ?? Colors.deepPurple[400]!,
+        ),
+      ThemeType.oled => DoudouTheme.oled(
+          accent: primaryColor.value ?? Colors.deepPurple[400]!,
+        ),
+      ThemeType.light => DoudouTheme.light(
+          accent: primaryColor.value ?? Colors.deepPurple[400]!,
+        ),
+      ThemeType.system => DoudouTheme.dark(
+          accent: primaryColor.value ?? Colors.deepPurple[400]!,
+        ),
+    };
 
-      SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(
-            statusBarIconBrightness: useDarkForeground ? Brightness.dark : Brightness.light,
-            statusBarColor: Colors.transparent,
-            systemNavigationBarColor: Colors.white.withValues(alpha: 0.002),
-            systemNavigationBarDividerColor: Colors.transparent,
-            systemNavigationBarIconBrightness: useDarkForeground ? Brightness.dark : Brightness.light,
-            systemStatusBarContrastEnforced: false,
-            systemNavigationBarContrastEnforced: true),
-      );
+    _applySystemUi(theme);
+    return theme;
+  }
 
-      final baseScheme = ColorScheme.fromSwatch(
-          accentColor: dynamicSwatch[600],
-          brightness: Brightness.dark,
-          backgroundColor: dynamicSwatch[700],
-          primarySwatch: dynamicSwatch);
-      final scheme = baseScheme.copyWith(
-          primary: accentSwatch[500],
-          surface: dynamicSwatch[800],
-          surfaceContainerHighest: dynamicSwatch[600],
-          onSurface: useDarkForeground ? Colors.grey[900] : Colors.white,
-          secondary: accentSwatch[600],
-          onSecondary: useDarkForeground ? Colors.grey[900] : Colors.white);
-      final baseTheme = ThemeData(
-          useMaterial3: false,
-          primaryColor: accentSwatch[500],
-          colorScheme: scheme,
-          dialogTheme: DialogThemeData(backgroundColor: dynamicSwatch[700]),
-          cardColor: dynamicSwatch[600],
-          primaryColorLight: accentSwatch[400],
-          primaryColorDark: dynamicSwatch[700],
-          canvasColor: dynamicSwatch[700],
-          bottomSheetTheme: BottomSheetThemeData(
-              backgroundColor: dynamicSwatch[600],
-              modalBarrierColor: dynamicSwatch[400]),
-          textTheme: TextTheme(
-            titleLarge: TextStyle(
-                fontSize: 23, fontWeight: FontWeight.bold, color: selectedForeground),
-            titleMedium: TextStyle(
-                fontWeight: FontWeight.bold, color: selectedForeground),
-            titleSmall: TextStyle(color: foregroundColor),
-            bodyMedium: TextStyle(color: foregroundColor),
-            labelMedium: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 23,
-                color: textColor ?? (useDarkForeground ? Colors.grey[800] : dynamicSwatch[50])),
-            labelSmall: TextStyle(
-                fontSize: 15,
-                color: titleColorSwatch != null
-                    ? titleColorSwatch[900]
-                    : foregroundColor,
-                letterSpacing: 0,
-                fontWeight: FontWeight.bold),
-          ),
-          tabBarTheme: TabBarThemeData(
-              indicatorColor: useDarkForeground ? Colors.grey[900] : Colors.white),
-          progressIndicatorTheme: ProgressIndicatorThemeData(
-              linearTrackColor: (dynamicSwatch[300])!.computeLuminance() > 0.3
-                  ? Colors.black54
-                  : Colors.white70,
-              color: textColor),
-          navigationRailTheme: NavigationRailThemeData(
-              backgroundColor: dynamicSwatch[700],
-              selectedIconTheme: IconThemeData(color: selectedForeground),
-              unselectedIconTheme: IconThemeData(color: foregroundColor),
-              selectedLabelTextStyle: TextStyle(
-                  color: selectedForeground,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15),
-              unselectedLabelTextStyle: TextStyle(
-                  color: foregroundColor, fontWeight: FontWeight.bold)),
-          sliderTheme: SliderThemeData(
-            inactiveTrackColor: dynamicSwatch[300],
-            activeTrackColor: textColor,
-            valueIndicatorColor: accentSwatch[400],
-            thumbColor: useDarkForeground ? Colors.grey[800] : Colors.white,
-          ),
-          textSelectionTheme: TextSelectionThemeData(
-              cursorColor: accentSwatch[200],
-              selectionColor: accentSwatch[200],
-              selectionHandleColor: accentSwatch[200]),
-          inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: dynamicSwatch[700],
-              focusColor: useDarkForeground ? Colors.grey[900] : Colors.white,
-              hintStyle: TextStyle(color: foregroundColor),
-              labelStyle: TextStyle(color: foregroundColor),
-              focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: useDarkForeground ? Colors.grey[900]! : Colors.white))));
-      return baseTheme.copyWith(
-          textTheme: _interTextTheme(baseTheme.textTheme));
-    } else if (themeType == ThemeType.dark) {
-      final darkSurface = kDoudouBackground;
-      final darkSurfaceContainer = kDoudouBackground;
-      final darkAccent500 = kDoudouPurple;
-      final darkAccent600 = kDoudouPurpleLight;
-      final darkAccent400 = kDoudouPurple;
-      final darkAccent300 = kDoudouPurple.withValues(alpha: 0.5);
-      SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(
-            statusBarIconBrightness: Brightness.light,
-            statusBarColor: Colors.transparent,
-            systemNavigationBarColor: darkSurface,
-            systemNavigationBarDividerColor: Colors.transparent,
-            systemNavigationBarIconBrightness: Brightness.light,
-            systemStatusBarContrastEnforced: false,
-            systemNavigationBarContrastEnforced: true),
-      );
-      final darkScheme = ColorScheme.fromSwatch(
-          accentColor: darkAccent600,
-          brightness: Brightness.dark,
-          backgroundColor: darkSurface);
-      final scheme = darkScheme.copyWith(
-          primary: darkAccent500,
-          surface: darkSurface,
-          surfaceContainerHighest: const Color(0x14FFFFFF),
-          onSurface: kDoudouZinc100,
-          secondary: darkAccent600,
-          onSecondary: Colors.white);
-      final baseTheme = ThemeData(
-          useMaterial3: false,
-          brightness: Brightness.dark,
-          canvasColor: darkSurface,
-          scaffoldBackgroundColor: darkSurface,
-          cardColor: darkSurfaceContainer,
-          dialogTheme:
-              DialogThemeData(backgroundColor: const Color(0x14FFFFFF)),
-          primaryColor: darkSurface,
-          primaryColorDark: darkSurface,
-          primaryColorLight: darkAccent600,
-          colorScheme: scheme,
-          progressIndicatorTheme: ProgressIndicatorThemeData(
-              color: darkAccent500, linearTrackColor: Colors.white70),
-          textTheme: const TextTheme(
-              titleLarge: TextStyle(
-                fontSize: 23,
-                fontWeight: FontWeight.bold,
-              ),
-              titleMedium: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-              titleSmall: TextStyle(),
-              labelMedium: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 23,
-              ),
-              labelSmall: TextStyle(
-                  fontSize: 15, letterSpacing: 0, fontWeight: FontWeight.bold),
-              bodyMedium: TextStyle(color: Colors.grey)),
-          navigationRailTheme: NavigationRailThemeData(
-              backgroundColor: darkSurface,
-              selectedIconTheme: const IconThemeData(
-                color: Colors.white,
-              ),
-          unselectedIconTheme: IconThemeData(color: kDoudouZinc500),
-          selectedLabelTextStyle: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15),
-              unselectedLabelTextStyle: TextStyle(
-                  color: kDoudouZinc500, fontWeight: FontWeight.bold)),
-          bottomSheetTheme: BottomSheetThemeData(
-              backgroundColor: darkSurface, modalBarrierColor: darkSurface),
-          sliderTheme: SliderThemeData(
-              inactiveTrackColor: Colors.grey[600],
-              activeTrackColor: darkAccent500,
-              valueIndicatorColor: darkAccent600,
-              thumbColor: darkAccent500),
-          textSelectionTheme: TextSelectionThemeData(
-              cursorColor: darkAccent400,
-              selectionColor: darkAccent300,
-              selectionHandleColor: darkAccent400),
-          inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: darkSurfaceContainer,
-              focusColor: Colors.white,
-              focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white))));
-      return baseTheme.copyWith(
-          textTheme: _interTextTheme(baseTheme.textTheme));
-    } else if (themeType == ThemeType.oled) {
-      final oledSurfaceContainer = kDoudouBackground;
-      final oledAccent500 = kDoudouPurple;
-      final oledAccent600 = kDoudouPurpleLight;
-      final oledAccent400 = kDoudouPurple;
-      final oledAccent300 = kDoudouPurple.withValues(alpha: 0.5);
-      SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(
-            statusBarIconBrightness: Brightness.light,
-            statusBarColor: Colors.transparent,
-            systemNavigationBarColor: kDoudouBackground,
-            systemNavigationBarDividerColor: Colors.transparent,
-            systemNavigationBarIconBrightness: Brightness.light,
-            systemStatusBarContrastEnforced: false,
-            systemNavigationBarContrastEnforced: true),
-      );
-      final oledScheme = ColorScheme.fromSwatch(
-          accentColor: oledAccent600, brightness: Brightness.dark);
-      final scheme = oledScheme.copyWith(
-          primary: oledAccent500,
-          surface: kDoudouBackground,
-          surfaceContainerHighest: const Color(0x14FFFFFF),
-          onSurface: kDoudouZinc100,
-          secondary: oledAccent600,
-          onSecondary: Colors.white);
-      final baseTheme = ThemeData(
-          useMaterial3: false,
-          brightness: Brightness.dark,
-          canvasColor: kDoudouBackground,
-          scaffoldBackgroundColor: kDoudouBackground,
-          cardColor: oledSurfaceContainer,
-          dialogTheme:
-              DialogThemeData(backgroundColor: const Color(0x14FFFFFF)),
-          primaryColor: kDoudouBackground,
-          primaryColorDark: kDoudouBackground,
-          primaryColorLight: oledAccent600,
-          colorScheme: scheme,
-          progressIndicatorTheme: ProgressIndicatorThemeData(
-              color: oledAccent500, linearTrackColor: Colors.white),
-          textTheme: const TextTheme(
-              titleLarge: TextStyle(
-                fontSize: 23,
-                fontWeight: FontWeight.bold,
-              ),
-              titleMedium: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-              titleSmall: TextStyle(),
-              labelMedium: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 23,
-              ),
-              labelSmall: TextStyle(
-                  fontSize: 15, letterSpacing: 0, fontWeight: FontWeight.bold),
-              bodyMedium: TextStyle(color: Colors.grey)),
-          navigationRailTheme: NavigationRailThemeData(
-              backgroundColor: kDoudouBackground,
-              selectedIconTheme: const IconThemeData(
-                color: Colors.white,
-              ),
-              unselectedIconTheme: IconThemeData(color: kDoudouZinc500),
-              selectedLabelTextStyle: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15),
-              unselectedLabelTextStyle: TextStyle(
-                  color: kDoudouZinc500, fontWeight: FontWeight.bold)),
-          bottomSheetTheme: const BottomSheetThemeData(
-              backgroundColor: kDoudouBackground, modalBarrierColor: kDoudouBackground),
-          sliderTheme: const SliderThemeData(
-              inactiveTrackColor: Colors.white30,
-              activeTrackColor: Colors.white,
-              valueIndicatorColor: Colors.black38,
-              thumbColor: Colors.white),
-          textSelectionTheme: TextSelectionThemeData(
-              cursorColor: oledAccent400,
-              selectionColor: oledAccent300,
-              selectionHandleColor: oledAccent400),
-          inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: oledSurfaceContainer,
-              focusColor: Colors.white,
-              focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white))));
-      return baseTheme.copyWith(
-          textTheme: _interTextTheme(baseTheme.textTheme));
-    } else {
-      final lightAccent500 = Colors.grey[400]!;
-      final lightAccent600 = Colors.grey[800]!;
-      final lightAccent200 = Colors.grey[300]!;
-      SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(
-            statusBarIconBrightness: Brightness.dark,
-            statusBarColor: Colors.transparent,
-            systemNavigationBarColor: Colors.white.withValues(alpha: 0.002),
-            systemNavigationBarDividerColor: Colors.transparent,
-            systemNavigationBarIconBrightness: Brightness.dark,
-            systemStatusBarContrastEnforced: false,
-            systemNavigationBarContrastEnforced: false),
-      );
-      final baseTheme = ThemeData(
-          useMaterial3: false,
-          brightness: Brightness.light,
-          canvasColor: Colors.white,
-          colorScheme: ColorScheme.fromSwatch(
-                  accentColor: lightAccent500,
-                  backgroundColor: Colors.white,
-                  cardColor: Colors.white,
-                  brightness: Brightness.light)
-              .copyWith(
-            primary: lightAccent500,
-            secondary: lightAccent500,
-          ),
-          primaryColor: Colors.white,
-          primaryColorLight: lightAccent200,
-          progressIndicatorTheme: ProgressIndicatorThemeData(
-              linearTrackColor: Colors.grey[700], color: lightAccent500),
-          textTheme: TextTheme(
-              titleLarge: const TextStyle(
-                fontSize: 23,
-                fontWeight: FontWeight.bold,
-              ),
-              titleMedium: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-              titleSmall: const TextStyle(),
-              labelMedium: const TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 23,
-              ),
-              labelSmall: const TextStyle(
-                  fontSize: 15, letterSpacing: 0, fontWeight: FontWeight.bold),
-              bodyMedium: TextStyle(color: Colors.grey[700])),
-          navigationRailTheme: NavigationRailThemeData(
-              backgroundColor: Colors.white,
-              selectedIconTheme: const IconThemeData(color: Colors.black),
-              unselectedIconTheme: IconThemeData(color: Colors.grey[800]),
-              selectedLabelTextStyle: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15),
-              unselectedLabelTextStyle: TextStyle(
-                  color: Colors.grey[800], fontWeight: FontWeight.bold)),
-          bottomSheetTheme: const BottomSheetThemeData(
-              backgroundColor: Colors.white, modalBarrierColor: Colors.white),
-          sliderTheme: SliderThemeData(
-            //base bar color
-            inactiveTrackColor: Colors.black38,
-            //buffered progress
-            activeTrackColor: lightAccent600,
-            //progress bar color
-            valueIndicatorColor: Colors.white38,
-            thumbColor: lightAccent600,
-          ),
-          textSelectionTheme: TextSelectionThemeData(
-              cursorColor: lightAccent500,
-              selectionColor: lightAccent200,
-              selectionHandleColor: lightAccent500),
-          dialogTheme: DialogThemeData(backgroundColor: Colors.grey[200]),
-          inputDecorationTheme: const InputDecorationTheme(
-              focusColor: Colors.black,
-              focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black))));
-      return baseTheme.copyWith(
-          textTheme: _interTextTheme(baseTheme.textTheme));
-    }
+  void _applySystemUi(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor: theme.scaffoldBackgroundColor,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
+        systemStatusBarContrastEnforced: false,
+        systemNavigationBarContrastEnforced: true,
+      ),
+    );
   }
 
   MaterialColor _createMaterialColor(Color color) {

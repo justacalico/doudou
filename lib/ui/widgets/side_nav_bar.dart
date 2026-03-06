@@ -1,9 +1,7 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
-import 'package:doudou/ui/constants/doudou_design.dart';
+import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
 import 'package:doudou/ui/widgets/animated_side_bar_local.dart';
@@ -51,21 +49,22 @@ class _SideNavBarState extends State<SideNavBar> {
   Widget build(BuildContext context) {
     final homeScreenController = Get.find<HomeScreenController>();
     final playerController = Get.find<PlayerController>();
+    final c = context.doudouColors;
     final sidebar = SideBarAnimatedLocal(
       initialIndex: homeScreenController.tabIndex.value,
       currentIndexListenable: _tabIndexNotifier,
       onTap: homeScreenController.onSideBarTabSelected,
       minimized: widget.minimized,
       onMinimizeChanged: widget.onMinimizeChanged,
-      sideBarColor: Colors.black.withValues(alpha: 0.4),
-      animatedContainerColor: kDoudouPurple.withValues(alpha: 0.1),
-      hoverColor: kDoudouSurfaceHover,
-      splashColor: kDoudouPurple.withValues(alpha: 0.3),
-      highlightColor: kDoudouSurfaceHover,
-      selectedIconColor: kDoudouPurpleLight,
-      unselectedIconColor: kDoudouZinc500,
-      unSelectedTextColor: kDoudouZinc500,
-      dividerColor: kDoudouBorder,
+      sideBarColor: c.raisedBackground,
+      animatedContainerColor: c.surfaceSelected,
+      hoverColor: c.stateHover,
+      splashColor: c.statePressed,
+      highlightColor: c.stateHover,
+      selectedIconColor: c.accentPrimary,
+      unselectedIconColor: c.textTertiary,
+      unSelectedTextColor: c.textTertiary,
+      dividerColor: c.borderSubtle,
       widthSwitch: 800,
       mainLogoImage: 'assets/icons/icon.png',
       appName: 'Doudou',
@@ -106,25 +105,19 @@ class _SideNavBarState extends State<SideNavBar> {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          right: BorderSide(color: kDoudouBorder),
+          right: BorderSide(color: c.borderSubtle),
         ),
       ),
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-              sigmaX: kDoudouBlurSidebar, sigmaY: kDoudouBlurSidebar),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: sidebar),
-              Obx(() => SizedBox(
-                  height: playerController.currentSong.value != null
-                      ? playerController.playerPanelMinHeight.value
-                      : 0.0)),
-            ],
-          ),
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: sidebar),
+          Obx(() => SizedBox(
+              height: playerController.currentSong.value != null
+                  ? playerController.playerPanelMinHeight.value
+                  : 0.0)),
+        ],
       ),
     );
   }

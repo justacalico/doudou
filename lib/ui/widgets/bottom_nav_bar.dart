@@ -1,10 +1,10 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import '/utils/app_l10n.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:doudou/ui/constants/doudou_design.dart';
+import 'package:doudou/ui/design/doudou_colors.dart';
+import 'package:doudou/ui/design/doudou_motion.dart';
+import 'package:doudou/ui/design/doudou_tokens.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
 
 class BottomNavBar extends StatelessWidget {
@@ -14,6 +14,7 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final homeScreenController = Get.find<HomeScreenController>();
     final theme = Theme.of(context);
+    final c = context.doudouColors;
 
     return Obx(() {
       final idx = homeScreenController.tabIndex.value;
@@ -22,22 +23,22 @@ class BottomNavBar extends StatelessWidget {
         _NavItem(
           icon: Icons.home_rounded,
           outlinedIcon: Icons.home_outlined,
-          label: modifyNgetlabel(context.l10n.home),
+          label: context.l10n.home,
         ),
         _NavItem(
           icon: Icons.search_rounded,
           outlinedIcon: Icons.search_outlined,
-          label: modifyNgetlabel(context.l10n.search),
+          label: context.l10n.search,
         ),
         _NavItem(
           icon: Icons.library_music_rounded,
           outlinedIcon: Icons.library_music_outlined,
-          label: modifyNgetlabel(context.l10n.library),
+          label: context.l10n.library,
         ),
         _NavItem(
           icon: Icons.settings_rounded,
           outlinedIcon: Icons.settings_outlined,
-          label: modifyNgetlabel(context.l10n.settings),
+          label: context.l10n.settings,
         ),
       ];
 
@@ -51,73 +52,72 @@ class BottomNavBar extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 500),
             child: ClipRRect(
-              borderRadius:
-                  BorderRadius.circular(kDoudouRadiusCard),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                    sigmaX: kDoudouBlurBar, sigmaY: kDoudouBlurBar),
-                child: Container(
-                  height: 64,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    borderRadius:
-                        BorderRadius.circular(kDoudouRadiusCard),
-                    border: Border.all(
-                      color: kDoudouBorder,
-                      width: 1,
-                    ),
-                    boxShadow: const [],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: List.generate(items.length, (index) {
-                      final selected = index == safeIdx;
-                      final item = items[index];
+              borderRadius: DoudouRadii.r20,
+              child: Container(
+                height: 62,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: c.surfaceOverlay,
+                  borderRadius: DoudouRadii.r20,
+                  border: Border.all(color: c.borderSubtle),
+                ),
+                child: Row(
+                  children: List.generate(items.length, (index) {
+                    final selected = index == safeIdx;
+                    final item = items[index];
+                    final fg = selected ? c.accentPrimary : c.textTertiary;
 
-                      return Expanded(
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
+                    return Expanded(
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: InkResponse(
+                          radius: 28,
+                          containedInkWell: true,
+                          highlightShape: BoxShape.rectangle,
                           onTap: () {
                             if (index == safeIdx) return;
                             HapticFeedback.selectionClick();
                             homeScreenController.onBottonBarTabSelected(index);
                           },
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              AnimatedScale(
-                                scale: selected ? 1.1 : 1.0,
-                                duration: const Duration(milliseconds: 200),
-                                child: Icon(
+                          child: AnimatedContainer(
+                            duration: DoudouMotion.selection,
+                            curve: DoudouMotion.standard,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: selected
+                                  ? c.accentMuted.withValues(alpha: 0.20)
+                                  : Colors.transparent,
+                              borderRadius: DoudouRadii.r16,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
                                   selected ? item.icon : item.outlinedIcon,
-                                  size: 20,
-                                  color: selected
-                                      ? kDoudouPurpleLight
-                                      : kDoudouZinc500,
+                                  size: DoudouIconSize.nav,
+                                  color: fg,
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                item.label,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  color: selected
-                                      ? kDoudouPurpleLight
-                                      : kDoudouZinc500,
+                                const SizedBox(height: 4),
+                                Text(
+                                  item.label,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.fade,
+                                  softWrap: false,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: fg,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      );
-                    }),
-                  ),
+                      ),
+                    );
+                  }),
                 ),
               ),
             ),
@@ -125,13 +125,6 @@ class BottomNavBar extends StatelessWidget {
         ),
       );
     });
-  }
-
-  String modifyNgetlabel(String label) {
-    if (label.length > 9) {
-      return "${label.substring(0, 8)}..";
-    }
-    return label;
   }
 }
 

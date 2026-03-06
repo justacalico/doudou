@@ -19,6 +19,7 @@ import '/ui/navigator.dart';
 import '/ui/player/player_controller.dart';
 import 'ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/utils/theme_controller.dart';
+import '/ui/design/doudou_motion.dart';
 import 'ui/screens/Home/home_screen_controller.dart';
 import 'ui/screens/Library/library_controller.dart';
 import 'utils/system_tray.dart';
@@ -74,7 +75,7 @@ class MyApp extends StatelessWidget {
                   return MediaQuery(
                     data: mQuery.copyWith(textScaler: scale),
                     child: AnimatedTheme(
-                      duration: const Duration(milliseconds: 700),
+                      duration: DoudouMotion.theme,
                       data: theme,
                       child: Stack(
                         children: [

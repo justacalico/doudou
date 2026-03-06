@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '/ui/constants/doudou_design.dart';
 import '/utils/app_l10n.dart';
 
 class SideBarAnimatedLocal extends StatefulWidget {
@@ -49,12 +48,12 @@ class SideBarAnimatedLocal extends StatefulWidget {
     this.sideBarWidth = 260,
     this.sideBarSmallWidth = 84,
     this.settingsDivider = true,
-    this.curve = Curves.easeOut,
-    this.sideBarAnimationDuration = const Duration(milliseconds: 700),
-    this.floatingAnimationDuration = const Duration(milliseconds: 500),
+    this.curve = Curves.easeOutCubic,
+    this.sideBarAnimationDuration = const Duration(milliseconds: 240),
+    this.floatingAnimationDuration = const Duration(milliseconds: 180),
     this.dividerColor = const Color(0xff929292),
     this.textStyle =
-        const TextStyle(fontFamily: "SFPro", fontSize: 16, color: Colors.white),
+        const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
     required this.mainLogoImage,
     this.appName,
     required this.sidebarItems,
@@ -141,6 +140,10 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
         final useWideLayout = screenW >= widget.widthSwitch && !isMinimized;
         final isStatusBarAvailable = MediaQuery.of(context).padding.top > 0;
         final slotWidth = maxW.isFinite ? maxW : (useWideLayout ? widget.sideBarWidth : widget.sideBarSmallWidth);
+        final platform = Theme.of(context).platform;
+        final scrollPhysics = platform == TargetPlatform.iOS
+            ? const BouncingScrollPhysics()
+            : const ClampingScrollPhysics();
         return AnimatedContainer(
           curve: widget.curve,
           height: height,
@@ -201,7 +204,7 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
               Expanded(
                 child: ClipRect(
                   child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
+                    physics: scrollPhysics,
                     padding: EdgeInsets.only(
                         top: isStatusBarAvailable ? 20 : 40,
                         left: useWideLayout ? 20 : 18,
@@ -225,6 +228,7 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
   }
 
   Widget _buildDoudouLogo(bool useWideLayout) {
+    final accent = widget.selectedIconColor;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -233,18 +237,15 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
           height: 32,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: kDoudouPurpleIndigoGradient,
+              colors: [
+                accent.withValues(alpha: 0.95),
+                accent.withValues(alpha: 0.75),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: kDoudouPurple.withValues(alpha: 0.2),
-                blurRadius: 8,
-                spreadRadius: 0,
-              ),
-            ],
+            boxShadow: const [],
           ),
           child: Center(
             child: Container(
@@ -261,10 +262,7 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
           const SizedBox(width: 12),
           Text(
             widget.appName!,
-            style: widget.textStyle.copyWith(
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.5,
-            ),
+            style: widget.textStyle.copyWith(letterSpacing: -0.2),
           ),
         ],
       ],
@@ -305,7 +303,7 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
                 child: Icon(
                   _effectiveMinimize ? Icons.menu : Icons.close,
                   size: 20,
-                  color: kDoudouZinc500,
+                  color: widget.unselectedIconColor,
                 ),
               ),
             ),
@@ -417,7 +415,7 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
                     height: 6,
                     margin: const EdgeInsets.only(left: 8),
                     decoration: BoxDecoration(
-                      color: kDoudouPurple,
+                      color: selectedColor.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
                     ),
                   ),
