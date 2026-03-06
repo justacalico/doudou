@@ -58,7 +58,10 @@ class _DesktopSearchBarState extends State<DesktopSearchBar> {
               }
             },
             onTapOutside: (event) {
-              _focusNode.unfocus();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                _focusNode.unfocus();
+              });
             },
             onChanged: searchScreenController.onChanged,
             onSubmitted: (val) {
