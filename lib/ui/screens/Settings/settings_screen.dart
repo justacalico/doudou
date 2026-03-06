@@ -880,47 +880,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     return [
-      Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => _showAddProviderPicker(context),
-          child: Ink(
-            decoration: BoxDecoration(
-              color: theme.cardColor.withValues(alpha: 0.82),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: theme.dividerColor.withValues(alpha: 0.28),
-              ),
-            ),
-            child: ListTile(
-              dense: true,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-              leading: Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: colorScheme.onSurface.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.add,
-                    size: 16, color: colorScheme.onSurface),
-              ),
-              title: Text(
-                context.l10n.addServer,
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              trailing: Icon(
-                Icons.chevron_right_rounded,
-                color: colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-          ),
-        ),
-      ),
-      const SizedBox(height: 8),
       Obx(() {
         final servers = settings.servers;
         final activeId = settings.activeServerId.value;
@@ -929,6 +888,47 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         }
         return Column(
           children: [
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => _showAddProviderPicker(context),
+                child: Ink(
+                  decoration: BoxDecoration(
+                    color: theme.cardColor.withValues(alpha: 0.82),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: theme.dividerColor.withValues(alpha: 0.28),
+                    ),
+                  ),
+                  child: ListTile(
+                    dense: true,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                    leading: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: colorScheme.onSurface.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.add,
+                          size: 16, color: colorScheme.onSurface),
+                    ),
+                    title: Text(
+                      context.l10n.addServer,
+                      style: theme.textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right_rounded,
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
             RadioGroup<int>(
               groupValue: activeId,
               onChanged: (v) {
