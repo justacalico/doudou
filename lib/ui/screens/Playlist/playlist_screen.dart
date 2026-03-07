@@ -22,6 +22,8 @@ import '../../widgets/snackbar.dart';
 import '../../widgets/song_list_tile.dart';
 import '../../widgets/songinfo_bottom_sheet.dart';
 import '../../widgets/sort_widget.dart';
+import '../Settings/settings_screen_controller.dart';
+import '/models/server.dart';
 import 'playlist_screen_controller.dart';
 
 class PlaylistScreen extends StatelessWidget {
@@ -45,6 +47,9 @@ class PlaylistScreen extends StatelessWidget {
     final showMetaOverlay = !landscape || isDesktop;
     final theme = Theme.of(context);
     final useBottomNav = Get.find<ShellController>().useBottomNav.value;
+    final settings = Get.find<SettingsScreenController>();
+    final showBookmarkControls =
+        settings.activeServer?.type == ServerType.youtubeMusic;
 
     return Scaffold(
       body: NotificationListener<ScrollNotification>(
@@ -94,34 +99,35 @@ class PlaylistScreen extends StatelessWidget {
                               horizontal: 24.0, vertical: 16),
                           child: Row(
                             children: [
-                              IconButton(
-                                onPressed: () {
-                                  final add = playlistController
-                                      .isAddedToLibrary.isFalse;
-                                  final l10n = context.l10n;
-                                  playlistController
-                                      .addNremoveFromLibrary(
-                                          playlistController.playlist.value,
-                                          add: add)
-                                      .then((value) {
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(snackbar(
-                                      context,
-                                      value
-                                          ? (add
-                                              ? l10n.playlistBookmarkAddAlert
-                                              : l10n.listBookmarkRemoveAlert)
-                                          : l10n.operationFailed,
-                                      size: SnackBarSize.MEDIUM,
-                                    ));
-                                  });
-                                },
-                                icon: LibraryBookmarkIcon(
-                                  isBookmarked:
-                                      playlistController.isAddedToLibrary.isTrue,
+                              if (showBookmarkControls)
+                                IconButton(
+                                  onPressed: () {
+                                    final add = playlistController
+                                        .isAddedToLibrary.isFalse;
+                                    final l10n = context.l10n;
+                                    playlistController
+                                        .addNremoveFromLibrary(
+                                            playlistController.playlist.value,
+                                            add: add)
+                                        .then((value) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(snackbar(
+                                        context,
+                                        value
+                                            ? (add
+                                                ? l10n.playlistBookmarkAddAlert
+                                                : l10n.listBookmarkRemoveAlert)
+                                            : l10n.operationFailed,
+                                        size: SnackBarSize.MEDIUM,
+                                      ));
+                                    });
+                                  },
+                                  icon: LibraryBookmarkIcon(
+                                    isBookmarked:
+                                        playlistController.isAddedToLibrary.isTrue,
+                                  ),
                                 ),
-                              ),
                               GetX<Downloader>(builder: (controller) {
                                 final id = playlistController
                                     .playlist.value.playlistId;

@@ -171,6 +171,12 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
 
   @override
   Future<bool> checkIfAddedToLibrary(String id) async {
+    final settings = Get.find<SettingsScreenController>();
+    if (settings.activeServer?.type != ServerType.youtubeMusic) {
+      isAddedToLibrary.value = false;
+      return false;
+    }
+
     if (id == "LIBFAV" ||
         id == "LIBRP" ||
         id == "SongDownloads" ||
@@ -191,6 +197,12 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
 
   @override
   Future<bool> addNremoveFromLibrary(dynamic content, {bool add = true}) async {
+    final settings = Get.find<SettingsScreenController>();
+    if (settings.activeServer?.type != ServerType.youtubeMusic) {
+      isAddedToLibrary.value = false;
+      return false;
+    }
+
     try {
       if (content.isPipedPlaylist && !add) {
         //remove piped playlist from lib

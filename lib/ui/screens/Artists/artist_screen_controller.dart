@@ -107,6 +107,12 @@ class ArtistScreenController extends GetxController
   }
 
   Future<void> _checkIfAddedToLibrary(String id) async {
+    final settings = Get.find<SettingsScreenController>();
+    if (settings.activeServer?.type != ServerType.youtubeMusic) {
+      isAddedToLibrary.value = false;
+      return;
+    }
+
     final box =
         await Hive.openBox(libraryArtistsBoxName(currentServerId()));
     isAddedToLibrary.value = box.containsKey(id);
@@ -245,6 +251,12 @@ class ArtistScreenController extends GetxController
   }
 
   Future<bool> addNremoveFromLibrary({bool add = true}) async {
+    final settings = Get.find<SettingsScreenController>();
+    if (settings.activeServer?.type != ServerType.youtubeMusic) {
+      isAddedToLibrary.value = false;
+      return false;
+    }
+
     try {
       final box =
           await Hive.openBox(libraryArtistsBoxName(currentServerId()));

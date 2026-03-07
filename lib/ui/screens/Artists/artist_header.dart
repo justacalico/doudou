@@ -24,6 +24,9 @@ class ArtistHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final settings = Get.find<SettingsScreenController>();
+    final isYouTubeServer =
+        settings.activeServer?.type == ServerType.youtubeMusic;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Obx(() {
@@ -40,39 +43,40 @@ class ArtistHeader extends StatelessWidget {
                   height: 140,
                   child: ImageWidget(size: 140, artist: artist),
                 ),
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: Material(
-                    color: theme.colorScheme.surface.withValues(alpha: 0.9),
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      onTap: () {
-                        final add = controller.isAddedToLibrary.isFalse;
-                        controller.addNremoveFromLibrary(add: add).then((value) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(snackbar(
-                                context,
-                                value
-                                    ? add
-                                        ? context.l10n.artistBookmarkAddAlert
-                                        : context.l10n.artistBookmarkRemoveAlert
-                                    : context.l10n.operationFailed,
-                                size: SnackBarSize.MEDIUM));
-                          }
-                        });
-                      },
-                      customBorder: const CircleBorder(),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: LibraryBookmarkIcon(
-                          isBookmarked: controller.isAddedToLibrary.isTrue,
-                          size: 20,
+                if (isYouTubeServer)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Material(
+                      color: theme.colorScheme.surface.withValues(alpha: 0.9),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        onTap: () {
+                          final add = controller.isAddedToLibrary.isFalse;
+                          controller.addNremoveFromLibrary(add: add).then((value) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(snackbar(
+                                  context,
+                                  value
+                                      ? add
+                                          ? context.l10n.artistBookmarkAddAlert
+                                          : context.l10n.artistBookmarkRemoveAlert
+                                      : context.l10n.operationFailed,
+                                  size: SnackBarSize.MEDIUM));
+                            }
+                          });
+                        },
+                        customBorder: const CircleBorder(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: LibraryBookmarkIcon(
+                            isBookmarked: controller.isAddedToLibrary.isTrue,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
             const SizedBox(width: 20),
@@ -170,12 +174,6 @@ class ArtistHeader extends StatelessWidget {
                             if (value == 'library') _toggleLibrary(context);
                           },
                           itemBuilder: (context) {
-                            final settings =
-                                Get.find<SettingsScreenController>();
-                            final server = settings.activeServer;
-                            final isYouTubeServer =
-                                server?.type == ServerType.youtubeMusic;
-
                             final items = <PopupMenuItem<String>>[
                               if (isYouTubeServer)
                                 PopupMenuItem(
@@ -193,25 +191,26 @@ class ArtistHeader extends StatelessWidget {
                                     ],
                                   ),
                                 ),
-                              PopupMenuItem(
-                                value: 'library',
-                                child: Row(
-                                  children: [
-                                    Icon(controller.isAddedToLibrary.isTrue
-                                        ? Icons.bookmark_remove
-                                        : Icons.bookmark_add),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        controller.isAddedToLibrary.isTrue
-                                            ? context.l10n.removeFromLib
-                                            : context.l10n.addToLibrary,
-                                        overflow: TextOverflow.ellipsis,
+                              if (isYouTubeServer)
+                                PopupMenuItem(
+                                  value: 'library',
+                                  child: Row(
+                                    children: [
+                                      Icon(controller.isAddedToLibrary.isTrue
+                                          ? Icons.bookmark_remove
+                                          : Icons.bookmark_add),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          controller.isAddedToLibrary.isTrue
+                                              ? context.l10n.removeFromLib
+                                              : context.l10n.addToLibrary,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
                             ];
                             if (AboutArtist.hasDescription(controller)) {
                               items.insert(
@@ -312,6 +311,9 @@ class ArtistHeader extends StatelessWidget {
   }
 
   void _toggleLibrary(BuildContext context) {
+    final settings = Get.find<SettingsScreenController>();
+    if (settings.activeServer?.type != ServerType.youtubeMusic) return;
+
     final add = controller.isAddedToLibrary.isFalse;
     controller.addNremoveFromLibrary(add: add).then((value) {
       if (context.mounted) {

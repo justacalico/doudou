@@ -124,6 +124,12 @@ class AlbumScreenController extends PlaylistAlbumScreenControllerBase
 
   @override
   Future<bool> addNremoveFromLibrary(content, {bool add = true}) async {
+    final settings = Get.find<SettingsScreenController>();
+    if (settings.activeServer?.type != ServerType.youtubeMusic) {
+      isAddedToLibrary.value = false;
+      return false;
+    }
+
     try {
       final box =
           await Hive.openBox(libraryAlbumsBoxName(currentServerId()));
