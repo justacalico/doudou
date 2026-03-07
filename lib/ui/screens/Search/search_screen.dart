@@ -54,9 +54,9 @@ class SearchScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Container(
               decoration: BoxDecoration(
-                color: kDoudouSurface,
+                color: kDoudouSurfaceHover,
                 borderRadius: BorderRadius.circular(kDoudouRadiusCard),
-                border: Border.all(color: kDoudouBorderStrong, width: 1),
+                border: Border.all(color: kDoudouBorder, width: 1),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: ModifiedTextField(
@@ -85,7 +85,7 @@ class SearchScreen extends StatelessWidget {
                   hintStyle: TextStyle(color: kDoudouZinc500, fontSize: 14),
                   suffix: IconButton(
                     onPressed: searchScreenController.reset,
-                    icon: const Icon(Icons.close, size: 20),
+                    icon: Icon(Icons.close, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
                     splashRadius: 16,
                     style: IconButton.styleFrom(
                       visualDensity: VisualDensity.compact,
