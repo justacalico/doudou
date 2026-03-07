@@ -3,7 +3,6 @@ import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '../navigator.dart';
-import '../screens/Search/search_result_screen_controller.dart';
 import '/models/artist.dart';
 import '/ui/widgets/content_list_widget_item.dart';
 import '/ui/widgets/image_widget.dart';
@@ -14,12 +13,14 @@ class ContentListWidget extends StatelessWidget {
       {super.key,
       this.content,
       this.isHomeContent = true,
-      this.scrollController});
+      this.scrollController,
+      this.onViewAll});
 
   ///content will be of class Type AlbumContent, PlaylistContent, or ArtistContent
   final dynamic content;
   final bool isHomeContent;
   final ScrollController? scrollController;
+  final void Function(String title)? onViewAll;
 
   int get _itemCount {
     final type = content.runtimeType.toString();
@@ -47,12 +48,10 @@ class ContentListWidget extends StatelessWidget {
                       : title,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                !isHomeContent
+                (!isHomeContent && onViewAll != null)
                     ? TextButton(
                         onPressed: () {
-                          final scrresController =
-                              Get.find<SearchResultScreenController>();
-                          scrresController.viewAllCallback(title);
+                          onViewAll?.call(title);
                         },
                         child: Text(context.l10n.viewAll,
                             style: Theme.of(Get.context!).textTheme.titleSmall))

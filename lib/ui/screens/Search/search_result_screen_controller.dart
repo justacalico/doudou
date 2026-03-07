@@ -1,6 +1,9 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '/models/album.dart';
+import '/models/artist.dart';
+import '/models/playlist.dart';
 import '../../../utils/helper.dart';
 import '/models/media_Item_builder.dart';
 import '/ui/shell_controller.dart';
@@ -62,10 +65,10 @@ class SearchResultScreenController extends GetxController
           filter: tabName.replaceAll(" ", "_").toLowerCase(),
           limit: itemCount,
           filterParams: resultContent['searchEndpoint']?[tabName]);
-      final raw = x[tabName];
-      separatedResultContent[tabName] = (tabName == 'Songs' || tabName == 'Videos')
-          ? _toMediaItemList(raw)
-          : (raw ?? []);
+      separatedResultContent[tabName] = _normalizeContentForTab(
+        tabName,
+        x[tabName],
+      );
       additionalParamNext[tabName] = x['params'];
       isSeparatedResultContentFetced.value = true;
       final scrollController = scrollControllers[tabName];
@@ -93,9 +96,7 @@ class SearchResultScreenController extends GetxController
         Map<String, dynamic>.from(additionalParamNext[tabName] ?? {}));
     final list = x[tabName];
     if (list != null) {
-      final toAdd = (tabName == 'Songs' || tabName == 'Videos')
-          ? _toMediaItemList(list)
-          : list as List<dynamic>;
+      final toAdd = _normalizeContentForTab(tabName, list);
       (separatedResultContent[tabName] as List).addAll(toAdd);
     }
     if (x['params'] != null) additionalParamNext[tabName] = x['params'];
@@ -121,6 +122,76 @@ class SearchResultScreenController extends GetxController
     return out;
   }
 
+  static List<Album> _toAlbumList(dynamic value) {
+    if (value == null || value is! List) return [];
+    final out = <Album>[];
+    for (final e in value) {
+      if (e is Album) {
+        out.add(e);
+      } else if (e is Map) {
+        out.add(Album.fromJson(Map<String, dynamic>.from(e)));
+      }
+    }
+    return out;
+  }
+
+  static List<Artist> _toArtistList(dynamic value) {
+    if (value == null || value is! List) return [];
+    final out = <Artist>[];
+    for (final e in value) {
+      if (e is Artist) {
+        out.add(e);
+      } else if (e is Map) {
+        out.add(Artist.fromJson(Map<String, dynamic>.from(e)));
+      }
+    }
+    return out;
+  }
+
+  static List<Playlist> _toPlaylistList(dynamic value) {
+    if (value == null || value is! List) return [];
+    final out = <Playlist>[];
+    for (final e in value) {
+      if (e is Playlist) {
+        out.add(e);
+      } else if (e is Map) {
+        out.add(Playlist.fromJson(Map<String, dynamic>.from(e)));
+      }
+    }
+    return out;
+  }
+
+  List<dynamic> _normalizeContentForTab(String tabName, dynamic value) {
+    if (tabName == 'Songs' || tabName == 'Videos') {
+      return _toMediaItemList(value);
+    }
+    if (tabName == 'Albums' || tabName == 'Singles') {
+      return _toAlbumList(value);
+    }
+    if (tabName == 'Artists') {
+      return _toArtistList(value);
+    }
+    if (tabName.toLowerCase().contains('playlist')) {
+      return _toPlaylistList(value);
+    }
+    if (value is List) return List<dynamic>.from(value);
+    return <dynamic>[];
+  }
+
+  Map<String, dynamic> _normalizeSearchResults(Map<String, dynamic> raw) {
+    final normalized = <String, dynamic>{};
+    for (final entry in raw.entries) {
+      final key = entry.key;
+      final value = entry.value;
+      if (key == 'searchEndpoint' || key == 'params') {
+        normalized[key] = value;
+        continue;
+      }
+      normalized[key] = _normalizeContentForTab(key, value);
+    }
+    return normalized;
+  }
+
   bool _showSearchTab(String key, BackendCapabilities caps) {
     switch (key) {
       case 'Videos':
@@ -136,11 +207,25 @@ class SearchResultScreenController extends GetxController
 
   Future<void> _getInitSearchResult() async {
     isResultContentFetced.value = false;
+    resultContent.clear();
+    separatedResultContent.clear();
+    railItems.clear();
+    additionalParamNext.clear();
+    navigationRailCurrentIndex.value = 0;
+    continuationInProgress = false;
+    tabController?.dispose();
+    tabController = null;
+    for (final controller in scrollControllers.values) {
+      controller.dispose();
+    }
+    scrollControllers.clear();
+
     final args = Get.arguments;
-    if (args != null) {
-      queryString.value = args;
+    if (args is String && args.trim().isNotEmpty) {
+      queryString.value = args.trim();
       final backend = _backend;
-      resultContent.value = await backend.search(args);
+      final rawResult = await backend.search(queryString.value);
+      resultContent.value = _normalizeSearchResults(rawResult);
       final caps = backend.capabilities;
       final allKeys = resultContent.keys
           .where((element) =>
@@ -188,7 +273,10 @@ class SearchResultScreenController extends GetxController
         });
       }
       isResultContentFetced.value = true;
+      return;
     }
+    queryString.value = '';
+    isResultContentFetced.value = true;
   }
 
   void onSort(SortType sortType, bool isAscending, String title) {

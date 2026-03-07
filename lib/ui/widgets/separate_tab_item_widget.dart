@@ -20,7 +20,8 @@ class SeparateTabItemWidget extends StatelessWidget {
       this.hideTitle = false,
       this.topPadding = 0,
       this.scrollController,
-      this.artistControllerTag});
+      this.artistControllerTag,
+      this.searchResultController});
 
   /// tag for accessing Artist controller inst, [artistControllerTag] only valid for Artist screen
   final String? artistControllerTag;
@@ -31,6 +32,7 @@ class SeparateTabItemWidget extends StatelessWidget {
   final bool isResultWidget;
   final bool hideTitle;
   final ScrollController? scrollController;
+  final SearchResultScreenController? searchResultController;
 
   @override
   Widget build(BuildContext context) {
@@ -38,9 +40,7 @@ class SeparateTabItemWidget extends StatelessWidget {
         Get.isRegistered<ArtistScreenController>(tag: artistControllerTag)
             ? Get.find<ArtistScreenController>(tag: artistControllerTag)
             : null;
-    final searchResController = Get.isRegistered<SearchResultScreenController>()
-        ? Get.find<SearchResultScreenController>()
-        : null;
+    final searchResController = searchResultController;
     return LayoutBuilder(
       builder: (context, constraints) {
         final hasUnboundedHeight =
@@ -136,10 +136,11 @@ class SeparateTabItemWidget extends StatelessWidget {
     Widget child;
     if (isCompleteList) {
       if (isResultWidget) {
-        child = GetX<SearchResultScreenController>(builder: (controller) {
-          if (controller.isSeparatedResultContentFetced.isTrue) {
+        child = Obx(() {
+          if (searchResController != null &&
+              searchResController.isSeparatedResultContentFetced.isTrue) {
             return ListWidget(
-              controller.separatedResultContent[title],
+              searchResController.separatedResultContent[title],
               title,
               isCompleteList,
               scrollController: scrollController,

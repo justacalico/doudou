@@ -10,12 +10,15 @@ import '../../widgets/separate_tab_item_widget.dart';
 import 'search_result_screen_controller.dart';
 
 class SearchResultScreenBN extends StatelessWidget {
-  const SearchResultScreenBN({super.key});
+  const SearchResultScreenBN({
+    super.key,
+    required this.searchResScrController,
+  });
+
+  final SearchResultScreenController searchResScrController;
 
   @override
   Widget build(BuildContext context) {
-    final SearchResultScreenController searchResScrController =
-        Get.find<SearchResultScreenController>();
     final topPadding = context.isLandscape ? 50.0 : 80.0;
     return Scaffold(
       body: Padding(
@@ -128,8 +131,10 @@ class SearchResultScreenBN extends StatelessWidget {
                                 controller:
                                     searchResScrController.tabController,
                                 children: [
-                                  const ResultWidget(
+                                  ResultWidget(
                                     isv2Used: true,
+                                    searchResScrController:
+                                        searchResScrController,
                                   ),
                                   ...searchResScrController.railItems
                                       .map((tabName) {
@@ -143,6 +148,8 @@ class SearchResultScreenBN extends StatelessWidget {
                                         isCompleteList: true,
                                         scrollController: searchResScrController
                                             .scrollControllers[tabName],
+                                        searchResultController:
+                                            searchResScrController,
                                       );
                                     } else {
                                       return SeparateTabItemWidget(
@@ -151,6 +158,8 @@ class SearchResultScreenBN extends StatelessWidget {
                                         items: const [],
                                         scrollController: searchResScrController
                                             .scrollControllers[tabName],
+                                        searchResultController:
+                                            searchResScrController,
                                       );
                                     }
                                   }),

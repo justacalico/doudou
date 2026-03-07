@@ -31,7 +31,10 @@ class Artist {
     }
 
     return Artist(
-      name: map['artist']?.toString() ?? '',
+      name: map['artist']?.toString() ??
+          map['name']?.toString() ??
+          map['title']?.toString() ??
+          '',
       browseId: map['browseId']?.toString() ?? '',
       radioId: map['radioId']?.toString(),
       subscribers: subscribers,

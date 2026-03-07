@@ -65,15 +65,17 @@ class SearchScreen extends StatelessWidget {
                 textInputAction: TextInputAction.search,
                 onChanged: searchScreenController.onChanged,
                 onSubmitted: (val) {
-                  if (val.contains("https://")) {
-                    searchScreenController.filterLinks(Uri.parse(val));
+                  final query = val.trim();
+                  if (query.isEmpty) return;
+                  if (query.contains("https://")) {
+                    searchScreenController.filterLinks(Uri.parse(query));
                     searchScreenController.reset();
                     return;
                   }
                   ScreenNavigationSetup.pushContentRoute(
                       ScreenNavigationSetup.searchResultScreen,
-                      arguments: val);
-                  searchScreenController.addToHistryQueryList(val);
+                      arguments: query);
+                  searchScreenController.addToHistryQueryList(query);
                 },
                 autofocus: !useBottomNav,
                 cursorColor: theme.textTheme.bodySmall!.color,

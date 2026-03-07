@@ -7,18 +7,20 @@ import '../screens/Search/search_result_screen_controller.dart';
 import '/models/album.dart';
 import '/models/artist.dart';
 import '/models/media_Item_builder.dart';
-// import '/models/playlist.dart';
 import '/ui/widgets/content_list_widget.dart';
 import 'separate_tab_item_widget.dart';
 
 class ResultWidget extends StatelessWidget {
-  const ResultWidget({super.key, this.isv2Used = false});
+  const ResultWidget({
+    super.key,
+    this.isv2Used = false,
+    required this.searchResScrController,
+  });
   final bool isv2Used;
+  final SearchResultScreenController searchResScrController;
 
   @override
   Widget build(BuildContext context) {
-    final SearchResultScreenController searchResScrController =
-        Get.find<SearchResultScreenController>();
     final topPadding = context.isLandscape ? 50.0 : 80.0;
     return Obx(
       () => Center(
@@ -66,28 +68,20 @@ class ResultWidget extends StatelessWidget {
           items: _toMediaItemList(item.value),
           title: item.key,
           isCompleteList: false,
+          searchResultController: searchResScrController,
         ));
       } else if (item.key == "Albums") {
         list.add(ContentListWidget(
-          content: AlbumContent(
-              title: item.key, albumList: List<Album>.from(item.value)),
+          content: AlbumContent(title: item.key, albumList: _toAlbumList(item.value)),
           isHomeContent: false,
+          onViewAll: searchResScrController.viewAllCallback,
         ));
-      } 
-      // else if (item.key.contains("playlist")) {
-      //   list.add(ContentListWidget(
-      //     content: PlaylistContent(
-      //       title: item.key,
-      //       playlistList: List<Playlist>.from(item.value),
-      //     ),
-      //     isHomeContent: false,
-      //   ));
-      // } 
-      else if (item.key.contains("Artist")) {
+      } else if (item.key.contains("Artist")) {
         list.add(SeparateTabItemWidget(
-          items: List<Artist>.from(item.value),
+          items: _toArtistList(item.value),
           title: item.key,
           isCompleteList: false,
+          searchResultController: searchResScrController,
         ));
       }
     }
@@ -103,6 +97,32 @@ class ResultWidget extends StatelessWidget {
         out.add(e);
       } else if (e is Map) {
         out.add(MediaItemBuilder.fromJson(Map<String, dynamic>.from(e)));
+      }
+    }
+    return out;
+  }
+
+  static List<Album> _toAlbumList(dynamic value) {
+    if (value == null || value is! List) return [];
+    final out = <Album>[];
+    for (final e in value) {
+      if (e is Album) {
+        out.add(e);
+      } else if (e is Map) {
+        out.add(Album.fromJson(Map<String, dynamic>.from(e)));
+      }
+    }
+    return out;
+  }
+
+  static List<Artist> _toArtistList(dynamic value) {
+    if (value == null || value is! List) return [];
+    final out = <Artist>[];
+    for (final e in value) {
+      if (e is Artist) {
+        out.add(e);
+      } else if (e is Map) {
+        out.add(Artist.fromJson(Map<String, dynamic>.from(e)));
       }
     }
     return out;

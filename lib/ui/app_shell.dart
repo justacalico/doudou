@@ -309,8 +309,13 @@ Route<dynamic>? _contentRouteGenerator(RouteSettings settings) {
     case ScreenNavigationSetup.searchScreen:
       return GetPageRoute(page: () => const SearchScreen(), settings: settings);
     case ScreenNavigationSetup.searchResultScreen:
+      final query = (settings.arguments as String?) ?? '';
       return GetPageRoute(
-          page: () => const SearchResultScreen(), settings: settings);
+          page: () => SearchResultScreen(
+                key: ValueKey(
+                    'search_result_${query}_${DateTime.now().microsecondsSinceEpoch}'),
+              ),
+          settings: settings);
     case ScreenNavigationSetup.artistScreen:
       final args = settings.arguments as List;
       final id = args[0] ? args[1] : (args[1] as Artist).browseId;

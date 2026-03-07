@@ -18,9 +18,15 @@ class SearchResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final searchResScrController = Get.put(SearchResultScreenController());
+    final tag = key.hashCode.toString();
+    final searchResScrController =
+        (Get.isRegistered<SearchResultScreenController>(tag: tag))
+            ? Get.find<SearchResultScreenController>(tag: tag)
+            : Get.put(SearchResultScreenController(), tag: tag);
     return AdaptiveTabScreen(
-      narrowChild: const SearchResultScreenBN(),
+      narrowChild: SearchResultScreenBN(
+        searchResScrController: searchResScrController,
+      ),
       wideChild: Scaffold(
             body: Row(
               children: [
@@ -77,8 +83,8 @@ class SearchResultScreen extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: GetX<SearchResultScreenController>(
-                    builder: (controller) {
+                  child: Obx(
+                    () {
                       final settings = Get.find<SettingsScreenController>();
                       final factor = settings.animationSpeedFactor;
                       final enabled = factor > 0;
@@ -87,11 +93,14 @@ class SearchResultScreen extends StatelessWidget {
                           (baseMs * (factor == 0 ? 1.0 : factor)).round();
                       return AnimatedScreenTransition(
                         enabled: enabled,
-                        resverse: controller.isTabTransitionReversed,
+                        resverse: searchResScrController.isTabTransitionReversed,
                         duration: Duration(milliseconds: effectiveMs),
                         child: SizedBox.expand(
                           key: ValueKey<int>(
-                            controller.navigationRailCurrentIndex.toInt() * 8,
+                            searchResScrController
+                                    .navigationRailCurrentIndex
+                                    .toInt() *
+                                8,
                           ),
                           child: Body(
                             searchResScrController: searchResScrController,
@@ -144,7 +153,7 @@ class Body extends StatelessWidget {
             ),
           );
         } else if (searchResScrController.isResultContentFetced.isTrue) {
-          return const ResultWidget();
+          return ResultWidget(searchResScrController: searchResScrController);
         } else {
           return const Center(
             child: LoadingIndicator(),
@@ -161,6 +170,7 @@ class Body extends StatelessWidget {
           title: name,
           topPadding: topPadding,
           scrollController: searchResScrController.scrollControllers[name],
+          searchResultController: searchResScrController,
         );
       }
     }
