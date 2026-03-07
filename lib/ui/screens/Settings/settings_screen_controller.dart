@@ -262,7 +262,7 @@ class SettingsScreenController extends GetxController {
           "syncedLyricsHighlightStyle", SyncedLyricsHighlightStyle.block.index);
     }
 
-    String _defaultServerDisplayName() {
+    String defaultServerDisplayName() {
       final ctx = Get.context;
       if (ctx != null) {
         final l10n = AppLocalizations.of(ctx);
@@ -273,7 +273,7 @@ class SettingsScreenController extends GetxController {
 
     final defaultServer = SettingsServer(
       id: SettingsServer.defaultServerId,
-      name: _defaultServerDisplayName(),
+      name: defaultServerDisplayName(),
       type: ServerType.youtubeMusic,
       isDefault: true,
     );

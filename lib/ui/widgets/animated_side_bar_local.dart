@@ -369,39 +369,45 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
                     borderRadius: BorderRadius.circular(12),
                   )
                 : null,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isSelected ? selectedIcon : icon,
-                  color: isSelected ? selectedColor : unselectedIconColor,
-                  size: 22,
-                ),
-                if (showLabel) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      text,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                      style: textStyle.copyWith(
-                        color: isSelected ? selectedColor : unSelectedTextColor,
-                        fontWeight: isSelected ? FontWeight.w500 : null,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final narrow = constraints.maxWidth < 28;
+                final iconSize = narrow ? constraints.maxWidth.clamp(16.0, 22.0) : 22.0;
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isSelected ? selectedIcon : icon,
+                      color: isSelected ? selectedColor : unselectedIconColor,
+                      size: iconSize,
+                    ),
+                    if (showLabel) ...[
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          text,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: textStyle.copyWith(
+                            color: isSelected ? selectedColor : unSelectedTextColor,
+                            fontWeight: isSelected ? FontWeight.w500 : null,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-                if (isSelected && showLabel)
-                  Container(
-                    width: 6,
-                    height: 6,
-                    margin: const EdgeInsets.only(left: 8),
-                    decoration: BoxDecoration(
-                      color: selectedColor.withValues(alpha: 0.9),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-              ],
+                    ],
+                    if (isSelected && showLabel)
+                      Container(
+                        width: 6,
+                        height: 6,
+                        margin: const EdgeInsets.only(left: 8),
+                        decoration: BoxDecoration(
+                          color: selectedColor.withValues(alpha: 0.9),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                  ],
+                );
+              },
             ),
           ),
         ),

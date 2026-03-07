@@ -190,40 +190,32 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                       ? libralbumCntrller.libraryAlbums.isNotEmpty
                       : librplstCntrller.libraryPlaylists.isNotEmpty)
                   ? LayoutBuilder(builder: (context, constraints) {
-                      //Fix for grid in mobile screen
-                      final availableWidth = constraints.maxWidth > 300 &&
-                              constraints.maxWidth < 394
-                          ? 310.0
-                          : constraints.maxWidth;
-                      int columns = (availableWidth / itemWidth).floor();
-                      return SizedBox(
-                        width: availableWidth,
-                        child: GridView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: columns,
-                              childAspectRatio: (itemWidth / itemHeight),
-                            ),
-                            controller:
-                                ScrollController(keepScrollOffset: false),
-                            shrinkWrap: true,
-                            scrollDirection: Axis.vertical,
-                            padding:
-                                const EdgeInsets.only(bottom: kContentBottomPaddingWithPlayer, top: 10),
-                            itemCount: isAlbumContent
-                                ? libralbumCntrller.libraryAlbums.length
-                                : librplstCntrller.libraryPlaylists.length,
-                            itemBuilder: (context, index) => Center(
-                                  child: ContentListItem(
-                                    content: isAlbumContent
-                                        ? libralbumCntrller.libraryAlbums[index]
-                                        : librplstCntrller
-                                            .libraryPlaylists[index],
-                                    isLibraryItem: true,
-                                  ),
-                                )),
-                      );
+                      final availableWidth = constraints.maxWidth;
+                      final columns = (availableWidth / itemWidth).floor().clamp(1, 999);
+                      return GridView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: columns,
+                            childAspectRatio: (itemWidth / itemHeight),
+                          ),
+                          scrollDirection: Axis.vertical,
+                          padding: const EdgeInsets.only(
+                            bottom: kContentBottomPaddingWithPlayer,
+                            top: 10,
+                          ),
+                          itemCount: isAlbumContent
+                              ? libralbumCntrller.libraryAlbums.length
+                              : librplstCntrller.libraryPlaylists.length,
+                          itemBuilder: (context, index) => Center(
+                                child: ContentListItem(
+                                  content: isAlbumContent
+                                      ? libralbumCntrller.libraryAlbums[index]
+                                      : librplstCntrller
+                                          .libraryPlaylists[index],
+                                  isLibraryItem: true,
+                                ),
+                              ));
                     })
                   : Center(
                       child: Text(

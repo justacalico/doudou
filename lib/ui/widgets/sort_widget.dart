@@ -156,13 +156,15 @@ class SortWidget extends StatelessWidget {
           () => Stack(
             children: [
               if (controller.isSearchingEnabled.isFalse)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(left: titleLeftPadding),
-                      child: Row(
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(left: titleLeftPadding),
+                        child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(itemCountTitle),
@@ -210,7 +212,7 @@ class SortWidget extends StatelessWidget {
                               },
                             ))
                         : const SizedBox.shrink(),
-                    const Expanded(child: SizedBox()),
+                    const SizedBox(width: 16),
                     Obx(
                       () => _customIconButton(
                         icon: controller.isAscending.value
@@ -278,6 +280,7 @@ class SortWidget extends StatelessWidget {
                       width: 15,
                     )
                   ],
+                ),
                 ),
               if (controller.isSearchingEnabled.value)
                 Container(

@@ -21,6 +21,12 @@ class ContentListItem extends StatelessWidget {
   final dynamic content;
   final bool isLibraryItem;
 
+  String _subtitle(bool isAlbum) {
+    if (isLibraryItem) return "";
+    if (isAlbum) return _albumSubtitle(content);
+    return content.description ?? "";
+  }
+
   @override
   Widget build(BuildContext context) {
     final isAlbum = content.runtimeType.toString() == "Album";
@@ -46,7 +52,7 @@ class ContentListItem extends StatelessWidget {
           children: [
             isAlbum
                 ? ImageWidget(
-                    size: 120,
+                    size: 112,
                     album: content,
                   )
                 : content.isCloudPlaylist ||
@@ -55,11 +61,11 @@ class ContentListItem extends StatelessWidget {
                             content.playlistId == 'SongsCache' ||
                             content.playlistId == 'SongDownloads')
                     ? SizedBox.square(
-                        dimension: 120,
+                        dimension: 112,
                         child: Stack(
                           children: [
                             ImageWidget(
-                              size: 120,
+                              size: 112,
                               playlist: content,
                             ),
                             if (content.isPipedPlaylist)
@@ -116,8 +122,8 @@ class ContentListItem extends StatelessWidget {
                         ),
                       )
                     : Container(
-                        height: 120,
-                        width: 120,
+                        height: 112,
+                        width: 112,
                         decoration: BoxDecoration(
                             color: Theme.of(context).primaryColorLight,
                             borderRadius: BorderRadius.circular(10)),
@@ -129,35 +135,36 @@ class ContentListItem extends StatelessWidget {
                                   ? Icons.favorite
                                   : content.playlistId == 'SongsCache'
                                       ? Icons.flight
-                                      : Icons.download,
+                                    : Icons.download,
                           color: Colors.white,
                           size: 40,
                         ))),
-            const SizedBox(height: 5),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    content.title,
-                    // overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  Text(
-                    isAlbum
-                        ? isLibraryItem
-                            ? ""
-                            : _albumSubtitle(content)
-                        : isLibraryItem
-                            ? ""
-                            : content.description ?? "",
-                    maxLines: 1,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ],
+            const SizedBox(height: 4),
+            SizedBox(
+              height: 40,
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  content.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
-            )
+            ),
+            const SizedBox(height: 2),
+            SizedBox(
+              height: 16,
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  _subtitle(isAlbum),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+            ),
           ],
         ),
       ),

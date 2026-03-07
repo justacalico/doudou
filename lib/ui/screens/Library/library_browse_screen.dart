@@ -35,9 +35,6 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
       padding: EdgeInsets.only(
         left: leftPadding,
         right: kContentRightPadding,
-        bottom: useBottomNav
-            ? kContentBottomPaddingWithBottomNav
-            : kContentBottomPaddingWithPlayer,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

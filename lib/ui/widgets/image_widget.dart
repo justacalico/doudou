@@ -4,7 +4,6 @@ import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shimmer/shimmer.dart';
 
 import '../screens/Settings/settings_screen_controller.dart';
 import '/models/artist.dart';
@@ -93,20 +92,7 @@ class ImageWidget extends StatelessWidget {
               imageUrl: imageUrl,
               fit: BoxFit.cover,
               errorWidget: (context, url, error) => placeholderIcon(),
-              progressIndicatorBuilder: ((_, __, ___) => Shimmer.fromColors(
-                  baseColor: Colors.grey[500]!,
-                  highlightColor: Colors.grey[300]!,
-                  enabled: true,
-                  direction: ShimmerDirection.ltr,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape:
-                          artist != null ? BoxShape.circle : BoxShape.rectangle,
-                      borderRadius:
-                          artist != null ? null : BorderRadius.circular(10),
-                      color: Colors.white54,
-                    ),
-                  ))),
+              progressIndicatorBuilder: ((_, __, ___) => placeholderIcon()),
             ),
     );
   }
