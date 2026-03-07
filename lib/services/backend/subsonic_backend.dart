@@ -4,6 +4,7 @@ import '../../models/album.dart';
 import '../../models/artist.dart';
 import '../../models/playlist.dart';
 import '../../models/server.dart';
+import '../../utils/helper.dart';
 import 'backend_capabilities.dart';
 import 'music_backend.dart';
 
@@ -41,7 +42,9 @@ class SubsonicBackend extends MusicBackend {
       final resp = data['subsonic-response'];
       if (resp is! Map || resp['status'] != 'ok') return null;
       return Map<String, dynamic>.from(resp);
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=subsonic.get.$method] Request failed: $e\n$st');
       return null;
     }
   }
@@ -60,7 +63,9 @@ class SubsonicBackend extends MusicBackend {
     return {
       'videoId': id,
       'title': song['title'] ?? 'Unknown',
-      'thumbnails': [{'url': imageUrl}],
+      'thumbnails': [
+        {'url': imageUrl}
+      ],
       'artists': [
         {'name': song['artist']?.toString() ?? 'Unknown'}
       ],
@@ -240,7 +245,9 @@ class SubsonicBackend extends MusicBackend {
         out.add(Artist.fromJson({
           'artist': name,
           'browseId': id,
-          'thumbnails': [{'url': imageUrl}],
+          'thumbnails': [
+            {'url': imageUrl}
+          ],
         }));
       }
     }
@@ -273,8 +280,12 @@ class SubsonicBackend extends MusicBackend {
         out.add(Album.fromJson({
           'title': title,
           'browseId': id,
-          'artists': [{'name': artistName}],
-          'thumbnails': [{'url': imageUrl}],
+          'artists': [
+            {'name': artistName}
+          ],
+          'thumbnails': [
+            {'url': imageUrl}
+          ],
           'year': m['year']?.toString(),
         }));
       }

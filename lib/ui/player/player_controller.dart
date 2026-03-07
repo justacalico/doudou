@@ -121,8 +121,7 @@ class PlayerController extends GetxController
       Get.put(WindowsAudioService());
     }
     _restorePrevSession().then((_) {
-      if (currentSong.value == null &&
-          Get.isRegistered<ThemeController>()) {
+      if (currentSong.value == null && Get.isRegistered<ThemeController>()) {
         Get.find<ThemeController>().setNowPlayingAccent(null);
       }
     });
@@ -267,10 +266,10 @@ class PlayerController extends GetxController
           cancelSleepTimer();
         }
       }
-      final clampedCurrent = oldState.total.inMilliseconds > 0 &&
-              position > oldState.total
-          ? oldState.total
-          : position;
+      final clampedCurrent =
+          oldState.total.inMilliseconds > 0 && position > oldState.total
+              ? oldState.total
+              : position;
       progressBarStatus.update((val) {
         val!.current = clampedCurrent;
         val.buffered = oldState.buffered;
@@ -388,7 +387,9 @@ class PlayerController extends GetxController
     /// update playing from value
     playinfrom.value = PlaylingFrom(
         type: PlaylingFromType.SELECTION,
-        name: radio ? AppLocalizations.of(Get.context!)!.randomRadio : AppLocalizations.of(Get.context!)!.randomSelection);
+        name: radio
+            ? AppLocalizations.of(Get.context!)!.randomRadio
+            : AppLocalizations.of(Get.context!)!.randomSelection);
 
     /// set global radio mode flag
     isRadioModeOn = radio;
@@ -769,7 +770,9 @@ class PlayerController extends GetxController
       final favorites = await settings.currentBackend.getFavoriteSongs();
       isCurrentSongFav.value =
           favorites.any((e) => e['videoId']?.toString() == song.id);
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=player.syncCurrentSongFavorite.remote] Failed to fetch favorites for songId=${song.id}: $e\n$st');
       isCurrentSongFav.value = false;
     }
   }
@@ -793,7 +796,10 @@ class PlayerController extends GetxController
                 action: 'add', index: 0)
             : playlistController.addNRemoveItemsinList(currMediaItem,
                 action: 'remove');
-      } catch (_) {}
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=player.toggleFavorite.updateLocalFavPlaylist] Failed to sync LIBFAV controller for songId=${currMediaItem.id}: $e\n$st');
+      }
       isCurrentSongFav.value = !isCurrentSongFav.value;
       if (settings.autoDownloadFavoriteSongEnabled.isTrue &&
           isCurrentSongFav.isTrue) {
@@ -839,9 +845,10 @@ class PlayerController extends GetxController
         // adds current item to list
         playlistController.addNRemoveItemsinList(mediaItem,
             action: 'add', index: 0);
-
-        // ignore: empty_catches
-      } catch (e) {}
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=player.addToRecentlyPlayed.syncPlaylistController] Failed to sync LIBRP controller for songId=${mediaItem.id}: $e\n$st');
+      }
     }
     recentItem = mediaItem;
   }
@@ -1117,8 +1124,9 @@ class PlayerController extends GetxController
       backendType: currentSong.value?.extras?['backendType']?.toString(),
       data: {'status': message},
     );
-    final displayMessage =
-        message.startsWith("networkError") ? AppLocalizations.of(Get.context!)!.networkError : message;
+    final displayMessage = message.startsWith("networkError")
+        ? AppLocalizations.of(Get.context!)!.networkError
+        : message;
     ScaffoldMessenger.of(Get.context!).showSnackBar(
         snackbar(Get.context!, displayMessage, size: SnackBarSize.MEDIUM));
   }

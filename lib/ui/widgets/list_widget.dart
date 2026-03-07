@@ -12,6 +12,7 @@ import '../player/player_controller.dart';
 import 'image_widget.dart';
 import 'song_list_tile.dart';
 import 'songinfo_bottom_sheet.dart';
+import '/utils/helper.dart';
 
 class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
   const ListWidget(this.items, this.title, this.isCompleteList,
@@ -155,8 +156,11 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
               for (dynamic items in (albums[index].artists).sublist(1)) {
                 artistName = "${artistName + items['name']},";
               }
-            // ignore: empty_catches
-            } catch (e) {}
+            } catch (e, st) {
+              printWarning(
+                  '[RECOVERABLE][opId=listWidget.albums.composeArtistName] Failed to compose artist names for album=${albums[index].title}: $e\n$st');
+              artistName = "";
+            }
             artistName = artistName.length > 16
                 ? artistName.substring(0, 16)
                 : artistName;
@@ -187,7 +191,8 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
         visualDensity: const VisualDensity(horizontal: -2, vertical: 2),
         onTap: () {
           ScreenNavigationSetup.pushContentRoute(
-              ScreenNavigationSetup.artistScreen, arguments: [false, artists[index]]);
+              ScreenNavigationSetup.artistScreen,
+              arguments: [false, artists[index]]);
         },
         contentPadding: const EdgeInsets.only(top: 0, bottom: 0, left: 5),
         leading: ImageWidget(
@@ -218,7 +223,8 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
       onTap: () {
         if (album != null) {
           ScreenNavigationSetup.pushContentRoute(
-              ScreenNavigationSetup.albumScreen, arguments: (album, album.browseId));
+              ScreenNavigationSetup.albumScreen,
+              arguments: (album, album.browseId));
         } else {
           ScreenNavigationSetup.pushContentRoute(
               ScreenNavigationSetup.playlistScreen,

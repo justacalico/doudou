@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 
 import '../../models/jellyfin_models.dart';
+import '../../utils/helper.dart';
 
 /// Lightweight Plex client used by the Plex backend.
 ///
@@ -91,7 +92,9 @@ class PlexService {
         }
       }
       return null;
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=plex.getTrackPartKey.$trackId] Failed to load track part key: $e\n$st');
       return null;
     }
   }
@@ -115,7 +118,9 @@ class PlexService {
         }
       }
       return null;
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=plex.getTrackPartId.$trackId] Failed to load track part id: $e\n$st');
       return null;
     }
   }
@@ -142,7 +147,9 @@ class PlexService {
         }
       }
       return false;
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=plex.validateCredentials] Validation request failed: $e\n$st');
       return false;
     }
   }
@@ -166,7 +173,9 @@ class PlexService {
             ),
           )
           .toList();
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=plex.getLibraries] Failed to fetch libraries: $e\n$st');
       return [];
     }
   }
@@ -248,7 +257,9 @@ class PlexService {
       }
 
       return allAlbums;
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=plex.getAlbums] Failed to fetch albums: $e\n$st');
       return [];
     }
   }
@@ -322,7 +333,9 @@ class PlexService {
       }
 
       return allArtists;
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=plex.getArtists] Failed to fetch artists: $e\n$st');
       return [];
     }
   }
@@ -436,7 +449,9 @@ class PlexService {
       }
 
       return allTracks;
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=plex.getTracks] Failed to fetch tracks: $e\n$st');
       return [];
     }
   }
@@ -462,7 +477,9 @@ class PlexService {
             ),
           )
           .toList();
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=plex.getPlaylists] Failed to fetch playlists: $e\n$st');
       return [];
     }
   }
@@ -490,7 +507,9 @@ class PlexService {
             ),
           )
           .toList();
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=plex.getPlaylistTracks.$playlistId] Failed to fetch playlist tracks: $e\n$st');
       return [];
     }
   }
@@ -613,7 +632,9 @@ class PlexService {
       }
 
       return SearchResults(albums: albums, artists: artists, tracks: tracks);
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=plex.search.$query] Failed to search Plex catalog: $e\n$st');
       return const SearchResults();
     }
   }

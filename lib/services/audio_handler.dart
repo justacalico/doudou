@@ -1323,7 +1323,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       if (queue.value.isEmpty) return null;
       final idx = (currentIndex as int).clamp(0, queue.value.length - 1);
       return queue.value[idx].id;
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.safeCurrentSongId] Failed to resolve current song id: $e\n$st');
       return null;
     }
   }
@@ -1334,7 +1336,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       if (songId == null) return null;
       final item = queue.value.firstWhereOrNull((e) => e.id == songId);
       return item?.extras?['backendType']?.toString();
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.safeBackendType] Failed to resolve backend type: $e\n$st');
       return null;
     }
   }
@@ -1343,7 +1347,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     try {
       final settings = Get.find<SettingsScreenController>();
       return settings.activeServer?.type.name;
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.safeServerType] Failed to resolve active server type: $e\n$st');
       return null;
     }
   }

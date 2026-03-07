@@ -230,7 +230,9 @@ class HomeScreenController extends GetxController {
     try {
       final libArtists = Get.find<LibraryArtistsController>().libraryArtists;
       if (libArtists.isEmpty) return;
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.ensureAlbumsFromFollowedLoaded.readArtists] Library artists unavailable: $e\n$st');
       return;
     }
     _albumsFromFollowedLoadStarted = true;
@@ -258,10 +260,17 @@ class HomeScreenController extends GetxController {
               if (seenIds.add(item.browseId)) aggregated.add(item);
             }
           }
-        } catch (_) {}
+        } catch (e, st) {
+          printWarning(
+              '[RECOVERABLE][opId=home.loadAlbumsFromFollowedArtists.fetchArtist] Failed to fetch artist browseId=${artist.browseId}: $e\n$st');
+        }
       }
       albumsFromFollowedArtists.value = aggregated;
-    } catch (_) {}
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.loadAlbumsFromFollowedArtists] Failed to aggregate albums: $e\n$st');
+      albumsFromFollowedArtists.value = const [];
+    }
   }
 
   List _setContentList(
@@ -323,8 +332,10 @@ class HomeScreenController extends GetxController {
                 QuickPicks(List<MediaItem>.from(value[0]["contents"]));
             Hive.box("AppPrefs").put(songIdKey, songId);
           }
-          // ignore: empty_catches
-        } catch (e) {}
+        } catch (e, st) {
+          printWarning(
+              '[RECOVERABLE][opId=home.loadContent.songRelated] Failed to load related content for songId=$songId: $e\n$st');
+        }
       }
     }
     if (quickPicks_ == null) return;
@@ -574,7 +585,10 @@ class HomeScreenController extends GetxController {
       if (raw is Map) {
         return HomeLibrarySections.fromJson(Map<dynamic, dynamic>.from(raw));
       }
-    } catch (_) {}
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.loadSections.fromDb] Failed to load cached home sections from $boxName: $e\n$st');
+    }
     return null;
   }
 
@@ -654,12 +668,18 @@ class HomeScreenController extends GetxController {
       try {
         final box = await Hive.openBox(libFavBoxName(currentServerId()));
         favoriteCount = box.length;
-      } catch (_) {}
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=home.computeSections.favoriteCount.local] Failed to read local favorites count: $e\n$st');
+      }
     } else {
       try {
         final list = await _backend.getFavoriteSongs();
         favoriteCount = list.length;
-      } catch (_) {}
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=home.computeSections.favoriteCount.remote] Failed to read remote favorites count: $e\n$st');
+      }
     }
 
     return HomeLibrarySections(
@@ -687,7 +707,9 @@ class HomeScreenController extends GetxController {
       final box = await Hive.openBox(recentlyPlayedBoxName(currentServerId()));
       final values = box.values.toList();
       return _safeMediaItemsFromIterable(values).reversed.toList();
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.loadRecentlyPlayed.readBox] Failed to load recently played tracks: $e\n$st');
       return const [];
     }
   }
@@ -706,14 +728,18 @@ class HomeScreenController extends GetxController {
       try {
         final box = await Hive.openBox(favBoxName);
         favorites = _safeMediaItemsFromIterable(box.values);
-      } catch (_) {
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=home.pickFavoriteArtistTracks.localFavorites] Failed to load local favorites: $e\n$st');
         favorites = const [];
       }
     } else {
       try {
         final tracks = await settings.currentBackend.getFavoriteSongs();
         favorites = _safeMediaItemsFromIterable(tracks);
-      } catch (_) {
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=home.pickFavoriteArtistTracks.remoteFavorites] Failed to load remote favorites: $e\n$st');
         favorites = const [];
       }
     }
@@ -786,7 +812,10 @@ class HomeScreenController extends GetxController {
         for (final s in favSongs) {
           if (seenIds.add(s.id)) list.add(s);
         }
-      } catch (_) {}
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=home.shuffleAll.mergeFavorites] Failed to merge favorite songs into shuffle source: $e\n$st');
+      }
     } else {
       final songsController = Get.isRegistered<LibrarySongsController>()
           ? Get.find<LibrarySongsController>()
@@ -822,14 +851,18 @@ class HomeScreenController extends GetxController {
       try {
         final box = await Hive.openBox(libFavBoxName(currentServerId()));
         list = _safeMediaItemsFromIterable(box.values);
-      } catch (_) {
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=home.shuffleFavoriteArtists.localFavorites] Failed to load local favorites list: $e\n$st');
         list = [];
       }
     } else {
       try {
         final tracks = await _backend.getFavoriteSongs();
         list = _safeMediaItemsFromIterable(tracks);
-      } catch (_) {
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=home.shuffleFavoriteArtists.remoteFavorites] Failed to load remote favorites list: $e\n$st');
         list = [];
       }
     }

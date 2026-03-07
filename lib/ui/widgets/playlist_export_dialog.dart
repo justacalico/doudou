@@ -9,6 +9,7 @@ import 'package:html/parser.dart' as html_parser;
 import '/ui/screens/Playlist/playlist_screen_controller.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/models/server.dart';
+import '/utils/helper.dart';
 import 'common_dialog_widget.dart';
 import 'snackbar.dart';
 
@@ -130,8 +131,11 @@ class PlaylistExportDialog extends StatelessWidget {
         controller.generatedYtmPlaylistUrl = href;
         return href;
       }
-      // ignore: empty_catches
-    } catch (e) {}
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=playlistExport.generateYtmUrl] Failed to generate YTM url for export: $e\n$st');
+      return null;
+    }
     return null;
   }
 

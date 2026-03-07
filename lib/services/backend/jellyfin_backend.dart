@@ -4,6 +4,7 @@ import '../../models/album.dart';
 import '../../models/artist.dart';
 import '../../models/playlist.dart';
 import '../../models/server.dart';
+import '../../utils/helper.dart';
 import 'backend_capabilities.dart';
 import 'music_backend.dart';
 
@@ -25,7 +26,8 @@ class JellyfinBackend extends MusicBackend {
   Future<void> _ensureAuth() async {
     if (_token != null && _userId != null) return;
     final url = _baseUrl;
-    if (url.isEmpty || server.username == null || server.password == null) return;
+    if (url.isEmpty || server.username == null || server.password == null)
+      return;
     _client = JellyfinDart(basePathOverride: url);
     _client!.setDeviceId('doudou-${server.id}');
     _client!.setVersion('1.0');
@@ -40,7 +42,9 @@ class JellyfinBackend extends MusicBackend {
       _token = result?.accessToken;
       _userId = result?.user?.id;
       if (_token != null) _client!.setToken(_token);
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=jellyfin.ensureAuth] Authentication failed for serverId=${server.id}: $e\n$st');
       _client = null;
       _token = null;
       _userId = null;
@@ -50,7 +54,8 @@ class JellyfinBackend extends MusicBackend {
   Map<String, dynamic> _itemToTrack(BaseItemDto item) {
     final id = item.id ?? '';
     final runTimeTicks = item.runTimeTicks;
-    final seconds = runTimeTicks != null ? (runTimeTicks / 10000000).round() : null;
+    final seconds =
+        runTimeTicks != null ? (runTimeTicks / 10000000).round() : null;
     String imageUrl = '';
     if (id.isNotEmpty && _baseUrl.isNotEmpty) {
       imageUrl = '$_baseUrl/Items/$id/Images/Primary?api_key=${_token ?? ''}';
@@ -81,7 +86,9 @@ class JellyfinBackend extends MusicBackend {
     return {
       'videoId': id,
       'title': item.name ?? 'Unknown',
-      'thumbnails': [{'url': imageUrl}],
+      'thumbnails': [
+        {'url': imageUrl}
+      ],
       'artists': artists,
       'album': item.album != null ? {'name': item.album, 'id': null} : null,
       'duration': seconds,
@@ -115,7 +122,9 @@ class JellyfinBackend extends MusicBackend {
           'contents': items.map((e) => _itemToTrack(e)).toList(),
         }
       ];
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=jellyfin.getHome] Failed to load home content: $e\n$st');
       return [];
     }
   }
@@ -209,7 +218,9 @@ class JellyfinBackend extends MusicBackend {
         if (artists.isNotEmpty) 'Artists': artists,
         if (playlists.isNotEmpty) 'Playlists': playlists,
       };
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=jellyfin.search.$query] Failed to search catalog: $e\n$st');
       return {};
     }
   }
@@ -238,7 +249,9 @@ class JellyfinBackend extends MusicBackend {
       final items = res.data?.items ?? [];
       final tracks = items.map((e) => _itemToTrack(e)).toList();
       return {'tracks': tracks, 'playlistId': id};
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=jellyfin.getPlaylistOrAlbumSongs.playlist.$id] Playlist lookup failed, trying album fallback: $e\n$st');
       try {
         final res = await _client!.getItemsApi().getItems(
               userId: _userId,
@@ -249,7 +262,9 @@ class JellyfinBackend extends MusicBackend {
         final items = res.data?.items ?? [];
         final tracks = items.map((e) => _itemToTrack(e)).toList();
         return {'tracks': tracks, 'playlistId': id};
-      } catch (_) {
+      } catch (inner, innerSt) {
+        printWarning(
+            '[RECOVERABLE][opId=jellyfin.getPlaylistOrAlbumSongs.album.$id] Album fallback failed: $inner\n$innerSt');
         return {'tracks': <dynamic>[], 'playlistId': id};
       }
     }
@@ -273,9 +288,9 @@ class JellyfinBackend extends MusicBackend {
     if (_client == null || _userId == null) return [];
     try {
       final res = await _client!.getItemsApi().getItems(
-            userId: _userId,
-            includeItemTypes: [BaseItemKind.playlist],
-          );
+        userId: _userId,
+        includeItemTypes: [BaseItemKind.playlist],
+      );
       final items = res.data?.items ?? [];
       return items.map((item) {
         final thumb = item.id != null
@@ -291,7 +306,9 @@ class JellyfinBackend extends MusicBackend {
           isCloudPlaylist: true,
         );
       }).toList();
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=jellyfin.getLibraryPlaylists] Failed to load playlists: $e\n$st');
       return [];
     }
   }
@@ -317,10 +334,14 @@ class JellyfinBackend extends MusicBackend {
         return Artist.fromJson({
           'artist': item.name ?? 'Unknown',
           'browseId': id,
-          'thumbnails': [{'url': imageUrl}],
+          'thumbnails': [
+            {'url': imageUrl}
+          ],
         });
       }).toList();
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=jellyfin.getLibraryArtists] Failed to load artists: $e\n$st');
       return [];
     }
   }
@@ -349,16 +370,21 @@ class JellyfinBackend extends MusicBackend {
             if (a.name != null) artists.add({'name': a.name!});
           }
         }
-        if (artists.isEmpty) artists.add({'name': item.albumArtist ?? 'Unknown'});
+        if (artists.isEmpty)
+          artists.add({'name': item.albumArtist ?? 'Unknown'});
         return Album.fromJson({
           'title': item.name ?? 'Unknown',
           'browseId': id,
           'artists': artists,
-          'thumbnails': [{'url': imageUrl}],
+          'thumbnails': [
+            {'url': imageUrl}
+          ],
           'year': item.productionYear?.toString(),
         });
       }).toList();
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=jellyfin.getLibraryAlbums] Failed to load albums: $e\n$st');
       return [];
     }
   }
@@ -375,7 +401,9 @@ class JellyfinBackend extends MusicBackend {
           );
       final items = res.data?.items ?? [];
       return items.map((e) => _itemToTrack(e)).toList();
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=jellyfin.getLibrarySongs] Failed to load songs: $e\n$st');
       return [];
     }
   }
@@ -393,7 +421,9 @@ class JellyfinBackend extends MusicBackend {
           );
       final items = res.data?.items ?? [];
       return items.map((e) => _itemToTrack(e)).toList();
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=jellyfin.getFavoriteSongs] Failed to load favorite songs: $e\n$st');
       return [];
     }
   }
@@ -409,8 +439,9 @@ class JellyfinBackend extends MusicBackend {
       } else {
         await api.unmarkFavoriteItem(userId: _userId!, itemId: songId);
       }
-    } catch (_) {
-      // ignore network errors for favorite toggles
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=jellyfin.setSongFavorite.$songId] Failed to set favorite=$favorite: $e\n$st');
     }
   }
 

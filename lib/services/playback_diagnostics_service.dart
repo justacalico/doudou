@@ -25,7 +25,9 @@ class PlaybackDiagnosticsService extends GetxService {
     try {
       return Hive.box(appPrefsBoxName).get(enabledKey, defaultValue: false) ==
           true;
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=diag.enabled.readPrefs] Failed to read diagnostics enabled flag: $e\n$st');
       return false;
     }
   }
@@ -33,7 +35,9 @@ class PlaybackDiagnosticsService extends GetxService {
   int get eventCount {
     try {
       return Hive.box(boxName).length;
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=diag.eventCount.readBox] Failed to read diagnostics count: $e\n$st');
       return 0;
     }
   }
@@ -49,7 +53,9 @@ class PlaybackDiagnosticsService extends GetxService {
         return events;
       }
       return events.sublist(events.length - limit);
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=diag.getEvents.readBox] Failed to read diagnostics events: $e\n$st');
       return const [];
     }
   }
@@ -120,15 +126,19 @@ class PlaybackDiagnosticsService extends GetxService {
       while (box.length > _maxEvents) {
         box.deleteAt(0);
       }
-    } catch (_) {
-      // Never block playback due to diagnostics failure.
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=diag.logEvent.write] Failed to persist diagnostics event: $e\n$st');
     }
   }
 
   Future<void> clear() async {
     try {
       await Hive.box(boxName).clear();
-    } catch (_) {}
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=diag.clear] Failed to clear diagnostics box: $e\n$st');
+    }
   }
 
   Future<String?> exportToPickedLocation() async {
@@ -144,7 +154,9 @@ class PlaybackDiagnosticsService extends GetxService {
         type: FileType.custom,
         allowedExtensions: const ['jsonl', 'txt'],
       );
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=diag.export.pickSaveLocation] Save dialog failed, will fallback to directory picker: $e\n$st');
       outputPath = null;
     }
 

@@ -38,7 +38,10 @@ void _debugLog(String message, Map<String, dynamic> data, String hypothesisId) {
               'timestamp': DateTime.now().millisecondsSinceEpoch
             })}\n',
         mode: FileMode.append);
-  } catch (_) {}
+  } catch (e, st) {
+    printWarning(
+        '[RECOVERABLE][opId=home.debugLog.writeFile] Failed to append debug log: $e\n$st');
+  }
 }
 // #endregion
 
@@ -465,7 +468,11 @@ class Body extends StatelessWidget {
       if (Hive.isBoxOpen('SongDownloads')) {
         downloadCount = Hive.box('SongDownloads').length;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.quickActionCards.readDownloadCount] Failed to read SongDownloads box length: $e\n$st');
+      downloadCount = 0;
+    }
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = (constraints.maxWidth - 24) / 3;

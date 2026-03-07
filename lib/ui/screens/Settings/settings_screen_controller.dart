@@ -93,12 +93,17 @@ class SettingsScreenController extends GetxController {
     if (id != null) {
       try {
         return servers.firstWhere((s) => s.id == id);
-      } catch (_) {}
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=settings.activeServer.resolveById] Active server id=$id not found, using fallback: $e\n$st');
+      }
     }
     if (servers.isEmpty) return null;
     try {
       return servers.firstWhere((s) => !s.isDefault);
-    } catch (_) {
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=settings.activeServer.resolvePrimary] No non-default server found, using first entry: $e\n$st');
       return servers.first;
     }
   }
@@ -164,7 +169,10 @@ class SettingsScreenController extends GetxController {
     final isDesktop = GetPlatform.isDesktop;
     const supported = ['en', 'en_AU', 'zh', 'ru'];
     final appLang = setBox.get('currentAppLanguageCode') ?? "en";
-    final normalized = appLang == "zh_Hant" || appLang == "zh_Hans" || appLang == "zh-CN" || appLang == "zh-TW"
+    final normalized = appLang == "zh_Hant" ||
+            appLang == "zh_Hans" ||
+            appLang == "zh-CN" ||
+            appLang == "zh-TW"
         ? "zh"
         : supported.contains(appLang)
             ? appLang
@@ -446,8 +454,10 @@ class SettingsScreenController extends GetxController {
       if (await tempImgDir.exists()) {
         await tempImgDir.delete(recursive: true);
       }
-      // ignore: empty_catches
-    } catch (e) {}
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=settings.clearImagesCache] Failed to clear image cache at $tempImgDirPath: $e\n$st');
+    }
   }
 
   void resetDownloadLocation() {
@@ -570,7 +580,8 @@ class SettingsScreenController extends GetxController {
     if (Get.isRegistered<LibraryPlaylistsController>()) {
       final ctrl = Get.find<LibraryPlaylistsController>();
       ctrl.tempListContainer = [];
-      ctrl.libraryPlaylists.value = Get.find<LibraryPlaylistsController>().initPlst;
+      ctrl.libraryPlaylists.value =
+          Get.find<LibraryPlaylistsController>().initPlst;
       ctrl.isContentFetched.value = false;
       // ignore: discarded_futures
       ctrl.refreshLib();
@@ -728,8 +739,9 @@ class SettingsScreenController extends GetxController {
     final box = await Hive.openBox(
         blacklistedPlaylistBoxName(activeServerId.value ?? 0));
     box.clear();
-    ScaffoldMessenger.of(Get.context!).showSnackBar(
-        snackbar(Get.context!, AppLocalizations.of(Get.context!)!.unlinkAlert, size: SnackBarSize.MEDIUM));
+    ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
+        Get.context!, AppLocalizations.of(Get.context!)!.unlinkAlert,
+        size: SnackBarSize.MEDIUM));
     box.close();
   }
 

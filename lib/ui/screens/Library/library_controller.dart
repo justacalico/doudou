@@ -152,7 +152,10 @@ class LibrarySongsController extends GetxController {
           await albumSongsBox.close();
         }
         await albumsBox.close();
-      } catch (_) {}
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=library.shuffle.loadAlbumSongs] Failed to load album-sourced songs for serverId=$serverId: $e\n$st');
+      }
 
       // Songs from library playlists (excluding special local playlists).
       try {
@@ -178,7 +181,10 @@ class LibrarySongsController extends GetxController {
             await plSongsBox.close();
           }
         }
-      } catch (_) {}
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=library.shuffle.loadPlaylistSongs] Failed to load playlist-sourced songs for serverId=$serverId: $e\n$st');
+      }
 
       // Songs from favorites box (YouTube Music stores favorites locally).
       try {
@@ -190,7 +196,10 @@ class LibrarySongsController extends GetxController {
           }
         }
         await favBox.close();
-      } catch (_) {}
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=library.shuffle.loadFavoriteSongs] Failed to load favorite-sourced songs for serverId=$serverId: $e\n$st');
+      }
     }
 
     return songs;

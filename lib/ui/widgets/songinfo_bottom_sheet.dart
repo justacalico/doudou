@@ -60,7 +60,9 @@ class SongInfoBottomSheet extends StatelessWidget {
           .map((a) => (a['name'] ?? '').toString().trim().toLowerCase())
           .where((n) => n.isNotEmpty)
           .toList();
-      if (artistNames.isEmpty || artistNames.any((a) => songArtist.contains(a) || a.contains(songArtist))) {
+      if (artistNames.isEmpty ||
+          artistNames
+              .any((a) => songArtist.contains(a) || a.contains(songArtist))) {
         return album;
       }
     }
@@ -76,7 +78,8 @@ class SongInfoBottomSheet extends StatelessWidget {
 
     if (targetId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        snackbar(context, context.l10n.operationFailed, size: SnackBarSize.MEDIUM),
+        snackbar(context, context.l10n.operationFailed,
+            size: SnackBarSize.MEDIUM),
       );
       return;
     }
@@ -297,8 +300,8 @@ class SongInfoBottomSheet extends StatelessWidget {
                             }
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                  snackbar(
-                                      context, context.l10n.deleteDownloadedDataAlert,
+                                  snackbar(context,
+                                      context.l10n.deleteDownloadedDataAlert,
                                       size: SnackBarSize.BIG));
                             }
                           });
@@ -396,7 +399,8 @@ class SongInfoBottomSheet extends StatelessWidget {
                       return;
                     }
 
-                    final matched = _matchArtistByName(e['name']?.toString() ?? '');
+                    final matched =
+                        _matchArtistByName(e['name']?.toString() ?? '');
                     if (matched != null) {
                       await Get.toNamed(ScreenNavigationSetup.artistScreen,
                           id: ScreenNavigationSetup.contentId,
@@ -514,8 +518,10 @@ mixin RemoveSongFromPlaylistMixin {
 
       try {
         plstCntroller.addNRemoveItemsinList(item, action: 'remove');
-        // ignore: empty_catches
-      } catch (e) {}
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=songInfo.removeFromPlaylist.updateController] Failed to update playlist controller for playlistId=${playlist.playlistId}, songId=${item.id}: $e\n$st');
+      }
     } catch (e) {
       printERROR("Some Error in removeSongFromPlaylist (might irrelavant): $e");
     }

@@ -1,10 +1,11 @@
 //navigations
-// ignore_for_file: constant_identifier_names, empty_catches
+// ignore_for_file: constant_identifier_names
 
 import 'package:audio_service/audio_service.dart';
 
 import '/models/media_Item_builder.dart';
 import '/services/utils.dart';
+import '/utils/helper.dart';
 import '../models/album.dart';
 import '../models/artist.dart';
 import '../models/playlist.dart';
@@ -500,11 +501,10 @@ List<dynamic> parsePlaylistItems(List<dynamic> results,
         'browseId'
       ]);
       videoId = creditId?.split("MPTC")[1];
-      
     }
 
-    if(isAlbum){
-      // Contains track number and total tracks 
+    if (isAlbum) {
+      // Contains track number and total tracks
       trackDetails = data?["index"] != null
           ? "${nav(data, ['index', 'runs', 0, 'text'])}/${results.length}"
           : null;
@@ -747,7 +747,11 @@ dynamic parseSearchResult(Map<String, dynamic> data,
       final list = data['flexColumns'][1]
           ['musicResponsiveListItemFlexColumnRenderer']['text']['runs'];
       searchResult['description'] = list.map((run) => run['text']).join('');
-    } catch (e) {}
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=nav.parseSearchResult.albumDescription] Unable to parse album description: $e\n$st');
+      searchResult['description'] = null;
+    }
   } else if (resultType.contains('playlist')) {
     List<dynamic> flexItem = getFlexColumnItem(data, 1)['text']['runs'];
     bool hasAuthor = (flexItem.length == defaultOffset + 3);
@@ -883,7 +887,10 @@ Map<String, dynamic> parseAlbumHeader(Map<String, dynamic> response) {
       parseSongRuns(header['subtitle']['runs'].sublist(2));
   try {
     albumInfo.addAll(parseSongRuns(header["straplineTextOne"]['runs']));
-  } catch (e) {}
+  } catch (e, st) {
+    printWarning(
+        '[RECOVERABLE][opId=nav.parseAlbumHeader.strapline] Unable to parse strapline runs: $e\n$st');
+  }
   album.addAll(albumInfo);
 
   if (header['secondSubtitle']['runs'].length > 1) {
@@ -991,15 +998,22 @@ dynamic parseContentList(results, Function parseFunc) {
 }
 
 Map<String, dynamic> parseChartsItemBrowseId(dynamic result) {
-  final title = nav(result,["musicTwoRowItemRenderer","title","runs",0,"text"]);
-  final browseId = nav(result,
-      ["musicTwoRowItemRenderer","title","runs",0,"navigationEndpoint","browseEndpoint","browseId"]);
+  final title =
+      nav(result, ["musicTwoRowItemRenderer", "title", "runs", 0, "text"]);
+  final browseId = nav(result, [
+    "musicTwoRowItemRenderer",
+    "title",
+    "runs",
+    0,
+    "navigationEndpoint",
+    "browseEndpoint",
+    "browseId"
+  ]);
   if (title.contains('Trending')) {
     return {'title': "Trending", 'browseId': browseId};
   } else if (title.contains('Daily Top')) {
     return {'title': "Top Music Videos", 'browseId': browseId};
-  }
-  else{
+  } else {
     return {'title': title, 'browseId': browseId};
   }
 }

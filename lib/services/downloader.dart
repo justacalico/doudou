@@ -256,14 +256,14 @@ class Downloader extends GetxService {
         if (total <= 0) return;
         songDownloadingProgress.value = ((count / total) * 100).toInt();
       });
-    } catch (_) {
+    } catch (e, st) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
           Get.context!, AppLocalizations.of(Get.context!)!.downloadError3,
           size: SnackBarSize.BIG,
           duration: const Duration(seconds: 2),
           top: !GetPlatform.isDesktop));
-      printINFO(
-          "Downloading failed due to network/stream error! Please try again");
+      printWarning(
+          '[RECOVERABLE][opId=download.fetchStreamBytes] Network/stream download failed for songId=${song.id}: $e\n$st');
       return;
     }
     final statusCode = response?.statusCode;
@@ -297,15 +297,21 @@ class Downloader extends GetxService {
           year = await musicServ.getSongYear(song.id);
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=download.resolveYear] Failed to resolve year for songId=${song.id}: $e\n$st');
+      year = null;
+    }
 
     // Save Thumbnail
     try {
       final thumbnailPath =
           "${settingsScreenController.supportDirPath}/thumbnails/${song.id}.png";
       await _dio.downloadUri(song.artUri!, thumbnailPath);
-      // ignore: empty_catches
-    } catch (e) {}
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=download.saveThumbnail] Failed to save thumbnail for songId=${song.id}: $e\n$st');
+    }
 
     song.extras?['url'] = filePath;
     final songJson = MediaItemBuilder.toJson(song);
