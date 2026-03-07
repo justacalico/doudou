@@ -141,6 +141,7 @@
   "sleepTimer": "Таймер сна",
   "synced": "Синхронизировано",
   "library": "Библиотека",
+  "libraryOverviewSubtitle": "Обзор / Ваша музыкальная коллекция.",
   "minutes": "минуты",
   "cancelTimerAlert": "Таймер сна отключен",
   "add5Minutes": "Добавить 5 минут",

@@ -10,6 +10,7 @@
   "albumsFromYourArtists": "From your artists",
   "settings": "Settings",
   "library": "Library",
+  "libraryOverviewSubtitle": "Overview / Your music collection.",
   "yourLibrary": "Your Library",
   "manage": "Manage",
   "tracksInYourCollection": "{count} tracks in your collection",

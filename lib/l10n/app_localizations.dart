@@ -161,6 +161,12 @@ abstract class AppLocalizations {
   /// **'Library'**
   String get library;
 
+  /// No description provided for @libraryOverviewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview / Your music collection.'**
+  String get libraryOverviewSubtitle;
+
   /// No description provided for @yourLibrary.
   ///
   /// In en, this message translates to:

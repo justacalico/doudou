@@ -141,6 +141,7 @@
   "sleepTimer": "睡眠定时器",
   "plain": "普通",
   "library": "音乐库",
+  "libraryOverviewSubtitle": "概览 / 你的音乐库。",
   "minutes": "分钟",
   "synced": "已同步",
   "cancelTimerAlert": "睡眠定时器已取消",

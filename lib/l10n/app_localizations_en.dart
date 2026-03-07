@@ -39,6 +39,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get library => 'Library';
 
   @override
+  String get libraryOverviewSubtitle => 'Overview / Your music collection.';
+
+  @override
   String get yourLibrary => 'Your Library';
 
   @override
@@ -1257,6 +1260,9 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get library => 'Library';
+
+  @override
+  String get libraryOverviewSubtitle => 'Overview / Your music collection.';
 
   @override
   String get yourLibrary => 'Your Library';

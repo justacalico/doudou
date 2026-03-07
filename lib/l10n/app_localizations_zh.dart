@@ -39,6 +39,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get library => '音乐库';
 
   @override
+  String get libraryOverviewSubtitle => '概览 / 你的音乐库。';
+
+  @override
   String get yourLibrary => '你的曲库';
 
   @override

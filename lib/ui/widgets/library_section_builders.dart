@@ -10,11 +10,118 @@ import '/utils/app_l10n.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/navigator.dart';
 import '/ui/widgets/image_widget.dart';
+import '/ui/screens/Library/library_combined.dart';
 
 String _formatDuration(Duration d) {
   final minutes = d.inMinutes;
   final seconds = (d.inSeconds % 60).toString().padLeft(2, '0');
   return "$minutes:$seconds";
+}
+
+Widget buildLibraryOverviewCards(
+  BuildContext context, {
+  required int albumsCount,
+  required int artistsCount,
+  required int songsCount,
+  required int playlistsCount,
+  void Function(int sidebarIndex)? onSwitchToTab,
+}) {
+  final theme = Theme.of(context);
+  const double spacing = 12;
+
+  Widget card({
+    required String label,
+    required int count,
+    required IconData icon,
+    required int sidebarIndex,
+  }) {
+    return Expanded(
+      child: Padding(
+        padding: EdgeInsets.only(right: sidebarIndex < 6 ? spacing : 0),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(kDoudouRadiusCard),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(kDoudouRadiusCard),
+            onTap: () {
+              if (onSwitchToTab != null) {
+                onSwitchToTab(sidebarIndex);
+              } else {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => CombinedLibrary(
+                      initialTabIndex: sidebarIndex - 3,
+                    ),
+                  ),
+                );
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              decoration: BoxDecoration(
+                color: kDoudouSurface,
+                borderRadius: BorderRadius.circular(kDoudouRadiusCard),
+                border: Border.all(
+                  color: kDoudouBorderStrong,
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 28, color: kDoudouZinc500),
+                  const SizedBox(height: 12),
+                  Text(
+                    label,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: kDoudouZinc500,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$count',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  return Row(
+    children: [
+      card(
+        label: context.l10n.albums,
+        count: albumsCount,
+        icon: Icons.album_outlined,
+        sidebarIndex: 5,
+      ),
+      card(
+        label: context.l10n.artists,
+        count: artistsCount,
+        icon: Icons.person_outline,
+        sidebarIndex: 6,
+      ),
+      card(
+        label: context.l10n.songs,
+        count: songsCount,
+        icon: Icons.music_note_outlined,
+        sidebarIndex: 3,
+      ),
+      card(
+        label: context.l10n.playlists,
+        count: playlistsCount,
+        icon: Icons.playlist_play,
+        sidebarIndex: 4,
+      ),
+    ],
+  );
 }
 
 Widget buildTrackRowSection({
@@ -273,6 +380,8 @@ Widget buildAlbumRowSection({
   required String title,
   required String subtitle,
   required List<Album> albums,
+  bool showViewAll = false,
+  VoidCallback? onViewAll,
 }) {
   final theme = Theme.of(context);
   return Column(
@@ -280,30 +389,57 @@ Widget buildAlbumRowSection({
     children: [
       Row(
         children: [
-          Text(
-            title,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 4,
+                      height: 4,
+                      decoration: const BoxDecoration(
+                        color: kDoudouPurple,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: kDoudouZinc500,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          Container(
-            width: 4,
-            height: 4,
-            decoration: const BoxDecoration(
-              color: kDoudouPurple,
-              shape: BoxShape.circle,
+          if (showViewAll)
+            TextButton(
+              onPressed: onViewAll ?? () {},
+              style: TextButton.styleFrom(
+                foregroundColor: kDoudouPurpleLight,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+              child: Text(
+                context.l10n.viewAll.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                ),
+              ),
             ),
-          ),
         ],
-      ),
-      const SizedBox(height: 4),
-      Text(
-        subtitle,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: kDoudouZinc500,
-        ),
       ),
       const SizedBox(height: 12),
       SizedBox(

@@ -39,6 +39,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get library => 'Библиотека';
 
   @override
+  String get libraryOverviewSubtitle => 'Обзор / Ваша музыкальная коллекция.';
+
+  @override
   String get yourLibrary => 'Ваша библиотека';
 
   @override
