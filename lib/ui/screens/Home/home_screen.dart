@@ -5,7 +5,6 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../Search/components/desktop_search_bar.dart';
 import '/models/album.dart';
 import '/ui/constants/doudou_design.dart';
 import '/models/artist.dart';
@@ -344,9 +343,69 @@ class Body extends StatelessWidget {
                         ),
                         child: Container(
                           color: Colors.black.withValues(alpha: 0.4),
-                          child: const Padding(
-                            padding: EdgeInsets.only(top: 15.0),
-                            child: DesktopSearchBar(),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 15),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  style: IconButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(32, 32),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  tooltip: context.l10n.shuffleAll,
+                                  icon: const Icon(Icons.shuffle, size: 18),
+                                  onPressed: () {
+                                    final c = Get.find<HomeScreenController>();
+                                    c.shuffleAll(
+                                      emptyMessage:
+                                          context.l10n.noSongsInLibrary,
+                                      playFromName: context.l10n.shuffleAll,
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  style: IconButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(32, 32),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  tooltip: context.l10n.favorites,
+                                  icon: const Icon(
+                                      Icons.favorite_border, size: 18),
+                                  onPressed: () {
+                                    final c = Get.find<HomeScreenController>();
+                                    c.shuffleFavorites(
+                                      emptyMessage:
+                                          context.l10n.favoritesEmpty,
+                                      playFromName: context.l10n.favorites,
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  style: IconButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(32, 32),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  tooltip: context.l10n.downloads,
+                                  icon: const Icon(Icons.download, size: 18),
+                                  onPressed: () {
+                                    final c = Get.find<HomeScreenController>();
+                                    c.shuffleDownloads(
+                                      emptyMessage:
+                                          context.l10n.noOfflineSong,
+                                      playFromName: context.l10n.downloads,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
