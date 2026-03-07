@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 
 import '/models/album.dart';
 import '/ui/constants/doudou_design.dart';
@@ -197,6 +198,14 @@ class Body extends StatelessWidget {
                   final content = <Widget>[];
 
                   content.add(const SizedBox(height: 32));
+                  content.add(
+                    _buildHomeQuickActionCards(
+                      context: context,
+                      libSongs: libSongs,
+                      homeScreenController: homeScreenController,
+                    ),
+                  );
+                  content.add(const SizedBox(height: 24));
 
                   if (resolved.continueListening.isNotEmpty) {
                     content.add(
@@ -328,91 +337,6 @@ class Body extends StatelessWidget {
               );
             }),
                   ),
-            if (GetPlatform.isDesktop)
-              Align(
-                alignment: Alignment.topCenter,
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return SizedBox(
-                    width: constraints.maxWidth,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(
-                          sigmaX: kDoudouBlurBar,
-                          sigmaY: kDoudouBlurBar,
-                        ),
-                        child: Container(
-                          color: Colors.black.withValues(alpha: 0.4),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 15),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  style: IconButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: const Size(32, 32),
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  tooltip: context.l10n.shuffleAll,
-                                  icon: const Icon(Icons.shuffle, size: 18),
-                                  onPressed: () {
-                                    final c = Get.find<HomeScreenController>();
-                                    c.shuffleAll(
-                                      emptyMessage:
-                                          context.l10n.noSongsInLibrary,
-                                      playFromName: context.l10n.shuffleAll,
-                                    );
-                                  },
-                                ),
-                                IconButton(
-                                  style: IconButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: const Size(32, 32),
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  tooltip: context.l10n.favorites,
-                                  icon: const Icon(
-                                      Icons.favorite_border, size: 18),
-                                  onPressed: () {
-                                    final c = Get.find<HomeScreenController>();
-                                    c.shuffleFavorites(
-                                      emptyMessage:
-                                          context.l10n.favoritesEmpty,
-                                      playFromName: context.l10n.favorites,
-                                    );
-                                  },
-                                ),
-                                IconButton(
-                                  style: IconButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: const Size(32, 32),
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  tooltip: context.l10n.downloads,
-                                  icon: const Icon(Icons.download, size: 18),
-                                  onPressed: () {
-                                    final c = Get.find<HomeScreenController>();
-                                    c.shuffleDownloads(
-                                      emptyMessage:
-                                          context.l10n.noOfflineSong,
-                                      playFromName: context.l10n.downloads,
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              )
           ],
         ),
       );
@@ -451,6 +375,68 @@ class Body extends StatelessWidget {
         })
         .whereType<Widget>()
         .toList();
+  }
+
+  Widget _buildHomeQuickActionCards({
+    required BuildContext context,
+    required LibrarySongsController libSongs,
+    required HomeScreenController homeScreenController,
+  }) {
+    final shuffleCount = libSongs.librarySongsList.length;
+    int downloadCount = 0;
+    try {
+      if (Hive.isBoxOpen('SongDownloads')) {
+        downloadCount = Hive.box('SongDownloads').length;
+      }
+    } catch (_) {}
+    return Row(
+      children: [
+        Expanded(
+          child: _HomeQuickActionCard(
+            icon: Icons.shuffle,
+            label: context.l10n.shuffleAll,
+            subtitle: '$shuffleCount ${context.l10n.songsCount}',
+            color: const Color(0xFF15803d),
+            onTap: () {
+              homeScreenController.shuffleAll(
+                emptyMessage: context.l10n.noSongsInLibrary,
+                playFromName: context.l10n.shuffleAll,
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _HomeQuickActionCard(
+            icon: Icons.favorite,
+            label: context.l10n.favorites,
+            subtitle: context.l10n.shuffleFavorites,
+            color: kDoudouRed,
+            onTap: () {
+              homeScreenController.shuffleFavorites(
+                emptyMessage: context.l10n.favoritesEmpty,
+                playFromName: context.l10n.favorites,
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _HomeQuickActionCard(
+            icon: Icons.download,
+            label: context.l10n.downloads,
+            subtitle: '$downloadCount ${context.l10n.songsCount}',
+            color: kDoudouBlue,
+            onTap: () {
+              homeScreenController.shuffleDownloads(
+                emptyMessage: context.l10n.noOfflineSong,
+                playFromName: context.l10n.downloads,
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildTrackRowSection({
@@ -976,5 +962,84 @@ class Body extends StatelessWidget {
     final minutes = d.inMinutes;
     final seconds = (d.inSeconds % 60).toString().padLeft(2, '0');
     return "$minutes:$seconds";
+  }
+}
+
+class _HomeQuickActionCard extends StatelessWidget {
+  const _HomeQuickActionCard({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(kDoudouRadiusCard),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(kDoudouRadiusCard),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.25),
+            borderRadius: BorderRadius.circular(kDoudouRadiusCard),
+            border: Border.all(
+              color: color.withValues(alpha: 0.4),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
+                ),
+                child: Icon(icon, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
