@@ -1,10 +1,16 @@
+import 'dart:io';
+
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '/ui/constants/layout.dart';
+import '/ui/widgets/snackbar.dart';
 import '/ui/widgets/modification_list.dart';
 import '../../../models/playlist.dart';
+import '../../../models/media_Item_builder.dart';
 import '../../widgets/piped_sync_widget.dart';
 import 'library_controller.dart';
 import '../../widgets/content_list_widget_item.dart';
@@ -282,18 +288,191 @@ class LibraryArtistWidget extends StatelessWidget {
   }
 }
 
+class DownloadsLibraryWidget extends StatefulWidget {
+  const DownloadsLibraryWidget({super.key, this.isBottomNavActive = false});
+  final bool isBottomNavActive;
+
+  @override
+  State<DownloadsLibraryWidget> createState() => _DownloadsLibraryWidgetState();
+}
+
+class _DownloadsLibraryWidgetState extends State<DownloadsLibraryWidget> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _clearAllDownloads() async {
+    final box = Hive.box("SongDownloads");
+    final songs = box.values
+        .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
+        .whereType<MediaItem>()
+        .toList();
+    final supportDirPath = Get.find<SettingsScreenController>().supportDirPath;
+
+    for (final song in songs) {
+      final filePath = song.extras?['url'];
+      if (filePath is String && filePath.isNotEmpty) {
+        final file = File(filePath);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      }
+      final thumbFile = File("$supportDirPath/thumbnails/${song.id}.png");
+      if (await thumbFile.exists()) {
+        await thumbFile.delete();
+      }
+    }
+
+    await box.clear();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      snackbar(context, context.l10n.deleteDownloadedDataAlert,
+          size: SnackBarSize.MEDIUM),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final useBottomNav = widget.isBottomNavActive || Get.find<ShellController>().useBottomNav.value;
+    final topPadding = context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault;
+
+    return Padding(
+      padding: useBottomNav
+          ? const EdgeInsets.only(left: kContentLeftPaddingLibraryWithBottomNav)
+          : EdgeInsets.only(left: kContentLeftPaddingWithoutBottomNav, top: topPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          useBottomNav
+              ? const SizedBox(height: 10)
+              : Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    context.l10n.downloads,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: context.l10n.search,
+                      prefixIcon: const Icon(Icons.search, size: 18),
+                      suffixIcon: _searchController.text.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.close, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {});
+                              },
+                            ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ValueListenableBuilder<Box>(
+                  valueListenable: Hive.box("SongDownloads").listenable(),
+                  builder: (context, box, _) => IconButton(
+                    tooltip: context.l10n.deleteDownloadedDataAlert,
+                    icon: const Icon(Icons.delete_sweep_outlined),
+                    onPressed: box.isEmpty
+                        ? null
+                        : () async {
+                            final shouldDelete = await showDialog<bool>(
+                              context: context,
+                              builder: (dialogContext) => AlertDialog(
+                                title: Text(context.l10n.deleteDownloadData),
+                                content: Text(context.l10n.deleteDownloadedDataAlert),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                                    child: Text(context.l10n.cancel),
+                                  ),
+                                  FilledButton(
+                                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                                    child: Text(context.l10n.deleteDownloadData),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (shouldDelete == true) {
+                              await _clearAllDownloads();
+                            }
+                          },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ValueListenableBuilder<Box>(
+            valueListenable: Hive.box("SongDownloads").listenable(),
+            builder: (context, box, _) {
+              final allSongs = box.values
+                  .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
+                  .whereType<MediaItem>()
+                  .toList();
+              final query = _searchController.text.trim().toLowerCase();
+              final songs = query.isEmpty
+                  ? allSongs
+                  : allSongs
+                      .where((s) => s.title.toLowerCase().contains(query))
+                      .toList();
+
+              if (songs.isEmpty) {
+                return Expanded(
+                  child: Center(
+                    child: Text(
+                      context.l10n.noOfflineSong,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                );
+              }
+
+              return ListWidget(
+                songs,
+                "library Songs",
+                true,
+                isPlaylistOrAlbum: true,
+                playlist: Playlist(
+                  title: context.l10n.downloads,
+                  playlistId: "SongDownloads",
+                  thumbnailUrl: "",
+                  isCloudPlaylist: false,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class LibraryListFullScreen extends StatelessWidget {
   const LibraryListFullScreen({super.key, required this.tabIndex});
   final int tabIndex;
 
   @override
   Widget build(BuildContext context) {
-    final index = tabIndex.clamp(0, 3);
+    final index = tabIndex.clamp(0, 4);
     final titles = [
       context.l10n.songs,
       context.l10n.playlists,
       context.l10n.albums,
       context.l10n.artists,
+      context.l10n.downloads,
     ];
     final body = switch (index) {
       0 => const SongsLibraryWidget(isBottomNavActive: true),
@@ -302,6 +481,7 @@ class LibraryListFullScreen extends StatelessWidget {
       2 => const PlaylistNAlbumLibraryWidget(
           isAlbumContent: true, isBottomNavActive: true),
       3 => const LibraryArtistWidget(isBottomNavActive: true),
+      4 => const DownloadsLibraryWidget(isBottomNavActive: true),
       _ => const SizedBox.shrink(),
     };
     return Scaffold(

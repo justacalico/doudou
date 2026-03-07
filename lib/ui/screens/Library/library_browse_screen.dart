@@ -88,6 +88,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
             if (songsCount > 0) tabs.add(_TabItem(context.l10n.songs, 1));
             if (artistsCount > 0) tabs.add(_TabItem(context.l10n.artists, 2));
             if (playlistsCount > 0) tabs.add(_TabItem(context.l10n.playlists, 3));
+            tabs.add(_TabItem(context.l10n.downloads, 4));
 
             if (tabs.isEmpty) {
               return Expanded(
@@ -135,6 +136,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
                           isAlbumContent: false,
                           isBottomNavActive: true,
                         ),
+                        DownloadsLibraryWidget(isBottomNavActive: true),
                       ],
                     ),
                   ),
