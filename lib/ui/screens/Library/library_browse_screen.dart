@@ -22,6 +22,34 @@ class LibraryBrowseScreen extends StatefulWidget {
 
 class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
   int _selectedTabIndex = 0;
+  bool _headerCollapsed = false;
+  double _lastScrollPixels = 0;
+
+  bool _isVertical(AxisDirection direction) {
+    return direction == AxisDirection.down || direction == AxisDirection.up;
+  }
+
+  bool _handleLibraryScroll(ScrollNotification notification) {
+    if (!_isVertical(notification.metrics.axisDirection)) return false;
+
+    if (notification is ScrollStartNotification) {
+      _lastScrollPixels = notification.metrics.pixels;
+      return false;
+    }
+    if (notification is! ScrollUpdateNotification) return false;
+
+    final pixels = notification.metrics.pixels;
+    final delta = pixels - _lastScrollPixels;
+    _lastScrollPixels = pixels;
+
+    if (!_headerCollapsed && pixels > 24 && delta > 0.4) {
+      setState(() => _headerCollapsed = true);
+    } else if (_headerCollapsed &&
+        (pixels <= 8 || (pixels < 140 && delta < -8))) {
+      setState(() => _headerCollapsed = false);
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,35 +67,50 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Text(
-                context.l10n.library,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
+          AnimatedSize(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            child: ClipRect(
+              child: Align(
+                alignment: Alignment.topCenter,
+                heightFactor: _headerCollapsed ? 0 : 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Text(
+                          context.l10n.library,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 4,
+                          height: 4,
+                          decoration: const BoxDecoration(
+                            color: kDoudouPurple,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      context.l10n.libraryOverviewSubtitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: kDoudouZinc500,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                width: 4,
-                height: 4,
-                decoration: const BoxDecoration(
-                  color: kDoudouPurple,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            context.l10n.libraryOverviewSubtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: kDoudouZinc500,
             ),
           ),
-          const SizedBox(height: 20),
           Obx(() {
             final albumsCount = Get.isRegistered<LibraryAlbumsController>()
                 ? Get.find<LibraryAlbumsController>().libraryAlbums.length
@@ -80,14 +123,18 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
                 : 0;
             final playlistsCount =
                 Get.isRegistered<LibraryPlaylistsController>()
-                    ? Get.find<LibraryPlaylistsController>().libraryPlaylists.length
+                    ? Get.find<LibraryPlaylistsController>()
+                        .libraryPlaylists
+                        .length
                     : 0;
 
             final tabs = <_TabItem>[];
             if (albumsCount > 0) tabs.add(_TabItem(context.l10n.albums, 0));
             if (songsCount > 0) tabs.add(_TabItem(context.l10n.songs, 1));
             if (artistsCount > 0) tabs.add(_TabItem(context.l10n.artists, 2));
-            if (playlistsCount > 0) tabs.add(_TabItem(context.l10n.playlists, 3));
+            if (playlistsCount > 0) {
+              tabs.add(_TabItem(context.l10n.playlists, 3));
+            }
             tabs.add(_TabItem(context.l10n.downloads, 4));
 
             if (tabs.isEmpty) {
@@ -121,23 +168,30 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
                     selectedIndex: selected,
                     onTap: (i) => setState(() => _selectedTabIndex = i),
                   ),
-                  const SizedBox(height: 16),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOutCubic,
+                    height: _headerCollapsed ? 8 : 16,
+                  ),
                   Expanded(
-                    child: IndexedStack(
-                      index: contentIndex,
-                      children: const [
-                        PlaylistNAlbumLibraryWidget(
-                          isAlbumContent: true,
-                          isBottomNavActive: true,
-                        ),
-                        SongsLibraryWidget(isBottomNavActive: true),
-                        LibraryArtistWidget(isBottomNavActive: true),
-                        PlaylistNAlbumLibraryWidget(
-                          isAlbumContent: false,
-                          isBottomNavActive: true,
-                        ),
-                        DownloadsLibraryWidget(isBottomNavActive: true),
-                      ],
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: _handleLibraryScroll,
+                      child: IndexedStack(
+                        index: contentIndex,
+                        children: const [
+                          PlaylistNAlbumLibraryWidget(
+                            isAlbumContent: true,
+                            isBottomNavActive: true,
+                          ),
+                          SongsLibraryWidget(isBottomNavActive: true),
+                          LibraryArtistWidget(isBottomNavActive: true),
+                          PlaylistNAlbumLibraryWidget(
+                            isAlbumContent: false,
+                            isBottomNavActive: true,
+                          ),
+                          DownloadsLibraryWidget(isBottomNavActive: true),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -195,7 +249,8 @@ class _LibraryTopbar extends StatelessWidget {
                       child: Text(
                         tabs[i].label,
                         style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight:
+                              selected ? FontWeight.w600 : FontWeight.w500,
                           color: selected ? onSurface : muted,
                         ),
                       ),

@@ -225,10 +225,26 @@ class LibrarySyncService extends GetxService {
 
   Future<List<MediaItem>> getCachedSongs(int serverId) async {
     final box = await _openCacheBox(librarySongsCacheBoxName(serverId));
-    return box.values
-        .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
-        .whereType<MediaItem>()
-        .toList();
+    final songs = <MediaItem>[];
+    var skippedCount = 0;
+    for (final item in box.values) {
+      if (item is! Map) {
+        skippedCount++;
+        continue;
+      }
+      final song = MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(item));
+      if (song.id.isEmpty && song.title.isEmpty) {
+        skippedCount++;
+        continue;
+      }
+      songs.add(song);
+    }
+    if (skippedCount > 0) {
+      printWarning(
+        "Skipped $skippedCount invalid cached song rows for server $serverId",
+      );
+    }
+    return songs;
   }
 
   Future<List<Album>> getCachedAlbums(int serverId) async {

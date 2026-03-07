@@ -5,39 +5,83 @@ import '../models/thumbnail.dart';
 
 class MediaItemBuilder {
   static MediaItem fromJson(dynamic json, {String? url}) {
-    String? artistName;
-    if (json['artists'] != null) {
-      artistName =
-          json['artists']?.map((e) => e['name']).toList().join(', ').toString();
-    }
+    final map = json is Map ? json : const <String, dynamic>{};
+    final artistName = _parseArtistNames(map['artists']);
 
     Map? album;
-    if (json['album'] != null) {
-      if (json['album']['id'] != null) {
-        album = json['album'];
-      }
+    final rawAlbum = map['album'];
+    if (rawAlbum is Map && rawAlbum['id'] != null) {
+      album = rawAlbum;
+    }
+    final thumbnailUrl = _firstThumbnailUrl(map['thumbnails']);
+    final duration = _parseDuration(
+      secondsRaw: map['duration'],
+      lengthRaw: map['length'],
+    );
+    final mediaId = map["videoId"]?.toString() ?? "";
+    final title = map["title"]?.toString() ?? "";
+    final resolvedUrl = map['url']?.toString().trim().isNotEmpty == true
+        ? map['url'].toString()
+        : url;
+
+    Uri artUri;
+    try {
+      artUri = Uri.parse(
+        thumbnailUrl.isEmpty ? "" : Thumbnail(thumbnailUrl).high,
+      );
+    } catch (_) {
+      artUri = Uri.parse('');
     }
 
     return MediaItem(
-        id: json["videoId"],
-        title: json["title"],
-        duration: json['duration'] != null
-            ? Duration(seconds: json['duration'])
-            : toDuration(json['length']),
+        id: mediaId,
+        title: title,
+        duration: duration,
         album: album != null ? album['name'] : null,
         artist: artistName,
-        artUri: Uri.parse(Thumbnail(json["thumbnails"][0]['url']).high),
+        artUri: artUri,
         extras: {
-          'url': json['url'] ?? url,
-          'length': json['length'],
+          'url': resolvedUrl,
+          'length': map['length'],
           'album': album,
-          'artists': json['artists'],
-          'date': json['date'],
-          'trackDetails': json['trackDetails'],
-          'year': json['year'],
-          if (json['backendType'] != null) 'backendType': json['backendType'],
-          if (json['serverId'] != null) 'serverId': json['serverId'],
+          'artists': map['artists'],
+          'date': map['date'],
+          'trackDetails': map['trackDetails'],
+          'year': map['year'],
+          if (map['backendType'] != null) 'backendType': map['backendType'],
+          if (map['serverId'] != null) 'serverId': map['serverId'],
         });
+  }
+
+  static String _parseArtistNames(dynamic rawArtists) {
+    if (rawArtists is! List) return '';
+    final names = rawArtists
+        .map((e) => e is Map ? e['name']?.toString().trim() : null)
+        .whereType<String>()
+        .where((e) => e.isNotEmpty)
+        .toList();
+    return names.join(', ');
+  }
+
+  static String _firstThumbnailUrl(dynamic rawThumbnails) {
+    if (rawThumbnails is! List || rawThumbnails.isEmpty) return '';
+    final first = rawThumbnails.first;
+    if (first is! Map) return '';
+    return first['url']?.toString().trim() ?? '';
+  }
+
+  static Duration? _parseDuration({
+    required dynamic secondsRaw,
+    required dynamic lengthRaw,
+  }) {
+    if (secondsRaw is num) {
+      return Duration(seconds: secondsRaw.round());
+    }
+    if (secondsRaw is String) {
+      final seconds = int.tryParse(secondsRaw.trim());
+      if (seconds != null) return Duration(seconds: seconds);
+    }
+    return toDuration(lengthRaw?.toString());
   }
 
   static Duration? toDuration(String? time) {
@@ -48,13 +92,16 @@ class MediaItemBuilder {
     int sec = 0;
     final splitted = time.split(":");
     if (splitted.length == 3) {
-      sec += int.parse(splitted[0]) * 3600 +
-          int.parse(splitted[1]) * 60 +
-          int.parse(splitted[2]);
+      final h = int.tryParse(splitted[0]) ?? 0;
+      final m = int.tryParse(splitted[1]) ?? 0;
+      final s = int.tryParse(splitted[2]) ?? 0;
+      sec += h * 3600 + m * 60 + s;
     } else if (splitted.length == 2) {
-      sec += int.parse(splitted[0]) * 60 + int.parse(splitted[1]);
+      final m = int.tryParse(splitted[0]) ?? 0;
+      final s = int.tryParse(splitted[1]) ?? 0;
+      sec += m * 60 + s;
     } else if (splitted.length == 1) {
-      sec += int.parse(splitted[0]);
+      sec += int.tryParse(splitted[0]) ?? 0;
     }
     return Duration(seconds: sec);
   }

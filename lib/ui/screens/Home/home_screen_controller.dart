@@ -619,9 +619,11 @@ class HomeScreenController extends GetxController {
     final playlistsFromCollection = <Playlist>[];
     if (playlistsController != null) {
       final allPlaylists = playlistsController.libraryPlaylists.toList();
-      if (allPlaylists.length > Get.find<LibraryPlaylistsController>().initPlst.length) {
+      if (allPlaylists.length >
+          Get.find<LibraryPlaylistsController>().initPlst.length) {
         playlistsFromCollection.addAll(
-          allPlaylists.skip(Get.find<LibraryPlaylistsController>().initPlst.length),
+          allPlaylists
+              .skip(Get.find<LibraryPlaylistsController>().initPlst.length),
         );
       }
     }
@@ -671,17 +673,20 @@ class HomeScreenController extends GetxController {
     );
   }
 
+  List<MediaItem> _safeMediaItemsFromIterable(Iterable<dynamic> raw) {
+    return raw
+        .whereType<Map>()
+        .map<MediaItem>(
+            (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
+        .where((e) => e.id.isNotEmpty || e.title.isNotEmpty)
+        .toList();
+  }
+
   Future<List<MediaItem>> _loadRecentlyPlayed() async {
     try {
       final box = await Hive.openBox(recentlyPlayedBoxName(currentServerId()));
       final values = box.values.toList();
-      return values
-          .map<MediaItem?>(
-              (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
-          .whereType<MediaItem>()
-          .toList()
-          .reversed
-          .toList();
+      return _safeMediaItemsFromIterable(values).reversed.toList();
     } catch (_) {
       return const [];
     }
@@ -700,22 +705,14 @@ class HomeScreenController extends GetxController {
       final favBoxName = libFavBoxName(currentServerId());
       try {
         final box = await Hive.openBox(favBoxName);
-        favorites = box.values
-            .map<MediaItem?>(
-                (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
-            .whereType<MediaItem>()
-            .toList();
+        favorites = _safeMediaItemsFromIterable(box.values);
       } catch (_) {
         favorites = const [];
       }
     } else {
       try {
         final tracks = await settings.currentBackend.getFavoriteSongs();
-        favorites = tracks
-            .map<MediaItem?>(
-                (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
-            .whereType<MediaItem>()
-            .toList();
+        favorites = _safeMediaItemsFromIterable(tracks);
       } catch (_) {
         favorites = const [];
       }
@@ -784,11 +781,7 @@ class HomeScreenController extends GetxController {
       list = songsController.librarySongsList.toList();
       try {
         final favBox = await Hive.openBox(libFavBoxName(currentServerId()));
-        final favSongs = favBox.values
-            .map<MediaItem?>(
-                (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
-            .whereType<MediaItem>()
-            .toList();
+        final favSongs = _safeMediaItemsFromIterable(favBox.values);
         final seenIds = list.map((s) => s.id).toSet();
         for (final s in favSongs) {
           if (seenIds.add(s.id)) list.add(s);
@@ -812,7 +805,8 @@ class HomeScreenController extends GetxController {
     await Get.find<PlayerController>().playPlayListSong(
       list,
       0,
-      playfrom: PlaylingFrom(name: playFromName, type: PlaylingFromType.SELECTION),
+      playfrom:
+          PlaylingFrom(name: playFromName, type: PlaylingFromType.SELECTION),
     );
   }
 
@@ -827,22 +821,14 @@ class HomeScreenController extends GetxController {
     if (isYouTubeServer) {
       try {
         final box = await Hive.openBox(libFavBoxName(currentServerId()));
-        list = box.values
-            .map<MediaItem?>(
-                (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
-            .whereType<MediaItem>()
-            .toList();
+        list = _safeMediaItemsFromIterable(box.values);
       } catch (_) {
         list = [];
       }
     } else {
       try {
         final tracks = await _backend.getFavoriteSongs();
-        list = tracks
-            .map<MediaItem?>(
-                (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
-            .whereType<MediaItem>()
-            .toList();
+        list = _safeMediaItemsFromIterable(tracks);
       } catch (_) {
         list = [];
       }
@@ -855,7 +841,8 @@ class HomeScreenController extends GetxController {
     await Get.find<PlayerController>().playPlayListSong(
       list,
       0,
-      playfrom: PlaylingFrom(name: playFromName, type: PlaylingFromType.PLAYLIST),
+      playfrom:
+          PlaylingFrom(name: playFromName, type: PlaylingFromType.PLAYLIST),
     );
   }
 
@@ -863,11 +850,7 @@ class HomeScreenController extends GetxController {
     required String emptyMessage,
     required String playFromName,
   }) async {
-    final list = Hive.box("SongDownloads").values
-        .map<MediaItem?>(
-            (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
-        .whereType<MediaItem>()
-        .toList();
+    final list = _safeMediaItemsFromIterable(Hive.box("SongDownloads").values);
     if (list.isEmpty) {
       Get.snackbar('', emptyMessage);
       return;
@@ -876,7 +859,8 @@ class HomeScreenController extends GetxController {
     await Get.find<PlayerController>().playPlayListSong(
       list,
       0,
-      playfrom: PlaylingFrom(name: playFromName, type: PlaylingFromType.PLAYLIST),
+      playfrom:
+          PlaylingFrom(name: playFromName, type: PlaylingFromType.PLAYLIST),
     );
   }
 
@@ -936,7 +920,10 @@ class HomeLibrarySections {
     List<MediaItem> parseMediaItems(dynamic value) {
       if (value is! List) return const [];
       return value
-          .map<MediaItem?>((e) => MediaItemBuilder.fromJson(e))
+          .whereType<Map>()
+          .map<MediaItem?>(
+              (e) => MediaItemBuilder.fromJson(Map<dynamic, dynamic>.from(e)))
+          .where((e) => e != null && (e.id.isNotEmpty || e.title.isNotEmpty))
           .whereType<MediaItem>()
           .toList();
     }
@@ -944,6 +931,7 @@ class HomeLibrarySections {
     List<Playlist> parsePlaylists(dynamic value) {
       if (value is! List) return const [];
       return value
+          .whereType<Map>()
           .map<Playlist?>(
               (e) => Playlist.fromJson(Map<dynamic, dynamic>.from(e)))
           .whereType<Playlist>()
@@ -953,6 +941,7 @@ class HomeLibrarySections {
     List<Album> parseAlbums(dynamic value) {
       if (value is! List) return const [];
       return value
+          .whereType<Map>()
           .map<Album?>((e) => Album.fromJson(Map<dynamic, dynamic>.from(e)))
           .whereType<Album>()
           .toList();
@@ -961,6 +950,7 @@ class HomeLibrarySections {
     List<Artist> parseArtists(dynamic value) {
       if (value is! List) return const [];
       return value
+          .whereType<Map>()
           .map<Artist?>((e) => Artist.fromJson(Map<dynamic, dynamic>.from(e)))
           .whereType<Artist>()
           .toList();

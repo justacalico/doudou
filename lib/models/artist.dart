@@ -13,16 +13,31 @@ class Artist {
   final String? radioId;
   final String? subscribers;
   final String thumbnailUrl;
-  factory Artist.fromJson(dynamic json) => Artist(
-      name: json['artist'],
-      browseId: json['browseId'],
-      radioId: json['radioId'],
-      subscribers: (json['subscribers']) == null
-          ? ""
-          : (json['subscribers']).runtimeType.toString() == "String"
-              ? json['subscribers']
-              : json['subscribers']['text'],
-      thumbnailUrl: Thumbnail(json["thumbnails"][0]["url"]).high);
+  factory Artist.fromJson(dynamic json) {
+    final map = json is Map ? json : const <String, dynamic>{};
+    final subscribersRaw = map['subscribers'];
+    final subscribers = subscribersRaw == null
+        ? ''
+        : subscribersRaw is String
+            ? subscribersRaw
+            : (subscribersRaw is Map
+                ? subscribersRaw['text']?.toString() ?? ''
+                : '');
+
+    final rawThumbs = map["thumbnails"];
+    String thumbUrl = '';
+    if (rawThumbs is List && rawThumbs.isNotEmpty && rawThumbs.first is Map) {
+      thumbUrl = (rawThumbs.first['url']?.toString() ?? '').trim();
+    }
+
+    return Artist(
+      name: map['artist']?.toString() ?? '',
+      browseId: map['browseId']?.toString() ?? '',
+      radioId: map['radioId']?.toString(),
+      subscribers: subscribers,
+      thumbnailUrl: thumbUrl.isEmpty ? '' : Thumbnail(thumbUrl).high,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'artist': name,
