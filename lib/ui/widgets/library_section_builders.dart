@@ -10,7 +10,7 @@ import '/utils/app_l10n.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/navigator.dart';
 import '/ui/widgets/image_widget.dart';
-import '/ui/screens/Library/library_combined.dart';
+import '/ui/screens/Library/library.dart';
 
 String _formatDuration(Duration d) {
   final minutes = d.inMinutes;
@@ -49,9 +49,8 @@ Widget buildLibraryOverviewCards(
               } else {
                 Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => CombinedLibrary(
-                      initialTabIndex: sidebarIndex - 3,
-                    ),
+                    builder: (_) =>
+                        LibraryListFullScreen(tabIndex: sidebarIndex - 3),
                   ),
                 );
               }

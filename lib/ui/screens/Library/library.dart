@@ -292,3 +292,38 @@ class LibraryArtistWidget extends StatelessWidget {
     );
   }
 }
+
+class LibraryListFullScreen extends StatelessWidget {
+  const LibraryListFullScreen({super.key, required this.tabIndex});
+  final int tabIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    final index = tabIndex.clamp(0, 3);
+    final titles = [
+      context.l10n.songs,
+      context.l10n.playlists,
+      context.l10n.albums,
+      context.l10n.artists,
+    ];
+    final body = switch (index) {
+      0 => const SongsLibraryWidget(isBottomNavActive: true),
+      1 => const PlaylistNAlbumLibraryWidget(
+          isAlbumContent: false, isBottomNavActive: true),
+      2 => const PlaylistNAlbumLibraryWidget(
+          isAlbumContent: true, isBottomNavActive: true),
+      3 => const LibraryArtistWidget(isBottomNavActive: true),
+      _ => const SizedBox.shrink(),
+    };
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(titles[index]),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: body,
+    );
+  }
+}

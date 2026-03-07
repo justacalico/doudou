@@ -8,8 +8,8 @@ import '/ui/player/player_controller.dart';
 import '/ui/shell_controller.dart';
 import '/ui/widgets/library_section_builders.dart';
 import '../Home/home_screen_controller.dart';
-import 'library_combined.dart';
 import 'library_controller.dart';
+import 'library.dart';
 
 class LibraryBrowseScreen extends StatelessWidget {
   const LibraryBrowseScreen({
@@ -119,7 +119,7 @@ class LibraryBrowseScreen extends StatelessWidget {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) =>
-                    CombinedLibrary(initialTabIndex: combinedTabIndex),
+                    LibraryListFullScreen(tabIndex: combinedTabIndex),
               ),
             );
           }
