@@ -20,9 +20,11 @@ class MediaItemBuilder {
     );
     final mediaId = map["videoId"]?.toString() ?? "";
     final title = map["title"]?.toString() ?? "";
-    final resolvedUrl = map['url']?.toString().trim().isNotEmpty == true
+    final backendType = map['backendType']?.toString();
+    final parsedUrl = map['url']?.toString().trim().isNotEmpty == true
         ? map['url'].toString()
-        : url;
+        : null;
+    final resolvedUrl = backendType == 'plex' ? null : (parsedUrl ?? url);
 
     Uri artUri;
     try {

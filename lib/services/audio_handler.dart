@@ -1073,9 +1073,11 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         extras?['backendType'] == 'subsonic' ||
         extras?['backendType'] == 'plex') {
       try {
+        final isPlex = extras?['backendType'] == 'plex';
         final existingUrl = extras?['url']?.toString();
         String? url;
-        if (!generateNewUrl &&
+        if (!isPlex &&
+            !generateNewUrl &&
             existingUrl != null &&
             existingUrl.isNotEmpty &&
             existingUrl.startsWith('http')) {
@@ -1091,6 +1093,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         } else {
           final backend = _resolveBackendForExtras(extras);
           url = await backend.getStreamUrl(songId);
+          if ((url == null || url.isEmpty) && isPlex) {
+            await Future<void>.delayed(const Duration(milliseconds: 150));
+            url = await backend.getStreamUrl(songId);
+          }
         }
         if (url != null && url.isNotEmpty) {
           final audio = Audio(
@@ -1390,7 +1396,9 @@ class MediaLibrary {
         .where((k) => k is String && k.toString().startsWith(prefix))
         .toList();
     final playlists = [
-      ...Get.find<LibraryPlaylistsController>().initPlst.map((e) => e.toMediaItem()),
+      ...Get.find<LibraryPlaylistsController>()
+          .initPlst
+          .map((e) => e.toMediaItem()),
       ...serverKeys.map((k) => box.get(k.toString())).whereType<Map>().map(
           (item) =>
               Playlist.fromJson(Map<dynamic, dynamic>.from(item)).toMediaItem())

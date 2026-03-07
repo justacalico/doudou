@@ -121,7 +121,8 @@ class PlexBackend extends MusicBackend {
             title: p.name,
             playlistId: p.id,
             description: null,
-            thumbnailUrl: p.imageUrl ?? app_playlist.Playlist.thumbPlaceholderUrl,
+            thumbnailUrl:
+                p.imageUrl ?? app_playlist.Playlist.thumbPlaceholderUrl,
             songCount: p.trackCount.toString(),
             isPipedPlaylist: false,
             isCloudPlaylist: true,
@@ -209,12 +210,14 @@ class PlexBackend extends MusicBackend {
             }
           : null,
       'duration': track.duration,
-      'url': _service.getStreamUrl(track.id),
-      'length':
-          track.duration != null ? '${track.duration ~/ 60}:${track.duration % 60}' : null,
+      // Always resolve Plex stream URLs at playback time. Cached static URLs
+      // can expire or be unavailable on some servers.
+      'url': null,
+      'length': track.duration != null
+          ? '${track.duration ~/ 60}:${track.duration % 60}'
+          : null,
       'backendType': 'plex',
       'serverId': server.id,
     };
   }
 }
-

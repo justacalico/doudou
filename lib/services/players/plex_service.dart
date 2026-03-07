@@ -40,8 +40,9 @@ class PlexService {
     required String serverUrl,
     required String token,
   }) {
-    _serverUrl =
-        serverUrl.endsWith('/') ? serverUrl.substring(0, serverUrl.length - 1) : serverUrl;
+    _serverUrl = serverUrl.endsWith('/')
+        ? serverUrl.substring(0, serverUrl.length - 1)
+        : serverUrl;
     _token = token;
   }
 
@@ -170,11 +171,13 @@ class PlexService {
             'X-Plex-Token': _token,
             'type': '9',
             if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+            if (startIndex != null)
+              'X-Plex-Container-Start': startIndex.toString(),
           },
         );
 
-        final albums = response.data['MediaContainer']['Metadata'] as List? ?? [];
+        final albums =
+            response.data['MediaContainer']['Metadata'] as List? ?? [];
         allAlbums.addAll(
           albums
               .map(
@@ -202,11 +205,13 @@ class PlexService {
               'X-Plex-Token': _token,
               'type': '9',
               if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-              if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+              if (startIndex != null)
+                'X-Plex-Container-Start': startIndex.toString(),
             },
           );
 
-          final albums = response.data['MediaContainer']['Metadata'] as List? ?? [];
+          final albums =
+              response.data['MediaContainer']['Metadata'] as List? ?? [];
           allAlbums.addAll(
             albums
                 .map(
@@ -248,11 +253,13 @@ class PlexService {
             'X-Plex-Token': _token,
             'type': '8',
             if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+            if (startIndex != null)
+              'X-Plex-Container-Start': startIndex.toString(),
           },
         );
 
-        final artists = response.data['MediaContainer']['Metadata'] as List? ?? [];
+        final artists =
+            response.data['MediaContainer']['Metadata'] as List? ?? [];
         allArtists.addAll(
           artists
               .map(
@@ -276,11 +283,13 @@ class PlexService {
               'X-Plex-Token': _token,
               'type': '8',
               if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-              if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+              if (startIndex != null)
+                'X-Plex-Container-Start': startIndex.toString(),
             },
           );
 
-          final artists = response.data['MediaContainer']['Metadata'] as List? ?? [];
+          final artists =
+              response.data['MediaContainer']['Metadata'] as List? ?? [];
           allArtists.addAll(
             artists
                 .map(
@@ -318,11 +327,13 @@ class PlexService {
           queryParameters: {
             'X-Plex-Token': _token,
             if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+            if (startIndex != null)
+              'X-Plex-Container-Start': startIndex.toString(),
           },
         );
 
-        final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
+        final tracks =
+            response.data['MediaContainer']['Metadata'] as List? ?? [];
         allTracks.addAll(
           tracks
               .map(
@@ -349,11 +360,13 @@ class PlexService {
             'X-Plex-Token': _token,
             'type': '10',
             if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+            if (startIndex != null)
+              'X-Plex-Container-Start': startIndex.toString(),
           },
         );
 
-        final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
+        final tracks =
+            response.data['MediaContainer']['Metadata'] as List? ?? [];
         allTracks.addAll(
           tracks
               .map(
@@ -383,11 +396,13 @@ class PlexService {
               'X-Plex-Token': _token,
               'type': '10',
               'X-Plex-Container-Size': (limit ?? 100).toString(),
-              if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+              if (startIndex != null)
+                'X-Plex-Container-Start': startIndex.toString(),
             },
           );
 
-          final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
+          final tracks =
+              response.data['MediaContainer']['Metadata'] as List? ?? [];
           allTracks.addAll(
             tracks
                 .map(
@@ -399,7 +414,8 @@ class PlexService {
                     duration: _parseDuration(track['duration']),
                     trackNumber: track['index'] is int
                         ? track['index'] as int
-                        : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
+                        : (int.tryParse(track['index']?.toString() ?? '0') ??
+                            0),
                     imageUrl: track['thumb'] != null
                         ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token'
                         : null,
@@ -423,7 +439,8 @@ class PlexService {
         queryParameters: {'X-Plex-Token': _token, 'playlistType': 'audio'},
       );
 
-      final playlists = response.data['MediaContainer']['Metadata'] as List? ?? [];
+      final playlists =
+          response.data['MediaContainer']['Metadata'] as List? ?? [];
       return playlists
           .map(
             (playlist) => Playlist(
@@ -484,6 +501,11 @@ class PlexService {
     final partId = await _getTrackPartId(trackId);
     if (partId != null) {
       return getDirectPartUrl(partId);
+    }
+
+    final universal = getUniversalStreamUrl(trackId, bitrate: bitrate);
+    if (universal.isNotEmpty) {
+      return universal;
     }
 
     return getDownloadUrl(trackId);
@@ -597,4 +619,3 @@ class PlexService {
 
   String? get machineIdentifier => _machineIdentifier;
 }
-

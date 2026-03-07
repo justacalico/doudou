@@ -51,6 +51,10 @@ class ImageWidget extends StatelessWidget {
     /// only valid for offline songs
     final bool offlineAvailable =
         song != null && (song?.extras?["url"] ?? "").contains("file");
+    final offlineThumbFile = song == null
+        ? null
+        : File(
+            "${Get.find<SettingsScreenController>().supportDirPath}/thumbnails/${song!.id}.png");
 
     Widget placeholderIcon() {
       return Container(
@@ -74,26 +78,29 @@ class ImageWidget extends StatelessWidget {
         borderRadius: artist != null ? null : BorderRadius.circular(5),
       ),
       child: offlineAvailable
-          ? Image.file(
-              File(
-                  "${Get.find<SettingsScreenController>().supportDirPath}/thumbnails/${song!.id}.png"),
-              height: size,
-              width: size,
-              fit: BoxFit.cover,
-            )
+          ? (offlineThumbFile != null && offlineThumbFile.existsSync()
+              ? Image.file(
+                  offlineThumbFile,
+                  height: size,
+                  width: size,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => placeholderIcon(),
+                )
+              : placeholderIcon())
           : imageUrl.trim().isEmpty
               ? placeholderIcon()
               : CachedNetworkImage(
-              height: size,
-              width: size,
-              memCacheHeight: (song != null && !isPlayerArtImage) ? 140 : null,
-              //memCacheWidth: (song != null && !isPlayerArtImage)? 140 : null,
-              //cacheKey: cacheKey,
-              imageUrl: imageUrl,
-              fit: BoxFit.cover,
-              errorWidget: (context, url, error) => placeholderIcon(),
-              progressIndicatorBuilder: ((_, __, ___) => placeholderIcon()),
-            ),
+                  height: size,
+                  width: size,
+                  memCacheHeight:
+                      (song != null && !isPlayerArtImage) ? 140 : null,
+                  //memCacheWidth: (song != null && !isPlayerArtImage)? 140 : null,
+                  //cacheKey: cacheKey,
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  errorWidget: (context, url, error) => placeholderIcon(),
+                  progressIndicatorBuilder: ((_, __, ___) => placeholderIcon()),
+                ),
     );
   }
 }
