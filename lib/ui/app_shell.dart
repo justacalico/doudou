@@ -58,8 +58,6 @@ class _AppShellState extends State<AppShell> {
     final width = size.width;
     final isWideScreen = width > 800;
 
-    final sidebarMode = settingsController.sidebarMode.value;
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -90,9 +88,12 @@ class _AppShellState extends State<AppShell> {
         },
         child: Obx(
           () {
+            final isBottomNavEnabled =
+                settingsController.isBottomNavBarEnabled.value;
+            final sidebarMode = settingsController.sidebarMode.value;
             final layout = DoudouLayout.of(context);
             final useBottomNav = layout.useBottomNav ||
-                settingsController.isBottomNavBarEnabled.isTrue ||
+                isBottomNavEnabled ||
                 width < kSidebarMinWidth;
 
             final desiredMinHeight = useBottomNav
