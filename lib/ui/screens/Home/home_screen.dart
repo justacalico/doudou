@@ -124,14 +124,6 @@ class Body extends StatelessWidget {
   Widget build(BuildContext context) {
     final homeScreenController = Get.find<HomeScreenController>();
     final useBottomNav = Get.find<ShellController>().useBottomNav.value;
-    final size = MediaQuery.of(context).size;
-    final topPadding = GetPlatform.isDesktop
-        ? kTopPaddingDesktop
-        : context.isLandscape
-            ? kTopPaddingLandscape
-            : size.height < kLayoutHeightBreakpointNarrow
-                ? kTopPaddingNarrow
-                : kTopPaddingDesktop;
     final leftPadding = useBottomNav
         ? kContentLeftPaddingWithBottomNav
         : kContentLeftPaddingWithoutBottomNav;
@@ -197,7 +189,7 @@ class Body extends StatelessWidget {
 
                   final content = <Widget>[];
 
-                  content.add(const SizedBox(height: 32));
+                  content.add(const SizedBox(height: 12));
                   content.add(
                     _buildHomeQuickActionCards(
                       context: context,
@@ -321,7 +313,7 @@ class Body extends StatelessWidget {
                     physics: const BouncingScrollPhysics(),
                     child: Padding(
                       padding: EdgeInsets.only(
-                        top: topPadding,
+                        top: 24,
                         right: kContentRightPadding,
                         bottom: useBottomNav
                             ? kContentBottomPaddingWithBottomNav
@@ -396,7 +388,6 @@ class Body extends StatelessWidget {
             icon: Icons.shuffle,
             label: context.l10n.shuffleAll,
             subtitle: '$shuffleCount ${context.l10n.songsCount}',
-            color: const Color(0xFF15803d),
             onTap: () {
               homeScreenController.shuffleAll(
                 emptyMessage: context.l10n.noSongsInLibrary,
@@ -411,7 +402,6 @@ class Body extends StatelessWidget {
             icon: Icons.favorite,
             label: context.l10n.favorites,
             subtitle: context.l10n.shuffleFavorites,
-            color: kDoudouRed,
             onTap: () {
               homeScreenController.shuffleFavorites(
                 emptyMessage: context.l10n.favoritesEmpty,
@@ -426,7 +416,6 @@ class Body extends StatelessWidget {
             icon: Icons.download,
             label: context.l10n.downloads,
             subtitle: '$downloadCount ${context.l10n.songsCount}',
-            color: kDoudouBlue,
             onTap: () {
               homeScreenController.shuffleDownloads(
                 emptyMessage: context.l10n.noOfflineSong,
@@ -970,19 +959,19 @@ class _HomeQuickActionCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.subtitle,
-    required this.color,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
   final String subtitle;
-  final Color color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final onSurface = theme.colorScheme.onSurface;
+    final onSurfaceVariant = onSurface.withValues(alpha: 0.7);
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(kDoudouRadiusCard),
@@ -992,22 +981,19 @@ class _HomeQuickActionCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.25),
+            color: kDoudouSurface,
             borderRadius: BorderRadius.circular(kDoudouRadiusCard),
-            border: Border.all(
-              color: color.withValues(alpha: 0.4),
-              width: 1,
-            ),
+            border: Border.all(color: kDoudouBorderStrong, width: 1),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.4),
+                  color: kDoudouSurfaceHover,
                   borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
                 ),
-                child: Icon(icon, color: Colors.white, size: 24),
+                child: Icon(icon, color: onSurface, size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1019,7 +1005,7 @@ class _HomeQuickActionCard extends StatelessWidget {
                       label,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: onSurface,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1028,7 +1014,7 @@ class _HomeQuickActionCard extends StatelessWidget {
                     Text(
                       subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: onSurfaceVariant,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
