@@ -1224,7 +1224,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copyDiagnostics => 'Copy diagnostics';
 
   @override
-  String get shrinkSidebar => 'Shrink sidebar';
+  String get shrinkSidebar => 'shtink sidebar';
 
   @override
   String get playlistTypeLabel => 'PLAYLIST';
@@ -2411,7 +2411,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get copyDiagnostics => 'Copy diagnostics';
 
   @override
-  String get shrinkSidebar => 'Shrink sidebar';
+  String get shrinkSidebar => 'shtink sidebar';
 
   @override
   String get playlistTypeLabel => 'PLAYLIST';

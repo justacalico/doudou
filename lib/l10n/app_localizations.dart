@@ -2426,7 +2426,7 @@ abstract class AppLocalizations {
   /// No description provided for @shrinkSidebar.
   ///
   /// In en, this message translates to:
-  /// **'Shrink sidebar'**
+  /// **'shtink sidebar'**
   String get shrinkSidebar;
 
   /// No description provided for @playlistTypeLabel.
