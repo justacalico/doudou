@@ -54,7 +54,7 @@ mixin ProcessLink {
     }
 
     if (Get.isRegistered<SongInfoController>()) {
-      Navigator.of(Get.context!).pop();
+      ScreenNavigationSetup.popOverlayIfOpen();
     }
 
     if (uri.host == "youtube.com" ||
@@ -92,17 +92,19 @@ mixin ProcessLink {
 
   Future<void> openPlaylistOrAlbum(String browseId) async {
     if (browseId.contains("OLAK5uy")) {
-      ScreenNavigationSetup.pushContentRoute(
-          ScreenNavigationSetup.albumScreen, arguments: (null, browseId));
+      ScreenNavigationSetup.pushContentRoute(ScreenNavigationSetup.albumScreen,
+          arguments: (null, browseId));
     } else {
       ScreenNavigationSetup.pushContentRoute(
-          ScreenNavigationSetup.playlistScreen, arguments: [null, browseId]);
+          ScreenNavigationSetup.playlistScreen,
+          arguments: [null, browseId]);
     }
   }
 
   Future<void> openArtist(String channelId) async {
     await ScreenNavigationSetup.pushContentRoute(
-        ScreenNavigationSetup.artistScreen, arguments: [true, channelId]);
+        ScreenNavigationSetup.artistScreen,
+        arguments: [true, channelId]);
   }
 
   Future<void> playSong(String songId) async {
@@ -114,7 +116,7 @@ mixin ProcessLink {
             )),
         barrierDismissible: false);
     final result = await Get.find<MusicServices>().getSongWithId(songId);
-    Navigator.of(Get.context!).pop();
+    ScreenNavigationSetup.popOverlayIfOpen();
     if (result[0]) {
       Get.find<PlayerController>().playPlayListSong(List.from(result[1]), 0,
           playfrom: PlaylingFrom(type: PlaylingFromType.SELECTION));

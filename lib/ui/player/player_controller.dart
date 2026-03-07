@@ -16,6 +16,7 @@ import '../widgets/snackbar.dart';
 import '/services/synced_lyrics_service.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/shell_controller.dart';
+import '/ui/navigator.dart';
 import '/models/server.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../services/windows_audio_service.dart';
@@ -325,7 +326,7 @@ class PlayerController extends GetxController
         showLyricsflag.value = false;
         unawaited(_loadLyricsForCurrentSong());
         if (isDesktopLyricsDialogOpen) {
-          Navigator.pop(Get.context!);
+          ScreenNavigationSetup.popOverlayIfOpen();
         }
 
         // reset player visible state when player is in gesture mode

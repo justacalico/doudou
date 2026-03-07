@@ -392,9 +392,8 @@ class SongInfoBottomSheet extends StatelessWidget {
                     }
                     final artistId = e['id']?.toString();
                     if (artistId != null && artistId.trim().isNotEmpty) {
-                      await Get.toNamed(ScreenNavigationSetup.artistScreen,
-                          id: ScreenNavigationSetup.contentId,
-                          preventDuplicates: true,
+                      await ScreenNavigationSetup.pushContentRoute(
+                          ScreenNavigationSetup.artistScreen,
                           arguments: [true, artistId]);
                       return;
                     }
@@ -402,9 +401,8 @@ class SongInfoBottomSheet extends StatelessWidget {
                     final matched =
                         _matchArtistByName(e['name']?.toString() ?? '');
                     if (matched != null) {
-                      await Get.toNamed(ScreenNavigationSetup.artistScreen,
-                          id: ScreenNavigationSetup.contentId,
-                          preventDuplicates: true,
+                      await ScreenNavigationSetup.pushContentRoute(
+                          ScreenNavigationSetup.artistScreen,
                           arguments: [false, matched]);
                       return;
                     }

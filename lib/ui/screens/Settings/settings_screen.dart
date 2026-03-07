@@ -1375,23 +1375,28 @@ class ThemeSelectorDialog extends StatelessWidget {
                   child: Column(
                     children: [
                       radioWidget(
+                        context: context,
                         label: context.l10n.dynamicTheme,
                         controller: settingsController,
                         value: ThemeType.dynamic,
                       ),
                       radioWidget(
+                          context: context,
                           label: context.l10n.systemDefault,
                           controller: settingsController,
                           value: ThemeType.system),
                       radioWidget(
+                          context: context,
                           label: context.l10n.dark,
                           controller: settingsController,
                           value: ThemeType.dark),
                       radioWidget(
+                          context: context,
                           label: context.l10n.oled,
                           controller: settingsController,
                           value: ThemeType.oled),
                       radioWidget(
+                          context: context,
                           label: context.l10n.light,
                           controller: settingsController,
                           value: ThemeType.light),
@@ -1454,18 +1459,22 @@ class DiscoverContentSelectorDialog extends StatelessWidget {
                 child: Column(
                   children: [
                     radioWidget(
+                        context: context,
                         label: context.l10n.quickpicks,
                         controller: settingsController,
                         value: "QP"),
                     radioWidget(
+                        context: context,
                         label: context.l10n.topmusicvideos,
                         controller: settingsController,
                         value: "TMV"),
                     radioWidget(
+                        context: context,
                         label: context.l10n.trending,
                         controller: settingsController,
                         value: "TR"),
                     radioWidget(
+                        context: context,
                         label: context.l10n.basedOnLast,
                         controller: settingsController,
                         value: "BOLI"),
@@ -1815,7 +1824,8 @@ class _AddServerDialogState extends State<AddServerDialog> {
 }
 
 Widget radioWidget(
-    {required String label,
+    {required BuildContext context,
+    required String label,
     required SettingsScreenController controller,
     required value}) {
   return Obx(() => ListTile(
@@ -1825,7 +1835,7 @@ Widget radioWidget(
             controller.onThemeChange(value);
           } else {
             controller.onContentChange(value);
-            Navigator.of(Get.context!).pop();
+            Navigator.of(context).pop();
           }
         },
         leading: RadioGroup<dynamic>(
@@ -1836,7 +1846,7 @@ Widget radioWidget(
                 ? controller.onThemeChange
                 : (v) {
                     controller.onContentChange(v);
-                    Navigator.of(Get.context!).pop();
+                    Navigator.of(context).pop();
                   },
             child: Radio(value: value)),
         title: Text(label),
