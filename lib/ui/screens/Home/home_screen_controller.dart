@@ -385,13 +385,13 @@ class HomeScreenController extends GetxController {
 
     if (useBottomNav) {
       if (current == 0) return;
-      if (current == 6) {
+      if (current == 7) {
         tabIndex.value = 3;
-      } else if (current >= 2 && current <= 5) {
+      } else if (current >= 2 && current <= 6) {
         tabIndex.value = 2;
       } else if (current == 1) {
         tabIndex.value = 1;
-      } else if (current < 0 || current > 6) {
+      } else if (current < 0 || current > 7) {
         tabIndex.value = 0;
       }
     } else {
@@ -401,7 +401,7 @@ class HomeScreenController extends GetxController {
       } else if (current == 2) {
         tabIndex.value = 2;
       } else if (current == 3) {
-        tabIndex.value = 6;
+        tabIndex.value = 7;
       } else if (current < 0 || current > 3) {
         tabIndex.value = 0;
       }

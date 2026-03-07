@@ -7,12 +7,37 @@ import '/ui/widgets/piped_sync_widget.dart';
 import '../../widgets/create_playlist_dialog.dart';
 import 'library.dart';
 
-class CombinedLibrary extends StatelessWidget {
-  const CombinedLibrary({super.key});
+const String _kCombinedLibraryTag = 'fullLibrary';
+
+class CombinedLibrary extends StatefulWidget {
+  const CombinedLibrary({super.key, this.initialTabIndex = 0});
+
+  final int initialTabIndex;
+
+  @override
+  State<CombinedLibrary> createState() => _CombinedLibraryState();
+}
+
+class _CombinedLibraryState extends State<CombinedLibrary> {
+  @override
+  void initState() {
+    super.initState();
+    Get.put(
+      CombinedLibraryController(
+          initialIndex: widget.initialTabIndex.clamp(0, 3)),
+      tag: _kCombinedLibraryTag,
+    );
+  }
+
+  @override
+  void dispose() {
+    Get.delete<CombinedLibraryController>(tag: _kCombinedLibraryTag);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final tabCon = Get.put(CombinedLibraryController());
+    final tabCon = Get.find<CombinedLibraryController>(tag: _kCombinedLibraryTag);
     final settingscrnController = Get.find<SettingsScreenController>();
 
     return Scaffold(
@@ -86,12 +111,16 @@ class CombinedLibrary extends StatelessWidget {
 
 class CombinedLibraryController extends GetxController
     with GetSingleTickerProviderStateMixin {
+  CombinedLibraryController({this.initialIndex = 0});
+
+  final int initialIndex;
   late TabController tabController;
 
   @override
   void onInit() {
     super.onInit();
-    tabController = TabController(vsync: this, length: 4);
+    tabController = TabController(
+        vsync: this, length: 4, initialIndex: initialIndex.clamp(0, 3));
   }
 
   @override

@@ -82,6 +82,11 @@ class _SideNavBarState extends State<SideNavBar> {
           text: context.l10n.search,
         ),
         SideBarItemLocal(
+          iconSelected: Icons.folder_rounded,
+          iconUnselected: Icons.folder_outlined,
+          text: context.l10n.library,
+        ),
+        SideBarItemLocal(
           iconSelected: Icons.audiotrack,
           iconUnselected: Icons.audiotrack,
           text: context.l10n.songs,

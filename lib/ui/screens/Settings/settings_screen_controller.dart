@@ -335,11 +335,11 @@ class SettingsScreenController extends GetxController {
     final homeScrCon = Get.find<HomeScreenController>();
     final playerCon = Get.find<PlayerController>();
     if (val) {
-      homeScrCon.onSideBarTabSelected(4);
+      homeScrCon.onSideBarTabSelected(5);
       isBottomNavBarEnabled.value = true;
     } else {
       isBottomNavBarEnabled.value = false;
-      homeScrCon.onSideBarTabSelected(6);
+      homeScrCon.onSideBarTabSelected(7);
     }
     if (!Get.find<PlayerController>().initFlagForPlayer) {
       playerCon.playerPanelMinHeight.value =
