@@ -7,6 +7,8 @@ import 'package:ionicons/ionicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/downloader.dart';
+import '../../models/album.dart';
+import '../../models/artist.dart';
 import '../screens/Playlist/playlist_screen_controller.dart';
 import '../screens/Settings/settings_screen_controller.dart';
 import '/models/server.dart';
@@ -41,6 +43,58 @@ class SongInfoBottomSheet extends StatelessWidget {
     final settings = Get.find<SettingsScreenController>();
     final server = settings.activeServer;
     return server?.type == ServerType.youtubeMusic;
+  }
+
+  Album? _matchAlbumFromLibrary() {
+    final albumName = (song.album ?? '').trim().toLowerCase();
+    if (albumName.isEmpty || !Get.isRegistered<LibraryAlbumsController>()) {
+      return null;
+    }
+    final songArtist = (song.artist ?? '').trim().toLowerCase();
+    final albums = Get.find<LibraryAlbumsController>().libraryAlbums;
+    for (final album in albums) {
+      final title = album.title.trim().toLowerCase();
+      if (title != albumName) continue;
+      if (songArtist.isEmpty) return album;
+      final artistNames = (album.artists ?? [])
+          .map((a) => (a['name'] ?? '').toString().trim().toLowerCase())
+          .where((n) => n.isNotEmpty)
+          .toList();
+      if (artistNames.isEmpty || artistNames.any((a) => songArtist.contains(a) || a.contains(songArtist))) {
+        return album;
+      }
+    }
+    return null;
+  }
+
+  void _openAlbum(BuildContext context) {
+    final albumExtras = song.extras?['album'];
+    final albumId = (albumExtras is Map ? albumExtras['id'] : null)?.toString();
+    final validAlbumId = albumId != null && albumId.trim().isNotEmpty;
+    final matchedAlbum = _matchAlbumFromLibrary();
+    final targetId = validAlbumId ? albumId : (matchedAlbum?.browseId ?? '');
+
+    if (targetId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        snackbar(context, context.l10n.operationFailed, size: SnackBarSize.MEDIUM),
+      );
+      return;
+    }
+
+    ScreenNavigationSetup.pushContentRoute(
+      ScreenNavigationSetup.albumScreen,
+      arguments: (matchedAlbum, targetId),
+    );
+  }
+
+  Artist? _matchArtistByName(String name) {
+    if (!Get.isRegistered<LibraryArtistsController>()) return null;
+    final normalized = name.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+    for (final artist in Get.find<LibraryArtistsController>().libraryArtists) {
+      if (artist.name.trim().toLowerCase() == normalized) return artist;
+    }
+    return null;
   }
 
   @override
@@ -172,9 +226,7 @@ class SongInfoBottomSheet extends StatelessWidget {
                       if (calledFromQueue) {
                         playerController.playerPanelController.close();
                       }
-                      ScreenNavigationSetup.pushContentRoute(
-                          ScreenNavigationSetup.albumScreen,
-                          arguments: (null, song.extras!['album']['id']));
+                      _openAlbum(context);
                     },
                   )
                 : const SizedBox.shrink(),
@@ -317,7 +369,8 @@ class SongInfoBottomSheet extends StatelessWidget {
     final artists = song.extras!['artists'];
     if (artists != null) {
       for (dynamic each in artists) {
-        if (each.containsKey("id") && each['id'] != null) artistList.add(each);
+        final name = each['name']?.toString().trim();
+        if (name != null && name.isNotEmpty) artistList.add(each);
       }
     }
     return artistList.isNotEmpty
@@ -334,10 +387,29 @@ class SongInfoBottomSheet extends StatelessWidget {
                       final playerController = Get.find<PlayerController>();
                       playerController.playerPanelController.close();
                     }
-                    await Get.toNamed(ScreenNavigationSetup.artistScreen,
-                        id: ScreenNavigationSetup.contentId,
-                        preventDuplicates: true,
-                        arguments: [true, e['id']]);
+                    final artistId = e['id']?.toString();
+                    if (artistId != null && artistId.trim().isNotEmpty) {
+                      await Get.toNamed(ScreenNavigationSetup.artistScreen,
+                          id: ScreenNavigationSetup.contentId,
+                          preventDuplicates: true,
+                          arguments: [true, artistId]);
+                      return;
+                    }
+
+                    final matched = _matchArtistByName(e['name']?.toString() ?? '');
+                    if (matched != null) {
+                      await Get.toNamed(ScreenNavigationSetup.artistScreen,
+                          id: ScreenNavigationSetup.contentId,
+                          preventDuplicates: true,
+                          arguments: [false, matched]);
+                      return;
+                    }
+
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      snackbar(context, context.l10n.operationFailed,
+                          size: SnackBarSize.MEDIUM),
+                    );
                   },
                   tileColor: Colors.transparent,
                   leading: const Icon(Icons.person),

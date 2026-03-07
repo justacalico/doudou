@@ -317,15 +317,24 @@ class AlbumScreen extends StatelessWidget {
     required ThemeData theme,
   }) {
     final album = albumController.album.value;
+    final rawUrl = Thumbnail(album.thumbnailUrl).extraHigh;
+    final parsed = Uri.tryParse(rawUrl);
+    final canUseNetwork = parsed != null &&
+        parsed.isAbsolute &&
+        parsed.hasAuthority &&
+        rawUrl.trim().isNotEmpty;
     return SizedBox(
       height: headerHeight,
       child: Stack(
         children: [
           Positioned.fill(
-            child: CachedNetworkImage(
-              imageUrl: Thumbnail(album.thumbnailUrl).extraHigh,
-              fit: BoxFit.cover,
-            ),
+            child: canUseNetwork
+                ? CachedNetworkImage(
+                    imageUrl: rawUrl,
+                    fit: BoxFit.cover,
+                    errorWidget: (_, __, ___) => _albumHeroFallback(theme),
+                  )
+                : _albumHeroFallback(theme),
           ),
           Positioned.fill(
             child: Container(
@@ -423,6 +432,28 @@ class AlbumScreen extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _albumHeroFallback(ThemeData theme) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.colorScheme.primary.withValues(alpha: 0.16),
+            theme.canvasColor,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.album_rounded,
+          size: 84,
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.28),
+        ),
       ),
     );
   }

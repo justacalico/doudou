@@ -46,7 +46,14 @@ class Album {
       year: json['year'],
       audioPlaylistId: json['audioPlaylistId'],
       description: json['description'] ?? json["type"] ?? "Album",
-      thumbnailUrl: Thumbnail(json["thumbnails"][0]["url"]).medium);
+      thumbnailUrl: () {
+        final thumbs = json["thumbnails"];
+        if (thumbs is List && thumbs.isNotEmpty) {
+          final raw = thumbs[0]?["url"]?.toString() ?? "";
+          if (raw.trim().isNotEmpty) return Thumbnail(raw).medium;
+        }
+        return "";
+      }());
 
   Map<String, dynamic> toJson() => {
         "title": title,

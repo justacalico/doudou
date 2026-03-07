@@ -61,7 +61,12 @@ class JellyfinBackend extends MusicBackend {
     }
     if (item.albumArtists != null) {
       for (final a in item.albumArtists!) {
-        if (a.name != null) artists.add({'name': a.name!});
+        if (a.name != null) {
+          artists.add({
+            'name': a.name!,
+            if (a.id != null) 'id': a.id!,
+          });
+        }
       }
     }
     if (item.artists != null) {
