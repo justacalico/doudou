@@ -35,6 +35,13 @@ int themeTypeToStorage(ThemeType themeType) =>
 
 const Color _peachPinkFallback = Color(0xFFE8A598);
 
+class _PaletteAccentCandidate {
+  const _PaletteAccentCandidate(this.palette, this.populationNorm);
+
+  final PaletteColor palette;
+  final double populationNorm;
+}
+
 class ThemeController extends GetxController {
   final primaryColor = Colors.deepPurple[400].obs;
   final dynamicColor = Colors.deepPurple[400]!.obs;
@@ -54,7 +61,8 @@ class ThemeController extends GetxController {
         WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
     final appPrefs = Hive.box('AppPrefs');
-    final primaryInt = appPrefs.get("themePrimaryColor") ?? _peachPinkFallback.toARGB32();
+    final primaryInt =
+        appPrefs.get("themePrimaryColor") ?? _peachPinkFallback.toARGB32();
     primaryColor.value = Color(primaryInt);
 
     final dynamicColorInt = appPrefs.get("dynamicColorPrimary") ?? primaryInt;
@@ -81,7 +89,8 @@ class ThemeController extends GetxController {
       final appPrefs = Hive.box('AppPrefs');
       appPrefs.put("themePrimaryColor", primaryColor.value!.toARGB32());
     }
-    final savedType = themeTypeFromStorage(Hive.box('AppPrefs').get("themeModeType"));
+    final savedType =
+        themeTypeFromStorage(Hive.box('AppPrefs').get("themeModeType"));
     changeThemeModeType(savedType);
   }
 
@@ -119,23 +128,80 @@ class ThemeController extends GetxController {
 
   void setTheme(ImageProvider imageProvider, String songId) async {
     if (songId == currentSongId) return;
-    PaletteGenerator generator = await PaletteGenerator.fromImageProvider(
+    final generator = await PaletteGenerator.fromImageProvider(
         ResizeImage(imageProvider, height: 200, width: 200));
-    //final colorList = generator.colors;
-    final paletteColor = generator.dominantColor ??
-        generator.darkMutedColor ??
-        generator.darkVibrantColor ??
-        generator.lightMutedColor ??
-        generator.lightVibrantColor;
-    Color nextAccent = paletteColor!.color;
-    textColor.value = paletteColor.bodyTextColor;
-    // printINFO(paletteColor.color.computeLuminance().toString());0.11 ref
-    if (paletteColor.color.computeLuminance() > 0.10) {
-      nextAccent = paletteColor.color.withLightness(0.10);
-      textColor.value = Colors.white54;
-    }
+    final paletteColor = _pickArtworkAccentCandidate(generator);
+    final nextAccent = _normalizeArtworkAccent(
+      paletteColor?.color ?? _peachPinkFallback,
+    );
+    textColor.value =
+        nextAccent.computeLuminance() > 0.42 ? Colors.black87 : Colors.white70;
     currentSongId = songId;
     _animateTrackAccentTo(nextAccent);
+  }
+
+  PaletteColor? _pickArtworkAccentCandidate(PaletteGenerator generator) {
+    final source = <PaletteColor?>[
+      generator.vibrantColor,
+      generator.darkVibrantColor,
+      generator.lightVibrantColor,
+      generator.dominantColor,
+      generator.mutedColor,
+      generator.darkMutedColor,
+      generator.lightMutedColor,
+    ];
+    final byColor = <int, PaletteColor>{};
+    for (final c in source) {
+      if (c == null) continue;
+      byColor[c.color.toARGB32()] = c;
+    }
+    if (byColor.isEmpty) return null;
+
+    final candidates = byColor.values.toList(growable: false);
+    var maxPopulation = 1;
+    for (final candidate in candidates) {
+      if (candidate.population > maxPopulation) {
+        maxPopulation = candidate.population;
+      }
+    }
+    final scored = candidates
+        .map((c) => _PaletteAccentCandidate(c, c.population / maxPopulation))
+        .toList(growable: false);
+
+    scored.sort((a, b) {
+      final scoreA = _paletteCandidateScore(a);
+      final scoreB = _paletteCandidateScore(b);
+      return scoreB.compareTo(scoreA);
+    });
+    return scored.first.palette;
+  }
+
+  double _paletteCandidateScore(_PaletteAccentCandidate candidate) {
+    final hsl = HSLColor.fromColor(candidate.palette.color);
+    final saturation = hsl.saturation;
+    final lightness = hsl.lightness;
+    final contrastFit =
+        (1.0 - ((lightness - 0.48).abs() * 2.0)).clamp(0.0, 1.0);
+    var score = (saturation * 0.65) +
+        (candidate.populationNorm * 0.25) +
+        (contrastFit * 0.10);
+
+    if (saturation < 0.22) score -= 0.20;
+    if (saturation < 0.30 && lightness >= 0.42 && lightness <= 0.74) {
+      score -= 0.15;
+    }
+    if (saturation >= 0.55 && lightness >= 0.28 && lightness <= 0.62) {
+      score += 0.12;
+    }
+    return score;
+  }
+
+  Color _normalizeArtworkAccent(Color color) {
+    final hsl = HSLColor.fromColor(color);
+    return hsl
+        .withSaturation(hsl.saturation.clamp(0.45, 0.90))
+        .withLightness(hsl.lightness.clamp(0.34, 0.58))
+        .toColor();
   }
 
   void setDynamicColor(Color color) {
@@ -238,7 +304,8 @@ class ThemeController extends GetxController {
     });
   }
 
-  ThemeData _createThemeData(MaterialColor? primarySwatch, ThemeType themeType) {
+  ThemeData _createThemeData(
+      MaterialColor? primarySwatch, ThemeType themeType) {
     final accent = primaryColor.value ?? _peachPinkFallback;
     final theme = switch (themeType) {
       ThemeType.dynamic => DoudouTheme.dark(
