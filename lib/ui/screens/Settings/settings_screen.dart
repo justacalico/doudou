@@ -682,7 +682,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
               value: settings.sidebarMode.value,
               items: [
                 DropdownMenuItem(
-                    value: SidebarMode.auto, child: Text(context.l10n.sidebarModeAuto)),
+                    value: SidebarMode.auto,
+                    child: Text(context.l10n.sidebarModeAuto)),
                 DropdownMenuItem(
                     value: SidebarMode.collapsed,
                     child: Text(context.l10n.sidebarModeCollapsed)),
@@ -717,8 +718,9 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 settings.unlinkPiped();
               }
             },
-            child: Text(
-                settings.isLinkedWithPiped.value ? context.l10n.unLink : context.l10n.link),
+            child: Text(settings.isLinkedWithPiped.value
+                ? context.l10n.unLink
+                : context.l10n.link),
           ),
         );
       }),
@@ -751,7 +753,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           await settings.clearImagesCache();
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            snackbar(context, context.l10n.clearImgCacheAlert, size: SnackBarSize.BIG),
+            snackbar(context, context.l10n.clearImgCacheAlert,
+                size: SnackBarSize.BIG),
           );
         },
       ),
@@ -770,7 +773,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             underline: const SizedBox.shrink(),
             value: settings.streamingQuality.value,
             items: [
-              DropdownMenuItem(value: AudioQuality.Low, child: Text(context.l10n.low)),
+              DropdownMenuItem(
+                  value: AudioQuality.Low, child: Text(context.l10n.low)),
               DropdownMenuItem(
                   value: AudioQuality.High, child: Text(context.l10n.high)),
             ],
@@ -938,10 +942,18 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 children: servers
                     .map((server) => ListTile(
                           leading: Icon(_serverIcon(server.type)),
-                          title: Text(server.name),
-                          subtitle: Text(server.serverUrl?.isNotEmpty == true
-                              ? server.serverUrl!
-                              : _serverTypeLabel(context, server.type)),
+                          title: Text(
+                            server.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            server.serverUrl?.isNotEmpty == true
+                                ? server.serverUrl!
+                                : _serverTypeLabel(context, server.type),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -1141,7 +1153,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           await settings.resetAppSettingsToDefault();
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            snackbar(context, context.l10n.resetToDefaultMsg, size: SnackBarSize.BIG),
+            snackbar(context, context.l10n.resetToDefaultMsg,
+                size: SnackBarSize.BIG),
           );
         },
       ),
@@ -1735,7 +1748,7 @@ class _AddServerDialogState extends State<AddServerDialog> {
               const SizedBox(height: 12),
               TextField(
                 controller: _passwordController,
-                  decoration: InputDecoration(
+                decoration: InputDecoration(
                   labelText: widget.serverType == ServerType.plex
                       ? l10n.plexToken
                       : l10n.password,
