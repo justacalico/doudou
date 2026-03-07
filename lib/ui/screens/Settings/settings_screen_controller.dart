@@ -301,13 +301,13 @@ class SettingsScreenController extends GetxController {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!Get.isRegistered<SettingsScreenController>()) return;
       _onActiveServerChanged();
+      if (Get.isRegistered<LibrarySyncService>()) {
+        unawaited(Get.find<LibrarySyncService>().maybeSyncAllIfStale());
+      } else {
+        Get.find<LibrarySyncService>();
+        unawaited(Get.find<LibrarySyncService>().maybeSyncAllIfStale());
+      }
     });
-    if (Get.isRegistered<LibrarySyncService>()) {
-      unawaited(Get.find<LibrarySyncService>().maybeSyncAllIfStale());
-    } else {
-      Get.find<LibrarySyncService>();
-      unawaited(Get.find<LibrarySyncService>().maybeSyncAllIfStale());
-    }
   }
 
   void setAppLanguage(String? val) {
