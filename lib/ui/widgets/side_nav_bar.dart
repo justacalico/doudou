@@ -6,7 +6,7 @@ import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
 
-class SideNavBar extends StatefulWidget {
+class SideNavBar extends StatelessWidget {
   const SideNavBar({
     super.key,
     required this.minimized,
@@ -17,40 +17,9 @@ class SideNavBar extends StatefulWidget {
   final ValueChanged<bool> onMinimizeChanged;
 
   @override
-  State<SideNavBar> createState() => _SideNavBarState();
-}
-
-class _SideNavBarState extends State<SideNavBar> {
-  ValueNotifier<int>? _tabIndexNotifier;
-  Worker? _tabIndexWorker;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_tabIndexNotifier == null) {
-      final controller = Get.find<HomeScreenController>();
-      _tabIndexNotifier = ValueNotifier<int>(controller.tabIndex.value);
-      _tabIndexWorker = ever(controller.tabIndex, (v) {
-        _tabIndexNotifier!.value = v;
-      });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() {});
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _tabIndexWorker?.dispose();
-    _tabIndexNotifier?.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final homeController = Get.find<HomeScreenController>();
     final playerController = Get.find<PlayerController>();
-    final notifier = _tabIndexNotifier;
-    if (notifier == null) return const SizedBox.shrink();
 
     return Container(
       decoration: BoxDecoration(
@@ -62,13 +31,12 @@ class _SideNavBarState extends State<SideNavBar> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: ValueListenableBuilder<int>(
-              valueListenable: notifier,
-              builder: (context, currentIndex, _) {
+            child: Obx(
+              () {
                 return _SidebarContent(
-                  currentIndex: currentIndex,
-                  minimized: widget.minimized,
-                  onMinimizeChanged: widget.onMinimizeChanged,
+                  currentIndex: homeController.tabIndex.value,
+                  minimized: minimized,
+                  onMinimizeChanged: onMinimizeChanged,
                 );
               },
             ),
