@@ -16,6 +16,7 @@ import '../../player/player_controller.dart';
 import '../../shell_controller.dart';
 import '../../widgets/create_playlist_dialog.dart';
 import '../../widgets/loader.dart';
+import '../../widgets/library_bookmark_icon.dart';
 import '../../widgets/playlist_export_dialog.dart';
 import '../../widgets/snackbar.dart';
 import '../../widgets/song_list_tile.dart';
@@ -116,10 +117,10 @@ class PlaylistScreen extends StatelessWidget {
                                     ));
                                   });
                                 },
-                                icon: Icon(
-                                    playlistController.isAddedToLibrary.isTrue
-                                        ? Icons.bookmark
-                                        : Icons.bookmark_border),
+                                icon: LibraryBookmarkIcon(
+                                  isBookmarked:
+                                      playlistController.isAddedToLibrary.isTrue,
+                                ),
                               ),
                               GetX<Downloader>(builder: (controller) {
                                 final id = playlistController

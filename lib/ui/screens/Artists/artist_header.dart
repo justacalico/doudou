@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '/models/playling_from.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/widgets/image_widget.dart';
+import '/ui/widgets/library_bookmark_icon.dart';
 import '/ui/widgets/snackbar.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/models/server.dart';
@@ -64,12 +65,9 @@ class ArtistHeader extends StatelessWidget {
                       customBorder: const CircleBorder(),
                       child: Padding(
                         padding: const EdgeInsets.all(8),
-                        child: Icon(
-                          controller.isAddedToLibrary.isTrue
-                              ? Icons.bookmark_added
-                              : Icons.bookmark_add,
+                        child: LibraryBookmarkIcon(
+                          isBookmarked: controller.isAddedToLibrary.isTrue,
                           size: 20,
-                          color: theme.colorScheme.primary,
                         ),
                       ),
                     ),

@@ -15,6 +15,7 @@ import '../../constants/layout.dart';
 import '../../navigator.dart';
 import '../../player/player_controller.dart';
 import '../../shell_controller.dart';
+import '../../widgets/library_bookmark_icon.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/snackbar.dart';
 import '../../widgets/song_list_tile.dart';
@@ -113,10 +114,10 @@ class AlbumScreen extends StatelessWidget {
                                     ));
                                   });
                                 },
-                                icon: Icon(
-                                    albumController.isAddedToLibrary.isTrue
-                                        ? Icons.bookmark
-                                        : Icons.bookmark_border),
+                                icon: LibraryBookmarkIcon(
+                                  isBookmarked:
+                                      albumController.isAddedToLibrary.isTrue,
+                                ),
                               ),
                               GetX<Downloader>(builder: (controller) {
                                 final id = albumController.album.value.browseId;
