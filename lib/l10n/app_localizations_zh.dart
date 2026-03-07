@@ -12,6 +12,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get home => '首页';
 
   @override
+  String get homeSubtitle => '最近播放、新添加与为你推荐';
+
+  @override
   String get songs => '歌曲';
 
   @override

@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home => 'Home';
 
   @override
+  String get homeSubtitle => 'Recent listens, new additions and picks for you';
+
+  @override
   String get songs => 'Songs';
 
   @override
@@ -1233,6 +1236,9 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get home => 'Home';
+
+  @override
+  String get homeSubtitle => 'Recent listens, new additions and picks for you';
 
   @override
   String get songs => 'Songs';

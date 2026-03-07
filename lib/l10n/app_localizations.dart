@@ -107,6 +107,12 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get home;
 
+  /// No description provided for @homeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent listens, new additions and picks for you'**
+  String get homeSubtitle;
+
   /// No description provided for @songs.
   ///
   /// In en, this message translates to:

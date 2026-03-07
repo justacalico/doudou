@@ -12,6 +12,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get home => 'Главная';
 
   @override
+  String get homeSubtitle =>
+      'Недавние прослушивания, новые добавления и подборка для вас';
+
+  @override
   String get songs => 'Песни';
 
   @override

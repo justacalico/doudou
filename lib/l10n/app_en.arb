@@ -1,6 +1,7 @@
 {
   "@@locale": "en",
   "home": "Home",
+  "homeSubtitle": "Recent listens, new additions and picks for you",
   "songs": "Songs",
   "playlists": "Playlists",
   "albums": "Albums",

@@ -145,13 +145,38 @@ class Body extends StatelessWidget {
                   libArtists.libraryArtists.isNotEmpty ||
                   libPlaylists.libraryPlaylists.length > 4;
               if (!hasLibraryContent) {
-                return SizedBox(
-                  height: MediaQuery.of(context).size.height - 180,
-                  child: Center(
-                    child: Text(
-                      context.l10n.addMusicToLibraryHint,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleMedium,
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: 24,
+                      right: kContentRightPadding,
+                      bottom: useBottomNav
+                          ? kContentBottomPaddingWithBottomNav
+                          : kContentBottomPaddingWithPlayer,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHomeHeader(context),
+                        const SizedBox(height: 24),
+                        _buildHomeQuickActionCards(
+                          context: context,
+                          libSongs: libSongs,
+                          homeScreenController: homeScreenController,
+                        ),
+                        const SizedBox(height: 48),
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Text(
+                              context.l10n.addMusicToLibraryHint,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -182,6 +207,8 @@ class Body extends StatelessWidget {
                   final content = <Widget>[];
 
                   content.add(const SizedBox(height: 12));
+                  content.add(_buildHomeHeader(context));
+                  content.add(const SizedBox(height: 24));
                   content.add(
                     _buildHomeQuickActionCards(
                       context: context,
@@ -202,6 +229,18 @@ class Body extends StatelessWidget {
                         playLabel: context.l10n.homeContinueListening,
                         playerController: playerController,
                         showViewAll: true,
+                      ),
+                    );
+                    content.add(const SizedBox(height: 32));
+                  }
+
+                  if (resolved.latestAlbums.isNotEmpty) {
+                    content.add(
+                      buildAlbumRowSection(
+                        context: context,
+                        title: context.l10n.recentlyAddedAlbums,
+                        subtitle: context.l10n.yourNewestAdditions,
+                        albums: resolved.latestAlbums,
                       ),
                     );
                     content.add(const SizedBox(height: 32));
@@ -228,18 +267,6 @@ class Body extends StatelessWidget {
                         title: context.l10n.playlists,
                         subtitle: context.l10n.homePlaylistsSubtitle,
                         playlists: resolved.playlistsFromCollection,
-                      ),
-                    );
-                    content.add(const SizedBox(height: 32));
-                  }
-
-                  if (resolved.latestAlbums.isNotEmpty) {
-                    content.add(
-                      buildAlbumRowSection(
-                        context: context,
-                        title: context.l10n.recentlyAddedAlbums,
-                        subtitle: context.l10n.yourNewestAdditions,
-                        albums: resolved.latestAlbums,
                       ),
                     );
                     content.add(const SizedBox(height: 32));
@@ -283,7 +310,7 @@ class Body extends StatelessWidget {
                         ),
                       ),
                     );
-                  } else if (content.length <= 2) {
+                  } else if (content.length <= 5) {
                     content.add(
                       Padding(
                         padding: const EdgeInsets.only(top: 20),
@@ -365,6 +392,42 @@ class Body extends StatelessWidget {
         })
         .whereType<Widget>()
         .toList();
+  }
+
+  Widget _buildHomeHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              context.l10n.home,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: const BoxDecoration(
+                color: kDoudouPurple,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          context.l10n.homeSubtitle,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: kDoudouZinc500,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildHomeQuickActionCards({
