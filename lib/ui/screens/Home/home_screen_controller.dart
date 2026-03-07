@@ -384,31 +384,25 @@ class HomeScreenController extends GetxController {
     final current = tabIndex.value;
 
     if (useBottomNav) {
-      // Switching to bottom navigation (mobile).
-      if (current == 0) {
-        return;
-      }
-
-      if (current == 5) {
+      if (current == 0) return;
+      if (current == 6) {
         tabIndex.value = 3;
-      } else if (current >= 1 && current <= 4) {
+      } else if (current >= 2 && current <= 5) {
         tabIndex.value = 2;
-      } else if (current < 0 || current > 5) {
+      } else if (current == 1) {
+        tabIndex.value = 1;
+      } else if (current < 0 || current > 6) {
         tabIndex.value = 0;
       }
     } else {
-      // Switching to sidebar (desktop).
-      if (current == 0) {
-        return;
-      }
-
+      if (current == 0) return;
       if (current == 1) {
         tabIndex.value = 1;
       } else if (current == 2) {
         tabIndex.value = 2;
       } else if (current == 3) {
-        tabIndex.value = 5;
-      } else if (current < 0 || current > 5) {
+        tabIndex.value = 6;
+      } else if (current < 0 || current > 3) {
         tabIndex.value = 0;
       }
     }

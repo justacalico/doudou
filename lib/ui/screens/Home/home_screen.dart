@@ -49,7 +49,7 @@ class HomeScreen extends StatelessWidget {
         floatingActionButton: Obx(
           () => ((homeScreenController.tabIndex.value == 0 &&
                           !GetPlatform.isDesktop) ||
-                      homeScreenController.tabIndex.value == 2) &&
+                      homeScreenController.tabIndex.value == 3) &&
                   !shellController.useBottomNav.value
               ? Obx(
                   () => Padding(
@@ -70,7 +70,7 @@ class HomeScreen extends StatelessWidget {
                                     BorderRadius.all(Radius.circular(14))),
                             elevation: 0,
                             onPressed: () async {
-                              if (homeScreenController.tabIndex.value == 2) {
+                              if (homeScreenController.tabIndex.value == 3) {
                                 showDialog(
                                     context: context,
                                     builder: (context) =>
@@ -79,10 +79,8 @@ class HomeScreen extends StatelessWidget {
                                 ScreenNavigationSetup.pushContentRoute(
                                     ScreenNavigationSetup.searchScreen);
                               }
-                              // file:///data/user/0/gitlab.openlyst.doudou/cache/libCachedImageData/
-                              //file:///data/user/0/gitlab.openlyst.doudou/cache/just_audio_cache/
                             },
-                            child: Icon(homeScreenController.tabIndex.value == 2
+                            child: Icon(homeScreenController.tabIndex.value == 3
                                 ? Icons.add
                                 : Icons.search)),
                       ),
@@ -336,18 +334,20 @@ class Body extends StatelessWidget {
     ),
       );
     } else if (homeScreenController.tabIndex.value == 1) {
-      return useBottomNav ? const SearchScreen() : const SongsLibraryWidget();
+      return const SearchScreen();
     } else if (homeScreenController.tabIndex.value == 2) {
       return useBottomNav
           ? const CombinedLibrary()
-          : const PlaylistNAlbumLibraryWidget(isAlbumContent: false);
+          : const SongsLibraryWidget();
     } else if (homeScreenController.tabIndex.value == 3) {
       return useBottomNav
           ? const SettingsScreen(isBottomNavActive: true)
-          : const PlaylistNAlbumLibraryWidget();
+          : const PlaylistNAlbumLibraryWidget(isAlbumContent: false);
     } else if (homeScreenController.tabIndex.value == 4) {
-      return const LibraryArtistWidget();
+      return const PlaylistNAlbumLibraryWidget();
     } else if (homeScreenController.tabIndex.value == 5) {
+      return const LibraryArtistWidget();
+    } else if (homeScreenController.tabIndex.value == 6) {
       return const SettingsScreen();
     } else {
       return Center(
