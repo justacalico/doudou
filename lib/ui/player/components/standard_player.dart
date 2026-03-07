@@ -13,12 +13,38 @@ import 'background_image.dart';
 import 'lyrics_widget.dart';
 import 'player_mobile_bottom_bar.dart';
 
-const double _kNowPlayingExpandedBreakpoint = 900.0;
+enum _NowPlayingMode {
+  compact,
+  expandedStacked,
+  expandedSplit,
+  expandedWideShort,
+}
+
+_NowPlayingMode _resolveNowPlayingMode(BoxConstraints constraints) {
+  final width = constraints.maxWidth;
+  final height = constraints.maxHeight;
+  final aspect = width / (height <= 0 ? 1 : height);
+
+  if (width >= 1000 && height < 470 && aspect > 2.0) {
+    return _NowPlayingMode.expandedWideShort;
+  }
+
+  // Medium-width and short-height windows look closer to mobile and clip in
+  // stacked desktop. Prefer compact mode in this in-between zone.
+  if (width < 980 || (height < 720 && aspect < 1.95)) {
+    return _NowPlayingMode.compact;
+  }
+
+  if (aspect < 1.55 || height < 760) {
+    return _NowPlayingMode.expandedStacked;
+  }
+
+  return _NowPlayingMode.expandedSplit;
+}
 
 class _NowPlayingLayoutMetrics {
   const _NowPlayingLayoutMetrics({
-    required this.useStackedLayout,
-    required this.useWideShortLayout,
+    required this.mode,
     required this.isDense,
     required this.horizontalPadding,
     required this.verticalPadding,
@@ -30,8 +56,7 @@ class _NowPlayingLayoutMetrics {
     required this.playButtonSize,
   });
 
-  final bool useStackedLayout;
-  final bool useWideShortLayout;
+  final _NowPlayingMode mode;
   final bool isDense;
   final double horizontalPadding;
   final double verticalPadding;
@@ -41,15 +66,15 @@ class _NowPlayingLayoutMetrics {
   final double controlGapSmall;
   final double controlGapLarge;
   final double playButtonSize;
+  bool get useStackedLayout => mode == _NowPlayingMode.expandedStacked;
+  bool get useWideShortLayout => mode == _NowPlayingMode.expandedWideShort;
 
   factory _NowPlayingLayoutMetrics.from(BoxConstraints constraints) {
     final width = constraints.maxWidth;
     final height = constraints.maxHeight;
-    final aspect = width / (height <= 0 ? 1 : height);
-
+    final mode = _resolveNowPlayingMode(constraints);
     final isDense = width < 1160 || height < 730;
-    final useStackedLayout = width < 1180 || height < 680 || aspect < 1.45;
-    final useWideShortLayout = width >= 1000 && height < 470 && aspect > 2.0;
+    final useStackedLayout = mode == _NowPlayingMode.expandedStacked;
 
     final horizontalPadding = isDense ? 18.0 : 32.0;
     final verticalPadding = isDense ? 10.0 : 16.0;
@@ -61,8 +86,7 @@ class _NowPlayingLayoutMetrics {
     final artSize = artFromWidth < artFromHeight ? artFromWidth : artFromHeight;
 
     return _NowPlayingLayoutMetrics(
-      useStackedLayout: useStackedLayout,
-      useWideShortLayout: useWideShortLayout,
+      mode: mode,
       isDense: isDense,
       horizontalPadding: horizontalPadding,
       verticalPadding: verticalPadding,
@@ -90,7 +114,8 @@ class _StandardPlayerState extends State<StandardPlayer> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth >= _kNowPlayingExpandedBreakpoint) {
+        final mode = _resolveNowPlayingMode(constraints);
+        if (mode != _NowPlayingMode.compact) {
           final metrics = _NowPlayingLayoutMetrics.from(constraints);
           return _ExpandedNowPlaying(
             key: const Key('expanded'),
@@ -809,13 +834,26 @@ class _ExpandedNowPlaying extends StatelessWidget {
                         ? LayoutBuilder(
                             builder: (context, constraints) {
                               final availableHeight = constraints.maxHeight;
-                              final suggestedRight =
-                                  (availableHeight * 0.42).clamp(140.0, 420.0);
-                              final maxRight = (availableHeight * 0.55)
-                                  .clamp(0.0, double.infinity);
-                              final rightPanelHeight = suggestedRight < maxRight
-                                  ? suggestedRight
-                                  : maxRight;
+                              const minRightPanelHeight = 120.0;
+                              const maxRightPanelHeight = 360.0;
+                              final reservedForLeft =
+                                  metrics.isDense ? 260.0 : 300.0;
+                              final maxRightByReserve = availableHeight -
+                                  reservedForLeft -
+                                  metrics.panelGap;
+                              final cappedMaxRight = maxRightByReserve.clamp(
+                                minRightPanelHeight,
+                                maxRightPanelHeight,
+                              );
+                              final targetRight =
+                                  (availableHeight * 0.40).clamp(
+                                minRightPanelHeight,
+                                maxRightPanelHeight,
+                              );
+                              final rightPanelHeight =
+                                  targetRight < cappedMaxRight
+                                      ? targetRight
+                                      : cappedMaxRight;
                               return Padding(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: metrics.sidePanelMargin,
