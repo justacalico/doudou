@@ -48,6 +48,12 @@ class _AppShellState extends State<AppShell> {
     }
   }
 
+  Future<bool> _tryPopNestedContentRoute() async {
+    final nestedNav = Get.nestedKey(ScreenNavigationSetup.contentId)?.currentState;
+    if (nestedNav == null || !nestedNav.canPop()) return false;
+    return nestedNav.maybePop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final playerController = Get.find<PlayerController>();
@@ -65,6 +71,9 @@ class _AppShellState extends State<AppShell> {
         if (playerController.playerPanelController.isPanelOpen) {
           playerController.playerPanelController.close();
         } else {
+          if (await _tryPopNestedContentRoute()) {
+            return;
+          }
           if (ScreenNavigationSetup.canPopContent) {
             ScreenNavigationSetup.popContent();
           } else {
