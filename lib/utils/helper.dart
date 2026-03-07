@@ -4,19 +4,155 @@ import 'package:flutter/foundation.dart';
 import '/ui/navigator.dart';
 import '/ui/widgets/sort_widget.dart';
 
+const String _logRedactionMask = '***';
+const int _defaultLogMaxStringLen = 220;
+
+final RegExp _secretKeyValuePattern = RegExp(
+  r'\b([a-z0-9_\-]*?(token|password|cookie|api[_\-]?key|authorization|auth|secret)[a-z0-9_\-]*)(\s*[:=]\s*)([^\s,;&]+)',
+  caseSensitive: false,
+);
+final RegExp _authorizationHeaderPattern = RegExp(
+  r'\bauthorization\s*:\s*([^\s,;]+(?:\s+[^\s,;]+)?)',
+  caseSensitive: false,
+);
+final RegExp _bearerValuePattern =
+    RegExp(r'\bbearer\s+[a-z0-9\-._~+/]+=*', caseSensitive: false);
+final RegExp _urlPattern =
+    RegExp(r"""https?://[^\s"'<>]+""", caseSensitive: false);
+
 void printERROR(dynamic text, {String tag = "Doudou"}) {
   if (kReleaseMode) return;
-  debugPrint("\x1B[31m[$tag]: $text\x1B[0m");
+  final message = _formatLogOutput(text);
+  debugPrint("\x1B[31m[$tag]: $message\x1B[0m");
 }
 
 void printWarning(dynamic text, {String tag = 'Doudou'}) {
   if (kReleaseMode) return;
-  debugPrint("\x1B[33m[$tag]: $text\x1B[34m");
+  final message = _formatLogOutput(text);
+  debugPrint("\x1B[33m[$tag]: $message\x1B[0m");
 }
 
 void printINFO(dynamic text, {String tag = 'Doudou'}) {
   if (kReleaseMode) return;
-  debugPrint("\x1B[32m[$tag]: $text\x1B[34m");
+  final message = _formatLogOutput(text);
+  debugPrint("\x1B[32m[$tag]: $message\x1B[0m");
+}
+
+String _formatLogOutput(dynamic value) {
+  final sanitized = sanitizeForLog(value);
+  return sanitized is String ? sanitized : sanitized.toString();
+}
+
+dynamic sanitizeForLog(dynamic value,
+    {String? keyContext, int maxStringLen = _defaultLogMaxStringLen}) {
+  if (value == null) return null;
+  if (_isSecretLikeKey(keyContext)) return _logRedactionMask;
+  if (value is Map) {
+    return sanitizeLogMap(value, maxStringLen: maxStringLen);
+  }
+  if (value is Iterable) {
+    return value
+        .map((item) => sanitizeForLog(item, maxStringLen: maxStringLen))
+        .toList();
+  }
+  if (value is String) {
+    return sanitizeLogString(
+      value,
+      keyContext: keyContext,
+      maxStringLen: maxStringLen,
+    );
+  }
+  if (value is num || value is bool) {
+    return value;
+  }
+  return sanitizeLogString(
+    value.toString(),
+    keyContext: keyContext,
+    maxStringLen: maxStringLen,
+  );
+}
+
+Map<String, dynamic> sanitizeLogMap(Map<dynamic, dynamic> map,
+    {int maxStringLen = _defaultLogMaxStringLen}) {
+  final output = <String, dynamic>{};
+  map.forEach((key, value) {
+    final keyString = key.toString();
+    if (_isSecretLikeKey(keyString)) {
+      output[keyString] = _logRedactionMask;
+      return;
+    }
+    output[keyString] = sanitizeForLog(
+      value,
+      keyContext: keyString,
+      maxStringLen: maxStringLen,
+    );
+  });
+  return output;
+}
+
+String sanitizeLogString(String input,
+    {String? keyContext, int maxStringLen = _defaultLogMaxStringLen}) {
+  if (input.isEmpty) return input;
+  if (_isSecretLikeKey(keyContext)) return _logRedactionMask;
+
+  var sanitized = input;
+  sanitized = sanitized.replaceAllMapped(_authorizationHeaderPattern, (_) {
+    return 'Authorization: $_logRedactionMask';
+  });
+  sanitized = sanitized.replaceAllMapped(_bearerValuePattern, (_) {
+    return 'Bearer $_logRedactionMask';
+  });
+  sanitized = sanitized.replaceAllMapped(_urlPattern, (match) {
+    return _sanitizeUrl(match.group(0)!);
+  });
+  sanitized = sanitized.replaceAllMapped(_secretKeyValuePattern, (match) {
+    final key = match.group(1) ?? '';
+    final separator = match.group(3) ?? '=';
+    return '$key$separator$_logRedactionMask';
+  });
+
+  return _truncateForLog(sanitized, maxStringLen);
+}
+
+bool _isSecretLikeKey(String? key) {
+  if (key == null || key.isEmpty) return false;
+  final normalized = key.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+  return normalized.contains('token') ||
+      normalized.contains('password') ||
+      normalized.contains('cookie') ||
+      normalized.contains('apikey') ||
+      normalized.contains('authorization') ||
+      normalized == 'auth' ||
+      normalized.startsWith('auth') ||
+      normalized.contains('secret');
+}
+
+String _sanitizeUrl(String input) {
+  final uri = Uri.tryParse(input);
+  if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+    return _truncateForLog(input, _defaultLogMaxStringLen);
+  }
+
+  final sanitizedQueryParams = <String, String>{};
+  for (final entry in uri.queryParameters.entries) {
+    sanitizedQueryParams[entry.key] =
+        _isSecretLikeKey(entry.key) ? _logRedactionMask : entry.value;
+  }
+
+  final sanitized = Uri(
+    scheme: uri.scheme,
+    userInfo: uri.userInfo.isEmpty ? null : _logRedactionMask,
+    host: uri.host,
+    port: uri.hasPort ? uri.port : null,
+    path: uri.path,
+    queryParameters: sanitizedQueryParams.isEmpty ? null : sanitizedQueryParams,
+  );
+  return sanitized.toString();
+}
+
+String _truncateForLog(String input, int maxStringLen) {
+  if (maxStringLen <= 0 || input.length <= maxStringLen) return input;
+  return '${input.substring(0, maxStringLen)}...';
 }
 
 String? getCurrentRouteName() {
@@ -159,8 +295,7 @@ void sortArtist(
   }
 }
 
-const _openlystLatestUrl =
-    'https://openlyst.ink/api/v1/apps/doudou/latest';
+const _openlystLatestUrl = 'https://openlyst.ink/api/v1/apps/doudou/latest';
 
 /// Returns the latest version string if a newer version is available, null otherwise (OpenLyst API).
 Future<String?> newVersionCheck(String currentVersion) async {
@@ -179,7 +314,11 @@ Future<String?> newVersionCheck(String currentVersion) async {
 }
 
 bool _isNewerVersion(String latest, String current) {
-  final cur = current.replaceFirst(RegExp(r'^[Vv]'), '').split('.').map(_parseInt).toList();
+  final cur = current
+      .replaceFirst(RegExp(r'^[Vv]'), '')
+      .split('.')
+      .map(_parseInt)
+      .toList();
   final lat = latest.split('.').map(_parseInt).toList();
   final len = lat.length > cur.length ? lat.length : cur.length;
   for (var i = 0; i < len; i++) {

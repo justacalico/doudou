@@ -5,6 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
+import '/utils/helper.dart';
+
 class PlaybackDiagnosticsService extends GetxService {
   static const String boxName = 'PlaybackDiagnostics';
   static const String appPrefsBoxName = 'AppPrefs';
@@ -41,7 +43,7 @@ class PlaybackDiagnosticsService extends GetxService {
       final box = Hive.box(boxName);
       final events = box.values
           .whereType<Map>()
-          .map((e) => _sanitizeMap(e.cast<dynamic, dynamic>()))
+          .map((e) => sanitizeLogMap(e.cast<dynamic, dynamic>()))
           .toList();
       if (limit == null || limit <= 0 || events.length <= limit) {
         return events;
@@ -99,8 +101,8 @@ class PlaybackDiagnosticsService extends GetxService {
       final event = <String, dynamic>{
         'ts': DateTime.now().toUtc().toIso8601String(),
         'sessionId': _activeSessionId,
-        'category': category,
-        'message': message,
+        'category': sanitizeLogString(category),
+        'message': sanitizeLogString(message),
       };
       if (songId != null && songId.isNotEmpty) {
         event['songId'] = songId;
@@ -112,7 +114,7 @@ class PlaybackDiagnosticsService extends GetxService {
         event['activeServerType'] = activeServerType;
       }
       if (data != null && data.isNotEmpty) {
-        event['data'] = _sanitizeMap(data);
+        event['data'] = sanitizeLogMap(data);
       }
       box.add(event);
       while (box.length > _maxEvents) {
@@ -157,7 +159,7 @@ class PlaybackDiagnosticsService extends GetxService {
     final box = Hive.box(boxName);
     for (final item in box.values) {
       if (item is Map) {
-        lines.add(jsonEncode(_sanitizeMap(item.cast<dynamic, dynamic>())));
+        lines.add(jsonEncode(sanitizeLogMap(item.cast<dynamic, dynamic>())));
       }
     }
 
@@ -167,58 +169,6 @@ class PlaybackDiagnosticsService extends GetxService {
 
   static String sanitizeUrl(String? input) {
     if (input == null || input.isEmpty) return '';
-    try {
-      final uri = Uri.parse(input);
-      if (!uri.hasScheme || uri.host.isEmpty) {
-        return _truncate(input);
-      }
-      final sanitized = Uri(
-        scheme: uri.scheme,
-        host: uri.host,
-        port: uri.hasPort ? uri.port : null,
-        path: uri.path,
-      );
-      return _truncate(sanitized.toString());
-    } catch (_) {
-      return _truncate(input.split('?').first);
-    }
-  }
-
-  static Map<String, dynamic> _sanitizeMap(Map<dynamic, dynamic> data) {
-    final output = <String, dynamic>{};
-    data.forEach((key, value) {
-      final k = key.toString();
-      final keyLower = k.toLowerCase();
-      if (keyLower.contains('token') ||
-          keyLower.contains('auth') ||
-          keyLower.contains('password') ||
-          keyLower.contains('cookie')) {
-        output[k] = '***';
-        return;
-      }
-      output[k] = _sanitizeValue(k, value);
-    });
-    return output;
-  }
-
-  static dynamic _sanitizeValue(String key, dynamic value) {
-    if (value == null) return null;
-    if (value is Map) return _sanitizeMap(value);
-    if (value is List) {
-      return value.map((v) => _sanitizeValue(key, v)).toList();
-    }
-    if (value is String) {
-      final keyLower = key.toLowerCase();
-      if (keyLower.contains('url') || value.startsWith('http')) {
-        return sanitizeUrl(value);
-      }
-      return _truncate(value);
-    }
-    return value;
-  }
-
-  static String _truncate(String s, {int max = 220}) {
-    if (s.length <= max) return s;
-    return '${s.substring(0, max)}...';
+    return sanitizeLogString(input);
   }
 }

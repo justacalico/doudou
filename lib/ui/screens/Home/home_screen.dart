@@ -12,6 +12,7 @@ import '../Library/library.dart';
 import '../Search/search_screen.dart';
 import '/ui/constants/layout.dart';
 import '/utils/app_l10n.dart';
+import '/utils/helper.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/shell_controller.dart';
@@ -25,8 +26,18 @@ import '../Settings/settings_screen.dart';
 // #region agent log
 void _debugLog(String message, Map<String, dynamic> data, String hypothesisId) {
   try {
-    final f = File('/mnt/FUCKICE/Code/gitlab/Openlyst/doudou/.cursor/debug-2cd524.log');
-    f.writeAsStringSync('${jsonEncode({'sessionId':'2cd524','hypothesisId':hypothesisId,'location':'home_screen.dart','message':message,'data':data,'timestamp':DateTime.now().millisecondsSinceEpoch})}\n', mode: FileMode.append);
+    final f = File(
+        '/mnt/FUCKICE/Code/gitlab/Openlyst/doudou/.cursor/debug-2cd524.log');
+    f.writeAsStringSync(
+        '${jsonEncode({
+              'sessionId': '2cd524',
+              'hypothesisId': hypothesisId,
+              'location': 'home_screen.dart',
+              'message': sanitizeLogString(message),
+              'data': sanitizeLogMap(data),
+              'timestamp': DateTime.now().millisecondsSinceEpoch
+            })}\n',
+        mode: FileMode.append);
   } catch (_) {}
 }
 // #endregion
@@ -125,235 +136,247 @@ class Body extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             // #region agent log
-            _debugLog('home_tab0_constraints', {
-              'maxHeight': constraints.maxHeight,
-              'maxWidth': constraints.maxWidth,
-              'boundedHeight': constraints.maxHeight.isFinite,
-            }, 'H1');
+            _debugLog(
+                'home_tab0_constraints',
+                {
+                  'maxHeight': constraints.maxHeight,
+                  'maxWidth': constraints.maxWidth,
+                  'boundedHeight': constraints.maxHeight.isFinite,
+                },
+                'H1');
             // #endregion
             return SizedBox.expand(
               child: Stack(
                 children: [
                   Positioned.fill(
                     child: Obx(() {
-              final libSongs = Get.find<LibrarySongsController>();
-              final libAlbums = Get.find<LibraryAlbumsController>();
-              final libArtists = Get.find<LibraryArtistsController>();
-              final libPlaylists = Get.find<LibraryPlaylistsController>();
-              final hasLibraryContent = libSongs.librarySongsList.isNotEmpty ||
-                  libAlbums.libraryAlbums.isNotEmpty ||
-                  libArtists.libraryArtists.isNotEmpty ||
-                  libPlaylists.libraryPlaylists.length > 4;
-              if (!hasLibraryContent) {
-                return SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      top: 24,
-                      right: kContentRightPadding,
-                      bottom: useBottomNav
-                          ? kContentBottomPaddingWithBottomNav
-                          : kContentBottomPaddingWithPlayer,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHomeHeader(context),
-                        const SizedBox(height: 24),
-                        _buildHomeQuickActionCards(
-                          context: context,
-                          libSongs: libSongs,
-                          homeScreenController: homeScreenController,
-                        ),
-                        const SizedBox(height: 48),
-                        Center(
+                      final libSongs = Get.find<LibrarySongsController>();
+                      final libAlbums = Get.find<LibraryAlbumsController>();
+                      final libArtists = Get.find<LibraryArtistsController>();
+                      final libPlaylists =
+                          Get.find<LibraryPlaylistsController>();
+                      final hasLibraryContent =
+                          libSongs.librarySongsList.isNotEmpty ||
+                              libAlbums.libraryAlbums.isNotEmpty ||
+                              libArtists.libraryArtists.isNotEmpty ||
+                              libPlaylists.libraryPlaylists.length > 4;
+                      if (!hasLibraryContent) {
+                        return SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 24),
-                            child: Text(
-                              context.l10n.addMusicToLibraryHint,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleMedium,
+                            padding: EdgeInsets.only(
+                              top: 24,
+                              right: kContentRightPadding,
+                              bottom: useBottomNav
+                                  ? kContentBottomPaddingWithBottomNav
+                                  : kContentBottomPaddingWithPlayer,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildHomeHeader(context),
+                                const SizedBox(height: 24),
+                                _buildHomeQuickActionCards(
+                                  context: context,
+                                  libSongs: libSongs,
+                                  homeScreenController: homeScreenController,
+                                ),
+                                const SizedBox(height: 48),
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 24),
+                                    child: Text(
+                                      context.l10n.addMusicToLibraryHint,
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
+                        );
+                      }
 
-              final playerController = Get.find<PlayerController>();
-              final theme = Theme.of(context);
-              // Listen for background refreshes of cached home sections.
-              homeScreenController.homeLibrarySectionsVersion.value;
+                      final playerController = Get.find<PlayerController>();
+                      final theme = Theme.of(context);
+                      // Listen for background refreshes of cached home sections.
+                      homeScreenController.homeLibrarySectionsVersion.value;
 
-              return FutureBuilder<HomeLibrarySections>(
-                future: homeScreenController.loadHomeLibrarySections(),
-                builder: (context, snapshot) {
-                  final sections = snapshot.data;
-                  final isLoading = sections == null &&
-                      snapshot.connectionState == ConnectionState.waiting;
+                      return FutureBuilder<HomeLibrarySections>(
+                        future: homeScreenController.loadHomeLibrarySections(),
+                        builder: (context, snapshot) {
+                          final sections = snapshot.data;
+                          final isLoading = sections == null &&
+                              snapshot.connectionState ==
+                                  ConnectionState.waiting;
 
-                  final resolved = sections ??
-                      HomeLibrarySections(
-                        continueListening: const [],
-                        basedOnFavorites: const [],
-                        playlistsFromCollection: const [],
-                        latestAlbums: const [],
-                        artistsToExplore: const [],
-                        freshPicks: const [],
+                          final resolved = sections ??
+                              HomeLibrarySections(
+                                continueListening: const [],
+                                basedOnFavorites: const [],
+                                playlistsFromCollection: const [],
+                                latestAlbums: const [],
+                                artistsToExplore: const [],
+                                freshPicks: const [],
+                              );
+
+                          final content = <Widget>[];
+
+                          content.add(const SizedBox(height: 12));
+                          content.add(_buildHomeHeader(context));
+                          content.add(const SizedBox(height: 24));
+                          content.add(
+                            _buildHomeQuickActionCards(
+                              context: context,
+                              libSongs: libSongs,
+                              homeScreenController: homeScreenController,
+                            ),
+                          );
+                          content.add(const SizedBox(height: 24));
+
+                          if (resolved.continueListening.isNotEmpty) {
+                            content.add(
+                              buildTrackRowSection(
+                                context: context,
+                                title: context.l10n.homeContinueListening,
+                                subtitle:
+                                    context.l10n.homeContinueListeningSubtitle,
+                                items: resolved.continueListening,
+                                playLabel: context.l10n.homeContinueListening,
+                                playerController: playerController,
+                                showViewAll: true,
+                              ),
+                            );
+                            content.add(const SizedBox(height: 32));
+                          }
+
+                          if (resolved.basedOnFavorites.isNotEmpty) {
+                            content.add(
+                              buildTrackRowSection(
+                                context: context,
+                                title: context.l10n.homeBecauseYouLikeArtists,
+                                subtitle: context
+                                    .l10n.homeBecauseYouLikeArtistsSubtitle,
+                                items: resolved.basedOnFavorites,
+                                playLabel:
+                                    context.l10n.homeBecauseYouLikeArtists,
+                                playerController: playerController,
+                              ),
+                            );
+                            content.add(const SizedBox(height: 32));
+                          }
+
+                          if (resolved.playlistsFromCollection.isNotEmpty) {
+                            content.add(
+                              buildPlaylistRowSection(
+                                context: context,
+                                title: context.l10n.playlists,
+                                subtitle: context.l10n.homePlaylistsSubtitle,
+                                playlists: resolved.playlistsFromCollection,
+                              ),
+                            );
+                            content.add(const SizedBox(height: 32));
+                          }
+
+                          if (resolved.latestAlbums.isNotEmpty) {
+                            content.add(
+                              buildAlbumRowSection(
+                                context: context,
+                                title: context.l10n.recentlyAddedAlbums,
+                                subtitle: context.l10n.yourNewestAdditions,
+                                albums: resolved.latestAlbums,
+                              ),
+                            );
+                            content.add(const SizedBox(height: 32));
+                          }
+
+                          if (resolved.artistsToExplore.isNotEmpty) {
+                            content.add(
+                              buildArtistRowSection(
+                                context: context,
+                                title: context.l10n.yourArtists,
+                                subtitle: context.l10n.homeArtistsSubtitle,
+                                artists: resolved.artistsToExplore,
+                              ),
+                            );
+                            content.add(const SizedBox(height: 32));
+                          }
+
+                          if (resolved.freshPicks.isNotEmpty) {
+                            content.add(
+                              buildFreshPicksSection(
+                                context: context,
+                                items: resolved.freshPicks,
+                                playerController: playerController,
+                              ),
+                            );
+                          }
+
+                          // #region agent log
+                          _debugLog('home_scroll_content',
+                              {'contentLength': content.length}, 'H2');
+                          // #endregion
+                          if (isLoading) {
+                            content.add(
+                              Padding(
+                                padding: const EdgeInsets.only(top: 20),
+                                child: Text(
+                                  context.l10n.loading,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ),
+                            );
+                          } else if (content.length <= 5) {
+                            content.add(
+                              Padding(
+                                padding: const EdgeInsets.only(top: 20),
+                                child: Text(
+                                  context.l10n.homeEmptyLibraryMessage,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
+                          // #region agent log
+                          _debugLog('home_building_scroll_view',
+                              {'hasContent': content.isNotEmpty}, 'H4');
+                          // #endregion
+                          return SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                top: 24,
+                                right: kContentRightPadding,
+                                bottom: useBottomNav
+                                    ? kContentBottomPaddingWithBottomNav
+                                    : kContentBottomPaddingWithPlayer,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: content,
+                              ),
+                            ),
+                          );
+                        },
                       );
-
-                  final content = <Widget>[];
-
-                  content.add(const SizedBox(height: 12));
-                  content.add(_buildHomeHeader(context));
-                  content.add(const SizedBox(height: 24));
-                  content.add(
-                    _buildHomeQuickActionCards(
-                      context: context,
-                      libSongs: libSongs,
-                      homeScreenController: homeScreenController,
-                    ),
-                  );
-                  content.add(const SizedBox(height: 24));
-
-                  if (resolved.continueListening.isNotEmpty) {
-                    content.add(
-                      buildTrackRowSection(
-                        context: context,
-                        title: context.l10n.homeContinueListening,
-                        subtitle:
-                            context.l10n.homeContinueListeningSubtitle,
-                        items: resolved.continueListening,
-                        playLabel: context.l10n.homeContinueListening,
-                        playerController: playerController,
-                        showViewAll: true,
-                      ),
-                    );
-                    content.add(const SizedBox(height: 32));
-                  }
-
-                  if (resolved.basedOnFavorites.isNotEmpty) {
-                    content.add(
-                      buildTrackRowSection(
-                        context: context,
-                        title: context.l10n.homeBecauseYouLikeArtists,
-                        subtitle:
-                            context.l10n.homeBecauseYouLikeArtistsSubtitle,
-                        items: resolved.basedOnFavorites,
-                        playLabel: context.l10n.homeBecauseYouLikeArtists,
-                        playerController: playerController,
-                      ),
-                    );
-                    content.add(const SizedBox(height: 32));
-                  }
-
-                  if (resolved.playlistsFromCollection.isNotEmpty) {
-                    content.add(
-                      buildPlaylistRowSection(
-                        context: context,
-                        title: context.l10n.playlists,
-                        subtitle: context.l10n.homePlaylistsSubtitle,
-                        playlists: resolved.playlistsFromCollection,
-                      ),
-                    );
-                    content.add(const SizedBox(height: 32));
-                  }
-
-                  if (resolved.latestAlbums.isNotEmpty) {
-                    content.add(
-                      buildAlbumRowSection(
-                        context: context,
-                        title: context.l10n.recentlyAddedAlbums,
-                        subtitle: context.l10n.yourNewestAdditions,
-                        albums: resolved.latestAlbums,
-                      ),
-                    );
-                    content.add(const SizedBox(height: 32));
-                  }
-
-                  if (resolved.artistsToExplore.isNotEmpty) {
-                    content.add(
-                      buildArtistRowSection(
-                        context: context,
-                        title: context.l10n.yourArtists,
-                        subtitle: context.l10n.homeArtistsSubtitle,
-                        artists: resolved.artistsToExplore,
-                      ),
-                    );
-                    content.add(const SizedBox(height: 32));
-                  }
-
-                  if (resolved.freshPicks.isNotEmpty) {
-                    content.add(
-                      buildFreshPicksSection(
-                        context: context,
-                        items: resolved.freshPicks,
-                        playerController: playerController,
-                      ),
-                    );
-                  }
-
-                  // #region agent log
-                  _debugLog('home_scroll_content', {'contentLength': content.length}, 'H2');
-                  // #endregion
-                  if (isLoading) {
-                    content.add(
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Text(
-                          context.l10n.loading,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ),
-                    );
-                  } else if (content.length <= 5) {
-                    content.add(
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Text(
-                          context.l10n.homeEmptyLibraryMessage,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  // #region agent log
-                  _debugLog('home_building_scroll_view', {'hasContent': content.isNotEmpty}, 'H4');
-                  // #endregion
-                  return SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        top: 24,
-                        right: kContentRightPadding,
-                        bottom: useBottomNav
-                            ? kContentBottomPaddingWithBottomNav
-                            : kContentBottomPaddingWithPlayer,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: content,
-                      ),
-                    ),
-                  );
-                },
-              );
-            }),
+                    }),
                   ),
-          ],
+                ],
+              ),
+            );
+          },
         ),
-      );
-      },
-    ),
       );
     } else if (homeScreenController.tabIndex.value == 1) {
       return const SearchScreen();
@@ -498,7 +521,6 @@ class Body extends StatelessWidget {
       },
     );
   }
-
 }
 
 class _HomeQuickActionCard extends StatelessWidget {
@@ -544,7 +566,8 @@ class _HomeQuickActionCard extends StatelessWidget {
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: kDoudouSurfaceHover,
-                        borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
+                        borderRadius:
+                            BorderRadius.circular(kDoudouRadiusIconBox),
                       ),
                       child: Icon(icon, color: onSurface, size: 24),
                     ),
@@ -556,7 +579,8 @@ class _HomeQuickActionCard extends StatelessWidget {
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: kDoudouSurfaceHover,
-                        borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
+                        borderRadius:
+                            BorderRadius.circular(kDoudouRadiusIconBox),
                       ),
                       child: Icon(icon, color: onSurface, size: 24),
                     ),

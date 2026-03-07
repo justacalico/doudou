@@ -45,7 +45,7 @@ class PipedServices extends GetxService {
         return Res(0, errorMessage: response.data['error']);
       }
 
-      printINFO("Login successful! topken : ${data['token']}");
+      printINFO("Login successful");
       return Res(1, response: response.data);
     } on DioException catch (e) {
       printERROR("Login Failed! => ${e.response?.statusMessage ?? e.message}");
