@@ -275,8 +275,16 @@ class _SidebarBrand extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: c.surfaceBase,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    c.accentPrimary.withValues(alpha: 0.25),
+                    c.surfaceBase,
+                  ],
+                ),
                 borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: c.accentPrimary.withValues(alpha: 0.3)),
               ),
               clipBehavior: Clip.antiAlias,
               child: Image.asset(
@@ -292,13 +300,47 @@ class _SidebarBrand extends StatelessWidget {
             if (!minimized) ...[
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  'Doudou',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: c.textPrimary,
-                      ),
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Doudou',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: c.textPrimary,
+                                  letterSpacing: -0.3,
+                                  height: 1.0,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          width: 5,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: c.accentPrimary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Music Player',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: c.textTertiary,
+                            letterSpacing: 0.4,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
                 ),
               ),
             ],
