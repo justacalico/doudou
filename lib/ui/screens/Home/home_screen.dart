@@ -443,50 +443,59 @@ class Body extends StatelessWidget {
         downloadCount = Hive.box('SongDownloads').length;
       }
     } catch (_) {}
-    return Row(
-      children: [
-        Expanded(
-          child: _HomeQuickActionCard(
-            icon: Icons.shuffle,
-            label: context.l10n.shuffleAll,
-            subtitle: '$shuffleCount ${context.l10n.songsCount}',
-            onTap: () {
-              homeScreenController.shuffleAll(
-                emptyMessage: context.l10n.noSongsInLibrary,
-                playFromName: context.l10n.shuffleAll,
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _HomeQuickActionCard(
-            icon: Icons.favorite,
-            label: context.l10n.favorites,
-            subtitle: context.l10n.shuffleFavorites,
-            onTap: () {
-              homeScreenController.shuffleFavorites(
-                emptyMessage: context.l10n.favoritesEmpty,
-                playFromName: context.l10n.favorites,
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _HomeQuickActionCard(
-            icon: Icons.download,
-            label: context.l10n.downloads,
-            subtitle: '$downloadCount ${context.l10n.songsCount}',
-            onTap: () {
-              homeScreenController.shuffleDownloads(
-                emptyMessage: context.l10n.noOfflineSong,
-                playFromName: context.l10n.downloads,
-              );
-            },
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = (constraints.maxWidth - 24) / 3;
+        final compact = cardWidth < 180;
+        return Row(
+          children: [
+            Expanded(
+              child: _HomeQuickActionCard(
+                icon: Icons.shuffle,
+                label: context.l10n.shuffleAll,
+                subtitle: '$shuffleCount ${context.l10n.songsCount}',
+                compact: compact,
+                onTap: () {
+                  homeScreenController.shuffleAll(
+                    emptyMessage: context.l10n.noSongsInLibrary,
+                    playFromName: context.l10n.shuffleAll,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _HomeQuickActionCard(
+                icon: Icons.favorite,
+                label: context.l10n.favorites,
+                subtitle: context.l10n.shuffleFavorites,
+                compact: compact,
+                onTap: () {
+                  homeScreenController.shuffleFavorites(
+                    emptyMessage: context.l10n.favoritesEmpty,
+                    playFromName: context.l10n.favorites,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _HomeQuickActionCard(
+                icon: Icons.download,
+                label: context.l10n.downloads,
+                subtitle: '$downloadCount ${context.l10n.songsCount}',
+                compact: compact,
+                onTap: () {
+                  homeScreenController.shuffleDownloads(
+                    emptyMessage: context.l10n.noOfflineSong,
+                    playFromName: context.l10n.downloads,
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -497,12 +506,14 @@ class _HomeQuickActionCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.subtitle,
+    this.compact = false,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
   final String subtitle;
+  final bool compact;
   final VoidCallback onTap;
 
   @override
@@ -517,51 +528,67 @@ class _HomeQuickActionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(kDoudouRadiusCard),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: compact
+              ? const EdgeInsets.symmetric(horizontal: 10, vertical: 12)
+              : const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
             color: kDoudouSurface,
             borderRadius: BorderRadius.circular(kDoudouRadiusCard),
             border: Border.all(color: kDoudouBorderStrong, width: 1),
           ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: kDoudouSurfaceHover,
-                  borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
-                ),
-                child: Icon(icon, color: onSurface, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: onSurface,
+          child: compact
+              ? Center(
+                  child: Tooltip(
+                    message: label,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: kDoudouSurfaceHover,
+                        borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      child: Icon(icon, color: onSurface, size: 24),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: onSurfaceVariant,
+                  ),
+                )
+              : Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: kDoudouSurfaceHover,
+                        borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      child: Icon(icon, color: onSurface, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            label,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
         ),
       ),
     );

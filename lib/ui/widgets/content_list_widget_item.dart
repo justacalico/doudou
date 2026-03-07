@@ -30,144 +30,154 @@ class ContentListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAlbum = content.runtimeType.toString() == "Album";
-    return InkWell(
-      splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
-      onTap: () {
-        if (isAlbum) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final cardWidth = isLibraryItem ? constraints.maxWidth : 130.0;
+      final maxByHeight = constraints.hasBoundedHeight
+          ? (constraints.maxHeight - 72).clamp(88.0, 180.0)
+          : 180.0;
+      final imageSize = isLibraryItem
+          ? (cardWidth - 10).clamp(92.0, maxByHeight)
+          : 112.0;
+      return InkWell(
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        onTap: () {
+          if (isAlbum) {
+            ScreenNavigationSetup.pushContentRoute(
+                ScreenNavigationSetup.albumScreen, arguments: (content, content.browseId));
+            return;
+          }
           ScreenNavigationSetup.pushContentRoute(
-              ScreenNavigationSetup.albumScreen, arguments: (content, content.browseId));
-          return;
-        }
-        ScreenNavigationSetup.pushContentRoute(
-            ScreenNavigationSetup.playlistScreen,
-            arguments: [content, content.playlistId]);
-      },
-      child: Container(
-        width: 130,
-        height: 180,
-        padding: const EdgeInsets.symmetric(horizontal: 5),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            isAlbum
-                ? ImageWidget(
-                    size: 112,
-                    album: content,
-                  )
-                : content.isCloudPlaylist ||
-                        !(content.playlistId == 'LIBRP' ||
-                            content.playlistId == 'LIBFAV' ||
-                            content.playlistId == 'SongsCache' ||
-                            content.playlistId == 'SongDownloads')
-                    ? SizedBox.square(
-                        dimension: 112,
-                        child: Stack(
-                          children: [
-                            ImageWidget(
-                              size: 112,
-                              playlist: content,
-                            ),
-                            if (content.isPipedPlaylist)
-                              Align(
-                                alignment: Alignment.bottomRight,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Container(
-                                    height: 18,
-                                    width: 18,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(5),
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
-                                    ),
-                                    child: Center(
-                                        child: Text(
-                                      "P",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium!
-                                          .copyWith(fontSize: 14),
-                                    )),
-                                  ),
-                                ),
-                              ),
-                            if (!content.isCloudPlaylist)
-                              Align(
-                                alignment: Alignment.bottomRight,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Container(
-                                    height: 18,
-                                    width: 18,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(5),
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
-                                    ),
-                                    child: Center(
-                                        child: Text(
-                                      "L",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium!
-                                          .copyWith(fontSize: 14),
-                                    )),
-                                  ),
-                                ),
-                              )
-                          ],
-                        ),
+              ScreenNavigationSetup.playlistScreen,
+              arguments: [content, content.playlistId]);
+        },
+        child: SizedBox(
+          width: isLibraryItem ? double.infinity : 130,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                isAlbum
+                    ? ImageWidget(
+                        size: imageSize,
+                        album: content,
                       )
-                    : Container(
-                        height: 112,
-                        width: 112,
-                        decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColorLight,
-                            borderRadius: BorderRadius.circular(10)),
-                        child: Center(
-                            child: Icon(
-                          content.playlistId == 'LIBRP'
-                              ? Icons.history
-                              : content.playlistId == 'LIBFAV'
-                                  ? Icons.favorite
-                                  : content.playlistId == 'SongsCache'
-                                      ? Icons.flight
-                                    : Icons.download,
-                          color: Colors.white,
-                          size: 40,
-                        ))),
-            const SizedBox(height: 4),
-            SizedBox(
-              height: 40,
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  content.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium,
+                    : content.isCloudPlaylist ||
+                            !(content.playlistId == 'LIBRP' ||
+                                content.playlistId == 'LIBFAV' ||
+                                content.playlistId == 'SongsCache' ||
+                                content.playlistId == 'SongDownloads')
+                        ? SizedBox.square(
+                            dimension: imageSize,
+                            child: Stack(
+                              children: [
+                                ImageWidget(
+                                  size: imageSize,
+                                  playlist: content,
+                                ),
+                                if (content.isPipedPlaylist)
+                                  Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Container(
+                                        height: 18,
+                                        width: 18,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(5),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                        ),
+                                        child: Center(
+                                            child: Text(
+                                          "P",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium!
+                                              .copyWith(fontSize: 14),
+                                        )),
+                                      ),
+                                    ),
+                                  ),
+                                if (!content.isCloudPlaylist)
+                                  Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Container(
+                                        height: 18,
+                                        width: 18,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(5),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                        ),
+                                        child: Center(
+                                            child: Text(
+                                          "L",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium!
+                                              .copyWith(fontSize: 14),
+                                        )),
+                                      ),
+                                    ),
+                                  )
+                              ],
+                            ),
+                          )
+                        : Container(
+                            height: imageSize,
+                            width: imageSize,
+                            decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColorLight,
+                                borderRadius: BorderRadius.circular(10)),
+                            child: Center(
+                                child: Icon(
+                              content.playlistId == 'LIBRP'
+                                  ? Icons.history
+                                  : content.playlistId == 'LIBFAV'
+                                      ? Icons.favorite
+                                      : content.playlistId == 'SongsCache'
+                                          ? Icons.flight
+                                          : Icons.download,
+                              color: Colors.white,
+                              size: 40,
+                            ))),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 40,
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      content.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 2),
-            SizedBox(
-              height: 16,
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  _subtitle(isAlbum),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall,
+                const SizedBox(height: 1),
+                SizedBox(
+                  height: 20,
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      _subtitle(isAlbum),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

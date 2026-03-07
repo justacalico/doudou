@@ -113,8 +113,8 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final useBottomNav = shellController.useBottomNav.value;
 
-    const double itemHeight = 180;
-    const double itemWidth = 130;
+    const double crossSpacing = 14;
+    const double mainSpacing = 16;
     final topPadding = context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault;
 
     final isBottomNav = isBottomNavActive || useBottomNav;
@@ -190,14 +190,14 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                       ? libralbumCntrller.libraryAlbums.isNotEmpty
                       : librplstCntrller.libraryPlaylists.isNotEmpty)
                   ? LayoutBuilder(builder: (context, constraints) {
-                      final availableWidth = constraints.maxWidth;
-                      final columns = (availableWidth / itemWidth).floor().clamp(1, 999);
                       return GridView.builder(
                           physics: const BouncingScrollPhysics(),
                           gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: columns,
-                            childAspectRatio: (itemWidth / itemHeight),
+                              const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 200,
+                            crossAxisSpacing: crossSpacing,
+                            mainAxisSpacing: mainSpacing,
+                            childAspectRatio: 0.75,
                           ),
                           scrollDirection: Axis.vertical,
                           padding: const EdgeInsets.only(
@@ -207,14 +207,11 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                           itemCount: isAlbumContent
                               ? libralbumCntrller.libraryAlbums.length
                               : librplstCntrller.libraryPlaylists.length,
-                          itemBuilder: (context, index) => Center(
-                                child: ContentListItem(
-                                  content: isAlbumContent
-                                      ? libralbumCntrller.libraryAlbums[index]
-                                      : librplstCntrller
-                                          .libraryPlaylists[index],
-                                  isLibraryItem: true,
-                                ),
+                          itemBuilder: (context, index) => ContentListItem(
+                                content: isAlbumContent
+                                    ? libralbumCntrller.libraryAlbums[index]
+                                    : librplstCntrller.libraryPlaylists[index],
+                                isLibraryItem: true,
                               ));
                     })
                   : Center(
