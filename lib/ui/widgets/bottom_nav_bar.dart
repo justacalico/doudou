@@ -55,7 +55,8 @@ class BottomNavBar extends StatelessWidget {
               borderRadius: DoudouRadii.r20,
               child: Container(
                 height: 62,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
                   color: c.surfaceOverlay,
                   borderRadius: DoudouRadii.r20,
@@ -83,7 +84,7 @@ class BottomNavBar extends StatelessWidget {
                             duration: DoudouMotion.selection,
                             curve: DoudouMotion.standard,
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 6),
+                                horizontal: 6, vertical: 4),
                             decoration: BoxDecoration(
                               color: selected
                                   ? c.accentMuted.withValues(alpha: 0.20)
@@ -99,14 +100,15 @@ class BottomNavBar extends StatelessWidget {
                                   size: DoudouIconSize.nav,
                                   color: fg,
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 2),
                                 Text(
                                   item.label,
                                   maxLines: 1,
-                                  overflow: TextOverflow.fade,
+                                  overflow: TextOverflow.ellipsis,
                                   softWrap: false,
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    fontSize: 10,
+                                    fontSize: 9,
+                                    height: 1.0,
                                     fontWeight: FontWeight.w600,
                                     color: fg,
                                   ),
