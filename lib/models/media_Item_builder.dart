@@ -1,7 +1,10 @@
 // ignore_for_file: file_names
 
 import 'package:audio_service/audio_service.dart';
+import 'package:get/get.dart';
+import '/models/server.dart';
 import '../models/thumbnail.dart';
+import '/ui/screens/Settings/settings_screen_controller.dart';
 
 class MediaItemBuilder {
   static MediaItem fromJson(dynamic json, {String? url}) {
@@ -20,7 +23,8 @@ class MediaItemBuilder {
     );
     final mediaId = map["videoId"]?.toString() ?? "";
     final title = map["title"]?.toString() ?? "";
-    final backendType = map['backendType']?.toString();
+    final inferredBackendType = _inferBackendTypeFromServer(map['serverId']);
+    final backendType = map['backendType']?.toString() ?? inferredBackendType;
     final parsedUrl = map['url']?.toString().trim().isNotEmpty == true
         ? map['url'].toString()
         : null;
@@ -50,9 +54,40 @@ class MediaItemBuilder {
           'date': map['date'],
           'trackDetails': map['trackDetails'],
           'year': map['year'],
-          if (map['backendType'] != null) 'backendType': map['backendType'],
+          if (backendType != null) 'backendType': backendType,
           if (map['serverId'] != null) 'serverId': map['serverId'],
         });
+  }
+
+  static String? _inferBackendTypeFromServer(dynamic rawServerId) {
+    try {
+      if (!Get.isRegistered<SettingsScreenController>()) return null;
+      final settings = Get.find<SettingsScreenController>();
+      int? serverId;
+      if (rawServerId is int) {
+        serverId = rawServerId;
+      } else if (rawServerId is String) {
+        serverId = int.tryParse(rawServerId);
+      }
+      SettingsServer? server;
+      if (serverId != null) {
+        for (final s in settings.servers) {
+          if (s.id == serverId) {
+            server = s;
+            break;
+          }
+        }
+      }
+      server ??= settings.activeServer;
+      return switch (server?.type) {
+        ServerType.plex => 'plex',
+        ServerType.jellyfin => 'jellyfin',
+        ServerType.subsonic => 'subsonic',
+        _ => null,
+      };
+    } catch (_) {
+      return null;
+    }
   }
 
   static String _parseArtistNames(dynamic rawArtists) {

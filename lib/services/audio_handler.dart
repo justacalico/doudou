@@ -16,6 +16,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '/models/album.dart';
+import '/models/server.dart';
 import '../models/playlist.dart';
 import '/services/equalizer.dart';
 import '/services/stream_service.dart';
@@ -1056,7 +1057,16 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       {bool generateNewUrl = false,
       bool offlineReplacementUrl = false,
       Map<String, dynamic>? extras}) async {
-    final backendType = extras?['backendType']?.toString();
+    final resolvedBackend = _resolveBackendForExtras(extras);
+    final inferredServerType = _serverTypeForExtras(extras);
+    final inferredBackendType = inferredServerType == null ||
+            inferredServerType == ServerType.youtubeMusic
+        ? null
+        : inferredServerType.name;
+    final backendType =
+        extras?['backendType']?.toString() ?? inferredBackendType;
+    final isNonYouTubeBackend = inferredServerType != null &&
+        inferredServerType != ServerType.youtubeMusic;
     _diag.logEvent(
       category: 'stream_fetch',
       message: 'check_n_get_url_start',
@@ -1069,11 +1079,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       },
     );
     printINFO("Requested id : $songId");
-    if (extras?['backendType'] == 'jellyfin' ||
-        extras?['backendType'] == 'subsonic' ||
-        extras?['backendType'] == 'plex') {
+    if (isNonYouTubeBackend) {
       try {
-        final isPlex = extras?['backendType'] == 'plex';
+        final isPlex = inferredServerType == ServerType.plex;
         final existingUrl = extras?['url']?.toString();
         String? url;
         if (!isPlex &&
@@ -1091,11 +1099,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           );
           url = existingUrl;
         } else {
-          final backend = _resolveBackendForExtras(extras);
-          url = await backend.getStreamUrl(songId);
+          url = await resolvedBackend.getStreamUrl(songId);
           if ((url == null || url.isEmpty) && isPlex) {
             await Future<void>.delayed(const Duration(milliseconds: 150));
-            url = await backend.getStreamUrl(songId);
+            url = await resolvedBackend.getStreamUrl(songId);
           }
         }
         if (url != null && url.isNotEmpty) {
@@ -1291,6 +1298,23 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       }
     }
     return settings.currentBackend;
+  }
+
+  ServerType? _serverTypeForExtras(Map<String, dynamic>? extras) {
+    final settings = Get.find<SettingsScreenController>();
+    final rawServerId = extras?['serverId'];
+    int? serverId;
+    if (rawServerId is int) {
+      serverId = rawServerId;
+    } else if (rawServerId is String) {
+      serverId = int.tryParse(rawServerId);
+    }
+    if (serverId != null) {
+      for (final server in settings.servers) {
+        if (server.id == serverId) return server.type;
+      }
+    }
+    return settings.activeServer?.type;
   }
 
   String? _safeCurrentSongId() {

@@ -57,6 +57,21 @@ class PlexService {
     return 0;
   }
 
+  String? _buildThumbUrl(Map trackLike) {
+    final thumb = trackLike['thumb']?.toString();
+    final parentThumb = trackLike['parentThumb']?.toString();
+    final grandparentThumb = trackLike['grandparentThumb']?.toString();
+    final selected = [thumb, parentThumb, grandparentThumb]
+        .whereType<String>()
+        .map((e) => e.trim())
+        .firstWhere(
+          (e) => e.isNotEmpty,
+          orElse: () => '',
+        );
+    if (selected.isEmpty) return null;
+    return '$_serverUrl$selected?X-Plex-Token=$_token';
+  }
+
   Future<String?> _getTrackPartKey(String trackId) async {
     try {
       final response = await _dio.get(
@@ -346,9 +361,7 @@ class PlexService {
                   trackNumber: track['index'] is int
                       ? track['index'] as int
                       : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
-                  imageUrl: track['thumb'] != null
-                      ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token'
-                      : null,
+                  imageUrl: _buildThumbUrl(track),
                 ),
               )
               .toList(),
@@ -379,9 +392,7 @@ class PlexService {
                   trackNumber: track['index'] is int
                       ? track['index'] as int
                       : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
-                  imageUrl: track['thumb'] != null
-                      ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token'
-                      : null,
+                  imageUrl: _buildThumbUrl(track),
                 ),
               )
               .toList(),
@@ -416,9 +427,7 @@ class PlexService {
                         ? track['index'] as int
                         : (int.tryParse(track['index']?.toString() ?? '0') ??
                             0),
-                    imageUrl: track['thumb'] != null
-                        ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token'
-                        : null,
+                    imageUrl: _buildThumbUrl(track),
                   ),
                 )
                 .toList(),
@@ -477,9 +486,7 @@ class PlexService {
               trackNumber: track['index'] is int
                   ? track['index'] as int
                   : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
-              imageUrl: track['thumb'] != null
-                  ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token'
-                  : null,
+              imageUrl: _buildThumbUrl(track),
             ),
           )
           .toList();
@@ -576,9 +583,7 @@ class PlexService {
                 name: item['title'] as String,
                 artistName: item['parentTitle'] ?? 'Unknown Artist',
                 year: item['year'],
-                imageUrl: item['thumb'] != null
-                    ? '$_serverUrl${item['thumb']}?X-Plex-Token=$_token'
-                    : null,
+                imageUrl: _buildThumbUrl(item),
               ),
             );
             break;
@@ -587,9 +592,7 @@ class PlexService {
               Artist(
                 id: item['ratingKey'].toString(),
                 name: item['title'] as String,
-                imageUrl: item['thumb'] != null
-                    ? '$_serverUrl${item['thumb']}?X-Plex-Token=$_token'
-                    : null,
+                imageUrl: _buildThumbUrl(item),
               ),
             );
             break;
@@ -602,9 +605,7 @@ class PlexService {
                 albumName: item['parentTitle'] ?? 'Unknown Album',
                 duration: _parseDuration(item['duration']),
                 trackNumber: item['index'] as int?,
-                imageUrl: item['thumb'] != null
-                    ? '$_serverUrl${item['thumb']}?X-Plex-Token=$_token'
-                    : null,
+                imageUrl: _buildThumbUrl(item),
               ),
             );
             break;
