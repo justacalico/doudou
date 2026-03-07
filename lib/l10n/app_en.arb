@@ -76,6 +76,7 @@
   "homeArtistsSubtitle": "A rotating mix from your artists",
   "homeFreshPicks": "Fresh picks",
   "homeEmptyLibraryMessage": "Your library is empty. Add some music to get started.",
+  "homeSectionEmpty": "Nothing here yet",
   "servers": "Servers",
   "addServer": "Add server",
   "noServersConfigured": "No servers configured yet",

@@ -204,6 +204,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Библиотека пуста. Добавьте музыку для начала.';
 
   @override
+  String get homeSectionEmpty => 'Пока ничего нет';
+
+  @override
   String get servers => 'Серверы';
 
   @override

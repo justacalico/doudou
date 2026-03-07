@@ -234,24 +234,13 @@ class Body extends StatelessWidget {
                     content.add(const SizedBox(height: 32));
                   }
 
-                  if (resolved.latestAlbums.isNotEmpty) {
-                    content.add(
-                      buildAlbumRowSection(
-                        context: context,
-                        title: context.l10n.recentlyAddedAlbums,
-                        subtitle: context.l10n.yourNewestAdditions,
-                        albums: resolved.latestAlbums,
-                      ),
-                    );
-                    content.add(const SizedBox(height: 32));
-                  }
-
                   if (resolved.basedOnFavorites.isNotEmpty) {
                     content.add(
                       buildTrackRowSection(
                         context: context,
                         title: context.l10n.homeBecauseYouLikeArtists,
-                        subtitle: context.l10n.homeBecauseYouLikeArtistsSubtitle,
+                        subtitle:
+                            context.l10n.homeBecauseYouLikeArtistsSubtitle,
                         items: resolved.basedOnFavorites,
                         playLabel: context.l10n.homeBecauseYouLikeArtists,
                         playerController: playerController,
@@ -267,6 +256,18 @@ class Body extends StatelessWidget {
                         title: context.l10n.playlists,
                         subtitle: context.l10n.homePlaylistsSubtitle,
                         playlists: resolved.playlistsFromCollection,
+                      ),
+                    );
+                    content.add(const SizedBox(height: 32));
+                  }
+
+                  if (resolved.latestAlbums.isNotEmpty) {
+                    content.add(
+                      buildAlbumRowSection(
+                        context: context,
+                        title: context.l10n.recentlyAddedAlbums,
+                        subtitle: context.l10n.yourNewestAdditions,
+                        albums: resolved.latestAlbums,
                       ),
                     );
                     content.add(const SizedBox(height: 32));

@@ -318,6 +318,7 @@
   "homeContinueListening": "继续收听",
   "homeContinueListeningSubtitle": "从上次离开处继续",
   "homeEmptyLibraryMessage": "你的曲库是空的。添加一些音乐开始吧。",
+  "homeSectionEmpty": "暂无内容",
   "homeFreshPicks": "新推荐",
   "homePlaylistsSubtitle": "你曲库中的播放列表",
   "imported": "已导入",

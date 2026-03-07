@@ -199,6 +199,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeEmptyLibraryMessage => '你的曲库是空的。添加一些音乐开始吧。';
 
   @override
+  String get homeSectionEmpty => '暂无内容';
+
+  @override
   String get servers => '服务器';
 
   @override

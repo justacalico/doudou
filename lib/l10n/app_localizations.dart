@@ -473,6 +473,12 @@ abstract class AppLocalizations {
   /// **'Your library is empty. Add some music to get started.'**
   String get homeEmptyLibraryMessage;
 
+  /// No description provided for @homeSectionEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get homeSectionEmpty;
+
   /// No description provided for @servers.
   ///
   /// In en, this message translates to:

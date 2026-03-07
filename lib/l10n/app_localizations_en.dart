@@ -202,6 +202,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your library is empty. Add some music to get started.';
 
   @override
+  String get homeSectionEmpty => 'Nothing here yet';
+
+  @override
   String get servers => 'Servers';
 
   @override
@@ -1426,6 +1429,9 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   @override
   String get homeEmptyLibraryMessage =>
       'Your library is empty. Add some music to get started.';
+
+  @override
+  String get homeSectionEmpty => 'Nothing here yet';
 
   @override
   String get servers => 'Servers';
