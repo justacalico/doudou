@@ -298,7 +298,10 @@ class SettingsScreenController extends GetxController {
       activeServerId.value = (nonDefault ?? servers.first).id;
     }
     _persistServers();
-    _onActiveServerChanged();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!Get.isRegistered<SettingsScreenController>()) return;
+      _onActiveServerChanged();
+    });
     if (Get.isRegistered<LibrarySyncService>()) {
       unawaited(Get.find<LibrarySyncService>().maybeSyncAllIfStale());
     } else {
