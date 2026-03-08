@@ -74,7 +74,6 @@ Desktop and mobile use one responsive now-playing/details codepath with adaptive
 
 - Flutter SDK 3.8.0 or higher
 - Dart SDK 3.8.0 or higher
-- Platform-specific tools (Xcode for iOS/macOS, Android SDK for Android, etc.)
 
 ### Clone the Repository
 
