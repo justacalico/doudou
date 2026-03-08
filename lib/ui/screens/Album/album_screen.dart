@@ -316,6 +316,12 @@ class AlbumScreen extends StatelessWidget {
   }) {
     final album = albumController.album.value;
     final rawUrl = Thumbnail(album.thumbnailUrl).extraHigh;
+    final artistsList = album.artists ?? [];
+    final artistNames =
+        artistsList.map((e) => e['name']?.toString() ?? '').join(", ");
+    final firstArtistBrowseId = artistsList.isNotEmpty
+        ? (artistsList.first['id'] ?? artistsList.first['browseId'])?.toString()
+        : null;
     final parsed = Uri.tryParse(rawUrl);
     final canUseNetwork = parsed != null &&
         parsed.isAbsolute &&
@@ -416,13 +422,30 @@ class AlbumScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          album.artists?.map((e) => e['name']).join(", ") ?? "",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(color: Colors.white70),
-                        ),
+                        firstArtistBrowseId != null
+                            ? InkWell(
+                                onTap: () {
+                                  ScreenNavigationSetup.pushContentRoute(
+                                    ScreenNavigationSetup.artistScreen,
+                                    arguments: [true, firstArtistBrowseId],
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(4),
+                                child: Text(
+                                  artistNames,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleMedium
+                                      ?.copyWith(color: Colors.white70),
+                                ),
+                              )
+                            : Text(
+                                artistNames,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.titleMedium
+                                    ?.copyWith(color: Colors.white70),
+                              ),
                       ],
                     ),
                   ),
