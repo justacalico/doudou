@@ -98,32 +98,35 @@ class AlbumScreen extends StatelessWidget {
                           child: Row(
                             children: [
                               if (showBookmarkControls)
-                                IconButton(
-                                  onPressed: () {
-                                    final add =
-                                        albumController.isAddedToLibrary.isFalse;
-                                    albumController
-                                        .addNremoveFromLibrary(
-                                            albumController.album.value,
-                                            add: add)
-                                        .then((value) {
-                                      if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(snackbar(
-                                        context,
-                                        value
-                                            ? (add
-                                                ? context.l10n.albumBookmarkAddAlert
-                                                : context
-                                                    .l10n.albumBookmarkRemoveAlert)
-                                            : context.l10n.operationFailed,
-                                        size: SnackBarSize.MEDIUM,
-                                      ));
-                                    });
-                                  },
-                                  icon: LibraryBookmarkIcon(
-                                    isBookmarked:
-                                        albumController.isAddedToLibrary.isTrue,
+                                Obx(
+                                  () => IconButton(
+                                    onPressed: () {
+                                      final add = albumController
+                                          .isAddedToLibrary.isFalse;
+                                      albumController
+                                          .addNremoveFromLibrary(
+                                              albumController.album.value,
+                                              add: add)
+                                          .then((value) {
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(snackbar(
+                                          context,
+                                          value
+                                              ? (add
+                                                  ? context.l10n
+                                                      .albumBookmarkAddAlert
+                                                  : context.l10n
+                                                      .albumBookmarkRemoveAlert)
+                                              : context.l10n.operationFailed,
+                                          size: SnackBarSize.MEDIUM,
+                                        ));
+                                      });
+                                    },
+                                    icon: LibraryBookmarkIcon(
+                                      isBookmarked: albumController
+                                          .isAddedToLibrary.isTrue,
+                                    ),
                                   ),
                                 ),
                               GetX<Downloader>(builder: (controller) {
@@ -225,7 +228,8 @@ class AlbumScreen extends StatelessWidget {
                       if (albumController.songList.isEmpty) {
                         return SizedBox(
                           height: 300,
-                          child: Center(child: Text(context.l10n.emptyPlaylist)),
+                          child:
+                              Center(child: Text(context.l10n.emptyPlaylist)),
                         );
                       }
 
