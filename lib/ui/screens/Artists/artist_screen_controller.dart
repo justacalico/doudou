@@ -16,9 +16,12 @@ import '/services/music_service.dart';
 import '../../../utils/server_storage.dart';
 import '/ui/screens/Home/home_screen_controller.dart';
 import '/ui/shell_controller.dart';
+import '/ui/models/content_category.dart';
 
 class ArtistScreenController extends GetxController
     with GetSingleTickerProviderStateMixin {
+  static const List<ContentCategory> _artistTabs =
+      ContentCategoryMapper.artistTabs;
   final isArtistContentFetced = false.obs;
   final navigationRailCurrentIndex = 0.obs;
   final musicServices = Get.find<MusicServices>();
@@ -39,14 +42,45 @@ class ArtistScreenController extends GetxController
   TabController? tabController;
   bool isTabTransitionReversed = false;
 
+  String get songsTabKey => ContentCategory.songs.canonicalKey;
+
+  String tabKeyForIndex(int index) {
+    if (index < 0 || index >= _artistTabs.length) {
+      return ContentCategory.songs.canonicalKey;
+    }
+    return _artistTabs[index].canonicalKey;
+  }
+
+  ContentCategory categoryForIndex(int index) {
+    if (index < 0 || index >= _artistTabs.length) {
+      return ContentCategory.songs;
+    }
+    return _artistTabs[index];
+  }
+
+  ScrollController? scrollControllerForCategory(ContentCategory category) {
+    switch (category) {
+      case ContentCategory.songs:
+        return songScrollController;
+      case ContentCategory.videos:
+        return videoScrollController;
+      case ContentCategory.albums:
+        return albumScrollController;
+      case ContentCategory.singles:
+        return singlesScrollController;
+      default:
+        return null;
+    }
+  }
+
   int get artistSongCount {
-    final songs = sepataredContent['Songs'];
+    final songs = sepataredContent[songsTabKey];
     if (songs == null || songs['results'] == null) return 0;
     return (songs['results'] as List).length;
   }
 
   String get artistTotalDurationFormatted {
-    final songs = sepataredContent['Songs'];
+    final songs = sepataredContent[songsTabKey];
     if (songs == null || songs['results'] == null) return '';
     final list = songs['results'] as List;
     int totalSeconds = 0;
@@ -67,7 +101,7 @@ class ArtistScreenController extends GetxController
   }
 
   Future<void> ensureSongsLoaded() async {
-    if (sepataredContent.containsKey('Songs')) return;
+    if (sepataredContent.containsKey(songsTabKey)) return;
     await onDestinationSelected(0);
   }
 
@@ -77,7 +111,7 @@ class ArtistScreenController extends GetxController
     _init(args[0], args[1]);
     if (GetPlatform.isDesktop ||
         Get.find<ShellController>().useBottomNav.value) {
-      tabController = TabController(vsync: this, length: 4);
+      tabController = TabController(vsync: this, length: _artistTabs.length);
       tabController?.animation?.addListener(() {
         int indexChange = tabController!.offset.round();
         int index = tabController!.index + indexChange;
@@ -113,8 +147,7 @@ class ArtistScreenController extends GetxController
       return;
     }
 
-    final box =
-        await Hive.openBox(libraryArtistsBoxName(currentServerId()));
+    final box = await Hive.openBox(libraryArtistsBoxName(currentServerId()));
     isAddedToLibrary.value = box.containsKey(id);
     await box.close();
   }
@@ -126,8 +159,9 @@ class ArtistScreenController extends GetxController
     // Use YouTube Music specific endpoint only when the active server is YT Music.
     if (server == null || server.type == ServerType.youtubeMusic) {
       artistData.value = await musicServices.getArtist(id);
-      artistData["Singles"] = artistData["Singles & EPs"];
-      artistData["Songs"] = artistData["Top songs"];
+      artistData[ContentCategory.singles.canonicalKey] =
+          artistData["Singles & EPs"];
+      artistData[songsTabKey] = artistData["Top songs"];
       isArtistContentFetced.value = true;
       final data = artistData;
       artist_ = Artist(
@@ -138,10 +172,10 @@ class ArtistScreenController extends GetxController
           subscribers: "${data['subscribers']} subscribers",
           radioId: data["radioId"]);
       final initialIndex = tabController?.index ?? 0;
-      if (artistData["Songs"] != null ||
-          artistData["Videos"] != null ||
-          artistData["Albums"] != null ||
-          artistData["Singles"] != null) {
+      final hasAnyTabData = _artistTabs
+          .map((category) => category.canonicalKey)
+          .any((key) => artistData[key] != null);
+      if (hasAnyTabData) {
         onDestinationSelected(initialIndex);
       }
       return;
@@ -176,7 +210,7 @@ class ArtistScreenController extends GetxController
         {'url': artist_.thumbnailUrl}
       ],
       'subscribers': artist_.subscribers,
-      'Songs': {
+      songsTabKey: {
         'content': songs,
       },
     };
@@ -197,12 +231,12 @@ class ArtistScreenController extends GetxController
       return name == artistName;
     }).toList();
 
-    artistData['Songs'] = {
+    artistData[songsTabKey] = {
       'content': songs,
     };
 
-    if (sepataredContent.containsKey('Songs')) {
-      sepataredContent['Songs']['results'] = songs;
+    if (sepataredContent.containsKey(songsTabKey)) {
+      sepataredContent[songsTabKey]['results'] = songs;
       sepataredContent.refresh();
     }
   }
@@ -258,8 +292,7 @@ class ArtistScreenController extends GetxController
     }
 
     try {
-      final box =
-          await Hive.openBox(libraryArtistsBoxName(currentServerId()));
+      final box = await Hive.openBox(libraryArtistsBoxName(currentServerId()));
       add
           ? box.put(artist_.browseId, artist_.toJson())
           : box.delete(artist_.browseId);
@@ -275,7 +308,8 @@ class ArtistScreenController extends GetxController
   Future<void> onDestinationSelected(int val) async {
     isTabTransitionReversed = val > navigationRailCurrentIndex.value;
     navigationRailCurrentIndex.value = val;
-    final tabName = ["Songs", "Videos", "Albums", "Singles"][val];
+    final tabCategory = categoryForIndex(val);
+    final tabName = tabCategory.canonicalKey;
 
     if (sortWidgetController != null) {
       sortWidgetController?.setActiveMode(OperationMode.none);
@@ -290,10 +324,10 @@ class ArtistScreenController extends GetxController
         server.type == ServerType.youtubeMusic; // matches YT branch above
 
     // Lazy loading for non‑YouTube backends
-    if (!isYouTubeServer && tabName != "Songs") {
+    if (!isYouTubeServer && tabCategory != ContentCategory.songs) {
       isSeparatedArtistContentFetced.value = false;
 
-      if (tabName == "Albums") {
+      if (tabCategory == ContentCategory.albums) {
         artistData[tabName] = await _loadAlbumsForArtist();
       } else {
         artistData[tabName] = {'content': <dynamic>[]};
@@ -322,13 +356,11 @@ class ArtistScreenController extends GetxController
       return;
     }
 
-    final scrollController = val == 0
-        ? songScrollController
-        : val == 1
-            ? videoScrollController
-            : val == 2
-                ? albumScrollController
-                : singlesScrollController;
+    final scrollController = scrollControllerForCategory(tabCategory);
+    if (scrollController == null) {
+      isSeparatedArtistContentFetced.value = true;
+      return;
+    }
 
     scrollController.addListener(() {
       double maxScroll = scrollController.position.maxScrollExtent;
@@ -360,11 +392,12 @@ class ArtistScreenController extends GetxController
     if (sepataredContent[title] == null) {
       return;
     }
-    if (title == "Songs" || title == "Videos") {
+    final category = ContentCategoryMapper.fromKey(title);
+    if (category.isSongLike) {
       final songlist = sepataredContent[title]['results'].toList();
       sortSongsNVideos(songlist, sortType, isAscending);
       sepataredContent[title]['results'] = songlist;
-    } else if (title == "Albums" || title == "Singles") {
+    } else if (category.isAlbumLike) {
       final albumList = sepataredContent[title]['results'].toList();
       sortAlbumNSingles(albumList, sortType, isAscending);
       sepataredContent[title]['results'] = albumList;
@@ -401,13 +434,7 @@ class ArtistScreenController extends GetxController
   void startAdditionalOperation(
       SortWidgetController sortWidgetController_, OperationMode mode) {
     sortWidgetController = sortWidgetController_;
-    final tabName = [
-      "About",
-      "Songs",
-      "Videos",
-      "Albums",
-      "Singles"
-    ][navigationRailCurrentIndex.value];
+    final tabName = tabKeyForIndex(navigationRailCurrentIndex.value);
     additionalOperationTempList.value =
         sepataredContent[tabName]['results'].toList();
     if (mode == OperationMode.addToPlaylist || mode == OperationMode.delete) {

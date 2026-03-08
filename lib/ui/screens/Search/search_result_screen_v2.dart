@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/widgets/loader.dart';
 import 'package:doudou/ui/widgets/search_related_widgets.dart';
+import '/ui/models/content_category.dart';
 
 import '../../navigator.dart';
 import '../../widgets/separate_tab_item_widget.dart';
@@ -119,7 +120,9 @@ class SearchResultScreenBN extends StatelessWidget {
                                 Tab(text: context.l10n.results),
                                 ...searchResScrController.railItems
                                     .map((item) => Tab(
-                                          text: context.trKey(item),
+                                          text: ContentCategoryMapper.fromKey(
+                                                  item)
+                                              .localizedLabel(context),
                                         ))
                               ],
                             ),
@@ -138,8 +141,9 @@ class SearchResultScreenBN extends StatelessWidget {
                                   ),
                                   ...searchResScrController.railItems
                                       .map((tabName) {
-                                    if (tabName == "Songs" ||
-                                        tabName == "Videos") {
+                                    final category =
+                                        ContentCategoryMapper.fromKey(tabName);
+                                    if (category.isSongLike) {
                                       return SeparateTabItemWidget(
                                         isResultWidget: true,
                                         hideTitle: true,

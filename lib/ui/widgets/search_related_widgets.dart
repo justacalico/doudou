@@ -3,6 +3,7 @@ import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../models/content_category.dart';
 import '../screens/Search/search_result_screen_controller.dart';
 import '/models/album.dart';
 import '/models/artist.dart';
@@ -63,20 +64,22 @@ class ResultWidget extends StatelessWidget {
       SearchResultScreenController searchResScrController) {
     List<Widget> list = [];
     for (dynamic item in searchResScrController.resultContent.entries) {
-      if (item.key == "Songs" || item.key == "Videos") {
+      final category = ContentCategoryMapper.fromKey(item.key.toString());
+      if (category.isSongLike) {
         list.add(SeparateTabItemWidget(
           items: _toMediaItemList(item.value),
           title: item.key,
           isCompleteList: false,
           searchResultController: searchResScrController,
         ));
-      } else if (item.key == "Albums") {
+      } else if (category == ContentCategory.albums) {
         list.add(ContentListWidget(
-          content: AlbumContent(title: item.key, albumList: _toAlbumList(item.value)),
+          content: AlbumContent(
+              title: item.key, albumList: _toAlbumList(item.value)),
           isHomeContent: false,
           onViewAll: searchResScrController.viewAllCallback,
         ));
-      } else if (item.key.contains("Artist")) {
+      } else if (category.isArtistLike) {
         list.add(SeparateTabItemWidget(
           items: _toArtistList(item.value),
           title: item.key,

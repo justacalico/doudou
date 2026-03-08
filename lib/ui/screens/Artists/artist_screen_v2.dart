@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
+import '/ui/models/content_category.dart';
 
 import '/ui/screens/Artists/artist_header.dart';
 import '../../navigator.dart';
@@ -66,8 +66,8 @@ class ArtistScreenBN extends StatelessWidget {
             onTap: artistScreenController.onDestinationSelected,
             splashFactory: NoSplash.splashFactory,
             isScrollable: true,
-            tabs: [context.l10n.songs, context.l10n.videos, context.l10n.albums, context.l10n.singles]
-                .map((e) => Tab(text: e))
+            tabs: ContentCategoryMapper.artistTabs
+                .map((category) => Tab(text: category.localizedLabel(context)))
                 .toList(),
           ),
           Expanded(
@@ -80,10 +80,22 @@ class ArtistScreenBN extends StatelessWidget {
                         (_) => const Center(child: LoadingIndicator()),
                       )
                     : [
-                        _TabContent(controller: artistScreenController, tag: tag, tabIndex: 0),
-                        _TabContent(controller: artistScreenController, tag: tag, tabIndex: 1),
-                        _TabContent(controller: artistScreenController, tag: tag, tabIndex: 2),
-                        _TabContent(controller: artistScreenController, tag: tag, tabIndex: 3),
+                        _TabContent(
+                            controller: artistScreenController,
+                            tag: tag,
+                            tabIndex: 0),
+                        _TabContent(
+                            controller: artistScreenController,
+                            tag: tag,
+                            tabIndex: 1),
+                        _TabContent(
+                            controller: artistScreenController,
+                            tag: tag,
+                            tabIndex: 2),
+                        _TabContent(
+                            controller: artistScreenController,
+                            tag: tag,
+                            tabIndex: 3),
                       ],
               ),
             ),
@@ -104,14 +116,15 @@ class _TabContent extends StatelessWidget {
   final String tag;
   final int tabIndex;
 
-  static const _tabNames = ["Songs", "Videos", "Albums", "Singles"];
-
   @override
   Widget build(BuildContext context) {
-    final currentTabName = _tabNames[tabIndex];
+    final currentTabCategory = ContentCategoryMapper.artistTabs[tabIndex];
+    final currentTabName = currentTabCategory.canonicalKey;
     return Obx(() {
-      final isSelected = controller.navigationRailCurrentIndex.value == tabIndex;
-      final hasContent = controller.sepataredContent.containsKey(currentTabName);
+      final isSelected =
+          controller.navigationRailCurrentIndex.value == tabIndex;
+      final hasContent =
+          controller.sepataredContent.containsKey(currentTabName);
       if (isSelected && !hasContent) {
         return const Center(child: LoadingIndicator());
       }
@@ -126,15 +139,8 @@ class _TabContent extends StatelessWidget {
           isResultWidget: false,
           items: controller.sepataredContent[currentTabName]['results'],
           title: currentTabName,
-          scrollController: currentTabName == "Songs"
-              ? controller.songScrollController
-              : currentTabName == "Videos"
-                  ? controller.videoScrollController
-                  : currentTabName == "Albums"
-                      ? controller.albumScrollController
-                      : currentTabName == "Singles"
-                          ? controller.singlesScrollController
-                          : null,
+          scrollController:
+              controller.scrollControllerForCategory(currentTabCategory),
         ),
       );
     });

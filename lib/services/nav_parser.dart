@@ -710,10 +710,20 @@ List<dynamic> parseSearchResults(List<dynamic> results,
       .toList();
 }
 
+String _normalizeCategoryKey(String? key) =>
+    (key ?? '').toLowerCase().replaceAll(RegExp(r'[\s_\-]+'), '');
+
+bool _isPlaylistCategoryKey(String? key) {
+  final normalized = _normalizeCategoryKey(key);
+  return normalized == 'playlist' ||
+      normalized == 'playlists' ||
+      normalized == 'featuredplaylists' ||
+      normalized == 'communityplaylists';
+}
+
 dynamic parseSearchResult(Map<String, dynamic> data,
     List<String> searchResultTypes, String? resultType, String? category) {
-  if ((resultType != null && resultType.contains("playlist")) ||
-      category!.contains("playlists")) {
+  if (_isPlaylistCategoryKey(resultType) || _isPlaylistCategoryKey(category)) {
     resultType = 'playlist';
   }
   int defaultOffset = (resultType == null) ? 2 : 0;
@@ -752,7 +762,7 @@ dynamic parseSearchResult(Map<String, dynamic> data,
           '[RECOVERABLE][opId=nav.parseSearchResult.albumDescription] Unable to parse album description: $e\n$st');
       searchResult['description'] = null;
     }
-  } else if (resultType.contains('playlist')) {
+  } else if (resultType == 'playlist') {
     List<dynamic> flexItem = getFlexColumnItem(data, 1)['text']['runs'];
     bool hasAuthor = (flexItem.length == defaultOffset + 3);
     searchResult['itemCount'] =
@@ -836,7 +846,7 @@ dynamic parseSearchResult(Map<String, dynamic> data,
       return MediaItemBuilder.fromJson(searchResult);
     }
     return;
-  } else if (resultType.contains('playlist')) {
+  } else if (resultType == 'playlist') {
     return Playlist.fromJson(searchResult);
   } else if (resultType == 'album') {
     return Album.fromJson(searchResult);
@@ -960,15 +970,16 @@ Map<String, dynamic> parseArtistContents(List results) {
       final contentList =
           nav(result, ['musicCarouselShelfRenderer', 'contents']);
       dynamic content = [];
-      if (title == "Videos") {
+      final normalizedTitle = _normalizeCategoryKey(title);
+      if (normalizedTitle == 'videos') {
         content = contentList
             .map((video) => parseVideo(video['musicTwoRowItemRenderer']))
             .toList();
-      } else if (title == "Albums") {
+      } else if (normalizedTitle == 'albums') {
         content = contentList
             .map((album) => parseAlbum(album['musicTwoRowItemRenderer']))
             .toList();
-      } else if (title == "Singles") {
+      } else if (normalizedTitle == 'singles') {
         content = contentList
             .map((single) => parseSingle(single['musicTwoRowItemRenderer']))
             .toList();

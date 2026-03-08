@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '/models/album.dart';
-import '/utils/app_l10n.dart';
+import '/ui/models/content_category.dart';
 import '../../models/artist.dart';
 import '../../models/playling_from.dart';
 import '../../models/playlist.dart';
@@ -37,16 +37,17 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
 
   @override
   Widget build(BuildContext context) {
+    final category = ContentCategoryMapper.fromKey(title);
     if (items.isEmpty) {
       return Expanded(
         child: Center(
           child: Text(
-            "No ${context.trKey(title.toLowerCase())}!",
+            "No ${category.localizedLabel(context).toLowerCase()}!",
             style: Theme.of(context).textTheme.titleSmall,
           ),
         ),
       );
-    } else if (title == "Videos" || title.contains("Songs")) {
+    } else if (category.isSongLike) {
       return isCompleteList
           ? Expanded(
               child: listViewSongVid(items,
@@ -60,11 +61,11 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
               height: items.length * 75.0,
               child: listViewSongVid(items),
             );
-    } else if (title.contains("playlists")) {
+    } else if (category.isPlaylistLike) {
       return listViewPlaylists(items, sc: scrollController);
-    } else if (title == "Albums" || title == "Singles") {
+    } else if (category.isAlbumLike) {
       return listViewAlbums(items, sc: scrollController);
-    } else if (title.contains('Artists')) {
+    } else if (category.isArtistLike) {
       return isCompleteList
           ? Expanded(child: listViewArtists(items, sc: scrollController))
           : SizedBox(

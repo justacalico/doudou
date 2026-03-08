@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '/models/album.dart';
 import '/models/artist.dart';
 import '/models/playlist.dart';
+import '/ui/models/content_category.dart';
 import '../../../utils/helper.dart';
 import '/models/media_Item_builder.dart';
 import '/ui/shell_controller.dart';
@@ -60,7 +61,8 @@ class SearchResultScreenController extends GetxController
         (!separatedResultContent.containsKey(railItems[value - 1]) ||
             separatedResultContent[railItems[value - 1]].isEmpty)) {
       final tabName = railItems[value - 1];
-      final itemCount = (tabName == 'Songs' || tabName == 'Videos') ? 25 : 10;
+      final tabCategory = ContentCategoryMapper.fromKey(tabName);
+      final itemCount = tabCategory.isSongLike ? 25 : 10;
       final x = await _backend.search(queryString.value,
           filter: tabName.replaceAll(" ", "_").toLowerCase(),
           limit: itemCount,
@@ -162,16 +164,17 @@ class SearchResultScreenController extends GetxController
   }
 
   List<dynamic> _normalizeContentForTab(String tabName, dynamic value) {
-    if (tabName == 'Songs' || tabName == 'Videos') {
+    final category = ContentCategoryMapper.fromKey(tabName);
+    if (category.isSongLike) {
       return _toMediaItemList(value);
     }
-    if (tabName == 'Albums' || tabName == 'Singles') {
+    if (category.isAlbumLike) {
       return _toAlbumList(value);
     }
-    if (tabName == 'Artists') {
+    if (category.isArtistLike) {
       return _toArtistList(value);
     }
-    if (tabName.toLowerCase().contains('playlist')) {
+    if (category.isPlaylistLike) {
       return _toPlaylistList(value);
     }
     if (value is List) return List<dynamic>.from(value);
@@ -193,12 +196,12 @@ class SearchResultScreenController extends GetxController
   }
 
   bool _showSearchTab(String key, BackendCapabilities caps) {
-    switch (key) {
-      case 'Videos':
+    switch (ContentCategoryMapper.fromKey(key)) {
+      case ContentCategory.videos:
         return caps.hasVideos;
-      case 'Community playlists':
+      case ContentCategory.communityPlaylists:
         return caps.hasCommunityPlaylists;
-      case 'Featured playlists':
+      case ContentCategory.featuredPlaylists:
         return caps.hasFeaturedPlaylists;
       default:
         return true;
@@ -227,21 +230,24 @@ class SearchResultScreenController extends GetxController
       final rawResult = await backend.search(queryString.value);
       resultContent.value = _normalizeSearchResults(rawResult);
       final caps = backend.capabilities;
-      final allKeys = resultContent.keys
-          .where((element) =>
-              ([
-                "Songs",
-                "Videos",
-                "Albums",
-                "Featured playlists",
-                "Community playlists",
-                "Artists"
-              ]).contains(element) &&
-              _showSearchTab(element, caps))
-          .toList();
+      const allowedCategories = <ContentCategory>{
+        ContentCategory.songs,
+        ContentCategory.videos,
+        ContentCategory.albums,
+        ContentCategory.featuredPlaylists,
+        ContentCategory.communityPlaylists,
+        ContentCategory.artists,
+      };
+      final allKeys = resultContent.keys.where((element) {
+        final category = ContentCategoryMapper.fromKey(element);
+        return allowedCategories.contains(category) &&
+            _showSearchTab(element, caps);
+      }).toList();
       railItems.value = List<String>.from(allKeys);
-      final len =
-          railItems.where((element) => element.contains("playlists")).length;
+      final len = railItems
+          .where((element) =>
+              ContentCategoryMapper.fromKey(element).isPlaylistLike)
+          .length;
       final calH = 30 + (railItems.length + 1 - len) * 123 + len * 150.0;
       railitemHeight.value =
           calH >= railitemHeight.value ? calH : railitemHeight.value;
@@ -280,19 +286,20 @@ class SearchResultScreenController extends GetxController
   }
 
   void onSort(SortType sortType, bool isAscending, String title) {
-    if (title == "Songs" || title == "Videos") {
+    final category = ContentCategoryMapper.fromKey(title);
+    if (category.isSongLike) {
       final songList = separatedResultContent[title].toList();
       sortSongsNVideos(songList, sortType, isAscending);
       separatedResultContent[title] = songList;
-    } else if (title.contains('playlists')) {
+    } else if (category.isPlaylistLike) {
       final playlists = separatedResultContent[title].toList();
       sortPlayLists(playlists, sortType, isAscending);
       separatedResultContent[title] = playlists;
-    } else if (title == "Artists") {
+    } else if (category.isArtistLike) {
       final artistList = separatedResultContent[title].toList();
       sortArtist(artistList, sortType, isAscending);
       separatedResultContent[title] = artistList;
-    } else if (title == "Albums") {
+    } else if (category == ContentCategory.albums) {
       final albumList = separatedResultContent[title].toList();
       sortAlbumNSingles(albumList, sortType, isAscending);
       separatedResultContent[title] = albumList;

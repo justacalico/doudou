@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/widgets/modification_list.dart';
+import '/utils/app_l10n.dart';
 
+import '../models/content_category.dart';
 import '../screens/Artists/artist_screen_controller.dart';
 import '../screens/Artists/artist_songs_table.dart';
 import '../screens/Search/search_result_screen_controller.dart';
@@ -36,6 +37,7 @@ class SeparateTabItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final category = ContentCategoryMapper.fromKey(title);
     final artistController =
         Get.isRegistered<ArtistScreenController>(tag: artistControllerTag)
             ? Get.find<ArtistScreenController>(tag: artistControllerTag)
@@ -43,14 +45,12 @@ class SeparateTabItemWidget extends StatelessWidget {
     final searchResController = searchResultController;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final hasUnboundedHeight =
-            constraints.maxHeight == double.infinity;
+        final hasUnboundedHeight = constraints.maxHeight == double.infinity;
         return Padding(
           padding: EdgeInsets.only(top: topPadding, left: 5),
           child: Column(
-            mainAxisSize: hasUnboundedHeight
-                ? MainAxisSize.min
-                : MainAxisSize.max,
+            mainAxisSize:
+                hasUnboundedHeight ? MainAxisSize.min : MainAxisSize.max,
             children: [
               if (!hideTitle)
                 SizedBox(
@@ -59,7 +59,7 @@ class SeparateTabItemWidget extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        context.trKey(title),
+                        category.localizedLabel(context),
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       isCompleteList
@@ -69,8 +69,9 @@ class SeparateTabItemWidget extends StatelessWidget {
                                 searchResController!.viewAllCallback(title);
                               },
                               child: Text(context.l10n.viewAll,
-                                  style:
-                                      Theme.of(Get.context!).textTheme.titleSmall))
+                                  style: Theme.of(Get.context!)
+                                      .textTheme
+                                      .titleSmall))
                     ],
                   ),
                 ),
@@ -78,19 +79,20 @@ class SeparateTabItemWidget extends StatelessWidget {
                   ? Obx(() => SortWidget(
                         tag: "${title}_$artistControllerTag",
                         screenController: artistController,
-                        isAdditionalOperationRequired: artistController != null &&
-                            (title == "Songs" || title == "Videos"),
+                        isAdditionalOperationRequired:
+                            artistController != null && category.isSongLike,
                         isSearchFeatureRequired: artistController != null,
                         titleLeftPadding: 9,
                         itemCountTitle:
                             "${isResultWidget ? (searchResController?.separatedResultContent[title] ?? []).length : (artistController?.sepataredContent[title] != null ? artistController?.sepataredContent[title]['results'] : []).length} ${context.l10n.items}",
                         requiredSortTypes: buildSortTypeSet(
-                            title == 'Albums' || title == "Singles",
-                            title == "Songs" || title == "Videos"),
+                            category.isAlbumLike, category.isSongLike),
                         onSort: (type, ascending) {
                           isResultWidget
-                              ? searchResController!.onSort(type, ascending, title)
-                              : artistController?.onSort(type, ascending, title);
+                              ? searchResController!
+                                  .onSort(type, ascending, title)
+                              : artistController?.onSort(
+                                  type, ascending, title);
                         },
                         onSearch: artistController?.onSearch,
                         onSearchClose: artistController?.onSearchClose,
@@ -111,6 +113,7 @@ class SeparateTabItemWidget extends StatelessWidget {
                 artistController: artistController,
                 searchResController: searchResController,
                 title: title,
+                category: category,
                 items: items,
                 scrollController: scrollController,
                 artistControllerTag: artistControllerTag,
@@ -127,6 +130,7 @@ class SeparateTabItemWidget extends StatelessWidget {
     required bool isCompleteList,
     required bool isResultWidget,
     required String title,
+    required ContentCategory category,
     required List<dynamic> items,
     ArtistScreenController? artistController,
     SearchResultScreenController? searchResController,
@@ -153,7 +157,7 @@ class SeparateTabItemWidget extends StatelessWidget {
         if (artistController != null &&
             artistController.isArtistContentFetced.isTrue) {
           child = Obx(() {
-            final useTable = title == "Songs" &&
+            final useTable = category == ContentCategory.songs &&
                 artistController.additionalOperationMode.value ==
                     OperationMode.none &&
                 MediaQuery.of(Get.context!).size.width >= 600;

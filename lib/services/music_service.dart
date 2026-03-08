@@ -18,6 +18,11 @@ enum AudioQuality {
   High,
 }
 
+bool _isSongLikeCategory(String category) {
+  final normalized = category.toLowerCase().replaceAll(RegExp(r'[\s_\-]+'), '');
+  return normalized == 'songs' || normalized == 'videos';
+}
+
 class MusicServices extends getx.GetxService {
   final Map<String, String> _headers = {
     'user-agent': userAgent,
@@ -830,7 +835,7 @@ class MusicServices extends getx.GetxService {
       0,
     ]);
 
-    if (category == "Songs" || category == "Videos") {
+    if (_isSongLikeCategory(category)) {
       if (additionalParams != "") {
         final contentList = nav(response, [
           "onResponseReceivedActions",
