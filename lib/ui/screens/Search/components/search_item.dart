@@ -27,7 +27,7 @@ class SearchItem extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
         onTap: () {
-          ScreenNavigationSetup.pushContentRoute(
+          ScreenNavigationSetup.openContentRouteSmart(
               ScreenNavigationSetup.searchResultScreen,
               arguments: queryString);
           searchScreenController.addToHistryQueryList(queryString);
@@ -43,8 +43,7 @@ class SearchItem extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: kDoudouSurfaceHover,
-                  borderRadius:
-                      BorderRadius.circular(kDoudouRadiusIconBox),
+                  borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
                 ),
                 child: Icon(
                   isHistoryString ? Icons.history : Icons.search,

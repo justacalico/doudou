@@ -86,7 +86,7 @@ class ContentListWidget extends StatelessWidget {
                       splashColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       onTap: () {
-                        ScreenNavigationSetup.pushContentRoute(
+                        ScreenNavigationSetup.openContentRouteSmart(
                             ScreenNavigationSetup.artistScreen,
                             arguments: [false, artist]);
                       },

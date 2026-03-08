@@ -19,15 +19,19 @@ class SearchScreen extends StatelessWidget {
     final useBottomNav = Get.find<ShellController>().useBottomNav.value;
     final theme = Theme.of(context);
     const topPadding = 24.0;
-    final horizontalPadding =
-        useBottomNav ? kContentLeftPaddingWithBottomNav : kContentLeftPaddingWithoutBottomNav;
-    final listBottomPadding =
-        useBottomNav ? kContentBottomPaddingWithBottomNav : kContentBottomPaddingWithPlayer;
+    final horizontalPadding = useBottomNav
+        ? kContentLeftPaddingWithBottomNav
+        : kContentLeftPaddingWithoutBottomNav;
+    final listBottomPadding = useBottomNav
+        ? kContentBottomPaddingWithBottomNav
+        : kContentBottomPaddingWithPlayer;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Padding(
         padding: EdgeInsets.only(
-            top: topPadding, left: horizontalPadding, right: kContentRightPadding),
+            top: topPadding,
+            left: horizontalPadding,
+            right: kContentRightPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -72,7 +76,7 @@ class SearchScreen extends StatelessWidget {
                     searchScreenController.reset();
                     return;
                   }
-                  ScreenNavigationSetup.pushContentRoute(
+                  ScreenNavigationSetup.openContentRouteSmart(
                       ScreenNavigationSetup.searchResultScreen,
                       arguments: query);
                   searchScreenController.addToHistryQueryList(query);
@@ -84,10 +88,14 @@ class SearchScreen extends StatelessWidget {
                   filled: false,
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   hintText: context.l10n.searchDes,
-                  hintStyle: const TextStyle(color: kDoudouZinc500, fontSize: 14),
+                  hintStyle:
+                      const TextStyle(color: kDoudouZinc500, fontSize: 14),
                   suffix: IconButton(
                     onPressed: searchScreenController.reset,
-                    icon: Icon(Icons.close, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                    icon: Icon(Icons.close,
+                        size: 20,
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6)),
                     splashRadius: 16,
                     style: IconButton.styleFrom(
                       visualDensity: VisualDensity.compact,
@@ -116,10 +124,12 @@ class SearchScreen extends StatelessWidget {
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(kDoudouRadiusCard),
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(kDoudouRadiusCard),
+                          borderRadius:
+                              BorderRadius.circular(kDoudouRadiusCard),
                           onTap: () {
                             searchScreenController.filterLinks(Uri.parse(
-                                searchScreenController.textInputController.text));
+                                searchScreenController
+                                    .textInputController.text));
                             searchScreenController.reset();
                           },
                           child: Container(

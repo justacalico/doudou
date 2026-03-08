@@ -84,7 +84,7 @@ class SongInfoBottomSheet extends StatelessWidget {
       return;
     }
 
-    ScreenNavigationSetup.pushContentRoute(
+    ScreenNavigationSetup.openContentRouteSmart(
       ScreenNavigationSetup.albumScreen,
       arguments: (matchedAlbum, targetId),
     );
@@ -392,7 +392,7 @@ class SongInfoBottomSheet extends StatelessWidget {
                     }
                     final artistId = e['id']?.toString();
                     if (artistId != null && artistId.trim().isNotEmpty) {
-                      await ScreenNavigationSetup.pushContentRoute(
+                      await ScreenNavigationSetup.openContentRouteSmart(
                           ScreenNavigationSetup.artistScreen,
                           arguments: [true, artistId]);
                       return;
@@ -401,7 +401,7 @@ class SongInfoBottomSheet extends StatelessWidget {
                     final matched =
                         _matchArtistByName(e['name']?.toString() ?? '');
                     if (matched != null) {
-                      await ScreenNavigationSetup.pushContentRoute(
+                      await ScreenNavigationSetup.openContentRouteSmart(
                           ScreenNavigationSetup.artistScreen,
                           arguments: [false, matched]);
                       return;

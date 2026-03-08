@@ -425,7 +425,7 @@ class AlbumScreen extends StatelessWidget {
                         firstArtistBrowseId != null
                             ? InkWell(
                                 onTap: () {
-                                  ScreenNavigationSetup.pushContentRoute(
+                                  ScreenNavigationSetup.openContentRouteSmart(
                                     ScreenNavigationSetup.artistScreen,
                                     arguments: [true, firstArtistBrowseId],
                                   );
@@ -554,7 +554,7 @@ Widget buildTitleSubTitle(
             child: firstArtistBrowseId != null
                 ? InkWell(
                     onTap: () {
-                      ScreenNavigationSetup.pushContentRoute(
+                      ScreenNavigationSetup.openContentRouteSmart(
                           ScreenNavigationSetup.artistScreen,
                           arguments: [true, firstArtistBrowseId]);
                     },

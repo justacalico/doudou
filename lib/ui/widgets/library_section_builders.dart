@@ -346,7 +346,7 @@ Widget buildPlaylistRowSection({
               child: InkWell(
                 borderRadius: BorderRadius.circular(kDoudouRadiusCard),
                 onTap: () {
-                  ScreenNavigationSetup.pushContentRoute(
+                  ScreenNavigationSetup.openContentRouteSmart(
                     ScreenNavigationSetup.playlistScreen,
                     arguments: [playlist, playlist.playlistId],
                   );
@@ -474,7 +474,7 @@ Widget buildAlbumRowSection({
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
                 onTap: () {
-                  ScreenNavigationSetup.pushContentRoute(
+                  ScreenNavigationSetup.openContentRouteSmart(
                     ScreenNavigationSetup.albumScreen,
                     arguments: (album, album.browseId),
                   );
@@ -562,7 +562,7 @@ Widget buildArtistRowSection({
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
                 onTap: () {
-                  ScreenNavigationSetup.pushContentRoute(
+                  ScreenNavigationSetup.openContentRouteSmart(
                     ScreenNavigationSetup.artistScreen,
                     arguments: [false, artist],
                   );

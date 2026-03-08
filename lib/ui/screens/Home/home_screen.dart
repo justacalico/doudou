@@ -85,7 +85,7 @@ class HomeScreen extends StatelessWidget {
                                     builder: (context) =>
                                         const CreateNRenamePlaylistPopup());
                               } else {
-                                ScreenNavigationSetup.pushContentRoute(
+                                ScreenNavigationSetup.openContentRouteSmart(
                                     ScreenNavigationSetup.searchScreen);
                               }
                             },

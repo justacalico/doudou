@@ -48,12 +48,12 @@ class ContentListItem extends StatelessWidget {
           focusColor: Colors.transparent,
           onTap: () {
             if (isAlbum) {
-              ScreenNavigationSetup.pushContentRoute(
+              ScreenNavigationSetup.openContentRouteSmart(
                   ScreenNavigationSetup.albumScreen,
                   arguments: (content, content.browseId));
               return;
             }
-            ScreenNavigationSetup.pushContentRoute(
+            ScreenNavigationSetup.openContentRouteSmart(
                 ScreenNavigationSetup.playlistScreen,
                 arguments: [content, content.playlistId]);
           },

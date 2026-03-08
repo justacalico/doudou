@@ -203,7 +203,7 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
         key: ValueKey<String>('artist-row-${artists[index].browseId}-$index'),
         visualDensity: const VisualDensity(horizontal: -2, vertical: 2),
         onTap: () {
-          ScreenNavigationSetup.pushContentRoute(
+          ScreenNavigationSetup.openContentRouteSmart(
               ScreenNavigationSetup.artistScreen,
               arguments: [false, artists[index]]);
         },
@@ -254,11 +254,11 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
       key: key,
       onTap: () {
         if (album != null) {
-          ScreenNavigationSetup.pushContentRoute(
+          ScreenNavigationSetup.openContentRouteSmart(
               ScreenNavigationSetup.albumScreen,
               arguments: (album, album.browseId));
         } else {
-          ScreenNavigationSetup.pushContentRoute(
+          ScreenNavigationSetup.openContentRouteSmart(
               ScreenNavigationSetup.playlistScreen,
               arguments: [playlist, playlist.playlistId]);
         }

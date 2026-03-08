@@ -92,17 +92,18 @@ mixin ProcessLink {
 
   Future<void> openPlaylistOrAlbum(String browseId) async {
     if (browseId.contains("OLAK5uy")) {
-      ScreenNavigationSetup.pushContentRoute(ScreenNavigationSetup.albumScreen,
+      ScreenNavigationSetup.openContentRouteSmart(
+          ScreenNavigationSetup.albumScreen,
           arguments: (null, browseId));
     } else {
-      ScreenNavigationSetup.pushContentRoute(
+      ScreenNavigationSetup.openContentRouteSmart(
           ScreenNavigationSetup.playlistScreen,
           arguments: [null, browseId]);
     }
   }
 
   Future<void> openArtist(String channelId) async {
-    await ScreenNavigationSetup.pushContentRoute(
+    await ScreenNavigationSetup.openContentRouteSmart(
         ScreenNavigationSetup.artistScreen,
         arguments: [true, channelId]);
   }

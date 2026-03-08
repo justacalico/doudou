@@ -49,7 +49,8 @@ class _AppShellState extends State<AppShell> {
   }
 
   Future<bool> _tryPopNestedContentRoute() async {
-    final nestedNav = Get.nestedKey(ScreenNavigationSetup.contentId)?.currentState;
+    final nestedNav =
+        Get.nestedKey(ScreenNavigationSetup.contentId)?.currentState;
     if (nestedNav == null || !nestedNav.canPop()) return false;
     return nestedNav.maybePop();
   }
@@ -124,7 +125,8 @@ class _AppShellState extends State<AppShell> {
                 }
                 if (playerController.playerPanelMinHeight.value !=
                     desiredMinHeight) {
-                  playerController.playerPanelMinHeight.value = desiredMinHeight;
+                  playerController.playerPanelMinHeight.value =
+                      desiredMinHeight;
                 }
               });
             }
@@ -151,11 +153,13 @@ class _AppShellState extends State<AppShell> {
                         children: [
                           if (hasCurrentSong)
                             InkWell(
-                              onTap: playerController.playerPanelController.open,
+                              onTap:
+                                  playerController.playerPanelController.open,
                               child: const MiniPlayer(),
                             ),
                           ScrollToHideWidget(
-                            isVisible: playerController.isPanelGTHOpened.isFalse,
+                            isVisible:
+                                playerController.isPanelGTHOpened.isFalse,
                             child: const BottomNavBar(),
                           ),
                         ],
@@ -197,8 +201,8 @@ class _AppShellState extends State<AppShell> {
                         : (hasCurrentSong
                             ? (!isWideScreen
                                 ? InkWell(
-                                    onTap:
-                                        playerController.playerPanelController.open,
+                                    onTap: playerController
+                                        .playerPanelController.open,
                                     child: const MiniPlayer(),
                                   )
                                 : const MiniPlayer())
@@ -283,6 +287,7 @@ class _ShellChrome extends StatelessWidget {
             ),
             child: Navigator(
               key: Get.nestedKey(ScreenNavigationSetup.contentId),
+              observers: [ScreenNavigationSetup.contentNavigatorObserver],
               initialRoute: ScreenNavigationSetup.homeScreen,
               onGenerateRoute: _contentRouteGenerator,
             ),
