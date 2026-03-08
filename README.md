@@ -135,3 +135,4 @@ Built with these open-source projects:
 - [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Subsonic](http://www.subsonic.org/), [Youtube Music](https://music.youtube.com) - Media servers
 - [Harmony-Music](https://github.com/anandnet/Harmony-Music) - YouTube Music support
 - [Flutter](https://flutter.dev/) - framework
+ 
