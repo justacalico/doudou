@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import '/l10n/app_localizations.dart';
@@ -27,6 +28,7 @@ import '/services/background_task.dart';
 import '/services/permission_service.dart';
 import '/services/backend/backend_factory.dart';
 import '/services/playback_diagnostics_service.dart';
+import '/services/playback_transition_utils.dart';
 import '../utils/helper.dart';
 import '../utils/server_storage.dart';
 import '/models/media_Item_builder.dart';
@@ -65,6 +67,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   // var networkErrorPause = false;
   bool isSongLoading = true;
   ProcessingState? _lastLoggedProcessingState;
+  final AutoAdvanceGuard _autoAdvanceGuard = AutoAdvanceGuard();
+
+  int? get _safeCurrentIndex =>
+      currentIndex is int ? currentIndex as int : null;
 
   // list of shuffled queue songs ids
   List<String> shuffledQueue = [];
@@ -157,6 +163,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             'bufferedMs': _player.bufferedPosition.inMilliseconds,
           },
         );
+        if (_player.processingState == ProcessingState.completed) {
+          unawaited(_triggerNext(reason: 'processing_completed'));
+        }
       }
       playbackState.add(playbackState.value.copyWith(
         controls: [
@@ -265,32 +274,94 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
   void _listenToPlaybackForNextSong() {
-    final playerDurationOffset = GetPlatform.isWindows
-        ? 200
-        : GetPlatform.isLinux
-            ? 700
-            : GetPlatform.isIOS
-                ? 500
-                : 0;
+    final playerDurationOffset = autoAdvanceLeadMsForPlatform(
+      isWindows: GetPlatform.isWindows,
+      isLinux: GetPlatform.isLinux,
+      isIOS: GetPlatform.isIOS,
+    );
     _player.positionStream.listen((value) async {
-      if (_player.duration != null && _player.duration?.inSeconds != 0) {
-        if (value.inMilliseconds >=
-            (_player.duration!.inMilliseconds - playerDurationOffset)) {
-          await _triggerNext();
-        }
+      final effectiveDuration = _effectiveCurrentTrackDuration();
+      if (effectiveDuration == null) return;
+      if (shouldAutoAdvanceAtPosition(
+        position: value,
+        effectiveDuration: effectiveDuration,
+        leadMs: playerDurationOffset,
+      )) {
+        await _triggerNext(reason: 'position_threshold');
       }
     });
   }
 
-  Future<void> _triggerNext() async {
+  Duration? _effectiveCurrentTrackDuration() {
+    final queueSnapshot = queue.value;
+    final idx = _safeCurrentIndex;
+    if (idx == null || queueSnapshot.isEmpty) return _player.duration;
+    if (idx < 0 || idx >= queueSnapshot.length) {
+      return _player.duration;
+    }
+    final currentSong = queueSnapshot[idx];
+    final rawOriginalMs = currentSong.extras?['originalDurationMs'];
+    final originalMs = rawOriginalMs is int ? rawOriginalMs : null;
+    return resolveEffectiveTrackDuration(
+      isIOS: GetPlatform.isIOS,
+      playerDuration: _player.duration,
+      mediaDuration: currentSong.duration,
+      originalDurationMs: originalMs,
+    );
+  }
+
+  String _currentTrackGuardKey() {
+    final queueSnapshot = queue.value;
+    final idx = _safeCurrentIndex;
+    if (idx == null || queueSnapshot.isEmpty) return '';
+    if (idx < 0 || idx >= queueSnapshot.length) return '';
+    return queueSnapshot[idx].id;
+  }
+
+  Future<void> _triggerNext({required String reason}) async {
+    final guardSongId = _currentTrackGuardKey();
+    final guardIndex = currentIndex is int ? currentIndex as int : -1;
+    if (guardSongId.isNotEmpty && guardIndex >= 0) {
+      final acquired = _autoAdvanceGuard.tryAcquire(
+        songId: guardSongId,
+        queueIndex: guardIndex,
+      );
+      if (!acquired) {
+        _diag.logEvent(
+          category: 'auto_advance',
+          message: 'auto_advance_skipped_duplicate',
+          songId: guardSongId,
+          backendType: _safeBackendType(),
+          activeServerType: _safeServerType(),
+          data: {'reason': reason, 'index': guardIndex},
+        );
+        return;
+      }
+      _diag.logEvent(
+        category: 'auto_advance',
+        message: 'auto_advance_decision',
+        songId: guardSongId,
+        backendType: _safeBackendType(),
+        activeServerType: _safeServerType(),
+        data: {
+          'reason': reason,
+          'index': guardIndex,
+          'positionMs': _player.position.inMilliseconds,
+          'effectiveDurationMs':
+              _effectiveCurrentTrackDuration()?.inMilliseconds,
+        },
+      );
+    }
+
     if (loopModeEnabled) {
       await _player.seek(Duration.zero);
       if (!_player.playing) {
-        _player.play();
+        await _player.play();
       }
+      _autoAdvanceGuard.reset();
       return;
     }
-    skipToNext();
+    await skipToNext();
   }
 
   void _listenForSequenceStateChanges() {
@@ -303,19 +374,18 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   void _listenForDurationChanges() {
     _player.durationStream.listen((duration) async {
       final currQueue = queue.value;
-      if (currentIndex == null || currQueue.isEmpty || duration == null) return;
-      final currentSong = queue.value[currentIndex];
-      final usePlayerDuration = GetPlatform.isIOS ||
-          currentSong.duration == null ||
-          currentIndex == 0;
+      final idx = _safeCurrentIndex;
+      if (idx == null || currQueue.isEmpty || duration == null) return;
+      final currentSong = queue.value[idx];
+      final usePlayerDuration =
+          GetPlatform.isIOS || currentSong.duration == null || idx == 0;
       if (usePlayerDuration && duration.inSeconds > 0) {
-        Duration effectiveDuration = duration;
         Map<String, dynamic>? newExtras = currentSong.extras != null
             ? Map<String, dynamic>.from(currentSong.extras!)
             : null;
+        final rawOriginalMs = currentSong.extras?['originalDurationMs'];
+        int? originalMs = rawOriginalMs is int ? rawOriginalMs : null;
         if (GetPlatform.isIOS) {
-          final raw = currentSong.extras?['originalDurationMs'];
-          int? originalMs = raw is int ? raw : null;
           if (originalMs == null || originalMs <= 0) {
             if (currentSong.duration != null &&
                 currentSong.duration!.inMilliseconds > 0) {
@@ -330,14 +400,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
               !newExtras.containsKey('originalDurationMs')) {
             newExtras['originalDurationMs'] = originalMs;
           }
-          if (originalMs != null && originalMs > 0) {
-            final playerMs = duration.inMilliseconds;
-            if (playerMs >= (originalMs * 1.8).round() &&
-                playerMs <= (originalMs * 2.2).round()) {
-              effectiveDuration = Duration(milliseconds: originalMs);
-            }
-          }
         }
+        final effectiveDuration = resolveEffectiveTrackDuration(
+          isIOS: GetPlatform.isIOS,
+          playerDuration: duration,
+          mediaDuration: currentSong.duration,
+          originalDurationMs: originalMs,
+        );
+        if (effectiveDuration == null) return;
         final newMediaItem = currentSong.copyWith(
           duration: effectiveDuration,
           extras: newExtras ?? currentSong.extras,
@@ -539,8 +609,17 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       if (_player.position != Duration.zero) _player.seek(Duration.zero);
       await customAction("playByIndex", {'index': index});
     } else {
+      _diag.logEvent(
+        category: 'auto_advance',
+        message: 'auto_advance_queue_end',
+        songId: _safeCurrentSongId(),
+        backendType: _safeBackendType(),
+        activeServerType: _safeServerType(),
+        data: {'index': currentIndex},
+      );
       _player.seek(Duration.zero);
       _player.pause();
+      _autoAdvanceGuard.reset();
     }
   }
 
@@ -588,6 +667,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
       case 'playByIndex':
         final songIndex = extras!['index'];
+        _autoAdvanceGuard.reset();
         currentIndex = songIndex;
         final isNewUrlReq = extras['newUrl'] ?? false;
         final currentSong = queue.value[currentIndex];

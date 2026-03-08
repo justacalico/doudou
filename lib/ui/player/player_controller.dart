@@ -205,13 +205,12 @@ class PlayerController extends GetxController
         buttonState.value = PlayButtonState.loading;
       } else if (processingState == AudioProcessingState.buffering) {
         buttonState.value = PlayButtonState.loading;
-      } else if (!isPlaying || processingState == AudioProcessingState.error) {
+      } else if (!isPlaying ||
+          processingState == AudioProcessingState.error ||
+          processingState == AudioProcessingState.completed) {
         buttonState.value = PlayButtonState.paused;
-      } else if (processingState != AudioProcessingState.completed) {
-        buttonState.value = PlayButtonState.playing;
       } else {
-        _audioHandler.seek(Duration.zero);
-        _audioHandler.pause();
+        buttonState.value = PlayButtonState.playing;
       }
 
       final settings = Get.find<SettingsScreenController>();
