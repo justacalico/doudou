@@ -23,6 +23,9 @@ bool _isSongLikeCategory(String category) {
   return normalized == 'songs' || normalized == 'videos';
 }
 
+const String _communityPlaylistsKey = 'Community playlists';
+const String _featuredPlaylistsKey = 'Featured playlists';
+
 class MusicServices extends getx.GetxService {
   final Map<String, String> _headers = {
     'user-agent': userAgent,
@@ -644,14 +647,15 @@ class MusicServices extends getx.GetxService {
       // now Featured playlists and community playlists are not coming in top results
       // so adding them in tab if not present
       if ((searchResults['searchEndpoint'])
-              .containsKey("Community playlists") &&
-          !searchResults.containsKey("Community playlists")) {
-        searchResults["Community playlists"] = [];
+              .containsKey(_communityPlaylistsKey) &&
+          !searchResults.containsKey(_communityPlaylistsKey)) {
+        searchResults[_communityPlaylistsKey] = [];
       }
 
-      if ((searchResults['searchEndpoint']).containsKey("Featured playlists") &&
-          !searchResults.containsKey("Featured playlists")) {
-        searchResults["Featured playlists"] = [];
+      if ((searchResults['searchEndpoint'])
+              .containsKey(_featuredPlaylistsKey) &&
+          !searchResults.containsKey(_featuredPlaylistsKey)) {
+        searchResults[_featuredPlaylistsKey] = [];
       }
     }
 

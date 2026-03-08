@@ -169,7 +169,8 @@ String? getSearchParams(String? filter, String? scope, bool ignoreSpelling) {
       } else {
         params += 'MABCAggBagoQBBADEAkQBRAK';
       }
-    } else if (filter.contains('playlists')) {
+    } else if (filter == 'featured_playlists' ||
+        filter == 'community_playlists') {
       param1 = 'EgeKAQQoA';
       if (filter == 'featured_playlists') {
         param2 = 'Dg';
