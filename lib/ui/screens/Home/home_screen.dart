@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
 
 import '/ui/constants/doudou_design.dart';
 import '/ui/widgets/animated_screen_transition.dart';
@@ -18,13 +17,15 @@ import '/ui/player/player_controller.dart';
 import '/ui/shell_controller.dart';
 import '/ui/widgets/create_playlist_dialog.dart';
 import '../../navigator.dart';
-import '../../widgets/content_list_widget.dart';
 import '../../widgets/library_section_builders.dart';
 import 'home_screen_controller.dart';
 import '../Settings/settings_screen.dart';
 
 // #region agent log
+const bool _enableAgentBuildLogging = false;
+
 void _debugLog(String message, Map<String, dynamic> data, String hypothesisId) {
+  if (!_enableAgentBuildLogging) return;
   try {
     final f = File(
         '/mnt/FUCKICE/Code/gitlab/Openlyst/doudou/.cursor/debug-2cd524.log');
@@ -408,19 +409,6 @@ class Body extends StatelessWidget {
     }
   }
 
-  List<Widget> getWidgetList(
-      dynamic list, HomeScreenController homeScreenController) {
-    return list
-        .map((content) {
-          final scrollController = ScrollController();
-          homeScreenController.contentScrollControllers.add(scrollController);
-          return ContentListWidget(
-              content: content, scrollController: scrollController);
-        })
-        .whereType<Widget>()
-        .toList();
-  }
-
   Widget _buildHomeHeader(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
@@ -463,16 +451,7 @@ class Body extends StatelessWidget {
     required HomeScreenController homeScreenController,
   }) {
     final shuffleCount = libSongs.librarySongsList.length;
-    int downloadCount = 0;
-    try {
-      if (Hive.isBoxOpen('SongDownloads')) {
-        downloadCount = Hive.box('SongDownloads').length;
-      }
-    } catch (e, st) {
-      printWarning(
-          '[RECOVERABLE][opId=home.quickActionCards.readDownloadCount] Failed to read SongDownloads box length: $e\n$st');
-      downloadCount = 0;
-    }
+    final downloadCount = homeScreenController.downloadedSongsCount.value;
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = (constraints.maxWidth - 24) / 3;

@@ -42,6 +42,7 @@ class HomeScreenController extends GetxController {
   //isHomeScreenOnTop var only useful if bottom nav enabled
   final isHomeSreenOnTop = true.obs;
   final List<ScrollController> contentScrollControllers = [];
+  final downloadedSongsCount = 0.obs;
   bool reverseAnimationtransiton = false;
   final albumsFromFollowedArtists = <Album>[].obs;
   bool _albumsFromFollowedLoadStarted = false;
@@ -55,6 +56,7 @@ class HomeScreenController extends GetxController {
   @override
   onInit() {
     super.onInit();
+    refreshDownloadedSongsCount();
     final checkOnStartup =
         Hive.box("AppPrefs").get("checkForUpdatesOnStartup") ?? true;
     if (updateCheckFlag && checkOnStartup) _checkNewVersion();
@@ -62,6 +64,7 @@ class HomeScreenController extends GetxController {
       if (!Get.isRegistered<HomeScreenController>()) return;
       _albumsFromFollowedLoadStarted = false;
       albumsFromFollowedArtists.value = [];
+      refreshDownloadedSongsCount();
       loadContentFromNetwork(silent: true);
     });
     _librarySyncWorker =
@@ -118,6 +121,7 @@ class HomeScreenController extends GetxController {
               : PlaylistContent.fromJson(e))
           .toList();
       isContentFetched.value = true;
+      refreshDownloadedSongsCount();
       printINFO("Loaded from offline db");
       return true;
     } else {
@@ -133,6 +137,7 @@ class HomeScreenController extends GetxController {
       middleContent.value = [];
       fixedContent.value = [];
       isContentFetched.value = true;
+      refreshDownloadedSongsCount();
       return;
     }
 
@@ -212,6 +217,7 @@ class HomeScreenController extends GetxController {
       fixedContent.value = _setContentList(homeContentListMap);
 
       isContentFetched.value = true;
+      refreshDownloadedSongsCount();
 
       // set home content last update time
       cachedHomeScreenData(updateAll: true);
@@ -493,6 +499,18 @@ class HomeScreenController extends GetxController {
     }
 
     printINFO("Saved Homescreen data data");
+  }
+
+  void refreshDownloadedSongsCount() {
+    try {
+      downloadedSongsCount.value = Hive.isBoxOpen("SongDownloads")
+          ? Hive.box("SongDownloads").length
+          : 0;
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.refreshDownloadedSongsCount] Failed to read SongDownloads count: $e\n$st');
+      downloadedSongsCount.value = 0;
+    }
   }
 
   Future<HomeLibrarySections> loadHomeLibrarySections() async {

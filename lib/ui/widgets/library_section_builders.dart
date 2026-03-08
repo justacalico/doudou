@@ -18,6 +18,11 @@ String _formatDuration(Duration d) {
   return "$minutes:$seconds";
 }
 
+// Performance notes:
+// - Keep list item identity stable with ValueKey to reduce element churn.
+// - Use modest cacheExtent on horizontal rows to improve scroll smoothness.
+// - Prefer lazy builders over eager children lists for section rows.
+
 Widget buildLibraryOverviewCards(
   BuildContext context, {
   required int albumsCount,
@@ -195,22 +200,25 @@ Widget buildTrackRowSection({
       SizedBox(
         height: 72,
         child: ListView.builder(
+          key: PageStorageKey<String>('home-track-row-$title'),
+          cacheExtent: 640,
           scrollDirection: Axis.horizontal,
+          addAutomaticKeepAlives: true,
+          addRepaintBoundaries: true,
           physics: const BouncingScrollPhysics(),
           itemCount: items.length,
           itemBuilder: (context, index) {
             final track = items[index];
             return Padding(
+              key: ValueKey<String>('home-track-${track.id}-$index'),
               padding: EdgeInsets.only(
                 right: index < items.length - 1 ? 12 : 0,
               ),
               child: Material(
                 color: Colors.transparent,
-                borderRadius:
-                    BorderRadius.circular(kDoudouRadiusIconBox),
+                borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
                 child: InkWell(
-                  borderRadius:
-                      BorderRadius.circular(kDoudouRadiusIconBox),
+                  borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
                   onTap: () {
                     playerController.playPlayListSong(
                       items,
@@ -222,12 +230,11 @@ Widget buildTrackRowSection({
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.transparent),
-                      borderRadius:
-                          BorderRadius.circular(kDoudouRadiusIconBox),
+                      borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
                     ),
                     child: SizedBox(
                       width: 280,
@@ -244,16 +251,14 @@ Widget buildTrackRowSection({
                           Expanded(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   track.title,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.titleSmall
-                                      ?.copyWith(
-                                          fontWeight: FontWeight.w600),
+                                      ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -261,8 +266,7 @@ Widget buildTrackRowSection({
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.bodySmall
-                                      ?.copyWith(
-                                          color: kDoudouZinc500),
+                                      ?.copyWith(color: kDoudouZinc500),
                                 ),
                               ],
                             ),
@@ -324,18 +328,23 @@ Widget buildPlaylistRowSection({
       SizedBox(
         height: 230,
         child: ListView.builder(
+          key: PageStorageKey<String>('home-playlist-row-$title'),
+          cacheExtent: 720,
           scrollDirection: Axis.horizontal,
+          addAutomaticKeepAlives: true,
+          addRepaintBoundaries: true,
           physics: const BouncingScrollPhysics(),
           itemCount: playlists.length,
           itemBuilder: (context, index) {
             final playlist = playlists[index];
             return Padding(
+              key: ValueKey<String>(
+                  'home-playlist-${playlist.playlistId}-$index'),
               padding: EdgeInsets.only(
                 right: index < playlists.length - 1 ? 12 : 0,
               ),
               child: InkWell(
-                borderRadius:
-                    BorderRadius.circular(kDoudouRadiusCard),
+                borderRadius: BorderRadius.circular(kDoudouRadiusCard),
                 onTap: () {
                   ScreenNavigationSetup.pushContentRoute(
                     ScreenNavigationSetup.playlistScreen,
@@ -348,8 +357,7 @@ Widget buildPlaylistRowSection({
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(kDoudouRadiusCard),
+                        borderRadius: BorderRadius.circular(kDoudouRadiusCard),
                         child: ImageWidget(
                           playlist: playlist,
                           size: 180,
@@ -444,7 +452,11 @@ Widget buildAlbumRowSection({
       SizedBox(
         height: 230,
         child: ListView.builder(
+          key: PageStorageKey<String>('home-album-row-$title'),
+          cacheExtent: 720,
           scrollDirection: Axis.horizontal,
+          addAutomaticKeepAlives: true,
+          addRepaintBoundaries: true,
           physics: const BouncingScrollPhysics(),
           itemCount: albums.length,
           itemBuilder: (context, index) {
@@ -455,6 +467,7 @@ Widget buildAlbumRowSection({
                 ? album.artists![0]['name'] as String
                 : context.l10n.unknownArtist;
             return Padding(
+              key: ValueKey<String>('home-album-${album.browseId}-$index'),
               padding: EdgeInsets.only(
                 right: index < albums.length - 1 ? 12 : 0,
               ),
@@ -472,8 +485,7 @@ Widget buildAlbumRowSection({
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(kDoudouRadiusCard),
+                        borderRadius: BorderRadius.circular(kDoudouRadiusCard),
                         child: ImageWidget(
                           album: album,
                           size: 180,
@@ -533,12 +545,17 @@ Widget buildArtistRowSection({
       SizedBox(
         height: 230,
         child: ListView.builder(
+          key: PageStorageKey<String>('home-artist-row-$title'),
+          cacheExtent: 720,
           scrollDirection: Axis.horizontal,
+          addAutomaticKeepAlives: true,
+          addRepaintBoundaries: true,
           physics: const BouncingScrollPhysics(),
           itemCount: artists.length,
           itemBuilder: (context, index) {
             final artist = artists[index];
             return Padding(
+              key: ValueKey<String>('home-artist-${artist.browseId}-$index'),
               padding: EdgeInsets.only(
                 right: index < artists.length - 1 ? 12 : 0,
               ),

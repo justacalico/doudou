@@ -84,54 +84,65 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
       ScrollController? sc}) {
     final playerController = Get.find<PlayerController>();
     return ListView.builder(
+      key: PageStorageKey<String>('song-list-$title-$isCompleteList'),
       padding: const EdgeInsets.only(
         bottom: 200,
         top: 0,
       ),
-      addRepaintBoundaries: false,
-      addAutomaticKeepAlives: false,
+      addRepaintBoundaries: true,
+      addAutomaticKeepAlives: true,
+      cacheExtent: 720,
       controller: sc,
       itemCount: items.length,
       physics: isCompleteList
           ? const BouncingScrollPhysics()
           : const NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) => SongListTile(
-        song: items[index] as MediaItem,
-        onTap: () {
-          isArtistSongs
-              // if song is from artist then play from artist
-              ? playerController.playPlayListSong(
-                  List<MediaItem>.from(items), index,
-                  playfrom: PlaylingFrom(
-                      type: PlaylingFromType.ARTIST,
-                      name: artist?.name ?? "........."))
-              :
-              // if playlist is not null then play from playlist else play from album
-              playlist != null && album == null
-                  ? playerController.playPlayListSong(
-                      List<MediaItem>.from(items), index,
-                      playfrom: PlaylingFrom(
-                        type: PlaylingFromType.PLAYLIST,
-                        name: playlist.title,
-                      ))
-                  : playerController.pushSongToQueue(items[index] as MediaItem);
-        },
-      ),
+      itemBuilder: (context, index) {
+        final mediaItem = items[index] as MediaItem;
+        return SongListTile(
+          key: ValueKey<String>('song-tile-${mediaItem.id}-$index'),
+          song: mediaItem,
+          onTap: () {
+            isArtistSongs
+                // if song is from artist then play from artist
+                ? playerController.playPlayListSong(
+                    List<MediaItem>.from(items), index,
+                    playfrom: PlaylingFrom(
+                        type: PlaylingFromType.ARTIST,
+                        name: artist?.name ?? "........."))
+                :
+                // if playlist is not null then play from playlist else play from album
+                playlist != null && album == null
+                    ? playerController.playPlayListSong(
+                        List<MediaItem>.from(items), index,
+                        playfrom: PlaylingFrom(
+                          type: PlaylingFromType.PLAYLIST,
+                          name: playlist.title,
+                        ))
+                    : playerController
+                        .pushSongToQueue(items[index] as MediaItem);
+          },
+        );
+      },
     );
   }
 
   Widget listViewPlaylists(List<dynamic> playlists, {ScrollController? sc}) {
     return Expanded(
       child: ListView.builder(
+          key: PageStorageKey<String>('playlist-list-$title-$isCompleteList'),
           padding: const EdgeInsets.only(
             bottom: 210,
             top: 0,
           ),
           controller: sc,
+          cacheExtent: 600,
           itemCount: playlists.length,
           itemExtent: 120,
           physics: const BouncingScrollPhysics(),
           itemBuilder: (context, index) => wideListTile(context,
+              key: ValueKey<String>(
+                  'playlist-row-${playlists[index].playlistId}-$index'),
               playlist: playlists[index],
               title: playlists[index].title,
               subtitle: playlists[index]?.description ?? "NA",
@@ -140,34 +151,32 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
   }
 
   Widget listViewAlbums(List<dynamic> albums, {ScrollController? sc}) {
+    final albumMeta = albums
+        .map<Map<String, String>>((album) => {
+              'title': album.title.toString(),
+              'subtitle': _computeAlbumArtistSubtitle(album),
+            })
+        .toList(growable: false);
     return Expanded(
       child: ListView.builder(
+          key: PageStorageKey<String>('album-list-$title-$isCompleteList'),
           padding: const EdgeInsets.only(
             bottom: 210,
             top: 0,
           ),
           controller: sc,
+          cacheExtent: 600,
           itemCount: albums.length,
           itemExtent: 120,
           physics: const BouncingScrollPhysics(),
           itemBuilder: (context, index) {
-            String artistName = "";
-            try {
-              for (dynamic items in (albums[index].artists).sublist(1)) {
-                artistName = "${artistName + items['name']},";
-              }
-            } catch (e, st) {
-              printWarning(
-                  '[RECOVERABLE][opId=listWidget.albums.composeArtistName] Failed to compose artist names for album=${albums[index].title}: $e\n$st');
-              artistName = "";
-            }
-            artistName = artistName.length > 16
-                ? artistName.substring(0, 16)
-                : artistName;
+            final subtitle = albumMeta[index]['subtitle'] ?? '';
             return wideListTile(context,
+                key: ValueKey<String>(
+                    'album-row-${albums[index].browseId}-$index'),
                 album: albums[index],
                 title: albums[index].title,
-                subtitle: artistName,
+                subtitle: subtitle,
                 subtitle2: albums[index].artists.isEmpty
                     ? "${albums[index].year}"
                     : "${(albums[index].artists[0]['name'])} • ${albums[index].year}");
@@ -177,17 +186,20 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
 
   Widget listViewArtists(List<dynamic> artists, {ScrollController? sc}) {
     return ListView.builder(
+      key: PageStorageKey<String>('artist-list-$title-$isCompleteList'),
       padding: const EdgeInsets.only(
         bottom: 200,
         top: 5,
       ),
       controller: sc,
+      cacheExtent: 720,
       itemCount: artists.length,
       itemExtent: 90,
       physics: isCompleteList
           ? const BouncingScrollPhysics()
           : const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) => ListTile(
+        key: ValueKey<String>('artist-row-${artists[index].browseId}-$index'),
         visualDensity: const VisualDensity(horizontal: -2, vertical: 2),
         onTap: () {
           ScreenNavigationSetup.pushContentRoute(
@@ -213,13 +225,32 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
     );
   }
 
+  String _computeAlbumArtistSubtitle(dynamic album) {
+    try {
+      final artists = album.artists as List<dynamic>? ?? const [];
+      if (artists.length <= 1) return "";
+      final joined = artists
+          .skip(1)
+          .map((item) => item['name']?.toString() ?? '')
+          .where((name) => name.isNotEmpty)
+          .join(',');
+      return joined.length > 16 ? joined.substring(0, 16) : joined;
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=listWidget.albums.composeArtistName] Failed to compose artist names for album=${album.title}: $e\n$st');
+      return "";
+    }
+  }
+
   Widget wideListTile(BuildContext context,
       {dynamic album,
       dynamic playlist,
+      Key? key,
       required String title,
       required String subtitle,
       required String subtitle2}) {
     return InkWell(
+      key: key,
       onTap: () {
         if (album != null) {
           ScreenNavigationSetup.pushContentRoute(
