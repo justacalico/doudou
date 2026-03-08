@@ -145,9 +145,6 @@ class AlbumScreen extends StatelessWidget {
                                           Icons.file_download_outlined),
                                 );
                               }),
-                              IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(Icons.share_outlined)),
                               const Spacer(),
                               IconButton(
                                 onPressed: () {
@@ -205,6 +202,7 @@ class AlbumScreen extends StatelessWidget {
                             tag: albumController.album.value.browseId,
                             screenController: albumController,
                             isSearchFeatureRequired: true,
+                            isAdditionalOperationRequired: false,
                             itemCountTitle:
                                 "${albumController.songList.length}",
                             itemIcon: Icons.music_note,
@@ -214,13 +212,6 @@ class AlbumScreen extends StatelessWidget {
                             onSearch: albumController.onSearch,
                             onSearchClose: albumController.onSearchClose,
                             onSearchStart: albumController.onSearchStart,
-                            startAdditionalOperation:
-                                albumController.startAdditionalOperation,
-                            selectAll: albumController.selectAll,
-                            performAdditionalOperation:
-                                albumController.performAdditionalOperation,
-                            cancelAdditionalOperation:
-                                albumController.cancelAdditionalOperation,
                           ),
                         );
                       }
@@ -302,11 +293,6 @@ class AlbumScreen extends StatelessWidget {
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
-                          ),
-                          _blurButton(
-                            icon: Icons.more_vert,
-                            onPressed: () {},
-                            visible: !albumController.appBarTitleVisible.value,
                           ),
                         ],
                       ),
