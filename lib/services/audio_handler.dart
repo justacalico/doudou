@@ -68,9 +68,23 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   bool isSongLoading = true;
   ProcessingState? _lastLoggedProcessingState;
   final AutoAdvanceGuard _autoAdvanceGuard = AutoAdvanceGuard();
+  int _playRequestSeq = 0;
+  int _activePlayRequestId = 0;
+  int _suppressAutoAdvanceUntilMs = 0;
 
   int? get _safeCurrentIndex =>
       currentIndex is int ? currentIndex as int : null;
+
+  int _nowMs() => DateTime.now().millisecondsSinceEpoch;
+
+  int _startPlayRequest({int suppressAutoAdvanceMs = 1800}) {
+    final requestId = ++_playRequestSeq;
+    _activePlayRequestId = requestId;
+    _suppressAutoAdvanceUntilMs = _nowMs() + suppressAutoAdvanceMs;
+    return requestId;
+  }
+
+  bool _isStalePlayRequest(int requestId) => requestId != _activePlayRequestId;
 
   // list of shuffled queue songs ids
   List<String> shuffledQueue = [];
@@ -280,6 +294,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       isIOS: GetPlatform.isIOS,
     );
     _player.positionStream.listen((value) async {
+      if (shouldSuppressAutoAdvance(
+        isSongLoading: isSongLoading,
+        nowMs: _nowMs(),
+        suppressUntilMs: _suppressAutoAdvanceUntilMs,
+      )) {
+        return;
+      }
+      if (!_player.playing) return;
       final effectiveDuration = _effectiveCurrentTrackDuration();
       if (effectiveDuration == null) return;
       if (shouldAutoAdvanceAtPosition(
@@ -319,6 +341,30 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
   Future<void> _triggerNext({required String reason}) async {
+    if (shouldSuppressAutoAdvance(
+      isSongLoading: isSongLoading,
+      nowMs: _nowMs(),
+      suppressUntilMs: _suppressAutoAdvanceUntilMs,
+    )) {
+      final message = isSongLoading
+          ? 'auto_advance_suppressed_loading'
+          : 'auto_advance_suppressed_transition_window';
+      _diag.logEvent(
+        category: 'auto_advance',
+        message: message,
+        songId: _safeCurrentSongId(),
+        backendType: _safeBackendType(),
+        activeServerType: _safeServerType(),
+        data: {
+          'reason': reason,
+          'isSongLoading': isSongLoading,
+          'suppressUntilMs': _suppressAutoAdvanceUntilMs,
+          'nowMs': _nowMs(),
+        },
+      );
+      return;
+    }
+
     final guardSongId = _currentTrackGuardKey();
     final guardIndex = currentIndex is int ? currentIndex as int : -1;
     if (guardSongId.isNotEmpty && guardIndex >= 0) {
@@ -666,11 +712,24 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         break;
 
       case 'playByIndex':
-        final songIndex = extras!['index'];
+        final songIndex = extras!['index'] as int;
+        final requestId = _startPlayRequest();
         _autoAdvanceGuard.reset();
+        if (songIndex < 0 || songIndex >= queue.value.length) {
+          _diag.logEvent(
+            category: 'player_error',
+            message: 'play_by_index_invalid_index',
+            songId: _safeCurrentSongId(),
+            backendType: _safeBackendType(),
+            activeServerType: _safeServerType(),
+            data: {'index': songIndex, 'queueLength': queue.value.length},
+          );
+          return;
+        }
         currentIndex = songIndex;
         final isNewUrlReq = extras['newUrl'] ?? false;
         final currentSong = queue.value[currentIndex];
+        final requestedSongId = currentSong.id;
         _diag.logEvent(
           category: 'player_event',
           message: 'play_by_index_start',
@@ -692,25 +751,48 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         if (_playList.children.isNotEmpty) {
           await _playList.clear();
         }
-
-        final songToAdd = currentSong.duration != null
-            ? currentSong.copyWith(
-                extras: {
-                  ...?currentSong.extras,
-                  'originalDurationMs': currentSong.duration!.inMilliseconds,
-                },
-              )
-            : currentSong;
-        mediaItem.add(songToAdd);
-        final streamInfo = await futureStreamInfo;
-        if (songIndex != currentIndex) {
+        if (_isStalePlayRequest(requestId)) {
           _diag.logEvent(
-            category: 'player_event',
-            message: 'play_by_index_aborted_index_changed',
+            category: 'recovery',
+            message: 'play_request_stale_ignored',
+            songId: requestedSongId,
+            backendType: currentSong.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'stage': 'after_playlist_clear', 'requestId': requestId},
+          );
+          return;
+        }
+        final streamInfo = await futureStreamInfo;
+        if (_isStalePlayRequest(requestId)) {
+          _diag.logEvent(
+            category: 'recovery',
+            message: 'play_request_stale_ignored',
+            songId: requestedSongId,
+            backendType: currentSong.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'stage': 'after_stream_fetch', 'requestId': requestId},
+          );
+          return;
+        }
+        final currentQueue = queue.value;
+        final idx = _safeCurrentIndex;
+        final hasRequestedSongAtIndex = idx != null &&
+            idx >= 0 &&
+            idx < currentQueue.length &&
+            currentQueue[idx].id == requestedSongId;
+        if (songIndex != currentIndex || !hasRequestedSongAtIndex) {
+          _diag.logEvent(
+            category: 'recovery',
+            message: 'play_by_index_aborted_stale_request',
             songId: currentSong.id,
             backendType: currentSong.extras?['backendType']?.toString(),
             activeServerType: _safeServerType(),
-            data: {'requestedIndex': songIndex, 'activeIndex': currentIndex},
+            data: {
+              'requestId': requestId,
+              'requestedIndex': songIndex,
+              'activeIndex': currentIndex,
+              'hasRequestedSongAtIndex': hasRequestedSongAtIndex,
+            },
           );
           return;
         }
@@ -740,12 +822,13 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           }
           return;
         }
-        currentSongUrl = currentSong.extras!['url'] = streamInfo.audio!.url;
+        final activeSong = currentQueue[currentIndex];
+        currentSongUrl = activeSong.extras!['url'] = streamInfo.audio!.url;
         _diag.logEvent(
           category: 'stream_select',
           message: 'stream_selected',
-          songId: currentSong.id,
-          backendType: currentSong.extras?['backendType']?.toString(),
+          songId: activeSong.id,
+          backendType: activeSong.extras?['backendType']?.toString(),
           activeServerType: _safeServerType(),
           data: {
             'itag': streamInfo.audio?.itag,
@@ -756,9 +839,29 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             'fromCache': !isNewUrlReq,
           },
         );
+        final songToAdd = activeSong.duration != null
+            ? activeSong.copyWith(
+                extras: {
+                  ...?activeSong.extras,
+                  'originalDurationMs': activeSong.duration!.inMilliseconds,
+                },
+              )
+            : activeSong;
+        mediaItem.add(songToAdd);
         playbackState
             .add(playbackState.value.copyWith(queueIndex: currentIndex));
-        await _playList.add(_createAudioSource(currentSong));
+        if (_isStalePlayRequest(requestId)) {
+          _diag.logEvent(
+            category: 'recovery',
+            message: 'play_request_stale_ignored',
+            songId: activeSong.id,
+            backendType: activeSong.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'stage': 'before_add_audio_source', 'requestId': requestId},
+          );
+          return;
+        }
+        await _playList.add(_createAudioSource(activeSong));
 
         isSongLoading = false;
         if (loudnessNormalizationEnabled && GetPlatform.isAndroid) {
@@ -827,6 +930,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
       case 'setSourceNPlay':
         final currMed = (extras!['mediaItem'] as MediaItem);
+        final requestId = _startPlayRequest();
+        _autoAdvanceGuard.reset();
         _diag.logEvent(
           category: 'player_event',
           message: 'set_source_n_play_start',
@@ -839,9 +944,29 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         isSongLoading = true;
         currentIndex = 0;
         await _playList.clear();
-        mediaItem.add(currMed);
-        queue.add([currMed]);
+        if (_isStalePlayRequest(requestId)) {
+          _diag.logEvent(
+            category: 'recovery',
+            message: 'set_source_stale_ignored',
+            songId: currMed.id,
+            backendType: currMed.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'stage': 'after_playlist_clear', 'requestId': requestId},
+          );
+          return;
+        }
         final streamInfo = (await futureStreamInfo);
+        if (_isStalePlayRequest(requestId)) {
+          _diag.logEvent(
+            category: 'recovery',
+            message: 'set_source_stale_ignored',
+            songId: currMed.id,
+            backendType: currMed.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'stage': 'after_stream_fetch', 'requestId': requestId},
+          );
+          return;
+        }
         if (!streamInfo.playable) {
           _diag.logEvent(
             category: 'player_error',
@@ -858,6 +983,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
               .copyWith(processingState: AudioProcessingState.error));
           return;
         }
+        queue.add([currMed]);
+        mediaItem.add(currMed);
         currentSongUrl = currMed.extras!['url'] = streamInfo.audio!.url;
         _diag.logEvent(
           category: 'stream_select',
@@ -874,6 +1001,17 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           },
         );
 
+        if (_isStalePlayRequest(requestId)) {
+          _diag.logEvent(
+            category: 'recovery',
+            message: 'set_source_stale_ignored',
+            songId: currMed.id,
+            backendType: currMed.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'stage': 'before_add_audio_source', 'requestId': requestId},
+          );
+          return;
+        }
         await _playList.add(_createAudioSource(currMed));
         isSongLoading = false;
 

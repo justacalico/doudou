@@ -68,6 +68,35 @@ void main() {
     });
   });
 
+  group('shouldSuppressAutoAdvance', () {
+    test('suppresses while song is loading', () {
+      final suppressed = shouldSuppressAutoAdvance(
+        isSongLoading: true,
+        nowMs: 1000,
+        suppressUntilMs: 500,
+      );
+      expect(suppressed, isTrue);
+    });
+
+    test('suppresses before suppression window expires', () {
+      final suppressed = shouldSuppressAutoAdvance(
+        isSongLoading: false,
+        nowMs: 1000,
+        suppressUntilMs: 1300,
+      );
+      expect(suppressed, isTrue);
+    });
+
+    test('does not suppress when not loading and window expired', () {
+      final suppressed = shouldSuppressAutoAdvance(
+        isSongLoading: false,
+        nowMs: 1301,
+        suppressUntilMs: 1300,
+      );
+      expect(suppressed, isFalse);
+    });
+  });
+
   group('AutoAdvanceGuard', () {
     test('prevents duplicate acquisition for same song and index', () {
       final guard = AutoAdvanceGuard();

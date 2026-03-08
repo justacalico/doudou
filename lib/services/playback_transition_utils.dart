@@ -75,3 +75,11 @@ bool shouldAutoAdvanceAtPosition({
       (effectiveDuration.inMilliseconds - leadMs).clamp(0, 1 << 30);
   return position.inMilliseconds >= thresholdMs;
 }
+
+bool shouldSuppressAutoAdvance({
+  required bool isSongLoading,
+  required int nowMs,
+  required int suppressUntilMs,
+}) {
+  return isSongLoading || nowMs < suppressUntilMs;
+}

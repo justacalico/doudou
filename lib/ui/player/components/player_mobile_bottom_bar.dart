@@ -16,27 +16,35 @@ class PlayerMobileBottomBar extends StatelessWidget {
   const PlayerMobileBottomBar({
     super.key,
     this.volumeAction,
+    this.dense = false,
   });
 
   final Widget? volumeAction;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
     final pc = Get.find<PlayerController>();
     final theme = Theme.of(context);
-    final iconColor = theme.textTheme.titleMedium?.color ??
-        theme.colorScheme.onSurface;
-    const iconSize = 26.0;
+    final iconColor =
+        theme.textTheme.titleMedium?.color ?? theme.colorScheme.onSurface;
+    final iconSize = dense ? 22.0 : 26.0;
+    final horizontalPadding = dense ? 10.0 : 20.0;
+    final topPadding = dense ? 6.0 : 12.0;
+    final bottomPadding =
+        (dense ? 6.0 : 12.0) + MediaQuery.of(context).padding.bottom;
 
     return Container(
       padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 12,
-        bottom: 12 + MediaQuery.of(context).padding.bottom,
+        left: horizontalPadding,
+        right: horizontalPadding,
+        top: topPadding,
+        bottom: bottomPadding,
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: dense
+            ? MainAxisAlignment.spaceBetween
+            : MainAxisAlignment.spaceEvenly,
         children: [
           IconButton(
             onPressed: () {
@@ -85,7 +93,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
                 ),
               );
             },
-            icon: const Icon(Icons.queue_music_rounded, size: iconSize),
+            icon: Icon(Icons.queue_music_rounded, size: iconSize),
             color: iconColor,
             tooltip: "Queue",
           ),
@@ -108,7 +116,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
               final ctx = Get.find<ShellController>().overlayContextOrFallback;
               if (ctx != null) LyricsBottomSheet.show(ctx);
             },
-            icon: const Icon(Icons.mic_rounded, size: iconSize),
+            icon: Icon(Icons.mic_rounded, size: iconSize),
             color: iconColor,
             tooltip: context.l10n.lyrics,
           ),
@@ -119,7 +127,8 @@ class PlayerMobileBottomBar extends StatelessWidget {
               showModalBottomSheet(
                 constraints: const BoxConstraints(maxWidth: 500),
                 shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(10.0)),
                 ),
                 isScrollControlled: true,
                 context: ctx,
@@ -158,7 +167,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
                 ),
               ).whenComplete(() => Get.delete<SongInfoController>());
             },
-            icon: const Icon(Icons.more_horiz_rounded, size: iconSize),
+            icon: Icon(Icons.more_horiz_rounded, size: iconSize),
             color: iconColor,
             tooltip: "More",
           ),

@@ -313,8 +313,15 @@ class PlayerController extends GetxController
         _newSongFlag = true;
         isCurrentSongBuffered.value = false;
         currentSong.value = mediaItem;
-        currentSongIndex.value = currentQueue
-            .indexWhere((element) => element.id == currentSong.value!.id);
+        final queueIndex = _audioHandler.playbackState.value.queueIndex;
+        if (queueIndex != null &&
+            queueIndex >= 0 &&
+            queueIndex < currentQueue.length) {
+          currentSongIndex.value = queueIndex;
+        } else {
+          currentSongIndex.value = currentQueue
+              .indexWhere((element) => element.id == currentSong.value!.id);
+        }
         await _checkFav();
         await _addToRP(currentSong.value!);
         if (isRadioModeOn && (currentSong.value!.id == currentQueue.last.id)) {

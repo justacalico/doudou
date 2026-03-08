@@ -188,6 +188,8 @@ class _CompactNowPlaying extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final pc = Get.find<PlayerController>();
     const white = CupertinoColors.white;
+    final isLandscapeDense =
+        !GetPlatform.isDesktop && size.width > size.height && size.height < 560;
 
     return Scaffold(
       backgroundColor: const Color(0xFF000000),
@@ -220,216 +222,327 @@ class _CompactNowPlaying extends StatelessWidget {
               ),
             ),
           ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: () => pc.playerPanelController.close(),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: white.withValues(alpha: 0.2),
-                                  width: 0.5,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color: white,
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (!GetPlatform.isDesktop)
-                            GestureDetector(
-                              onTap: () => pc.queuePanelController.open(),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: BackdropFilter(
-                                  filter:
-                                      ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
-                                    margin: const EdgeInsets.only(right: 8),
-                                    decoration: BoxDecoration(
-                                      color: white.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: white.withValues(alpha: 0.2),
-                                        width: 0.5,
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.queue_music_rounded,
-                                      color: white,
-                                      size: 22,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          Obx(() => GestureDetector(
-                                onTap: pc.toggleFavourite,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(
-                                        sigmaX: 10, sigmaY: 10),
-                                    child: Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: white.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: white.withValues(alpha: 0.2),
-                                          width: 0.5,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        pc.isCurrentSongFav.isTrue
-                                            ? Icons.favorite_rounded
-                                            : Icons.favorite_border_rounded,
-                                        color: pc.isCurrentSongFav.isTrue
-                                            ? const Color(0xFFEC4899)
-                                            : white,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      Expanded(
-                        flex: 3,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final availableHeight = constraints.maxHeight * 0.9;
-                            final artSize = (availableHeight < size.width * 0.75
-                                    ? availableHeight
-                                    : size.width * 0.75)
-                                .clamp(200.0, 350.0);
-                            return Obx(() {
-                              if (pc.currentSong.value == null) {
-                                return const SizedBox.shrink();
-                              }
-                              return Center(
-                                child: GestureDetector(
-                                  onTap: () => pc.showLyrics(),
-                                  onLongPress: () => _showSongMore(context, pc),
-                                  child: Container(
-                                    width: artSize,
-                                    height: artSize,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(24),
-                                      border: Border.all(
-                                        color: white,
-                                        width: 3,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black
-                                              .withValues(alpha: 0.32),
-                                          blurRadius: 24,
-                                          offset: const Offset(0, 12),
-                                        ),
-                                      ],
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(21),
-                                      child: ImageWidget(
-                                        size: artSize,
-                                        song: pc.currentSong.value!,
-                                        isPlayerArtImage: true,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            });
-                          },
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30),
+          isLandscapeDense
+              ? SafeArea(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: Column(
+                      children: [
+                        _buildTopActions(pc, white, dense: true),
+                        Expanded(
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Obx(() {
-                                final song = pc.currentSong.value;
-                                return Text(
-                                  song?.title ?? '—',
-                                  style: const TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w700,
-                                    color: CupertinoColors.white,
-                                    letterSpacing: -0.5,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                );
-                              }),
-                              const SizedBox(height: 8),
-                              Obx(() {
-                                final song = pc.currentSong.value;
-                                return Text(
-                                  song?.artist ?? '—',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: CupertinoColors.systemGrey,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                );
-                              }),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Row(
+                                  children: [
+                                    Obx(() {
+                                      final song = pc.currentSong.value;
+                                      if (song == null) {
+                                        return const SizedBox(
+                                            width: 76, height: 76);
+                                      }
+                                      return GestureDetector(
+                                        onTap: () => pc.showLyrics(),
+                                        onLongPress: () =>
+                                            _showSongMore(context, pc),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          child: ImageWidget(
+                                            size: 76,
+                                            song: song,
+                                            isPlayerArtImage: true,
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Obx(() {
+                                        final song = pc.currentSong.value;
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              song?.title ?? '—',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.w700,
+                                                color: CupertinoColors.white,
+                                                letterSpacing: -0.4,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              song?.artist ?? '—',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color:
+                                                    CupertinoColors.systemGrey2,
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      }),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 14),
+                                child: _CompactProgressBar(pc: pc, dense: true),
+                              ),
+                              _CompactControls(pc: pc, dense: true),
                             ],
                           ),
                         ),
+                        PlayerMobileBottomBar(
+                          volumeAction: volumeAction,
+                          dense: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : SafeArea(
+                  child: Column(
+                    children: [
+                      _buildTopActions(pc, white),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 20),
+                            Expanded(
+                              flex: 3,
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final availableHeight =
+                                      constraints.maxHeight * 0.9;
+                                  final artSize =
+                                      (availableHeight < size.width * 0.75
+                                              ? availableHeight
+                                              : size.width * 0.75)
+                                          .clamp(200.0, 350.0);
+                                  return Obx(() {
+                                    if (pc.currentSong.value == null) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return Center(
+                                      child: GestureDetector(
+                                        onTap: () => pc.showLyrics(),
+                                        onLongPress: () =>
+                                            _showSongMore(context, pc),
+                                        child: Container(
+                                          width: artSize,
+                                          height: artSize,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(24),
+                                            border: Border.all(
+                                              color: white,
+                                              width: 3,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withValues(alpha: 0.32),
+                                                blurRadius: 24,
+                                                offset: const Offset(0, 12),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(21),
+                                            child: ImageWidget(
+                                              size: artSize,
+                                              song: pc.currentSong.value!,
+                                              isPlayerArtImage: true,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  });
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 30),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Obx(() {
+                                      final song = pc.currentSong.value;
+                                      return Text(
+                                        song?.title ?? '—',
+                                        style: const TextStyle(
+                                          fontSize: 26,
+                                          fontWeight: FontWeight.w700,
+                                          color: CupertinoColors.white,
+                                          letterSpacing: -0.5,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      );
+                                    }),
+                                    const SizedBox(height: 8),
+                                    Obx(() {
+                                      final song = pc.currentSong.value;
+                                      return Text(
+                                        song?.artist ?? '—',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: CupertinoColors.systemGrey,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      );
+                                    }),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30),
+                        child: _CompactProgressBar(pc: pc),
+                      ),
+                      const SizedBox(height: 24),
+                      _CompactControls(pc: pc),
+                      PlayerMobileBottomBar(volumeAction: volumeAction),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: _CompactProgressBar(pc: pc),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopActions(PlayerController pc, Color white,
+      {bool dense = false}) {
+    final buttonSize = dense ? 34.0 : 40.0;
+    final iconSize = dense ? 20.0 : 22.0;
+    final borderRadius = dense ? 10.0 : 12.0;
+    final horizontalPadding = dense ? 12.0 : 20.0;
+    final verticalPadding = dense ? 4.0 : 10.0;
+    final trailingGap = dense ? 6.0 : 8.0;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: verticalPadding,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () => pc.playerPanelController.close(),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(borderRadius),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  width: buttonSize,
+                  height: buttonSize,
+                  decoration: BoxDecoration(
+                    color: white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    border: Border.all(
+                      color: white.withValues(alpha: 0.2),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: white,
+                    size: iconSize,
+                  ),
                 ),
-                const SizedBox(height: 24),
-                _CompactControls(pc: pc),
-                PlayerMobileBottomBar(volumeAction: volumeAction),
-                const SizedBox(height: 24),
-              ],
+              ),
             ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!GetPlatform.isDesktop)
+                GestureDetector(
+                  onTap: () => pc.queuePanelController.open(),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        width: buttonSize,
+                        height: buttonSize,
+                        margin: EdgeInsets.only(right: trailingGap),
+                        decoration: BoxDecoration(
+                          color: white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(borderRadius),
+                          border: Border.all(
+                            color: white.withValues(alpha: 0.2),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.queue_music_rounded,
+                          color: white,
+                          size: iconSize,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              Obx(() => GestureDetector(
+                    onTap: pc.toggleFavourite,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(borderRadius),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          width: buttonSize,
+                          height: buttonSize,
+                          decoration: BoxDecoration(
+                            color: white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(borderRadius),
+                            border: Border.all(
+                              color: white.withValues(alpha: 0.2),
+                              width: 0.5,
+                            ),
+                          ),
+                          child: Icon(
+                            pc.isCurrentSongFav.isTrue
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            color: pc.isCurrentSongFav.isTrue
+                                ? const Color(0xFFEC4899)
+                                : white,
+                            size: iconSize,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )),
+            ],
           ),
         ],
       ),
@@ -455,9 +568,13 @@ class _CompactNowPlaying extends StatelessWidget {
 }
 
 class _CompactProgressBar extends StatelessWidget {
-  const _CompactProgressBar({required this.pc});
+  const _CompactProgressBar({
+    required this.pc,
+    this.dense = false,
+  });
 
   final PlayerController pc;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
@@ -488,14 +605,14 @@ class _CompactProgressBar extends StatelessWidget {
             onHorizontalDragUpdate: (d) => seekTo(
                 d.localPosition, context.findRenderObject() as RenderBox),
             child: SizedBox(
-              height: 44,
+              height: dense ? 30 : 44,
               child: Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(6),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                     child: Container(
-                      height: 8,
+                      height: dense ? 6 : 8,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: CupertinoColors.white.withValues(alpha: 0.15),
@@ -535,7 +652,7 @@ class _CompactProgressBar extends StatelessWidget {
                   _formatDuration(current),
                   style: TextStyle(
                     color: CupertinoColors.white.withValues(alpha: 0.6),
-                    fontSize: 13,
+                    fontSize: dense ? 11 : 13,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -543,7 +660,7 @@ class _CompactProgressBar extends StatelessWidget {
                   _formatDuration(total),
                   style: TextStyle(
                     color: CupertinoColors.white.withValues(alpha: 0.6),
-                    fontSize: 13,
+                    fontSize: dense ? 11 : 13,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -660,15 +777,26 @@ class _MobileVolumeOverlay extends StatelessWidget {
 }
 
 class _CompactControls extends StatelessWidget {
-  const _CompactControls({required this.pc});
+  const _CompactControls({
+    required this.pc,
+    this.dense = false,
+  });
 
   final PlayerController pc;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
     const white = CupertinoColors.white;
+    final horizontalPadding = dense ? 18.0 : 40.0;
+    final sideIconSize = dense ? 20.0 : 24.0;
+    final skipIconSize = dense ? 30.0 : 36.0;
+    final playButtonSize = dense ? 56.0 : 72.0;
+    final playIconSize = dense ? 30.0 : 36.0;
+    final gapSmall = dense ? 6.0 : 8.0;
+    final gapMedium = dense ? 10.0 : 16.0;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -679,23 +807,26 @@ class _CompactControls extends StatelessWidget {
                   color: pc.isShuffleModeEnabled.isTrue
                       ? white
                       : white.withValues(alpha: 0.6),
-                  size: 24,
+                  size: sideIconSize,
                 ),
               )),
-          const SizedBox(width: 8),
+          SizedBox(width: gapSmall),
           GestureDetector(
             onTap: pc.prev,
-            child:
-                const Icon(Icons.skip_previous_rounded, color: white, size: 36),
+            child: Icon(
+              Icons.skip_previous_rounded,
+              color: white,
+              size: skipIconSize,
+            ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: gapMedium),
           Obx(() {
             final playing = pc.buttonState.value == PlayButtonState.playing;
             return GestureDetector(
               onTap: () => pc.playPause(),
               child: Container(
-                width: 72,
-                height: 72,
+                width: playButtonSize,
+                height: playButtonSize,
                 decoration: BoxDecoration(
                   color: white.withValues(alpha: 0.14),
                   shape: BoxShape.circle,
@@ -707,17 +838,21 @@ class _CompactControls extends StatelessWidget {
                 child: Icon(
                   playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
                   color: white,
-                  size: 36,
+                  size: playIconSize,
                 ),
               ),
             );
           }),
-          const SizedBox(width: 16),
+          SizedBox(width: gapMedium),
           GestureDetector(
             onTap: pc.next,
-            child: const Icon(Icons.skip_next_rounded, color: white, size: 36),
+            child: Icon(
+              Icons.skip_next_rounded,
+              color: white,
+              size: skipIconSize,
+            ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: gapSmall),
           Obx(() => GestureDetector(
                 onTap: pc.toggleLoopMode,
                 child: Icon(
@@ -727,7 +862,7 @@ class _CompactControls extends StatelessWidget {
                   color: pc.isLoopModeEnabled.isTrue
                       ? white
                       : white.withValues(alpha: 0.6),
-                  size: 24,
+                  size: sideIconSize,
                 ),
               )),
         ],
