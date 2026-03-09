@@ -16,6 +16,7 @@ import '../../../utils/server_storage.dart';
 import '../../../utils/update_check_flag_file.dart';
 import '/services/piped_service.dart';
 import '/services/library_sync_service.dart';
+import '/services/openlyst_sync_service.dart';
 import '/services/playback_diagnostics_service.dart';
 import '../Library/library_controller.dart';
 import '../../widgets/snackbar.dart';
@@ -46,7 +47,7 @@ enum AnimationSpeed { off, fast, normal, slow }
 enum SyncedLyricsHighlightStyle { block, karaoke }
 
 class SettingsScreenController extends GetxController {
-  final settingsSectionKeys = List.generate(8, (_) => GlobalKey());
+  final settingsSectionKeys = List.generate(9, (_) => GlobalKey());
   late String _supportDir;
   final cacheSongs = false.obs;
   final setBox = Hive.box("AppPrefs");
@@ -81,6 +82,13 @@ class SettingsScreenController extends GetxController {
   final cacheHomeScreenData = true.obs;
   final checkForUpdatesOnStartup = true.obs;
   final playbackDiagnosticsEnabled = false.obs;
+  final openlystSyncEnabled = false.obs;
+  final openlystSyncServerUrl = ''.obs;
+  final openlystSyncApiKey = ''.obs;
+  final openlystSyncGroupId = ''.obs;
+  final openlystSyncIntervalMinutes = 15.obs;
+  final openlystSyncLastError = ''.obs;
+  final openlystSyncLastSyncedAt = Rxn<DateTime>();
   final _currentVersion = ''.obs;
   final servers = <SettingsServer>[].obs;
   final activeServerId = RxnInt();
@@ -226,6 +234,15 @@ class SettingsScreenController extends GetxController {
         setBox.get("checkForUpdatesOnStartup") ?? true;
     playbackDiagnosticsEnabled.value =
         setBox.get(PlaybackDiagnosticsService.enabledKey) ?? false;
+    openlystSyncEnabled.value = setBox.get('openlystSyncEnabled') ?? false;
+    openlystSyncServerUrl.value =
+        (setBox.get('openlystSyncServerUrl') ?? '').toString();
+    openlystSyncApiKey.value =
+        (setBox.get('openlystSyncAppApiKey') ?? '').toString();
+    openlystSyncGroupId.value =
+        (setBox.get('openlystSyncGroupId') ?? '').toString();
+    openlystSyncIntervalMinutes.value =
+        (setBox.get('openlystSyncIntervalMinutes') ?? 15) as int;
     streamingQuality.value =
         AudioQuality.values[setBox.get('streamingQuality')];
     playerUi.value = isDesktop ? 0 : (setBox.get('playerUi') ?? 0);
@@ -314,6 +331,10 @@ class SettingsScreenController extends GetxController {
       } else {
         Get.find<LibrarySyncService>();
         unawaited(Get.find<LibrarySyncService>().maybeSyncAllIfStale());
+      }
+      if (Get.isRegistered<OpenlystSyncService>()) {
+        final sync = Get.find<OpenlystSyncService>();
+        sync.reloadConfig();
       }
     });
   }
@@ -669,6 +690,87 @@ class SettingsScreenController extends GetxController {
   void togglePlaybackDiagnostics(bool val) {
     setBox.put(PlaybackDiagnosticsService.enabledKey, val);
     playbackDiagnosticsEnabled.value = val;
+  }
+
+  void toggleOpenlystSyncEnabled(bool val) {
+    setBox.put('openlystSyncEnabled', val);
+    openlystSyncEnabled.value = val;
+    if (Get.isRegistered<OpenlystSyncService>()) {
+      Get.find<OpenlystSyncService>().reloadConfig();
+    }
+  }
+
+  bool get isOpenlystServerConnected =>
+      openlystSyncServerUrl.value.trim().isNotEmpty &&
+      openlystSyncApiKey.value.trim().isNotEmpty &&
+      openlystSyncEnabled.value;
+
+  void setOpenlystSyncServerUrl(String value) {
+    setBox.put('openlystSyncServerUrl', value.trim());
+    openlystSyncServerUrl.value = value.trim();
+    if (Get.isRegistered<OpenlystSyncService>()) {
+      Get.find<OpenlystSyncService>().reloadConfig();
+    }
+  }
+
+  void setOpenlystSyncApiKey(String value) {
+    setBox.put('openlystSyncAppApiKey', value.trim());
+    openlystSyncApiKey.value = value.trim();
+    if (Get.isRegistered<OpenlystSyncService>()) {
+      Get.find<OpenlystSyncService>().reloadConfig();
+    }
+  }
+
+  void setOpenlystSyncGroupId(String value) {
+    setBox.put('openlystSyncGroupId', value.trim());
+    openlystSyncGroupId.value = value.trim();
+    if (Get.isRegistered<OpenlystSyncService>()) {
+      Get.find<OpenlystSyncService>().reloadConfig();
+    }
+  }
+
+  void setOpenlystSyncIntervalMinutes(int value) {
+    final clamped = value < 1 ? 1 : value;
+    setBox.put('openlystSyncIntervalMinutes', clamped);
+    openlystSyncIntervalMinutes.value = clamped;
+    if (Get.isRegistered<OpenlystSyncService>()) {
+      Get.find<OpenlystSyncService>().reloadConfig();
+    }
+  }
+
+  Future<void> syncOpenlystNow() async {
+    final sync = Get.find<OpenlystSyncService>();
+    await sync.syncNow();
+    openlystSyncLastError.value = sync.lastError.value;
+    openlystSyncLastSyncedAt.value = sync.lastSyncedAt.value;
+  }
+
+  Future<void> loginOpenlystServer({
+    required String baseUrl,
+    required String apiKey,
+  }) async {
+    final sync = Get.find<OpenlystSyncService>();
+    await sync.login(serverUrl: baseUrl, apiKey: apiKey);
+    openlystSyncEnabled.value = setBox.get('openlystSyncEnabled') ?? true;
+    openlystSyncServerUrl.value =
+        (setBox.get('openlystSyncServerUrl') ?? '').toString();
+    openlystSyncApiKey.value =
+        (setBox.get('openlystSyncAppApiKey') ?? '').toString();
+    openlystSyncGroupId.value =
+        (setBox.get('openlystSyncGroupId') ?? '').toString();
+    openlystSyncLastError.value = sync.lastError.value;
+    openlystSyncLastSyncedAt.value = sync.lastSyncedAt.value;
+  }
+
+  Future<void> logoutOpenlystServer() async {
+    final sync = Get.find<OpenlystSyncService>();
+    await sync.logout();
+    openlystSyncEnabled.value = false;
+    openlystSyncServerUrl.value = '';
+    openlystSyncApiKey.value = '';
+    openlystSyncGroupId.value = '';
+    openlystSyncLastError.value = '';
+    openlystSyncLastSyncedAt.value = null;
   }
 
   Future<void> clearPlaybackDiagnostics() async {
