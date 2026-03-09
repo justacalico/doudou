@@ -31,6 +31,33 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+def resolveStoreFilePath = {
+    if (!keystorePropertiesFile.exists()) {
+        return null
+    }
+
+    def configuredStoreFile = keystoreProperties['storeFile']
+    if (!configuredStoreFile) {
+        return null
+    }
+
+    def configuredStoreFilePath = configuredStoreFile.toString()
+    def candidatePaths = [
+        project.file(configuredStoreFilePath),                 // android/app relative
+        rootProject.file(configuredStoreFilePath),             // android relative
+        rootProject.file("app/${configuredStoreFilePath}")     // compatibility path
+    ]
+
+    def existingPath = candidatePaths.find { it.exists() }
+    if (existingPath != null) {
+        return existingPath
+    }
+
+    throw new GradleException("Keystore file not found for storeFile=${configuredStoreFilePath}. Checked: ${candidatePaths*.path.join(', ')}")
+}
+
+def resolvedStoreFilePath = resolveStoreFilePath()
+
 android {
     compileSdkVersion flutter.compileSdkVersion
     //ndkVersion flutter.ndkVersion
@@ -65,7 +92,7 @@ android {
             if (keystorePropertiesFile.exists()) {
                 keyAlias keystoreProperties['keyAlias']
                 keyPassword keystoreProperties['keyPassword']
-                storeFile file(keystoreProperties['storeFile'])
+                storeFile resolvedStoreFilePath
                 storePassword keystoreProperties['storePassword']
             }
         }
