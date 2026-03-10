@@ -702,7 +702,12 @@ class SettingsScreenController extends GetxController {
 
   bool get isOpenlystServerConnected =>
       openlystSyncServerUrl.value.trim().isNotEmpty &&
-      openlystSyncApiKey.value.trim().isNotEmpty &&
+      (openlystSyncApiKey.value.trim().isNotEmpty ||
+          ((setBox.get('openlystSyncClientId') ?? '').toString().trim().isNotEmpty &&
+              (setBox.get('openlystSyncClientSecret') ?? '')
+                  .toString()
+                  .trim()
+                  .isNotEmpty)) &&
       openlystSyncEnabled.value;
 
   void setOpenlystSyncServerUrl(String value) {

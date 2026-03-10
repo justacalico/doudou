@@ -72,9 +72,14 @@ class OpenlystSyncService extends GetxService {
     if (isSyncing.value) return;
     _loadConfig();
     if (!_enabled) return;
-    if (_serverUrl.isEmpty || _appApiKey.isEmpty) {
+    if (_serverUrl.isEmpty) {
+      lastError.value = 'Openlyst sync is enabled but missing server URL.';
+      syncState.value = 'error';
+      return;
+    }
+    if (_appApiKey.isEmpty && !_hasStoredClientCredentials()) {
       lastError.value =
-          'Openlyst sync is enabled but missing server URL or API key.';
+          'Openlyst sync is enabled but missing API key or pair-linked client credentials.';
       syncState.value = 'error';
       return;
     }
@@ -145,7 +150,7 @@ class OpenlystSyncService extends GetxService {
       throw Exception('Openlyst server URL is required.');
     }
     if (normalizedKey.isEmpty) {
-      throw Exception('Openlyst API key is required.');
+      throw Exception('Openlyst API key or pair code is required.');
     }
 
     final box = Hive.box('AppPrefs');
@@ -158,13 +163,36 @@ class OpenlystSyncService extends GetxService {
 
     try {
       await box.put(_keyServerUrl, normalizedUrl);
-      await box.put(_keyAppApiKey, normalizedKey);
-      await box.put(_keyGroupId, '');
-      await box.put(_keyClientId, '');
-      await box.put(_keyClientSecret, '');
       await box.put(_keyEnabled, true);
+      if (_looksLikePairCode(normalizedKey)) {
+        final pairRes = await _postWithRetry(
+          '$normalizedUrl/api/v2/devices/pair/confirm',
+          data: {
+            'code': normalizedKey.toUpperCase(),
+            'client_name': _buildClientName(box),
+            'platform': Platform.operatingSystem,
+          },
+          maxAttempts: 1,
+        );
+        final clientId = (pairRes.data['client_id'] as String?) ?? '';
+        final clientSecret = (pairRes.data['client_secret'] as String?) ?? '';
+        final groupId = (pairRes.data['group_id'] as String?) ?? '';
+        if (clientId.isEmpty || clientSecret.isEmpty || groupId.isEmpty) {
+          throw Exception('Pairing failed: server did not return device credentials.');
+        }
+        await box.put(_keyAppApiKey, '');
+        await box.put(_keyGroupId, groupId);
+        await box.put(_keyClientId, clientId);
+        await box.put(_keyClientSecret, clientSecret);
+      } else {
+        await box.put(_keyAppApiKey, normalizedKey);
+        await box.put(_keyGroupId, '');
+        await box.put(_keyClientId, '');
+        await box.put(_keyClientSecret, '');
+      }
       _loadConfig();
-      await _ensureClientToken();
+      final token = await _ensureClientToken();
+      await _syncServerSession(token);
       _restartTimer();
       lastError.value = '';
       syncState.value = 'connected_idle';
@@ -219,13 +247,29 @@ class OpenlystSyncService extends GetxService {
         text.contains('invalid client token');
   }
 
+  bool _hasStoredClientCredentials() {
+    final box = Hive.box('AppPrefs');
+    final clientId = (box.get(_keyClientId) ?? '').toString().trim();
+    final clientSecret = (box.get(_keyClientSecret) ?? '').toString().trim();
+    return clientId.isNotEmpty && clientSecret.isNotEmpty;
+  }
+
+  bool _looksLikePairCode(String value) {
+    final v = value.trim();
+    return RegExp(r'^[A-Za-z0-9]{6}$').hasMatch(v);
+  }
+
   Future<String> _ensureClientToken() async {
     final box = Hive.box('AppPrefs');
     var clientId = (box.get(_keyClientId) ?? '').toString();
     var clientSecret = (box.get(_keyClientSecret) ?? '').toString();
     var groupId = (box.get(_keyGroupId) ?? '').toString();
 
-    if (clientId.isEmpty || clientSecret.isEmpty || groupId.isEmpty) {
+    if (clientId.isEmpty || clientSecret.isEmpty) {
+      if (_appApiKey.isEmpty) {
+        throw Exception(
+            'Openlyst device is not paired yet. Generate a pair code in the web dashboard.');
+      }
       final r = await _postWithRetry(
         '$_serverUrl/api/v1/client/login',
         data: {

@@ -1118,8 +1118,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                       TextField(
                         controller: apiController,
                         decoration: const InputDecoration(
-                          labelText: 'API key',
-                          hintText: 'olk_...',
+                          labelText: 'API key or Pair code',
+                          hintText: 'olk_... or KB5W5Y',
                         ),
                       ),
                     ],
