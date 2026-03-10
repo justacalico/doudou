@@ -702,12 +702,11 @@ class SettingsScreenController extends GetxController {
 
   bool get isOpenlystServerConnected =>
       openlystSyncServerUrl.value.trim().isNotEmpty &&
-      (openlystSyncApiKey.value.trim().isNotEmpty ||
-          ((setBox.get('openlystSyncClientId') ?? '').toString().trim().isNotEmpty &&
-              (setBox.get('openlystSyncClientSecret') ?? '')
-                  .toString()
-                  .trim()
-                  .isNotEmpty)) &&
+      ((setBox.get('openlystSyncClientId') ?? '').toString().trim().isNotEmpty &&
+          (setBox.get('openlystSyncClientSecret') ?? '')
+              .toString()
+              .trim()
+              .isNotEmpty) &&
       openlystSyncEnabled.value;
 
   void setOpenlystSyncServerUrl(String value) {
@@ -752,10 +751,10 @@ class SettingsScreenController extends GetxController {
 
   Future<void> loginOpenlystServer({
     required String baseUrl,
-    required String apiKey,
+    required String pairCode,
   }) async {
     final sync = Get.find<OpenlystSyncService>();
-    await sync.login(serverUrl: baseUrl, apiKey: apiKey);
+    await sync.login(serverUrl: baseUrl, pairCode: pairCode);
     openlystSyncEnabled.value = setBox.get('openlystSyncEnabled') ?? true;
     openlystSyncServerUrl.value =
         (setBox.get('openlystSyncServerUrl') ?? '').toString();

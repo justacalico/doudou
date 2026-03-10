@@ -1118,8 +1118,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                       TextField(
                         controller: apiController,
                         decoration: const InputDecoration(
-                          labelText: 'API key or Pair code',
-                          hintText: 'olk_... or KB5W5Y',
+                          labelText: 'Pair code',
+                          hintText: 'KB5W5Y',
                         ),
                       ),
                     ],
@@ -1200,7 +1200,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                             try {
                               await settings.loginOpenlystServer(
                                 baseUrl: urlController.text,
-                                apiKey: apiController.text,
+                                pairCode: apiController.text,
                               );
                               if (dialogContext.mounted) {
                                 Navigator.of(dialogContext).pop();
