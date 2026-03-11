@@ -68,6 +68,14 @@ class ImageWidget extends StatelessWidget {
       );
     }
 
+    Widget placeholder() {
+      if (!isPlayerArtImage) return placeholderIcon();
+      return ColoredBox(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.22),
+        child: const SizedBox.expand(),
+      );
+    }
+
     final dpr = MediaQuery.devicePixelRatioOf(context);
     final cachePx = (size * dpr).round().clamp(64, isPlayerArtImage ? 800 : 220);
     final cacheKey = song != null
@@ -101,7 +109,7 @@ class ImageWidget extends StatelessWidget {
                 )
               : placeholderIcon())
           : imageUrl.trim().isEmpty
-              ? placeholderIcon()
+              ? placeholder()
               : CachedNetworkImage(
                   height: size,
                   width: size,
@@ -110,8 +118,12 @@ class ImageWidget extends StatelessWidget {
                   cacheKey: cacheKey,
                   imageUrl: imageUrl,
                   fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => placeholderIcon(),
-                  progressIndicatorBuilder: ((_, __, ___) => placeholderIcon()),
+                  useOldImageOnUrlChange: true,
+                  fadeInDuration: Duration.zero,
+                  fadeOutDuration: Duration.zero,
+                  placeholderFadeInDuration: Duration.zero,
+                  errorWidget: (context, url, error) => placeholder(),
+                  progressIndicatorBuilder: ((_, __, ___) => placeholder()),
                 ),
     );
   }
