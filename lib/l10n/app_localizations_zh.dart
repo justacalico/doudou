@@ -731,9 +731,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkForUpdatesOnStartup => '启动时检查更新';
 
   @override
-  String get openOpenlystWebsite => '打开 Openlyst 网站';
-
-  @override
   String get openGitlab => '打开 GitLab';
 
   @override

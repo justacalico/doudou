@@ -768,9 +768,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get checkForUpdatesOnStartup => 'Проверять обновления при запуске';
 
   @override
-  String get openOpenlystWebsite => 'Открыть сайт Openlyst';
-
-  @override
   String get openGitlab => 'Открыть GitLab';
 
   @override

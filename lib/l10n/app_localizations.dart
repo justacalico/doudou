@@ -1535,12 +1535,6 @@ abstract class AppLocalizations {
   /// **'Check for updates on startup'**
   String get checkForUpdatesOnStartup;
 
-  /// No description provided for @openOpenlystWebsite.
-  ///
-  /// In en, this message translates to:
-  /// **'Open Openlyst website'**
-  String get openOpenlystWebsite;
-
   /// No description provided for @openGitlab.
   ///
   /// In en, this message translates to:

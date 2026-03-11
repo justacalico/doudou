@@ -37,7 +37,6 @@ enum _SettingsSectionId {
   content,
   playback,
   servers,
-  openlystServer,
   download,
   backup,
   misc,
@@ -75,7 +74,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     (_SettingsSectionId.content, Icons.movie_outlined, "content"),
     (_SettingsSectionId.playback, Icons.music_note_outlined, "musicPlayback"),
     (_SettingsSectionId.servers, Icons.dns_outlined, "servers"),
-    (_SettingsSectionId.openlystServer, Icons.cloud_outlined, "openlystServer"),
     (_SettingsSectionId.download, Icons.download_outlined, "download"),
     (_SettingsSectionId.backup, Icons.restore_outlined, "backup"),
     (_SettingsSectionId.misc, Icons.miscellaneous_services_outlined, "misc"),
@@ -87,7 +85,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       title: 'ACCOUNTS',
       sections: [
         _SettingsSectionId.servers,
-        _SettingsSectionId.openlystServer,
         _SettingsSectionId.backup,
       ],
     ),
@@ -193,7 +190,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 8, 0, 12),
               child: Text(
-                "${settings.currentVersion} ${context.l10n.by} openlyst",
+                settings.currentVersion,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.55),
                   letterSpacing: 0.2,
@@ -427,7 +424,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       'content' => l10n.content,
       'musicPlayback' => l10n.musicPlayback,
       'servers' => l10n.servers,
-      'openlystServer' => 'Openlyst Server',
       'download' => l10n.download,
       'backup' => l10n.backup,
       'misc' => l10n.misc,
@@ -439,7 +435,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   String _sectionSubtitle(_SettingsSectionId id) {
     return switch (id) {
       _SettingsSectionId.servers => context.l10n.servers,
-      _SettingsSectionId.openlystServer => 'Openlyst Server connection',
       _SettingsSectionId.backup => context.l10n.backupSettingsAndPlaylistsDes,
       _SettingsSectionId.content => context.l10n.content,
       _SettingsSectionId.playback => context.l10n.musicPlayback,
@@ -453,7 +448,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   String? _sectionBadge(_SettingsSectionId id) {
     return switch (id) {
       _SettingsSectionId.servers => 'Active',
-      _SettingsSectionId.openlystServer => 'Sync',
       _SettingsSectionId.personalisation => 'Theme',
       _SettingsSectionId.playback => 'Audio',
       _SettingsSectionId.download => 'Files',
@@ -507,8 +501,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       _SettingsSectionId.playback => _buildPlayback(context, settings),
       _SettingsSectionId.servers =>
         _buildServers(context, settings, syncService),
-      _SettingsSectionId.openlystServer =>
-        _buildOpenlystServer(context, settings),
       _SettingsSectionId.download => _buildDownload(context, settings),
       _SettingsSectionId.backup => _buildBackup(context),
       _SettingsSectionId.misc => _buildMisc(context, settings),
@@ -1033,26 +1025,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     ];
   }
 
-  List<Widget> _buildOpenlystServer(
-    BuildContext context,
-    SettingsScreenController settings,
-  ) {
-    return [
-      Obx(() => ListTile(
-            title: const Text('Openlyst Server'),
-            subtitle: Text(settings.isOpenlystServerConnected
-                ? 'Connected to ${settings.openlystSyncServerUrl.value}'
-                : 'Not connected'),
-            trailing: TextButton(
-              onPressed: () => _showOpenlystServerDialog(context, settings),
-              child:
-                  Text(settings.isOpenlystServerConnected ? 'Manage' : 'Login'),
-            ),
-            onTap: () => _showOpenlystServerDialog(context, settings),
-          )),
-    ];
-  }
-
   Future<void> _showAddProviderPicker(BuildContext context) async {
     final selected = await showDialog<ServerType>(
       context: context,
@@ -1062,166 +1034,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     showDialog(
       context: context,
       builder: (_) => AddServerDialog(serverType: selected),
-    );
-  }
-
-  Future<void> _showOpenlystServerDialog(
-    BuildContext context,
-    SettingsScreenController settings,
-  ) async {
-    final urlController =
-        TextEditingController(text: settings.openlystSyncServerUrl.value);
-    final apiController =
-        TextEditingController(text: settings.openlystSyncApiKey.value);
-    String? error;
-    bool busy = false;
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setState) {
-            final connected = settings.isOpenlystServerConnected;
-            return AlertDialog(
-              title: const Text('Openlyst Server'),
-              content: SizedBox(
-                width: 440,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (connected) ...[
-                      ListTile(
-                        dense: true,
-                        title: const Text('Server'),
-                        subtitle: Text(settings.openlystSyncServerUrl.value),
-                      ),
-                      ListTile(
-                        dense: true,
-                        title: const Text('Status'),
-                        subtitle: Text(
-                          settings.openlystSyncLastError.value.isNotEmpty
-                              ? 'Last error: ${settings.openlystSyncLastError.value}'
-                              : settings.openlystSyncLastSyncedAt.value != null
-                                  ? 'Last sync: ${settings.openlystSyncLastSyncedAt.value}'
-                                  : 'Connected',
-                        ),
-                      ),
-                    ] else ...[
-                      TextField(
-                        controller: urlController,
-                        decoration: const InputDecoration(
-                          labelText: 'Base URL',
-                          hintText: 'https://server:9087',
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: apiController,
-                        decoration: const InputDecoration(
-                          labelText: 'Pair code',
-                          hintText: 'KB5W5Y',
-                        ),
-                      ),
-                    ],
-                    if (error != null) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        error!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed:
-                      busy ? null : () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Close'),
-                ),
-                if (connected)
-                  TextButton(
-                    onPressed: busy
-                        ? null
-                        : () async {
-                            setState(() {
-                              busy = true;
-                              error = null;
-                            });
-                            try {
-                              await settings.logoutOpenlystServer();
-                              if (dialogContext.mounted) {
-                                Navigator.of(dialogContext).pop();
-                              }
-                            } catch (e) {
-                              setState(() {
-                                error = e.toString();
-                              });
-                            } finally {
-                              setState(() {
-                                busy = false;
-                              });
-                            }
-                          },
-                    child: const Text('Logout'),
-                  ),
-                if (connected)
-                  TextButton(
-                    onPressed: busy
-                        ? null
-                        : () async {
-                            setState(() {
-                              busy = true;
-                              error = null;
-                            });
-                            try {
-                              await settings.syncOpenlystNow();
-                            } catch (e) {
-                              setState(() {
-                                error = e.toString();
-                              });
-                            } finally {
-                              setState(() {
-                                busy = false;
-                              });
-                            }
-                          },
-                    child: Text(busy ? 'Syncing...' : 'Sync now'),
-                  ),
-                if (!connected)
-                  TextButton(
-                    onPressed: busy
-                        ? null
-                        : () async {
-                            setState(() {
-                              busy = true;
-                              error = null;
-                            });
-                            try {
-                              await settings.loginOpenlystServer(
-                                baseUrl: urlController.text,
-                                pairCode: apiController.text,
-                              );
-                              if (dialogContext.mounted) {
-                                Navigator.of(dialogContext).pop();
-                              }
-                            } catch (e) {
-                              setState(() {
-                                error = e.toString();
-                              });
-                            } finally {
-                              setState(() {
-                                busy = false;
-                              });
-                            }
-                          },
-                    child: Text(busy ? 'Logging in...' : 'Login'),
-                  ),
-              ],
-            );
-          },
-        );
-      },
     );
   }
 
@@ -1384,14 +1196,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 .showSnackBar(SnackBar(content: Text(upToDate)));
           }
         },
-      ),
-      ListTile(
-        leading: const Icon(Icons.language, size: 20),
-        title: Text(context.l10n.openOpenlystWebsite),
-        onTap: () => launchUrl(
-          Uri.parse('https://openlyst.ink/'),
-          mode: LaunchMode.externalApplication,
-        ),
       ),
       ListTile(
         leading: const Icon(Icons.code, size: 20),

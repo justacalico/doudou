@@ -253,7 +253,6 @@
   "gitlabDes": "View GitLab source code\\nif you like this project, don't forget to give a ⭐",
   "checkForUpdates": "Check for updates",
   "checkForUpdatesOnStartup": "Check for updates on startup",
-  "openOpenlystWebsite": "Open Openlyst website",
   "openGitlab": "Open GitLab",
   "upToDate": "You are up to date",
   "checkingForUpdates": "Checking for updates…",

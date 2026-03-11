@@ -605,8 +605,8 @@ class LibraryPlaylistsController extends GetxController
           plastbox.add(MediaItemBuilder.toJson(item));
         }
         plastbox.close();
-      } else if ((createPlaylistNaddSong &&
-          playlistCreationMode.value == "piped")) {
+      } else if (createPlaylistNaddSong &&
+          playlistCreationMode.value == "piped") {
         final songIds = songItems!.map((e) => e.id).toList();
         await Get.find<PipedServices>()
             .addToPlaylist(newplst.playlistId, songIds);
