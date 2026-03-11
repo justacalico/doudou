@@ -7,11 +7,13 @@ class AppSettings {
     required this.localeCode,
     required this.animationSpeedFactor,
     required this.themeModeType,
+    required this.perfMonitorEnabled,
   });
 
   final String localeCode;
   final double animationSpeedFactor;
   final int themeModeType;
+  final bool perfMonitorEnabled;
 
   static const supportedLocaleCodes = {'en_AU'};
 
@@ -30,10 +32,13 @@ class AppSettings {
     final rawThemeModeType = prefs.get('themeModeType');
     final themeModeType = rawThemeModeType is int ? rawThemeModeType : 1;
 
+    final perfMonitorEnabled = prefs.get('perfMonitorEnabled') == true;
+
     return AppSettings(
       localeCode: localeCode,
       animationSpeedFactor: animationSpeedFactor,
       themeModeType: themeModeType,
+      perfMonitorEnabled: perfMonitorEnabled,
     );
   }
 

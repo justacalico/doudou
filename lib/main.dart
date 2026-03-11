@@ -55,6 +55,11 @@ class MyApp extends ConsumerWidget {
     final settings = ref.watch(appSettingsProvider);
     final themeState = ref.watch(appThemeProvider);
     final locale = settings.locale;
+
+    final desiredPerf = settings.perfMonitorEnabled;
+    if (_perfMonitor.enabled.value != desiredPerf) {
+      _perfMonitor.enabled.value = desiredPerf;
+    }
     return GetMaterialApp(
         title: 'Doudou',
         scrollBehavior: PlaylistAlbumScrollBehaviour(),
@@ -153,6 +158,7 @@ void _setAppInitPrefs() {
       'discoverContentType': "QP",
       'newVersionVisibility': updateCheckFlag,
       "cacheHomeScreenData": true,
+      "perfMonitorEnabled": false,
       PlaybackDiagnosticsService.enabledKey: false,
     });
   } else if (!appPrefs.containsKey(PlaybackDiagnosticsService.enabledKey)) {
