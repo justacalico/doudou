@@ -61,7 +61,7 @@ class MyApp extends ConsumerWidget {
         home: const ScreenNavigation(),
         debugShowCheckedModeBanner: false,
         locale: locale,
-        fallbackLocale: const Locale("en"),
+        fallbackLocale: const Locale("en", "AU"),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         builder: (context, child) {

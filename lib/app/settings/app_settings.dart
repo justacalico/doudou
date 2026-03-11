@@ -13,12 +13,13 @@ class AppSettings {
   final double animationSpeedFactor;
   final int themeModeType;
 
-  static const supportedLocaleCodes = {'en', 'en_AU', 'zh', 'ru'};
+  static const supportedLocaleCodes = {'en_AU'};
 
   static AppSettings fromPrefs(Box prefs) {
     final stored = prefs.get('currentAppLanguageCode');
-    final rawLocale = stored is String ? stored : 'en';
-    final localeCode = supportedLocaleCodes.contains(rawLocale) ? rawLocale : 'en';
+    final rawLocale = stored is String ? stored : 'en_AU';
+    final localeCode =
+        supportedLocaleCodes.contains(rawLocale) ? rawLocale : 'en_AU';
 
     final rawFactor = prefs.get('animationSpeedFactor');
     final animationSpeedFactor = switch (rawFactor) {
