@@ -63,7 +63,7 @@ class MyApp extends ConsumerWidget {
         locale: locale,
         fallbackLocale: const Locale("en", "AU"),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
+        supportedLocales: const [Locale('en', 'AU')],
         builder: (context, child) {
           final mQuery = MediaQuery.of(context);
           final scale =

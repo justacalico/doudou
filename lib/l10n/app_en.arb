@@ -1,0 +1,17 @@
+{
+  "@@locale": "en",
+  "dynamicTheme": "Dynamic",
+  "more": "More",
+  "loading": "Loading",
+  "imported": "Imported",
+  "importedPlaylist": "Imported playlist",
+  "listBookmarkRemoveAlert": "Bookmark removed!",
+  "permissionDenied": "Permission denied",
+  "unknownArtist": "Unknown Artist",
+  "unknownAlbum": "Unknown Album",
+  "yourMusicCollection": "Your music collection",
+  "sortByName": "Sort by name",
+  "sortByDate": "Sort by date",
+  "sortByDuration": "Sort by duration",
+  "sortAscendNDescend": "Ascending & Descending"
+}

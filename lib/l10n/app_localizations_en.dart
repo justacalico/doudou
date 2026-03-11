@@ -97,7 +97,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recentlyPlayed => 'Recently Played';
 
   @override
-  String get favorites => 'Favorites';
+  String get favorites => 'Favourites';
 
   @override
   String get cachedOrOffline => 'Cached/Offline';
@@ -155,7 +155,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addMusicToLibraryHint =>
-      'Add music to your library to see it here';
+      'Add music to your library to see it here, mate';
 
   @override
   String get shuffleAll => 'Shuffle all';
@@ -284,7 +284,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noSongsInLibrary => 'No songs in library';
 
   @override
-  String get favoritesEmpty => 'Favorites is empty';
+  String get favoritesEmpty => 'Favourites is empty';
 
   @override
   String get startRadio => 'Start radio';
@@ -296,7 +296,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addToPlaylist => 'Add to playlist';
 
   @override
-  String get noLibPlaylist => 'You don\'t have any lib playlist!';
+  String get noLibPlaylist => 'You don\'t have any lib playlist, mate!';
 
   @override
   String get enqueueSong => 'Enqueue this song';
@@ -644,6 +644,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enableSlidableActionDes => 'Enable slidable actions on song tile';
 
   @override
+  String get more => 'More';
+
+  @override
+  String get loading => 'Loading';
+
+  @override
+  String get imported => 'Imported';
+
+  @override
+  String get importedPlaylist => 'Imported playlist';
+
+  @override
+  String get listBookmarkRemoveAlert => 'Bookmark removed!';
+
+  @override
+  String get permissionDenied => 'Permission denied';
+
+  @override
+  String get unknownArtist => 'Unknown Artist';
+
+  @override
+  String get unknownAlbum => 'Unknown Album';
+
+  @override
+  String get yourMusicCollection => 'Your music collection';
+
+  @override
+  String get sortByName => 'Sort by name';
+
+  @override
+  String get sortByDate => 'Sort by date';
+
+  @override
+  String get sortByDuration => 'Sort by duration';
+
+  @override
+  String get sortAscendNDescend => 'Ascending & Descending';
+
+  @override
   String get high => 'High';
 
   @override
@@ -768,7 +807,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openGitlab => 'Open GitLab';
 
   @override
-  String get upToDate => 'You are up to date';
+  String get upToDate => 'You\'re right, mate – you\'re up to date';
 
   @override
   String get checkingForUpdates => 'Checking for updates…';
@@ -1151,45 +1190,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get keepScreenOnWhilePlayingDes =>
       'If enabled, the device screen will stay awake while music is playing';
-
-  @override
-  String get importedPlaylist => 'Imported playlist';
-
-  @override
-  String get listBookmarkRemoveAlert => 'Bookmark removed!';
-
-  @override
-  String get permissionDenied => 'Permission denied';
-
-  @override
-  String get loading => 'Loading';
-
-  @override
-  String get unknownArtist => 'Unknown Artist';
-
-  @override
-  String get unknownAlbum => 'Unknown Album';
-
-  @override
-  String get yourMusicCollection => 'Your music collection';
-
-  @override
-  String get more => 'More';
-
-  @override
-  String get sortByName => 'Sort by name';
-
-  @override
-  String get sortByDate => 'Sort by date';
-
-  @override
-  String get sortByDuration => 'Sort by duration';
-
-  @override
-  String get sortAscendNDescend => 'Ascending & Descending';
-
-  @override
-  String get imported => 'Imported';
 
   @override
   String get resyncLibraryNow => 'Resync Library Now';
@@ -1668,6 +1668,9 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get themeMode => 'Theme Mode';
 
   @override
+  String get dynamicTheme => 'Dynamic';
+
+  @override
   String get dynamicColor => 'Dynamic Colour';
 
   @override
@@ -1865,6 +1868,45 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get enableSlidableActionDes => 'Enable slidable actions on song tile';
+
+  @override
+  String get more => 'More';
+
+  @override
+  String get loading => 'Loading';
+
+  @override
+  String get imported => 'Imported';
+
+  @override
+  String get importedPlaylist => 'Imported playlist';
+
+  @override
+  String get listBookmarkRemoveAlert => 'Bookmark removed!';
+
+  @override
+  String get permissionDenied => 'Permission denied';
+
+  @override
+  String get unknownArtist => 'Unknown Artist';
+
+  @override
+  String get unknownAlbum => 'Unknown Album';
+
+  @override
+  String get yourMusicCollection => 'Your music collection';
+
+  @override
+  String get sortByName => 'Sort by name';
+
+  @override
+  String get sortByDate => 'Sort by date';
+
+  @override
+  String get sortByDuration => 'Sort by duration';
+
+  @override
+  String get sortAscendNDescend => 'Ascending & Descending';
 
   @override
   String get high => 'High';

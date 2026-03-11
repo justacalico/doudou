@@ -620,6 +620,45 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enableSlidableActionDes => '在歌曲板块上启用可滑动操作';
 
   @override
+  String get more => '更多';
+
+  @override
+  String get loading => '加载中';
+
+  @override
+  String get imported => '已导入';
+
+  @override
+  String get importedPlaylist => '已导入的播放列表';
+
+  @override
+  String get listBookmarkRemoveAlert => '已取消收藏！';
+
+  @override
+  String get permissionDenied => '权限被拒绝';
+
+  @override
+  String get unknownArtist => '未知音乐人';
+
+  @override
+  String get unknownAlbum => '未知专辑';
+
+  @override
+  String get yourMusicCollection => '你的音乐收藏';
+
+  @override
+  String get sortByName => '按名称';
+
+  @override
+  String get sortByDate => '按日期';
+
+  @override
+  String get sortByDuration => '按时长';
+
+  @override
+  String get sortAscendNDescend => '升序与降序';
+
+  @override
   String get high => '高音质';
 
   @override
@@ -1106,45 +1145,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get keepScreenOnWhilePlayingDes => '启用后，播放音乐时设备屏幕将保持点亮';
-
-  @override
-  String get importedPlaylist => '已导入的播放列表';
-
-  @override
-  String get listBookmarkRemoveAlert => '已取消收藏！';
-
-  @override
-  String get permissionDenied => '权限被拒绝';
-
-  @override
-  String get loading => '加载中';
-
-  @override
-  String get unknownArtist => '未知音乐人';
-
-  @override
-  String get unknownAlbum => '未知专辑';
-
-  @override
-  String get yourMusicCollection => '你的音乐收藏';
-
-  @override
-  String get more => '更多';
-
-  @override
-  String get sortByName => '按名称';
-
-  @override
-  String get sortByDate => '按日期';
-
-  @override
-  String get sortByDuration => '按时长';
-
-  @override
-  String get sortAscendNDescend => '升序与降序';
-
-  @override
-  String get imported => '已导入';
 
   @override
   String get resyncLibraryNow => '立即重新同步曲库';

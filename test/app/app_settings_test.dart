@@ -25,8 +25,9 @@ void main() {
 
   test('defaults to en locale and factor 1.0', () {
     final s = AppSettings.fromPrefs(box);
-    expect(s.localeCode, 'en');
+    expect(s.localeCode, 'en_AU');
     expect(s.locale.languageCode, 'en');
+    expect(s.locale.countryCode, 'AU');
     expect(s.animationSpeedFactor, 1.0);
   });
 
@@ -41,7 +42,7 @@ void main() {
 
     await box.put('currentAppLanguageCode', 'xx');
     final s2 = AppSettings.fromPrefs(box);
-    expect(s2.localeCode, 'en');
+    expect(s2.localeCode, 'en_AU');
   });
 }
 

@@ -647,6 +647,45 @@ class AppLocalizationsRu extends AppLocalizations {
       'Включить скользящие действия на плитке песни';
 
   @override
+  String get more => 'Ещё';
+
+  @override
+  String get loading => 'Загрузка';
+
+  @override
+  String get imported => 'Импортировано';
+
+  @override
+  String get importedPlaylist => 'Импортированный плейлист';
+
+  @override
+  String get listBookmarkRemoveAlert => 'Закладка удалена!';
+
+  @override
+  String get permissionDenied => 'Доступ запрещён';
+
+  @override
+  String get unknownArtist => 'Неизвестный исполнитель';
+
+  @override
+  String get unknownAlbum => 'Неизвестный альбом';
+
+  @override
+  String get yourMusicCollection => 'Ваша коллекция музыки';
+
+  @override
+  String get sortByName => 'По имени';
+
+  @override
+  String get sortByDate => 'По дате';
+
+  @override
+  String get sortByDuration => 'По длительности';
+
+  @override
+  String get sortAscendNDescend => 'По возрастанию и убыванию';
+
+  @override
   String get high => 'Высокое';
 
   @override
@@ -1158,45 +1197,6 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get keepScreenOnWhilePlayingDes =>
       'Если включено, экран устройства будет оставаться включенным во время воспроизведения музыки';
-
-  @override
-  String get importedPlaylist => 'Импортированный плейлист';
-
-  @override
-  String get listBookmarkRemoveAlert => 'Закладка удалена!';
-
-  @override
-  String get permissionDenied => 'Доступ запрещён';
-
-  @override
-  String get loading => 'Загрузка';
-
-  @override
-  String get unknownArtist => 'Неизвестный исполнитель';
-
-  @override
-  String get unknownAlbum => 'Неизвестный альбом';
-
-  @override
-  String get yourMusicCollection => 'Ваша коллекция музыки';
-
-  @override
-  String get more => 'Ещё';
-
-  @override
-  String get sortByName => 'По имени';
-
-  @override
-  String get sortByDate => 'По дате';
-
-  @override
-  String get sortByDuration => 'По длительности';
-
-  @override
-  String get sortAscendNDescend => 'По возрастанию и убыванию';
-
-  @override
-  String get imported => 'Импортировано';
 
   @override
   String get resyncLibraryNow => 'Синхронизировать библиотеку';
