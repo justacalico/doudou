@@ -35,7 +35,6 @@ import '/services/backend/subsonic_backend.dart';
 enum SidebarMode { auto, collapsed, expanded }
 
 const supportedLocalesDisplay = {
-  "en": "English",
   "en_AU": "English (Australian)",
   "zh": "简体中文",
   "ru": "Русский",
@@ -64,7 +63,7 @@ class SettingsScreenController extends GetxController {
   final latestAvailableVersion = ''.obs;
   final isLinkedWithPiped = false.obs;
   final stopPlyabackOnSwipeAway = false.obs;
-  final currentAppLanguageCode = "en".obs;
+  final currentAppLanguageCode = "en_AU".obs;
   final downloadLocationPath = "".obs;
   final exportLocationPath = "".obs;
   final downloadingFormat = "".obs;
@@ -167,8 +166,8 @@ class SettingsScreenController extends GetxController {
 
   Future<void> _setInitValue() async {
     final isDesktop = GetPlatform.isDesktop;
-    const supported = ['en', 'en_AU', 'zh', 'ru'];
-    final appLang = setBox.get('currentAppLanguageCode') ?? "en";
+    const supported = ['en_AU', 'zh', 'ru'];
+    final appLang = setBox.get('currentAppLanguageCode') ?? "en_AU";
     final normalized = appLang == "zh_Hant" ||
             appLang == "zh_Hans" ||
             appLang == "zh-CN" ||
@@ -176,7 +175,7 @@ class SettingsScreenController extends GetxController {
         ? "zh"
         : supported.contains(appLang)
             ? appLang
-            : "en";
+            : "en_AU";
     currentAppLanguageCode.value = normalized;
     if (normalized != appLang) setBox.put('currentAppLanguageCode', normalized);
     isBottomNavBarEnabled.value = false;

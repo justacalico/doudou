@@ -15,7 +15,7 @@ class AppSettings {
   final int themeModeType;
   final bool perfMonitorEnabled;
 
-  static const supportedLocaleCodes = {'en_AU'};
+  static const supportedLocaleCodes = {'en_AU', 'ru', 'zh'};
 
   static AppSettings fromPrefs(Box prefs) {
     final stored = prefs.get('currentAppLanguageCode');
