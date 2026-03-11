@@ -30,7 +30,7 @@ void main() {
   });
 
   test('initializes from Hive and can persist accent', () {
-    box.put('themePrimaryColor', const Color(0xFF112233).value);
+    box.put('themePrimaryColor', const Color(0xFF112233).toARGB32());
     final container = ProviderContainer();
     addTearDown(container.dispose);
 
@@ -40,7 +40,7 @@ void main() {
     container.read(appThemeProvider.notifier).setAccent(const Color(0xFF334455));
     final st2 = container.read(appThemeProvider);
     expect(st2.accent, const Color(0xFF334455));
-    expect(box.get('themePrimaryColor'), const Color(0xFF334455).value);
+    expect(box.get('themePrimaryColor'), const Color(0xFF334455).toARGB32());
   });
 }
 

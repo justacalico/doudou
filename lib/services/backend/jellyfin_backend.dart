@@ -26,8 +26,9 @@ class JellyfinBackend extends MusicBackend {
   Future<void> _ensureAuth() async {
     if (_token != null && _userId != null) return;
     final url = _baseUrl;
-    if (url.isEmpty || server.username == null || server.password == null)
+    if (url.isEmpty || server.username == null || server.password == null) {
       return;
+    }
     _client = JellyfinDart(basePathOverride: url);
     _client!.setDeviceId('doudou-${server.id}');
     _client!.setVersion('1.0');
@@ -370,8 +371,9 @@ class JellyfinBackend extends MusicBackend {
             if (a.name != null) artists.add({'name': a.name!});
           }
         }
-        if (artists.isEmpty)
+        if (artists.isEmpty) {
           artists.add({'name': item.albumArtist ?? 'Unknown'});
+        }
         return Album.fromJson({
           'title': item.name ?? 'Unknown',
           'browseId': id,

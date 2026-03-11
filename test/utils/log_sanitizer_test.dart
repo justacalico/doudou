@@ -52,7 +52,7 @@ void main() {
 
   group('sanitizeLogString', () {
     test('redacts bearer and authorization strings', () {
-      final input =
+      const input =
           'Authorization: Bearer very-secret-token bearer second-secret';
       final sanitized = sanitizeLogString(input);
 
@@ -63,7 +63,7 @@ void main() {
     });
 
     test('redacts secret query parameters in URLs', () {
-      final input =
+      const input =
           'https://example.com/stream?id=1&token=abc&api_key=xyz&name=ok';
       final sanitized = sanitizeLogString(input);
 
