@@ -1,7 +1,7 @@
 name: doudou
 description: Play any music from anywhere.
 publish_to: "none"
-version: 16.0.0
+version: 16.1.0
 
 environment:
   sdk: ">=3.1.5 <4.0.0"
