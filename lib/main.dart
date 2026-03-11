@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:terminate_restart/terminate_restart.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '/l10n/app_localizations.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
@@ -25,6 +26,11 @@ import 'ui/screens/Library/library_controller.dart';
 import 'utils/system_tray.dart';
 import 'utils/update_check_flag_file.dart';
 import '/ui/widgets/playlist_album_scroll_behaviour.dart';
+import '/utils/perf_monitor.dart';
+import '/app/settings/app_settings_provider.dart';
+import '/app/theme/app_theme_provider.dart';
+
+final _perfMonitor = PerfMonitorController.devDefault();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,25 +41,20 @@ Future<void> main() async {
   WidgetsBinding.instance.addObserver(LifecycleHandler());
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   TerminateRestart.instance.initialize();
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (!GetPlatform.isDesktop) Get.put(AppLinksController());
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    const supportedLocaleCodes = ['en', 'en_AU', 'zh', 'ru'];
-    final stored = Hive.box("AppPrefs").get('currentAppLanguageCode') as String?;
-    final code = stored != null && supportedLocaleCodes.contains(stored)
-        ? stored
-        : 'en';
-    final locale = code == 'en_AU'
-        ? const Locale('en', 'AU')
-        : Locale(code);
+    final settings = ref.watch(appSettingsProvider);
+    final themeState = ref.watch(appThemeProvider);
+    final locale = settings.locale;
     return GetMaterialApp(
         title: 'Doudou',
         scrollBehavior: PlaylistAlbumScrollBehaviour(),
@@ -67,37 +68,35 @@ class MyApp extends StatelessWidget {
           final mQuery = MediaQuery.of(context);
           final scale =
               mQuery.textScaler.clamp(minScaleFactor: 1.0, maxScaleFactor: 1.1);
-          return Stack(
-            children: [
-              GetX<ThemeController>(
-                builder: (controller) {
-                  final theme = controller.themedata.value ?? ThemeData.dark();
-                  return MediaQuery(
-                    data: mQuery.copyWith(textScaler: scale),
-                    child: AnimatedTheme(
-                      duration: DoudouMotion.theme,
-                      data: theme,
-                      child: Stack(
-                        children: [
-                          child!,
-                          const _AppLoadingOverlay(),
-                        ],
-                      ),
+          return PerfMonitor(
+            controller: _perfMonitor,
+            child: Stack(
+              children: [
+                MediaQuery(
+                  data: mQuery.copyWith(textScaler: scale),
+                  child: AnimatedTheme(
+                    duration: DoudouMotion.theme,
+                    data: themeState.theme,
+                    child: Stack(
+                      children: [
+                        child!,
+                        const _AppLoadingOverlay(),
+                      ],
                     ),
-                  );
-                },
-              ),
-              GestureDetector(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    color: Colors.transparent,
-                    height: mQuery.padding.bottom,
-                    width: mQuery.size.width,
                   ),
                 ),
-              )
-            ],
+                GestureDetector(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      color: Colors.transparent,
+                      height: mQuery.padding.bottom,
+                      width: mQuery.size.width,
+                    ),
+                  ),
+                )
+              ],
+            ),
           );
         });
   }

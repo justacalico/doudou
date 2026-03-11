@@ -57,7 +57,10 @@ class DoudouTheme {
         ? ThemeData.dark().textTheme
         : ThemeData.light().textTheme;
 
-    final inter = GoogleFonts.interTextTheme(baseText).copyWith(
+    final themedBase = GoogleFonts.config.allowRuntimeFetching
+        ? GoogleFonts.interTextTheme(baseText)
+        : baseText;
+    final themedText = themedBase.copyWith(
       displayLarge: DoudouType.display.copyWith(color: colors.textPrimary),
       titleLarge: DoudouType.hero.copyWith(color: colors.textPrimary),
       titleMedium: DoudouType.pageTitle.copyWith(color: colors.textPrimary),
@@ -81,7 +84,7 @@ class DoudouTheme {
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
       hoverColor: colors.stateHover,
-      textTheme: inter,
+      textTheme: themedText,
       iconTheme: IconThemeData(color: colors.textSecondary),
       dialogTheme: DialogThemeData(
         backgroundColor: colors.surfaceModal,
@@ -97,7 +100,7 @@ class DoudouTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: colors.surfaceElevated,
-        hintStyle: inter.bodySmall?.copyWith(color: colors.textTertiary),
+        hintStyle: themedText.bodySmall?.copyWith(color: colors.textTertiary),
         border: OutlineInputBorder(
           borderRadius: DoudouRadii.r12,
           borderSide: BorderSide(color: colors.borderSubtle),

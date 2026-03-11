@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:palette_generator/palette_generator.dart';
-import '/ui/design/doudou_motion.dart';
 import '/ui/design/doudou_theme.dart';
 import '/utils/helper.dart';
 
@@ -50,7 +49,6 @@ class ThemeController extends GetxController {
   bool _hasTemporaryDynamicAccent = false;
   Color? _temporaryDynamicAccent;
   Timer? _trackAccentAnimationTimer;
-  int _trackAccentAnimationToken = 0;
 
   final platform = const MethodChannel('win_titlebar_color');
   String? currentSongId;
@@ -255,22 +253,14 @@ class ThemeController extends GetxController {
   }
 
   void _cancelTrackAccentAnimation() {
-    _trackAccentAnimationToken++;
     _trackAccentAnimationTimer?.cancel();
     _trackAccentAnimationTimer = null;
   }
 
-  void _animateTrackAccentTo(
-    Color target, {
-    Duration duration = DoudouMotion.theme,
-  }) {
+  void _animateTrackAccentTo(Color target) {
     _cancelTrackAccentAnimation();
     final appPrefs = Hive.box('AppPrefs');
     final savedType = themeTypeFromStorage(appPrefs.get("themeModeType"));
-    final from = primaryColor.value ?? _peachPinkFallback;
-    final token = _trackAccentAnimationToken;
-    final start = DateTime.now();
-    const tick = Duration(milliseconds: 16);
 
     void applyColor(Color color, {bool persist = false}) {
       primaryColor.value = color;
@@ -282,26 +272,9 @@ class ThemeController extends GetxController {
       }
     }
 
-    if (duration == Duration.zero || from == target) {
-      applyColor(target, persist: true);
-      return;
-    }
-
-    _trackAccentAnimationTimer = Timer.periodic(tick, (timer) {
-      if (token != _trackAccentAnimationToken) {
-        timer.cancel();
-        return;
-      }
-      final elapsedMs = DateTime.now().difference(start).inMilliseconds;
-      final t = (elapsedMs / duration.inMilliseconds).clamp(0.0, 1.0);
-      final eased = Curves.easeInOut.transform(t);
-      final next = Color.lerp(from, target, eased) ?? target;
-      final done = t >= 1.0;
-      applyColor(done ? target : next, persist: done);
-      if (done) {
-        timer.cancel();
-      }
-    });
+    // Avoid timer-driven ThemeData churn. Theme transitions are handled by
+    // `AnimatedTheme` at the app boundary.
+    applyColor(target, persist: true);
   }
 
   ThemeData _createThemeData(

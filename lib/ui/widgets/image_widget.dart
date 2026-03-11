@@ -48,7 +48,6 @@ class ImageWidget extends StatelessWidget {
     //                 ? "${artist!.browseId}_artist"
     //                 : "";
 
-    /// only valid for offline songs
     final bool offlineAvailable =
         song != null && (song?.extras?["url"] ?? "").contains("file");
     final offlineThumbFile = song == null
@@ -69,6 +68,18 @@ class ImageWidget extends StatelessWidget {
       );
     }
 
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final cachePx = (size * dpr).round().clamp(64, isPlayerArtImage ? 800 : 220);
+    final cacheKey = song != null
+        ? "${song!.id}_song"
+        : playlist != null
+            ? "${playlist!.playlistId}_playlist"
+            : album != null
+                ? "${album!.browseId}_album"
+                : artist != null
+                    ? "${artist!.browseId}_artist"
+                    : null;
+
     return Container(
       height: size,
       width: size,
@@ -78,12 +89,14 @@ class ImageWidget extends StatelessWidget {
         borderRadius: artist != null ? null : BorderRadius.circular(5),
       ),
       child: offlineAvailable
-          ? (offlineThumbFile != null && offlineThumbFile.existsSync()
+          ? (offlineThumbFile != null
               ? Image.file(
                   offlineThumbFile,
                   height: size,
                   width: size,
                   fit: BoxFit.cover,
+                  cacheHeight: cachePx,
+                  cacheWidth: cachePx,
                   errorBuilder: (_, __, ___) => placeholderIcon(),
                 )
               : placeholderIcon())
@@ -92,10 +105,9 @@ class ImageWidget extends StatelessWidget {
               : CachedNetworkImage(
                   height: size,
                   width: size,
-                  memCacheHeight:
-                      (song != null && !isPlayerArtImage) ? 140 : null,
-                  //memCacheWidth: (song != null && !isPlayerArtImage)? 140 : null,
-                  //cacheKey: cacheKey,
+                  memCacheHeight: cachePx,
+                  memCacheWidth: cachePx,
+                  cacheKey: cacheKey,
                   imageUrl: imageUrl,
                   fit: BoxFit.cover,
                   errorWidget: (context, url, error) => placeholderIcon(),

@@ -205,19 +205,16 @@ class _CompactNowPlaying extends StatelessWidget {
             );
           }),
           Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.35),
-                      Colors.black.withValues(alpha: 0.6),
-                      Colors.black.withValues(alpha: 0.85),
-                    ],
-                  ),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.55),
+                    Colors.black.withValues(alpha: 0.75),
+                    Colors.black.withValues(alpha: 0.92),
+                  ],
                 ),
               ),
             ),
@@ -459,24 +456,21 @@ class _CompactNowPlaying extends StatelessWidget {
             onTap: () => pc.playerPanelController.close(),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(borderRadius),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  width: buttonSize,
-                  height: buttonSize,
-                  decoration: BoxDecoration(
-                    color: white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(borderRadius),
-                    border: Border.all(
-                      color: white.withValues(alpha: 0.2),
-                      width: 0.5,
-                    ),
+              child: Container(
+                width: buttonSize,
+                height: buttonSize,
+                decoration: BoxDecoration(
+                  color: white.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  border: Border.all(
+                    color: white.withValues(alpha: 0.18),
+                    width: 0.5,
                   ),
-                  child: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: white,
-                    size: iconSize,
-                  ),
+                ),
+                child: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: white,
+                  size: iconSize,
                 ),
               ),
             ),
@@ -489,25 +483,22 @@ class _CompactNowPlaying extends StatelessWidget {
                   onTap: () => pc.queuePanelController.open(),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(borderRadius),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Container(
-                        width: buttonSize,
-                        height: buttonSize,
-                        margin: EdgeInsets.only(right: trailingGap),
-                        decoration: BoxDecoration(
-                          color: white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(borderRadius),
-                          border: Border.all(
-                            color: white.withValues(alpha: 0.2),
-                            width: 0.5,
-                          ),
+                    child: Container(
+                      width: buttonSize,
+                      height: buttonSize,
+                      margin: EdgeInsets.only(right: trailingGap),
+                      decoration: BoxDecoration(
+                        color: white.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(borderRadius),
+                        border: Border.all(
+                          color: white.withValues(alpha: 0.18),
+                          width: 0.5,
                         ),
-                        child: Icon(
-                          Icons.queue_music_rounded,
-                          color: white,
-                          size: iconSize,
-                        ),
+                      ),
+                      child: Icon(
+                        Icons.queue_music_rounded,
+                        color: white,
+                        size: iconSize,
                       ),
                     ),
                   ),
@@ -516,28 +507,25 @@ class _CompactNowPlaying extends StatelessWidget {
                     onTap: pc.toggleFavourite,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(borderRadius),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          width: buttonSize,
-                          height: buttonSize,
-                          decoration: BoxDecoration(
-                            color: white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(borderRadius),
-                            border: Border.all(
-                              color: white.withValues(alpha: 0.2),
-                              width: 0.5,
-                            ),
+                      child: Container(
+                        width: buttonSize,
+                        height: buttonSize,
+                        decoration: BoxDecoration(
+                          color: white.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(borderRadius),
+                          border: Border.all(
+                            color: white.withValues(alpha: 0.18),
+                            width: 0.5,
                           ),
-                          child: Icon(
-                            pc.isCurrentSongFav.isTrue
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_border_rounded,
-                            color: pc.isCurrentSongFav.isTrue
-                                ? const Color(0xFFEC4899)
-                                : white,
-                            size: iconSize,
-                          ),
+                        ),
+                        child: Icon(
+                          pc.isCurrentSongFav.isTrue
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          color: pc.isCurrentSongFav.isTrue
+                              ? const Color(0xFFEC4899)
+                              : white,
+                          size: iconSize,
                         ),
                       ),
                     ),
@@ -609,34 +597,31 @@ class _CompactProgressBar extends StatelessWidget {
               child: Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(6),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                    child: Container(
-                      height: dense ? 6 : 8,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Stack(
-                            alignment: Alignment.centerLeft,
-                            children: [
-                              FractionallySizedBox(
-                                widthFactor: progress,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: CupertinoColors.white
-                                        .withValues(alpha: 0.85),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
+                  child: Container(
+                    height: dense ? 6 : 8,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.white.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+                            FractionallySizedBox(
+                              widthFactor: progress,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.white
+                                      .withValues(alpha: 0.86),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
                               ),
-                            ],
-                          );
-                        },
-                      ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -715,61 +700,58 @@ class _MobileVolumeOverlay extends StatelessWidget {
       color: Colors.transparent,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: theme.brightness == Brightness.dark
+                ? Colors.white.withValues(alpha: 0.10)
+                : Colors.black.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
               color: theme.brightness == Brightness.dark
-                  ? Colors.white.withValues(alpha: 0.1)
+                  ? Colors.white.withValues(alpha: 0.18)
                   : Colors.black.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: theme.brightness == Brightness.dark
-                    ? Colors.white.withValues(alpha: 0.2)
-                    : Colors.black.withValues(alpha: 0.08),
-                width: 0.5,
-              ),
+              width: 0.5,
             ),
-            child: Obx(() {
-              final v = pc.volume.value;
-              return Row(
-                children: [
-                  Icon(
-                    v == 0
-                        ? Icons.volume_off_rounded
-                        : v < 50
-                            ? Icons.volume_down_rounded
-                            : Icons.volume_up_rounded,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
-                    size: 18,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        trackHeight: 3,
-                        thumbShape:
-                            const RoundSliderThumbShape(enabledThumbRadius: 6),
-                        overlayShape:
-                            const RoundSliderOverlayShape(overlayRadius: 12),
-                        activeTrackColor: theme.colorScheme.onSurface,
-                        inactiveTrackColor:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.25),
-                        thumbColor: theme.colorScheme.onSurface,
-                      ),
-                      child: Slider(
-                        value: v / 100,
-                        onChanged: (value) {
-                          pc.setVolume((value * 100).round().clamp(0, 100));
-                        },
-                      ),
+          ),
+          child: Obx(() {
+            final v = pc.volume.value;
+            return Row(
+              children: [
+                Icon(
+                  v == 0
+                      ? Icons.volume_off_rounded
+                      : v < 50
+                          ? Icons.volume_down_rounded
+                          : Icons.volume_up_rounded,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 3,
+                      thumbShape:
+                          const RoundSliderThumbShape(enabledThumbRadius: 6),
+                      overlayShape:
+                          const RoundSliderOverlayShape(overlayRadius: 12),
+                      activeTrackColor: theme.colorScheme.onSurface,
+                      inactiveTrackColor:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.25),
+                      thumbColor: theme.colorScheme.onSurface,
+                    ),
+                    child: Slider(
+                      value: v / 100,
+                      onChanged: (value) {
+                        pc.setVolume((value * 100).round().clamp(0, 100));
+                      },
                     ),
                   ),
-                ],
-              );
-            }),
-          ),
+                ),
+              ],
+            );
+          }),
         ),
       ),
     );
@@ -900,12 +882,7 @@ class _ExpandedNowPlaying extends StatelessWidget {
           cacheHeight: 400,
         ),
         Positioned.fill(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.06),
-            ),
-          ),
+          child: Container(color: Colors.transparent),
         ),
         Positioned.fill(
           child: Container(

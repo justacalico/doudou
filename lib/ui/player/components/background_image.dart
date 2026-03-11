@@ -2,19 +2,20 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 
 import '../../screens/Settings/settings_screen_controller.dart';
-import '../../utils/theme_controller.dart';
+import '/app/theme/now_playing_accent_provider.dart';
 import '../player_controller.dart';
 
-class BackgroundImage extends StatelessWidget {
+class BackgroundImage extends ConsumerWidget {
   const BackgroundImage({super.key, this.cacheHeight});
 
   final int? cacheHeight;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GetX<PlayerController>(
       builder: (playerController) => SizedBox.expand(
         /// if song is null then return empty container
@@ -32,9 +33,12 @@ class BackgroundImage extends StatelessWidget {
                         if (snapshot.connectionState == ConnectionState.done &&
                             snapshot.hasData &&
                             snapshot.data == true) {
-                          Get.find<ThemeController>().setTheme(
-                              FileImage(imgFile),
-                              playerController.currentSong.value!.id);
+                          ref
+                              .read(nowPlayingAccentProvider.notifier)
+                              .setFromArtwork(
+                                FileImage(imgFile),
+                                playerController.currentSong.value!.id,
+                              );
 
                           return Image.file(
                             imgFile,
@@ -51,12 +55,14 @@ class BackgroundImage extends StatelessWidget {
                 : CachedNetworkImage(
                     memCacheHeight: cacheHeight,
                     imageBuilder: (context, imageProvider) {
-                      Future.delayed(
-                        const Duration(milliseconds: 50),
-                        () => Get.find<ThemeController>().setTheme(
-                            imageProvider,
-                            playerController.currentSong.value!.id),
-                      );
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        ref
+                            .read(nowPlayingAccentProvider.notifier)
+                            .setFromArtwork(
+                              imageProvider,
+                              playerController.currentSong.value!.id,
+                            );
+                      });
                       return Image(
                         image: imageProvider,
                         fit: BoxFit.cover,

@@ -9,7 +9,6 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
 import '../../models/playling_from.dart';
-import '/ui/utils/theme_controller.dart';
 import '../../services/downloader.dart';
 import '../screens/Playlist/playlist_screen_controller.dart';
 import '../widgets/snackbar.dart';
@@ -101,7 +100,6 @@ class PlayerController extends GetxController
   final isCurrentSongBuffered = false.obs;
 
   List<SyncedLyricLine> _syncedLyricLines = [];
-  int _lastLyricLineIndex = -1;
   Color? _lastLyricsColor;
   bool _isTemporaryLyricAccentActive = false;
 
@@ -121,11 +119,7 @@ class PlayerController extends GetxController
     if (GetPlatform.isWindows) {
       Get.put(WindowsAudioService());
     }
-    _restorePrevSession().then((_) {
-      if (currentSong.value == null && Get.isRegistered<ThemeController>()) {
-        Get.find<ThemeController>().setNowPlayingAccent(null);
-      }
-    });
+    _restorePrevSession();
     super.onReady();
   }
 
@@ -341,9 +335,6 @@ class PlayerController extends GetxController
         }
       } else {
         currentSong.value = null;
-        if (Get.isRegistered<ThemeController>()) {
-          Get.find<ThemeController>().setNowPlayingAccent(null);
-        }
       }
     });
   }
@@ -866,7 +857,6 @@ class PlayerController extends GetxController
 
   void _parseSyncedLyrics(String raw) {
     _syncedLyricLines = [];
-    _lastLyricLineIndex = -1;
     _clearTemporaryLyricAccent();
     if (raw.isEmpty) return;
     final lines = raw.split('\n');
@@ -903,102 +893,16 @@ class PlayerController extends GetxController
     return i;
   }
 
-  static const Map<String, Color> _lyricColorMap = {
-    'red': Colors.red,
-    'crimson': Colors.red,
-    'scarlet': Colors.red,
-    'blue': Colors.blue,
-    'navy': Colors.blue,
-    'azure': Colors.blue,
-    'green': Colors.green,
-    'emerald': Colors.green,
-    'jade': Colors.green,
-    'purple': Colors.purple,
-    'violet': Colors.purple,
-    'pink': Colors.pink,
-    'magenta': Colors.pink,
-    'yellow': Colors.amber,
-    'gold': Colors.amber,
-    'orange': Colors.deepOrange,
-    'black': Colors.black,
-    'white': Colors.white,
-    'grey': Colors.grey,
-    'gray': Colors.grey,
-    'blood': Colors.red,
-    'rose': Colors.pink,
-    'sun': Colors.yellow,
-    'caramel': Colors.brown,
-    'chocolate': Colors.brown,
-    'coffee': Colors.brown,
-    'cream': Colors.brown,
-    'carol': Colors.brown,
-    'cherry': Colors.red,
-    'banana': Colors.yellow,
-    'lemon': Colors.yellow,
-    'lime': Colors.green,
-    'mint': Colors.green,
-    'teal': Colors.teal,
-    'cyan': Colors.cyan,
-    'sky': Colors.blue,
-    'indigo': Colors.blue,
-    'lavender': Colors.purple,
-    'fuchsia': Colors.pink,
-    'ruby': Colors.red,
-    'coral': Colors.red,
-  };
-
-  Color? _extractColourFromLine(String text) {
-    final normalized = text.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), ' ');
-    final words = normalized.split(RegExp(r'\s+'));
-    for (final w in words) {
-      final color = _lyricColorMap[w];
-      if (color != null) return color;
-    }
-    return null;
-  }
-
   void _updateDynamicColorFromLyrics(Duration position) {
-    final themeController = Get.find<ThemeController>();
-    final synced = lyrics['synced']?.toString() ?? '';
-    if (synced.isEmpty || _syncedLyricLines.isEmpty) {
-      _clearTemporaryLyricAccent();
-      return;
-    }
-    final settings = Get.find<SettingsScreenController>();
-    if (settings.themeModetype.value != ThemeType.dynamic) {
-      _clearTemporaryLyricAccent();
-      return;
-    }
-    if (!settings.lyricsDynamicColorEnabled.value) {
-      _clearTemporaryLyricAccent();
-      return;
-    }
-    final i = currentSyncedLyricLineIndex(position);
-    if (i < 0) {
-      _clearTemporaryLyricAccent();
-      return;
-    }
-    if (i == _lastLyricLineIndex) return;
-    _lastLyricLineIndex = i;
-    final lineText = _syncedLyricLines[i].text;
-    final color = _extractColourFromLine(lineText);
-    if (color == null) {
-      _clearTemporaryLyricAccent();
-      return;
-    }
-    if (_isTemporaryLyricAccentActive && color == _lastLyricsColor) return;
-    _lastLyricsColor = color;
-    _isTemporaryLyricAccentActive = true;
-    themeController.applyTemporaryDynamicAccent(color);
+    // Global accent updates at lyric cadence cause noisy rebuilds and stutter.
+    // Keep this stable; lyrics can still render and animate locally.
+    return;
   }
 
   void _clearTemporaryLyricAccent() {
     if (!_isTemporaryLyricAccentActive && _lastLyricsColor == null) return;
     _isTemporaryLyricAccentActive = false;
     _lastLyricsColor = null;
-    if (Get.isRegistered<ThemeController>()) {
-      Get.find<ThemeController>().clearTemporaryDynamicAccent();
-    }
   }
 
   void _syncLyricsModeWithAvailability() {
@@ -1030,7 +934,6 @@ class PlayerController extends GetxController
           _parseSyncedLyrics(synced);
         } else {
           _syncedLyricLines = [];
-          _lastLyricLineIndex = -1;
           _clearTemporaryLyricAccent();
         }
         _syncLyricsModeWithAvailability();
@@ -1047,13 +950,11 @@ class PlayerController extends GetxController
         lyrics.value = {"synced": "", "plainLyrics": "NA"};
       }
       _syncedLyricLines = [];
-      _lastLyricLineIndex = -1;
       _clearTemporaryLyricAccent();
       _syncLyricsModeWithAvailability();
     } catch (e) {
       lyrics.value = {"synced": "", "plainLyrics": "NA"};
       _syncedLyricLines = [];
-      _lastLyricLineIndex = -1;
       _clearTemporaryLyricAccent();
       _syncLyricsModeWithAvailability();
     }

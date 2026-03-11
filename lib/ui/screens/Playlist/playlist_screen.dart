@@ -245,7 +245,8 @@ class PlaylistScreen extends StatelessWidget {
 
                       final songIndex = index - 3;
                       final song = playlistController.songList[songIndex];
-                      return Obx(() => SongListTile(
+                      final activeId = playerController.currentSong.value?.id;
+                      return SongListTile(
                             onTap: () {
                               playerController.playPlayListSong(
                                   List<MediaItem>.from(
@@ -260,9 +261,8 @@ class PlaylistScreen extends StatelessWidget {
                             isPlaylistOrAlbum: true,
                             thumbReplacementWithIndex: true,
                             index: songIndex + 1,
-                            isActive: playerController.currentSong.value?.id ==
-                                song.id,
-                          ));
+                            isActive: activeId == song.id,
+                          );
                     },
                   ),
                 )),
@@ -273,68 +273,63 @@ class PlaylistScreen extends StatelessWidget {
                 top: 0,
                 left: 0,
                 right: 0,
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                      sigmaX:
-                          playlistController.appBarTitleVisible.value ? 10 : 0,
-                      sigmaY:
-                          playlistController.appBarTitleVisible.value ? 10 : 0,
-                    ),
-                    child: Container(
-                      height: 100,
-                      padding: EdgeInsets.only(
-                          top: MediaQuery.of(context).padding.top,
-                          left: 16,
-                          right: 16),
-                      color: playlistController.appBarTitleVisible.value
-                          ? theme.canvasColor.withValues(alpha: 0.8)
-                          : Colors.transparent,
-                      child: Row(
-                        children: [
-                          _blurButton(
-                            icon: Icons.chevron_left,
-                            onPressed: () => Navigator.of(context).pop(),
-                            visible:
-                                !playlistController.appBarTitleVisible.value,
-                          ),
-                          if (playlistController.appBarTitleVisible.value)
-                            IconButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                icon: const Icon(Icons.chevron_left)),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Opacity(
-                              opacity:
-                                  playlistController.appBarTitleVisible.value
-                                      ? 1.0
-                                      : 0.0,
-                              child: Text(
-                                playlistController.playlist.value.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                          _blurButton(
-                            icon: Icons.more_vert,
-                            onPressed: () {
-                              // Show more options logic from original
-                              if (!playlistController
-                                      .playlist.value.isCloudPlaylist &&
-                                  playlistController
-                                      .isDefaultPlaylist.isFalse) {
-                                _showMoreOptions(context, playlistController);
-                              }
-                            },
-                            visible:
-                                !playlistController.appBarTitleVisible.value,
-                          ),
-                        ],
+                child: Container(
+                  height: 100,
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top,
+                    left: 16,
+                    right: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: playlistController.appBarTitleVisible.value
+                        ? theme.canvasColor.withValues(alpha: 0.92)
+                        : Colors.transparent,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: playlistController.appBarTitleVisible.value
+                            ? theme.dividerColor.withValues(alpha: 0.35)
+                            : Colors.transparent,
                       ),
                     ),
+                  ),
+                  child: Row(
+                    children: [
+                      _pillIconButton(
+                        icon: Icons.chevron_left,
+                        onPressed: () => Navigator.of(context).pop(),
+                        visible: !playlistController.appBarTitleVisible.value,
+                      ),
+                      if (playlistController.appBarTitleVisible.value)
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.chevron_left),
+                        ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Opacity(
+                          opacity: playlistController.appBarTitleVisible.value
+                              ? 1.0
+                              : 0.0,
+                          child: Text(
+                            playlistController.playlist.value.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      _pillIconButton(
+                        icon: Icons.more_vert,
+                        onPressed: () {
+                          if (!playlistController.playlist.value.isCloudPlaylist &&
+                              playlistController.isDefaultPlaylist.isFalse) {
+                            _showMoreOptions(context, playlistController);
+                          }
+                        },
+                        visible: !playlistController.appBarTitleVisible.value,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -517,29 +512,23 @@ class PlaylistScreen extends StatelessWidget {
     );
   }
 
-  Widget _blurButton(
+  Widget _pillIconButton(
       {required IconData icon,
       required VoidCallback onPressed,
       bool visible = true}) {
     if (!visible) return const SizedBox(width: 40);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.2),
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: IconButton(
-            padding: EdgeInsets.zero,
-            onPressed: onPressed,
-            icon: Icon(icon, color: Colors.white, size: 20),
-          ),
-        ),
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.22),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+      ),
+      child: IconButton(
+        padding: EdgeInsets.zero,
+        onPressed: onPressed,
+        icon: Icon(icon, color: Colors.white, size: 20),
       ),
     );
   }

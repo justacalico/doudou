@@ -116,19 +116,15 @@ class _AppShellState extends State<AppShell> {
                 _lastMinPanelHeight != desiredMinHeight) {
               _lastUseBottomNav = useBottomNav;
               _lastMinPanelHeight = desiredMinHeight;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-                if (shellController.useBottomNav.value != useBottomNav) {
-                  homeScreenController.remapTabIndexForNavModeChange(
-                      useBottomNav: useBottomNav);
-                  shellController.setUseBottomNav(useBottomNav);
-                }
-                if (playerController.playerPanelMinHeight.value !=
-                    desiredMinHeight) {
-                  playerController.playerPanelMinHeight.value =
-                      desiredMinHeight;
-                }
-              });
+              if (shellController.useBottomNav.value != useBottomNav) {
+                homeScreenController.remapTabIndexForNavModeChange(
+                    useBottomNav: useBottomNav);
+                shellController.setUseBottomNav(useBottomNav);
+              }
+              if (playerController.playerPanelMinHeight.value !=
+                  desiredMinHeight) {
+                playerController.playerPanelMinHeight.value = desiredMinHeight;
+              }
             }
 
             // Auto-collapse sidebar on narrower layouts while still using side navigation.
