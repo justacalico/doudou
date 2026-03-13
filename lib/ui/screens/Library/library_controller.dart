@@ -91,28 +91,33 @@ class LibrarySongsController extends GetxController {
     // if cleared then it will remove from database as well
     List<String> songsList = [];
     final cacheDir = (await getTemporaryDirectory()).path;
-    if (Directory("$cacheDir/cachedSongs/").existsSync()) {
-      final downloadedFiles = Directory("$cacheDir/cachedSongs")
-          .listSync()
-          .where((f) => !['mime', 'part']
-              .contains(f.path.replaceAll(RegExp(r'^.*\.'), '')));
-      songsList.addAll(downloadedFiles
-          .map((e) {
-            RegExpMatch? match =
-                RegExp(".cachedSongs/([^#]*)?.mp3").firstMatch(e.path);
-            if (match != null) {
-              return match[1]!;
-            }
-          })
-          .whereType<String>()
-          .toList());
+    final cachedDir = Directory("$cacheDir/cachedSongs/");
+    if (await cachedDir.exists()) {
+      int scanned = 0;
+      await for (final f in cachedDir.list()) {
+        final ext = f.path.replaceAll(RegExp(r'^.*\.'), '');
+        if (ext == 'mime' || ext == 'part') continue;
+        final match = RegExp(".cachedSongs/([^#]*)?.mp3").firstMatch(f.path);
+        if (match != null) {
+          songsList.add(match[1]!);
+        }
+        scanned++;
+        if (scanned % 200 == 0) {
+          await Future.delayed(Duration.zero);
+        }
+      }
       //printINFO("all files: $downloadedFiles \n $songsList");
     }
 
     final box = Hive.box("SongsCache");
+    int checked = 0;
     for (var element in box.keys) {
       if (!songsList.contains(element)) {
         box.delete(element);
+      }
+      checked++;
+      if (checked % 200 == 0) {
+        await Future.delayed(Duration.zero);
       }
     }
 
@@ -140,6 +145,7 @@ class LibrarySongsController extends GetxController {
       // Songs from library albums (stored per-album by browseId).
       try {
         final albumsBox = await Hive.openBox(libraryAlbumsBoxName(serverId));
+        int albumIndex = 0;
         for (final raw in albumsBox.values) {
           final album = Album.fromJson(raw as Map);
           final albumSongsBox = await Hive.openBox(album.browseId);
@@ -150,6 +156,10 @@ class LibrarySongsController extends GetxController {
             }
           }
           await albumSongsBox.close();
+          albumIndex++;
+          if (albumIndex % 8 == 0) {
+            await Future.delayed(Duration.zero);
+          }
         }
         await albumsBox.close();
       } catch (e, st) {
@@ -162,6 +172,7 @@ class LibrarySongsController extends GetxController {
         if (Get.isRegistered<LibraryPlaylistsController>()) {
           final playlists =
               Get.find<LibraryPlaylistsController>().libraryPlaylists.toList();
+          int playlistIndex = 0;
           for (final pl in playlists) {
             final id = pl.playlistId;
             if (id == 'LIBRP' ||
@@ -179,6 +190,10 @@ class LibrarySongsController extends GetxController {
               }
             }
             await plSongsBox.close();
+            playlistIndex++;
+            if (playlistIndex % 6 == 0) {
+              await Future.delayed(Duration.zero);
+            }
           }
         }
       } catch (e, st) {
