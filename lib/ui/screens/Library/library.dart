@@ -442,7 +442,7 @@ class _DownloadsLibraryWidgetState extends State<DownloadsLibraryWidget> {
 
               return ListWidget(
                 songs,
-                "library Songs",
+                context.l10n.downloads,
                 true,
                 isPlaylistOrAlbum: true,
                 playlist: Playlist(

@@ -72,7 +72,9 @@ extension ContentCategoryX on ContentCategory {
   }
 
   bool get isSongLike =>
-      this == ContentCategory.songs || this == ContentCategory.videos;
+      this == ContentCategory.songs ||
+      this == ContentCategory.videos ||
+      this == ContentCategory.downloads;
 
   bool get isAlbumLike =>
       this == ContentCategory.albums || this == ContentCategory.singles;
