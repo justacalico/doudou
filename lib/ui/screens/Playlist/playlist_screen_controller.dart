@@ -84,11 +84,12 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
         playlistId == "SongsCache" ||
         playlistId == "LIBRP" ||
         playlistId == "LIBFAV");
+    isContentFetched.value = false;
 
     if (!isIdOnly && !playlist_.isCloudPlaylist) {
       playlist.value = playlist_;
       _animationController.forward();
-      fetchSongsfromDatabase(playlistSongsBoxName(playlistId));
+      await fetchSongsfromDatabase(playlistSongsBoxName(playlistId));
       isContentFetched.value = true;
 
       Future.delayed(
@@ -106,29 +107,26 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
       if (await checkIfAddedToLibrary(playlistId)) {
         final songsBox = await Hive.openBox(playlistSongsBoxName(playlistId));
         if (songsBox.values.isEmpty) {
-          _fetchSongOnline(playlistId, isIdOnly, isPipedPlaylist).then((value) {
-            updateSongsIntoDb();
-          });
+          await _fetchSongOnline(playlistId, isIdOnly, isPipedPlaylist);
+          await updateSongsIntoDb();
         } else {
-          fetchSongsfromDatabase(playlistSongsBoxName(playlistId));
+          await fetchSongsfromDatabase(playlistSongsBoxName(playlistId));
         }
       } else {
-        _fetchSongOnline(playlistId, isIdOnly, isPipedPlaylist);
+        await _fetchSongOnline(playlistId, isIdOnly, isPipedPlaylist);
       }
       isContentFetched.value = true;
     } catch (e) {
       // Handle any errors that occur during the fetch
       printERROR("Error fetching playlist details: $e");
+      isContentFetched.value = true;
     }
   }
 
   Future<void> _fetchSongOnline(
       String id, bool isIdOnly, bool isPipedPlaylist) async {
-    isContentFetched.value = false;
-
     if (isPipedPlaylist) {
       songList.value = (await Get.find<PipedServices>().getPlaylistSongs(id));
-      isContentFetched.value = true;
       checkDownloadStatus();
       return;
     }

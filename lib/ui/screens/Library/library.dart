@@ -77,7 +77,7 @@ class SongsLibraryWidget extends StatelessWidget {
                         OperationMode.none
                     ? ListWidget(
                         controller.librarySongsList,
-                        "library Songs",
+                        context.l10n.songs,
                         true,
                         isPlaylistOrAlbum: true,
                         playlist: Playlist(
@@ -275,7 +275,7 @@ class LibraryArtistWidget extends StatelessWidget {
             ),
           ),
           Obx(() => cntrller.libraryArtists.isNotEmpty
-              ? ListWidget(cntrller.libraryArtists, "Library Artists", true)
+              ? ListWidget(cntrller.libraryArtists, context.l10n.artists, true)
               : Expanded(
                   child: Center(
                       child: Text(
