@@ -7,8 +7,15 @@ import 'package:doudou/ui/design/doudou_motion.dart';
 import 'package:doudou/ui/design/doudou_tokens.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
 
-class BottomNavBar extends StatelessWidget {
+class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
+
+  @override
+  State<BottomNavBar> createState() => _BottomNavBarState();
+}
+
+class _BottomNavBarState extends State<BottomNavBar> {
+  int? _hoveredIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -19,28 +26,7 @@ class BottomNavBar extends StatelessWidget {
     return Obx(() {
       final idx = homeScreenController.tabIndex.value;
       final safeIdx = idx.clamp(0, 3);
-      final items = [
-        _NavItem(
-          icon: Icons.home_rounded,
-          outlinedIcon: Icons.home_outlined,
-          label: context.l10n.home,
-        ),
-        _NavItem(
-          icon: Icons.search_rounded,
-          outlinedIcon: Icons.search_outlined,
-          label: context.l10n.search,
-        ),
-        _NavItem(
-          icon: Icons.library_music_rounded,
-          outlinedIcon: Icons.library_music_outlined,
-          label: context.l10n.library,
-        ),
-        _NavItem(
-          icon: Icons.settings_rounded,
-          outlinedIcon: Icons.settings_outlined,
-          label: context.l10n.settings,
-        ),
-      ];
+      final items = _navItems(context);
 
       return Center(
         child: Padding(
@@ -52,74 +38,210 @@ class BottomNavBar extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 500),
             child: ClipRRect(
-              borderRadius: DoudouRadii.r20,
+              borderRadius: DoudouRadii.r24,
               child: Container(
-                height: 62,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                height: 66,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: c.surfaceOverlay,
-                  borderRadius: DoudouRadii.r20,
+                  color: c.surfaceOverlay.withValues(alpha: 0.85),
+                  borderRadius: DoudouRadii.r24,
                   border: Border.all(color: c.borderSubtle),
                 ),
-                child: Row(
-                  children: List.generate(items.length, (index) {
-                    final selected = index == safeIdx;
-                    final item = items[index];
-                    final fg = selected ? c.accentPrimary : c.textTertiary;
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final pillInset = 6.0;
+                    final pillWidth =
+                        (constraints.maxWidth - pillInset * 2) /
+                            items.length;
+                    final pillLeft = pillInset + (pillWidth * safeIdx);
 
-                    return Expanded(
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: InkResponse(
-                          radius: 28,
-                          containedInkWell: true,
-                          highlightShape: BoxShape.rectangle,
-                          onTap: () {
-                            if (index == safeIdx) return;
-                            HapticFeedback.selectionClick();
-                            homeScreenController.onBottonBarTabSelected(index);
-                          },
-                          child: AnimatedContainer(
-                            duration: DoudouMotion.selection,
-                            curve: DoudouMotion.standard,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 4),
+                    return Stack(
+                      children: [
+                        AnimatedPositioned(
+                          duration: DoudouMotion.selection,
+                          curve: DoudouMotion.standard,
+                          left: pillLeft,
+                          top: 2,
+                          bottom: 2,
+                          width: pillWidth,
+                          child: DecoratedBox(
                             decoration: BoxDecoration(
-                              color: selected
-                                  ? c.accentMuted.withValues(alpha: 0.20)
-                                  : Colors.transparent,
-                              borderRadius: DoudouRadii.r16,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  selected ? item.icon : item.outlinedIcon,
-                                  size: DoudouIconSize.nav,
-                                  color: fg,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  item.label,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  softWrap: false,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    fontSize: 9,
-                                    height: 1.0,
-                                    fontWeight: FontWeight.w600,
-                                    color: fg,
-                                  ),
+                              color: Colors.white.withValues(alpha: 0.08),
+                              borderRadius: DoudouRadii.r20,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.white.withValues(alpha: 0.05),
+                                  blurRadius: 20,
+                                  spreadRadius: -4,
                                 ),
                               ],
                             ),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius: DoudouRadii.r20,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.white.withValues(alpha: 0.04),
+                                    blurRadius: 16,
+                                    spreadRadius: -8,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        Row(
+                          children: List.generate(items.length, (index) {
+                            final selected = index == safeIdx;
+                            final hovered = _hoveredIndex == index;
+                            final item = items[index];
+                            final fg =
+                                (selected || hovered) ? item.color : c.textTertiary;
+
+                            return Expanded(
+                              child: MouseRegion(
+                                onEnter: (_) =>
+                                    setState(() => _hoveredIndex = index),
+                                onExit: (_) => setState(() {
+                                  if (_hoveredIndex == index) {
+                                    _hoveredIndex = null;
+                                  }
+                                }),
+                                child: Material(
+                                  type: MaterialType.transparency,
+                                  child: InkResponse(
+                                    radius: 28,
+                                    containedInkWell: true,
+                                    highlightShape: BoxShape.rectangle,
+                                    hoverColor: Colors.transparent,
+                                    splashColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
+                                    focusColor: Colors.transparent,
+                                    onTap: () {
+                                      if (index == safeIdx) return;
+                                      HapticFeedback.selectionClick();
+                                      homeScreenController
+                                          .onBottonBarTabSelected(index);
+                                    },
+                                    child: SizedBox(
+                                      height: double.infinity,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          AnimatedSlide(
+                                            duration: DoudouMotion.selection,
+                                            curve: DoudouMotion.standard,
+                                            offset: (selected || hovered)
+                                                ? const Offset(0, -0.03)
+                                                : Offset.zero,
+                                            child: AnimatedScale(
+                                              duration: DoudouMotion.selection,
+                                              curve: DoudouMotion.standard,
+                                              scale: (selected || hovered)
+                                                  ? 1.08
+                                                  : 1.0,
+                                              child: SizedBox(
+                                                width: DoudouIconSize.nav + 4,
+                                                height: DoudouIconSize.nav + 4,
+                                                child: Center(
+                                                  child: AnimatedSwitcher(
+                                                    duration:
+                                                        DoudouMotion.selection,
+                                                    switchInCurve:
+                                                        DoudouMotion.standard,
+                                                    switchOutCurve:
+                                                        DoudouMotion.standard,
+                                                    transitionBuilder:
+                                                        (child, animation) {
+                                                      return ScaleTransition(
+                                                        scale: Tween<double>(
+                                                          begin: 0.9,
+                                                          end: 1.0,
+                                                        ).animate(animation),
+                                                        child: FadeTransition(
+                                                          opacity: animation,
+                                                          child: child,
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Icon(
+                                                      selected
+                                                          ? item.icon
+                                                          : item.outlinedIcon,
+                                                      key: ValueKey<bool>(
+                                                          selected),
+                                                      size:
+                                                          DoudouIconSize.nav,
+                                                      color: fg,
+                                                      shadows:
+                                                          (selected || hovered)
+                                                              ? [
+                                                                  Shadow(
+                                                                    color: item
+                                                                        .color
+                                                                        .withValues(
+                                                                            alpha:
+                                                                                0.45),
+                                                                    blurRadius:
+                                                                        14,
+                                                                  ),
+                                                                ]
+                                                              : null,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 3),
+                                          AnimatedDefaultTextStyle(
+                                            duration: DoudouMotion.selection,
+                                            curve: DoudouMotion.standard,
+                                            style:
+                                                (theme.textTheme.labelSmall ??
+                                                        const TextStyle())
+                                                    .copyWith(
+                                              fontSize: 10,
+                                              height: 1.0,
+                                              fontWeight: FontWeight.w700,
+                                              color: selected
+                                                  ? Colors.white
+                                                  : c.textTertiary,
+                                            ),
+                                            child: Text(
+                                              item.label,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              softWrap: false,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          AnimatedOpacity(
+                                            duration: DoudouMotion.selection,
+                                            curve: DoudouMotion.standard,
+                                            opacity: selected ? 1 : 0,
+                                            child: Container(
+                                              width: 4,
+                                              height: 4,
+                                              decoration: BoxDecoration(
+                                                color: item.color,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
                     );
-                  }),
+                  },
                 ),
               ),
             ),
@@ -131,10 +253,42 @@ class BottomNavBar extends StatelessWidget {
 }
 
 class _NavItem {
-  _NavItem(
-      {required this.icon, required this.outlinedIcon, required this.label});
+  _NavItem({
+    required this.icon,
+    required this.outlinedIcon,
+    required this.label,
+    required this.color,
+  });
 
   final IconData icon;
   final IconData outlinedIcon;
   final String label;
+  final Color color;
 }
+
+List<_NavItem> _navItems(BuildContext context) => [
+      _NavItem(
+        icon: Icons.home_rounded,
+        outlinedIcon: Icons.home_outlined,
+        label: context.l10n.home,
+        color: const Color(0xFF00E5FF),
+      ),
+      _NavItem(
+        icon: Icons.search_rounded,
+        outlinedIcon: Icons.search_outlined,
+        label: context.l10n.search,
+        color: const Color(0xFFA855F7),
+      ),
+      _NavItem(
+        icon: Icons.library_music_rounded,
+        outlinedIcon: Icons.library_music_outlined,
+        label: context.l10n.library,
+        color: const Color(0xFF3B82F6),
+      ),
+      _NavItem(
+        icon: Icons.settings_rounded,
+        outlinedIcon: Icons.settings_outlined,
+        label: context.l10n.settings,
+        color: const Color(0xFFEC4899),
+      ),
+    ];
