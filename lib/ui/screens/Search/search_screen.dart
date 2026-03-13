@@ -57,13 +57,34 @@ class SearchScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Container(
+              height: 46,
               decoration: BoxDecoration(
-                color: kDoudouSurfaceHover,
-                borderRadius: BorderRadius.circular(kDoudouRadiusCard),
-                border: Border.all(color: kDoudouBorder, width: 1),
+                color: Colors.black.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    blurRadius: 22,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: ModifiedTextField(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      blurRadius: 18,
+                      spreadRadius: -10,
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: ModifiedTextField(
                 textCapitalization: TextCapitalization.sentences,
                 controller: searchScreenController.textInputController,
                 textInputAction: TextInputAction.search,
@@ -86,10 +107,14 @@ class SearchScreen extends StatelessWidget {
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   filled: false,
+                  isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   hintText: context.l10n.searchDes,
-                  hintStyle:
-                      const TextStyle(color: kDoudouZinc500, fontSize: 14),
+                  hintStyle: TextStyle(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+                    fontSize: 14,
+                    height: 1.2,
+                  ),
                   suffix: IconButton(
                     onPressed: searchScreenController.reset,
                     icon: Icon(Icons.close,
@@ -102,6 +127,7 @@ class SearchScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+              ),
               ),
             ),
             const SizedBox(height: 16),
