@@ -21,7 +21,7 @@ class LibraryBrowseScreen extends StatefulWidget {
 }
 
 class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
-  int _selectedTabIndex = 0;
+  int _selectedContentIndex = 0;
   bool _headerCollapsed = false;
   double _lastScrollPixels = 0;
 
@@ -151,13 +151,12 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
               );
             }
 
-            final selected = _selectedTabIndex.clamp(0, tabs.length - 1);
-            if (selected != _selectedTabIndex) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) setState(() => _selectedTabIndex = selected);
-              });
-            }
-            final contentIndex = tabs[selected].contentIndex;
+            final selectedTabIndex = tabs.indexWhere(
+              (t) => t.contentIndex == _selectedContentIndex,
+            );
+            final safeTabIndex =
+                selectedTabIndex == -1 ? 0 : selectedTabIndex;
+            final contentIndex = tabs[safeTabIndex].contentIndex;
 
             return Expanded(
               child: Column(
@@ -165,8 +164,9 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
                 children: [
                   _LibraryTopbar(
                     tabs: tabs,
-                    selectedIndex: selected,
-                    onTap: (i) => setState(() => _selectedTabIndex = i),
+                    selectedIndex: safeTabIndex,
+                    onTap: (i) => setState(
+                        () => _selectedContentIndex = tabs[i].contentIndex),
                   ),
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
