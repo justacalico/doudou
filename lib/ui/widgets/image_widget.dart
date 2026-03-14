@@ -97,27 +97,44 @@ class ImageWidget extends StatelessWidget {
         borderRadius: artist != null ? null : BorderRadius.circular(5),
       ),
       child: offlineAvailable
-          ? (offlineThumbFile != null
-              ? Image.file(
-                  offlineThumbFile,
-                  height: size,
-                  width: size,
-                  fit: BoxFit.cover,
-                  cacheHeight: cachePx,
-                  cacheWidth: cachePx,
-                  errorBuilder: (_, __, ___) => placeholderIcon(),
+          ? (offlineThumbFile != null &&
+                  offlineThumbFile.existsSync()
+              ? DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: artist != null
+                        ? BoxShape.circle
+                        : BoxShape.rectangle,
+                    borderRadius: artist != null
+                        ? null
+                        : BorderRadius.circular(5),
+                    image: DecorationImage(
+                      image: FileImage(offlineThumbFile),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 )
               : placeholderIcon())
           : imageUrl.trim().isEmpty
               ? placeholder()
               : CachedNetworkImage(
-                  height: size,
-                  width: size,
                   memCacheHeight: cachePx,
                   memCacheWidth: cachePx,
                   cacheKey: cacheKey,
                   imageUrl: imageUrl,
-                  fit: BoxFit.cover,
+                  imageBuilder: (context, imageProvider) => DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: artist != null
+                          ? BoxShape.circle
+                          : BoxShape.rectangle,
+                      borderRadius: artist != null
+                          ? null
+                          : BorderRadius.circular(5),
+                      image: DecorationImage(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
                   useOldImageOnUrlChange: true,
                   fadeInDuration: Duration.zero,
                   fadeOutDuration: Duration.zero,
