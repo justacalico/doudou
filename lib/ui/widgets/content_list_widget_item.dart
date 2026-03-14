@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../design/doudou_colors.dart';
 import '../navigator.dart';
 import 'image_widget.dart';
 
@@ -30,6 +31,7 @@ class ContentListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAlbum = content.runtimeType.toString() == "Album";
+    final c = context.doudouColors;
     return LayoutBuilder(builder: (context, constraints) {
       final cardWidth = isLibraryItem ? constraints.maxWidth : 130.0;
       final maxByHeight = constraints.hasBoundedHeight
@@ -141,7 +143,7 @@ class ContentListItem extends StatelessWidget {
                               height: imageSize,
                               width: imageSize,
                               decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColorLight,
+                                  color: c.surfaceElevated,
                                   borderRadius: BorderRadius.circular(10)),
                               child: Center(
                                   child: Icon(
@@ -152,7 +154,7 @@ class ContentListItem extends StatelessWidget {
                                         : content.playlistId == 'SongsCache'
                                             ? Icons.flight
                                             : Icons.download,
-                                color: Colors.white,
+                                color: c.textPrimary,
                                 size: 40,
                               ))),
                   const SizedBox(height: 8),

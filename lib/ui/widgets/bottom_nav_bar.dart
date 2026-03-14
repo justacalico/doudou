@@ -49,7 +49,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 ),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final pillInset = 6.0;
+                    const pillInset = 6.0;
                     final pillWidth =
                         (constraints.maxWidth - pillInset * 2) /
                             items.length;
@@ -66,11 +66,11 @@ class _BottomNavBarState extends State<BottomNavBar> {
                           width: pillWidth,
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.08),
+                              color: c.textPrimary.withValues(alpha: 0.08),
                               borderRadius: DoudouRadii.r20,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
+                                  color: c.textPrimary.withValues(alpha: 0.05),
                                   blurRadius: 20,
                                   spreadRadius: -4,
                                 ),
@@ -81,7 +81,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                                 borderRadius: DoudouRadii.r20,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.white.withValues(alpha: 0.04),
+                                    color: c.textPrimary.withValues(alpha: 0.04),
                                     blurRadius: 16,
                                     spreadRadius: -8,
                                   ),
@@ -96,7 +96,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                             final hovered = _hoveredIndex == index;
                             final item = items[index];
                             final fg =
-                                (selected || hovered) ? item.color : c.textTertiary;
+                                (selected || hovered) ? c.accentPrimary : c.textTertiary;
 
                             return Expanded(
                               child: MouseRegion(
@@ -178,8 +178,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
                                                           (selected || hovered)
                                                               ? [
                                                                   Shadow(
-                                                                    color: item
-                                                                        .color
+                                                                    color: c
+                                                                        .accentPrimary
                                                                         .withValues(
                                                                             alpha:
                                                                                 0.45),
@@ -206,7 +206,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                                               height: 1.0,
                                               fontWeight: FontWeight.w700,
                                               color: selected
-                                                  ? Colors.white
+                                                  ? c.textPrimary
                                                   : c.textTertiary,
                                             ),
                                             child: Text(
@@ -225,7 +225,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                                               width: 4,
                                               height: 4,
                                               decoration: BoxDecoration(
-                                                color: item.color,
+                                                color: c.accentPrimary,
                                                 shape: BoxShape.circle,
                                               ),
                                             ),
@@ -257,13 +257,11 @@ class _NavItem {
     required this.icon,
     required this.outlinedIcon,
     required this.label,
-    required this.color,
   });
 
   final IconData icon;
   final IconData outlinedIcon;
   final String label;
-  final Color color;
 }
 
 List<_NavItem> _navItems(BuildContext context) => [
@@ -271,24 +269,20 @@ List<_NavItem> _navItems(BuildContext context) => [
         icon: Icons.home_rounded,
         outlinedIcon: Icons.home_outlined,
         label: context.l10n.home,
-        color: const Color(0xFF00E5FF),
       ),
       _NavItem(
         icon: Icons.search_rounded,
         outlinedIcon: Icons.search_outlined,
         label: context.l10n.search,
-        color: const Color(0xFFA855F7),
       ),
       _NavItem(
         icon: Icons.library_music_rounded,
         outlinedIcon: Icons.library_music_outlined,
         label: context.l10n.library,
-        color: const Color(0xFF3B82F6),
       ),
       _NavItem(
         icon: Icons.settings_rounded,
         outlinedIcon: Icons.settings_outlined,
         label: context.l10n.settings,
-        color: const Color(0xFFEC4899),
       ),
     ];
