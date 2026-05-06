@@ -96,18 +96,18 @@ class AddToPlaylist extends StatelessWidget {
                 ),
               Container(
                 decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColorLight,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(10)),
                 height: 250,
-                //color: Colors.green,
                 child: Obx(
                   () => addToPlaylistController.playlists.isNotEmpty
                       ? ListView.builder(
                           itemCount: addToPlaylistController.playlists.length,
                           itemBuilder: (context, index) => ListTile(
-                            leading: const Icon(Icons.playlist_play),
+                            leading: Icon(Icons.playlist_play, color: Theme.of(context).iconTheme.color),
                             title: Text(
                               (addToPlaylistController.playlists[index]).title,
+                              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                             ),
                             onTap: () {
                               addToPlaylistController
@@ -135,7 +135,10 @@ class AddToPlaylist extends StatelessWidget {
                           ),
                         )
                       : Center(
-                          child: Text(context.l10n.noLibPlaylist),
+                          child: Text(
+                            context.l10n.noLibPlaylist,
+                            style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+                          ),
                         ),
                 ),
               )
