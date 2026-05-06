@@ -65,7 +65,7 @@ class StreamProvider {
   }
 
   Audio? get highestQualityAudio =>
-      (Platform.isIOS
+      (Platform.isIOS || Platform.isMacOS
           ? highestBitrateMp4aAudio
           : audioFormats?.lastWhere(
               (item) => item.itag == 251 || item.itag == 140,
@@ -81,7 +81,7 @@ class StreamProvider {
           orElse: () => audioFormats!.first);
 
   Audio? get lowQualityAudio =>
-      (Platform.isIOS
+      (Platform.isIOS || Platform.isMacOS
           ? audioFormats?.lastWhere(
               (item) => item.itag == 139 || item.itag == 140,
               orElse: () => highestBitrateMp4aAudio ?? audioFormats!.first)
