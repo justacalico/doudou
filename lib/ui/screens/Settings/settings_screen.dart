@@ -1198,7 +1198,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         },
       ),
       ListTile(
-        leading: const Icon(Icons.code, size: 20),
+        leading: const Icon(Icons.public, size: 20),
         title: Text(context.l10n.openGitlab),
         subtitle: Text(context.l10n.gitlabDes),
         onTap: () => launchUrl(
