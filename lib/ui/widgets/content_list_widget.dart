@@ -8,7 +8,6 @@ import '/ui/widgets/content_list_widget_item.dart';
 import '/ui/widgets/image_widget.dart';
 
 class ContentListWidget extends StatelessWidget {
-  ///ContentListWidget is used to render a section of Content like a list of Albums or Playlists in HomeScreen
   const ContentListWidget(
       {super.key,
       this.content,
@@ -16,7 +15,6 @@ class ContentListWidget extends StatelessWidget {
       this.scrollController,
       this.onViewAll});
 
-  ///content will be of class Type AlbumContent, PlaylistContent, or ArtistContent
   final dynamic content;
   final bool isHomeContent;
   final ScrollController? scrollController;

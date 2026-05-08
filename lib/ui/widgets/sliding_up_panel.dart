@@ -19,42 +19,17 @@ enum SlideDirection {
 enum PanelState { OPEN, CLOSED }
 
 class SlidingUpPanel extends StatefulWidget {
-  /// The Widget that slides into view. When the
-  /// panel is collapsed and if [collapsed] is null,
-  /// then top portion of this Widget will be displayed;
-  /// otherwise, [collapsed] will be displayed overtop
-  /// of this Widget. If [panel] and [panelBuilder] are both non-null,
-  /// [panel] will be used.
   final Widget? panel;
 
-  /// WARNING: This feature is still in beta and is subject to change without
-  /// notice. Stability is not gauranteed. Provides a [ScrollController] and
-  /// [ScrollPhysics] to attach to a scrollable object in the panel that links
-  /// the panel position with the scroll position. Useful for implementing an
-  /// infinite scroll behavior. If [panel] and [panelBuilder] are both non-null,
-  /// [panel] will be used.
   final Widget Function(ScrollController sc, Function(int) onListReorderStart,
       Function(int) onListReorderEnd)? panelBuilder;
 
-  /// The Widget displayed overtop the [panel] when collapsed.
-  /// This fades out as the panel is opened.
   final Widget? collapsed;
 
-  /// The Widget that lies underneath the sliding panel.
-  /// This Widget automatically sizes itself
-  /// to fill the screen.
   final Widget? body;
 
-  /// Optional persistent widget that floats above the [panel] and attaches
-  /// to the top of the [panel]. Content at the top of the panel will be covered
-  /// by this widget. Add padding to the bottom of the `panel` to
-  /// avoid coverage.
   final Widget? header;
 
-  /// Optional persistent widget that floats above the [panel] and
-  /// attaches to the bottom of the [panel]. Content at the bottom of the panel
-  /// will be covered by this widget. Add padding to the bottom of the `panel`
-  /// to avoid coverage.
   final Widget? footer;
 
   /// The height of the sliding panel when fully collapsed.
@@ -73,7 +48,6 @@ class SlidingUpPanel extends StatefulWidget {
   /// A border to draw around the sliding panel sheet.
   final Border? border;
 
-  /// If non-null, the corners of the sliding panel sheet are rounded by this [BorderRadiusGeometry].
   final BorderRadiusGeometry? borderRadius;
 
   /// A list of shadows cast behind the sliding panel sheet.
@@ -99,68 +73,32 @@ class SlidingUpPanel extends StatefulWidget {
   /// Set to false to disable the panel from snapping open or closed.
   final bool panelSnapping;
 
-  /// If non-null, this can be used to control the state of the panel.
   final PanelController? controller;
 
-  /// If non-null, shows a darkening shadow over the [body] as the panel slides open.
   final bool backdropEnabled;
 
-  /// Shows a darkening shadow of this [Color] over the [body] as the panel slides open.
   final Color backdropColor;
 
-  /// The opacity of the backdrop when the panel is fully open.
-  /// This value can range from 0.0 to 1.0 where 0.0 is completely transparent
-  /// and 1.0 is completely opaque.
   final double backdropOpacity;
 
-  /// Flag that indicates whether or not tapping the
-  /// backdrop closes the panel. Defaults to true.
   final bool backdropTapClosesPanel;
 
-  /// If non-null, this callback
-  /// is called as the panel slides around with the
-  /// current position of the panel. The position is a double
-  /// between 0.0 and 1.0 where 0.0 is fully collapsed and 1.0 is fully open.
   final void Function(double position)? onPanelSlide;
 
-  /// If non-null, this callback is called when the
-  /// panel is fully opened
   final VoidCallback? onPanelOpened;
 
-  /// If non-null, this callback is called when the panel
-  /// is fully collapsed.
   final VoidCallback? onPanelClosed;
 
-  /// If non-null, this callback is called when the panel
-  /// is fully opened and on swiping up.
   final VoidCallback? onSwipeUp;
 
-  /// If non-null and true, the SlidingUpPanel exhibits a
-  /// parallax effect as the panel slides up. Essentially,
-  /// the body slides up as the panel slides up.
   final bool parallaxEnabled;
 
-  /// Allows for specifying the extent of the parallax effect in terms
-  /// of the percentage the panel has slid up/down. Recommended values are
-  /// within 0.0 and 1.0 where 0.0 is no parallax and 1.0 mimics a
-  /// one-to-one scrolling effect. Defaults to a 10% parallax.
   final double parallaxOffset;
 
-  /// Allows toggling of the draggability of the SlidingUpPanel.
-  /// Set this to false to prevent the user from being able to drag
-  /// the panel up and down. Defaults to true.
   final bool isDraggable;
 
-  /// Either SlideDirection.UP or SlideDirection.DOWN. Indicates which way
-  /// the panel should slide. Defaults to UP. If set to DOWN, the panel attaches
-  /// itself to the top of the screen and is fully opened when the user swipes
-  /// down on the panel.
   final SlideDirection slideDirection;
 
-  /// The default state of the panel; either PanelState.OPEN or PanelState.CLOSED.
-  /// This value defaults to PanelState.CLOSED which indicates that the panel is
-  /// in the closed position and must be opened. PanelState.OPEN indicates that
-  /// by default the Panel is open and must be swiped closed by the user.
   final PanelState defaultPanelState;
 
   const SlidingUpPanel(
@@ -739,28 +677,17 @@ class PanelController {
         ._animatePanelToSnapPoint(duration: duration, curve: curve);
   }
 
-  /// Sets the panel position (without animation).
-  /// The value must between 0.0 and 1.0
-  /// where 0.0 is fully collapsed and 1.0 is completely open.
   set panelPosition(double value) {
     assert(isAttached, "PanelController must be attached to a SlidingUpPanel");
     assert(0.0 <= value && value <= 1.0);
     _panelState!._panelPosition = value;
   }
 
-  /// Gets the current panel position.
-  /// Returns the % offset from collapsed state
-  /// to the open state
-  /// as a decimal between 0.0 and 1.0
-  /// where 0.0 is fully collapsed and
-  /// 1.0 is full open.
   double get panelPosition {
     assert(isAttached, "PanelController must be attached to a SlidingUpPanel");
     return _panelState!._panelPosition;
   }
 
-  /// Returns whether or not the panel is
-  /// currently animating.
   bool get isPanelAnimating {
     assert(isAttached, "PanelController must be attached to a SlidingUpPanel");
     return _panelState!._isPanelAnimating;

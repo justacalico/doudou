@@ -23,8 +23,8 @@ Initial release with the following features:
 
 * Complete app termination and restart functionality
 * Platform-specific implementations for Android and iOS
-* Extensive customization options
-* Perfect integration with Shorebird and other dynamic update systems
+* Customization options
+* Integration with Shorebird and other dynamic update systems
 * App data management options
 * Fast and reliable operation
 * Comprehensive documentation and examples
@@ -65,14 +65,14 @@ Initial release with the following features:
   * Confirmation dialog support with customizable messages
   * Comprehensive example app demonstrating all features
   * Fixed data clearing functionality in both UI and terminate modes
-  * Added extensive error handling and logging
+  * Added error handling and logging
   * Added type-safe API with null safety support
 
 ### Features
 - Full app restart functionality
 - UI-only refresh option
 - Data clearing with selective preservation
-- Extensive customization options
+- Customization options
 - Cross-platform support (Android & iOS)
 - Comprehensive logging
 - Type-safe implementation

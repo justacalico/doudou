@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![likes](https://img.shields.io/pub/likes/terminate_restart)](https://pub.dev/packages/terminate_restart/score)
 
-A robust Flutter plugin for terminating and restarting your app with extensive customization options. Perfect for implementing dynamic updates, clearing app state, or refreshing your app's UI.
+A Flutter plugin for terminating and restarting your app with customization options. Use for implementing dynamic updates, clearing app state, or refreshing your app's UI.
 
 ## 📱 Demo
 
@@ -32,13 +32,13 @@ The demo showcases:
 - ✨ **Three Restart Modes**:
   - **UI-only Restart**: (~200ms)
     - Recreates activities/views while maintaining connections
-    - Perfect for theme changes, language switches
+    - Use for theme changes, language switches
     - Preserves network connections and background tasks
     - Faster execution with minimal disruption
   
   - **Full Process Restart**: (~800ms)
     - Complete app termination and restart
-    - Ideal for updates, security-related changes
+    - Use for updates, security-related changes
     - Cleans up all resources and states
     - Ensures fresh start with no residual state
     
@@ -46,7 +46,7 @@ The demo showcases:
     - Shows a customizable confirmation dialog
     - User can choose to proceed or cancel
     - Supports both UI-only and full restart
-    - Perfect for user-initiated actions
+    - Use for user-initiated actions
 
 - 🧹 **Smart Data Management**:
   - Configurable data clearing during restart
@@ -605,8 +605,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🤔 Frequently Asked Questions
 
 ### 1. What's the difference between UI-only and Full restart?
-- **UI-only Restart**: Only recreates the UI components while keeping the app process alive. Perfect for theme changes or language switches.
-- **Full Restart**: Completely terminates the app process and starts fresh. Ideal for updates or when you need a clean state.
+- **UI-only Restart**: Only recreates the UI components while keeping the app process alive. Use for theme changes or language switches.
+- **Full Restart**: Completely terminates the app process and starts fresh. Use for updates or when you need a clean state.
 
 ### 2. When should I use confirmation dialog?
 Use confirmation dialog when:

@@ -15,9 +15,6 @@ import '../Settings/settings_screen_controller.dart';
 import '../../../models/server.dart';
 import '../../../utils/server_storage.dart';
 
-///AlbumScreenController handles album screen
-///
-///Album title,image,songs
 class AlbumScreenController extends PlaylistAlbumScreenControllerBase
     with AdditionalOperationMixin, GetSingleTickerProviderStateMixin {
   final album =

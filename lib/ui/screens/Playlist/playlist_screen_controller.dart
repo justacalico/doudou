@@ -25,9 +25,6 @@ import '../Settings/settings_screen_controller.dart';
 import '/models/server.dart';
 import '/utils/server_storage.dart';
 
-///PlaylistScreenController handles playlist screen
-///
-///Playlist title,image,songs
 class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
     with AdditionalOperationMixin, GetSingleTickerProviderStateMixin {
   final MusicServices _musicServices = Get.find<MusicServices>();
