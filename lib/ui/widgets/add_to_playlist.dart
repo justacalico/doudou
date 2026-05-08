@@ -13,6 +13,7 @@ import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/screens/Library/library_controller.dart';
 import '/ui/widgets/create_playlist_dialog.dart';
 import '../../models/playlist.dart';
+import '../../ui/design/doudou_colors.dart';
 import 'common_dialog_widget.dart';
 import 'snackbar.dart';
 
@@ -54,7 +55,7 @@ class AddToPlaylist extends StatelessWidget {
                       width: 10,
                     ),
                     InkWell(
-                      child: const Icon(Icons.playlist_add),
+                      child: Icon(Icons.playlist_add, color: context.doudouColors.textSecondary),
                       onTap: () {
                         Navigator.of(context).pop();
                         showDialog(
@@ -104,7 +105,7 @@ class AddToPlaylist extends StatelessWidget {
                       ? ListView.builder(
                           itemCount: addToPlaylistController.playlists.length,
                           itemBuilder: (context, index) => ListTile(
-                            leading: Icon(Icons.playlist_play, color: Theme.of(context).iconTheme.color),
+                            leading: Icon(Icons.playlist_play, color: context.doudouColors.textSecondary),
                             title: Text(
                               (addToPlaylistController.playlists[index]).title,
                               style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
