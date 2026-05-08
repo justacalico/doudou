@@ -940,12 +940,20 @@ class PlayerController extends GetxController
         isLyricsLoading.value = false;
         return;
       }
-      final related = await _musicServices.getWatchPlaylist(
-          videoId: currentSong.value!.id, onlyRelated: true);
-      final relatedLyricsId = related['lyrics'];
-      if (relatedLyricsId != null) {
-        final lyrics_ = await _musicServices.getLyrics(relatedLyricsId);
-        lyrics.value = {"synced": "", "plainLyrics": lyrics_};
+      final backendType = currentSong.value?.extras?['backendType']?.toString();
+      final isNonYouTube = backendType == 'jellyfin' ||
+          backendType == 'subsonic' ||
+          backendType == 'plex';
+      if (!isNonYouTube) {
+        final related = await _musicServices.getWatchPlaylist(
+            videoId: currentSong.value!.id, onlyRelated: true);
+        final relatedLyricsId = related['lyrics'];
+        if (relatedLyricsId != null) {
+          final lyrics_ = await _musicServices.getLyrics(relatedLyricsId);
+          lyrics.value = {"synced": "", "plainLyrics": lyrics_};
+        } else {
+          lyrics.value = {"synced": "", "plainLyrics": "NA"};
+        }
       } else {
         lyrics.value = {"synced": "", "plainLyrics": "NA"};
       }
