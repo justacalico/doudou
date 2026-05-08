@@ -55,26 +55,43 @@ class NewVersionDialog extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: FilledButton.icon(
-                onPressed: () {
-                  launchUrl(
-                    Uri.parse('https://openlyst.ink/apps/doudou'),
-                    mode: LaunchMode.externalApplication,
-                  );
-                },
-                icon: const Icon(Icons.download_rounded, size: 22),
-                label: Text(context.l10n.download),
-                style: FilledButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      launchUrl(
+                        Uri.parse('https://openlyst.ink/apps/doudou'),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                    icon: const Icon(Icons.download_rounded, size: 20),
+                    label: Text(context.l10n.download),
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(context.l10n.dismiss),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                      foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -99,16 +116,6 @@ class NewVersionDialog extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                context.l10n.dismiss,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                ),
-              ),
             ),
           ],
         ),
