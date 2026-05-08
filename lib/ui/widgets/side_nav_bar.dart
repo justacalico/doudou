@@ -74,14 +74,7 @@ class _SidebarContent extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            c.raisedBackground,
-            c.surfaceBase,
-          ],
-        ),
+        color: c.surfaceBase,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,6 +102,7 @@ class _SidebarContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _SidebarBrand(minimized: minimized),
+                    const SizedBox(height: 8),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: minimized ? 8 : 12),
                       child: Column(
@@ -140,21 +134,34 @@ class _SidebarContent extends StatelessWidget {
                         ],
                       ),
                     ),
-                    SizedBox(height: minimized ? 16 : 24),
+                    SizedBox(height: minimized ? 20 : 28),
                     if (!minimized)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          context.l10n.library.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: c.textTertiary,
-                            letterSpacing: 1.2,
-                          ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 4,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: c.accentPrimary.withValues(alpha: 0.6),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              context.l10n.library,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: c.textSecondary,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    SizedBox(height: minimized ? 4 : 8),
+                    SizedBox(height: minimized ? 8 : 12),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: minimized ? 8 : 12),
                       child: Column(
@@ -242,98 +249,65 @@ class _SidebarBrand extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.doudouColors;
     return Padding(
-      padding: EdgeInsets.all(minimized ? 12 : 16),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: minimized ? 10 : 12,
-          vertical: minimized ? 8 : 10,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: c.accentPrimary.withValues(alpha: 0.35),
-          ),
-          color: c.surfaceOverlay.withValues(alpha: 0.7),
-        ),
-        child: Row(
-          mainAxisAlignment:
-              minimized ? MainAxisAlignment.center : MainAxisAlignment.start,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    c.accentPrimary.withValues(alpha: 0.25),
-                    c.surfaceBase,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: c.accentPrimary.withValues(alpha: 0.3)),
-              ),
-              clipBehavior: Clip.antiAlias,
+      padding: EdgeInsets.symmetric(horizontal: minimized ? 12 : 16, vertical: 16),
+      child: Row(
+        mainAxisAlignment: minimized ? MainAxisAlignment.center : MainAxisAlignment.start,
+        children: [
+          Container(
+            width: minimized ? 36 : 42,
+            height: minimized ? 36 : 42,
+            decoration: BoxDecoration(
+              color: c.accentPrimary.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
               child: Image.asset(
                 'assets/icons/icon.png',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Icon(
                   Icons.music_note_rounded,
                   color: c.accentPrimary,
-                  size: 20,
+                  size: minimized ? 18 : 22,
                 ),
               ),
             ),
-            if (!minimized) ...[
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Doudou',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: c.textPrimary,
-                                  letterSpacing: -0.3,
-                                  height: 1.0,
-                                ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          width: 5,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: c.accentPrimary,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
+          ),
+          if (!minimized) ...[
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Doudou',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: c.textPrimary,
+                      letterSpacing: -0.5,
+                      height: 1.1,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Music Player',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: c.textTertiary,
-                            letterSpacing: 0.4,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Music Player',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: c.textTertiary,
+                      letterSpacing: 0.3,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -370,10 +344,8 @@ class _SidebarTileState extends State<_SidebarTile> {
         ? c.textPrimary
         : (_hover ? c.textPrimary : c.textSecondary);
     final bgColor = widget.selected
-        ? c.accentPrimary.withValues(alpha: 0.16)
-        : (_hover ? c.accentPrimary.withValues(alpha: 0.08) : Colors.transparent);
-    final borderColor =
-        widget.selected ? c.accentPrimary.withValues(alpha: 0.45) : Colors.transparent;
+        ? c.accentPrimary.withValues(alpha: 0.12)
+        : (_hover ? c.surfaceOverlay.withValues(alpha: 0.5) : Colors.transparent);
 
     return Tooltip(
       message: widget.label,
@@ -384,15 +356,14 @@ class _SidebarTileState extends State<_SidebarTile> {
         child: GestureDetector(
           onTap: widget.onTap,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            margin: const EdgeInsets.only(bottom: 4),
+            duration: const Duration(milliseconds: 120),
+            margin: const EdgeInsets.only(bottom: 2),
             padding: widget.compact
-                ? const EdgeInsets.symmetric(horizontal: 10, vertical: 11)
-                : const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
+                : const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(8),
               color: bgColor,
-              border: Border.all(color: borderColor),
             ),
             child: Row(
               mainAxisAlignment:
@@ -404,7 +375,7 @@ class _SidebarTileState extends State<_SidebarTile> {
                   size: 20,
                 ),
                 if (!widget.compact) ...[
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       widget.label,
