@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   audiotags
+  flutter_acrylic
   gtk
   media_kit_libs_linux
   screen_retriever_linux
