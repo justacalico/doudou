@@ -9,6 +9,7 @@ import 'package:window_manager/window_manager.dart';
 
 class DesktopSystemTray extends GetxService with TrayListener {
   late WindowListener listener;
+  final Rxn<MediaItem> currentSong = Rxn<MediaItem>();
 
   @override
   void onInit() {
@@ -27,6 +28,24 @@ class DesktopSystemTray extends GetxService with TrayListener {
 
     await trayManager.setIcon(path);
 
+    // Listen to current song changes
+    playerController.currentSong.listen((song) {
+      currentSong.value = song;
+      updateContextMenu();
+    });
+
+    // create context menu
+    await updateContextMenu();
+
+    await windowManager.setPreventClose(true);
+    listener = CloseWindowListener();
+    windowManager.addListener(listener);
+  }
+
+  Future<void> updateContextMenu() async {
+    final playerController = Get.find<PlayerController>();
+    final song = currentSong.value;
+
     // create context menu
     final Menu menu = Menu(items: [
       MenuItem(
@@ -36,6 +55,21 @@ class DesktopSystemTray extends GetxService with TrayListener {
             : await windowManager.show(),
       ),
       MenuItem.separator(),
+      if (song != null) ...[
+        MenuItem(
+          label: 'Song: ${song.title}',
+          disabled: true,
+        ),
+        MenuItem(
+          label: 'Album: ${song.album ?? "Unknown"}',
+          disabled: true,
+        ),
+        MenuItem(
+          label: 'Artist: ${song.artist ?? "Unknown"}',
+          disabled: true,
+        ),
+        MenuItem.separator(),
+      ],
       MenuItem(
         label: 'Prev',
         onClick: (menuItem) {
@@ -72,10 +106,6 @@ class DesktopSystemTray extends GetxService with TrayListener {
 
     // set context menu
     await trayManager.setContextMenu(menu);
-
-    await windowManager.setPreventClose(true);
-    listener = CloseWindowListener();
-    windowManager.addListener(listener);
   }
 
   @override
