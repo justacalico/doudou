@@ -634,6 +634,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                       }),
                                     const SongDownloadButton(
                                       calledFromPlayer: true,
+                                      iconSize: 18,
                                     ),
                                     const SizedBox(width: 4),
                                     _ControlIconButton(

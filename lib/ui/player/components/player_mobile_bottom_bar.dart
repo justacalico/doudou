@@ -116,8 +116,9 @@ class PlayerMobileBottomBar extends StatelessWidget {
             color: iconColor,
             tooltip: context.l10n.sleepTimer,
           ),
-          const SongDownloadButton(
+          SongDownloadButton(
             calledFromPlayer: true,
+            iconSize: iconSize,
           ),
           IconButton(
             onPressed: () {
