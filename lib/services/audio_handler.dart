@@ -527,6 +527,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       );
       printINFO("Playing Using LockCaching");
       isPlayingUsingLockCachingSource = true;
+      // ignore: experimental_member_use
       return LockCachingAudioSource(
         Uri.parse(url),
         cacheFile: File("$_cacheDir/cachedSongs/${mediaItem.id}.mp3"),
