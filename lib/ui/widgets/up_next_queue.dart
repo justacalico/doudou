@@ -10,21 +10,76 @@ import 'image_widget.dart';
 import 'snackbar.dart';
 import 'songinfo_bottom_sheet.dart';
 
-class UpNextQueue extends StatelessWidget {
+class UpNextQueue extends StatefulWidget {
   const UpNextQueue(
       {super.key,
       this.onReorderEnd,
       this.onReorderStart,
-      this.isQueueInSlidePanel = true});
+      this.isQueueInSlidePanel = true,
+      this.scrollController});
   final void Function(int)? onReorderStart;
   final void Function(int)? onReorderEnd;
   final bool isQueueInSlidePanel;
+  final ScrollController? scrollController;
+
+  @override
+  State<UpNextQueue> createState() => _UpNextQueueState();
+}
+
+class _UpNextQueueState extends State<UpNextQueue> {
+  int _scrollAttempts = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToCurrentSong();
+    });
+  }
+
+  void _scrollToCurrentSong() {
+    final playerController = Get.find<PlayerController>();
+    final currentIndex = playerController.currentSongIndex.value;
+    final queueLength = playerController.currentQueue.length;
+
+    if (currentIndex >= 0 && currentIndex < queueLength && _scrollAttempts < 5) {
+      _scrollAttempts++;
+      final scrollController = widget.scrollController;
+      if (scrollController != null && scrollController.hasClients) {
+        // Calculate position to center the current song
+        // Estimated item height is around 72px (ListTile with padding)
+        const itemHeight = 72.0;
+        const topPadding = 8.0;
+        final viewportHeight = scrollController.position.viewportDimension;
+        final targetPosition = (currentIndex * itemHeight) + topPadding - (viewportHeight / 2) + (itemHeight / 2);
+        
+        // Clamp to valid range
+        final maxScroll = scrollController.position.maxScrollExtent;
+        final minScroll = scrollController.position.minScrollExtent;
+        final clampedPosition = targetPosition.clamp(minScroll, maxScroll);
+        
+        scrollController.jumpTo(clampedPosition);
+        
+        // If the list might not be fully rendered yet (maxScroll is 0 or very small), try again
+        if (maxScroll < 100 && _scrollAttempts < 5) {
+          Future.delayed(const Duration(milliseconds: 150), () {
+            _scrollToCurrentSong();
+          });
+        }
+      } else if (_scrollAttempts < 5) {
+        // If scroll controller doesn't have clients yet, wait and retry
+        Future.delayed(const Duration(milliseconds: 150), () {
+          _scrollToCurrentSong();
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final playerController = Get.find<PlayerController>();
     return Container(
-      color: isQueueInSlidePanel
+      color: widget.isQueueInSlidePanel
           ? Theme.of(context).bottomSheetTheme.backgroundColor
           : Colors.transparent,
       child: Obx(() {
@@ -64,7 +119,7 @@ class UpNextQueue extends StatelessWidget {
                   IconButton(
                     tooltip: AppLocalizations.of(Get.context!)!.close,
                     onPressed: () {
-                      if (isQueueInSlidePanel) {
+                      if (widget.isQueueInSlidePanel) {
                         Get.find<PlayerController>()
                             .queuePanelController
                             .close();
@@ -145,9 +200,7 @@ class UpNextQueue extends StatelessWidget {
             Expanded(
               child: ReorderableListView.builder(
                 footer: SizedBox(height: Get.mediaQuery.padding.bottom),
-                scrollController: isQueueInSlidePanel
-                    ? playerController.scrollController
-                    : null,
+                scrollController: widget.scrollController,
                 onReorder: (int oldIndex, int newIndex) {
                   if (playerController.isShuffleModeEnabled.isTrue) {
                     ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
@@ -157,11 +210,11 @@ class UpNextQueue extends StatelessWidget {
                   }
                   playerController.onReorder(oldIndex, newIndex);
                 },
-                onReorderStart: onReorderStart,
-                onReorderEnd: onReorderEnd,
+                onReorderStart: widget.onReorderStart,
+                onReorderEnd: widget.onReorderEnd,
                 itemCount: queue.length,
                 padding: EdgeInsets.only(
-                    top: 8, bottom: isQueueInSlidePanel ? 80 : 0),
+                    top: 8, bottom: widget.isQueueInSlidePanel ? 80 : 0),
                 physics: const AlwaysScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
                   final homeScaffoldContext =

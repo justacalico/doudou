@@ -9,8 +9,21 @@ import '../design/doudou_tokens.dart';
 import 'snackbar.dart';
 import 'up_next_queue.dart';
 
-class QueueDrawer extends StatelessWidget {
+class QueueDrawer extends StatefulWidget {
   const QueueDrawer({super.key});
+
+  @override
+  State<QueueDrawer> createState() => _QueueDrawerState();
+}
+
+class _QueueDrawerState extends State<QueueDrawer> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,9 +113,10 @@ class QueueDrawer extends StatelessWidget {
                 ),
               ),
             ),
-            const Expanded(
+            Expanded(
               child: UpNextQueue(
                 isQueueInSlidePanel: false,
+                scrollController: _scrollController,
               ),
             ),
           ],

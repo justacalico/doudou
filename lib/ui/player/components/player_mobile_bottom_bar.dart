@@ -59,38 +59,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
                 backgroundColor: Colors.transparent,
                 barrierColor: Colors.transparent,
                 constraints: const BoxConstraints(maxWidth: 520),
-                builder: (c) => Center(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(26),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                      child: Container(
-                        height: height,
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Theme.of(c)
-                              .colorScheme
-                              .surface
-                              .withValues(alpha: 0.72),
-                          borderRadius: BorderRadius.circular(26),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.35),
-                              blurRadius: 22,
-                              offset: const Offset(0, 14),
-                            ),
-                          ],
-                        ),
-                        child: const UpNextQueue(isQueueInSlidePanel: false),
-                      ),
-                    ),
-                  ),
-                ),
+                builder: (c) => _MobileQueueSheet(height: height),
               );
             },
             icon: Icon(Icons.queue_music_rounded, size: iconSize),
@@ -172,6 +141,63 @@ class PlayerMobileBottomBar extends StatelessWidget {
             tooltip: "More",
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MobileQueueSheet extends StatefulWidget {
+  const _MobileQueueSheet({required this.height});
+
+  final double height;
+
+  @override
+  State<_MobileQueueSheet> createState() => _MobileQueueSheetState();
+}
+
+class _MobileQueueSheetState extends State<_MobileQueueSheet> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+          child: Container(
+            height: widget.height,
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              color: Theme.of(context)
+                  .colorScheme
+                  .surface
+                  .withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 22,
+                  offset: const Offset(0, 14),
+                ),
+              ],
+            ),
+            child: UpNextQueue(
+              isQueueInSlidePanel: false,
+              scrollController: _scrollController,
+            ),
+          ),
+        ),
       ),
     );
   }

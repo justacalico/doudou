@@ -45,6 +45,7 @@ class Player extends StatelessWidget {
                 UpNextQueue(
                   onReorderEnd: onReorderEnd,
                   onReorderStart: onReorderStart,
+                  scrollController: sc,
                 ),
 
                 /// Stack second child
