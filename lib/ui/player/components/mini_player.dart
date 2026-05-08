@@ -247,8 +247,11 @@ class _DesktopMiniPlayer extends StatelessWidget {
                   child: Row(
                     children: [
                       if (controller.currentSong.value != null)
-                        ImageWidget(
-                            size: 42, song: controller.currentSong.value!)
+                        GestureDetector(
+                          onTap: controller.playerPanelController.open,
+                          child: ImageWidget(
+                              size: 42, song: controller.currentSong.value!),
+                        )
                       else
                         const SizedBox(width: 42, height: 42),
                       const SizedBox(width: 8),
@@ -377,9 +380,12 @@ class _DesktopMiniPlayer extends StatelessWidget {
                       Row(
                         children: [
                           controller.currentSong.value != null
-                              ? ImageWidget(
-                                  size: 50,
-                                  song: controller.currentSong.value!,
+                              ? GestureDetector(
+                                  onTap: controller.playerPanelController.open,
+                                  child: ImageWidget(
+                                    size: 50,
+                                    song: controller.currentSong.value!,
+                                  ),
                                 )
                               : const SizedBox(
                                   height: 50,
