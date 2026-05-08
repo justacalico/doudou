@@ -62,9 +62,6 @@ Yes, as long as your server is accessible over the internet. Consider using a VP
 **How do I download for offline listening?**
 Long-press any song, album, or playlist and select "Download for offline listening."
 
-**Which server works best?**
-Jellyfin offers the best experience with full feature support and is completely free.
-
 **Is the desktop version different?**
 Desktop and mobile use the same backend rescaling the app will change from desktop or mobile ui tho.s
 
