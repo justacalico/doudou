@@ -347,50 +347,47 @@ class _SidebarTileState extends State<_SidebarTile> {
         ? c.accentPrimary.withValues(alpha: 0.12)
         : (_hover ? c.surfaceOverlay.withValues(alpha: 0.5) : Colors.transparent);
 
-    return Tooltip(
-      message: widget.label,
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _hover = true),
-        onExit: (_) => setState(() => _hover = false),
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            margin: const EdgeInsets.only(bottom: 2),
-            padding: widget.compact
-                ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
-                : const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: bgColor,
-            ),
-            child: Row(
-              mainAxisAlignment:
-                  widget.compact ? MainAxisAlignment.center : MainAxisAlignment.start,
-              children: [
-                Icon(
-                  widget.selected ? widget.activeIcon : widget.icon,
-                  color: iconColor,
-                  size: 20,
-                ),
-                if (!widget.compact) ...[
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      widget.label,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight:
-                            widget.selected ? FontWeight.w600 : FontWeight.w500,
-                        color: iconColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          margin: const EdgeInsets.only(bottom: 2),
+          padding: widget.compact
+              ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
+              : const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: bgColor,
+          ),
+          child: Row(
+            mainAxisAlignment:
+                widget.compact ? MainAxisAlignment.center : MainAxisAlignment.start,
+            children: [
+              Icon(
+                widget.selected ? widget.activeIcon : widget.icon,
+                color: iconColor,
+                size: 20,
+              ),
+              if (!widget.compact) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight:
+                          widget.selected ? FontWeight.w600 : FontWeight.w500,
+                      color: iconColor,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
+                ),
               ],
-            ),
+            ],
           ),
         ),
       ),
