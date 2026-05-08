@@ -5,7 +5,6 @@ import 'package:doudou/ui/constants/doudou_design.dart';
 import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/shell_controller.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:widget_marquee/widget_marquee.dart';
 
 import '/ui/widgets/lyrics_dialog.dart';
 import '/ui/widgets/song_info_dialog.dart';
@@ -227,8 +226,6 @@ class _DesktopMiniPlayer extends StatelessWidget {
         final shortDesktop = constraints.maxHeight < 90;
         final compactDesktop = shortDesktop || size.width < 1100;
         final controlClusterWidth = compactDesktop ? 260.0 : 450.0;
-        final primaryControlSize = compactDesktop ? 34.0 : 35.0;
-        final playButtonSize = compactDesktop ? 50.0 : 58.0;
 
         if (shortDesktop) {
           return Container(
@@ -330,7 +327,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
         }
 
         return Container(
-          height: 96,
+          height: 92,
           decoration: BoxDecoration(
             color: c.surfaceBase,
             border: Border(
@@ -340,42 +337,42 @@ class _DesktopMiniPlayer extends StatelessWidget {
               ),
             ),
           ),
-          child: Center(
-            child: Column(
-              children: [
-                GetX<PlayerController>(builder: (pc) {
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      left: 16,
-                      top: compactDesktop ? 8 : 12,
-                      right: 16,
-                      bottom: 0,
+          child: Column(
+            children: [
+              GetX<PlayerController>(builder: (pc) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: 20,
+                    top: 10,
+                    right: 20,
+                    bottom: 0,
+                  ),
+                  child: ProgressBar(
+                    timeLabelLocation: compactDesktop
+                        ? TimeLabelLocation.none
+                        : TimeLabelLocation.sides,
+                    thumbRadius: 4,
+                    barHeight: 2,
+                    thumbGlowRadius: 0,
+                    baseBarColor: c.borderStrong.withValues(alpha: 0.3),
+                    bufferedBarColor: c.accentMuted.withValues(alpha: 0.2),
+                    progressBarColor: c.accentPrimary,
+                    thumbColor: c.accentPrimary,
+                    timeLabelTextStyle: textTheme.labelSmall?.copyWith(
+                      color: c.textTertiary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
                     ),
-                    child: ProgressBar(
-                      timeLabelLocation: compactDesktop
-                          ? TimeLabelLocation.none
-                          : TimeLabelLocation.sides,
-                      thumbRadius: compactDesktop ? 5 : 6,
-                      barHeight: 2.5,
-                      thumbGlowRadius: 0,
-                      baseBarColor: c.borderStrong.withValues(alpha: 0.5),
-                      bufferedBarColor: c.accentMuted.withValues(alpha: 0.25),
-                      progressBarColor: c.accentPrimary,
-                      thumbColor: c.accentPrimary,
-                      timeLabelTextStyle: textTheme.labelSmall?.copyWith(
-                        color: c.textTertiary,
-                        fontSize: 11,
-                      ),
-                      progress: pc.progressBarStatus.value.current,
-                      total: pc.progressBarStatus.value.total,
-                      buffered: pc.progressBarStatus.value.buffered,
-                      onSeek: pc.seek,
-                    ),
-                  );
-                }),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: compactDesktop ? 8 : 10),
+                    progress: pc.progressBarStatus.value.current,
+                    total: pc.progressBarStatus.value.total,
+                    buffered: pc.progressBarStatus.value.buffered,
+                    onSeek: pc.seek,
+                  ),
+                );
+              }),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -386,20 +383,20 @@ class _DesktopMiniPlayer extends StatelessWidget {
                               ? GestureDetector(
                                   onTap: controller.playerPanelController.open,
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(6),
                                     child: ImageWidget(
-                                      size: 48,
+                                      size: 44,
                                       song: controller.currentSong.value!,
                                     ),
                                   ),
                                 )
                               : const SizedBox(
-                                  height: 48,
-                                  width: 48,
+                                  height: 44,
+                                  width: 44,
                                 ),
                         ],
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: GestureDetector(
                           onHorizontalDragEnd: (details) {
@@ -413,209 +410,144 @@ class _DesktopMiniPlayer extends StatelessWidget {
                           onTap: () {
                             controller.playerPanelController.open();
                           },
-                          child: ColoredBox(
-                            color: Colors.transparent,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  height: 18,
-                                  child: Text(
-                                    controller.currentSong.value?.title ?? '',
-                                    maxLines: 1,
-                                    style: textTheme.titleMedium?.copyWith(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                controller.currentSong.value?.title ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.titleMedium?.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.2,
                                 ),
-                                const SizedBox(height: 2),
-                                SizedBox(
-                                  height: 16,
-                                  child: Marquee(
-                                    id: "${controller.currentSong.value}_mini_desktop",
-                                    delay: const Duration(milliseconds: 300),
-                                    duration: const Duration(seconds: 5),
-                                    child: Text(
-                                      controller.currentSong.value?.artist ??
-                                          '',
-                                      maxLines: 1,
-                                      style: textTheme.titleSmall?.copyWith(
-                                        fontSize: 12,
-                                        color: c.textSecondary,
-                                      ),
-                                    ),
-                                  ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                controller.currentSong.value?.artist ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.bodySmall?.copyWith(
+                                  fontSize: 11,
+                                  color: c.textSecondary,
+                                  letterSpacing: 0.1,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                       SizedBox(
                         width: controlClusterWidth,
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Row(
                               children: [
-                                IconButton(
-                                    iconSize: 18,
-                                    onPressed: controller.toggleFavourite,
-                                    icon: Obx(() => Icon(
-                                          controller.isCurrentSongFav.isFalse
-                                              ? Icons.favorite_border
-                                              : Icons.favorite,
-                                          size: 18,
-                                          color: controller.isCurrentSongFav.isTrue
-                                              ? c.accentPrimary
-                                              : c.textSecondary,
-                                        ))),
-                                if (!compactDesktop)
-                                  IconButton(
-                                      iconSize: 18,
-                                      onPressed: controller.toggleShuffleMode,
-                                      icon: Obx(() => Icon(
-                                            Ionicons.shuffle,
-                                            size: 18,
-                                            color: controller
-                                                    .isShuffleModeEnabled.value
-                                                ? c.textPrimary
-                                                : c.textDisabled,
-                                          ))),
+                                _ControlIconButton(
+                                  icon: controller.isCurrentSongFav.isFalse
+                                      ? Icons.favorite_border
+                                      : Icons.favorite,
+                                  onPressed: controller.toggleFavourite,
+                                  isActive: controller.isCurrentSongFav.isTrue,
+                                  color: c.accentPrimary,
+                                ),
+                                if (!compactDesktop) ...[
+                                  const SizedBox(width: 4),
+                                  _ControlIconButton(
+                                    icon: Ionicons.shuffle,
+                                    onPressed: controller.toggleShuffleMode,
+                                    isActive: controller.isShuffleModeEnabled.isTrue,
+                                  ),
+                                ],
                               ],
                             ),
-                            SizedBox(
-                              width: 36,
-                              child: InkWell(
-                                onTap: (controller.currentQueue.isEmpty ||
-                                        (controller.currentQueue.first.id ==
-                                            controller.currentSong.value?.id))
-                                    ? null
-                                    : controller.prev,
-                                child: Icon(
-                                  Icons.skip_previous,
-                                  color: c.textPrimary,
-                                  size: primaryControlSize,
-                                ),
-                              ),
+                            const SizedBox(width: 8),
+                            _ControlIconButton(
+                              icon: Icons.skip_previous,
+                              onPressed: (controller.currentQueue.isEmpty ||
+                                      (controller.currentQueue.first.id ==
+                                          controller.currentSong.value?.id))
+                                  ? null
+                                  : controller.prev,
+                              iconSize: 22,
                             ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: c.surfaceOverlay.withValues(alpha: 0.6),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: c.borderSubtle,
-                                  width: 0.5,
-                                ),
-                              ),
-                              width: playButtonSize,
-                              height: playButtonSize,
-                              child: Center(
-                                child: IconTheme(
-                                  data: IconThemeData(color: c.textPrimary),
-                                  child: AnimatedPlayButton(
-                                    iconSize: 32,
-                                  ),
-                                ),
-                              ),
+                            const SizedBox(width: 6),
+                            _PlayButton(
+                              controller: controller,
+                              size: 36,
                             ),
-                            SizedBox(
-                              width: 36,
-                              child: Obx(() {
-                                final isLastSong = controller
-                                        .currentQueue.isEmpty ||
-                                    (!(controller.isShuffleModeEnabled.isTrue ||
-                                            controller.isQueueLoopModeEnabled
-                                                .isTrue) &&
-                                        (controller.currentQueue.last.id ==
-                                            controller.currentSong.value?.id));
-                                return InkWell(
-                                  onTap: isLastSong ? null : controller.next,
-                                  child: Icon(
-                                    Icons.skip_next,
-                                    color: isLastSong
-                                        ? c.textDisabled
-                                        : c.textPrimary,
-                                    size: primaryControlSize,
-                                  ),
-                                );
-                              }),
-                            ),
+                            const SizedBox(width: 6),
+                            Obx(() {
+                              final isLastSong = controller
+                                      .currentQueue.isEmpty ||
+                                  (!(controller.isShuffleModeEnabled.isTrue ||
+                                          controller.isQueueLoopModeEnabled.isTrue) &&
+                                      (controller.currentQueue.last.id ==
+                                          controller.currentSong.value?.id));
+                              return _ControlIconButton(
+                                icon: Icons.skip_next,
+                                onPressed: isLastSong ? null : controller.next,
+                                iconSize: 22,
+                                isDisabled: isLastSong,
+                              );
+                            }),
+                            const SizedBox(width: 8),
                             Row(
                               children: [
                                 if (!compactDesktop)
-                                  IconButton(
-                                      iconSize: 18,
-                                      onPressed: controller.toggleLoopMode,
-                                      icon: Icon(
-                                        Icons.all_inclusive,
-                                        size: 18,
-                                        color: controller.isLoopModeEnabled.value
-                                            ? c.textPrimary
-                                            : c.textDisabled,
-                                      )),
-                                IconButton(
-                                    iconSize: 18,
-                                    onPressed: () {
-                                      controller.showLyrics();
-                                      showDialog(
-                                              builder: (context) =>
-                                                  const LyricsDialog(),
-                                              context: context)
-                                          .whenComplete(() {
-                                        controller.isDesktopLyricsDialogOpen =
-                                            false;
-                                        controller.showLyricsflag.value = false;
-                                      });
-                                      controller.isDesktopLyricsDialogOpen =
-                                          true;
-                                    },
-                                    icon: Icon(
-                                      Icons.lyrics_outlined,
-                                      size: 18,
-                                      color: c.textSecondary,
-                                    )),
+                                  _ControlIconButton(
+                                    icon: Icons.all_inclusive,
+                                    onPressed: controller.toggleLoopMode,
+                                    isActive: controller.isLoopModeEnabled.isTrue,
+                                  ),
+                                _ControlIconButton(
+                                  icon: Icons.lyrics_outlined,
+                                  onPressed: () {
+                                    controller.showLyrics();
+                                    showDialog(
+                                            builder: (context) =>
+                                                const LyricsDialog(),
+                                            context: context)
+                                        .whenComplete(() {
+                                      controller.isDesktopLyricsDialogOpen = false;
+                                      controller.showLyricsflag.value = false;
+                                    });
+                                    controller.isDesktopLyricsDialogOpen = true;
+                                  },
+                                ),
                               ],
                             ),
-                            const SizedBox(width: 16),
                           ],
                         ),
                       ),
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.only(
-                            right: size.width < 1004 ? 0 : 30.0,
+                            right: size.width < 1004 ? 0 : 20.0,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               if (!compactDesktop)
-                                Container(
-                                  padding: const EdgeInsets.only(
-                                      right: 20, left: 10),
+                                SizedBox(
                                   height: 20,
-                                  width: 220,
+                                  width: 180,
                                   child: Obx(() {
                                     final volume = controller.volume.value;
                                     return Row(
                                       children: [
-                                        SizedBox(
-                                          width: 18,
-                                          child: InkWell(
-                                            onTap: controller.mute,
-                                            child: Icon(
-                                              volume == 0
-                                                  ? Icons.volume_off
-                                                  : volume > 0 && volume < 50
-                                                      ? Icons.volume_down
-                                                      : Icons.volume_up,
-                                              size: 18,
-                                              color: c.textSecondary,
-                                            ),
-                                          ),
+                                        _ControlIconButton(
+                                          icon: volume == 0
+                                              ? Icons.volume_off
+                                              : volume > 0 && volume < 50
+                                                  ? Icons.volume_down
+                                                  : Icons.volume_up,
+                                          onPressed: controller.mute,
+                                          iconSize: 16,
                                         ),
                                         Expanded(
                                           child: SliderTheme(
@@ -624,16 +556,18 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                               trackHeight: 2,
                                               thumbShape:
                                                   const RoundSliderThumbShape(
-                                                enabledThumbRadius: 5.0,
+                                                enabledThumbRadius: 4.0,
                                               ),
                                               overlayShape:
                                                   const RoundSliderOverlayShape(
-                                                overlayRadius: 8.0,
+                                                overlayRadius: 6.0,
                                               ),
+                                              activeTrackColor: c.accentPrimary,
+                                              inactiveTrackColor:
+                                                  c.borderStrong.withValues(alpha: 0.3),
                                             ),
                                             child: Slider(
-                                              value:
-                                                  controller.volume.value / 100,
+                                              value: controller.volume.value / 100,
                                               onChanged: (value) {
                                                 controller.setVolume(
                                                     (value * 100).toInt());
@@ -650,73 +584,60 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    IconButton(
+                                    _ControlIconButton(
+                                      icon: Icons.queue_music,
                                       onPressed: () {
                                         controller.homeScaffoldkey.currentState!
                                             .openEndDrawer();
                                       },
-                                      icon: Icon(Icons.queue_music,
-                                          size: 18,
-                                          color: c.textSecondary),
                                     ),
-                                    if (!compactDesktop)
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 8.0),
-                                        child: IconButton(
-                                          onPressed: () {
-                                            showModalBottomSheet(
-                                              constraints: const BoxConstraints(
-                                                maxWidth: 500,
+                                    if (!compactDesktop) ...[
+                                      const SizedBox(width: 4),
+                                      _ControlIconButton(
+                                        icon: controller.isSleepTimerActive.isTrue
+                                            ? Icons.timer
+                                            : Icons.timer_outlined,
+                                        onPressed: () {
+                                          showModalBottomSheet(
+                                            constraints: const BoxConstraints(
+                                              maxWidth: 500,
+                                            ),
+                                            shape: const RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.vertical(
+                                                top: Radius.circular(12.0),
                                               ),
-                                              shape:
-                                                  const RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.vertical(
-                                                  top: Radius.circular(12.0),
-                                                ),
-                                              ),
-                                              isScrollControlled: true,
-                                              context: Get.find<
-                                                      ShellController>()
-                                                  .overlayContextOrFallback!,
-                                              barrierColor: Colors.transparent
-                                                  .withAlpha(100),
-                                              builder: (context) =>
-                                                  const SleepTimerBottomSheet(),
-                                            );
-                                          },
-                                          icon: Icon(
-                                            controller.isSleepTimerActive.isTrue
-                                                ? Icons.timer
-                                                : Icons.timer_outlined,
-                                            size: 18,
-                                            color: c.textSecondary,
-                                          ),
-                                        ),
+                                            ),
+                                            isScrollControlled: true,
+                                            context: Get.find<ShellController>()
+                                                .overlayContextOrFallback!,
+                                            barrierColor:
+                                                Colors.transparent.withAlpha(100),
+                                            builder: (context) =>
+                                                const SleepTimerBottomSheet(),
+                                          );
+                                        },
                                       ),
-                                    const SizedBox(width: 8),
+                                    ],
+                                    const SizedBox(width: 4),
                                     if (compactDesktop)
                                       Obx(() {
                                         final volume = controller.volume.value;
-                                        return IconButton(
+                                        return _ControlIconButton(
+                                          icon: volume == 0
+                                              ? Icons.volume_off
+                                              : volume < 50
+                                                  ? Icons.volume_down
+                                                  : Icons.volume_up,
                                           onPressed: controller.mute,
-                                          icon: Icon(
-                                            volume == 0
-                                                ? Icons.volume_off
-                                                : volume < 50
-                                                    ? Icons.volume_down
-                                                    : Icons.volume_up,
-                                            size: 18,
-                                            color: c.textSecondary,
-                                          ),
                                         );
                                       }),
                                     const SongDownloadButton(
                                       calledFromPlayer: true,
                                     ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
+                                    const SizedBox(width: 4),
+                                    _ControlIconButton(
+                                      icon: Icons.playlist_add,
                                       onPressed: () {
                                         final currentSong =
                                             controller.currentSong.value;
@@ -725,16 +646,15 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                             context: context,
                                             builder: (context) =>
                                                 AddToPlaylist([currentSong]),
-                                          ).whenComplete(() => Get.delete<
-                                              AddToPlaylistController>());
+                                          ).whenComplete(() =>
+                                              Get.delete<AddToPlaylistController>());
                                         }
                                       },
-                                      icon: Icon(Icons.playlist_add,
-                                          size: 18,
-                                          color: c.textSecondary),
                                     ),
-                                    if (size.width > 965)
-                                      IconButton(
+                                    if (size.width > 965) ...[
+                                      const SizedBox(width: 4),
+                                      _ControlIconButton(
+                                        icon: Icons.info,
                                         onPressed: () {
                                           final currentSong =
                                               controller.currentSong.value;
@@ -748,12 +668,8 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                             );
                                           }
                                         },
-                                        icon: Icon(
-                                          Icons.info,
-                                          size: 18,
-                                          color: c.textSecondary,
-                                        ),
                                       ),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -764,11 +680,132 @@ class _DesktopMiniPlayer extends StatelessWidget {
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
     );
   }
 }
+
+class _ControlIconButton extends StatefulWidget {
+  const _ControlIconButton({
+    required this.icon,
+    required this.onPressed,
+    this.iconSize = 18,
+    this.isActive = false,
+    this.isDisabled = false,
+    this.color,
+  });
+
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final double iconSize;
+  final bool isActive;
+  final bool isDisabled;
+  final Color? color;
+
+  @override
+  State<_ControlIconButton> createState() => _ControlIconButtonState();
+}
+
+class _ControlIconButtonState extends State<_ControlIconButton> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.doudouColors;
+    final iconColor = widget.isDisabled
+        ? c.textDisabled
+        : (widget.isActive
+            ? (widget.color ?? c.accentPrimary)
+            : (_hover ? c.textPrimary : c.textSecondary));
+
+    return MouseRegion(
+      cursor: widget.onPressed != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: InkWell(
+        onTap: widget.onPressed,
+        customBorder: const CircleBorder(),
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            widget.icon,
+            size: widget.iconSize,
+            color: iconColor,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlayButton extends StatefulWidget {
+  const _PlayButton({
+    required this.controller,
+    required this.size,
+  });
+
+  final PlayerController controller;
+  final double size;
+
+  @override
+  State<_PlayButton> createState() => _PlayButtonState();
+}
+
+class _PlayButtonState extends State<_PlayButton> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.doudouColors;
+    
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: GestureDetector(
+        onTap: () {
+          final state = widget.controller.buttonState.value;
+          if (state == PlayButtonState.loading) return;
+          state == PlayButtonState.playing
+              ? widget.controller.pause()
+              : widget.controller.play();
+        },
+        child: Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            color: _hover ? c.accentPrimary : c.surfaceOverlay.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Obx(() {
+            final state = widget.controller.buttonState.value;
+            final isPlaying = state == PlayButtonState.playing;
+            final isLoading = state == PlayButtonState.loading;
+
+            if (isLoading) {
+              return const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              );
+            }
+
+            return Icon(
+              isPlaying ? Icons.pause : Icons.play_arrow,
+              size: widget.size * 0.45,
+              color: _hover ? Colors.white : c.textPrimary,
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+
