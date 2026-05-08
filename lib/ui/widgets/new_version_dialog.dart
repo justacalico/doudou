@@ -13,17 +13,34 @@ class NewVersionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return CommonDialog(
       child: Container(
-        constraints: const BoxConstraints(minHeight: 320, maxHeight: 400),
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+        constraints: const BoxConstraints(minHeight: 280, maxHeight: 380),
+        padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.system_update_alt_rounded,
+                size: 48,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 20),
             Text(
               context.l10n.newVersionAvailable,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
               textAlign: TextAlign.center,
             ),
             if (latestVersion != null && latestVersion!.isNotEmpty)
@@ -31,58 +48,68 @@ class NewVersionDialog extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   '${context.l10n.version} $latestVersion',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
-            Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: SizedBox.square(
-                  dimension: 100,
-                  child: FittedBox(
-                    child: FloatingActionButton(
-                      onPressed: () {
-                        launchUrl(
-                          Uri.parse('https://openlyst.ink/apps/doudou'),
-                          mode: LaunchMode.externalApplication,
-                        );
-                      },
-                      child: const Icon(
-                        Icons.download,
-                        size: 30,
-                      ),
-                    ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton.icon(
+                onPressed: () {
+                  launchUrl(
+                    Uri.parse('https://openlyst.ink/apps/doudou'),
+                    mode: LaunchMode.externalApplication,
+                  );
+                },
+                icon: const Icon(Icons.download_rounded, size: 22),
+                label: Text(context.l10n.download),
+                style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                )),
-            Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GetX<HomeScreenController>(builder: (controller) {
-                    return Checkbox(
-                        value: controller.showVersionDialog.isFalse,
-                        onChanged: (val) {
-                          controller.onChangeVersionVisibility(val ?? false);
-                        },
-                        shape: const CircleBorder());
-                  }),
-                  Text(context.l10n.dontShowInfoAgain)
-                ],
+                ),
               ),
             ),
-            Container(
-                decoration: BoxDecoration(
-                    color: Theme.of(context).textTheme.titleLarge!.color,
-                    borderRadius: BorderRadius.circular(10)),
-                child: InkWell(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 15.0, vertical: 10),
-                    child: Text(context.l10n.dismiss,
-                        style: TextStyle(color: Theme.of(context).canvasColor)),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GetX<HomeScreenController>(builder: (controller) {
+                  return Checkbox(
+                    value: controller.showVersionDialog.isFalse,
+                    onChanged: (val) {
+                      controller.onChangeVersionVisibility(val ?? false);
+                    },
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  );
+                }),
+                GestureDetector(
+                  onTap: () {
+                    final controller = Get.find<HomeScreenController>();
+                    controller.onChangeVersionVisibility(!controller.showVersionDialog.value);
+                  },
+                  child: Text(
+                    context.l10n.dontShowInfoAgain,
+                    style: theme.textTheme.bodySmall,
                   ),
-                  onTap: () => Navigator.of(context).pop(),
-                ))
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                context.l10n.dismiss,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
           ],
         ),
       ),
