@@ -332,9 +332,12 @@ class _DesktopMiniPlayer extends StatelessWidget {
         return Container(
           height: 96,
           decoration: BoxDecoration(
-            color: c.raisedBackground,
+            color: c.surfaceBase,
             border: Border(
-              top: BorderSide(color: c.borderSubtle),
+              top: BorderSide(
+                color: c.borderSubtle,
+                width: 0.5,
+              ),
             ),
           ),
           child: Center(
@@ -344,7 +347,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                   return Padding(
                     padding: EdgeInsets.only(
                       left: 16,
-                      top: compactDesktop ? 6 : 10,
+                      top: compactDesktop ? 8 : 12,
                       right: 16,
                       bottom: 0,
                     ),
@@ -352,16 +355,16 @@ class _DesktopMiniPlayer extends StatelessWidget {
                       timeLabelLocation: compactDesktop
                           ? TimeLabelLocation.none
                           : TimeLabelLocation.sides,
-                      thumbRadius: compactDesktop ? 6 : 7,
-                      barHeight: 3,
+                      thumbRadius: compactDesktop ? 5 : 6,
+                      barHeight: 2.5,
                       thumbGlowRadius: 0,
-                      baseBarColor: c.borderStrong,
-                      bufferedBarColor: context.doudouColors.accentMuted
-                          .withValues(alpha: 0.35),
-                      progressBarColor: context.doudouColors.accentPrimary,
-                      thumbColor: context.doudouColors.accentPrimary,
+                      baseBarColor: c.borderStrong.withValues(alpha: 0.5),
+                      bufferedBarColor: c.accentMuted.withValues(alpha: 0.25),
+                      progressBarColor: c.accentPrimary,
+                      thumbColor: c.accentPrimary,
                       timeLabelTextStyle: textTheme.labelSmall?.copyWith(
-                        color: context.doudouColors.textTertiary,
+                        color: c.textTertiary,
+                        fontSize: 11,
                       ),
                       progress: pc.progressBarStatus.value.current,
                       total: pc.progressBarStatus.value.total,
@@ -372,7 +375,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                 }),
                 Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: compactDesktop ? 6 : 8),
+                      horizontal: 16.0, vertical: compactDesktop ? 8 : 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -382,18 +385,21 @@ class _DesktopMiniPlayer extends StatelessWidget {
                           controller.currentSong.value != null
                               ? GestureDetector(
                                   onTap: controller.playerPanelController.open,
-                                  child: ImageWidget(
-                                    size: 50,
-                                    song: controller.currentSong.value!,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: ImageWidget(
+                                      size: 48,
+                                      song: controller.currentSong.value!,
+                                    ),
                                   ),
                                 )
                               : const SizedBox(
-                                  height: 50,
-                                  width: 50,
+                                  height: 48,
+                                  width: 48,
                                 ),
                         ],
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: GestureDetector(
                           onHorizontalDragEnd: (details) {
@@ -414,15 +420,19 @@ class _DesktopMiniPlayer extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 SizedBox(
-                                  height: 20,
+                                  height: 18,
                                   child: Text(
                                     controller.currentSong.value?.title ?? '',
                                     maxLines: 1,
-                                    style: textTheme.titleMedium,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
+                                const SizedBox(height: 2),
                                 SizedBox(
-                                  height: 20,
+                                  height: 16,
                                   child: Marquee(
                                     id: "${controller.currentSong.value}_mini_desktop",
                                     delay: const Duration(milliseconds: 300),
@@ -431,7 +441,10 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                       controller.currentSong.value?.artist ??
                                           '',
                                       maxLines: 1,
-                                      style: textTheme.titleSmall,
+                                      style: textTheme.titleSmall?.copyWith(
+                                        fontSize: 12,
+                                        color: c.textSecondary,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -448,22 +461,24 @@ class _DesktopMiniPlayer extends StatelessWidget {
                             Row(
                               children: [
                                 IconButton(
-                                    iconSize: 20,
+                                    iconSize: 18,
                                     onPressed: controller.toggleFavourite,
                                     icon: Obx(() => Icon(
                                           controller.isCurrentSongFav.isFalse
                                               ? Icons.favorite_border
                                               : Icons.favorite,
+                                          size: 18,
                                           color: controller.isCurrentSongFav.isTrue
                                               ? c.accentPrimary
                                               : c.textSecondary,
                                         ))),
                                 if (!compactDesktop)
                                   IconButton(
-                                      iconSize: 20,
+                                      iconSize: 18,
                                       onPressed: controller.toggleShuffleMode,
                                       icon: Obx(() => Icon(
                                             Ionicons.shuffle,
+                                            size: 18,
                                             color: controller
                                                     .isShuffleModeEnabled.value
                                                 ? c.textPrimary
@@ -472,7 +487,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                               ],
                             ),
                             SizedBox(
-                              width: 40,
+                              width: 36,
                               child: InkWell(
                                 onTap: (controller.currentQueue.isEmpty ||
                                         (controller.currentQueue.first.id ==
@@ -488,22 +503,26 @@ class _DesktopMiniPlayer extends StatelessWidget {
                             ),
                             Container(
                               decoration: BoxDecoration(
-                                color: c.accentPrimary,
-                                borderRadius: BorderRadius.circular(10),
+                                color: c.surfaceOverlay.withValues(alpha: 0.6),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: c.borderSubtle,
+                                  width: 0.5,
+                                ),
                               ),
                               width: playButtonSize,
                               height: playButtonSize,
-                              child: const Center(
+                              child: Center(
                                 child: IconTheme(
-                                  data: IconThemeData(color: Colors.white),
+                                  data: IconThemeData(color: c.textPrimary),
                                   child: AnimatedPlayButton(
-                                    iconSize: 36,
+                                    iconSize: 32,
                                   ),
                                 ),
                               ),
                             ),
                             SizedBox(
-                              width: 40,
+                              width: 36,
                               child: Obx(() {
                                 final isLastSong = controller
                                         .currentQueue.isEmpty ||
@@ -528,16 +547,17 @@ class _DesktopMiniPlayer extends StatelessWidget {
                               children: [
                                 if (!compactDesktop)
                                   IconButton(
-                                      iconSize: 20,
+                                      iconSize: 18,
                                       onPressed: controller.toggleLoopMode,
                                       icon: Icon(
                                         Icons.all_inclusive,
+                                        size: 18,
                                         color: controller.isLoopModeEnabled.value
                                             ? c.textPrimary
                                             : c.textDisabled,
                                       )),
                                 IconButton(
-                                    iconSize: 20,
+                                    iconSize: 18,
                                     onPressed: () {
                                       controller.showLyrics();
                                       showDialog(
@@ -554,11 +574,12 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                     },
                                     icon: Icon(
                                       Icons.lyrics_outlined,
+                                      size: 18,
                                       color: c.textSecondary,
                                     )),
                               ],
                             ),
-                            const SizedBox(width: 20),
+                            const SizedBox(width: 16),
                           ],
                         ),
                       ),
@@ -582,7 +603,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                     return Row(
                                       children: [
                                         SizedBox(
-                                          width: 20,
+                                          width: 18,
                                           child: InkWell(
                                             onTap: controller.mute,
                                             child: Icon(
@@ -591,7 +612,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                                   : volume > 0 && volume < 50
                                                       ? Icons.volume_down
                                                       : Icons.volume_up,
-                                              size: 20,
+                                              size: 18,
                                               color: c.textSecondary,
                                             ),
                                           ),
@@ -603,11 +624,11 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                               trackHeight: 2,
                                               thumbShape:
                                                   const RoundSliderThumbShape(
-                                                enabledThumbRadius: 6.0,
+                                                enabledThumbRadius: 5.0,
                                               ),
                                               overlayShape:
                                                   const RoundSliderOverlayShape(
-                                                overlayRadius: 10.0,
+                                                overlayRadius: 8.0,
                                               ),
                                             ),
                                             child: Slider(
@@ -635,12 +656,13 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                             .openEndDrawer();
                                       },
                                       icon: Icon(Icons.queue_music,
+                                          size: 18,
                                           color: c.textSecondary),
                                     ),
                                     if (!compactDesktop)
                                       Padding(
                                         padding:
-                                            const EdgeInsets.only(left: 10.0),
+                                            const EdgeInsets.only(left: 8.0),
                                         child: IconButton(
                                           onPressed: () {
                                             showModalBottomSheet(
@@ -651,7 +673,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                                   const RoundedRectangleBorder(
                                                 borderRadius:
                                                     BorderRadius.vertical(
-                                                  top: Radius.circular(10.0),
+                                                  top: Radius.circular(12.0),
                                                 ),
                                               ),
                                               isScrollControlled: true,
@@ -668,11 +690,12 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                             controller.isSleepTimerActive.isTrue
                                                 ? Icons.timer
                                                 : Icons.timer_outlined,
+                                            size: 18,
                                             color: c.textSecondary,
                                           ),
                                         ),
                                       ),
-                                    const SizedBox(width: 10),
+                                    const SizedBox(width: 8),
                                     if (compactDesktop)
                                       Obx(() {
                                         final volume = controller.volume.value;
@@ -684,7 +707,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                                 : volume < 50
                                                     ? Icons.volume_down
                                                     : Icons.volume_up,
-                                            size: 20,
+                                            size: 18,
                                             color: c.textSecondary,
                                           ),
                                         );
@@ -692,7 +715,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                     const SongDownloadButton(
                                       calledFromPlayer: true,
                                     ),
-                                    const SizedBox(width: 10),
+                                    const SizedBox(width: 8),
                                     IconButton(
                                       onPressed: () {
                                         final currentSong =
@@ -707,6 +730,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                         }
                                       },
                                       icon: Icon(Icons.playlist_add,
+                                          size: 18,
                                           color: c.textSecondary),
                                     ),
                                     if (size.width > 965)
@@ -726,7 +750,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                         },
                                         icon: Icon(
                                           Icons.info,
-                                          size: 22,
+                                          size: 18,
                                           color: c.textSecondary,
                                         ),
                                       ),
