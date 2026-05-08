@@ -315,8 +315,6 @@ class Body extends StatelessWidget {
 
                         final content = <Widget>[];
 
-                        content.add(const SizedBox(height: 12));
-                        content.add(const SizedBox(height: 24));
                         content.add(
                           _buildHomeQuickActionCards(
                             context: context,
