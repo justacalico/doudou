@@ -24,49 +24,8 @@ static void my_application_activate(GApplication* application) {
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
-  // Use a header bar when running in GNOME as this is the common style used
-  // by applications and is the setup most users will be using (e.g. Ubuntu
-  // desktop).
-  // If running on X and not using GNOME then just use a traditional title bar
-  // in case the window manager does more exotic layout, e.g. tiling.
-  // If running on Wayland assume the header bar will work (may need changing
-  // if future cases occur).
-  gboolean use_header_bar = TRUE;
-
-#ifdef GDK_WINDOWING_X11
-  GdkScreen* screen = gtk_window_get_screen(window);
-  if (GDK_IS_X11_SCREEN(screen)) {
-    const gchar* wm_name = gdk_x11_screen_get_window_manager_name(screen);
-    if (g_strcmp0(wm_name, "GNOME Shell") != 0) {
-      use_header_bar = FALSE;
-    }
-  }
-#endif
-
-#ifdef GDK_WINDOWING_WAYLAND
-  GdkDisplay* display = gtk_widget_get_display(GTK_WIDGET(window));
-  if (GDK_IS_WAYLAND_DISPLAY(display)) {
-    // Check the XDG_CURRENT_DESKTOP environment variable to determine the
-    // desktop environment.
-    const gchar* current_desktop = g_getenv("XDG_CURRENT_DESKTOP");
-    if (current_desktop != NULL && g_str_has_prefix(current_desktop, "GNOME")) {
-      use_header_bar = TRUE;
-    } else {
-      use_header_bar = FALSE;
-    }
-  }
-#endif
-
-  if (use_header_bar) {
-    GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
-    gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "doudou");
-    gtk_header_bar_set_show_close_button(header_bar, TRUE);
-    gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
-  } else {
-    gtk_window_set_title(window, "doudou");
-  }
-
+  gtk_window_set_title(window, "doudou");
+  gtk_window_set_decorated(window, FALSE);
   gtk_window_set_default_size(window, 1280, 720);
   gtk_widget_show(GTK_WIDGET(window));
 
@@ -80,6 +39,49 @@ static void my_application_activate(GApplication* application) {
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
   gtk_widget_grab_focus(GTK_WIDGET(view));
+
+  setup_window_control_channel(view);
+}
+
+static void setup_window_control_channel(FlView* view) {
+  FlEngine* engine = fl_view_get_engine(view);
+  g_autoptr(FlMethodChannel) channel = fl_method_channel_new(
+      fl_engine_get_binary_messenger(engine),
+      "com.openlyst.doudou/window_controls",
+      FL_METHOD_CODEC_CODEC(fl_standard_method_codec_new()));
+
+  fl_method_channel_set_method_call_handler(channel, window_control_method_call,
+                                            g_object_ref(view), g_object_unref);
+}
+
+static void window_control_method_call(FlMethodChannel* channel,
+                                       FlMethodCall* method_call,
+                                       gpointer user_data) {
+  FlView* view = FL_VIEW(user_data);
+  GtkWidget* widget = GTK_WIDGET(view);
+  GtkWindow* window = GTK_WINDOW(gtk_widget_get_toplevel(widget));
+
+  const gchar* method = fl_method_call_get_name(method_call);
+  g_autoptr(FlMethodResponse) response = nullptr;
+
+  if (g_strcmp0(method, "minimize") == 0) {
+    gtk_window_iconify(window);
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else if (g_strcmp0(method, "maximize") == 0) {
+    if (gtk_window_is_maximized(window)) {
+      gtk_window_unmaximize(window);
+    } else {
+      gtk_window_maximize(window);
+    }
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else if (g_strcmp0(method, "close") == 0) {
+    gtk_window_close(window);
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else {
+    response = FL_METHOD_RESPONSE(fl_method_not_implemented_response_new());
+  }
+
+  fl_method_call_respond(method_call, response, nullptr);
 }
 
 // Implements GApplication::local_command_line.

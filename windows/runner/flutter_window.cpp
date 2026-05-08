@@ -24,6 +24,25 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
 
+  HWND hwnd = GetHandle();
+
+  // Extend the frame into the client area to remove the title bar
+  MARGINS margins = {1, 1, 1, 1};
+  DwmExtendFrameIntoClientArea(hwnd, &margins);
+
+  // Remove the window style to make it frameless
+  LONG style = GetWindowLong(hwnd, GWL_STYLE);
+  style &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
+  SetWindowLong(hwnd, GWL_STYLE, style);
+
+  // Set the window to have a thin border
+  LONG ex_style = GetWindowLong(hwnd, GWL_EXSTYLE);
+  ex_style |= WS_EX_APPWINDOW;
+  SetWindowLong(hwnd, GWL_EXSTYLE, ex_style);
+
+  // Redraw the window
+  SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+
   RECT frame = GetClientArea();
 
   // The size here must match the window dimensions to avoid unnecessary surface
@@ -46,15 +65,15 @@ bool FlutterWindow::OnCreate() {
   // window is shown. It is a no-op if the first frame hasn't completed yet.
   flutter_controller_->ForceRedraw();
 
-  // platform channel for titlebar color
+  // platform channel for titlebar color and window controls
   auto messenger = flutter_controller_->engine()->messenger();
   auto channel = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
       messenger,
-      "win_titlebar_color",
+      "com.openlyst.doudou/window_controls",
       &flutter::StandardMethodCodec::GetInstance());
 
   channel->SetMethodCallHandler(
-      [hwnd = GetHandle()](const flutter::MethodCall<flutter::EncodableValue>& call,
+      [hwnd](const flutter::MethodCall<flutter::EncodableValue>& call,
                            std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
         if (call.method_name() == "setTitleBarColor") {
           const auto* args = std::get_if<flutter::EncodableMap>(call.arguments());
@@ -75,6 +94,21 @@ bool FlutterWindow::OnCreate() {
           } else {
             result->Error("DWM_ERROR", "Failed to set title bar color");
           }
+        } else if (call.method_name() == "minimize") {
+          ShowWindow(hwnd, SW_MINIMIZE);
+          result->Success();
+        } else if (call.method_name() == "maximize") {
+          WINDOWPLACEMENT placement;
+          GetWindowPlacement(hwnd, &placement);
+          if (placement.showCmd == SW_MAXIMIZE) {
+            ShowWindow(hwnd, SW_RESTORE);
+          } else {
+            ShowWindow(hwnd, SW_MAXIMIZE);
+          }
+          result->Success();
+        } else if (call.method_name() == "close") {
+          PostMessage(hwnd, WM_CLOSE, 0, 0);
+          result->Success();
         } else {
           result->NotImplemented();
         }

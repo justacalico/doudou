@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -5,6 +6,7 @@ import '/utils/app_l10n.dart';
 import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
+import 'package:doudou/ui/widgets/window_controls.dart';
 
 class SideNavBar extends StatelessWidget {
   const SideNavBar({
@@ -84,6 +86,21 @@ class _SidebarContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (Platform.isMacOS || Platform.isLinux || Platform.isWindows)
+            Padding(
+              padding: EdgeInsets.only(
+                left: Platform.isMacOS ? 12 : 0,
+                right: Platform.isMacOS ? 0 : 12,
+                top: 8,
+                bottom: 4,
+              ),
+              child: Row(
+                mainAxisAlignment: Platform.isMacOS
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.end,
+                children: const [WindowControls()],
+              ),
+            ),
           Expanded(
             child: ScrollConfiguration(
               behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
