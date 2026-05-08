@@ -97,7 +97,7 @@ class AddToPlaylist extends StatelessWidget {
                 ),
               Container(
                 decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: context.doudouColors.surfaceBase,
                     borderRadius: BorderRadius.circular(10)),
                 height: 250,
                 child: Obx(
@@ -108,7 +108,9 @@ class AddToPlaylist extends StatelessWidget {
                             leading: Icon(Icons.playlist_play, color: context.doudouColors.textSecondary),
                             title: Text(
                               (addToPlaylistController.playlists[index]).title,
-                              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: context.doudouColors.textPrimary,
+                              ),
                             ),
                             onTap: () {
                               addToPlaylistController
