@@ -53,9 +53,6 @@ Available for Android, iOS, macOS, Windows, Linux, and Web.
 
 ## FAQ
 
-**Do I need a server?**
-No. You can play local files directly from your device without any server.
-
 **Can I use this away from home?**
 Yes, as long as your server is accessible over the internet. Consider using a VPN for security.
 
