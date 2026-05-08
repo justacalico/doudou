@@ -85,97 +85,100 @@ class _SidebarContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _SidebarBrand(minimized: minimized),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: minimized ? 8 : 12),
-                    child: Column(
-                      children: [
-                        _SidebarTile(
-                          icon: Icons.home_outlined,
-                          activeIcon: Icons.home_rounded,
-                          label: context.l10n.home,
-                          selected: currentIndex == 0,
-                          compact: minimized,
-                          onTap: () => home.onSideBarTabSelected(0),
-                        ),
-                        _SidebarTile(
-                          icon: Icons.search_outlined,
-                          activeIcon: Icons.search_rounded,
-                          label: context.l10n.search,
-                          selected: currentIndex == 1,
-                          compact: minimized,
-                          onTap: () => home.onSideBarTabSelected(1),
-                        ),
-                        _SidebarTile(
-                          icon: Icons.folder_outlined,
-                          activeIcon: Icons.folder_rounded,
-                          label: context.l10n.library,
-                          selected: currentIndex == 2,
-                          compact: minimized,
-                          onTap: () => home.onSideBarTabSelected(2),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: minimized ? 16 : 24),
-                  if (!minimized)
+            child: ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SidebarBrand(minimized: minimized),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        context.l10n.library.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: c.textTertiary,
-                          letterSpacing: 1.2,
-                        ),
+                      padding: EdgeInsets.symmetric(horizontal: minimized ? 8 : 12),
+                      child: Column(
+                        children: [
+                          _SidebarTile(
+                            icon: Icons.home_outlined,
+                            activeIcon: Icons.home_rounded,
+                            label: context.l10n.home,
+                            selected: currentIndex == 0,
+                            compact: minimized,
+                            onTap: () => home.onSideBarTabSelected(0),
+                          ),
+                          _SidebarTile(
+                            icon: Icons.search_outlined,
+                            activeIcon: Icons.search_rounded,
+                            label: context.l10n.search,
+                            selected: currentIndex == 1,
+                            compact: minimized,
+                            onTap: () => home.onSideBarTabSelected(1),
+                          ),
+                          _SidebarTile(
+                            icon: Icons.folder_outlined,
+                            activeIcon: Icons.folder_rounded,
+                            label: context.l10n.library,
+                            selected: currentIndex == 2,
+                            compact: minimized,
+                            onTap: () => home.onSideBarTabSelected(2),
+                          ),
+                        ],
                       ),
                     ),
-                  SizedBox(height: minimized ? 4 : 8),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: minimized ? 8 : 12),
-                    child: Column(
-                      children: [
-                        _SidebarTile(
-                          icon: Icons.audiotrack,
-                          activeIcon: Icons.audiotrack,
-                          label: context.l10n.songs,
-                          selected: currentIndex == 3,
-                          compact: minimized,
-                          onTap: () => home.onSideBarTabSelected(3),
+                    SizedBox(height: minimized ? 16 : 24),
+                    if (!minimized)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          context.l10n.library.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: c.textTertiary,
+                            letterSpacing: 1.2,
+                          ),
                         ),
-                        _SidebarTile(
-                          icon: Icons.library_music_outlined,
-                          activeIcon: Icons.library_music,
-                          label: context.l10n.playlists,
-                          selected: currentIndex == 4,
-                          compact: minimized,
-                          onTap: () => home.onSideBarTabSelected(4),
-                        ),
-                        _SidebarTile(
-                          icon: Icons.album_outlined,
-                          activeIcon: Icons.album,
-                          label: context.l10n.albums,
-                          selected: currentIndex == 5,
-                          compact: minimized,
-                          onTap: () => home.onSideBarTabSelected(5),
-                        ),
-                        _SidebarTile(
-                          icon: Icons.person_outline,
-                          activeIcon: Icons.person,
-                          label: context.l10n.artists,
-                          selected: currentIndex == 6,
-                          compact: minimized,
-                          onTap: () => home.onSideBarTabSelected(6),
-                        ),
-                      ],
+                      ),
+                    SizedBox(height: minimized ? 4 : 8),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: minimized ? 8 : 12),
+                      child: Column(
+                        children: [
+                          _SidebarTile(
+                            icon: Icons.audiotrack,
+                            activeIcon: Icons.audiotrack,
+                            label: context.l10n.songs,
+                            selected: currentIndex == 3,
+                            compact: minimized,
+                            onTap: () => home.onSideBarTabSelected(3),
+                          ),
+                          _SidebarTile(
+                            icon: Icons.library_music_outlined,
+                            activeIcon: Icons.library_music,
+                            label: context.l10n.playlists,
+                            selected: currentIndex == 4,
+                            compact: minimized,
+                            onTap: () => home.onSideBarTabSelected(4),
+                          ),
+                          _SidebarTile(
+                            icon: Icons.album_outlined,
+                            activeIcon: Icons.album,
+                            label: context.l10n.albums,
+                            selected: currentIndex == 5,
+                            compact: minimized,
+                            onTap: () => home.onSideBarTabSelected(5),
+                          ),
+                          _SidebarTile(
+                            icon: Icons.person_outline,
+                            activeIcon: Icons.person,
+                            label: context.l10n.artists,
+                            selected: currentIndex == 6,
+                            compact: minimized,
+                            onTap: () => home.onSideBarTabSelected(6),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
