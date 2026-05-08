@@ -266,8 +266,6 @@ class Body extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildHomeHeader(context),
-                              const SizedBox(height: 24),
                               _buildHomeQuickActionCards(
                                 context: context,
                                 libSongs: libSongs,
@@ -318,7 +316,6 @@ class Body extends StatelessWidget {
                         final content = <Widget>[];
 
                         content.add(const SizedBox(height: 12));
-                        content.add(_buildHomeHeader(context));
                         content.add(const SizedBox(height: 24));
                         content.add(
                           _buildHomeQuickActionCards(
@@ -468,42 +465,6 @@ class Body extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildHomeHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              context.l10n.home,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 4,
-              height: 4,
-              decoration: const BoxDecoration(
-                color: kDoudouPurple,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          context.l10n.homeSubtitle,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: kDoudouZinc500,
-          ),
-        ),
-      ],
     );
   }
 
