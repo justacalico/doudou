@@ -341,7 +341,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
             children: [
               GetX<PlayerController>(builder: (pc) {
                 return Padding(
-                  padding: EdgeInsets.only(
+                  padding: const EdgeInsets.only(
                     left: 20,
                     top: 10,
                     right: 20,
