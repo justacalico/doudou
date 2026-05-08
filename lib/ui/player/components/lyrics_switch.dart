@@ -11,7 +11,7 @@ class LyricsSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PlayerController playerController = Get.find<PlayerController>();
-    final theme = Theme.of(context);
+    Theme.of(context);
     return Obx(
       () => playerController.showLyricsflag.value
           ? Container(
