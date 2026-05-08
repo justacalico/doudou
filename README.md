@@ -41,7 +41,7 @@ A privacy-focused music player for your media server. Stream your music collecti
 
 **[Download for all platforms](https://openlyst.ink/apps/doudou)**
 
-Available for Android, iOS, macOS, Windows, Linux, and Web.
+Available for Android, iOS, macOS, Windows, Linux.
 
 ## Setup
 
