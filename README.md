@@ -66,7 +66,7 @@ Long-press any song, album, or playlist and select "Download for offline listeni
 Jellyfin offers the best experience with full feature support and is completely free.
 
 **Is the desktop version different?**
-Desktop and mobile use one responsive now-playing/details codepath with adaptive layouts.
+Desktop and mobile use the same backend rescaling the app will change from desktop or mobile ui tho.s
 
 ## Building from Source
 
