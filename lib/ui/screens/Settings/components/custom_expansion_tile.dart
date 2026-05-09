@@ -62,7 +62,15 @@ class CustomExpansionTile extends StatelessWidget {
                   ),
                   child: Icon(icon, size: 22, color: kDoudouPurple),
                 ),
-                children: children,
+                children: [
+                  SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: children,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
