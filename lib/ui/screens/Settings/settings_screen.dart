@@ -842,6 +842,14 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
             ),
           )),
       Obx(() => ListTile(
+            title: Text(context.l10n.autoRadio),
+            subtitle: Text(context.l10n.autoRadioDes),
+            trailing: CustSwitch(
+              value: settings.autoRadioEnabled.value,
+              onChanged: settings.toggleAutoRadio,
+            ),
+          )),
+      Obx(() => ListTile(
             title: Text(context.l10n.restoreLastPlaybackSession),
             subtitle: Text(context.l10n.restoreLastPlaybackSessionDes),
             trailing: CustSwitch(

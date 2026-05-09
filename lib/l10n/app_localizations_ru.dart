@@ -1199,6 +1199,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Если включено, экран устройства будет оставаться включенным во время воспроизведения музыки';
 
   @override
+  String get autoRadio => 'Автоматический запуск радио';
+
+  @override
+  String get autoRadioDes =>
+      'Автоматически запускать режим радио при воспроизведении одной песни из YouTube Music';
+
+  @override
   String get resyncLibraryNow => 'Синхронизировать библиотеку';
 
   @override

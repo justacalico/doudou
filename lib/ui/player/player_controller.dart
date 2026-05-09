@@ -382,6 +382,18 @@ class PlayerController extends GetxController
   ///songs into Queue
   Future<void> pushSongToQueue(MediaItem? mediaItem,
       {String? playlistid, bool radio = false}) async {
+    final settings = Get.find<SettingsScreenController>();
+    final server = settings.activeServer;
+    final isYouTube = server?.type == ServerType.youtubeMusic;
+
+    // Auto-start radio for single songs on YouTube Music if enabled
+    if (!radio && isYouTube && playlistid == null) {
+      final autoRadioEnabled = Hive.box("AppPrefs").get("autoRadioEnabled") ?? true;
+      if (autoRadioEnabled) {
+        radio = true;
+      }
+    }
+
     /// update playing from value
     playinfrom.value = PlaylingFrom(
         type: PlaylingFromType.SELECTION,
@@ -442,7 +454,20 @@ class PlayerController extends GetxController
   }
 
   Future<void> playPlayListSong(List<MediaItem> mediaItems, int index,
-      {PlaylingFrom? playfrom}) async {
+      {PlaylingFrom? playfrom, bool autoRadio = false}) async {
+    final settings = Get.find<SettingsScreenController>();
+    final server = settings.activeServer;
+    final isYouTube = server?.type == ServerType.youtubeMusic;
+
+    // Auto-start radio for single songs on YouTube Music if enabled
+    if (autoRadio && isYouTube && mediaItems.length == 1) {
+      final autoRadioEnabled = Hive.box("AppPrefs").get("autoRadioEnabled") ?? true;
+      if (autoRadioEnabled) {
+        await startRadio(mediaItems[index]);
+        return;
+      }
+    }
+
     isRadioModeOn = false;
     //open player pane,set current song and push first song into playing list,
 
@@ -473,15 +498,29 @@ class PlayerController extends GetxController
   }
 
   Future<void> _addRadioContinuation(dynamic item) async {
-    final isSong = item.runtimeType.toString() == "MediaItem";
-    final content = await _musicServices.getWatchPlaylist(
-        videoId: isSong ? item.id : "",
-        radio: true,
-        limit: 24,
-        playlistId: isSong ? null : item,
-        additionalParamsNext: radioContinuationParam);
-    radioContinuationParam = content['additionalParamsForNext'];
-    await enqueueSongList(List<MediaItem>.from(content['tracks']));
+    try {
+      final isSong = item.runtimeType.toString() == "MediaItem";
+      final content = await _musicServices.getWatchPlaylist(
+          videoId: isSong ? item.id : "",
+          radio: true,
+          limit: 24,
+          playlistId: isSong ? null : item,
+          additionalParamsNext: radioContinuationParam);
+      radioContinuationParam = content['additionalParamsForNext'];
+      final tracks = List<MediaItem>.from(content['tracks']);
+      if (tracks.isNotEmpty) {
+        await enqueueSongList(tracks);
+      } else {
+        // No more tracks available, stop radio mode
+        isRadioModeOn = false;
+        radioContinuationParam = null;
+      }
+    } catch (e) {
+      printERROR('Radio continuation failed: $e');
+      // Stop radio mode on error to prevent infinite retry loops
+      isRadioModeOn = false;
+      radioContinuationParam = null;
+    }
   }
 
   ///enqueueSong   append a song to current queue

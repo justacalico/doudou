@@ -1147,6 +1147,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get keepScreenOnWhilePlayingDes => '启用后，播放音乐时设备屏幕将保持点亮';
 
   @override
+  String get autoRadio => '自动启动电台';
+
+  @override
+  String get autoRadioDes => '播放 YouTube Music 中的单首歌曲时自动启动电台模式';
+
+  @override
   String get resyncLibraryNow => '立即重新同步曲库';
 
   @override

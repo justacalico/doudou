@@ -1375,26 +1375,40 @@ class _ExpandedLeftColumnState extends State<_ExpandedLeftColumn> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-                  Text.rich(
-                    TextSpan(
-                      text: context.l10n.fromAlbum,
-                      style: TextStyle(
-                        fontSize: metrics.isDense ? 13 : 14,
-                        color: mutedColor,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: song?.album ?? pc.playinfrom.value.nameString,
-                          style: TextStyle(
-                            fontSize: metrics.isDense ? 13 : 14,
-                            color: textColor.withValues(alpha: 0.9),
-                          ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (pc.isRadioModeOn)
+                        Icon(
+                          Icons.radio,
+                          size: metrics.isDense ? 14 : 16,
+                          color: textColor.withValues(alpha: 0.7),
                         ),
-                      ],
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
+                      if (pc.isRadioModeOn) const SizedBox(width: 4),
+                      Flexible(
+                        child: Text.rich(
+                          TextSpan(
+                            text: context.l10n.fromAlbum,
+                            style: TextStyle(
+                              fontSize: metrics.isDense ? 13 : 14,
+                              color: mutedColor,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: song?.album ?? pc.playinfrom.value.nameString,
+                                style: TextStyle(
+                                  fontSize: metrics.isDense ? 13 : 14,
+                                  color: textColor.withValues(alpha: 0.9),
+                                ),
+                              ),
+                            ],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text.rich(

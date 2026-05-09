@@ -2363,6 +2363,18 @@ abstract class AppLocalizations {
   /// **'If enabled, the device screen will stay awake while music is playing'**
   String get keepScreenOnWhilePlayingDes;
 
+  /// No description provided for @autoRadio.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Auto-start radio'**
+  String get autoRadio;
+
+  /// No description provided for @autoRadioDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Automatically start radio mode when playing a single song from YouTube Music'**
+  String get autoRadioDes;
+
   /// No description provided for @resyncLibraryNow.
   ///
   /// In en_AU, this message translates to:

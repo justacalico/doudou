@@ -24,7 +24,6 @@ import '/services/music_service.dart';
 import '/ui/player/player_controller.dart';
 import '../Home/home_screen_controller.dart';
 import '/ui/utils/theme_controller.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '/models/server.dart';
 import '/services/backend/backend_factory.dart';
@@ -77,6 +76,7 @@ class SettingsScreenController extends GetxController {
   final backgroundPlayEnabled = true.obs;
   final keepScreenAwake = false.obs;
   final restorePlaybackSession = false.obs;
+  final autoRadioEnabled = true.obs;
   final cacheHomeScreenData = true.obs;
   final checkForUpdatesOnStartup = true.obs;
   final playbackDiagnosticsEnabled = false.obs;
@@ -230,6 +230,7 @@ class SettingsScreenController extends GetxController {
     playerUi.value = isDesktop ? 0 : (setBox.get('playerUi') ?? 0);
     backgroundPlayEnabled.value = setBox.get("backgroundPlayEnabled") ?? true;
     keepScreenAwake.value = setBox.get("keepScreenAwake") ?? false;
+    autoRadioEnabled.value = setBox.get("autoRadioEnabled") ?? true;
     final downloadPath =
         setBox.get('downloadLocationPath') ?? await _createInAppSongDownDir();
     downloadLocationPath.value =
@@ -705,19 +706,11 @@ class SettingsScreenController extends GetxController {
   void toggleKeepScreenAwake(bool val) {
     setBox.put('keepScreenAwake', val);
     keepScreenAwake.value = val;
-    try {
-      if (val) {
-        // enable wakelock immediately if music is playing
-        if (Get.find<PlayerController>().buttonState.value ==
-            PlayButtonState.playing) {
-          WakelockPlus.enable();
-        }
-      } else {
-        WakelockPlus.disable();
-      }
-    } catch (e) {
-      // ignore if player/controller not available
-    }
+  }
+
+  void toggleAutoRadio(bool val) {
+    setBox.put('autoRadioEnabled', val);
+    autoRadioEnabled.value = val;
   }
 
   Future<void> enableIgnoringBatteryOptimizations() async {

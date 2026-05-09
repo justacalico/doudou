@@ -1192,6 +1192,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'If enabled, the device screen will stay awake while music is playing';
 
   @override
+  String get autoRadio => 'Auto-start radio';
+
+  @override
+  String get autoRadioDes =>
+      'Automatically start radio mode when playing a single song from YouTube Music';
+
+  @override
   String get resyncLibraryNow => 'Resync Library Now';
 
   @override
@@ -2416,6 +2423,13 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   @override
   String get keepScreenOnWhilePlayingDes =>
       'If enabled, the device screen will stay awake while music is playing';
+
+  @override
+  String get autoRadio => 'Auto-start radio';
+
+  @override
+  String get autoRadioDes =>
+      'Automatically start radio mode when playing a single song from YouTube Music';
 
   @override
   String get resyncLibraryNow => 'Resync Library Now';

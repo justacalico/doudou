@@ -278,6 +278,8 @@
   "exportPlaylistCsvSubtitle": "无法在此处导入",
   "keepScreenOnWhilePlaying": "播放时保持屏幕常亮",
   "keepScreenOnWhilePlayingDes": "启用后，播放音乐时设备屏幕将保持点亮",
+  "autoRadio": "自动启动电台",
+  "autoRadioDes": "播放 YouTube Music 中的单首歌曲时自动启动电台模式",
   "activeServer": "当前服务器",
   "add": "添加",
   "addMusicToLibraryHint": "添加音乐到曲库即可在此查看",
