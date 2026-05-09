@@ -566,6 +566,12 @@ class SettingsScreenController extends GetxController {
   }
 
   void _onActiveServerChanged() {
+    if (Get.isRegistered<PlayerController>()) {
+      final player = Get.find<PlayerController>();
+      player.clearQueue();
+      player.pause();
+    }
+
     if (Get.isRegistered<HomeScreenController>()) {
       final home = Get.find<HomeScreenController>();
       home.invalidateHomeLibrarySections();
