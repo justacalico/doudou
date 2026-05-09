@@ -446,14 +446,14 @@ class _DesktopMiniPlayer extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                _ControlIconButton(
+                                Obx(() => _ControlIconButton(
                                   icon: controller.isCurrentSongFav.isFalse
                                       ? Icons.favorite_border
                                       : Icons.favorite,
                                   onPressed: controller.toggleFavourite,
                                   isActive: controller.isCurrentSongFav.isTrue,
                                   color: c.accentPrimary,
-                                ),
+                                )),
                                 if (!compactDesktop) ...[
                                   const SizedBox(width: 4),
                                   _ControlIconButton(
