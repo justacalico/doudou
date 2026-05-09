@@ -225,7 +225,6 @@ class _DesktopMiniPlayer extends StatelessWidget {
       builder: (context, constraints) {
         final shortDesktop = constraints.maxHeight < 90;
         final compactDesktop = shortDesktop || size.width < 1100;
-        final controlClusterWidth = compactDesktop ? 260.0 : 450.0;
 
         if (shortDesktop) {
           return Container(
@@ -374,7 +373,6 @@ class _DesktopMiniPlayer extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Row(
@@ -394,55 +392,52 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                   height: 44,
                                   width: 44,
                                 ),
+                          const SizedBox(width: 14),
+                          GestureDetector(
+                            onHorizontalDragEnd: (details) {
+                              final v = details.primaryVelocity ?? 0;
+                              if (v < 0) {
+                                controller.next();
+                              } else if (v > 0) {
+                                controller.prev();
+                              }
+                            },
+                            onTap: () {
+                              controller.playerPanelController.open();
+                            },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  controller.currentSong.value?.title ?? '',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: -0.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  controller.currentSong.value?.artist ?? '',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    fontSize: 11,
+                                    color: c.textSecondary,
+                                    letterSpacing: 0.1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(width: 14),
                       Expanded(
-                        child: GestureDetector(
-                          onHorizontalDragEnd: (details) {
-                            final v = details.primaryVelocity ?? 0;
-                            if (v < 0) {
-                              controller.next();
-                            } else if (v > 0) {
-                              controller.prev();
-                            }
-                          },
-                          onTap: () {
-                            controller.playerPanelController.open();
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                controller.currentSong.value?.title ?? '',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: textTheme.titleMedium?.copyWith(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                controller.currentSong.value?.artist ?? '',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: textTheme.bodySmall?.copyWith(
-                                  fontSize: 11,
-                                  color: c.textSecondary,
-                                  letterSpacing: 0.1,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: controlClusterWidth,
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Row(
                               children: [
@@ -523,16 +518,15 @@ class _DesktopMiniPlayer extends StatelessWidget {
                           ],
                         ),
                       ),
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            right: size.width < 1004 ? 0 : 20.0,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (!compactDesktop)
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: size.width < 1004 ? 0 : 20.0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (!compactDesktop)
                                 SizedBox(
                                   height: 20,
                                   width: 180,
@@ -677,7 +671,6 @@ class _DesktopMiniPlayer extends StatelessWidget {
                             ],
                           ),
                         ),
-                      )
                     ],
                   ),
                 ),
