@@ -109,7 +109,7 @@ class LibrarySongsController extends GetxController {
       //printINFO("all files: $downloadedFiles \n $songsList");
     }
 
-    final box = Hive.box(songsCacheBoxName(currentServerId()));
+    final box = await Hive.openBox(songsCacheBoxName(currentServerId()));
     int checked = 0;
     for (var element in box.keys) {
       if (!songsList.contains(element)) {
@@ -126,8 +126,8 @@ class LibrarySongsController extends GetxController {
         .whereType<MediaItem>()
         .toList();
 
-    songs.addAll(Hive.box(songDownloadsBoxName(currentServerId()))
-        .values
+    final downloadsBox = await Hive.openBox(songDownloadsBoxName(currentServerId()));
+    songs.addAll(downloadsBox.values
         .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
         .whereType<MediaItem>()
         .toList());
@@ -155,13 +155,11 @@ class LibrarySongsController extends GetxController {
               songs.add(m);
             }
           }
-          await albumSongsBox.close();
           albumIndex++;
           if (albumIndex % 8 == 0) {
             await Future.delayed(Duration.zero);
           }
         }
-        await albumsBox.close();
       } catch (e, st) {
         printWarning(
             '[RECOVERABLE][opId=library.shuffle.loadAlbumSongs] Failed to load album-sourced songs for serverId=$serverId: $e\n$st');
@@ -189,7 +187,6 @@ class LibrarySongsController extends GetxController {
                 songs.add(m);
               }
             }
-            await plSongsBox.close();
             playlistIndex++;
             if (playlistIndex % 6 == 0) {
               await Future.delayed(Duration.zero);
@@ -210,7 +207,6 @@ class LibrarySongsController extends GetxController {
             songs.add(m);
           }
         }
-        await favBox.close();
       } catch (e, st) {
         printWarning(
             '[RECOVERABLE][opId=library.shuffle.loadFavoriteSongs] Failed to load favorite-sourced songs for serverId=$serverId: $e\n$st');

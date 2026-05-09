@@ -75,12 +75,16 @@ class AlbumScreenController extends PlaylistAlbumScreenControllerBase
         if (isYouTube) {
           // If the album is offline, fetch the songs from the local database
           // Album details are already fetched in _checkIfAddedToLibrary method
-          final box = await Hive.openBox(albumId);
-          songList.value = box.values
-              .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
-              .whereType<MediaItem>()
-              .toList();
-          box.close();
+          if (await Hive.boxExists(albumId)) {
+            final box = await Hive.openBox(albumId);
+            songList.value = box.values
+                .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
+                .whereType<MediaItem>()
+                .toList();
+            box.close();
+          } else {
+            songList.value = [];
+          }
         } else {
           // For Jellyfin/Subsonic, fetch tracks from the active backend
           final content = await settings.currentBackend

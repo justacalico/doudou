@@ -15,7 +15,7 @@ void startHouseKeeping() {
 
 Future<void> removeExpiredSongsUrlFromDb() async {
   try {
-    final songsUrlCacheBox = Hive.box(songsUrlCacheBoxName(currentServerId()));
+    final songsUrlCacheBox = await Hive.openBox(songsUrlCacheBoxName(currentServerId()));
     final songsUrlCacheKeysList =
         songsUrlCacheBox.keys.whereType<String>().toList();
     for (var i = 0; i < songsUrlCacheKeysList.length; i++) {
@@ -37,7 +37,7 @@ Future<void> removeExpiredSongsUrlFromDb() async {
 Future<void> removeDeletedOfflineSongsFromDb() async {
   final supportDir = (await getApplicationSupportDirectory()).path;
   try {
-    final songDownloadsBox = Hive.box(songDownloadsBoxName(currentServerId()));
+    final songDownloadsBox = await Hive.openBox(songDownloadsBoxName(currentServerId()));
     final downloadedSongs = songDownloadsBox.values.toList();
     final LibrarySongsController librarySongsController =
         Get.find<LibrarySongsController>();
