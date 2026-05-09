@@ -148,6 +148,7 @@ class SeparateTabItemWidget extends StatelessWidget {
               title,
               isCompleteList,
               scrollController: scrollController,
+              wrapListInExpanded: false,
             );
           } else {
             return const Center(child: LoadingIndicator());
@@ -177,6 +178,7 @@ class SeparateTabItemWidget extends StatelessWidget {
                         isArtistSongs: true,
                         artist: artistController.artist_,
                         scrollController: scrollController,
+                        wrapListInExpanded: false,
                       )
                 : ModificationList(
                     mode: artistController.additionalOperationMode.value,
@@ -193,6 +195,7 @@ class SeparateTabItemWidget extends StatelessWidget {
         title,
         isCompleteList,
         scrollController: scrollController,
+        wrapListInExpanded: false,
       );
     }
     if (hasUnboundedHeight) {

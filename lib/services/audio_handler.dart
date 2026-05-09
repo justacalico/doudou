@@ -325,7 +325,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     final rawOriginalMs = currentSong.extras?['originalDurationMs'];
     final originalMs = rawOriginalMs is int ? rawOriginalMs : null;
     return resolveEffectiveTrackDuration(
-      isIOS: GetPlatform.isIOS,
       playerDuration: _player.duration,
       mediaDuration: currentSong.duration,
       originalDurationMs: originalMs,
@@ -423,15 +422,21 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       final idx = _safeCurrentIndex;
       if (idx == null || currQueue.isEmpty || duration == null) return;
       final currentSong = queue.value[idx];
-      final usePlayerDuration =
-          GetPlatform.isIOS || currentSong.duration == null || idx == 0;
+      // Only iOS always follows the player duration stream. Everywhere else,
+      // use it only when the MediaItem has no duration yet. Including idx==0
+      // on desktop broke YT Music after radio/album play: just_audio often
+      // reports ~2× the real length for the first queued source, which then
+      // overwrote correct metadata and doubled the progress bar total.
+      final meta = currentSong.duration;
+      final missingMeta = meta == null || meta.inMilliseconds <= 0;
+      final usePlayerDuration = GetPlatform.isIOS || missingMeta;
       if (usePlayerDuration && duration.inSeconds > 0) {
         Map<String, dynamic>? newExtras = currentSong.extras != null
             ? Map<String, dynamic>.from(currentSong.extras!)
             : null;
         final rawOriginalMs = currentSong.extras?['originalDurationMs'];
         int? originalMs = rawOriginalMs is int ? rawOriginalMs : null;
-        if (GetPlatform.isIOS) {
+        if (Platform.isIOS || Platform.isMacOS) {
           if (originalMs == null || originalMs <= 0) {
             if (currentSong.duration != null &&
                 currentSong.duration!.inMilliseconds > 0) {
@@ -448,7 +453,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           }
         }
         final effectiveDuration = resolveEffectiveTrackDuration(
-          isIOS: GetPlatform.isIOS,
           playerDuration: duration,
           mediaDuration: currentSong.duration,
           originalDurationMs: originalMs,

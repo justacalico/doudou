@@ -35,7 +35,6 @@ int autoAdvanceLeadMsForPlatform({
 }
 
 Duration? resolveEffectiveTrackDuration({
-  required bool isIOS,
   Duration? playerDuration,
   Duration? mediaDuration,
   int? originalDurationMs,
@@ -43,8 +42,6 @@ Duration? resolveEffectiveTrackDuration({
   if (playerDuration == null || playerDuration.inMilliseconds <= 0) {
     return mediaDuration;
   }
-
-  if (!isIOS) return playerDuration;
 
   int? baselineMs = originalDurationMs;
   if ((baselineMs == null || baselineMs <= 0) &&

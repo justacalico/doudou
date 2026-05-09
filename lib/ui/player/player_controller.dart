@@ -54,6 +54,8 @@ class PlayerController extends GetxController
   bool isRadioModeOn = false;
   String? radioContinuationParam;
   dynamic radioInitiatorItem;
+  bool _isAddingRadioContinuation = false;
+  String? _lastContinuationParamUsed;
   Timer? sleepTimer;
   int timerDuration = 0;
   final timerDurationLeft = 0.obs;
@@ -318,25 +320,32 @@ class PlayerController extends GetxController
         }
         await _checkFav();
         await _addToRP(currentSong.value!);
-        // Pre-fetch radio continuation when approaching end of queue
-        if (radioInitiatorItem != null) {
-          final currentIndex = currentQueue.indexOf(currentSong.value!);
-          // Start fetching when we're 2 songs from the end to ensure seamless playback
-          if (currentIndex >= currentQueue.length - 2) {
+        // Pre-fetch radio continuation when approaching end of queue.
+        // Skip while the queue is still a single seed track — pushSongToQueue /
+        // _fetchAndAddRadioSongs load the first radio page; with length 1 the
+        // old check (index >= length - 2) is always true and duplicated fetches.
+        if (radioInitiatorItem != null && currentQueue.length >= 2) {
+          final currentIndex = currentQueue
+              .indexWhere((element) => element.id == mediaItem.id);
+          if (currentIndex >= 0 &&
+              currentIndex >= currentQueue.length - 2) {
             // Enable radio mode if not already enabled
             if (!isRadioModeOn) {
               isRadioModeOn = true;
               playinfrom.value = PlaylingFrom(
-                type: PlaylingFromType.SELECTION,
-                name: AppLocalizations.of(Get.context!)!.randomRadio);
+                  type: PlaylingFromType.SELECTION,
+                  name: AppLocalizations.of(Get.context!)!.randomRadio);
               // Disable queue loop mode if it's enabled
               if (isQueueLoopModeEnabled.isTrue) {
                 toggleQueueLoopMode(showMessage: false);
               }
               printINFO('Radio mode enabled for continuation');
             }
-            printINFO('Radio continuation triggered: currentIndex=$currentIndex, queueLength=${currentQueue.length}');
-            await _addRadioContinuation(radioInitiatorItem!);
+            // Skip if already adding continuation to prevent race condition
+            if (!_isAddingRadioContinuation) {
+              printINFO('Radio continuation triggered: currentIndex=$currentIndex, queueLength=${currentQueue.length}');
+              await _addRadioContinuation(radioInitiatorItem!);
+            }
           }
         }
         _clearTemporaryLyricAccent();
@@ -426,6 +435,7 @@ class PlayerController extends GetxController
     // Set radio initiator for continuation
     if (radio) {
       radioInitiatorItem = mediaItem ?? playlistid;
+      _lastContinuationParamUsed = null;
       printINFO('Radio initiator set: ${mediaItem?.title ?? playlistid}');
     }
 
@@ -436,11 +446,21 @@ class PlayerController extends GetxController
             videoId: mediaItem?.id ?? "", radio: radio, playlistId: playlistid);
         radioContinuationParam = content['additionalParamsForNext'];
         printINFO('Radio continuation param set: ${radioContinuationParam}');
-        await _audioHandler
-            .updateQueue(List<MediaItem>.from(content['tracks']));
-        printINFO('Queue updated with ${content['tracks'].length} tracks');
-        if (isShuffleModeEnabled.isTrue) {
-          await _audioHandler.customAction("shuffleCmd", {"index": 0});
+        final tracks = List<MediaItem>.from(content['tracks']);
+        
+        if (radio) {
+          // For radio mode, add tracks to existing queue instead of replacing
+          // Remove current song from radio tracks to avoid duplicate
+          final filteredTracks = tracks.where((t) => t.id != mediaItem?.id).toList();
+          printINFO('Radio: adding ${filteredTracks.length} tracks to queue without replacing');
+          await enqueueSongList(filteredTracks);
+        } else {
+          // For non-radio, replace the queue
+          await _audioHandler.updateQueue(tracks);
+          printINFO('Queue updated with ${tracks.length} tracks');
+          if (isShuffleModeEnabled.isTrue) {
+            await _audioHandler.customAction("shuffleCmd", {"index": 0});
+          }
         }
 
         // added here to broadcast current mediaitem via Audio Service as list is updated
@@ -551,6 +571,7 @@ class PlayerController extends GetxController
   }
 
   Future<void> _fetchAndAddRadioSongs(MediaItem mediaItem) async {
+    _lastContinuationParamUsed = null;
     try {
       final content = await _musicServices.getWatchPlaylist(
           videoId: mediaItem.id,
@@ -574,8 +595,22 @@ class PlayerController extends GetxController
   }
 
   Future<void> _addRadioContinuation(dynamic item) async {
+    printINFO('Radio continuation: called, isAdding=$_isAddingRadioContinuation, currentParam=$radioContinuationParam, lastParam=$_lastContinuationParamUsed');
+    if (_isAddingRadioContinuation) {
+      printINFO('Radio continuation: already in progress, skipping');
+      return;
+    }
+    // Skip only when both are set and match; null == null must not block a fetch.
+    if (radioContinuationParam != null &&
+        _lastContinuationParamUsed != null &&
+        radioContinuationParam == _lastContinuationParamUsed) {
+      printINFO('Radio continuation: same continuation param as last, skipping');
+      return;
+    }
+    _isAddingRadioContinuation = true;
+    _lastContinuationParamUsed = radioContinuationParam;
+    printINFO('Radio continuation: starting fetch with param=$radioContinuationParam');
     try {
-      printINFO('Radio continuation: isSong=${item.runtimeType.toString() == "MediaItem"}, radioContinuationParam=$radioContinuationParam');
       final isSong = item.runtimeType.toString() == "MediaItem";
       final content = await _musicServices.getWatchPlaylist(
           videoId: isSong ? item.id : "",
@@ -585,7 +620,7 @@ class PlayerController extends GetxController
           additionalParamsNext: radioContinuationParam);
       radioContinuationParam = content['additionalParamsForNext'];
       final tracks = List<MediaItem>.from(content['tracks']);
-      printINFO('Radio continuation: fetched ${tracks.length} tracks');
+      printINFO('Radio continuation: fetched ${tracks.length} tracks, newParam=$radioContinuationParam');
       if (tracks.isNotEmpty) {
         // Remove the current song from tracks if it's the first call to avoid duplicate
         final filteredTracks = isSong && radioContinuationParam == null
@@ -604,6 +639,9 @@ class PlayerController extends GetxController
       // Stop radio mode on error to prevent infinite retry loops
       isRadioModeOn = false;
       radioContinuationParam = null;
+    } finally {
+      printINFO('Radio continuation: completed, resetting flag');
+      _isAddingRadioContinuation = false;
     }
   }
 
@@ -626,13 +664,20 @@ class PlayerController extends GetxController
       await playPlayListSong(mediaItems, 0);
       return;
     }
+    final existingIds = currentQueue.map((e) => e.id).toSet();
     final listToEnqueue = <MediaItem>[];
     for (MediaItem item in mediaItems) {
-      if (!currentQueue.contains(item)) {
+      if (!existingIds.contains(item.id)) {
         listToEnqueue.add(item);
+        existingIds.add(item.id);
       }
     }
-    _audioHandler.addQueueItems(listToEnqueue);
+    if (listToEnqueue.isNotEmpty) {
+      printINFO('enqueueSongList: adding ${listToEnqueue.length} unique items (filtered ${mediaItems.length - listToEnqueue.length} duplicates)');
+      _audioHandler.addQueueItems(listToEnqueue);
+    } else {
+      printINFO('enqueueSongList: all items already in queue, skipping');
+    }
   }
 
   void _playViaAndroidAuto(String songId, String libraryId) {
