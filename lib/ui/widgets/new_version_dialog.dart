@@ -79,14 +79,14 @@ class NewVersionDialog extends StatelessWidget {
                 Expanded(
                   child: FilledButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text(context.l10n.dismiss),
                     style: FilledButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                       foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
+                    child: Text(context.l10n.dismiss),
                   ),
                 ),
               ],
