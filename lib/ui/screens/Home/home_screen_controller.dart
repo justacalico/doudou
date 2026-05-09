@@ -505,8 +505,8 @@ class HomeScreenController extends GetxController {
 
   void refreshDownloadedSongsCount() {
     try {
-      downloadedSongsCount.value = Hive.isBoxOpen("SongDownloads")
-          ? Hive.box("SongDownloads").length
+      downloadedSongsCount.value = Hive.isBoxOpen(songDownloadsBoxName(currentServerId()))
+          ? Hive.box(songDownloadsBoxName(currentServerId())).length
           : 0;
     } catch (e, st) {
       printWarning(
@@ -903,7 +903,7 @@ class HomeScreenController extends GetxController {
     required String emptyMessage,
     required String playFromName,
   }) async {
-    final list = _safeMediaItemsFromIterable(Hive.box("SongDownloads").values);
+    final list = _safeMediaItemsFromIterable(Hive.box(songDownloadsBoxName(currentServerId())).values);
     if (list.isEmpty) {
       Get.snackbar('', emptyMessage);
       return;

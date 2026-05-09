@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
 import '/ui/widgets/common_dialog_widget.dart';
+import '/utils/server_storage.dart';
 
 class SongInfoDialog extends StatelessWidget {
   final MediaItem song;
@@ -76,13 +77,13 @@ class SongInfoDialog extends StatelessWidget {
       "loudnessDb": null,
       "approxDurationMs": null
     };
-    if (Hive.box("SongDownloads").containsKey(id)) {
-      final song = Hive.box("SongDownloads").get(id);
+    if (Hive.box(songDownloadsBoxName(currentServerId())).containsKey(id)) {
+      final song = Hive.box(songDownloadsBoxName(currentServerId())).get(id);
 
       tempstreamInfo =
           song["streamInfo"] == null ? nullVal : song["streamInfo"][1];
     } else {
-      final dbStreamData = Hive.box("SongsUrlCache").get(id);
+      final dbStreamData = Hive.box(songsUrlCacheBoxName(currentServerId())).get(id);
       tempstreamInfo = dbStreamData != null &&
               dbStreamData.runtimeType.toString().contains("Map")
           ? dbStreamData[Hive.box('AppPrefs').get('streamingQuality') == 0

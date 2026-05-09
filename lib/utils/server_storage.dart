@@ -48,6 +48,15 @@ String libraryArtistsCacheBoxName(int serverId) =>
 String librarySyncMetaBoxName(int serverId) =>
     serverId == 0 ? 'LibrarySyncMeta' : 'LibrarySyncMeta_s_$serverId';
 
+String songsCacheBoxName(int serverId) =>
+    serverId == 0 ? 'SongsCache' : 'SongsCache_s_$serverId';
+
+String songDownloadsBoxName(int serverId) =>
+    serverId == 0 ? 'SongDownloads' : 'SongDownloads_s_$serverId';
+
+String songsUrlCacheBoxName(int serverId) =>
+    serverId == 0 ? 'SongsUrlCache' : 'SongsUrlCache_s_$serverId';
+
 String playlistSongsBoxName(String playlistId) {
   if (playlistId == 'LIBFAV') return libFavBoxName(currentServerId());
   if (playlistId == 'LIBRP') return recentlyPlayedBoxName(currentServerId());

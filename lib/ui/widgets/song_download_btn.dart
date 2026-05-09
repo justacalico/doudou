@@ -8,6 +8,7 @@ import 'package:hive/hive.dart';
 
 import 'loader.dart';
 import 'snackbar.dart';
+import '/utils/server_storage.dart';
 
 class SongDownloadButton extends StatelessWidget {
   const SongDownloadButton(
@@ -37,7 +38,7 @@ class SongDownloadButton extends StatelessWidget {
       }
 
       return (isDownloadingDone ||
-              Hive.box("SongDownloads").containsKey(song!.id))
+              Hive.box(songDownloadsBoxName(currentServerId())).containsKey(song!.id))
           ? Icon(
               Icons.download_done,
               color: Theme.of(context).textTheme.titleMedium!.color,

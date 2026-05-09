@@ -109,7 +109,7 @@ class LibrarySongsController extends GetxController {
       //printINFO("all files: $downloadedFiles \n $songsList");
     }
 
-    final box = Hive.box("SongsCache");
+    final box = Hive.box(songsCacheBoxName(currentServerId()));
     int checked = 0;
     for (var element in box.keys) {
       if (!songsList.contains(element)) {
@@ -126,7 +126,7 @@ class LibrarySongsController extends GetxController {
         .whereType<MediaItem>()
         .toList();
 
-    songs.addAll(Hive.box("SongDownloads")
+    songs.addAll(Hive.box(songDownloadsBoxName(currentServerId()))
         .values
         .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
         .whereType<MediaItem>()
@@ -316,8 +316,8 @@ class LibrarySongsController extends GetxController {
   }
 
   Future<void> deleteMultipleSongs(List<MediaItem> songs) async {
-    final downloadsBox = await Hive.openBox("SongDownloads");
-    final cacheBox = await Hive.openBox("SongsCache");
+    final downloadsBox = await Hive.openBox(songDownloadsBoxName(currentServerId()));
+    final cacheBox = await Hive.openBox(songsCacheBoxName(currentServerId()));
     for (MediaItem element in songs) {
       if (downloadsBox.containsKey(element.id)) {
         await downloadsBox.delete(element.id);

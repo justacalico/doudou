@@ -15,6 +15,7 @@ import '/ui/widgets/loader.dart';
 import '/utils/helper.dart';
 import '../../services/permission_service.dart';
 import 'common_dialog_widget.dart';
+import '/utils/server_storage.dart';
 
 class BackupDialog extends StatelessWidget {
   const BackupDialog({super.key});
@@ -176,7 +177,7 @@ class BackupDialogController extends GetxController {
     final dbDir = await Get.find<SettingsScreenController>().dbDir;
     filesToExport.addAll(await processDirectoryInIsolate(dbDir));
     if (isDownloadedfilesSeclected.value) {
-      List<String> downlodedSongFilePaths = Hive.box("SongDownloads")
+      List<String> downlodedSongFilePaths = Hive.box(songDownloadsBoxName(currentServerId()))
           .values
           .map<String>((data) => data['url'])
           .toList();

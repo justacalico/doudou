@@ -21,6 +21,7 @@ import '/models/media_Item_builder.dart';
 import '../ui/screens/Library/library_controller.dart';
 import '/services/backend/backend_factory.dart';
 import 'music_service.dart';
+import '../utils/server_storage.dart';
 //import '../models/thumbnail.dart' as th;
 
 class Downloader extends GetxService {
@@ -138,7 +139,7 @@ class Downloader extends GetxService {
         return;
       }
 
-      if (!Hive.box("SongDownloads").containsKey(song.id)) {
+      if (!Hive.box(songDownloadsBoxName(currentServerId())).containsKey(song.id)) {
         currentSong = song;
         songDownloadingProgress.value = 0;
         await writeFileStream(song);
@@ -320,7 +321,7 @@ class Downloader extends GetxService {
     // [playbility status, info map]
     songJson["streamInfo"] = [true, streamInfoJson];
 
-    Hive.box("SongDownloads").put(song.id, songJson);
+    Hive.box(songDownloadsBoxName(currentServerId())).put(song.id, songJson);
     Get.find<LibrarySongsController>().librarySongsList.add(song);
     printINFO("Downloaded successfully");
 

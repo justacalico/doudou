@@ -18,6 +18,7 @@ import '../../widgets/list_widget.dart';
 import '../../widgets/sort_widget.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/ui/shell_controller.dart';
+import '/utils/server_storage.dart';
 
 class SongsLibraryWidget extends StatelessWidget {
   const SongsLibraryWidget({super.key, this.isBottomNavActive = false});
@@ -306,7 +307,7 @@ class _DownloadsLibraryWidgetState extends State<DownloadsLibraryWidget> {
   }
 
   Future<void> _clearAllDownloads() async {
-    final box = Hive.box("SongDownloads");
+    final box = Hive.box(songDownloadsBoxName(currentServerId()));
     final songs = box.values
         .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
         .whereType<MediaItem>()
@@ -382,7 +383,7 @@ class _DownloadsLibraryWidgetState extends State<DownloadsLibraryWidget> {
                 ),
                 const SizedBox(width: 8),
                 ValueListenableBuilder<Box>(
-                  valueListenable: Hive.box("SongDownloads").listenable(),
+                  valueListenable: Hive.box(songDownloadsBoxName(currentServerId())).listenable(),
                   builder: (context, box, _) => IconButton(
                     tooltip: context.l10n.deleteDownloadedDataAlert,
                     icon: const Icon(Icons.delete_sweep_outlined),
@@ -416,7 +417,7 @@ class _DownloadsLibraryWidgetState extends State<DownloadsLibraryWidget> {
             ),
           ),
           ValueListenableBuilder<Box>(
-            valueListenable: Hive.box("SongDownloads").listenable(),
+            valueListenable: Hive.box(songDownloadsBoxName(currentServerId())).listenable(),
             builder: (context, box, _) {
               final allSongs = box.values
                   .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))

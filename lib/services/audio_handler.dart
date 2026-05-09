@@ -904,12 +904,12 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       case 'checkWithCacheDb':
         if (isPlayingUsingLockCachingSource) {
           final song = extras!['mediaItem'] as MediaItem;
-          final songsCacheBox = Hive.box("SongsCache");
+          final songsCacheBox = Hive.box(songsCacheBoxName(currentServerId()));
           if (!songsCacheBox.containsKey(song.id) &&
               await File("$_cacheDir/cachedSongs/${song.id}.mp3").exists()) {
             song.extras!['url'] = currentSongUrl;
             song.extras!['date'] = DateTime.now().millisecondsSinceEpoch;
-            final dbStreamData = Hive.box("SongsUrlCache").get(song.id);
+            final dbStreamData = Hive.box(songsUrlCacheBoxName(currentServerId())).get(song.id);
             final jsonData = MediaItemBuilder.toJson(song);
             jsonData['duration'] = _player.duration!.inSeconds;
             // playbility status and info
@@ -1043,15 +1043,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         if (loudnessNormalizationEnabled) {
           try {
             final currentSongId = (queue.value[currentIndex]).id;
-            if (Hive.box("SongsUrlCache").containsKey(currentSongId)) {
-              final songJson = Hive.box("SongsUrlCache").get(currentSongId);
+            if (Hive.box(songsUrlCacheBoxName(currentServerId())).containsKey(currentSongId)) {
+              final songJson = Hive.box(songsUrlCacheBoxName(currentServerId())).get(currentSongId);
               _normalizeVolume((songJson)["highQualityAudio"]["loudnessDb"]);
               return;
             }
 
-            if (Hive.box("SongDownloads").containsKey(currentSongId)) {
+            if (Hive.box(songDownloadsBoxName(currentServerId())).containsKey(currentSongId)) {
               final streamInfo =
-                  (Hive.box("SongDownloads").get(currentSongId))["streamInfo"];
+                  (Hive.box(songDownloadsBoxName(currentServerId())).get(currentSongId))["streamInfo"];
 
               _normalizeVolume(
                   streamInfo == null ? 0 : streamInfo[1]["loudnessDb"]);
@@ -1355,9 +1355,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         return HMStreamingData(playable: false, statusMSG: e.toString());
       }
     }
-    final songDownloadsBox = Hive.box("SongDownloads");
+    final songDownloadsBox = Hive.box(songDownloadsBoxName(currentServerId()));
     if (!offlineReplacementUrl &&
-        (await Hive.openBox("SongsCache")).containsKey(songId)) {
+        (await Hive.openBox(songsCacheBoxName(currentServerId()))).containsKey(songId)) {
       _diag.logEvent(
         category: 'stream_fetch',
         message: 'hit_songs_cache',
@@ -1367,7 +1367,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       );
       printINFO("Got Song from cachedbox ($songId)");
       // if contains stream Info
-      final streamInfo = Hive.box("SongsCache").get(songId)["streamInfo"];
+      final streamInfo = Hive.box(songsCacheBoxName(currentServerId())).get(songId)["streamInfo"];
       Audio? cacheAudioPlaceholder;
       if (streamInfo != null && streamInfo.isNotEmpty) {
         streamInfo[1]['url'] = "file://$_cacheDir/cachedSongs/$songId.mp3";
@@ -1452,7 +1452,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       return checkNGetUrl(songId, offlineReplacementUrl: true);
     } else {
       //check if song stream url is cached and allocate url accordingly
-      final songsUrlCacheBox = Hive.box("SongsUrlCache");
+      final songsUrlCacheBox = Hive.box(songsUrlCacheBoxName(currentServerId()));
       final qualityIndex = Hive.box('AppPrefs').get('streamingQuality') ?? 1;
       HMStreamingData? streamInfo;
       if (songsUrlCacheBox.containsKey(songId) && !generateNewUrl) {
@@ -1594,7 +1594,7 @@ class MediaLibrary {
       case AudioService.browsableRootId:
         return Future.value(getRoot());
       case songsRootId:
-        return getLibSongs("SongDownloads");
+        return getLibSongs(songDownloadsBoxName(currentServerId()));
       case favoritesRootId:
         return getLibSongs(libFavBoxName(currentServerId()));
       case albumsRootId:

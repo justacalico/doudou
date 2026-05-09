@@ -433,7 +433,7 @@ class SongInfoController extends GetxController
     _setInitStatus(song);
   }
   _setInitStatus(MediaItem song) async {
-    isDownloaded.value = Hive.box("SongDownloads").containsKey(song.id);
+    isDownloaded.value = Hive.box(songDownloadsBoxName(currentServerId())).containsKey(song.id);
     final favBox = await Hive.openBox(libFavBoxName(currentServerId()));
     isCurrentSongFav.value = favBox.containsKey(song.id);
     final artists = song.extras!['artists'];
@@ -480,7 +480,7 @@ mixin RemoveSongFromPlaylistMixin {
     //Library songs case
     if (playlist.playlistId == "SongsCache") {
       if (!box.containsKey(item.id)) {
-        Hive.box("SongDownloads").delete(item.id);
+        Hive.box(songDownloadsBoxName(currentServerId())).delete(item.id);
         Get.find<LibrarySongsController>().removeSong(item, true);
       } else {
         Get.find<LibrarySongsController>().removeSong(item, false);

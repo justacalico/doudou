@@ -7,6 +7,7 @@ import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import '../services/utils.dart';
 import 'helper.dart';
+import 'server_storage.dart';
 
 void startHouseKeeping() {
   removeExpiredSongsUrlFromDb();
@@ -14,7 +15,7 @@ void startHouseKeeping() {
 
 Future<void> removeExpiredSongsUrlFromDb() async {
   try {
-    final songsUrlCacheBox = Hive.box("SongsUrlCache");
+    final songsUrlCacheBox = Hive.box(songsUrlCacheBoxName(currentServerId()));
     final songsUrlCacheKeysList =
         songsUrlCacheBox.keys.whereType<String>().toList();
     for (var i = 0; i < songsUrlCacheKeysList.length; i++) {
@@ -36,7 +37,7 @@ Future<void> removeExpiredSongsUrlFromDb() async {
 Future<void> removeDeletedOfflineSongsFromDb() async {
   final supportDir = (await getApplicationSupportDirectory()).path;
   try {
-    final songDownloadsBox = Hive.box("SongDownloads");
+    final songDownloadsBox = Hive.box(songDownloadsBoxName(currentServerId()));
     final downloadedSongs = songDownloadsBox.values.toList();
     final LibrarySongsController librarySongsController =
         Get.find<LibrarySongsController>();

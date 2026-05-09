@@ -306,6 +306,10 @@ class SettingsScreenController extends GetxController {
       activeServerId.value = (nonDefault ?? servers.first).id;
     }
     _persistServers();
+    
+    // Migrate data from global boxes to server-specific boxes
+    await _migrateGlobalToServerSpecific();
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!Get.isRegistered<SettingsScreenController>()) return;
       _onActiveServerChanged();
@@ -774,6 +778,86 @@ class SettingsScreenController extends GetxController {
       return null;
     } catch (e) {
       return e.toString();
+    }
+  }
+
+  Future<void> _migrateGlobalToServerSpecific() async {
+    const migrationKey = 'serverDataMigrationCompleted';
+    if (setBox.get(migrationKey) == true) {
+      return;
+    }
+
+    try {
+      const serverId = SettingsServer.defaultServerId;
+      
+      // Migrate SongsCache
+      if (await Hive.boxExists('SongsCache')) {
+        final oldBox = await Hive.openBox('SongsCache');
+        final newBoxName = songsCacheBoxName(serverId);
+        final newBox = await Hive.openBox(newBoxName);
+        
+        if (oldBox.isNotEmpty && newBox.isEmpty) {
+          for (final key in oldBox.keys) {
+            await newBox.put(key, oldBox.get(key));
+          }
+          printINFO('Migrated ${oldBox.length} items from SongsCache to $newBoxName');
+        }
+        await oldBox.close();
+        await Hive.deleteBoxFromDisk('SongsCache');
+      }
+
+      // Migrate SongDownloads
+      if (await Hive.boxExists('SongDownloads')) {
+        final oldBox = await Hive.openBox('SongDownloads');
+        final newBoxName = songDownloadsBoxName(serverId);
+        final newBox = await Hive.openBox(newBoxName);
+        
+        if (oldBox.isNotEmpty && newBox.isEmpty) {
+          for (final key in oldBox.keys) {
+            await newBox.put(key, oldBox.get(key));
+          }
+          printINFO('Migrated ${oldBox.length} items from SongDownloads to $newBoxName');
+        }
+        await oldBox.close();
+        await Hive.deleteBoxFromDisk('SongDownloads');
+      }
+
+      // Migrate LIBFAV
+      if (await Hive.boxExists('LIBFAV')) {
+        final oldBox = await Hive.openBox('LIBFAV');
+        final newBoxName = libFavBoxName(serverId);
+        final newBox = await Hive.openBox(newBoxName);
+        
+        if (oldBox.isNotEmpty && newBox.isEmpty) {
+          for (final key in oldBox.keys) {
+            await newBox.put(key, oldBox.get(key));
+          }
+          printINFO('Migrated ${oldBox.length} items from LIBFAV to $newBoxName');
+        }
+        await oldBox.close();
+        await Hive.deleteBoxFromDisk('LIBFAV');
+      }
+
+      // Migrate SongsUrlCache
+      if (await Hive.boxExists('SongsUrlCache')) {
+        final oldBox = await Hive.openBox('SongsUrlCache');
+        final newBoxName = songsUrlCacheBoxName(serverId);
+        final newBox = await Hive.openBox(newBoxName);
+        
+        if (oldBox.isNotEmpty && newBox.isEmpty) {
+          for (final key in oldBox.keys) {
+            await newBox.put(key, oldBox.get(key));
+          }
+          printINFO('Migrated ${oldBox.length} items from SongsUrlCache to $newBoxName');
+        }
+        await oldBox.close();
+        await Hive.deleteBoxFromDisk('SongsUrlCache');
+      }
+
+      setBox.put(migrationKey, true);
+      printINFO('Server data migration completed');
+    } catch (e, st) {
+      printWarning('[RECOVERABLE][opId=settings.migrateGlobalToServerSpecific] Migration failed: $e\n$st');
     }
   }
 }

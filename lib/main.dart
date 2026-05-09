@@ -141,10 +141,6 @@ initHive() async {
         (await getApplicationDocumentsDirectory()).path;
   }
   await Hive.initFlutter(applicationDataDirectoryPath);
-  await Hive.openBox("SongsCache");
-  await Hive.openBox("SongDownloads");
-  await Hive.openBox("LIBFAV");
-  await Hive.openBox('SongsUrlCache');
   await Hive.openBox("AppPrefs");
   await Hive.openBox(PlaybackDiagnosticsService.boxName);
 }
