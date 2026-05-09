@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '/models/server.dart';
+import '/models/album.dart';
+import '/models/playlist.dart';
+import '/models/playling_from.dart';
 import '/ui/constants/doudou_design.dart';
 import '/ui/widgets/animated_screen_transition.dart';
 import '../Library/library_browse_screen.dart';
@@ -247,11 +252,103 @@ class Body extends StatelessWidget {
                     final libAlbums = Get.find<LibraryAlbumsController>();
                     final libArtists = Get.find<LibraryArtistsController>();
                     final libPlaylists = Get.find<LibraryPlaylistsController>();
+                    final settings = Get.find<SettingsScreenController>();
+                    final server = settings.activeServer;
+                    final isYouTubeMusic = server?.type == ServerType.youtubeMusic;
+                    
                     final hasLibraryContent =
                         libSongs.librarySongsList.isNotEmpty ||
                             libAlbums.libraryAlbums.isNotEmpty ||
                             libArtists.libraryArtists.isNotEmpty ||
                             libPlaylists.libraryPlaylists.length > 4;
+                    
+                    if (isYouTubeMusic && !hasLibraryContent) {
+                      // Load YouTube Music home content if library is empty
+                      if (homeScreenController.youtubeMusicHomeContent.isEmpty) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          homeScreenController.loadYoutubeMusicHomeContentForEmptyLibrary();
+                        });
+                      }
+                      
+                      return SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            top: 24,
+                            right: kContentRightPadding,
+                            bottom: useBottomNav
+                                ? kContentBottomPaddingWithBottomNav
+                                : kContentBottomPaddingWithPlayer,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildHomeQuickActionCards(
+                                context: context,
+                                libSongs: libSongs,
+                                homeScreenController: homeScreenController,
+                              ),
+                              const SizedBox(height: 48),
+                              
+                              // Show YouTube Music home content
+                              Obx(() {
+                                if (homeScreenController.isLoadingYoutubeMusicHome.value) {
+                                  return const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(48),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
+                                }
+                                
+                                final ytContent = homeScreenController.youtubeMusicHomeContent;
+                                if (ytContent.isNotEmpty) {
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      for (var section in ytContent) 
+                                        if (section is Map && section.containsKey('title') && section.containsKey('contents'))
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                                child: Text(
+                                                  section['title'] ?? '',
+                                                  style: Theme.of(context).textTheme.titleLarge,
+                                                ),
+                                              ),
+                                              if (section['contents'] is List)
+                                                ..._buildYoutubeMusicContentItems(
+                                                  section['contents'] as List,
+                                                  context,
+                                                ),
+                                            ],
+                                          ),
+                                    ],
+                                  );
+                                }
+                                
+                                // Fallback to hint text if no content
+                                return Center(
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 24),
+                                    child: Text(
+                                      context.l10n.addMusicToLibraryHint,
+                                      textAlign: TextAlign.center,
+                                      style:
+                                          Theme.of(context).textTheme.titleMedium,
+                                    ),
+                                  ),
+                                );
+                              })
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    
                     if (!hasLibraryContent) {
                       return SingleChildScrollView(
                         physics: const BouncingScrollPhysics(),
@@ -527,6 +624,89 @@ class Body extends StatelessWidget {
         );
       },
     );
+  }
+
+  List<Widget> _buildYoutubeMusicContentItems(List items, BuildContext context) {
+    final widgets = <Widget>[];
+    
+    for (var item in items) {
+      if (item is MediaItem) {
+        // This is a song
+        widgets.add(
+          ListTile(
+            leading: CircleAvatar(
+              backgroundImage: item.artUri != null 
+                ? NetworkImage(item.artUri.toString()) 
+                : null,
+              child: item.artUri == null ? const Icon(Icons.music_note) : null,
+            ),
+            title: Text(item.title),
+            subtitle: Text(item.artist ?? ''),
+            onTap: () {
+              Get.find<PlayerController>().playPlayListSong(
+                [item],
+                0,
+                playfrom: PlaylingFrom(
+                  name: 'YouTube Music Home',
+                  type: PlaylingFromType.PLAYLIST,
+                ),
+              );
+            },
+          ),
+        );
+      } else if (item is Playlist) {
+        // This is a playlist
+        widgets.add(
+          ListTile(
+            leading: CircleAvatar(
+              backgroundImage: item.thumbnailUrl.isNotEmpty 
+                ? NetworkImage(item.thumbnailUrl) 
+                : null,
+              child: item.thumbnailUrl.isEmpty ? const Icon(Icons.playlist_play) : null,
+            ),
+            title: Text(item.title),
+            onTap: () {
+              printINFO('Navigating to playlist: ${item.title}');
+            },
+          ),
+        );
+      } else if (item is Album) {
+        // This is an album
+        final artistName = item.artists != null && item.artists!.isNotEmpty
+            ? item.artists![0]['name'] ?? ''
+            : '';
+        widgets.add(
+          ListTile(
+            leading: CircleAvatar(
+              backgroundImage: item.thumbnailUrl.isNotEmpty 
+                ? NetworkImage(item.thumbnailUrl) 
+                : null,
+              child: item.thumbnailUrl.isEmpty ? const Icon(Icons.album) : null,
+            ),
+            title: Text(item.title),
+            subtitle: Text(artistName),
+            onTap: () {
+              printINFO('Navigating to album: ${item.title}');
+            },
+          ),
+        );
+      } else if (item is Map) {
+        final title = item['title'] ?? item['name'] ?? 'Unknown';
+        widgets.add(
+          ListTile(
+            leading: const CircleAvatar(
+              child: Icon(Icons.music_note),
+            ),
+            title: Text(title.toString()),
+            onTap: () {
+              printINFO('Tapped item: $title');
+            },
+          ),
+        );
+      }
+    }
+    
+    return widgets;
   }
 }
 

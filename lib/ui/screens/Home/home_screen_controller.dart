@@ -52,6 +52,10 @@ class HomeScreenController extends GetxController {
   final homeLibrarySectionsVersion = 0.obs;
   static const Duration _homeSectionsCacheTtl = Duration(hours: 8);
   Worker? _librarySyncWorker;
+  
+  // YouTube Music home content for empty library state
+  final youtubeMusicHomeContent = [].obs;
+  final isLoadingYoutubeMusicHome = false.obs;
 
   @override
   onInit() {
@@ -929,6 +933,28 @@ class HomeScreenController extends GetxController {
           return (e as PlaylistContent).toJson();
         }
       }).toList();
+    }
+  }
+
+  Future<void> loadYoutubeMusicHomeContentForEmptyLibrary() async {
+    final settings = Get.find<SettingsScreenController>();
+    final server = settings.activeServer;
+    
+    // Only load for YouTube Music
+    if (server == null || server.type != ServerType.youtubeMusic) {
+      return;
+    }
+
+    try {
+      isLoadingYoutubeMusicHome.value = true;
+      final content = await _backend.getHome(limit: 8);
+      youtubeMusicHomeContent.value = content as List;
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.loadYoutubeMusicHomeContentForEmptyLibrary] Failed to load YouTube Music home content: $e\n$st');
+      youtubeMusicHomeContent.value = [];
+    } finally {
+      isLoadingYoutubeMusicHome.value = false;
     }
   }
 
