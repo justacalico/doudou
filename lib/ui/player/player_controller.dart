@@ -459,15 +459,6 @@ class PlayerController extends GetxController
     final server = settings.activeServer;
     final isYouTube = server?.type == ServerType.youtubeMusic;
 
-    // Auto-start radio for single songs on YouTube Music if enabled
-    if (autoRadio && isYouTube && mediaItems.length == 1) {
-      final autoRadioEnabled = Hive.box("AppPrefs").get("autoRadioEnabled") ?? true;
-      if (autoRadioEnabled) {
-        await startRadio(mediaItems[index]);
-        return;
-      }
-    }
-
     isRadioModeOn = false;
     //open player pane,set current song and push first song into playing list,
 
@@ -490,6 +481,28 @@ class PlayerController extends GetxController
     }
     final playIndex = isShuffleModeEnabled.value ? 0 : index;
     await _audioHandler.customAction("playByIndex", {"index": playIndex});
+
+    // Auto-start radio for single songs on YouTube Music if enabled
+    // Start after song begins playing to prevent loading delay
+    if (autoRadio && isYouTube && mediaItems.length == 1) {
+      final autoRadioEnabled = Hive.box("AppPrefs").get("autoRadioEnabled") ?? true;
+      if (autoRadioEnabled) {
+        // Wait for song to start playing before starting radio
+        _listenForPlaybackToStartRadio(mediaItems[index]);
+      }
+    }
+  }
+
+  void _listenForPlaybackToStartRadio(MediaItem mediaItem) {
+    // Listen for playback state to start radio after song begins
+    StreamSubscription? subscription;
+    subscription = _audioHandler.playbackState.listen((state) {
+      if (state.playing && state.processingState == AudioProcessingState.ready) {
+        subscription?.cancel();
+        // Start radio mode after song is playing
+        startRadio(mediaItem);
+      }
+    });
   }
 
   Future<void> startRadio(MediaItem? mediaItem, {String? playlistid}) async {
