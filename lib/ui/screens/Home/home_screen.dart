@@ -303,29 +303,23 @@ class Body extends StatelessWidget {
                                 
                                 final ytContent = homeScreenController.youtubeMusicHomeContent;
                                 if (ytContent.isNotEmpty) {
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      for (var section in ytContent) 
-                                        if (section is Map && section.containsKey('title') && section.containsKey('contents'))
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                                child: Text(
-                                                  section['title'] ?? '',
-                                                  style: Theme.of(context).textTheme.titleLarge,
-                                                ),
-                                              ),
-                                              if (section['contents'] is List)
-                                                ..._buildYoutubeMusicContentItems(
-                                                  section['contents'] as List,
-                                                  context,
-                                                ),
-                                            ],
-                                          ),
-                                    ],
+                                  return SingleChildScrollView(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        right: kContentRightPadding,
+                                        bottom: useBottomNav
+                                            ? kContentBottomPaddingWithBottomNav
+                                            : kContentBottomPaddingWithPlayer,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: _buildYoutubeMusicHomeSections(
+                                          ytContent,
+                                          context,
+                                          Get.find<PlayerController>(),
+                                        ),
+                                      ),
+                                    ),
                                   );
                                 }
                                 
@@ -624,6 +618,63 @@ class Body extends StatelessWidget {
         );
       },
     );
+  }
+
+  List<Widget> _buildYoutubeMusicHomeSections(
+    List sections,
+    BuildContext context,
+    PlayerController playerController,
+  ) {
+    final content = <Widget>[];
+    
+    for (var section in sections) {
+      if (section is Map && section.containsKey('title') && section.containsKey('contents')) {
+        final title = section['title'] as String;
+        final items = section['contents'] as List;
+        
+        if (items.isEmpty) continue;
+        
+        // Check the type of the first item to determine which builder to use
+        final firstItem = items.first;
+        
+        if (firstItem is MediaItem) {
+          content.add(
+            buildTrackRowSection(
+              context: context,
+              title: title,
+              subtitle: '',
+              items: items.whereType<MediaItem>().toList(),
+              playLabel: title,
+              playerController: playerController,
+              showViewAll: false,
+            ),
+          );
+          content.add(const SizedBox(height: 32));
+        } else if (firstItem is Playlist) {
+          content.add(
+            buildPlaylistRowSection(
+              context: context,
+              title: title,
+              subtitle: '',
+              playlists: items.whereType<Playlist>().toList(),
+            ),
+          );
+          content.add(const SizedBox(height: 32));
+        } else if (firstItem is Album) {
+          content.add(
+            buildAlbumRowSection(
+              context: context,
+              title: title,
+              subtitle: '',
+              albums: items.whereType<Album>().toList(),
+            ),
+          );
+          content.add(const SizedBox(height: 32));
+        }
+      }
+    }
+    
+    return content;
   }
 
   List<Widget> _buildYoutubeMusicContentItems(List items, BuildContext context) {
