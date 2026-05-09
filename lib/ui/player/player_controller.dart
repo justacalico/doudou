@@ -318,8 +318,26 @@ class PlayerController extends GetxController
         }
         await _checkFav();
         await _addToRP(currentSong.value!);
-        if (isRadioModeOn && (currentSong.value!.id == currentQueue.last.id)) {
-          await _addRadioContinuation(radioInitiatorItem!);
+        // Pre-fetch radio continuation when approaching end of queue
+        if (radioInitiatorItem != null) {
+          final currentIndex = currentQueue.indexOf(currentSong.value!);
+          // Start fetching when we're 2 songs from the end to ensure seamless playback
+          if (currentIndex >= currentQueue.length - 2) {
+            // Enable radio mode if not already enabled
+            if (!isRadioModeOn) {
+              isRadioModeOn = true;
+              playinfrom.value = PlaylingFrom(
+                type: PlaylingFromType.SELECTION,
+                name: AppLocalizations.of(Get.context!)!.randomRadio);
+              // Disable queue loop mode if it's enabled
+              if (isQueueLoopModeEnabled.isTrue) {
+                toggleQueueLoopMode(showMessage: false);
+              }
+              printINFO('Radio mode enabled for continuation');
+            }
+            printINFO('Radio continuation triggered: currentIndex=$currentIndex, queueLength=${currentQueue.length}');
+            await _addRadioContinuation(radioInitiatorItem!);
+          }
         }
         _clearTemporaryLyricAccent();
         lyrics.value = {"synced": "", "plainLyrics": ""};
@@ -391,6 +409,7 @@ class PlayerController extends GetxController
       final autoRadioEnabled = Hive.box("AppPrefs").get("autoRadioEnabled") ?? true;
       if (autoRadioEnabled) {
         radio = true;
+        printINFO('Auto-radio enabled for pushSongToQueue: ${mediaItem?.title}');
       }
     }
 
@@ -404,14 +423,22 @@ class PlayerController extends GetxController
     /// set global radio mode flag
     isRadioModeOn = radio;
 
+    // Set radio initiator for continuation
+    if (radio) {
+      radioInitiatorItem = mediaItem ?? playlistid;
+      printINFO('Radio initiator set: ${mediaItem?.title ?? playlistid}');
+    }
+
     Future.delayed(
       Duration.zero,
       () async {
         final content = await _musicServices.getWatchPlaylist(
             videoId: mediaItem?.id ?? "", radio: radio, playlistId: playlistid);
         radioContinuationParam = content['additionalParamsForNext'];
+        printINFO('Radio continuation param set: ${radioContinuationParam}');
         await _audioHandler
             .updateQueue(List<MediaItem>.from(content['tracks']));
+        printINFO('Queue updated with ${content['tracks'].length} tracks');
         if (isShuffleModeEnabled.isTrue) {
           await _audioHandler.customAction("shuffleCmd", {"index": 0});
         }
@@ -454,10 +481,11 @@ class PlayerController extends GetxController
   }
 
   Future<void> playPlayListSong(List<MediaItem> mediaItems, int index,
-      {PlaylingFrom? playfrom, bool autoRadio = false}) async {
+      {PlaylingFrom? playfrom}) async {
     final settings = Get.find<SettingsScreenController>();
     final server = settings.activeServer;
     final isYouTube = server?.type == ServerType.youtubeMusic;
+    final autoRadioEnabled = Hive.box("AppPrefs").get("autoRadioEnabled") ?? true;
 
     isRadioModeOn = false;
     //open player pane,set current song and push first song into playing list,
@@ -484,12 +512,18 @@ class PlayerController extends GetxController
 
     // Auto-start radio for single songs on YouTube Music if enabled
     // Start after song begins playing to prevent loading delay
-    if (autoRadio && isYouTube && mediaItems.length == 1) {
-      final autoRadioEnabled = Hive.box("AppPrefs").get("autoRadioEnabled") ?? true;
-      if (autoRadioEnabled) {
-        // Wait for song to start playing before starting radio
-        _listenForPlaybackToStartRadio(mediaItems[index]);
-      }
+    if (isYouTube && autoRadioEnabled && mediaItems.length == 1) {
+      printINFO('Auto-radio will start for single song: ${mediaItems[index].title}');
+      // Wait for song to start playing before starting radio
+      _listenForPlaybackToStartRadio(mediaItems[index]);
+    }
+
+    // Enable radio mode for albums/playlists to continue after last song
+    if (isYouTube && autoRadioEnabled && mediaItems.length > 1) {
+      // Set radio initiator to last song for continuation
+      radioInitiatorItem = mediaItems.last;
+      // Don't set isRadioModeOn yet - will be set when reaching last song
+      printINFO('Radio mode prepared for album: ${playfrom?.nameString}, will continue after last song');
     }
   }
 
@@ -499,10 +533,39 @@ class PlayerController extends GetxController
     subscription = _audioHandler.playbackState.listen((state) {
       if (state.playing && state.processingState == AudioProcessingState.ready) {
         subscription?.cancel();
-        // Start radio mode after song is playing
-        startRadio(mediaItem);
+        // Start radio mode after song is playing without interrupting
+        printINFO('Auto-starting radio for song: ${mediaItem.title}');
+        radioInitiatorItem = mediaItem;
+        isRadioModeOn = true;
+        playinfrom.value = PlaylingFrom(
+          type: PlaylingFromType.SELECTION,
+          name: AppLocalizations.of(Get.context!)!.randomRadio);
+        // Disable queue loop mode if it's enabled
+        if (isQueueLoopModeEnabled.isTrue) {
+          toggleQueueLoopMode(showMessage: false);
+        }
+        // Fetch and add radio songs to existing queue
+        _fetchAndAddRadioSongs(mediaItem);
       }
     });
+  }
+
+  Future<void> _fetchAndAddRadioSongs(MediaItem mediaItem) async {
+    try {
+      final content = await _musicServices.getWatchPlaylist(
+          videoId: mediaItem.id,
+          radio: true,
+          limit: 24);
+      radioContinuationParam = content['additionalParamsForNext'];
+      final tracks = List<MediaItem>.from(content['tracks']);
+      // Remove current song from tracks to avoid duplicate
+      final filteredTracks = tracks.where((t) => t.id != mediaItem.id).toList();
+      printINFO('Radio: fetched ${filteredTracks.length} tracks to add to queue');
+      await enqueueSongList(filteredTracks);
+    } catch (e) {
+      printERROR('Radio fetch failed: $e');
+      isRadioModeOn = false;
+    }
   }
 
   Future<void> startRadio(MediaItem? mediaItem, {String? playlistid}) async {
@@ -512,6 +575,7 @@ class PlayerController extends GetxController
 
   Future<void> _addRadioContinuation(dynamic item) async {
     try {
+      printINFO('Radio continuation: isSong=${item.runtimeType.toString() == "MediaItem"}, radioContinuationParam=$radioContinuationParam');
       final isSong = item.runtimeType.toString() == "MediaItem";
       final content = await _musicServices.getWatchPlaylist(
           videoId: isSong ? item.id : "",
@@ -521,10 +585,17 @@ class PlayerController extends GetxController
           additionalParamsNext: radioContinuationParam);
       radioContinuationParam = content['additionalParamsForNext'];
       final tracks = List<MediaItem>.from(content['tracks']);
+      printINFO('Radio continuation: fetched ${tracks.length} tracks');
       if (tracks.isNotEmpty) {
-        await enqueueSongList(tracks);
+        // Remove the current song from tracks if it's the first call to avoid duplicate
+        final filteredTracks = isSong && radioContinuationParam == null
+            ? tracks.where((t) => t.id != item.id).toList()
+            : tracks;
+        printINFO('Radio continuation: adding ${filteredTracks.length} tracks to queue');
+        await enqueueSongList(filteredTracks);
       } else {
         // No more tracks available, stop radio mode
+        printINFO('Radio continuation: no more tracks, stopping radio mode');
         isRadioModeOn = false;
         radioContinuationParam = null;
       }
