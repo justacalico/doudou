@@ -445,7 +445,7 @@ class PlayerController extends GetxController
         final content = await _musicServices.getWatchPlaylist(
             videoId: mediaItem?.id ?? "", radio: radio, playlistId: playlistid);
         radioContinuationParam = content['additionalParamsForNext'];
-        printINFO('Radio continuation param set: ${radioContinuationParam}');
+        printINFO('Radio continuation param set: $radioContinuationParam');
         final tracks = List<MediaItem>.from(content['tracks']);
         
         if (radio) {
