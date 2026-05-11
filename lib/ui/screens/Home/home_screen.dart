@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 import '/models/server.dart';
 import '/models/album.dart';
 import '/models/playlist.dart';
-import '/models/playling_from.dart';
 import '/ui/constants/doudou_design.dart';
 import '/ui/widgets/animated_screen_transition.dart';
 import '../Library/library_browse_screen.dart';
@@ -698,88 +697,6 @@ class Body extends StatelessWidget {
     return content;
   }
 
-  List<Widget> _buildYoutubeMusicContentItems(List items, BuildContext context) {
-    final widgets = <Widget>[];
-    
-    for (var item in items) {
-      if (item is MediaItem) {
-        // This is a song
-        widgets.add(
-          ListTile(
-            leading: CircleAvatar(
-              backgroundImage: item.artUri != null 
-                ? NetworkImage(item.artUri.toString()) 
-                : null,
-              child: item.artUri == null ? const Icon(Icons.music_note) : null,
-            ),
-            title: Text(item.title),
-            subtitle: Text(item.artist ?? ''),
-            onTap: () {
-              Get.find<PlayerController>().playPlayListSong(
-                [item],
-                0,
-                playfrom: PlaylingFrom(
-                  name: 'YouTube Music Home',
-                  type: PlaylingFromType.PLAYLIST,
-                ),
-              );
-            },
-          ),
-        );
-      } else if (item is Playlist) {
-        // This is a playlist
-        widgets.add(
-          ListTile(
-            leading: CircleAvatar(
-              backgroundImage: item.thumbnailUrl.isNotEmpty 
-                ? NetworkImage(item.thumbnailUrl) 
-                : null,
-              child: item.thumbnailUrl.isEmpty ? const Icon(Icons.playlist_play) : null,
-            ),
-            title: Text(item.title),
-            onTap: () {
-              printINFO('Navigating to playlist: ${item.title}');
-            },
-          ),
-        );
-      } else if (item is Album) {
-        // This is an album
-        final artistName = item.artists != null && item.artists!.isNotEmpty
-            ? item.artists![0]['name'] ?? ''
-            : '';
-        widgets.add(
-          ListTile(
-            leading: CircleAvatar(
-              backgroundImage: item.thumbnailUrl.isNotEmpty 
-                ? NetworkImage(item.thumbnailUrl) 
-                : null,
-              child: item.thumbnailUrl.isEmpty ? const Icon(Icons.album) : null,
-            ),
-            title: Text(item.title),
-            subtitle: Text(artistName),
-            onTap: () {
-              printINFO('Navigating to album: ${item.title}');
-            },
-          ),
-        );
-      } else if (item is Map) {
-        final title = item['title'] ?? item['name'] ?? 'Unknown';
-        widgets.add(
-          ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Icons.music_note),
-            ),
-            title: Text(title.toString()),
-            onTap: () {
-              printINFO('Tapped item: $title');
-            },
-          ),
-        );
-      }
-    }
-    
-    return widgets;
-  }
 }
 
 class _HomeQuickActionCard extends StatelessWidget {
