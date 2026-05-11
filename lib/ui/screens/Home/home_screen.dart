@@ -564,57 +564,78 @@ class Body extends StatelessWidget {
   }) {
     final shuffleCount = libSongs.librarySongsList.length;
     final downloadCount = homeScreenController.downloadedSongsCount.value;
+    
+    final cards = <Widget>[];
+    
+    if (shuffleCount > 0) {
+      cards.add(
+        _HomeQuickActionCard(
+          icon: Icons.shuffle,
+          label: context.l10n.shuffleAll,
+          subtitle: '$shuffleCount ${context.l10n.songsCount}',
+          onTap: () {
+            homeScreenController.shuffleAll(
+              emptyMessage: context.l10n.noSongsInLibrary,
+              playFromName: context.l10n.shuffleAll,
+            );
+          },
+        ),
+      );
+    }
+    
+    cards.add(
+      _HomeQuickActionCard(
+        icon: Icons.favorite,
+        label: context.l10n.favorites,
+        subtitle: context.l10n.shuffleFavorites,
+        onTap: () {
+          homeScreenController.shuffleFavorites(
+            emptyMessage: context.l10n.favoritesEmpty,
+            playFromName: context.l10n.favorites,
+          );
+        },
+      ),
+    );
+    
+    if (downloadCount > 0) {
+      cards.add(
+        _HomeQuickActionCard(
+          icon: Icons.download,
+          label: context.l10n.downloads,
+          subtitle: '$downloadCount ${context.l10n.songsCount}',
+          onTap: () {
+            homeScreenController.shuffleDownloads(
+              emptyMessage: context.l10n.noOfflineSong,
+              playFromName: context.l10n.downloads,
+            );
+          },
+        ),
+      );
+    }
+    
+    if (cards.isEmpty) return const SizedBox.shrink();
+    
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cardWidth = (constraints.maxWidth - 24) / 3;
+        final cardWidth = (constraints.maxWidth - 24) / cards.length;
         final compact = cardWidth < 180;
         return Row(
-          children: [
-            Expanded(
-              child: _HomeQuickActionCard(
-                icon: Icons.shuffle,
-                label: context.l10n.shuffleAll,
-                subtitle: '$shuffleCount ${context.l10n.songsCount}',
-                compact: compact,
-                onTap: () {
-                  homeScreenController.shuffleAll(
-                    emptyMessage: context.l10n.noSongsInLibrary,
-                    playFromName: context.l10n.shuffleAll,
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _HomeQuickActionCard(
-                icon: Icons.favorite,
-                label: context.l10n.favorites,
-                subtitle: context.l10n.shuffleFavorites,
-                compact: compact,
-                onTap: () {
-                  homeScreenController.shuffleFavorites(
-                    emptyMessage: context.l10n.favoritesEmpty,
-                    playFromName: context.l10n.favorites,
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _HomeQuickActionCard(
-                icon: Icons.download,
-                label: context.l10n.downloads,
-                subtitle: '$downloadCount ${context.l10n.songsCount}',
-                compact: compact,
-                onTap: () {
-                  homeScreenController.shuffleDownloads(
-                    emptyMessage: context.l10n.noOfflineSong,
-                    playFromName: context.l10n.downloads,
-                  );
-                },
-              ),
-            ),
-          ],
+          children: List.generate(cards.length * 2 - 1, (index) {
+            if (index.isEven) {
+              final card = cards[index ~/ 2] as _HomeQuickActionCard;
+              return Expanded(
+                child: _HomeQuickActionCard(
+                  icon: card.icon,
+                  label: card.label,
+                  subtitle: card.subtitle,
+                  compact: compact,
+                  onTap: card.onTap,
+                ),
+              );
+            } else {
+              return const SizedBox(width: 12);
+            }
+          }),
         );
       },
     );
