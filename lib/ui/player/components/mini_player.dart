@@ -451,11 +451,11 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                 )),
                                 if (!compactDesktop) ...[
                                   const SizedBox(width: 4),
-                                  _ControlIconButton(
+                                  Obx(() => _ControlIconButton(
                                     icon: Ionicons.shuffle,
                                     onPressed: controller.toggleShuffleMode,
                                     isActive: controller.isShuffleModeEnabled.isTrue,
-                                  ),
+                                  )),
                                 ],
                               ],
                             ),
@@ -493,11 +493,11 @@ class _DesktopMiniPlayer extends StatelessWidget {
                             Row(
                               children: [
                                 if (!compactDesktop)
-                                  _ControlIconButton(
+                                  Obx(() => _ControlIconButton(
                                     icon: Icons.all_inclusive,
                                     onPressed: controller.toggleLoopMode,
                                     isActive: controller.isLoopModeEnabled.isTrue,
-                                  ),
+                                  )),
                                 _ControlIconButton(
                                   icon: Icons.lyrics_outlined,
                                   onPressed: () {
