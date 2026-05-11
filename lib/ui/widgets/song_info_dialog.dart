@@ -38,8 +38,9 @@ class SongInfoDialog extends StatelessWidget {
                     song.duration != null)
                   InfoItem(
                       title: context.l10n.duration,
-                      value:
-                          "${streamInfo["approxDurationMs"] ?? song.duration?.inMilliseconds} ms"),
+                      value: _formatDuration(
+                          streamInfo["approxDurationMs"] ??
+                              song.duration?.inMilliseconds)),
                 if (streamInfo["audioCodec"] != null)
                   InfoItem(
                       title: context.l10n.audioCodec,
@@ -74,6 +75,14 @@ class SongInfoDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDuration(int? ms) {
+    if (ms == null) return "NA";
+    final duration = Duration(milliseconds: ms);
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds.remainder(60);
+    return "${minutes}:${seconds.toString().padLeft(2, '0')}";
   }
 
   Map<dynamic, dynamic> _getStreamInfo(String id) {
