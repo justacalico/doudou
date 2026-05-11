@@ -30,21 +30,28 @@ class SongInfoDialog extends StatelessWidget {
               children: [
                 InfoItem(title: context.l10n.id, value: song.id),
                 InfoItem(title: context.l10n.title, value: song.title),
-                InfoItem(title: context.l10n.album, value: song.album ?? "NA"),
-                InfoItem(title: context.l10n.artists, value: song.artist ?? "NA"),
-                InfoItem(
-                    title: context.l10n.duration,
-                    value:
-                        "${streamInfo["approxDurationMs"] ?? song.duration?.inMilliseconds ?? "NA"} ms"),
-                InfoItem(
-                    title: context.l10n.audioCodec,
-                    value: streamInfo["audioCodec"] ?? "NA"),
-                InfoItem(
-                    title: context.l10n.bitrate,
-                    value: "${streamInfo["bitrate"] ?? "NA"}"),
-                InfoItem(
-                    title: context.l10n.loudnessDb,
-                    value: "${streamInfo["loudnessDb"] ?? "NA"}"),
+                if (song.album != null && song.album!.isNotEmpty)
+                  InfoItem(title: context.l10n.album, value: song.album!),
+                if (song.artist != null && song.artist!.isNotEmpty)
+                  InfoItem(title: context.l10n.artists, value: song.artist!),
+                if (streamInfo["approxDurationMs"] != null ||
+                    song.duration != null)
+                  InfoItem(
+                      title: context.l10n.duration,
+                      value:
+                          "${streamInfo["approxDurationMs"] ?? song.duration?.inMilliseconds} ms"),
+                if (streamInfo["audioCodec"] != null)
+                  InfoItem(
+                      title: context.l10n.audioCodec,
+                      value: streamInfo["audioCodec"]),
+                if (streamInfo["bitrate"] != null)
+                  InfoItem(
+                      title: context.l10n.bitrate,
+                      value: "${streamInfo["bitrate"]}"),
+                if (streamInfo["loudnessDb"] != null)
+                  InfoItem(
+                      title: context.l10n.loudnessDb,
+                      value: "${streamInfo["loudnessDb"]}"),
               ],
             )),
             const Divider(),
