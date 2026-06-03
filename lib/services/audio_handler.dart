@@ -1076,22 +1076,34 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         break;
 
       case 'reorderQueue':
-        final oldIndex = extras!['oldIndex'];
-        int newIndex = extras['newIndex'];
+        final oldIndex = extras!['oldIndex'] as int?;
+        int? newIndex = extras['newIndex'] as int?;
+
+        if (oldIndex == null || newIndex == null) break;
+        if (oldIndex < 0 || newIndex < 0) break;
+
+        final currentQueue = queue.value;
+        if (currentQueue.isEmpty || oldIndex >= currentQueue.length) break;
 
         if (oldIndex < newIndex) {
           newIndex--;
         }
 
-        final currentQueue = queue.value;
-        final currentItem = currentQueue[currentIndex];
-        final item = currentQueue.removeAt(
-          oldIndex,
-        );
-        currentQueue.insert(newIndex, item);
-        currentIndex = currentQueue.indexOf(currentItem);
+        final safeCurrentIndex = _safeCurrentIndex;
+        final currentItem = safeCurrentIndex != null &&
+                safeCurrentIndex >= 0 &&
+                safeCurrentIndex < currentQueue.length
+            ? currentQueue[safeCurrentIndex]
+            : null;
+        final item = currentQueue.removeAt(oldIndex);
+        currentQueue.insert(newIndex.clamp(0, currentQueue.length), item);
+        if (currentItem != null) {
+          currentIndex = currentQueue.indexOf(currentItem);
+        }
         queue.add(currentQueue);
-        mediaItem.add(currentItem);
+        if (currentItem != null) {
+          mediaItem.add(currentItem);
+        }
         if (!shuffleModeEnabled) {
           originalQueue = currentQueue.toList();
         }
@@ -1139,14 +1151,21 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         break;
 
       case 'clearQueue':
-        customAction("reorderQueue", {'oldIndex': currentIndex, 'newIndex': 0});
+        if (currentIndex is int && currentIndex > 0) {
+          customAction(
+              "reorderQueue", {'oldIndex': currentIndex, 'newIndex': 0});
+        }
         final newQueue = queue.value;
-        newQueue.removeRange(1, newQueue.length);
+        if (newQueue.length > 1) {
+          newQueue.removeRange(1, newQueue.length);
+        }
         queue.add(newQueue);
         originalQueue = newQueue.toList();
         if (shuffleModeEnabled) {
           shuffledQueue.clear();
-          shuffledQueue.add(newQueue[0].id);
+          if (newQueue.isNotEmpty) {
+            shuffledQueue.add(newQueue[0].id);
+          }
           currentShuffleIndex = 0;
         }
         break;
