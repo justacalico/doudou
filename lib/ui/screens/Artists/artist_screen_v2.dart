@@ -26,12 +26,6 @@ class ArtistScreenBN extends StatelessWidget {
             },
             icon: const Icon(Icons.arrow_back_ios_new),
           ),
-          title: Obx(
-            () => artistScreenController.isArtistContentFetced.isTrue
-                ? Text(artistScreenController.artist_.name,
-                    style: Theme.of(context).textTheme.titleLarge)
-                : const SizedBox.shrink(),
-          ),
         ),
         body: const Center(child: LoadingIndicator()),
       );
@@ -47,15 +41,6 @@ class ArtistScreenBN extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new),
         ),
         elevation: 0,
-        title: Obx(
-          () => artistScreenController.isArtistContentFetced.isTrue
-              ? Text(
-                  artistScreenController.artist_.name,
-                  style: Theme.of(context).textTheme.titleLarge,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : const SizedBox.shrink(),
-        ),
       ),
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
