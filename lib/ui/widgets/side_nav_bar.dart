@@ -278,18 +278,6 @@ class _SidebarBrand extends StatelessWidget {
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Music Player',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: c.textTertiary,
-                      letterSpacing: 0.3,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
                 ],
               ),
             ),
