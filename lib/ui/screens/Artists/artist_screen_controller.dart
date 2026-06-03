@@ -352,28 +352,7 @@ class ArtistScreenController extends GetxController
           artistData[tabName], tabName);
     } else {
       sepataredContent[tabName] = {"results": artistData[tabName]['content']};
-      isSeparatedArtistContentFetced.value = true;
-      return;
     }
-
-    final scrollController = scrollControllerForCategory(tabCategory);
-    if (scrollController == null) {
-      isSeparatedArtistContentFetced.value = true;
-      return;
-    }
-
-    scrollController.addListener(() {
-      double maxScroll = scrollController.position.maxScrollExtent;
-      double currentScroll = scrollController.position.pixels;
-      if (currentScroll >= maxScroll / 2 &&
-          sepataredContent[tabName]['additionalParams'] !=
-              '&ctoken=null&continuation=null') {
-        if (!continuationInProgress) {
-          continuationInProgress = true;
-          getContinuationContents(artistData[tabName], tabName);
-        }
-      }
-    });
     isSeparatedArtistContentFetced.value = true;
   }
 
@@ -386,6 +365,17 @@ class ArtistScreenController extends GetxController
     sepataredContent.refresh();
 
     continuationInProgress = false;
+  }
+
+  void tryLoadMore(String tabName) {
+    final additionalParams = sepataredContent[tabName]?['additionalParams'];
+    if (additionalParams == null ||
+        additionalParams == '&ctoken=null&continuation=null') {
+      return;
+    }
+    if (continuationInProgress) return;
+    continuationInProgress = true;
+    getContinuationContents(artistData[tabName], tabName);
   }
 
   void onSort(SortType sortType, bool isAscending, String title) {

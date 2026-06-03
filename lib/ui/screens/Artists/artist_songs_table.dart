@@ -35,6 +35,7 @@ class ArtistSongsTable extends StatelessWidget {
     final list = items as List<MediaItem>;
     final theme = Theme.of(context);
     return ListView(
+      key: PageStorageKey('artist-songs-table-$artistName-$controllerTag'),
       controller: scrollController,
       padding: const EdgeInsets.only(bottom: 200),
       children: [

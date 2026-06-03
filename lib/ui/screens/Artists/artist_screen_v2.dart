@@ -57,50 +57,50 @@ class ArtistScreenBN extends StatelessWidget {
               : const SizedBox.shrink(),
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ArtistHeader(controller: artistScreenController),
-          TabBar(
-            controller: c,
-            onTap: artistScreenController.onDestinationSelected,
-            splashFactory: NoSplash.splashFactory,
-            isScrollable: true,
-            tabs: ContentCategoryMapper.artistTabs
-                .map((category) => Tab(text: category.localizedLabel(context)))
-                .toList(),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverToBoxAdapter(
+            child: ArtistHeader(controller: artistScreenController),
           ),
-          Expanded(
-            child: Obx(
-              () => TabBarView(
-                controller: c,
-                children: artistScreenController.isArtistContentFetced.isFalse
-                    ? List.generate(
-                        4,
-                        (_) => const Center(child: LoadingIndicator()),
-                      )
-                    : [
-                        _TabContent(
-                            controller: artistScreenController,
-                            tag: tag,
-                            tabIndex: 0),
-                        _TabContent(
-                            controller: artistScreenController,
-                            tag: tag,
-                            tabIndex: 1),
-                        _TabContent(
-                            controller: artistScreenController,
-                            tag: tag,
-                            tabIndex: 2),
-                        _TabContent(
-                            controller: artistScreenController,
-                            tag: tag,
-                            tabIndex: 3),
-                      ],
-              ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _TabBarDelegate(
+              tabController: c,
+              tabs: ContentCategoryMapper.artistTabs
+                  .map((category) => Tab(text: category.localizedLabel(context)))
+                  .toList(),
+              onTap: artistScreenController.onDestinationSelected,
             ),
           ),
         ],
+        body: Obx(
+          () => TabBarView(
+            controller: c,
+            children: artistScreenController.isArtistContentFetced.isFalse
+                ? List.generate(
+                    4,
+                    (_) => const Center(child: LoadingIndicator()),
+                  )
+                : [
+                    _TabContent(
+                        controller: artistScreenController,
+                        tag: tag,
+                        tabIndex: 0),
+                    _TabContent(
+                        controller: artistScreenController,
+                        tag: tag,
+                        tabIndex: 1),
+                    _TabContent(
+                        controller: artistScreenController,
+                        tag: tag,
+                        tabIndex: 2),
+                    _TabContent(
+                        controller: artistScreenController,
+                        tag: tag,
+                        tabIndex: 3),
+                  ],
+          ),
+        ),
       ),
     );
   }
@@ -131,18 +131,67 @@ class _TabContent extends StatelessWidget {
       if (!hasContent) {
         return const Center(child: SizedBox.shrink());
       }
-      return Padding(
-        padding: const EdgeInsets.only(left: 15, right: 15),
-        child: SeparateTabItemWidget(
-          artistControllerTag: tag,
-          hideTitle: true,
-          isResultWidget: false,
-          items: controller.sepataredContent[currentTabName]['results'],
-          title: currentTabName,
-          scrollController:
-              controller.scrollControllerForCategory(currentTabCategory),
+      return NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification is ScrollUpdateNotification) {
+            final metrics = notification.metrics;
+            if (metrics.pixels >= metrics.maxScrollExtent / 2) {
+              controller.tryLoadMore(currentTabName);
+            }
+          }
+          return false;
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(left: 15, right: 15),
+          child: SeparateTabItemWidget(
+            artistControllerTag: tag,
+            hideTitle: true,
+            isResultWidget: false,
+            items: controller.sepataredContent[currentTabName]['results'],
+            title: currentTabName,
+          ),
         ),
       );
     });
+  }
+}
+
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabController tabController;
+  final List<Tab> tabs;
+  final ValueChanged<int> onTap;
+
+  _TabBarDelegate({
+    required this.tabController,
+    required this.tabs,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Theme.of(context).canvasColor,
+      child: TabBar(
+        controller: tabController,
+        onTap: onTap,
+        splashFactory: NoSplash.splashFactory,
+        isScrollable: true,
+        tabs: tabs,
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 48;
+
+  @override
+  double get minExtent => 48;
+
+  @override
+  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) {
+    return oldDelegate.tabController != tabController ||
+        oldDelegate.tabs != tabs ||
+        oldDelegate.onTap != onTap;
   }
 }

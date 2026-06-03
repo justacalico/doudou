@@ -58,34 +58,36 @@ class ArtistScreen extends StatelessWidget {
                 ],
               ),
             ),
-            ArtistHeader(controller: artistScreenController),
             Expanded(
               child: Obx(() {
                 final c = artistScreenController.tabController;
                 if (c == null) return const Center(child: SizedBox.shrink());
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TabBar(
-                      controller: c,
-                      onTap: artistScreenController.onDestinationSelected,
-                      tabs: ContentCategoryMapper.artistTabs
-                          .map((category) =>
-                              Tab(text: category.localizedLabel(context)))
-                          .toList(),
+                return NestedScrollView(
+                  headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                    SliverToBoxAdapter(
+                      child: ArtistHeader(controller: artistScreenController),
                     ),
-                    Expanded(
-                      child: TabBarView(
-                        controller: c,
-                        children: [
-                          _TabBody(tag: tag, tabIndex: 0),
-                          _TabBody(tag: tag, tabIndex: 1),
-                          _TabBody(tag: tag, tabIndex: 2),
-                          _TabBody(tag: tag, tabIndex: 3),
-                        ],
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _TabBarDelegate(
+                        tabController: c,
+                        tabs: ContentCategoryMapper.artistTabs
+                            .map((category) =>
+                                Tab(text: category.localizedLabel(context)))
+                            .toList(),
+                        onTap: artistScreenController.onDestinationSelected,
                       ),
                     ),
                   ],
+                  body: TabBarView(
+                    controller: c,
+                    children: [
+                      _TabBody(tag: tag, tabIndex: 0),
+                      _TabBody(tag: tag, tabIndex: 1),
+                      _TabBody(tag: tag, tabIndex: 2),
+                      _TabBody(tag: tag, tabIndex: 3),
+                    ],
+                  ),
                 );
               }),
             ),
@@ -129,14 +131,23 @@ class _TabBody extends StatelessWidget {
 
       final items = controller.sepataredContent[currentTabName]['results'];
 
-      Widget body = SeparateTabItemWidget(
-        artistControllerTag: tag,
-        isResultWidget: false,
-        items: items,
-        title: currentTabName,
-        topPadding: 8,
-        scrollController:
-            controller.scrollControllerForCategory(currentTabCategory),
+      Widget body = NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification is ScrollUpdateNotification) {
+            final metrics = notification.metrics;
+            if (metrics.pixels >= metrics.maxScrollExtent / 2) {
+              controller.tryLoadMore(currentTabName);
+            }
+          }
+          return false;
+        },
+        child: SeparateTabItemWidget(
+          artistControllerTag: tag,
+          isResultWidget: false,
+          items: items,
+          title: currentTabName,
+          topPadding: 8,
+        ),
       );
 
       if (currentTabCategory == ContentCategory.songs &&
@@ -160,5 +171,44 @@ class _TabBody extends StatelessWidget {
 
       return body;
     });
+  }
+}
+
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabController tabController;
+  final List<Tab> tabs;
+  final ValueChanged<int> onTap;
+
+  _TabBarDelegate({
+    required this.tabController,
+    required this.tabs,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Theme.of(context).canvasColor,
+      child: TabBar(
+        controller: tabController,
+        onTap: onTap,
+        splashFactory: NoSplash.splashFactory,
+        tabs: tabs,
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 48;
+
+  @override
+  double get minExtent => 48;
+
+  @override
+  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) {
+    return oldDelegate.tabController != tabController ||
+        oldDelegate.tabs != tabs ||
+        oldDelegate.onTap != onTap;
   }
 }
