@@ -347,9 +347,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                     bottom: 0,
                   ),
                   child: ProgressBar(
-                    timeLabelLocation: compactDesktop
-                        ? TimeLabelLocation.none
-                        : TimeLabelLocation.sides,
+                    timeLabelLocation: TimeLabelLocation.sides,
                     thumbRadius: 4,
                     barHeight: 2,
                     thumbGlowRadius: 0,
