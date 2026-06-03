@@ -31,7 +31,7 @@ dependencies:
   hive_flutter: ^1.1.0
   html: ^0.15.6
   jellyfin_dart: ^0.1.2
-  ionicons: ^0.2.2
+  ionicons_plus: ^0.2.5
   jni: ^0.14.0
   just_audio: ^0.9.46
   just_audio_media_kit:

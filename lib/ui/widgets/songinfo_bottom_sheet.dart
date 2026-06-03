@@ -3,7 +3,7 @@ import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-import 'package:ionicons/ionicons.dart';
+import 'package:ionicons_plus/ionicons_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/downloader.dart';

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:doudou/ui/constants/doudou_design.dart';
 import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/shell_controller.dart';
-import 'package:ionicons/ionicons.dart';
+import 'package:ionicons_plus/ionicons_plus.dart';
 
 import '/ui/widgets/lyrics_dialog.dart';
 import '/ui/widgets/song_info_dialog.dart';
