@@ -138,27 +138,14 @@ class _SidebarContent extends StatelessWidget {
                     if (!minimized)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: c.accentPrimary.withValues(alpha: 0.6),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              context.l10n.library,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: c.textSecondary,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          context.l10n.library,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: c.textSecondary,
+                            letterSpacing: 0.3,
+                          ),
                         ),
                       ),
                     SizedBox(height: minimized ? 8 : 12),
@@ -257,7 +244,7 @@ class _SidebarBrand extends StatelessWidget {
             width: minimized ? 36 : 42,
             height: minimized ? 36 : 42,
             decoration: BoxDecoration(
-              color: c.accentPrimary.withValues(alpha: 0.15),
+              color: c.surfaceElevated,
               borderRadius: BorderRadius.circular(10),
             ),
             child: ClipRRect(
@@ -344,8 +331,8 @@ class _SidebarTileState extends State<_SidebarTile> {
         ? c.textPrimary
         : (_hover ? c.textPrimary : c.textSecondary);
     final bgColor = widget.selected
-        ? c.accentPrimary.withValues(alpha: 0.12)
-        : (_hover ? c.surfaceOverlay.withValues(alpha: 0.5) : Colors.transparent);
+        ? c.surfaceSelected
+        : (_hover ? c.stateHover : Colors.transparent);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
