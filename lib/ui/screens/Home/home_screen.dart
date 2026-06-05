@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,7 +13,6 @@ import '../Library/library.dart';
 import '../Search/search_screen.dart';
 import '/ui/constants/layout.dart';
 import '/utils/app_l10n.dart';
-import '/utils/helper.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/shell_controller.dart';
@@ -24,31 +21,6 @@ import '../../navigator.dart';
 import '../../widgets/library_section_builders.dart';
 import 'home_screen_controller.dart';
 import '../Settings/settings_screen.dart';
-
-// #region agent log
-const bool _enableAgentBuildLogging = false;
-
-void _debugLog(String message, Map<String, dynamic> data, String hypothesisId) {
-  if (!_enableAgentBuildLogging) return;
-  try {
-    final f = File(
-        '/mnt/FUCKICE/Code/gitlab/Openlyst/doudou/.cursor/debug-2cd524.log');
-    f.writeAsStringSync(
-        '${jsonEncode({
-              'sessionId': '2cd524',
-              'hypothesisId': hypothesisId,
-              'location': 'home_screen.dart',
-              'message': sanitizeLogString(message),
-              'data': sanitizeLogMap(data),
-              'timestamp': DateTime.now().millisecondsSinceEpoch
-            })}\n',
-        mode: FileMode.append);
-  } catch (e, st) {
-    printWarning(
-        '[RECOVERABLE][opId=home.debugLog.writeFile] Failed to append debug log: $e\n$st');
-  }
-}
-// #endregion
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -232,16 +204,6 @@ class Body extends StatelessWidget {
       padding: EdgeInsets.only(left: leftPadding),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // #region agent log
-          _debugLog(
-              'home_tab0_constraints',
-              {
-                'maxHeight': constraints.maxHeight,
-                'maxWidth': constraints.maxWidth,
-                'boundedHeight': constraints.maxHeight.isFinite,
-              },
-              'H1');
-          // #endregion
           return SizedBox.expand(
             child: Stack(
               children: [
@@ -492,10 +454,6 @@ class Body extends StatelessWidget {
                           );
                         }
 
-                        // #region agent log
-                        _debugLog('home_scroll_content',
-                            {'contentLength': content.length}, 'H2');
-                        // #endregion
                         if (isLoading) {
                           content.add(
                             Padding(
@@ -524,10 +482,6 @@ class Body extends StatelessWidget {
                           );
                         }
 
-                        // #region agent log
-                        _debugLog('home_building_scroll_view',
-                            {'hasContent': content.isNotEmpty}, 'H4');
-                        // #endregion
                         return SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
                           child: Padding(
