@@ -86,6 +86,10 @@ class DoudouTheme {
       hoverColor: colors.stateHover,
       textTheme: themedText,
       iconTheme: IconThemeData(color: colors.textSecondary),
+      appBarTheme: AppBarTheme(
+        iconTheme: IconThemeData(color: colors.textPrimary),
+        actionsIconTheme: IconThemeData(color: colors.textPrimary),
+      ),
       dialogTheme: DialogThemeData(
         backgroundColor: colors.surfaceModal,
         shape: const RoundedRectangleBorder(borderRadius: DoudouRadii.r16),
