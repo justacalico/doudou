@@ -56,27 +56,27 @@ class _MobileMiniPlayer extends StatelessWidget {
     final c = context.doudouColors;
     final song = controller.currentSong.value;
     return Container(
-      height: 64,
+      height: 56,
       color: c.surfaceOverlay,
       child: Stack(
         children: [
           Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
               child: Row(
                         children: [
                           if (song != null)
                             GestureDetector(
                               onTap: controller.playerPanelController.open,
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(10),
                                 child: ImageWidget(
-                                  size: 48,
+                                  size: 40,
                                   song: song,
                                 ),
                               ),
                             )
                           else
-                            const SizedBox(height: 48, width: 48),
+                            const SizedBox(height: 40, width: 40),
                           const SizedBox(width: 12),
                           Expanded(
                             child: GestureDetector(
