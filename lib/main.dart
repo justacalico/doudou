@@ -40,6 +40,10 @@ Future<void> main() async {
   Get.put<AudioHandler>(await initAudioService(), permanent: true);
   WidgetsBinding.instance.addObserver(LifecycleHandler());
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+  ));
   TerminateRestart.instance.initialize();
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -201,6 +205,10 @@ class LifecycleHandler extends WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ));
       if (Get.isRegistered<LibrarySyncService>()) {
         Get.find<LibrarySyncService>().onAppResumed();
       }
