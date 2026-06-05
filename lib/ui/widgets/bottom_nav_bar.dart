@@ -20,7 +20,6 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     final homeScreenController = Get.find<HomeScreenController>();
-    final theme = Theme.of(context);
     final c = context.doudouColors;
 
     return Obx(() {
@@ -50,10 +49,11 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     const pillInset = 6.0;
-                    final pillWidth =
+                    final itemWidth =
                         (constraints.maxWidth - pillInset * 2) /
                             items.length;
-                    final pillLeft = pillInset + (pillWidth * safeIdx);
+                    final pillWidth = 48.0;
+                    final pillLeft = pillInset + (itemWidth * safeIdx) + (itemWidth - pillWidth) / 2;
 
                     return Stack(
                       children: [
@@ -191,42 +191,6 @@ class _BottomNavBarState extends State<BottomNavBar> {
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 3),
-                                          AnimatedDefaultTextStyle(
-                                            duration: DoudouMotion.selection,
-                                            curve: DoudouMotion.standard,
-                                            style:
-                                                (theme.textTheme.labelSmall ??
-                                                        const TextStyle())
-                                                    .copyWith(
-                                              fontSize: 10,
-                                              height: 1.0,
-                                              fontWeight: FontWeight.w700,
-                                              color: selected
-                                                  ? c.textPrimary
-                                                  : c.textTertiary,
-                                            ),
-                                            child: Text(
-                                              item.label,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              softWrap: false,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          AnimatedOpacity(
-                                            duration: DoudouMotion.selection,
-                                            curve: DoudouMotion.standard,
-                                            opacity: selected ? 1 : 0,
-                                            child: Container(
-                                              width: 4,
-                                              height: 4,
-                                              decoration: BoxDecoration(
-                                                color: c.accentPrimary,
-                                                shape: BoxShape.circle,
                                               ),
                                             ),
                                           ),
