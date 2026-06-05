@@ -370,8 +370,10 @@ class HomeScreenController extends GetxController {
   void onSideBarTabSelected(int index) {
     final wasHomeTab = tabIndex.value == 0;
     final isOnHome = ScreenNavigationSetup.currentContentRouteName == ScreenNavigationSetup.homeScreen;
-    if (isOnHome && index == tabIndex.value) {
-      ScreenNavigationSetup.offContentRoute(ScreenNavigationSetup.homeScreen);
+    if (index == tabIndex.value) {
+      if (isOnHome || ScreenNavigationSetup.canPopContent) {
+        ScreenNavigationSetup.offContentRoute(ScreenNavigationSetup.homeScreen);
+      }
       return;
     }
     reverseAnimationtransiton = index > tabIndex.value;
@@ -382,7 +384,7 @@ class HomeScreenController extends GetxController {
       final search = Get.find<SearchScreenController>();
       search.hideSuggestions();
     }
-    if (!isOnHome) {
+    if (!isOnHome || ScreenNavigationSetup.canPopContent) {
       ScreenNavigationSetup.offContentRoute(ScreenNavigationSetup.homeScreen);
     }
   }
@@ -398,7 +400,7 @@ class HomeScreenController extends GetxController {
       final search = Get.find<SearchScreenController>();
       search.hideSuggestions();
     }
-    if (!isOnHome) {
+    if (!isOnHome || ScreenNavigationSetup.canPopContent) {
       ScreenNavigationSetup.offContentRoute(ScreenNavigationSetup.homeScreen);
     }
   }
