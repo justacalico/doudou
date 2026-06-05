@@ -138,7 +138,6 @@ class _AppShellState extends State<AppShell> {
 
             return Scaffold(
               key: playerController.homeScaffoldkey,
-              extendBody: true,
               drawerScrimColor: Colors.transparent,
               bottomNavigationBar: useBottomNav
                   ? Obx(() {
