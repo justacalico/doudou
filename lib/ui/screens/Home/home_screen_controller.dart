@@ -369,7 +369,7 @@ class HomeScreenController extends GetxController {
 
   void onSideBarTabSelected(int index) {
     final wasHomeTab = tabIndex.value == 0;
-    final isOnHome = Get.currentRoute == ScreenNavigationSetup.homeScreen;
+    final isOnHome = ScreenNavigationSetup.currentContentRouteName == ScreenNavigationSetup.homeScreen;
     if (isOnHome && index == tabIndex.value) {
       ScreenNavigationSetup.offContentRoute(ScreenNavigationSetup.homeScreen);
       return;
@@ -388,7 +388,7 @@ class HomeScreenController extends GetxController {
   }
 
   void onBottonBarTabSelected(int index) {
-    final isOnHome = Get.currentRoute == ScreenNavigationSetup.homeScreen;
+    final isOnHome = ScreenNavigationSetup.currentContentRouteName == ScreenNavigationSetup.homeScreen;
     final wasHomeTab = tabIndex.value == 0;
     reverseAnimationtransiton = index > tabIndex.value;
     tabIndex.value = index;
