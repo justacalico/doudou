@@ -516,6 +516,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   List<Widget> _buildPersonalisation(
       BuildContext context, SettingsScreenController settings) {
     final isDesktop = GetPlatform.isDesktop;
+    final theme = Theme.of(context);
     return [
       ListTile(
         title: Text(context.l10n.themeMode),
@@ -523,6 +524,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           () => DropdownButton<ThemeType>(
             value: settings.themeModetype.value,
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             items: [
               DropdownMenuItem(
                 value: ThemeType.dynamic,
@@ -566,6 +571,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           () => DropdownButton<SyncedLyricsHighlightStyle>(
             value: settings.syncedLyricsHighlightStyle.value,
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             items: [
               DropdownMenuItem(
                 value: SyncedLyricsHighlightStyle.block,
@@ -589,6 +598,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           () => DropdownButton(
             menuMaxHeight: Get.height - 250,
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             value: settings.currentAppLanguageCode.value,
             items: supportedLocalesDisplay.entries
                 .map((lang) =>
@@ -606,6 +619,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           trailing: Obx(
             () => DropdownButton(
               underline: const SizedBox.shrink(),
+              icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+              style: theme.textTheme.bodyMedium,
+              dropdownColor: theme.cardColor,
+              borderRadius: BorderRadius.circular(12),
               value: settings.playerUi.value,
               items: [
                 DropdownMenuItem(value: 0, child: Text(context.l10n.standard)),
@@ -621,6 +638,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         trailing: Obx(
           () => DropdownButton<AnimationSpeed>(
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             value: settings.animationSpeed.value,
             items: [
               DropdownMenuItem(
@@ -656,6 +677,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   List<Widget> _buildContent(
       BuildContext context, SettingsScreenController settings) {
     final isDesktop = GetPlatform.isDesktop;
+    final theme = Theme.of(context);
     return [
       Obx(() {
         final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
@@ -685,6 +707,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           subtitle: Text(context.l10n.homeContentCountDes),
           trailing: DropdownButton(
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             value: settings.noOfHomeScreenContent.value,
             items: ([3, 5, 7, 9, 11])
                 .map((e) => DropdownMenuItem(value: e, child: Text("$e")))
@@ -700,6 +726,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           trailing: Obx(
             () => DropdownButton<SidebarMode>(
               underline: const SizedBox.shrink(),
+              icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+              style: theme.textTheme.bodyMedium,
+              dropdownColor: theme.cardColor,
+              borderRadius: BorderRadius.circular(12),
               value: settings.sidebarMode.value,
               items: [
                 DropdownMenuItem(
@@ -785,6 +815,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   List<Widget> _buildPlayback(
       BuildContext context, SettingsScreenController settings) {
     final isDesktop = GetPlatform.isDesktop;
+    final theme = Theme.of(context);
     return [
       ListTile(
         title: Text(context.l10n.streamingQuality),
@@ -792,6 +823,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         trailing: Obx(
           () => DropdownButton(
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             value: settings.streamingQuality.value,
             items: [
               DropdownMenuItem(
@@ -1068,6 +1103,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
 
   List<Widget> _buildDownload(
       BuildContext context, SettingsScreenController settings) {
+    final theme = Theme.of(context);
     return [
       Obx(() => ListTile(
             title: Text(context.l10n.autoDownFavSong),
@@ -1083,6 +1119,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         trailing: Obx(
           () => DropdownButton(
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             value: settings.downloadingFormat.value,
             items: const [
               DropdownMenuItem(value: "opus", child: Text("Opus/Ogg")),

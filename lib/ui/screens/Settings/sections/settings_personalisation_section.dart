@@ -74,8 +74,10 @@ class SettingsPersonalisationSection extends StatelessWidget {
           trailing: Obx(
             () => DropdownButton<SyncedLyricsHighlightStyle>(
               dropdownColor: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               underline: const SizedBox.shrink(),
+              icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+              style: Theme.of(context).textTheme.bodyMedium,
               value: settingsController.syncedLyricsHighlightStyle.value,
               items: [
                 DropdownMenuItem(
@@ -106,9 +108,10 @@ class SettingsPersonalisationSection extends StatelessWidget {
             () => DropdownButton(
               menuMaxHeight: Get.height - 250,
               dropdownColor: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               underline: const SizedBox.shrink(),
-              style: Theme.of(context).textTheme.titleSmall,
+              icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+              style: Theme.of(context).textTheme.bodyMedium,
               value: settingsController.currentAppLanguageCode.value,
               items: supportedLocalesDisplay.entries
                   .map((lang) => DropdownMenuItem(
@@ -141,8 +144,10 @@ class SettingsPersonalisationSection extends StatelessWidget {
             trailing: Obx(
               () => DropdownButton(
                 dropdownColor: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
                 underline: const SizedBox.shrink(),
+                icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+                style: Theme.of(context).textTheme.bodyMedium,
                 value: settingsController.playerUi.value,
                 items: [
                   DropdownMenuItem(value: 0, child: Text(context.l10n.standard)),
@@ -164,8 +169,10 @@ class SettingsPersonalisationSection extends StatelessWidget {
           trailing: Obx(
             () => DropdownButton<AnimationSpeed>(
               dropdownColor: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               underline: const SizedBox.shrink(),
+              icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+              style: Theme.of(context).textTheme.bodyMedium,
               value: settingsController.animationSpeed.value,
               items: [
                 DropdownMenuItem(
