@@ -184,8 +184,9 @@ class Body extends StatelessWidget {
     final leftPadding = useBottomNav
         ? kContentLeftPaddingWithBottomNav
         : kContentLeftPaddingWithoutBottomNav;
+    final topPadding = MediaQuery.of(context).padding.top;
     return Padding(
-      padding: EdgeInsets.only(left: leftPadding),
+      padding: EdgeInsets.only(left: leftPadding, top: topPadding),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return SizedBox.expand(

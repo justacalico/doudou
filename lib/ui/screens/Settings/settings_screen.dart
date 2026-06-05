@@ -112,8 +112,9 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     final syncService = Get.find<LibrarySyncService>();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final topPadding =
-        context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final topPadding = statusBarHeight +
+        (context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault);
     final isDesktop = GetPlatform.isDesktop;
     final useTwoPane = isDesktop && MediaQuery.sizeOf(context).width >= 980;
 

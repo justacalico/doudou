@@ -58,11 +58,13 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
         ? kContentLeftPaddingLibraryWithBottomNav
         : kContentLeftPaddingWithoutBottomNav;
     final theme = Theme.of(context);
+    final topPadding = MediaQuery.of(context).padding.top;
 
     return Padding(
       padding: EdgeInsets.only(
         left: leftPadding,
         right: kContentRightPadding,
+        top: topPadding,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

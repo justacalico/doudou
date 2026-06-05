@@ -88,28 +88,22 @@ class MyApp extends ConsumerWidget {
                     data: themeState.theme,
                     child: Stack(
                       children: [
-                        SafeArea(
-                          child: Stack(
-                            children: [
-                              child!,
-                              const _AppLoadingOverlay(),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              color: Colors.transparent,
-                              height: mQuery.padding.bottom,
-                              width: mQuery.size.width,
-                            ),
-                          ),
-                        )
+                        child!,
+                        const _AppLoadingOverlay(),
                       ],
                     ),
                   ),
                 ),
+                GestureDetector(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      color: Colors.transparent,
+                      height: mQuery.padding.bottom,
+                      width: mQuery.size.width,
+                    ),
+                  ),
+                )
               ],
             ),
           );
