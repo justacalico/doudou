@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:doudou/utils/helper.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widgets/common_dialog_widget.dart';
 import '../../widgets/cust_switch.dart';
@@ -21,6 +22,7 @@ import '/ui/utils/theme_controller.dart';
 import '/ui/constants/layout.dart';
 import '/models/server.dart';
 import 'settings_screen_controller.dart';
+import '/app/theme/app_theme_provider.dart';
 
 class SettingsScreen extends GetView<SettingsScreenController> {
   const SettingsScreen({super.key, this.isBottomNavActive = false});
@@ -176,20 +178,12 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                       Expanded(
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            return SingleChildScrollView(
-                              physics: const BouncingScrollPhysics(),
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 220),
-                                  child: KeyedSubtree(
-                                    key: ValueKey(_selected),
-                                    child: _buildSingleSection(
-                                        context, settings, syncService, _selected),
-                                  ),
-                                ),
+                            return AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 220),
+                              child: KeyedSubtree(
+                                key: ValueKey(_selected),
+                                child: _buildSingleSection(
+                                    context, settings, syncService, _selected),
                               ),
                             );
                           },
@@ -256,41 +250,45 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                         : theme.dividerColor.withValues(alpha: 0.18),
                   ),
                 ),
-                child: ListTile(
-                  dense: true,
-                  onTap: () => setState(() => _selected = sectionId),
-                  leading: Icon(
-                    icon,
-                    size: 18,
-                    color: selected
-                        ? colorScheme.onSurface
-                        : colorScheme.onSurface.withValues(alpha: 0.78),
-                  ),
-                  title: Text(
-                    _sectionTitle(context, titleKey),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                  child: ListTile(
+                    dense: true,
+                    onTap: () => setState(() => _selected = sectionId),
+                    leading: Icon(
+                      icon,
+                      size: 18,
+                      color: selected
+                          ? colorScheme.onSurface
+                          : colorScheme.onSurface.withValues(alpha: 0.78),
                     ),
-                  ),
-                  trailing: selected
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withValues(alpha: 0.85),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            'Active',
-                            style: TextStyle(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11,
+                    title: Text(
+                      _sectionTitle(context, titleKey),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    trailing: selected
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary.withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(999),
                             ),
-                          ),
-                        )
-                      : Icon(Icons.chevron_right_rounded,
-                          color: colorScheme.onSurface.withValues(alpha: 0.6)),
+                            child: Text(
+                              'Active',
+                              style: TextStyle(
+                                color: colorScheme.onPrimary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                              ),
+                            ),
+                          )
+                        : Icon(Icons.chevron_right_rounded,
+                            color: colorScheme.onSurface.withValues(alpha: 0.6)),
+                  ),
                 ),
               );
             }),
@@ -339,24 +337,28 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 border: Border.all(
                     color: theme.dividerColor.withValues(alpha: 0.25)),
               ),
-              child: Column(
-                children: [
-                  for (int i = 0; i < cluster.sections.length; i++) ...[
-                    _buildMobileSectionRow(
-                      context,
-                      settings,
-                      syncService,
-                      cluster.sections[i],
-                    ),
-                    if (i < cluster.sections.length - 1)
-                      Divider(
-                        height: 1,
-                        indent: 56,
-                        endIndent: 12,
-                        color: theme.dividerColor.withValues(alpha: 0.35),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                child: Column(
+                  children: [
+                    for (int i = 0; i < cluster.sections.length; i++) ...[
+                      _buildMobileSectionRow(
+                        context,
+                        settings,
+                        syncService,
+                        cluster.sections[i],
                       ),
+                      if (i < cluster.sections.length - 1)
+                        Divider(
+                          height: 1,
+                          indent: 56,
+                          endIndent: 12,
+                          color: theme.dividerColor.withValues(alpha: 0.35),
+                        ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],
@@ -494,13 +496,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   ) {
     final children = _buildSectionChildren(context, settings, syncService, id);
     final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: _SettingsCard(
-        icon: meta.$2,
-        title: _sectionTitle(context, meta.$3),
-        children: children,
-      ),
+    return _SettingsCard(
+      icon: meta.$2,
+      title: _sectionTitle(context, meta.$3),
+      children: children,
     );
   }
 
@@ -527,23 +526,55 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   List<Widget> _buildPersonalisation(
       BuildContext context, SettingsScreenController settings) {
     final isDesktop = GetPlatform.isDesktop;
+    final theme = Theme.of(context);
     return [
       ListTile(
         title: Text(context.l10n.themeMode),
-        subtitle: Obx(() => Text(
-              settings.themeModetype.value == ThemeType.dynamic
-                  ? context.l10n.dynamicTheme
-                  : settings.themeModetype.value == ThemeType.system
-                      ? context.l10n.systemDefault
-                      : settings.themeModetype.value == ThemeType.dark
-                          ? context.l10n.dark
-                          : settings.themeModetype.value == ThemeType.oled
-                              ? context.l10n.oled
-                              : context.l10n.light,
-            )),
-        onTap: () => showDialog(
-          context: context,
-          builder: (context) => const ThemeSelectorDialog(),
+        trailing: Consumer(
+          builder: (context, ref, _) {
+            return Obx(
+              () => SizedBox(
+                width: 140,
+                child: DropdownButton<ThemeType>(
+                  isDense: true,
+                  value: settings.themeModetype.value,
+                  underline: const SizedBox.shrink(),
+                  icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+                  style: theme.textTheme.bodyMedium,
+                  dropdownColor: theme.cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  items: [
+                    DropdownMenuItem(
+                      value: ThemeType.dynamic,
+                      child: Text(context.l10n.dynamicTheme),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeType.system,
+                      child: Text(context.l10n.systemDefault),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeType.dark,
+                      child: Text(context.l10n.dark),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeType.oled,
+                      child: Text(context.l10n.oled),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeType.light,
+                      child: Text(context.l10n.light),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) {
+                      settings.onThemeChange(v);
+                      ref.read(appThemeProvider.notifier).setThemeType(v);
+                    }
+                  },
+                ),
+              ),
+            );
+          },
         ),
       ),
       Obx(() => ListTile(
@@ -561,6 +592,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           () => DropdownButton<SyncedLyricsHighlightStyle>(
             value: settings.syncedLyricsHighlightStyle.value,
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             items: [
               DropdownMenuItem(
                 value: SyncedLyricsHighlightStyle.block,
@@ -584,6 +619,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           () => DropdownButton(
             menuMaxHeight: Get.height - 250,
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             value: settings.currentAppLanguageCode.value,
             items: supportedLocalesDisplay.entries
                 .map((lang) =>
@@ -601,6 +640,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           trailing: Obx(
             () => DropdownButton(
               underline: const SizedBox.shrink(),
+              icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+              style: theme.textTheme.bodyMedium,
+              dropdownColor: theme.cardColor,
+              borderRadius: BorderRadius.circular(12),
               value: settings.playerUi.value,
               items: [
                 DropdownMenuItem(value: 0, child: Text(context.l10n.standard)),
@@ -616,6 +659,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         trailing: Obx(
           () => DropdownButton<AnimationSpeed>(
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             value: settings.animationSpeed.value,
             items: [
               DropdownMenuItem(
@@ -651,6 +698,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   List<Widget> _buildContent(
       BuildContext context, SettingsScreenController settings) {
     final isDesktop = GetPlatform.isDesktop;
+    final theme = Theme.of(context);
     return [
       Obx(() {
         final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
@@ -680,6 +728,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           subtitle: Text(context.l10n.homeContentCountDes),
           trailing: DropdownButton(
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             value: settings.noOfHomeScreenContent.value,
             items: ([3, 5, 7, 9, 11])
                 .map((e) => DropdownMenuItem(value: e, child: Text("$e")))
@@ -695,6 +747,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           trailing: Obx(
             () => DropdownButton<SidebarMode>(
               underline: const SizedBox.shrink(),
+              icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+              style: theme.textTheme.bodyMedium,
+              dropdownColor: theme.cardColor,
+              borderRadius: BorderRadius.circular(12),
               value: settings.sidebarMode.value,
               items: [
                 DropdownMenuItem(
@@ -780,6 +836,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   List<Widget> _buildPlayback(
       BuildContext context, SettingsScreenController settings) {
     final isDesktop = GetPlatform.isDesktop;
+    final theme = Theme.of(context);
     return [
       ListTile(
         title: Text(context.l10n.streamingQuality),
@@ -787,6 +844,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         trailing: Obx(
           () => DropdownButton(
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             value: settings.streamingQuality.value,
             items: [
               DropdownMenuItem(
@@ -1063,6 +1124,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
 
   List<Widget> _buildDownload(
       BuildContext context, SettingsScreenController settings) {
+    final theme = Theme.of(context);
     return [
       Obx(() => ListTile(
             title: Text(context.l10n.autoDownFavSong),
@@ -1078,6 +1140,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         trailing: Obx(
           () => DropdownButton(
             underline: const SizedBox.shrink(),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+            style: theme.textTheme.bodyMedium,
+            dropdownColor: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
             value: settings.downloadingFormat.value,
             items: const [
               DropdownMenuItem(value: "opus", child: Text("Opus/Ogg")),
@@ -1264,14 +1330,12 @@ class _SettingsCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: theme.cardColor.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: theme.dividerColor.withValues(alpha: 0.25)),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
@@ -1302,9 +1366,11 @@ class _SettingsCard extends StatelessWidget {
                 textColor: colorScheme.onSurface,
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: children,
+            child: Material(
+              color: Colors.transparent,
+              child: Column(
+                children: children,
+              ),
             ),
           ),
         ],
