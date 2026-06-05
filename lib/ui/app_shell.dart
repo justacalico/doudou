@@ -277,17 +277,17 @@ Route<dynamic>? _contentRouteGenerator(RouteSettings settings) {
   Get.routing.args = settings.arguments;
   switch (settings.name) {
     case ScreenNavigationSetup.homeScreen:
-      return GetPageRoute(page: () => const HomeScreen(), settings: settings);
+      return GetPageRoute(page: () => const HomeScreen(), settings: settings, transition: Transition.noTransition);
     case ScreenNavigationSetup.albumScreen:
       final id = (settings.arguments as (Album?, String)).$2;
       return GetPageRoute(
-          page: () => AlbumScreen(key: Key(id)), settings: settings);
+          page: () => AlbumScreen(key: Key(id)), settings: settings, transition: Transition.noTransition);
     case ScreenNavigationSetup.playlistScreen:
       final id = (settings.arguments as List)[1] as String;
       return GetPageRoute(
-          page: () => PlaylistScreen(key: Key(id)), settings: settings);
+          page: () => PlaylistScreen(key: Key(id)), settings: settings, transition: Transition.noTransition);
     case ScreenNavigationSetup.searchScreen:
-      return GetPageRoute(page: () => const SearchScreen(), settings: settings);
+      return GetPageRoute(page: () => const SearchScreen(), settings: settings, transition: Transition.noTransition);
     case ScreenNavigationSetup.searchResultScreen:
       final query = (settings.arguments as String?) ?? '';
       return GetPageRoute(
@@ -295,12 +295,13 @@ Route<dynamic>? _contentRouteGenerator(RouteSettings settings) {
                 key: ValueKey(
                     'search_result_${query}_${DateTime.now().microsecondsSinceEpoch}'),
               ),
-          settings: settings);
+          settings: settings,
+          transition: Transition.noTransition);
     case ScreenNavigationSetup.artistScreen:
       final args = settings.arguments as List;
       final id = args[0] ? args[1] : (args[1] as Artist).browseId;
       return GetPageRoute(
-          page: () => ArtistScreen(key: Key(id)), settings: settings);
+          page: () => ArtistScreen(key: Key(id)), settings: settings, transition: Transition.noTransition);
     default:
       return null;
   }
