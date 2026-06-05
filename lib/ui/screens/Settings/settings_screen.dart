@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:doudou/utils/helper.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widgets/common_dialog_widget.dart';
 import '../../widgets/cust_switch.dart';
@@ -21,6 +22,7 @@ import '/ui/utils/theme_controller.dart';
 import '/ui/constants/layout.dart';
 import '/models/server.dart';
 import 'settings_screen_controller.dart';
+import '/app/theme/app_theme_provider.dart';
 
 class SettingsScreen extends GetView<SettingsScreenController> {
   const SettingsScreen({super.key, this.isBottomNavActive = false});
@@ -521,37 +523,44 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       ListTile(
         title: Text(context.l10n.themeMode),
         trailing: Obx(
-          () => DropdownButton<ThemeType>(
-            value: settings.themeModetype.value,
-            underline: const SizedBox.shrink(),
-            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-            style: theme.textTheme.bodyMedium,
-            dropdownColor: theme.cardColor,
-            borderRadius: BorderRadius.circular(12),
-            items: [
-              DropdownMenuItem(
-                value: ThemeType.dynamic,
-                child: Text(context.l10n.dynamicTheme),
-              ),
-              DropdownMenuItem(
-                value: ThemeType.system,
-                child: Text(context.l10n.systemDefault),
-              ),
-              DropdownMenuItem(
-                value: ThemeType.dark,
-                child: Text(context.l10n.dark),
-              ),
-              DropdownMenuItem(
-                value: ThemeType.oled,
-                child: Text(context.l10n.oled),
-              ),
-              DropdownMenuItem(
-                value: ThemeType.light,
-                child: Text(context.l10n.light),
-              ),
-            ],
-            onChanged: (v) {
-              if (v != null) settings.onThemeChange(v);
+          () => Consumer(
+            builder: (context, ref, _) {
+              return DropdownButton<ThemeType>(
+                value: settings.themeModetype.value,
+                underline: const SizedBox.shrink(),
+                icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+                style: theme.textTheme.bodyMedium,
+                dropdownColor: theme.cardColor,
+                borderRadius: BorderRadius.circular(12),
+                items: [
+                  DropdownMenuItem(
+                    value: ThemeType.dynamic,
+                    child: Text(context.l10n.dynamicTheme),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeType.system,
+                    child: Text(context.l10n.systemDefault),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeType.dark,
+                    child: Text(context.l10n.dark),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeType.oled,
+                    child: Text(context.l10n.oled),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeType.light,
+                    child: Text(context.l10n.light),
+                  ),
+                ],
+                onChanged: (v) {
+                  if (v != null) {
+                    settings.onThemeChange(v);
+                    ref.read(appThemeProvider.notifier).setThemeType(v);
+                  }
+                },
+              );
             },
           ),
         ),
