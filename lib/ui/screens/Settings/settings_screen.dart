@@ -519,20 +519,36 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     return [
       ListTile(
         title: Text(context.l10n.themeMode),
-        subtitle: Obx(() => Text(
-              settings.themeModetype.value == ThemeType.dynamic
-                  ? context.l10n.dynamicTheme
-                  : settings.themeModetype.value == ThemeType.system
-                      ? context.l10n.systemDefault
-                      : settings.themeModetype.value == ThemeType.dark
-                          ? context.l10n.dark
-                          : settings.themeModetype.value == ThemeType.oled
-                              ? context.l10n.oled
-                              : context.l10n.light,
-            )),
-        onTap: () => showDialog(
-          context: context,
-          builder: (context) => const ThemeSelectorDialog(),
+        trailing: Obx(
+          () => DropdownButton<ThemeType>(
+            value: settings.themeModetype.value,
+            underline: const SizedBox.shrink(),
+            items: [
+              DropdownMenuItem(
+                value: ThemeType.dynamic,
+                child: Text(context.l10n.dynamicTheme),
+              ),
+              DropdownMenuItem(
+                value: ThemeType.system,
+                child: Text(context.l10n.systemDefault),
+              ),
+              DropdownMenuItem(
+                value: ThemeType.dark,
+                child: Text(context.l10n.dark),
+              ),
+              DropdownMenuItem(
+                value: ThemeType.oled,
+                child: Text(context.l10n.oled),
+              ),
+              DropdownMenuItem(
+                value: ThemeType.light,
+                child: Text(context.l10n.light),
+              ),
+            ],
+            onChanged: (v) {
+              if (v != null) settings.onThemeChange(v);
+            },
+          ),
         ),
       ),
       Obx(() => ListTile(
