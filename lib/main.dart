@@ -85,34 +85,41 @@ class MyApp extends ConsumerWidget {
           final mQuery = MediaQuery.of(context);
           final scale =
               mQuery.textScaler.clamp(minScaleFactor: 1.0, maxScaleFactor: 1.1);
-          return PerfMonitor(
-            controller: _perfMonitor,
-            child: Stack(
-              children: [
-                MediaQuery(
-                  data: mQuery.copyWith(textScaler: scale),
-                  child: AnimatedTheme(
-                    duration: DoudouMotion.theme,
-                    data: themeState.theme,
-                    child: Stack(
-                      children: [
-                        child!,
-                        const _AppLoadingOverlay(),
-                      ],
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: const SystemUiOverlayStyle(
+              statusBarIconBrightness: Brightness.light,
+              statusBarBrightness: Brightness.dark,
+              statusBarColor: Colors.transparent,
+            ),
+            child: PerfMonitor(
+              controller: _perfMonitor,
+              child: Stack(
+                children: [
+                  MediaQuery(
+                    data: mQuery.copyWith(textScaler: scale),
+                    child: AnimatedTheme(
+                      duration: DoudouMotion.theme,
+                      data: themeState.theme,
+                      child: Stack(
+                        children: [
+                          child!,
+                          const _AppLoadingOverlay(),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                GestureDetector(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      color: Colors.transparent,
-                      height: mQuery.padding.bottom,
-                      width: mQuery.size.width,
+                  GestureDetector(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        color: Colors.transparent,
+                        height: mQuery.padding.bottom,
+                        width: mQuery.size.width,
+                      ),
                     ),
-                  ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
           );
         });
