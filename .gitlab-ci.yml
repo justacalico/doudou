@@ -1,0 +1,68 @@
+image: ubuntu:24.04
+
+variables:
+  FLUTTER_VERSION: "stable"
+
+stages:
+  - build
+
+.build_deps:
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq git curl unzip xz-utils libglu1-mesa clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libsecret-1-dev libmpv-dev libayatana-appindicator3-dev dpkg-dev rpm wget file squashfs-tools patchelf plocate libfuse2 libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+    - git clone --branch $FLUTTER_VERSION --depth 1 https://github.com/flutter/flutter.git $HOME/flutter
+    - export PATH="$HOME/flutter/bin:$PATH"
+    - flutter config --no-analytics
+    - flutter doctor -v
+
+build-android-debug:
+  extends: .build_deps
+  stage: build
+  image: ubuntu:24.04
+  variables:
+    JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq git curl unzip xz-utils libglu1-mesa openjdk-17-jdk
+    - git clone --branch $FLUTTER_VERSION --depth 1 https://github.com/flutter/flutter.git $HOME/flutter
+    - export PATH="$HOME/flutter/bin:$PATH"
+    - flutter config --no-analytics
+    - mkdir -p $HOME/android-sdk/cmdline-tools
+    - curl -fsSL -o /tmp/cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+    - unzip -q /tmp/cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
+    - mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+    - export ANDROID_SDK_ROOT="$HOME/android-sdk"
+    - export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+    - yes | sdkmanager --licenses >/dev/null 2>&1 || true
+    - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+    - flutter doctor
+  script:
+    - flutter pub get
+    - flutter build apk --debug
+    - mkdir -p artifacts
+    - cp build/app/outputs/flutter-apk/app-debug.apk artifacts/doudou-debug-$CI_COMMIT_SHORT_SHA.apk
+  artifacts:
+    paths:
+      - artifacts/
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+build-linux-debug:
+  extends: .build_deps
+  stage: build
+  image: ubuntu:24.04
+  script:
+    - bash scripts/install-linux-deps.sh || true
+    - flutter config --enable-linux-desktop
+    - flutter pub get
+    - flutter build linux --debug
+    - mkdir -p artifacts
+    - cd build/linux/x64/debug
+    - zip -r $CI_PROJECT_DIR/artifacts/doudou-debug-$CI_COMMIT_SHORT_SHA-linux-x64.zip bundle/
+  artifacts:
+    paths:
+      - artifacts/
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
