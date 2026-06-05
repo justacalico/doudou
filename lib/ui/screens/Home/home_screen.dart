@@ -6,7 +6,6 @@ import '/models/server.dart';
 import '/models/album.dart';
 import '/models/playlist.dart';
 import '/ui/constants/doudou_design.dart';
-import '/ui/widgets/animated_screen_transition.dart';
 import '../Library/library_browse_screen.dart';
 import '../Library/library_controller.dart';
 import '../Library/library.dart';
@@ -111,26 +110,11 @@ class _HomeScreenState extends State<HomeScreen> {
               : const SizedBox.shrink(),
         ),
         body: Obx(() {
-          final settings = Get.find<SettingsScreenController>();
-          final factor = settings.animationSpeedFactor;
-          final enabled = factor > 0;
           final tab = homeScreenController.tabIndex.value;
-          const verticalBaseMs = 380;
-          const horizontalBaseMs = 320;
-          final baseMs = shellController.useBottomNav.value
-              ? horizontalBaseMs
-              : verticalBaseMs;
-          final effectiveMs = (baseMs * (factor == 0 ? 1.0 : factor)).round();
-          return AnimatedScreenTransition(
-            enabled: enabled,
-            resverse: homeScreenController.reverseAnimationtransiton,
-            horizontalTransition: shellController.useBottomNav.value,
-            duration: Duration(milliseconds: effectiveMs),
-            child: _LazyIndexedStack(
-              index: tab,
-              itemCount: _tabCount,
-              itemBuilder: (i) => _buildTab(i, shellController.useBottomNav.value),
-            ),
+          return _LazyIndexedStack(
+            index: tab,
+            itemCount: _tabCount,
+            itemBuilder: (i) => _buildTab(i, shellController.useBottomNav.value),
           );
         }));
   }
