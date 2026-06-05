@@ -1,5 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '/models/server.dart';
@@ -65,7 +66,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final homeScreenController = Get.find<HomeScreenController>();
     final shellController = Get.find<ShellController>();
 
-    return Scaffold(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        statusBarColor: Colors.transparent,
+      ),
+      child: Scaffold(
         floatingActionButton: Obx(
           () => ((homeScreenController.tabIndex.value == 0 &&
                           !GetPlatform.isDesktop) ||
@@ -116,7 +123,9 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: _tabCount,
             itemBuilder: (i) => _buildTab(i, shellController.useBottomNav.value),
           );
-        }));
+        }),
+      ),
+    );
   }
 }
 
