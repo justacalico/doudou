@@ -40,6 +40,10 @@ Future<void> main() async {
   Get.put<AudioHandler>(await initAudioService(), permanent: true);
   WidgetsBinding.instance.addObserver(LifecycleHandler());
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+  ));
   TerminateRestart.instance.initialize();
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -52,6 +56,10 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (!GetPlatform.isDesktop) Get.put(AppLinksController());
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    ));
     final settings = ref.watch(appSettingsProvider);
     final themeState = ref.watch(appThemeProvider);
     final locale = settings.locale;
@@ -83,14 +91,21 @@ class MyApp extends ConsumerWidget {
               children: [
                 MediaQuery(
                   data: mQuery.copyWith(textScaler: scale),
-                  child: AnimatedTheme(
-                    duration: DoudouMotion.theme,
-                    data: themeState.theme,
-                    child: Stack(
-                      children: [
-                        child!,
-                        const _AppLoadingOverlay(),
-                      ],
+                  child: AnnotatedRegion<SystemUiOverlayStyle>(
+                    value: const SystemUiOverlayStyle(
+                      statusBarIconBrightness: Brightness.light,
+                      statusBarBrightness: Brightness.dark,
+                      statusBarColor: Colors.transparent,
+                    ),
+                    child: AnimatedTheme(
+                      duration: DoudouMotion.theme,
+                      data: themeState.theme,
+                      child: Stack(
+                        children: [
+                          child!,
+                          const _AppLoadingOverlay(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -201,6 +216,10 @@ class LifecycleHandler extends WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ));
       if (Get.isRegistered<LibrarySyncService>()) {
         Get.find<LibrarySyncService>().onAppResumed();
       }

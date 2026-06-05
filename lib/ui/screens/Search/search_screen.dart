@@ -18,7 +18,8 @@ class SearchScreen extends StatelessWidget {
     final searchScreenController = Get.find<SearchScreenController>();
     final useBottomNav = Get.find<ShellController>().useBottomNav.value;
     final theme = Theme.of(context);
-    const topPadding = 24.0;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final topPadding = statusBarHeight + 24.0;
     final horizontalPadding = useBottomNav
         ? kContentLeftPaddingWithBottomNav
         : kContentLeftPaddingWithoutBottomNav;
