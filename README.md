@@ -1,6 +1,6 @@
 # Doudou
 
-A cross-platform music player that connects to your own media server. Stream your library, play local files, or pull from YouTube Music - all without ads, trackers, or cloud lock-in.
+A cross-platform music player that connects to your own media server. Stream your library, or pull from YouTube Music - all without ads, trackers, or cloud lock-in.
 
 <p align="center">
   <img src="images/home.png" width="30%" />
@@ -14,7 +14,6 @@ A cross-platform music player that connects to your own media server. Stream you
 - **YouTube Music** - Full support with radio mode
 - **Jellyfin** - Supported, minor bugs possible
 - **Plex** - Works, but less tested. File an issue if you hit problems
-- **Local files** - Play music stored directly on your device, no server needed
 
 ## What it does
 
@@ -24,13 +23,12 @@ A cross-platform music player that connects to your own media server. Stream you
 - Lyrics support (synced and static)
 - Radio mode that keeps the music going
 - Automatic transcoding when your server supports it
-- Crossfade and audio normalization (where supported)
-- System media controls (MPRIS on Linux, SMTC on Windows, media keys everywhere)
+- System media controls
 - Dynamic themes pulled from album artwork
 
 ## Platforms
 
-Android, iOS, macOS, Windows, Linux, and Web (web is experimental).
+Android, iOS, macOS, Windows and, Linux
 
 ## Download
 
@@ -56,7 +54,7 @@ Long-press anything (song, album, playlist) and choose download. It lives in the
 
 **Is the desktop UI different?**
 
-Same app, same backend. The layout adapts to screen size. Resize the window and it switches between desktop and mobile layouts automatically.
+Same app, same backend. The layout adapts to screen size. 
 
 ## Building from source
 
