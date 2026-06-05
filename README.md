@@ -1,103 +1,89 @@
 # Doudou
 
-A privacy-focused music player for your media server. Stream your music collection with a modern interface that works across all your devices. No tracking, no ads, no cloud services.
+A cross-platform music player that connects to your own media server. Stream your library, play local files, or pull from YouTube Music - all without ads, trackers, or cloud lock-in.
 
-## Supported Backends
+<p align="center">
+  <img src="images/home.png" width="30%" />
+  <img src="images/albums.png" width="30%" />
+  <img src="images/nowplaying.png" width="30%" />
+</p>
 
-- **Subsonic** - Full support (Recommanded)
-- **YouTube Music** - Full support (Recommanded)
-- **Plex** - Working without a bunch of testing. (This is supported just not bugtested all the time (open a issue if a bug accross))
-- **Jellyfin** - Supported unpritoized expect minor bugs
-- **Local Files** - Play music directly from your device without a server
+## What it connects to
 
-## Features
+- **Subsonic** / **OpenSubsonic** - Best tested and recommended
+- **YouTube Music** - Full support with radio mode
+- **Jellyfin** - Supported, minor bugs possible
+- **Plex** - Works, but less tested. File an issue if you hit problems
+- **Local files** - Play music stored directly on your device, no server needed
 
-### Privacy
-- No data collection, analytics, or telemetry
-- No ads or third-party trackers
-- Direct connection to your server only
+## What it does
 
-### Playback
-- Gapless audio
-- Radio mode for continuous playback
-- Automatic transcoding support
+- Gapless playback with a proper queue and history
+- Background audio on mobile and desktop
+- Download songs, albums, and playlists for offline listening
+- Lyrics support (synced and static)
+- Radio mode that keeps the music going
+- Automatic transcoding when your server supports it
+- Crossfade and audio normalization (where supported)
+- System media controls (MPRIS on Linux, SMTC on Windows, media keys everywhere)
+- Dynamic themes pulled from album artwork
 
-### Local Music
-- Play music directly from your filesystem
-- Album artwork from embedded metadata, local images, or online sources
-- Create and manage local playlists
+## Platforms
 
-### Platforms
-- Android, iOS, macOS, Linux, Windows, Web* (web untested)
-- Background playback
-- Offline listening with downloads
-
-## Requirements
-
-- **Media server**: Jellyfin 10.8+, Plex (with Plex Pass), Subsonic-compatible server, or Swing Music
-- **Device**: Android 5.0+, iOS 12.0+, macOS 10.15+, Linux, or Windows 10+
+Android, iOS, macOS, Windows, Linux, and Web (web is experimental).
 
 ## Download
 
-**[Download for all platforms](https://openlyst.ink/apps/doudou)**
+Get builds for every platform at **[openlyst.ink/apps/doudou](https://openlyst.ink/apps/doudou)**.
 
-Available for Android, iOS, macOS, Windows, Linux.
+## Quick start
 
-## Setup
-
-1. Open Doudou and tap "Add Server"
-2. Select your server type (Jellyfin, Plex, or Subsonic)
-3. Enter your server address (e.g., `http://192.168.1.100:8096`)
-4. Sign in with your credentials
-5. Your library will sync and you can start streaming
+1. Open the app and hit "Add Server"
+2. Pick your backend type
+3. Enter the server URL (for example, `http://192.168.1.100:8096` for Jellyfin)
+4. Log in
+5. Your library syncs automatically
 
 ## FAQ
 
-**Can I use this away from home?**
-Yes, as long as your server is accessible over the internet. Consider using a VPN for security.
+**Can I use this outside my house?**
 
-**How do I download for offline listening?**
-Long-press any song, album, or playlist and select "Download for offline listening."
+Yes, as long as your server is reachable from the internet. A reverse proxy or VPN is a good idea.
 
-**Is the desktop version different?**
-Desktop and mobile use the same backend rescaling the app will change from desktop or mobile ui tho.s
+**How do downloads work?**
 
-## Building from Source
+Long-press anything (song, album, playlist) and choose download. It lives in the app, not your public downloads folder.
 
-### Clone the Repository
+**Is the desktop UI different?**
+
+Same app, same backend. The layout adapts to screen size. Resize the window and it switches between desktop and mobile layouts automatically.
+
+## Building from source
+
+You need the Flutter SDK (3.1.5 or newer).
 
 ```bash
 git clone https://gitlab.com/Openlyst/doudou.git
 cd doudou
-```
-
-### Install Dependencies
-
-```bash
 flutter pub get
 ```
 
-### Linux build (CI / desktop)
+### Linux desktop extra dependency
 
-For Linux desktop build, install the system dependency required by `tray_manager`:
+`tray_manager` needs appindicator headers on Debian/Ubuntu:
 
 ```bash
-# Debian/Ubuntu
 sudo apt-get install -y libayatana-appindicator3-dev
 ```
 
-In CI, add `libayatana-appindicator3-dev` to your `apt-get install` list before `flutter build linux`.
-
-### Build Commands
+### Build commands
 
 ```bash
 # Android
-flutter build apk --debug          # Debug APK
-flutter build apk --release        # Release APK
-flutter build appbundle --release  # App Bundle for Play Store
+flutter build apk --release
+flutter build appbundle --release
 
 # iOS
-flutter build ios --release
 flutter build ipa --release
 
 # Desktop
@@ -107,22 +93,12 @@ flutter build linux --release
 
 # Web
 flutter build web --release
-
-# Clean build artifacts
-flutter clean
 ```
 
-## Support
+## Issues and contributing
 
-- [Report a Bug](https://gitlab.com/Openlyst/doudou/issues)
-- [Request a Feature](https://gitlab.com/Openlyst/doudou/issues)
+Bugs and feature requests go in the [issue tracker](https://gitlab.com/Openlyst/doudou/issues). Pull requests are welcome.
 
-## Credits
+## License
 
-Built upon:
-
-- [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Subsonic](http://www.subsonic.org/), [Youtube Music](https://music.youtube.com) - Media servers
-- [Harmony-Music](https://github.com/anandnet/Harmony-Music) - YouTube Music support
-- [Flutter](https://flutter.dev/) - framework
- 
- 
+[GPL-3.0](LICENSE)
