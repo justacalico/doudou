@@ -86,6 +86,10 @@ class DoudouTheme {
       hoverColor: colors.stateHover,
       textTheme: themedText,
       iconTheme: IconThemeData(color: colors.textSecondary),
+      appBarTheme: AppBarTheme(
+        iconTheme: IconThemeData(color: colors.textPrimary),
+        actionsIconTheme: IconThemeData(color: colors.textPrimary),
+      ),
       dialogTheme: DialogThemeData(
         backgroundColor: colors.surfaceModal,
         shape: const RoundedRectangleBorder(borderRadius: DoudouRadii.r16),
@@ -120,6 +124,23 @@ class DoudouTheme {
         activeTrackColor: colors.accentPrimary,
         thumbColor: colors.accentPrimary,
         overlayColor: colors.accentMuted,
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return Colors.white;
+          }
+          return colors.textDisabled;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return brightness == Brightness.dark
+                ? Colors.white.withValues(alpha: 0.25)
+                : Colors.black.withValues(alpha: 0.30);
+          }
+          return colors.borderSubtle;
+        }),
+        overlayColor: WidgetStateProperty.all(Colors.transparent),
       ),
       extensions: <ThemeExtension<dynamic>>[
         colors,

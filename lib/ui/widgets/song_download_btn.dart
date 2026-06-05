@@ -16,11 +16,13 @@ class SongDownloadButton extends StatelessWidget {
       this.calledFromPlayer = false,
       this.song_,
       this.isDownloadingDoneCallback,
-      this.iconSize});
+      this.iconSize,
+      this.iconColor});
   final bool calledFromPlayer;
   final MediaItem? song_;
   final void Function(bool)? isDownloadingDoneCallback;
   final double? iconSize;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +43,7 @@ class SongDownloadButton extends StatelessWidget {
               Hive.box(songDownloadsBoxName(currentServerId())).containsKey(song!.id))
           ? Icon(
               Icons.download_done,
-              color: Theme.of(context).textTheme.titleMedium!.color,
+              color: iconColor ?? Theme.of(context).textTheme.titleMedium!.color,
               size: iconSize ?? 24,
             )
           : downloader.songQueue.contains(song) &&
@@ -73,7 +75,7 @@ class SongDownloadButton extends StatelessWidget {
                   : IconButton(
                       icon: Icon(
                         Icons.download,
-                        color: Theme.of(context).textTheme.titleMedium!.color,
+                        color: iconColor ?? Theme.of(context).textTheme.titleMedium!.color,
                         size: iconSize ?? 24,
                       ),
                       onPressed: () {
