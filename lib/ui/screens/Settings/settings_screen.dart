@@ -152,7 +152,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 Expanded(
                   child: Text(
                     context.l10n.settings,
-                    textAlign: useTwoPane ? TextAlign.left : TextAlign.center,
+                    textAlign: TextAlign.left,
                     style: (useTwoPane
                             ? theme.textTheme.headlineSmall
                             : theme.textTheme.titleLarge)
