@@ -250,41 +250,45 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                         : theme.dividerColor.withValues(alpha: 0.18),
                   ),
                 ),
-                child: ListTile(
-                  dense: true,
-                  onTap: () => setState(() => _selected = sectionId),
-                  leading: Icon(
-                    icon,
-                    size: 18,
-                    color: selected
-                        ? colorScheme.onSurface
-                        : colorScheme.onSurface.withValues(alpha: 0.78),
-                  ),
-                  title: Text(
-                    _sectionTitle(context, titleKey),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                  child: ListTile(
+                    dense: true,
+                    onTap: () => setState(() => _selected = sectionId),
+                    leading: Icon(
+                      icon,
+                      size: 18,
+                      color: selected
+                          ? colorScheme.onSurface
+                          : colorScheme.onSurface.withValues(alpha: 0.78),
                     ),
-                  ),
-                  trailing: selected
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withValues(alpha: 0.85),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            'Active',
-                            style: TextStyle(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11,
+                    title: Text(
+                      _sectionTitle(context, titleKey),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    trailing: selected
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary.withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(999),
                             ),
-                          ),
-                        )
-                      : Icon(Icons.chevron_right_rounded,
-                          color: colorScheme.onSurface.withValues(alpha: 0.6)),
+                            child: Text(
+                              'Active',
+                              style: TextStyle(
+                                color: colorScheme.onPrimary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                              ),
+                            ),
+                          )
+                        : Icon(Icons.chevron_right_rounded,
+                            color: colorScheme.onSurface.withValues(alpha: 0.6)),
+                  ),
                 ),
               );
             }),
@@ -333,24 +337,28 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 border: Border.all(
                     color: theme.dividerColor.withValues(alpha: 0.25)),
               ),
-              child: Column(
-                children: [
-                  for (int i = 0; i < cluster.sections.length; i++) ...[
-                    _buildMobileSectionRow(
-                      context,
-                      settings,
-                      syncService,
-                      cluster.sections[i],
-                    ),
-                    if (i < cluster.sections.length - 1)
-                      Divider(
-                        height: 1,
-                        indent: 56,
-                        endIndent: 12,
-                        color: theme.dividerColor.withValues(alpha: 0.35),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                child: Column(
+                  children: [
+                    for (int i = 0; i < cluster.sections.length; i++) ...[
+                      _buildMobileSectionRow(
+                        context,
+                        settings,
+                        syncService,
+                        cluster.sections[i],
                       ),
+                      if (i < cluster.sections.length - 1)
+                        Divider(
+                          height: 1,
+                          indent: 56,
+                          endIndent: 12,
+                          color: theme.dividerColor.withValues(alpha: 0.35),
+                        ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],
@@ -1354,8 +1362,11 @@ class _SettingsCard extends StatelessWidget {
                 textColor: colorScheme.onSurface,
               ),
             ),
-            child: Column(
-              children: children,
+            child: Material(
+              color: Colors.transparent,
+              child: Column(
+                children: children,
+              ),
             ),
           ),
         ],
