@@ -1,7 +1,6 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:doudou/ui/constants/doudou_design.dart';
 import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/shell_controller.dart';
 import 'package:ionicons_plus/ionicons_plus.dart';
@@ -56,27 +55,14 @@ class _MobileMiniPlayer extends StatelessWidget {
     final textTheme = theme.textTheme;
     final c = context.doudouColors;
     final song = controller.currentSong.value;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(kDoudouRadiusCard),
-            child: Container(
-              height: 64,
-              decoration: BoxDecoration(
-                color: c.surfaceOverlay,
-                borderRadius: BorderRadius.circular(kDoudouRadiusCard),
-                border: Border.all(color: c.borderSubtle),
-                boxShadow: const [],
-              ),
-              child: Stack(
-                children: [
-                  Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
-                      child: Row(
+    return Container(
+      height: 64,
+      color: c.surfaceOverlay,
+      child: Stack(
+        children: [
+          Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+              child: Row(
                         children: [
                           if (song != null)
                             GestureDetector(
@@ -197,11 +183,7 @@ class _MobileMiniPlayer extends StatelessWidget {
                         ),
                       ),
                     ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }
