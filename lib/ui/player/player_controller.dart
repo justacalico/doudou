@@ -731,12 +731,7 @@ class PlayerController extends GetxController
 
   void _playerPanelCheck({bool restoreSession = false}) {
     final isWideScreen = Get.size.width > 800;
-    final autoOpenPlayer = Hive.box("AppPrefs").get("autoOpenPlayer") ?? true;
-    if ((!isWideScreen && autoOpenPlayer && playerPanelController.isAttached) &&
-        !restoreSession) {
-      playerPanelController.open();
-    }
-
+    // Removed auto-open on mobile to match desktop behavior
     if (initFlagForPlayer) {
       final miniPlayerHeight = isWideScreen ? 105.0 : 75.0;
       final useBottomNav = Get.find<ShellController>().useBottomNav.value;
