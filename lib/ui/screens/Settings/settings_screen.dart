@@ -530,47 +530,51 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     return [
       ListTile(
         title: Text(context.l10n.themeMode),
-        trailing: Obx(
-          () => Consumer(
-            builder: (context, ref, _) {
-              return DropdownButton<ThemeType>(
-                value: settings.themeModetype.value,
-                underline: const SizedBox.shrink(),
-                icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-                style: theme.textTheme.bodyMedium,
-                dropdownColor: theme.cardColor,
-                borderRadius: BorderRadius.circular(12),
-                items: [
-                  DropdownMenuItem(
-                    value: ThemeType.dynamic,
-                    child: Text(context.l10n.dynamicTheme),
-                  ),
-                  DropdownMenuItem(
-                    value: ThemeType.system,
-                    child: Text(context.l10n.systemDefault),
-                  ),
-                  DropdownMenuItem(
-                    value: ThemeType.dark,
-                    child: Text(context.l10n.dark),
-                  ),
-                  DropdownMenuItem(
-                    value: ThemeType.oled,
-                    child: Text(context.l10n.oled),
-                  ),
-                  DropdownMenuItem(
-                    value: ThemeType.light,
-                    child: Text(context.l10n.light),
-                  ),
-                ],
-                onChanged: (v) {
-                  if (v != null) {
-                    settings.onThemeChange(v);
-                    ref.read(appThemeProvider.notifier).setThemeType(v);
-                  }
-                },
-              );
-            },
-          ),
+        trailing: Consumer(
+          builder: (context, ref, _) {
+            return Obx(
+              () => SizedBox(
+                width: 140,
+                child: DropdownButton<ThemeType>(
+                  isDense: true,
+                  value: settings.themeModetype.value,
+                  underline: const SizedBox.shrink(),
+                  icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+                  style: theme.textTheme.bodyMedium,
+                  dropdownColor: theme.cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  items: [
+                    DropdownMenuItem(
+                      value: ThemeType.dynamic,
+                      child: Text(context.l10n.dynamicTheme),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeType.system,
+                      child: Text(context.l10n.systemDefault),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeType.dark,
+                      child: Text(context.l10n.dark),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeType.oled,
+                      child: Text(context.l10n.oled),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeType.light,
+                      child: Text(context.l10n.light),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) {
+                      settings.onThemeChange(v);
+                      ref.read(appThemeProvider.notifier).setThemeType(v);
+                    }
+                  },
+                ),
+              ),
+            );
+          },
         ),
       ),
       Obx(() => ListTile(
