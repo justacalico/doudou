@@ -144,8 +144,7 @@ class _StandardPlayerState extends State<StandardPlayer> {
                 }),
                 color: _showMobileVolumePanel
                     ? Theme.of(context).colorScheme.primary
-                    : (Theme.of(context).textTheme.titleMedium?.color ??
-                        Theme.of(context).colorScheme.onSurface),
+                    : Colors.white,
                 tooltip: "Volume",
               ),
             ),
@@ -306,6 +305,7 @@ class _CompactNowPlaying extends StatelessWidget {
                         PlayerMobileBottomBar(
                           volumeAction: volumeAction,
                           dense: true,
+                          iconColor: white,
                         ),
                       ],
                     ),
@@ -424,7 +424,10 @@ class _CompactNowPlaying extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
                       _CompactControls(pc: pc),
-                      PlayerMobileBottomBar(volumeAction: volumeAction),
+                      PlayerMobileBottomBar(
+                        volumeAction: volumeAction,
+                        iconColor: white,
+                      ),
                       const SizedBox(height: 24),
                     ],
                   ),

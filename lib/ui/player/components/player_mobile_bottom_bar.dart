@@ -17,17 +17,19 @@ class PlayerMobileBottomBar extends StatelessWidget {
     super.key,
     this.volumeAction,
     this.dense = false,
+    this.iconColor,
   });
 
   final Widget? volumeAction;
   final bool dense;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
     final pc = Get.find<PlayerController>();
     final theme = Theme.of(context);
-    final iconColor =
-        theme.textTheme.titleMedium?.color ?? theme.colorScheme.onSurface;
+    final effectiveIconColor =
+        iconColor ?? theme.textTheme.titleMedium?.color ?? theme.colorScheme.onSurface;
     final iconSize = dense ? 22.0 : 26.0;
     final horizontalPadding = dense ? 10.0 : 20.0;
     final topPadding = dense ? 6.0 : 12.0;
@@ -63,7 +65,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
               );
             },
             icon: Icon(Icons.queue_music_rounded, size: iconSize),
-            color: iconColor,
+            color: effectiveIconColor,
             tooltip: "Queue",
           ),
           Obx(() => IconButton(
@@ -76,7 +78,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
                 ),
                 color: pc.isCurrentSongFav.isTrue
                     ? theme.colorScheme.error
-                    : iconColor,
+                    : effectiveIconColor,
                 tooltip: "Favorite",
               )),
           if (volumeAction != null) volumeAction!,
@@ -86,7 +88,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
               if (ctx != null) LyricsBottomSheet.show(ctx);
             },
             icon: Icon(Icons.mic_rounded, size: iconSize),
-            color: iconColor,
+            color: effectiveIconColor,
             tooltip: context.l10n.lyrics,
           ),
           IconButton(
@@ -113,12 +115,13 @@ class PlayerMobileBottomBar extends StatelessWidget {
                 size: iconSize,
               ),
             ),
-            color: iconColor,
+            color: effectiveIconColor,
             tooltip: context.l10n.sleepTimer,
           ),
           SongDownloadButton(
             calledFromPlayer: true,
             iconSize: iconSize,
+            iconColor: effectiveIconColor,
           ),
           IconButton(
             onPressed: () {
@@ -138,7 +141,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
               ).whenComplete(() => Get.delete<SongInfoController>());
             },
             icon: Icon(Icons.more_horiz_rounded, size: iconSize),
-            color: iconColor,
+            color: effectiveIconColor,
             tooltip: "More",
           ),
         ],
