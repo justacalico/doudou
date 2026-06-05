@@ -23,7 +23,6 @@ import 'screens/Search/search_screen.dart';
 import 'screens/Settings/settings_screen_controller.dart';
 import 'shell_controller.dart';
 import 'widgets/bottom_nav_bar.dart';
-import 'widgets/scroll_to_hide.dart';
 import 'widgets/side_nav_bar.dart';
 import 'widgets/queue_drawer.dart';
 import 'widgets/sliding_up_panel.dart';
@@ -140,26 +139,7 @@ class _AppShellState extends State<AppShell> {
               key: playerController.homeScaffoldkey,
               drawerScrimColor: Colors.transparent,
               bottomNavigationBar: useBottomNav
-                  ? Obx(() {
-                      final hasCurrentSong =
-                          playerController.currentSong.value != null;
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (hasCurrentSong)
-                            InkWell(
-                              onTap:
-                                  playerController.playerPanelController.open,
-                              child: const MiniPlayer(),
-                            ),
-                          ScrollToHideWidget(
-                            isVisible:
-                                playerController.isPanelGTHOpened.isFalse,
-                            child: const BottomNavBar(),
-                          ),
-                        ],
-                      );
-                    })
+                  ? const BottomNavBar()
                   : null,
               endDrawer: GetPlatform.isDesktop || isWideScreen
                   ? const QueueDrawer()
