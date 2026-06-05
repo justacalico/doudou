@@ -176,20 +176,12 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                       Expanded(
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            return SingleChildScrollView(
-                              physics: const BouncingScrollPhysics(),
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 220),
-                                  child: KeyedSubtree(
-                                    key: ValueKey(_selected),
-                                    child: _buildSingleSection(
-                                        context, settings, syncService, _selected),
-                                  ),
-                                ),
+                            return AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 220),
+                              child: KeyedSubtree(
+                                key: ValueKey(_selected),
+                                child: _buildSingleSection(
+                                    context, settings, syncService, _selected),
                               ),
                             );
                           },
@@ -494,13 +486,10 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   ) {
     final children = _buildSectionChildren(context, settings, syncService, id);
     final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: _SettingsCard(
-        icon: meta.$2,
-        title: _sectionTitle(context, meta.$3),
-        children: children,
-      ),
+    return _SettingsCard(
+      icon: meta.$2,
+      title: _sectionTitle(context, meta.$3),
+      children: children,
     );
   }
 
@@ -1264,14 +1253,12 @@ class _SettingsCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: theme.cardColor.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: theme.dividerColor.withValues(alpha: 0.25)),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
@@ -1303,7 +1290,6 @@ class _SettingsCard extends StatelessWidget {
               ),
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: children,
             ),
           ),
