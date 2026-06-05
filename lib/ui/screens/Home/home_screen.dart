@@ -680,7 +680,7 @@ class _HomeQuickActionCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: kDoudouSurface,
             borderRadius: BorderRadius.circular(kDoudouRadiusCard),
-            border: Border.all(color: kDoudouBorderStrong, width: 1),
+            border: Border.all(color: theme.dividerColor, width: 1),
           ),
           child: compact
               ? Center(
