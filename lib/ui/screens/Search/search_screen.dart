@@ -18,6 +18,7 @@ class SearchScreen extends StatelessWidget {
     final searchScreenController = Get.find<SearchScreenController>();
     final useBottomNav = Get.find<ShellController>().useBottomNav.value;
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final topPadding = statusBarHeight + 24.0;
     final horizontalPadding = useBottomNav
@@ -60,14 +61,20 @@ class SearchScreen extends StatelessWidget {
             Container(
               height: 46,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.35),
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.35)
+                    : theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : theme.dividerColor,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.55),
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.55)
+                        : Colors.black.withValues(alpha: 0.08),
                     blurRadius: 22,
                     offset: const Offset(0, 12),
                   ),
@@ -78,7 +85,9 @@ class SearchScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.05),
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.white.withValues(alpha: 0.6),
                       blurRadius: 18,
                       spreadRadius: -10,
                     ),
@@ -167,7 +176,7 @@ class SearchScreen extends StatelessWidget {
                               borderRadius:
                                   BorderRadius.circular(kDoudouRadiusCard),
                               border: Border.all(
-                                  color: kDoudouBorderStrong, width: 1),
+                                  color: theme.dividerColor, width: 1),
                             ),
                             child: Center(
                               child: Text(
