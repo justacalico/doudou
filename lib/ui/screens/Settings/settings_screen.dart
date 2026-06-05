@@ -269,25 +269,12 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    trailing: selected
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary.withValues(alpha: 0.85),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              'Active',
-                              style: TextStyle(
-                                color: colorScheme.onPrimary,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 11,
-                              ),
-                            ),
-                          )
-                        : Icon(Icons.chevron_right_rounded,
-                            color: colorScheme.onSurface.withValues(alpha: 0.6)),
+                    trailing: Icon(
+                      Icons.chevron_right_rounded,
+                      color: selected
+                          ? colorScheme.onSurface.withValues(alpha: 0.4)
+                          : colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
                   ),
                 ),
               );
@@ -462,7 +449,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
 
   String? _sectionBadge(_SettingsSectionId id) {
     return switch (id) {
-      _SettingsSectionId.servers => 'Active',
       _SettingsSectionId.personalisation => 'Theme',
       _SettingsSectionId.playback => 'Audio',
       _SettingsSectionId.download => 'Files',
