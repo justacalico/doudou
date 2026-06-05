@@ -5,7 +5,11 @@ import 'package:get/get.dart';
 import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/design/doudou_motion.dart';
 import 'package:doudou/ui/design/doudou_tokens.dart';
+import 'package:doudou/ui/player/components/mini_player.dart';
+import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
+
+import 'scroll_to_hide.dart';
 
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
@@ -20,197 +24,142 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     final homeScreenController = Get.find<HomeScreenController>();
+    final playerController = Get.find<PlayerController>();
     final c = context.doudouColors;
 
     return Obx(() {
       final idx = homeScreenController.tabIndex.value;
       final safeIdx = idx.clamp(0, 3);
       final items = _navItems(context);
+      final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            bottom: MediaQuery.of(context).padding.bottom + 8,
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: ClipRRect(
-              borderRadius: DoudouRadii.r24,
-              child: Container(
-                height: 66,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: c.surfaceOverlay.withValues(alpha: 0.85),
-                  borderRadius: DoudouRadii.r24,
-                  border: Border.all(color: c.borderSubtle),
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const MiniPlayer(),
+          ScrollToHideWidget(
+            isVisible: playerController.isPanelGTHOpened.isFalse,
+            child: Container(
+              decoration: BoxDecoration(
+                color: c.surfaceBase,
+                border: Border(
+                  top: BorderSide(color: c.borderSubtle, width: 0.5),
                 ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    const pillInset = 6.0;
-                    final itemWidth =
-                        (constraints.maxWidth - pillInset * 2) /
-                            items.length;
-                    final pillWidth = 48.0;
-                    final pillLeft = pillInset + (itemWidth * safeIdx) + (itemWidth - pillWidth) / 2;
+              ),
+              child: SafeArea(
+                top: false,
+                left: false,
+                right: false,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: DoudouSpace.s16,
+                    right: DoudouSpace.s16,
+                    bottom: bottomPadding > 0 ? DoudouSpace.s4 : DoudouSpace.s8,
+                    top: DoudouSpace.s8,
+                  ),
+                  child: SizedBox(
+                    height: 56,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final itemWidth = constraints.maxWidth / items.length;
+                        const pillHeight = 40.0;
+                        const pillWidth = 64.0;
+                        final pillLeft =
+                            (itemWidth * safeIdx) + (itemWidth - pillWidth) / 2;
 
-                    return Stack(
-                      children: [
-                        AnimatedPositioned(
-                          duration: DoudouMotion.selection,
-                          curve: DoudouMotion.standard,
-                          left: pillLeft,
-                          top: 2,
-                          bottom: 2,
-                          width: pillWidth,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: c.textPrimary.withValues(alpha: 0.08),
-                              borderRadius: DoudouRadii.r20,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: c.textPrimary.withValues(alpha: 0.05),
-                                  blurRadius: 20,
-                                  spreadRadius: -4,
+                        return Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            AnimatedPositioned(
+                              duration: DoudouMotion.selection,
+                              curve: DoudouMotion.standard,
+                              left: pillLeft,
+                              child: Container(
+                                width: pillWidth,
+                                height: pillHeight,
+                                decoration: BoxDecoration(
+                                  color: c.surfaceSelected,
+                                  borderRadius: DoudouRadii.r12,
                                 ),
-                              ],
-                            ),
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                borderRadius: DoudouRadii.r20,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: c.textPrimary.withValues(alpha: 0.04),
-                                    blurRadius: 16,
-                                    spreadRadius: -8,
-                                  ),
-                                ],
                               ),
                             ),
-                          ),
-                        ),
-                        Row(
-                          children: List.generate(items.length, (index) {
-                            final selected = index == safeIdx;
-                            final hovered = _hoveredIndex == index;
-                            final item = items[index];
-                            final fg =
-                                (selected || hovered) ? c.accentPrimary : c.textTertiary;
+                            Row(
+                              children: List.generate(items.length, (index) {
+                                final selected = index == safeIdx;
+                                final hovered = _hoveredIndex == index;
+                                final item = items[index];
+                                final iconColor = selected
+                                    ? c.accentPrimary
+                                    : (hovered
+                                        ? c.textSecondary
+                                        : c.textTertiary);
+                                final labelColor = selected
+                                    ? c.accentPrimary
+                                    : (hovered
+                                        ? c.textSecondary
+                                        : c.textTertiary);
 
-                            return Expanded(
-                              child: MouseRegion(
-                                onEnter: (_) =>
-                                    setState(() => _hoveredIndex = index),
-                                onExit: (_) => setState(() {
-                                  if (_hoveredIndex == index) {
-                                    _hoveredIndex = null;
-                                  }
-                                }),
-                                child: Material(
-                                  type: MaterialType.transparency,
-                                  child: InkResponse(
-                                    radius: 28,
-                                    containedInkWell: true,
-                                    highlightShape: BoxShape.rectangle,
-                                    hoverColor: Colors.transparent,
-                                    splashColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                    focusColor: Colors.transparent,
-                                    onTap: () {
-                                      if (index == safeIdx) return;
-                                      HapticFeedback.selectionClick();
-                                      homeScreenController
-                                          .onBottonBarTabSelected(index);
-                                    },
-                                    child: SizedBox(
-                                      height: double.infinity,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          AnimatedSlide(
-                                            duration: DoudouMotion.selection,
-                                            curve: DoudouMotion.standard,
-                                            offset: (selected || hovered)
-                                                ? const Offset(0, -0.03)
-                                                : Offset.zero,
-                                            child: AnimatedScale(
+                                return Expanded(
+                                  child: MouseRegion(
+                                    onEnter: (_) => setState(
+                                        () => _hoveredIndex = index),
+                                    onExit: (_) => setState(() {
+                                      if (_hoveredIndex == index) {
+                                        _hoveredIndex = null;
+                                      }
+                                    }),
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () {
+                                        if (index == safeIdx) return;
+                                        HapticFeedback.selectionClick();
+                                        homeScreenController
+                                            .onBottonBarTabSelected(index);
+                                      },
+                                      child: SizedBox(
+                                        height: double.infinity,
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            AnimatedScale(
                                               duration: DoudouMotion.selection,
                                               curve: DoudouMotion.standard,
                                               scale: (selected || hovered)
                                                   ? 1.08
                                                   : 1.0,
-                                              child: SizedBox(
-                                                width: DoudouIconSize.nav + 4,
-                                                height: DoudouIconSize.nav + 4,
-                                                child: Center(
-                                                  child: AnimatedSwitcher(
-                                                    duration:
-                                                        DoudouMotion.selection,
-                                                    switchInCurve:
-                                                        DoudouMotion.standard,
-                                                    switchOutCurve:
-                                                        DoudouMotion.standard,
-                                                    transitionBuilder:
-                                                        (child, animation) {
-                                                      return ScaleTransition(
-                                                        scale: Tween<double>(
-                                                          begin: 0.9,
-                                                          end: 1.0,
-                                                        ).animate(animation),
-                                                        child: FadeTransition(
-                                                          opacity: animation,
-                                                          child: child,
-                                                        ),
-                                                      );
-                                                    },
-                                                    child: Icon(
-                                                      selected
-                                                          ? item.icon
-                                                          : item.outlinedIcon,
-                                                      key: ValueKey<bool>(
-                                                          selected),
-                                                      size:
-                                                          DoudouIconSize.nav,
-                                                      color: fg,
-                                                      shadows:
-                                                          (selected || hovered)
-                                                              ? [
-                                                                  Shadow(
-                                                                    color: c
-                                                                        .accentPrimary
-                                                                        .withValues(
-                                                                            alpha:
-                                                                                0.45),
-                                                                    blurRadius:
-                                                                        14,
-                                                                  ),
-                                                                ]
-                                                              : null,
-                                                    ),
-                                                  ),
-                                                ),
+                                              child: Icon(
+                                                selected
+                                                    ? item.icon
+                                                    : item.outlinedIcon,
+                                                size: DoudouIconSize.nav,
+                                                color: iconColor,
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              item.label,
+                                              style: DoudouType.navLabel
+                                                  .copyWith(color: labelColor),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ),
-                            );
-                          }),
-                        ),
-                      ],
-                    );
-                  },
+                                );
+                              }),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       );
     });
   }
