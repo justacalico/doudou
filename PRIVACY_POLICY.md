@@ -4,58 +4,58 @@
 
 ## Overview
 
-Doudou is an open-source, cross-platform music player developed by Openlyst. This Privacy Policy explains what information the app handles and how it is used.
+Doudou is an open-source music player by Openlyst. This page explains what data the app touches and where it goes.
 
-## Information We Do Not Collect
+## What We Don't Collect
 
-Doudou does not create user accounts, and Openlyst does not collect, store, or process any personal data on its own servers. The app is designed to connect to media servers that you own or control.
+Openlyst doesn't run any servers for Doudou and we don't collect, store, or see your personal data. There are no user accounts, no sign-ups, and no cloud service on our end.
 
-## Information Stored and Processed Locally
+## What Stays on Your Device
 
-All app data, including:
+Everything lives locally:
 
 - Server connection settings (URLs, credentials)
 - Cached album artwork and metadata
-- Downloaded songs and playlists for offline listening
+- Songs and playlists you've downloaded for offline use
 - Playback history and queue state
 - App preferences (theme, language, animation speed)
 
-is stored **locally** on your device. Openlyst does not have access to this data.
+We can't access any of this. It's all on your device.
 
 ## Server Connections
 
-Doudou connects to media servers that you configure, such as:
+Doudou talks to media servers you set up yourself:
 
 - Subsonic / OpenSubsonic
 - Jellyfin
 - Plex
 - YouTube Music
 
-Any data exchanged with these servers is subject to their respective privacy policies and is transmitted directly between your device and the server. Openlyst does not intermediate, log, or monitor these connections.
+Traffic goes straight from your device to the server. Openlyst doesn't sit in the middle, log anything, or watch these connections.
 
-## YouTube Music Integration
+## YouTube Music
 
-When using the YouTube Music source, the app communicates directly with YouTube's services. This is subject to [Google's Privacy Policy](https://policies.google.com/privacy).
+If you use the YouTube Music source, the app hits YouTube's APIs directly. That falls under [Google's Privacy Policy](https://policies.google.com/privacy).
 
 ## Permissions
 
-The app requests the following permissions on your device:
+The app asks for these permissions:
 
-- **Internet** – Required to stream music and connect to your media servers.
-- **Storage / External Storage** – Required to cache artwork and download media for offline playback.
-- **Foreground Service / Media Playback** – Required to keep audio playing in the background.
-- **Wake Lock** – Required to prevent the device from sleeping during active playback.
-- **Battery Optimizations** – Optional, to ensure uninterrupted background playback.
-- **App Links / URL handling** – To open YouTube links in the app when shared.
+- **Internet** – Needed to stream and talk to your media servers.
+- **Storage / External Storage** – Needed to cache artwork and download media for offline playback.
+- **Foreground Service / Media Playback** – Needed to keep audio running when the app isn't on screen.
+- **Wake Lock** – Prevents the device from sleeping during playback.
+- **Battery Optimizations** – Optional. Helps keep background playback smooth.
+- **App Links / URL handling** – Lets the app open YouTube links when shared to it.
 
-## Third-Party Dependencies
+## Third-Party Libraries
 
-Doudou uses open-source libraries (listed in `pubspec.yaml`). Some of these libraries may collect anonymized usage or crash data according to their own policies. No advertising or analytics SDKs are included by the developers of Doudou.
+Doudou is built on open-source Flutter and Dart packages listed in `pubspec.yaml` (things like Dio, Hive, GetX, and Just Audio). None of these include advertising or analytics SDKs. We don't ship any crash reporting or telemetry tools.
 
-## Changes to This Policy
+## Updates
 
-We may update this Privacy Policy from time to time. Changes will be posted in the app's source repository.
+This policy might change as the app evolves. Any updates will show up in the repo.
 
 ## Contact
 
-For questions about this Privacy Policy, please open an issue in our [GitLab repository](https://gitlab.com/Openlyst/doudou/-/issues) or contact us through [openlyst.ink](https://openlyst.ink).
+Got questions? Open an issue on [GitLab](https://gitlab.com/Openlyst/doudou/-/issues) or reach out at [openlyst.ink](https://openlyst.ink).
