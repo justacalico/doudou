@@ -235,6 +235,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get editServer => '编辑服务器';
 
   @override
+  String get deleteServer => 'Delete server';
+
+  @override
+  String get deleteServerConfirm =>
+      'Are you sure you want to delete this server?';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
   String get save => '保存';
 
   @override
