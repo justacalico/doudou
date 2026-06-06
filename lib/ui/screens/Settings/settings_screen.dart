@@ -1794,12 +1794,22 @@ class _AddServerDialogState extends State<AddServerDialog> {
   late final TextEditingController _urlController;
   late final TextEditingController _usernameController;
   late final TextEditingController _passwordController;
+  late String _protocol;
 
   @override
   void initState() {
     super.initState();
-    _urlController =
-        TextEditingController(text: widget.existing?.serverUrl ?? '');
+    var existingUrl = widget.existing?.serverUrl ?? '';
+    if (existingUrl.startsWith('http://')) {
+      _protocol = 'http';
+      existingUrl = existingUrl.substring(7);
+    } else if (existingUrl.startsWith('https://')) {
+      _protocol = 'https';
+      existingUrl = existingUrl.substring(8);
+    } else {
+      _protocol = 'https';
+    }
+    _urlController = TextEditingController(text: existingUrl);
     _usernameController =
         TextEditingController(text: widget.existing?.username ?? '');
     _passwordController =
@@ -1812,6 +1822,13 @@ class _AddServerDialogState extends State<AddServerDialog> {
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  String _buildServerUrl() {
+    var url = _urlController.text.trim();
+    url = url.replaceFirst(RegExp(r'^https?://'), '');
+    if (url.isEmpty) return '';
+    return '$_protocol://$url';
   }
 
   bool get _needsCredentials =>
@@ -1851,14 +1868,38 @@ class _AddServerDialogState extends State<AddServerDialog> {
             ),
             if (_needsCredentials) ...[
               const SizedBox(height: 16),
-              TextField(
-                controller: _urlController,
-                decoration: InputDecoration(
-                  labelText: l10n.serverUrl,
-                  hintText: 'https://example.com',
-                ),
-                keyboardType: TextInputType.url,
-                textInputAction: TextInputAction.next,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    width: 110,
+                    child: DropdownButtonFormField<String>(
+                      value: _protocol,
+                      decoration: const InputDecoration(
+                        labelText: 'Protocol',
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'https', child: Text('HTTPS')),
+                        DropdownMenuItem(value: 'http', child: Text('HTTP')),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) setState(() => _protocol = v);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _urlController,
+                      decoration: InputDecoration(
+                        labelText: l10n.serverUrl,
+                        hintText: 'example.com',
+                      ),
+                      keyboardType: TextInputType.url,
+                      textInputAction: TextInputAction.next,
+                    ),
+                  ),
+                ],
               ),
               if (widget.serverType != ServerType.plex) ...[
                 const SizedBox(height: 12),
@@ -1900,14 +1941,15 @@ class _AddServerDialogState extends State<AddServerDialog> {
                       if (_needsCredentials) {
                         controller.updateServer(
                           widget.existing!.id,
-                          serverUrl: _urlController.text,
+                          serverUrl: _buildServerUrl(),
                           username: _usernameController.text,
                           password: _passwordController.text,
                         );
                       }
                     } else {
                       if (_needsCredentials) {
-                        if (_urlController.text.trim().isEmpty) {
+                        final serverUrl = _buildServerUrl();
+                        if (serverUrl.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(l10n.serverUrlRequired)),
                           );
@@ -1915,7 +1957,7 @@ class _AddServerDialogState extends State<AddServerDialog> {
                         }
                         controller.addServerWithCredentials(
                           widget.serverType,
-                          serverUrl: _urlController.text,
+                          serverUrl: serverUrl,
                           username: _usernameController.text,
                           password: _passwordController.text,
                         );
