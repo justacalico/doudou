@@ -52,6 +52,8 @@ class PlayerControlWidget extends StatelessWidget {
                                 ? playerController.currentSong.value!.title
                                 : "NA",
                             textAlign: TextAlign.start,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.labelMedium!,
                           ),
                         ),

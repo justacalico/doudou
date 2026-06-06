@@ -111,6 +111,8 @@ class GesturePlayer extends StatelessWidget {
                                                 .currentSong.value!.title
                                             : "NA",
                                         textAlign: TextAlign.start,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleMedium!
