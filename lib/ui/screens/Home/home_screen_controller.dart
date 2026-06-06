@@ -693,21 +693,24 @@ class HomeScreenController extends GetxController {
     final server = settings.activeServer;
     final isYouTubeServer = server?.type == ServerType.youtubeMusic;
     int favoriteCount = 0;
+    List<MediaItem> favoriteSongs = const [];
     if (isYouTubeServer) {
       try {
         final box = await Hive.openBox(libFavBoxName(currentServerId()));
         favoriteCount = box.length;
+        favoriteSongs = _safeMediaItemsFromIterable(box.values);
       } catch (e, st) {
         printWarning(
-            '[RECOVERABLE][opId=home.computeSections.favoriteCount.local] Failed to read local favorites count: $e\n$st');
+            '[RECOVERABLE][opId=home.computeSections.favoriteCount.local] Failed to read local favorites: $e\n$st');
       }
     } else {
       try {
         final list = await _backend.getFavoriteSongs();
         favoriteCount = list.length;
+        favoriteSongs = _safeMediaItemsFromIterable(list);
       } catch (e, st) {
         printWarning(
-            '[RECOVERABLE][opId=home.computeSections.favoriteCount.remote] Failed to read remote favorites count: $e\n$st');
+            '[RECOVERABLE][opId=home.computeSections.favoriteCount.remote] Failed to read remote favorites: $e\n$st');
       }
     }
 
@@ -721,6 +724,7 @@ class HomeScreenController extends GetxController {
       artistsToExplore: artistsToExplore,
       freshPicks: freshPicks,
       favoriteCount: favoriteCount,
+      favoriteSongs: favoriteSongs,
     );
   }
 
@@ -1051,6 +1055,7 @@ class HomeLibrarySections {
     required this.artistsToExplore,
     required this.freshPicks,
     this.favoriteCount = 0,
+    this.favoriteSongs = const [],
   });
 
   final List<MediaItem> continueListening;
@@ -1060,6 +1065,7 @@ class HomeLibrarySections {
   final List<Artist> artistsToExplore;
   final List<MediaItem> freshPicks;
   final int favoriteCount;
+  final List<MediaItem> favoriteSongs;
 
   factory HomeLibrarySections.fromJson(Map<dynamic, dynamic> json) {
     List<MediaItem> parseMediaItems(dynamic value) {
@@ -1109,6 +1115,7 @@ class HomeLibrarySections {
       artistsToExplore: parseArtists(json["artistsToExplore"]),
       freshPicks: parseMediaItems(json["freshPicks"]),
       favoriteCount: json["favoriteCount"] is int ? json["favoriteCount"] : 0,
+      favoriteSongs: parseMediaItems(json["favoriteSongs"]),
     );
   }
 
@@ -1124,5 +1131,7 @@ class HomeLibrarySections {
         "freshPicks":
             freshPicks.map((e) => MediaItemBuilder.toJson(e)).toList(),
         "favoriteCount": favoriteCount,
+        "favoriteSongs":
+            favoriteSongs.map((e) => MediaItemBuilder.toJson(e)).toList(),
       };
 }
