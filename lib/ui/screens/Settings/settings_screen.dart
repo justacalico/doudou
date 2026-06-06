@@ -1310,15 +1310,27 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       ),
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              "Doudou",
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+            Image.asset(
+              'assets/icons/icon.png',
+              width: 48,
+              height: 48,
             ),
-            Text(settings.currentVersion),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Doudou",
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                Text(settings.currentVersion),
+              ],
+            ),
           ],
         ),
       ),
