@@ -801,14 +801,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get githubDes =>
-      'Посмотреть исходный код на GitHub\\nесли вам нравится этот проект, не забудьте поставить ⭐';
+      'Посмотреть исходный код на GitHub\nесли вам нравится этот проект, не забудьте поставить ⭐';
 
   @override
   String get gitlab => 'GitLab';
 
   @override
   String get gitlabDes =>
-      'Исходный код на GitLab\\nесли нравится проект, поставьте ⭐';
+      'Исходный код на GitLab\nесли нравится проект, поставьте ⭐';
 
   @override
   String get checkForUpdates => 'Проверить обновления';
@@ -1104,7 +1104,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get restoreMsg =>
-      'Восстановлено успешно!\\nИзменения войду в силу после перезапуска';
+      'Восстановлено успешно!\nИзменения войду в силу после перезапуска';
 
   @override
   String get restoring => 'Восстановляем...';

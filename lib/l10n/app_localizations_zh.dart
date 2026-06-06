@@ -765,13 +765,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get github => 'GitHub';
 
   @override
-  String get githubDes => '查看 GitHub 源码 \\n如果你喜欢本项目，别忘了给一颗 ⭐';
+  String get githubDes => '查看 GitHub 源码 \n如果你喜欢本项目，别忘了给一颗 ⭐';
 
   @override
   String get gitlab => 'GitLab';
 
   @override
-  String get gitlabDes => '查看 GitLab 源码 \\n如果你喜欢本项目，别忘了给一颗 ⭐';
+  String get gitlabDes => '查看 GitLab 源码 \n如果你喜欢本项目，别忘了给一颗 ⭐';
 
   @override
   String get checkForUpdates => '检查更新';
@@ -1057,7 +1057,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backFilesFound => '查找数据库';
 
   @override
-  String get restoreMsg => '已成功恢复！\\n更改将在重启时应用';
+  String get restoreMsg => '已成功恢复！\n更改将在重启时应用';
 
   @override
   String get restoring => '正在恢复...';
