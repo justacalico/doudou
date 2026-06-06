@@ -448,6 +448,14 @@ class Body extends StatelessWidget {
                           );
                         }
 
+                        final hasAnySectionContent =
+                            resolved.continueListening.isNotEmpty ||
+                            resolved.basedOnFavorites.isNotEmpty ||
+                            resolved.playlistsFromCollection.isNotEmpty ||
+                            resolved.latestAlbums.isNotEmpty ||
+                            resolved.artistsToExplore.isNotEmpty ||
+                            resolved.freshPicks.isNotEmpty;
+
                         if (isLoading) {
                           content.add(
                             Padding(
@@ -461,7 +469,7 @@ class Body extends StatelessWidget {
                               ),
                             ),
                           );
-                        } else if (content.length <= 5) {
+                        } else if (!hasAnySectionContent) {
                           content.add(
                             Padding(
                               padding: const EdgeInsets.only(top: 20),
@@ -530,19 +538,21 @@ class Body extends StatelessWidget {
       );
     }
     
-    cards.add(
-      _HomeQuickActionCard(
-        icon: Icons.favorite,
-        label: context.l10n.favorites,
-        subtitle: context.l10n.shuffleFavorites,
-        onTap: () {
-          homeScreenController.shuffleFavorites(
-            emptyMessage: context.l10n.favoritesEmpty,
-            playFromName: context.l10n.favorites,
-          );
-        },
-      ),
-    );
+    if (homeScreenController.favoriteCount.value > 0) {
+      cards.add(
+        _HomeQuickActionCard(
+          icon: Icons.favorite,
+          label: context.l10n.favorites,
+          subtitle: context.l10n.shuffleFavorites,
+          onTap: () {
+            homeScreenController.shuffleFavorites(
+              emptyMessage: context.l10n.favoritesEmpty,
+              playFromName: context.l10n.favorites,
+            );
+          },
+        ),
+      );
+    }
     
     if (downloadCount > 0) {
       cards.add(

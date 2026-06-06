@@ -962,6 +962,14 @@ class PlayerController extends GetxController
             '[RECOVERABLE][opId=player.toggleFavorite.updateLocalFavPlaylist] Failed to sync LIBFAV controller for songId=${currMediaItem.id}: $e\n$st');
       }
       isCurrentSongFav.value = !isCurrentSongFav.value;
+      if (Get.isRegistered<HomeScreenController>()) {
+        final homeCtrl = Get.find<HomeScreenController>();
+        if (isCurrentSongFav.isTrue) {
+          homeCtrl.favoriteCount.value++;
+        } else {
+          homeCtrl.favoriteCount.value--;
+        }
+      }
       if (settings.autoDownloadFavoriteSongEnabled.isTrue &&
           isCurrentSongFav.isTrue) {
         Get.find<Downloader>().download(currMediaItem);

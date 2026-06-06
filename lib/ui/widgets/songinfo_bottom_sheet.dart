@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../services/downloader.dart';
 import '../../models/album.dart';
 import '../../models/artist.dart';
+import '../screens/Home/home_screen_controller.dart';
 import '../screens/Playlist/playlist_screen_controller.dart';
 import '../screens/Settings/settings_screen_controller.dart';
 import '/models/server.dart';
@@ -465,6 +466,14 @@ class SongInfoController extends GetxController
         ? box.put(song.id, MediaItemBuilder.toJson(song))
         : box.delete(song.id);
     isCurrentSongFav.value = !isCurrentSongFav.value;
+    if (Get.isRegistered<HomeScreenController>()) {
+      final homeCtrl = Get.find<HomeScreenController>();
+      if (isCurrentSongFav.isTrue) {
+        homeCtrl.favoriteCount.value++;
+      } else {
+        homeCtrl.favoriteCount.value--;
+      }
+    }
     if (Get.find<SettingsScreenController>()
             .autoDownloadFavoriteSongEnabled
             .isTrue &&
