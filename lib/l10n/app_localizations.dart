@@ -1604,7 +1604,7 @@ abstract class AppLocalizations {
   /// No description provided for @githubDes.
   ///
   /// In en_AU, this message translates to:
-  /// **'View GitHub source code \\nif you like this project, don\'t forget to give a ⭐'**
+  /// **'View GitHub source code \nif you like this project, don\'t forget to give a ⭐'**
   String get githubDes;
 
   /// No description provided for @gitlab.
@@ -1616,7 +1616,7 @@ abstract class AppLocalizations {
   /// No description provided for @gitlabDes.
   ///
   /// In en_AU, this message translates to:
-  /// **'View GitLab source code\\nif you like this project, don\'t forget to give a ⭐'**
+  /// **'View GitLab source code\nif you like this project, don\'t forget to give a ⭐'**
   String get gitlabDes;
 
   /// No description provided for @checkForUpdates.
@@ -2186,7 +2186,7 @@ abstract class AppLocalizations {
   /// No description provided for @restoreMsg.
   ///
   /// In en_AU, this message translates to:
-  /// **'Successfully restored!\\nChanges are applied on restart'**
+  /// **'Successfully restored!\nChanges are applied on restart'**
   String get restoreMsg;
 
   /// No description provided for @restoring.

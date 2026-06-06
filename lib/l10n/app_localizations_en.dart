@@ -798,14 +798,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get githubDes =>
-      'View GitHub source code \\nif you like this project, don\'t forget to give a ⭐';
+      'View GitHub source code \nif you like this project, don\'t forget to give a ⭐';
 
   @override
   String get gitlab => 'GitLab';
 
   @override
   String get gitlabDes =>
-      'View GitLab source code\\nif you like this project, don\'t forget to give a ⭐';
+      'View GitLab source code\nif you like this project, don\'t forget to give a ⭐';
 
   @override
   String get checkForUpdates => 'Check for updates';
@@ -1099,7 +1099,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreMsg =>
-      'Successfully restored!\\nChanges are applied on restart';
+      'Successfully restored!\nChanges are applied on restart';
 
   @override
   String get restoring => 'Restoring...';
@@ -2041,14 +2041,14 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get githubDes =>
-      'View GitHub source code \\nif you like this project, don\'t forget to give a ⭐';
+      'View GitHub source code \nif you like this project, don\'t forget to give a ⭐';
 
   @override
   String get gitlab => 'GitLab';
 
   @override
   String get gitlabDes =>
-      'View GitLab source code\\nif you like this project, don\'t forget to give a ⭐';
+      'View GitLab source code\nif you like this project, don\'t forget to give a ⭐';
 
   @override
   String get checkForUpdates => 'Check for updates';
@@ -2342,7 +2342,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get restoreMsg =>
-      'Successfully restored!\\nChanges are applied on restart';
+      'Successfully restored!\nChanges are applied on restart';
 
   @override
   String get restoring => 'Restoring...';
