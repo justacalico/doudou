@@ -72,7 +72,7 @@ class SettingsScreenController extends GetxController {
   final isBottomNavBarEnabled = false.obs;
   final sidebarMode = SidebarMode.auto.obs;
   final lyricsDynamicColorEnabled = true.obs;
-  final syncedLyricsHighlightStyle = SyncedLyricsHighlightStyle.block.obs;
+  final syncedLyricsHighlightStyle = SyncedLyricsHighlightStyle.karaoke.obs;
   final backgroundPlayEnabled = true.obs;
   final keepScreenAwake = false.obs;
   final restorePlaybackSession = false.obs;
@@ -262,12 +262,12 @@ class SettingsScreenController extends GetxController {
     syncedLyricsHighlightStyle.value = (styleIndex >= 0 &&
             styleIndex < SyncedLyricsHighlightStyle.values.length)
         ? SyncedLyricsHighlightStyle.values[styleIndex]
-        : SyncedLyricsHighlightStyle.block;
+        : SyncedLyricsHighlightStyle.karaoke;
     if (rawLyricsHighlightStyle is! int ||
         styleIndex < 0 ||
         styleIndex >= SyncedLyricsHighlightStyle.values.length) {
       setBox.put(
-          "syncedLyricsHighlightStyle", SyncedLyricsHighlightStyle.block.index);
+          "syncedLyricsHighlightStyle", SyncedLyricsHighlightStyle.karaoke.index);
     }
 
     String defaultServerDisplayName() {
