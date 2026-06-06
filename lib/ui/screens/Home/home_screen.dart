@@ -624,7 +624,7 @@ class Body extends StatelessWidget {
         _HomeQuickActionCard(
           icon: Icons.radio,
           label: context.l10n.startRadio,
-          subtitle: context.l10n.randomRadio,
+          subtitle: '',
           onTap: () {
             homeScreenController.startRadio();
           },
