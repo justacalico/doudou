@@ -1062,8 +1062,28 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline,
                                       size: 18),
-                                  onPressed: () =>
-                                      settings.removeServer(server.id),
+                                  onPressed: () async {
+                                    final confirmed = await showDialog<bool>(
+                                      context: context,
+                                      builder: (dialogContext) => AlertDialog(
+                                        title: Text(context.l10n.deleteServer),
+                                        content: Text(context.l10n.deleteServerConfirm),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(dialogContext).pop(false),
+                                            child: Text(context.l10n.cancel),
+                                          ),
+                                          FilledButton(
+                                            onPressed: () => Navigator.of(dialogContext).pop(true),
+                                            child: Text(context.l10n.delete),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirmed == true && context.mounted) {
+                                      settings.removeServer(server.id);
+                                    }
+                                  },
                                 ),
                               ]
                             ],

@@ -545,6 +545,24 @@ abstract class AppLocalizations {
   /// **'Edit server'**
   String get editServer;
 
+  /// No description provided for @deleteServer.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Delete server'**
+  String get deleteServer;
+
+  /// No description provided for @deleteServerConfirm.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Are you sure you want to delete this server?'**
+  String get deleteServerConfirm;
+
+  /// No description provided for @delete.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
   /// No description provided for @save.
   ///
   /// In en_AU, this message translates to:

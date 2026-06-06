@@ -238,6 +238,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editServer => 'Edit server';
 
   @override
+  String get deleteServer => 'Delete server';
+
+  @override
+  String get deleteServerConfirm =>
+      'Are you sure you want to delete this server?';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
   String get save => 'Save';
 
   @override
@@ -1469,6 +1479,16 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get editServer => 'Edit server';
+
+  @override
+  String get deleteServer => 'Delete server';
+
+  @override
+  String get deleteServerConfirm =>
+      'Are you sure you want to delete this server?';
+
+  @override
+  String get delete => 'Delete';
 
   @override
   String get save => 'Save';
