@@ -242,7 +242,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                controller.currentSong.value?.title ?? '',
+                                _truncateTitle(controller.currentSong.value?.title ?? ''),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: textTheme.titleSmall,
@@ -392,7 +392,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  controller.currentSong.value?.title ?? '',
+                                  _truncateTitle(controller.currentSong.value?.title ?? ''),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: textTheme.titleMedium?.copyWith(
@@ -663,6 +663,11 @@ class _DesktopMiniPlayer extends StatelessWidget {
       },
     );
   }
+}
+
+String _truncateTitle(String title, {int maxChars = 12}) {
+  if (title.length <= maxChars) return title;
+  return '${title.substring(0, 10)}…';
 }
 
 class _ControlIconButton extends StatefulWidget {
