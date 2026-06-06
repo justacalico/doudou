@@ -217,14 +217,16 @@ class Body extends StatelessWidget {
                             libArtists.libraryArtists.isNotEmpty ||
                             libPlaylists.libraryPlaylists.length > 4;
                     
-                    if (isYouTubeMusic && !hasLibraryContent) {
-                      // Load YouTube Music home content if library is empty
+                    if (isYouTubeMusic) {
+                      // Load YouTube Music home feed for all YT Music users
                       if (homeScreenController.youtubeMusicHomeContent.isEmpty) {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
-                          homeScreenController.loadYoutubeMusicHomeContentForEmptyLibrary();
+                          homeScreenController.loadYoutubeMusicHomeFeed();
                         });
                       }
-                      
+
+                      final playerController = Get.find<PlayerController>();
+
                       return SingleChildScrollView(
                         physics: const BouncingScrollPhysics(),
                         child: Padding(
@@ -235,64 +237,156 @@ class Body extends StatelessWidget {
                                 ? kContentBottomPaddingWithBottomNav
                                 : kContentBottomPaddingWithPlayer,
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildHomeQuickActionCards(
-                                context: context,
-                                libSongs: libSongs,
-                                homeScreenController: homeScreenController,
-                              ),
-                              const SizedBox(height: 48),
-                              
-                              // Show YouTube Music home content
-                              Obx(() {
-                                if (homeScreenController.isLoadingYoutubeMusicHome.value) {
-                                  return const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(48),
-                                      child: CircularProgressIndicator(),
-                                    ),
+                          child: FutureBuilder<HomeLibrarySections>(
+                            future: homeScreenController.loadHomeLibrarySections(),
+                            builder: (context, snapshot) {
+                              final sections = snapshot.data;
+                              final resolved = sections ??
+                                  HomeLibrarySections(
+                                    continueListening: const [],
+                                    basedOnFavorites: const [],
+                                    playlistsFromCollection: const [],
+                                    latestAlbums: const [],
+                                    artistsToExplore: const [],
+                                    freshPicks: const [],
                                   );
-                                }
-                                
-                                final ytContent = homeScreenController.youtubeMusicHomeContent;
-                                if (ytContent.isNotEmpty) {
-                                  return SingleChildScrollView(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                        right: kContentRightPadding,
-                                        bottom: useBottomNav
-                                            ? kContentBottomPaddingWithBottomNav
-                                            : kContentBottomPaddingWithPlayer,
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: _buildYoutubeMusicHomeSections(
-                                          ytContent,
-                                          context,
-                                          Get.find<PlayerController>(),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }
-                                
-                                // Fallback to hint text if no content
-                                return Center(
-                                  child: Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 24),
-                                    child: Text(
-                                      context.l10n.addMusicToLibraryHint,
-                                      textAlign: TextAlign.center,
-                                      style:
-                                          Theme.of(context).textTheme.titleMedium,
-                                    ),
+
+                              final content = <Widget>[];
+
+                              content.add(
+                                _buildHomeQuickActionCards(
+                                  context: context,
+                                  libSongs: libSongs,
+                                  homeScreenController: homeScreenController,
+                                  isYouTubeMusic: isYouTubeMusic,
+                                ),
+                              );
+                              content.add(const SizedBox(height: 24));
+
+                              // Personalized: Your favorites
+                              if (resolved.favoriteSongs.isNotEmpty) {
+                                content.add(
+                                  buildTrackRowSection(
+                                    context: context,
+                                    title: context.l10n.favorites,
+                                    subtitle: context.l10n.shuffleFavorites,
+                                    items: resolved.favoriteSongs.take(10).toList(),
+                                    playLabel: context.l10n.favorites,
+                                    playerController: playerController,
                                   ),
                                 );
-                              })
-                            ],
+                                content.add(const SizedBox(height: 32));
+                              }
+
+                              // Personalized: Continue listening
+                              if (resolved.continueListening.isNotEmpty) {
+                                content.add(
+                                  buildTrackRowSection(
+                                    context: context,
+                                    title: context.l10n.homeContinueListening,
+                                    subtitle: context
+                                        .l10n.homeContinueListeningSubtitle,
+                                    items: resolved.continueListening,
+                                    playLabel:
+                                        context.l10n.homeContinueListening,
+                                    playerController: playerController,
+                                    showViewAll: true,
+                                  ),
+                                );
+                                content.add(const SizedBox(height: 32));
+                              }
+
+                              // Personalized: Based on favorites
+                              if (resolved.basedOnFavorites.isNotEmpty) {
+                                content.add(
+                                  buildTrackRowSection(
+                                    context: context,
+                                    title: context.l10n.homeBecauseYouLikeArtists,
+                                    subtitle: context
+                                        .l10n.homeBecauseYouLikeArtistsSubtitle,
+                                    items: resolved.basedOnFavorites,
+                                    playLabel:
+                                        context.l10n.homeBecauseYouLikeArtists,
+                                    playerController: playerController,
+                                  ),
+                                );
+                                content.add(const SizedBox(height: 32));
+                              }
+
+                              // Personalized: Fresh picks
+                              if (resolved.freshPicks.isNotEmpty) {
+                                content.add(
+                                  buildFreshPicksSection(
+                                    context: context,
+                                    items: resolved.freshPicks,
+                                    playerController: playerController,
+                                  ),
+                                );
+                                content.add(const SizedBox(height: 32));
+                              }
+
+                              // Personalized: Your artists
+                              if (resolved.artistsToExplore.isNotEmpty) {
+                                content.add(
+                                  buildArtistRowSection(
+                                    context: context,
+                                    title: context.l10n.yourArtists,
+                                    subtitle: context.l10n.homeArtistsSubtitle,
+                                    artists: resolved.artistsToExplore,
+                                  ),
+                                );
+                                content.add(const SizedBox(height: 32));
+                              }
+
+                              // Personalized: Latest albums
+                              if (resolved.latestAlbums.isNotEmpty) {
+                                content.add(
+                                  buildAlbumRowSection(
+                                    context: context,
+                                    title: context.l10n.recentlyAddedAlbums,
+                                    subtitle:
+                                        context.l10n.yourNewestAdditions,
+                                    albums: resolved.latestAlbums,
+                                  ),
+                                );
+                                content.add(const SizedBox(height: 32));
+                              }
+
+                              // YouTube Music generic feed sections
+                              content.add(
+                                Obx(() {
+                                  if (homeScreenController
+                                      .isLoadingYoutubeMusicHome.value) {
+                                    return const Padding(
+                                      padding: EdgeInsets.all(48),
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    );
+                                  }
+
+                                  final ytContent = homeScreenController
+                                      .youtubeMusicHomeContent;
+                                  if (ytContent.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: _buildYoutubeMusicHomeSections(
+                                      ytContent,
+                                      context,
+                                      playerController,
+                                    ),
+                                  );
+                                }),
+                              );
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: content,
+                              );
+                            },
                           ),
                         ),
                       );
@@ -316,6 +410,7 @@ class Body extends StatelessWidget {
                                 context: context,
                                 libSongs: libSongs,
                                 homeScreenController: homeScreenController,
+                                isYouTubeMusic: isYouTubeMusic,
                               ),
                               const SizedBox(height: 48),
                               Center(
@@ -366,6 +461,7 @@ class Body extends StatelessWidget {
                             context: context,
                             libSongs: libSongs,
                             homeScreenController: homeScreenController,
+                            isYouTubeMusic: isYouTubeMusic,
                           ),
                         );
                         content.add(const SizedBox(height: 24));
@@ -516,13 +612,25 @@ class Body extends StatelessWidget {
     required BuildContext context,
     required LibrarySongsController libSongs,
     required HomeScreenController homeScreenController,
+    required bool isYouTubeMusic,
   }) {
     final shuffleCount = libSongs.librarySongsList.length;
     final downloadCount = homeScreenController.downloadedSongsCount.value;
     
     final cards = <Widget>[];
     
-    if (shuffleCount > 0) {
+    if (isYouTubeMusic) {
+      cards.add(
+        _HomeQuickActionCard(
+          icon: Icons.radio,
+          label: context.l10n.startRadio,
+          subtitle: '',
+          onTap: () {
+            homeScreenController.startRadio();
+          },
+        ),
+      );
+    } else if (shuffleCount > 0) {
       cards.add(
         _HomeQuickActionCard(
           icon: Icons.shuffle,

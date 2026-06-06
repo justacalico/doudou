@@ -334,7 +334,7 @@ class PlayerController extends GetxController
               isRadioModeOn = true;
               playinfrom.value = PlaylingFrom(
                   type: PlaylingFromType.SELECTION,
-                  name: AppLocalizations.of(Get.context!)!.randomRadio);
+                  name: AppLocalizations.of(Get.context!)!.startRadio);
               // Disable queue loop mode if it's enabled
               if (isQueueLoopModeEnabled.isTrue) {
                 toggleQueueLoopMode(showMessage: false);
@@ -426,7 +426,7 @@ class PlayerController extends GetxController
     playinfrom.value = PlaylingFrom(
         type: PlaylingFromType.SELECTION,
         name: radio
-            ? AppLocalizations.of(Get.context!)!.randomRadio
+            ? AppLocalizations.of(Get.context!)!.startRadio
             : AppLocalizations.of(Get.context!)!.randomSelection);
 
     /// set global radio mode flag
@@ -559,7 +559,7 @@ class PlayerController extends GetxController
         isRadioModeOn = true;
         playinfrom.value = PlaylingFrom(
           type: PlaylingFromType.SELECTION,
-          name: AppLocalizations.of(Get.context!)!.randomRadio);
+          name: AppLocalizations.of(Get.context!)!.startRadio);
         // Disable queue loop mode if it's enabled
         if (isQueueLoopModeEnabled.isTrue) {
           toggleQueueLoopMode(showMessage: false);

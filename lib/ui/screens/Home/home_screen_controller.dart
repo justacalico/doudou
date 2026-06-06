@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -692,21 +693,24 @@ class HomeScreenController extends GetxController {
     final server = settings.activeServer;
     final isYouTubeServer = server?.type == ServerType.youtubeMusic;
     int favoriteCount = 0;
+    List<MediaItem> favoriteSongs = const [];
     if (isYouTubeServer) {
       try {
         final box = await Hive.openBox(libFavBoxName(currentServerId()));
         favoriteCount = box.length;
+        favoriteSongs = _safeMediaItemsFromIterable(box.values);
       } catch (e, st) {
         printWarning(
-            '[RECOVERABLE][opId=home.computeSections.favoriteCount.local] Failed to read local favorites count: $e\n$st');
+            '[RECOVERABLE][opId=home.computeSections.favoriteCount.local] Failed to read local favorites: $e\n$st');
       }
     } else {
       try {
         final list = await _backend.getFavoriteSongs();
         favoriteCount = list.length;
+        favoriteSongs = _safeMediaItemsFromIterable(list);
       } catch (e, st) {
         printWarning(
-            '[RECOVERABLE][opId=home.computeSections.favoriteCount.remote] Failed to read remote favorites count: $e\n$st');
+            '[RECOVERABLE][opId=home.computeSections.favoriteCount.remote] Failed to read remote favorites: $e\n$st');
       }
     }
 
@@ -720,6 +724,7 @@ class HomeScreenController extends GetxController {
       artistsToExplore: artistsToExplore,
       freshPicks: freshPicks,
       favoriteCount: favoriteCount,
+      favoriteSongs: favoriteSongs,
     );
   }
 
@@ -942,10 +947,10 @@ class HomeScreenController extends GetxController {
     }
   }
 
-  Future<void> loadYoutubeMusicHomeContentForEmptyLibrary() async {
+  Future<void> loadYoutubeMusicHomeFeed() async {
     final settings = Get.find<SettingsScreenController>();
     final server = settings.activeServer;
-    
+
     // Only load for YouTube Music
     if (server == null || server.type != ServerType.youtubeMusic) {
       return;
@@ -953,15 +958,74 @@ class HomeScreenController extends GetxController {
 
     try {
       isLoadingYoutubeMusicHome.value = true;
-      final content = await _backend.getHome(limit: 8);
+      final content = await _backend.getHome(limit: 15);
       youtubeMusicHomeContent.value = content as List;
     } catch (e, st) {
       printWarning(
-          '[RECOVERABLE][opId=home.loadYoutubeMusicHomeContentForEmptyLibrary] Failed to load YouTube Music home content: $e\n$st');
+          '[RECOVERABLE][opId=home.loadYoutubeMusicHomeFeed] Failed to load YouTube Music home content: $e\n$st');
       youtubeMusicHomeContent.value = [];
     } finally {
       isLoadingYoutubeMusicHome.value = false;
     }
+  }
+
+  /// Start a personalized radio station for YouTube Music.
+  /// Prioritizes the user's favorited songs as the radio seed,
+  /// then falls back to recently played and library songs.
+  Future<void> startRadio() async {
+    final playerController = Get.find<PlayerController>();
+
+    // 1. Prefer a random favorited song
+    try {
+      final box = await Hive.openBox(libFavBoxName(currentServerId()));
+      final favSongs = _safeMediaItemsFromIterable(box.values);
+      if (favSongs.isNotEmpty) {
+        favSongs.shuffle(Random());
+        await playerController.pushSongToQueue(favSongs.first, radio: true);
+        return;
+      }
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.startRadio.favorites] Failed to get favorite song: $e\n$st');
+    }
+
+    // 2. Fall back to a random recently played song
+    try {
+      final box =
+          await Hive.openBox(recentlyPlayedBoxName(currentServerId()));
+      final recentSongs = _safeMediaItemsFromIterable(box.values);
+      if (recentSongs.isNotEmpty) {
+        recentSongs.shuffle(Random());
+        await playerController.pushSongToQueue(recentSongs.first, radio: true);
+        return;
+      }
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.startRadio.recent] Failed to get recent song: $e\n$st');
+    }
+
+    // 3. Fall back to the currently playing song
+    final currentlyPlaying = playerController.currentSong.value;
+    if (currentlyPlaying != null) {
+      await playerController.pushSongToQueue(currentlyPlaying, radio: true);
+      return;
+    }
+
+    // 4. Last resort: any library song
+    try {
+      final songsController = Get.find<LibrarySongsController>();
+      final allSongs = await songsController.loadAllSongsForShuffle();
+      if (allSongs.isNotEmpty) {
+        allSongs.shuffle(Random());
+        await playerController.pushSongToQueue(allSongs.first, radio: true);
+        return;
+      }
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.startRadio.library] Failed to get library song: $e\n$st');
+    }
+
+    Get.snackbar('', 'Add some favorites to start radio');
   }
 
   void disposeDetachedScrollControllers({bool disposeAll = false}) {
@@ -991,6 +1055,7 @@ class HomeLibrarySections {
     required this.artistsToExplore,
     required this.freshPicks,
     this.favoriteCount = 0,
+    this.favoriteSongs = const [],
   });
 
   final List<MediaItem> continueListening;
@@ -1000,6 +1065,7 @@ class HomeLibrarySections {
   final List<Artist> artistsToExplore;
   final List<MediaItem> freshPicks;
   final int favoriteCount;
+  final List<MediaItem> favoriteSongs;
 
   factory HomeLibrarySections.fromJson(Map<dynamic, dynamic> json) {
     List<MediaItem> parseMediaItems(dynamic value) {
@@ -1049,6 +1115,7 @@ class HomeLibrarySections {
       artistsToExplore: parseArtists(json["artistsToExplore"]),
       freshPicks: parseMediaItems(json["freshPicks"]),
       favoriteCount: json["favoriteCount"] is int ? json["favoriteCount"] : 0,
+      favoriteSongs: parseMediaItems(json["favoriteSongs"]),
     );
   }
 
@@ -1064,5 +1131,7 @@ class HomeLibrarySections {
         "freshPicks":
             freshPicks.map((e) => MediaItemBuilder.toJson(e)).toList(),
         "favoriteCount": favoriteCount,
+        "favoriteSongs":
+            favoriteSongs.map((e) => MediaItemBuilder.toJson(e)).toList(),
       };
 }
