@@ -237,6 +237,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                         child: GestureDetector(
                           onTap: controller.playerPanelController.open,
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -246,6 +247,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: textTheme.titleSmall,
                               ),
+                              const SizedBox(height: 2),
                               Text(
                                 controller.currentSong.value?.artist ?? '',
                                 maxLines: 1,
