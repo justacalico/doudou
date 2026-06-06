@@ -530,19 +530,21 @@ class Body extends StatelessWidget {
       );
     }
     
-    cards.add(
-      _HomeQuickActionCard(
-        icon: Icons.favorite,
-        label: context.l10n.favorites,
-        subtitle: context.l10n.shuffleFavorites,
-        onTap: () {
-          homeScreenController.shuffleFavorites(
-            emptyMessage: context.l10n.favoritesEmpty,
-            playFromName: context.l10n.favorites,
-          );
-        },
-      ),
-    );
+    if (homeScreenController.favoriteCount.value > 0) {
+      cards.add(
+        _HomeQuickActionCard(
+          icon: Icons.favorite,
+          label: context.l10n.favorites,
+          subtitle: context.l10n.shuffleFavorites,
+          onTap: () {
+            homeScreenController.shuffleFavorites(
+              emptyMessage: context.l10n.favoritesEmpty,
+              playFromName: context.l10n.favorites,
+            );
+          },
+        ),
+      );
+    }
     
     if (downloadCount > 0) {
       cards.add(

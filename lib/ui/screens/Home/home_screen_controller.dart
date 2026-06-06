@@ -43,6 +43,7 @@ class HomeScreenController extends GetxController {
   final isHomeSreenOnTop = true.obs;
   final List<ScrollController> contentScrollControllers = [];
   final downloadedSongsCount = 0.obs;
+  final favoriteCount = 0.obs;
   bool reverseAnimationtransiton = false;
   final albumsFromFollowedArtists = <Album>[].obs;
   bool _albumsFromFollowedLoadStarted = false;
@@ -557,6 +558,7 @@ class HomeScreenController extends GetxController {
     final cached = await _loadHomeLibrarySectionsFromDb();
     if (cached != null) {
       _cachedHomeSections = cached;
+      favoriteCount.value = cached.favoriteCount;
       _homeSectionsFuture = Future<HomeLibrarySections>.value(cached);
       _refreshHomeLibrarySectionsInBackground();
       return cached;
@@ -707,6 +709,8 @@ class HomeScreenController extends GetxController {
             '[RECOVERABLE][opId=home.computeSections.favoriteCount.remote] Failed to read remote favorites count: $e\n$st');
       }
     }
+
+    this.favoriteCount.value = favoriteCount;
 
     return HomeLibrarySections(
       continueListening: continueListening,
