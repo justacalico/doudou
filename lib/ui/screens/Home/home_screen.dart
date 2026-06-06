@@ -217,11 +217,11 @@ class Body extends StatelessWidget {
                             libArtists.libraryArtists.isNotEmpty ||
                             libPlaylists.libraryPlaylists.length > 4;
                     
-                    if (isYouTubeMusic && !hasLibraryContent) {
-                      // Load YouTube Music home content if library is empty
+                    if (isYouTubeMusic) {
+                      // Load YouTube Music home feed for all YT Music users
                       if (homeScreenController.youtubeMusicHomeContent.isEmpty) {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
-                          homeScreenController.loadYoutubeMusicHomeContentForEmptyLibrary();
+                          homeScreenController.loadYoutubeMusicHomeFeed();
                         });
                       }
                       
@@ -242,6 +242,7 @@ class Body extends StatelessWidget {
                                 context: context,
                                 libSongs: libSongs,
                                 homeScreenController: homeScreenController,
+                                isYouTubeMusic: isYouTubeMusic,
                               ),
                               const SizedBox(height: 48),
                               
@@ -316,6 +317,7 @@ class Body extends StatelessWidget {
                                 context: context,
                                 libSongs: libSongs,
                                 homeScreenController: homeScreenController,
+                                isYouTubeMusic: isYouTubeMusic,
                               ),
                               const SizedBox(height: 48),
                               Center(
@@ -366,6 +368,7 @@ class Body extends StatelessWidget {
                             context: context,
                             libSongs: libSongs,
                             homeScreenController: homeScreenController,
+                            isYouTubeMusic: isYouTubeMusic,
                           ),
                         );
                         content.add(const SizedBox(height: 24));
@@ -516,13 +519,25 @@ class Body extends StatelessWidget {
     required BuildContext context,
     required LibrarySongsController libSongs,
     required HomeScreenController homeScreenController,
+    required bool isYouTubeMusic,
   }) {
     final shuffleCount = libSongs.librarySongsList.length;
     final downloadCount = homeScreenController.downloadedSongsCount.value;
     
     final cards = <Widget>[];
     
-    if (shuffleCount > 0) {
+    if (isYouTubeMusic) {
+      cards.add(
+        _HomeQuickActionCard(
+          icon: Icons.radio,
+          label: context.l10n.startRadio,
+          subtitle: context.l10n.randomRadio,
+          onTap: () {
+            homeScreenController.startRadio();
+          },
+        ),
+      );
+    } else if (shuffleCount > 0) {
       cards.add(
         _HomeQuickActionCard(
           icon: Icons.shuffle,
