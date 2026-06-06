@@ -1102,10 +1102,16 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       builder: (_) => const _AddProviderDialog(),
     );
     if (selected == null || !context.mounted) return;
-    showDialog(
-      context: context,
-      builder: (_) => AddServerDialog(serverType: selected),
-    );
+    
+    final controller = Get.find<SettingsScreenController>();
+    if (selected == ServerType.youtubeMusic) {
+      controller.addServerWithCredentials(ServerType.youtubeMusic);
+    } else {
+      showDialog(
+        context: context,
+        builder: (_) => AddServerDialog(serverType: selected),
+      );
+    }
   }
 
   List<Widget> _buildDownload(
