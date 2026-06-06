@@ -38,6 +38,7 @@ build-android-debug:
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
 
 build-linux-debug:
   stage: build
@@ -63,3 +64,4 @@ build-linux-debug:
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
