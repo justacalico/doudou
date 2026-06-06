@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -965,63 +966,62 @@ class HomeScreenController extends GetxController {
   }
 
   /// Start a personalized radio station for YouTube Music.
-  /// Picks a seed song from currently playing, recently played, favorites,
-  /// or library songs, then starts a radio queue.
+  /// Prioritizes the user's favorited songs as the radio seed,
+  /// then falls back to recently played and library songs.
   Future<void> startRadio() async {
     final playerController = Get.find<PlayerController>();
 
-    // 1. Try currently playing song
-    MediaItem? seedSong = playerController.currentSong.value;
-
-    // 2. Try recently played
-    if (seedSong == null) {
-      try {
-        final box =
-            await Hive.openBox(recentlyPlayedBoxName(currentServerId()));
-        final recentSongs = _safeMediaItemsFromIterable(box.values);
-        if (recentSongs.isNotEmpty) {
-          seedSong = recentSongs.first;
-        }
-      } catch (e, st) {
-        printWarning(
-            '[RECOVERABLE][opId=home.startRadio.recent] Failed to get recent song: $e\n$st');
+    // 1. Prefer a random favorited song
+    try {
+      final box = await Hive.openBox(libFavBoxName(currentServerId()));
+      final favSongs = _safeMediaItemsFromIterable(box.values);
+      if (favSongs.isNotEmpty) {
+        favSongs.shuffle(Random());
+        await playerController.pushSongToQueue(favSongs.first, radio: true);
+        return;
       }
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.startRadio.favorites] Failed to get favorite song: $e\n$st');
     }
 
-    // 3. Try favorites
-    if (seedSong == null) {
-      try {
-        final box = await Hive.openBox(libFavBoxName(currentServerId()));
-        final favSongs = _safeMediaItemsFromIterable(box.values);
-        if (favSongs.isNotEmpty) {
-          seedSong = favSongs.first;
-        }
-      } catch (e, st) {
-        printWarning(
-            '[RECOVERABLE][opId=home.startRadio.favorites] Failed to get favorite song: $e\n$st');
+    // 2. Fall back to a random recently played song
+    try {
+      final box =
+          await Hive.openBox(recentlyPlayedBoxName(currentServerId()));
+      final recentSongs = _safeMediaItemsFromIterable(box.values);
+      if (recentSongs.isNotEmpty) {
+        recentSongs.shuffle(Random());
+        await playerController.pushSongToQueue(recentSongs.first, radio: true);
+        return;
       }
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.startRadio.recent] Failed to get recent song: $e\n$st');
     }
 
-    // 4. Try library songs
-    if (seedSong == null) {
-      try {
-        final songsController = Get.find<LibrarySongsController>();
-        final allSongs = await songsController.loadAllSongsForShuffle();
-        if (allSongs.isNotEmpty) {
-          seedSong = allSongs.first;
-        }
-      } catch (e, st) {
-        printWarning(
-            '[RECOVERABLE][opId=home.startRadio.library] Failed to get library song: $e\n$st');
-      }
-    }
-
-    if (seedSong == null) {
-      Get.snackbar('', 'No songs available to start radio');
+    // 3. Fall back to the currently playing song
+    final currentlyPlaying = playerController.currentSong.value;
+    if (currentlyPlaying != null) {
+      await playerController.pushSongToQueue(currentlyPlaying, radio: true);
       return;
     }
 
-    await playerController.pushSongToQueue(seedSong, radio: true);
+    // 4. Last resort: any library song
+    try {
+      final songsController = Get.find<LibrarySongsController>();
+      final allSongs = await songsController.loadAllSongsForShuffle();
+      if (allSongs.isNotEmpty) {
+        allSongs.shuffle(Random());
+        await playerController.pushSongToQueue(allSongs.first, radio: true);
+        return;
+      }
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=home.startRadio.library] Failed to get library song: $e\n$st');
+    }
+
+    Get.snackbar('', 'Add some favorites to start radio');
   }
 
   void disposeDetachedScrollControllers({bool disposeAll = false}) {
