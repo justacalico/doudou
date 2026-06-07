@@ -122,6 +122,18 @@ class _MobileMiniPlayer extends StatelessWidget {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              Obx(() => IconButton(
+                                    iconSize: 24,
+                                    onPressed: controller.toggleFavourite,
+                                    icon: Icon(
+                                      controller.isCurrentSongFav.isTrue
+                                          ? Icons.favorite_rounded
+                                          : Icons.favorite_border_rounded,
+                                      color: controller.isCurrentSongFav.isTrue
+                                          ? theme.colorScheme.error
+                                          : c.textPrimary,
+                                    ),
+                                  )),
                               Obx(() {
                                 final state = controller.buttonState.value;
                                 final isPlaying =
