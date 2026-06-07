@@ -219,7 +219,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
         final compactDesktop = size.width < 1100;
 
         return Container(
-          height: 92,
+          height: 96,
           decoration: BoxDecoration(
             color: c.surfaceBase,
             border: Border(
@@ -262,7 +262,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
               }),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 6),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [

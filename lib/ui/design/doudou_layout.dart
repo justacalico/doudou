@@ -63,7 +63,7 @@ class DoudouLayoutInfo {
         return 76;
       case DoudouLayoutClass.compactDesktop:
       case DoudouLayoutClass.fullDesktop:
-        return 92;
+        return 96;
     }
   }
 }
