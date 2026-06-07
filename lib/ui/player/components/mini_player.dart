@@ -13,7 +13,6 @@ import '../../widgets/sleep_timer_bottom_sheet.dart';
 import '../../widgets/song_download_btn.dart';
 import '../../widgets/image_widget.dart';
 import '../../widgets/mini_player_progress_bar.dart';
-import 'animated_play_button.dart';
 
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
@@ -217,109 +216,7 @@ class _DesktopMiniPlayer extends StatelessWidget {
     final c = context.doudouColors;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final shortDesktop = constraints.maxHeight < 90;
-        final compactDesktop = shortDesktop || size.width < 1100;
-
-        if (shortDesktop) {
-          return Container(
-            height: 96,
-            decoration: BoxDecoration(
-              color: c.raisedBackground,
-              border: Border(
-                top: BorderSide(color: c.borderSubtle),
-              ),
-            ),
-            child: Stack(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  child: Row(
-                    children: [
-                      if (controller.currentSong.value != null)
-                        GestureDetector(
-                          onTap: controller.playerPanelController.open,
-                          child: ImageWidget(
-                              size: 42, song: controller.currentSong.value!),
-                        )
-                      else
-                        const SizedBox(width: 42, height: 42),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: controller.playerPanelController.open,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _truncateTitle(controller.currentSong.value?.title ?? ''),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: textTheme.titleSmall,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                controller.currentSong.value?.artist ?? '',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        iconSize: 18,
-                        onPressed: controller.prev,
-                        icon: Icon(Icons.skip_previous, color: c.textPrimary),
-                      ),
-                      const SizedBox(
-                        width: 38,
-                        height: 38,
-                        child: Center(
-                          child: IconTheme(
-                            data: IconThemeData(color: Colors.white),
-                            child: AnimatedPlayButton(iconSize: 30),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        iconSize: 18,
-                        onPressed: controller.next,
-                        icon: Icon(Icons.skip_next, color: c.textPrimary),
-                      ),
-                      IconButton(
-                        iconSize: 18,
-                        onPressed: () {
-                          controller.homeScaffoldkey.currentState
-                              ?.openEndDrawer();
-                        },
-                        icon: Icon(Icons.queue_music, color: c.textPrimary),
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: SizedBox(
-                    height: 2,
-                    child: GetX<PlayerController>(
-                      init: controller,
-                      builder: (pc) => MiniPlayerProgressBar(
-                        progressBarStatus: pc.progressBarStatus.value,
-                        progressBarColor: context.doudouColors.accentPrimary,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
+        final compactDesktop = size.width < 1100;
 
         return Container(
           height: 92,
