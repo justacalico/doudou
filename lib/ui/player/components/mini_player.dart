@@ -8,6 +8,8 @@ import 'package:ionicons_plus/ionicons_plus.dart';
 import '/ui/widgets/lyrics_dialog.dart';
 import '/ui/widgets/song_info_dialog.dart';
 import '/ui/player/player_controller.dart';
+import '/ui/screens/Settings/settings_screen_controller.dart';
+import '/models/server.dart';
 import '../../widgets/add_to_playlist.dart';
 import '../../widgets/sleep_timer_bottom_sheet.dart';
 import '../../widgets/song_download_btn.dart';
@@ -384,11 +386,16 @@ class _DesktopMiniPlayer extends StatelessWidget {
                             Row(
                               children: [
                                 if (!compactDesktop)
-                                  Obx(() => _ControlIconButton(
-                                    icon: Icons.all_inclusive,
-                                    onPressed: controller.toggleLoopMode,
-                                    isActive: controller.isLoopModeEnabled.isTrue,
-                                  )),
+                                  Obx(() {
+                                    final settings = Get.find<SettingsScreenController>();
+                                    final isYouTube = settings.activeServer?.type == ServerType.youtubeMusic;
+                                    if (!isYouTube) return const SizedBox.shrink();
+                                    return _ControlIconButton(
+                                      icon: Icons.all_inclusive,
+                                      onPressed: controller.toggleLoopMode,
+                                      isActive: controller.isLoopModeEnabled.isTrue,
+                                    );
+                                  }),
                                 _ControlIconButton(
                                   icon: Icons.lyrics_outlined,
                                   onPressed: () {
