@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '/models/album.dart';
@@ -224,11 +225,23 @@ class SearchResultScreenController extends GetxController
     scrollControllers.clear();
 
     final args = Get.arguments;
+    if (kDebugMode) {
+      print('_getInitSearchResult - args: $args');
+    }
     if (args is String && args.trim().isNotEmpty) {
       queryString.value = args.trim();
+      if (kDebugMode) {
+        print('_getInitSearchResult - queryString: ${queryString.value}');
+      }
       final backend = _backend;
       final rawResult = await backend.search(queryString.value);
+      if (kDebugMode) {
+        print('_getInitSearchResult - rawResult: $rawResult');
+      }
       resultContent.value = _normalizeSearchResults(rawResult);
+      if (kDebugMode) {
+        print('_getInitSearchResult - resultContent after normalize: $resultContent');
+      }
       final caps = backend.capabilities;
       const allowedCategories = <ContentCategory>{
         ContentCategory.songs,
@@ -243,7 +256,13 @@ class SearchResultScreenController extends GetxController
         return allowedCategories.contains(category) &&
             _showSearchTab(element, caps);
       }).toList();
+      if (kDebugMode) {
+        print('_getInitSearchResult - allKeys: $allKeys');
+      }
       railItems.value = List<String>.from(allKeys);
+      if (kDebugMode) {
+        print('_getInitSearchResult - railItems: $railItems');
+      }
       final len = railItems
           .where((element) =>
               ContentCategoryMapper.fromKey(element).isPlaylistLike)
