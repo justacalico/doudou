@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart' as getx;
 import 'package:hive/hive.dart';
 
@@ -602,6 +603,10 @@ class MusicServices extends getx.GetxService {
 
     final response = (await _sendRequest("search", data)).data;
 
+    if (kDebugMode) {
+      print('Search raw response: $response');
+    }
+
     if (response['contents'] == null) {
       return searchResults;
     }
@@ -663,6 +668,11 @@ class MusicServices extends getx.GetxService {
 
     results = nav(results, ['sectionListRenderer', 'contents']);
 
+    if (kDebugMode) {
+      print('Search results after nav: $results');
+      print('Search results length: ${results.length}');
+    }
+
     if (results.length == 1 && results[0]['itemSectionRenderer'] != null) {
       return searchResults;
     }
@@ -671,36 +681,41 @@ class MusicServices extends getx.GetxService {
 
     for (var res in results) {
       String category;
+      dynamic itemResults;
+      String? typeFilter = filter;
+
       if (res['musicShelfRenderer'] != null) {
-        dynamic itemResults = res['musicShelfRenderer']['contents'];
-        String? typeFilter = filter;
-        category = "mixed"; // Just a default value
-        final mixedItems = parseSearchResults(itemResults,
-            ['artist', 'playlist', 'song', 'video', 'station'], type, category);
-        if (filter == null) {
-          for (var item in mixedItems) {
-            final itemType = item.runtimeType == MediaItem
-                ? (item.artist.split(",")[0]) + "s"
-                : "${item.runtimeType}s";
-            if (searchResults.containsKey(itemType) &&
-                (searchResults[itemType]).length < 3) {
-              (searchResults[itemType] as List).add(item);
-            } else if (!searchResults.containsKey(itemType)) {
-              searchResults[itemType] = [item];
-            }
-          }
-        } else {
-          category = nav(res, ['musicShelfRenderer', ...title_text]);
-          searchResults[category] = parseSearchResults(
-              res['musicShelfRenderer']['contents'],
-              ['artist', 'playlist', 'song', 'video', 'station'],
-              type,
-              category);
-        }
-        type = typeFilter?.substring(0, typeFilter.length - 1).toLowerCase();
+        itemResults = res['musicShelfRenderer']['contents'];
+        category = nav(res, ['musicShelfRenderer', ...title_text]) ?? "mixed";
+      } else if (res['itemSectionRenderer'] != null) {
+        itemResults = res['itemSectionRenderer']['contents'];
+        category = "mixed";
       } else {
         continue;
       }
+
+      final mixedItems = parseSearchResults(itemResults,
+          ['artist', 'playlist', 'song', 'video', 'station'], type, category);
+      if (filter == null) {
+        for (var item in mixedItems) {
+          final itemType = item.runtimeType == MediaItem
+              ? (item.artist.split(",")[0]) + "s"
+              : "${item.runtimeType}s";
+          if (searchResults.containsKey(itemType) &&
+              (searchResults[itemType]).length < 3) {
+            (searchResults[itemType] as List).add(item);
+          } else if (!searchResults.containsKey(itemType)) {
+            searchResults[itemType] = [item];
+          }
+        }
+      } else {
+        searchResults[category] = parseSearchResults(
+            itemResults,
+            ['artist', 'playlist', 'song', 'video', 'station'],
+            type,
+            category);
+      }
+      type = typeFilter?.substring(0, typeFilter.length - 1).toLowerCase();
 
       if (filter != null) {
         requestFunc(additionalParams) async =>

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
@@ -136,8 +137,22 @@ class Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (kDebugMode) {
+      print('Body build - navigationRailCurrentIndex: ${searchResScrController.navigationRailCurrentIndex.value}');
+      print('Body build - isResultContentFetced: ${searchResScrController.isResultContentFetced.value}');
+      print('Body build - railItems: ${searchResScrController.railItems}');
+      print('Body build - resultContent keys: ${searchResScrController.resultContent.keys}');
+      print('Body build - resultContent: ${searchResScrController.resultContent}');
+    }
+
     if (searchResScrController.navigationRailCurrentIndex.value == 0) {
       return Obx(() {
+        if (kDebugMode) {
+          print('Results tab - isResultContentFetced: ${searchResScrController.isResultContentFetced.value}');
+          print('Results tab - railItems.isEmpty: ${searchResScrController.railItems.isEmpty}');
+          print('Results tab - railItems: ${searchResScrController.railItems}');
+        }
+
         if (searchResScrController.isResultContentFetced.isTrue &&
             searchResScrController.railItems.isEmpty) {
           return Center(
@@ -165,6 +180,10 @@ class Body extends StatelessWidget {
         final topPadding = context.isLandscape ? kTopPaddingLandscape : kTopPaddingSearch;
         final name = searchResScrController.railItems[
             searchResScrController.navigationRailCurrentIndex.value - 1];
+        if (kDebugMode) {
+          print('Tab $name - topPadding: $topPadding');
+          print('Tab $name - scrollController: ${searchResScrController.scrollControllers[name]}');
+        }
         return SeparateTabItemWidget(
           items: const [],
           title: name,
