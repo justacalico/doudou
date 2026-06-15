@@ -11,7 +11,7 @@ A cross-platform music player that connects to your own media server. Stream you
 ## What it connects to
 
 - **Subsonic** / **OpenSubsonic** - Best tested and recommended
-- **YouTube Music** - Full support with radio mode
+- **YouTube Music** - Full support with radio mode (disabled in Play Store build for compliance with Google's policies)
 - **Jellyfin** - Supported, minor bugs possible
 - **Plex** - Works, but less tested. File an issue if you hit problems
 

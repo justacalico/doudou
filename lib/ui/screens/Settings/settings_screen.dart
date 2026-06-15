@@ -24,6 +24,9 @@ import '/models/server.dart';
 import 'settings_screen_controller.dart';
 import '/app/theme/app_theme_provider.dart';
 
+const bool kIsPlayStore = bool.fromEnvironment('PLAYSTORE', defaultValue: false);
+bool _ytmProviderUnlocked = false;
+
 class SettingsScreen extends GetView<SettingsScreenController> {
   const SettingsScreen({super.key, this.isBottomNavActive = false});
   final bool isBottomNavActive;
@@ -958,9 +961,6 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       Obx(() {
         final servers = settings.servers;
         final activeId = settings.activeServerId.value;
-        if (servers.isEmpty) {
-          return ListTile(title: Text(context.l10n.noServersConfigured));
-        }
         return Column(
           children: [
             Material(
@@ -1004,112 +1004,116 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
               ),
             ),
             const SizedBox(height: 8),
-            RadioGroup<int>(
-              groupValue: activeId,
-              onChanged: (v) {
-                if (v != null) settings.setActiveServer(v);
-              },
-              child: Column(
-                children: servers
-                    .map((server) => ListTile(
-                          leading: Icon(_serverIcon(server.type)),
-                          title: Text(
-                            server.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Text(
-                            server.serverUrl?.isNotEmpty == true
-                                ? server.serverUrl!
-                                : _serverTypeLabel(context, server.type),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Radio<int>(value: server.id),
-                              if (!server.isDefault) ...[
-                                if (server.type != ServerType.youtubeMusic)
+            if (servers.isEmpty)
+              ListTile(title: Text(context.l10n.noServersConfigured))
+            else ...[
+              RadioGroup<int>(
+                groupValue: activeId,
+                onChanged: (v) {
+                  if (v != null) settings.setActiveServer(v);
+                },
+                child: Column(
+                  children: servers
+                      .map((server) => ListTile(
+                            leading: Icon(_serverIcon(server.type)),
+                            title: Text(
+                              server.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              server.serverUrl?.isNotEmpty == true
+                                  ? server.serverUrl!
+                                  : _serverTypeLabel(context, server.type),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Radio<int>(value: server.id),
+                                if (!server.isDefault) ...[
+                                  if (server.type != ServerType.youtubeMusic)
+                                    IconButton(
+                                      icon: const Icon(Icons.wifi_find, size: 18),
+                                      tooltip: context.l10n.testConnection,
+                                      onPressed: () async {
+                                        final err = await settings
+                                            .testServerConnection(server);
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(err == null
+                                                ? context.l10n.connectionSuccess
+                                                : "${context.l10n.connectionFailed}: $err"),
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   IconButton(
-                                    icon: const Icon(Icons.wifi_find, size: 18),
-                                    tooltip: context.l10n.testConnection,
-                                    onPressed: () async {
-                                      final err = await settings
-                                          .testServerConnection(server);
-                                      if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(err == null
-                                              ? context.l10n.connectionSuccess
-                                              : "${context.l10n.connectionFailed}: $err"),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                IconButton(
-                                  icon:
-                                      const Icon(Icons.edit_outlined, size: 18),
-                                  onPressed: () => showDialog(
-                                    context: context,
-                                    builder: (_) => AddServerDialog(
-                                      serverType: server.type,
-                                      existing: server,
+                                    icon:
+                                        const Icon(Icons.edit_outlined, size: 18),
+                                    onPressed: () => showDialog(
+                                      context: context,
+                                      builder: (_) => AddServerDialog(
+                                        serverType: server.type,
+                                        existing: server,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline,
-                                      size: 18),
-                                  onPressed: () async {
-                                    final confirmed = await showDialog<bool>(
-                                      context: context,
-                                      builder: (dialogContext) => AlertDialog(
-                                        title: Text(context.l10n.deleteServer),
-                                        content: Text(context.l10n.deleteServerConfirm),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.of(dialogContext).pop(false),
-                                            child: Text(context.l10n.cancel),
-                                          ),
-                                          FilledButton(
-                                            onPressed: () => Navigator.of(dialogContext).pop(true),
-                                            child: Text(context.l10n.delete),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                    if (confirmed == true && context.mounted) {
-                                      settings.removeServer(server.id);
-                                    }
-                                  },
-                                ),
-                              ]
-                            ],
-                          ),
-                        ))
-                    .toList(),
-              ),
-            ),
-            Obx(() {
-              final active = settings.activeServer;
-              final isNonYouTube =
-                  active != null && active.type != ServerType.youtubeMusic;
-              if (!isNonYouTube) return const SizedBox.shrink();
-              return ListTile(
-                title: Text(context.l10n.resyncLibraryNow),
-                trailing: TextButton(
-                  onPressed: syncService.isSyncing.value
-                      ? null
-                      : () async {
-                          await settings.resyncLibraryNow();
-                        },
-                  child:
-                      Text(syncService.isSyncing.value ? "Syncing..." : "Sync"),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline,
+                                        size: 18),
+                                    onPressed: () async {
+                                      final confirmed = await showDialog<bool>(
+                                        context: context,
+                                        builder: (dialogContext) => AlertDialog(
+                                          title: Text(context.l10n.deleteServer),
+                                          content: Text(context.l10n.deleteServerConfirm),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.of(dialogContext).pop(false),
+                                              child: Text(context.l10n.cancel),
+                                            ),
+                                            FilledButton(
+                                              onPressed: () => Navigator.of(dialogContext).pop(true),
+                                              child: Text(context.l10n.delete),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                      if (confirmed == true && context.mounted) {
+                                        settings.removeServer(server.id);
+                                      }
+                                    },
+                                  ),
+                                ]
+                              ],
+                            ),
+                          ))
+                      .toList(),
                 ),
-              );
-            }),
+              ),
+              Obx(() {
+                final active = settings.activeServer;
+                final isNonYouTube =
+                    active != null && active.type != ServerType.youtubeMusic;
+                if (!isNonYouTube) return const SizedBox.shrink();
+                return ListTile(
+                  title: Text(context.l10n.resyncLibraryNow),
+                  trailing: TextButton(
+                    onPressed: syncService.isSyncing.value
+                        ? null
+                        : () async {
+                            await settings.resyncLibraryNow();
+                          },
+                    child:
+                        Text(syncService.isSyncing.value ? "Syncing..." : "Sync"),
+                  ),
+                );
+              }),
+            ],
           ],
         );
       }),
@@ -1313,10 +1317,21 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/icons/icon.png',
-              width: 48,
-              height: 48,
+            GestureDetector(
+              onLongPress: () {
+                if (kIsPlayStore && !_ytmProviderUnlocked) {
+                  _ytmProviderUnlocked = true;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Additional providers unlocked')),
+                  );
+                }
+              },
+              child: Image.asset(
+                'assets/icons/icon.png',
+                width: 48,
+                height: 48,
+              ),
             ),
             const SizedBox(width: 12),
             Column(
@@ -1619,6 +1634,14 @@ class _AddProviderDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final types = ServerType.values.where((t) {
+      if (t == ServerType.youtubeMusic &&
+          kIsPlayStore &&
+          !_ytmProviderUnlocked) {
+        return false;
+      }
+      return true;
+    }).toList();
     return CommonDialog(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
@@ -1638,18 +1661,18 @@ class _AddProviderDialog extends StatelessWidget {
                 ],
               ),
             ),
-            for (int i = 0; i < ServerType.values.length; i++) ...[
+            for (int i = 0; i < types.length; i++) ...[
               ListTile(
                 dense: true,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                leading: Icon(_serverIcon(ServerType.values[i])),
-                title: Text(_serverTypeLabel(context, ServerType.values[i])),
+                leading: Icon(_serverIcon(types[i])),
+                title: Text(_serverTypeLabel(context, types[i])),
                 trailing: const Icon(Icons.chevron_right_rounded, size: 18),
-                onTap: () => Navigator.of(context).pop(ServerType.values[i]),
+                onTap: () => Navigator.of(context).pop(types[i]),
               ),
-              if (i < ServerType.values.length - 1)
+              if (i < types.length - 1)
                 Divider(
                   height: 1,
                   color: Theme.of(context).dividerColor.withValues(alpha: 0.28),

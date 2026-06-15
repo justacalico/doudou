@@ -30,6 +30,9 @@ import '/services/backend/backend_factory.dart';
 import '/services/backend/jellyfin_backend.dart';
 import '/services/backend/music_backend.dart';
 import '/services/backend/subsonic_backend.dart';
+import '/services/backend/noop_backend.dart';
+
+const bool kIsPlayStore = bool.fromEnvironment('PLAYSTORE', defaultValue: false);
 
 enum SidebarMode { auto, collapsed, expanded }
 
@@ -114,8 +117,12 @@ class SettingsScreenController extends GetxController {
         isDefault: true,
       );
 
-  MusicBackend get currentBackend =>
-      createBackend(activeServer ?? _defaultServer);
+  MusicBackend get currentBackend {
+    final active = activeServer;
+    if (active != null) return createBackend(active);
+    if (kIsPlayStore && servers.isEmpty) return NoOpBackend();
+    return createBackend(_defaultServer);
+  }
 
   double get animationSpeedFactor {
     switch (animationSpeed.value) {
@@ -293,7 +300,7 @@ class SettingsScreenController extends GetxController {
             .map((e) => SettingsServer.fromMap(e.cast<String, dynamic>()))
             .toList(),
       );
-    } else {
+    } else if (!kIsPlayStore) {
       servers.assignAll([defaultServer]);
     }
     final savedActive = setBox.get('activeServerId');
