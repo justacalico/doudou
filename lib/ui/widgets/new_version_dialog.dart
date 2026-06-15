@@ -11,6 +11,8 @@ class NewVersionDialog extends StatelessWidget {
 
   final String? latestVersion;
 
+  static const _isPlayStore = bool.fromEnvironment('PLAYSTORE');
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -61,8 +63,11 @@ class NewVersionDialog extends StatelessWidget {
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: () {
+                      const url = _isPlayStore
+                          ? 'https://play.google.com/store/apps/details?id=gitlab.openlyst.doudou'
+                          : 'https://openlyst.ink/apps/doudou';
                       launchUrl(
-                        Uri.parse('https://openlyst.ink/apps/doudou'),
+                        Uri.parse(url),
                         mode: LaunchMode.externalApplication,
                       );
                     },
