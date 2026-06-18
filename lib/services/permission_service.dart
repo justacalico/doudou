@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
-import '/native_bindings/andrid_utils.dart' show SDKInt;
 
 class PermissionService {
-  static bool get isScopedStorage =>
-      GetPlatform.isAndroid && SDKInt.Companion.getSDKInt() >= 30;
+  // Always treat Android as scoped storage.
+  // App-specific directories require zero permissions on all Android versions.
+  static bool get isScopedStorage => GetPlatform.isAndroid;
 
   static Future<bool> getExtStoragePermission() async {
     // App-specific directories (supportDir, externalFilesDir, etc.)
