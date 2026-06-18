@@ -33,8 +33,6 @@ Android, iOS, macOS, Windows and, Linux
 ## Download
 
 Get builds for every platform at **[openlyst.ink/apps/doudou](https://openlyst.ink/apps/doudou)**.
-Note: Downloads will be de-centrlized in a future release for now we are relaying on Github and the Openlyst Website
-
 
 ## Quick start
 1. Open the app and hit "Add Server"
