@@ -1,6 +1,6 @@
 # Doudou
 
-A cross-platform music player that connects to your own media server. Stream your library, or pull from YouTube Music - all without ads, trackers, or cloud lock-in.
+A music player that connects to your own media server. Stream your library, or pull from YouTube Music
 
 <p align="center">
   <img src="images/home.png" width="30%" />
@@ -55,7 +55,7 @@ Long-press anything (song, album, playlist) and choose download. It lives in the
 
 Same app, same backend. The layout adapts to screen size. 
 
-## Being a nerd 🤓
+## Compile
 
 You need the Flutter SDK (3.1.5 or newer).
 
