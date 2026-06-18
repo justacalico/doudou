@@ -44,8 +44,13 @@ class Downloader extends GetxService {
       return false;
     }
 
-    final dirPath =
+    String dirPath =
         Get.find<SettingsScreenController>().downloadLocationPath.string;
+    // Fallback to app dir on Android 11+ if user somehow still has an external path
+    if (PermissionService.isScopedStorage &&
+        dirPath.contains('/storage/emulated/')) {
+      dirPath = settingsScreenController.supportDirPath;
+    }
     final directory = Directory(dirPath);
     if (!await directory.exists()) {
       await directory.create(recursive: true);

@@ -602,8 +602,9 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
 
     try {
       if (Platform.isAndroid) {
-        // Android: use Downloads folder
-        directory = Directory('/storage/emulated/0/Download/$appFolderName');
+        // Android: use app documents directory to comply with scoped storage
+        final appDocDir = await path_provider.getApplicationDocumentsDirectory();
+        directory = Directory('${appDocDir.path}/$appFolderName');
       } else if (Platform.isIOS) {
         // iOS: use Documents directory
         final docDir = await path_provider.getApplicationDocumentsDirectory();
@@ -640,7 +641,7 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
   // Helper method to get a user-friendly location message
   String _getLocationMessage(String path) {
     if (Platform.isAndroid) {
-      return "Downloads/Doudou";
+      return "App Documents/Doudou";
     } else if (Platform.isIOS) {
       return "Files App > Doudou";
     } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {

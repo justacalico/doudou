@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/widgets/loader.dart';
@@ -193,27 +194,29 @@ class BackupDialogController extends GetxController {
   }
 
   Future<void> backup() async {
-    if (!await PermissionService.getExtStoragePermission()) {
-      return;
-    }
-
-    if (!await PermissionService.getExtStoragePermission()) {
-      return;
-    }
-
-    final String? pickedFolderPath = await FilePicker.platform
-        .getDirectoryPath(dialogTitle: "Select backup file folder");
-    if (pickedFolderPath == '/' || pickedFolderPath == null) {
-      return;
-    }
-
     scanning.value = true;
     await Future.delayed(const Duration(seconds: 4));
     await scanFilesToBackup();
     scanning.value = false;
 
     backupRunning.value = true;
-    final exportDirPath = pickedFolderPath.toString();
+    String exportDirPath;
+    if (PermissionService.isScopedStorage) {
+      final appDocDir = await getApplicationDocumentsDirectory();
+      exportDirPath = appDocDir.path;
+    } else {
+      if (!await PermissionService.getExtStoragePermission()) {
+        backupRunning.value = false;
+        return;
+      }
+      final String? pickedFolderPath = await FilePicker.platform
+          .getDirectoryPath(dialogTitle: "Select backup file folder");
+      if (pickedFolderPath == '/' || pickedFolderPath == null) {
+        backupRunning.value = false;
+        return;
+      }
+      exportDirPath = pickedFolderPath;
+    }
 
     compressFilesInBackground(filesToExport,
             '$exportDirPath/${DateTime.now().millisecondsSinceEpoch.toString()}.hmb')
