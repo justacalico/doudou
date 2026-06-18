@@ -240,13 +240,26 @@ class SettingsScreenController extends GetxController {
     autoRadioEnabled.value = setBox.get("autoRadioEnabled") ?? true;
     final downloadPath =
         setBox.get('downloadLocationPath') ?? await _createInAppSongDownDir();
-    downloadLocationPath.value =
-        (isDesktop && downloadPath.contains("emulated"))
-            ? await _createInAppSongDownDir()
-            : downloadPath;
+    final isExternalDownPath = downloadPath.contains('/storage/emulated/');
+    if ((isDesktop && downloadPath.contains("emulated")) ||
+        (PermissionService.isScopedStorage && isExternalDownPath)) {
+      final defaultPath = await _createInAppSongDownDir();
+      setBox.put("downloadLocationPath", defaultPath);
+      downloadLocationPath.value = defaultPath;
+    } else {
+      downloadLocationPath.value = downloadPath;
+    }
 
-    exportLocationPath.value =
+    final exportPath =
         setBox.get("exportLocationPath") ?? "/storage/emulated/0/Music";
+    if (PermissionService.isScopedStorage && exportPath.contains('/storage/emulated/')) {
+      final defaultExport = "$_supportDir/Exports";
+      await Directory(defaultExport).create(recursive: true);
+      setBox.put("exportLocationPath", defaultExport);
+      exportLocationPath.value = defaultExport;
+    } else {
+      exportLocationPath.value = exportPath;
+    }
     downloadingFormat.value = setBox.get('downloadingFormat') ?? "m4a";
     discoverContentType.value = setBox.get('discoverContentType') ?? "QP";
     slidableActionEnabled.value = setBox.get('slidableActionEnabled') ?? true;
@@ -414,6 +427,14 @@ class SettingsScreenController extends GetxController {
   }
 
   Future<void> setExportedLocation() async {
+    if (PermissionService.isScopedStorage) {
+      final defaultExport = "$_supportDir/Exports";
+      await Directory(defaultExport).create(recursive: true);
+      setBox.put("exportLocationPath", defaultExport);
+      exportLocationPath.value = defaultExport;
+      return;
+    }
+
     if (!await PermissionService.getExtStoragePermission()) {
       return;
     }
@@ -429,6 +450,11 @@ class SettingsScreenController extends GetxController {
   }
 
   Future<void> setDownloadLocation() async {
+    if (PermissionService.isScopedStorage) {
+      resetDownloadLocation();
+      return;
+    }
+
     if (!await PermissionService.getExtStoragePermission()) {
       return;
     }

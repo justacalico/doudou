@@ -1,32 +1,15 @@
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '/native_bindings/andrid_utils.dart' show SDKInt;
+
 class PermissionService {
+  static bool get isScopedStorage =>
+      GetPlatform.isAndroid && SDKInt.Companion.getSDKInt() >= 30;
+
   static Future<bool> getExtStoragePermission() async {
-    if (GetPlatform.isDesktop) {
-      return Future.value(true);
-    }
-    if ((SDKInt.Companion.getSDKInt()) < 30) {
-      var status = await Permission.storage.status;
-      if (status.isDenied) {
-        await [
-          Permission.storage,
-          Permission.accessMediaLocation,
-          Permission.mediaLibrary,
-        ].request();
-      }
-
-      if (await Permission.storage.isPermanentlyDenied) {
-        await openAppSettings();
-      }
-
-      return (await Permission.storage.status).isGranted;
-    } else {
-      if (!await Permission.manageExternalStorage.isGranted) {
-        final permission = await Permission.manageExternalStorage.request();
-        return permission.isGranted;
-      }
-      return true;
-    }
+    // App-specific directories (supportDir, externalFilesDir, etc.)
+    // do NOT require any storage permission on any Android version.
+    // We removed broad storage permissions from the manifest to comply
+    // with Google Play All Files Access policy.
+    return true;
   }
 }
