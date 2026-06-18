@@ -40,7 +40,7 @@ Note: Downloads will be de-centrlized in a future release for now we are relayin
 1. Open the app and hit "Add Server"
 2. Pick your backend type (Youtube Music is turned off for Playstore versions)
 3. Log in
-4. Profit?
+
 ## FAQ
 
 **Can I use this outside my house?**
