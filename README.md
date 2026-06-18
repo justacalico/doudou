@@ -35,14 +35,12 @@ Android, iOS, macOS, Windows and, Linux
 Get builds for every platform at **[openlyst.ink/apps/doudou](https://openlyst.ink/apps/doudou)**.
 Note: Downloads will be de-centrlized in a future release for now we are relaying on Github and the Openlyst Website
 
+
 ## Quick start
-
 1. Open the app and hit "Add Server"
-2. Pick your backend type
-3. Enter the server URL (for example, `http://192.168.1.100:8096` for Jellyfin)
-4. Log in
-5. Your library syncs automatically
-
+2. Pick your backend type (Youtube Music is turned off for Playstore versions)
+3. Log in
+4. Profit?
 ## FAQ
 
 **Can I use this outside my house?**
@@ -57,7 +55,7 @@ Long-press anything (song, album, playlist) and choose download. It lives in the
 
 Same app, same backend. The layout adapts to screen size. 
 
-## Building from source
+## Being a nerd 🤓
 
 You need the Flutter SDK (3.1.5 or newer).
 
@@ -68,8 +66,7 @@ flutter pub get
 ```
 
 ### Linux desktop extra dependency
-
-`tray_manager` needs appindicator headers on Debian/Ubuntu:
+Appindicator headers are needed on Debian/Ubuntu:
 
 ```bash
 sudo apt-get install -y libayatana-appindicator3-dev
@@ -89,9 +86,6 @@ flutter build ipa --release
 flutter build windows --release
 flutter build macos --release
 flutter build linux --release
-
-# Web
-flutter build web --release
 ```
 
 ## Issues and contributing
