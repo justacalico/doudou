@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:dio/dio.dart';
-import 'package:audiotags/audiotags.dart';
+import 'package:phonic/phonic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -332,35 +332,45 @@ class Downloader extends GetxService {
 
     final trackDetails = (song.extras?['trackDetails'])?.split("/");
     final int? trackNumber = int.tryParse(trackDetails?[0] ?? "");
-    final int? totalTracks = int.tryParse(trackDetails?[1] ?? "");
 
     try {
       if (isNonYouTube || !_isTaggableExtension(normalizedExt)) {
         return;
       }
 
-      /// Reverted -- Removed AudioTags as using this package, app is flagged as TROJ_GEN.R002V01K623 by TrendMicro-HouseCall
       final imageUrl = song.artUri!.toString();
-      Tag tag = Tag(
-          title: song.title,
-          trackArtist: song.artist,
-          album: song.album,
-          year: int.tryParse(year ?? ""),
-          trackNumber: trackNumber,
-          trackTotal: totalTracks,
-          albumArtist: song.artist,
-          genre: song.genre,
-          pictures: [
-            Picture(
-                bytes: (await NetworkAssetBundle(Uri.parse((imageUrl)))
-                        .load(imageUrl))
-                    .buffer
-                    .asUint8List(),
-                mimeType: MimeType.png,
-                pictureType: PictureType.coverFront)
-          ]);
+      final coverBytes = (await NetworkAssetBundle(Uri.parse(imageUrl))
+              .load(imageUrl))
+          .buffer
+          .asUint8List();
 
-      await AudioTags.write(filePath, tag);
+      final audioFile = await Phonic.fromFileAsync(filePath);
+
+      audioFile.setTag(TitleTag(song.title));
+      audioFile.setTag(ArtistTag(song.artist ?? ''));
+      audioFile.setTag(AlbumTag(song.album ?? ''));
+      audioFile.setTag(AlbumArtistTag(song.artist ?? ''));
+      if (song.genre != null && song.genre!.isNotEmpty) {
+        audioFile.setTag(GenreTag.single(song.genre!));
+      }
+      if (year != null) {
+        final yearInt = int.tryParse(year);
+        if (yearInt != null) audioFile.setTag(YearTag(yearInt));
+      }
+      if (trackNumber != null) {
+        audioFile.setTag(TrackNumberTag(trackNumber));
+      }
+
+      final artwork = ArtworkData(
+        mimeType: MimeType.png.standardName,
+        type: ArtworkType.frontCover,
+        dataLoader: () async => coverBytes,
+      );
+      audioFile.setTag(ArtworkTag(artwork));
+
+      final updatedBytes = await audioFile.encode();
+      await File(filePath).writeAsBytes(updatedBytes);
+      audioFile.dispose();
     } catch (e) {
       printERROR("$e");
     }
