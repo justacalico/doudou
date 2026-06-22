@@ -71,9 +71,6 @@ class AndroidAutoService extends GetxService {
     final homeGridButtons = await _loadHomeGridButtons();
     printINFO('AndroidAuto: home grid buttons loaded ${homeGridButtons.length}');
 
-    final recentItems = await _loadSongItems(recentlyPlayedBoxName(sid));
-    printINFO('AndroidAuto: recent loaded ${recentItems.length}');
-
     final albumItems = _albumsToListItems(albumsCtrl.libraryAlbums.toList());
     printINFO('AndroidAuto: albums loaded ${albumItems.length}');
 
@@ -86,14 +83,6 @@ class AndroidAutoService extends GetxService {
       systemIcon: 'house',
       buttons: homeGridButtons,
       emptyViewTitleVariants: ['No content available'],
-    );
-
-    final recentTab = AAListTemplate(
-      title: l10n.recentlyPlayed,
-      tabTitle: l10n.recentlyPlayed,
-      systemIcon: 'clock',
-      sections: [AAListSection(items: recentItems)],
-      emptyViewTitleVariants: ['Nothing played recently'],
     );
 
     final albumsTab = AAListTemplate(
@@ -114,7 +103,7 @@ class AndroidAutoService extends GetxService {
 
     await FlutterAndroidAuto.setRootTemplate(
       template: AATabBarTemplate(
-        tabs: [homeTab, recentTab, albumsTab, playlistsTab],
+        tabs: [homeTab, albumsTab, playlistsTab],
       ),
     );
     // Don't call forceUpdateRootTemplate — it crashes if native side
@@ -185,52 +174,6 @@ class AndroidAutoService extends GetxService {
       printWarning('AndroidAuto: _loadHomeGridButtons failed: $e');
       return [];
     }
-  }
-
-  /// Load songs from a Hive box (used for favorites and recently played
-  /// which don't have dedicated controllers with in-memory lists).
-  Future<List<AAListItem>> _loadSongItems(String boxName) async {
-    Box<dynamic> box;
-    try {
-      box = await Hive.openBox(boxName);
-    } catch (_) {
-      box = await Hive.openBox(boxName);
-    }
-
-    final songs = <MediaItem>[];
-    for (final raw in box.values.toList()) {
-      final song = MediaItemBuilder.fromJson(raw);
-      songs.add(MediaItem(
-        id: song.id,
-        title: song.title,
-        artist: song.artist,
-        artUri: song.artUri,
-        extras: {'libraryId': boxName},
-        playable: true,
-      ));
-    }
-
-    // Don't close — boxes are shared with library controllers and audio_handler
-
-    if (boxName == 'LIBRP' || boxName.startsWith('LIBRP_s_')) {
-      return _songsToListItems(songs.reversed.toList());
-    }
-
-    return _songsToListItems(songs);
-  }
-
-  List<AAListItem> _songsToListItems(List<MediaItem> songs) {
-    return songs.map((song) {
-      return AAListItem(
-        title: song.title,
-        subtitle: song.artist ?? '',
-        imageUrl: song.artUri?.toString(),
-        onPress: (complete, item) {
-          _playSongs(songs, songs.indexOf(song));
-          complete();
-        },
-      );
-    }).toList();
   }
 
   List<AAListItem> _albumsToListItems(List<Album> albums) {
