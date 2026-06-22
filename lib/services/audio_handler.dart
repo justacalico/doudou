@@ -1612,7 +1612,6 @@ class MediaLibrary {
   static const homeRootId = 'home';
   static const moreRootId = 'more';
   static const morePlaylistsId = 'more_playlists';
-  static const moreRecentlyPlayedId = 'more_recentlyPlayed';
 
   Future<List<MediaItem>> getByRootId(String id) async {
     printINFO('MediaLibrary: getByRootId "$id"');
@@ -1631,8 +1630,6 @@ class MediaLibrary {
         return getMoreMenu();
       case morePlaylistsId:
         return getPlaylists();
-      case moreRecentlyPlayedId:
-        return getLibSongs(recentlyPlayedBoxName(currentServerId()));
       case playlistsRootId:
         return getPlaylists();
       case recentlyPlayedRootId:
@@ -1666,16 +1663,11 @@ class MediaLibrary {
     ];
   }
 
-  /// More menu — shows Recently Played and Playlists as browsable items
+  /// More menu — shows Playlists as a browsable item
   List<MediaItem> getMoreMenu() {
     final ctx = Get.context;
     final l10n = ctx != null ? AppLocalizations.of(ctx)! : null;
     return [
-      MediaItem(
-        id: moreRecentlyPlayedId,
-        title: l10n?.recentlyPlayed ?? 'Recently Played',
-        playable: false,
-      ),
       MediaItem(
         id: morePlaylistsId,
         title: l10n?.playlists ?? 'Playlists',

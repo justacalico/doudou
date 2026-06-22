@@ -95,15 +95,6 @@ class AndroidAutoService extends GetxService {
 
     final moreItems = <AAListItem>[
       AAListItem(
-        title: l10n.recentlyPlayed,
-        subtitle: '',
-        isBrowsable: true,
-        onPress: (complete, item) async {
-          await _openRecentlyPlayed();
-          complete();
-        },
-      ),
-      AAListItem(
         title: l10n.playlists,
         subtitle: '${playlistItems.length} playlists',
         isBrowsable: true,
@@ -233,60 +224,6 @@ class AndroidAutoService extends GetxService {
   }
 
   // -- Navigation helpers --
-
-  Future<void> _openRecentlyPlayed() async {
-    final l10n = AppLocalizations.of(Get.context!)!;
-    final sid = currentServerId();
-    printINFO('AndroidAuto: opening recently played');
-
-    final box = await Hive.openBox(recentlyPlayedBoxName(sid));
-    final songs = <MediaItem>[];
-    for (final raw in box.values.toList()) {
-      final song = MediaItemBuilder.fromJson(raw);
-      songs.add(MediaItem(
-        id: song.id,
-        title: song.title,
-        artist: song.artist,
-        artUri: song.artUri,
-        extras: {'libraryId': recentlyPlayedBoxName(sid)},
-        playable: true,
-      ));
-    }
-    // Hive stores oldest first, so reverse for most-recent-first
-    final reversed = songs.reversed.toList();
-
-    if (reversed.isEmpty) {
-      await FlutterAndroidAuto.push(
-        template: AAMessageTemplate(
-          title: l10n.recentlyPlayed,
-          message: 'Nothing played recently.',
-        ),
-      );
-      return;
-    }
-
-    await FlutterAndroidAuto.push(
-      template: AAListTemplate(
-        title: l10n.recentlyPlayed,
-        sections: [
-          AAListSection(
-            items: reversed.map((song) {
-              return AAListItem(
-                title: song.title,
-                subtitle: song.artist ?? '',
-                imageUrl: song.artUri?.toString(),
-                onPress: (complete, item) {
-                  _playSongs(reversed, reversed.indexOf(song));
-                  complete();
-                },
-              );
-            }).toList(),
-          ),
-        ],
-        emptyViewTitleVariants: ['Nothing played recently'],
-      ),
-    );
-  }
 
   Future<void> _openPlaylistsList(List<AAListItem> playlistItems) async {
     final l10n = AppLocalizations.of(Get.context!)!;
