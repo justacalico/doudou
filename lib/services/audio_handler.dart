@@ -1641,7 +1641,6 @@ class MediaLibrary {
     if (ctx == null) {
       return [
         MediaItem(id: songsRootId, title: 'Songs', playable: false),
-        MediaItem(id: favoritesRootId, title: 'Favourites', playable: false),
         MediaItem(id: recentlyPlayedRootId, title: 'Recently Played', playable: false),
         MediaItem(id: albumsRootId, title: 'Albums', playable: false),
         MediaItem(id: playlistsRootId, title: 'Playlists', playable: false),
@@ -1650,7 +1649,6 @@ class MediaLibrary {
     final l10n = AppLocalizations.of(ctx)!;
     return [
       MediaItem(id: songsRootId, title: l10n.songs, playable: false),
-      MediaItem(id: favoritesRootId, title: l10n.favorites, playable: false),
       MediaItem(id: recentlyPlayedRootId, title: l10n.recentlyPlayed, playable: false),
       MediaItem(id: albumsRootId, title: l10n.albums, playable: false),
       MediaItem(id: playlistsRootId, title: l10n.playlists, playable: false),

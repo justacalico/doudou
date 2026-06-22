@@ -70,9 +70,6 @@ class AndroidAutoService extends GetxService {
     final songItems = _songsToListItems(songsCtrl.librarySongsList.toList());
     printINFO('AndroidAuto: songs loaded ${songItems.length}');
 
-    final favItems = await _loadSongItems(libFavBoxName(sid));
-    printINFO('AndroidAuto: favorites loaded ${favItems.length}');
-
     final recentItems = await _loadSongItems(recentlyPlayedBoxName(sid));
     printINFO('AndroidAuto: recent loaded ${recentItems.length}');
 
@@ -88,14 +85,6 @@ class AndroidAutoService extends GetxService {
       systemIcon: 'music.note',
       sections: [AAListSection(items: songItems)],
       emptyViewTitleVariants: ['No songs available'],
-    );
-
-    final favoritesTab = AAListTemplate(
-      title: l10n.favorites,
-      tabTitle: l10n.favorites,
-      systemIcon: 'heart.fill',
-      sections: [AAListSection(items: favItems)],
-      emptyViewTitleVariants: ['No favorites yet'],
     );
 
     final recentTab = AAListTemplate(
@@ -124,7 +113,7 @@ class AndroidAutoService extends GetxService {
 
     await FlutterAndroidAuto.setRootTemplate(
       template: AATabBarTemplate(
-        tabs: [songsTab, favoritesTab, recentTab, albumsTab, playlistsTab],
+        tabs: [songsTab, recentTab, albumsTab, playlistsTab],
       ),
     );
     // Don't call forceUpdateRootTemplate — it crashes if native side
