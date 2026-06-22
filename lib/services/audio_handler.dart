@@ -1610,6 +1610,9 @@ class MediaLibrary {
   static const recentlyPlayedRootId = 'recentlyPlayed';
 
   static const homeRootId = 'home';
+  static const moreRootId = 'more';
+  static const morePlaylistsId = 'more_playlists';
+  static const moreRecentlyPlayedId = 'more_recentlyPlayed';
 
   Future<List<MediaItem>> getByRootId(String id) async {
     printINFO('MediaLibrary: getByRootId "$id"');
@@ -1624,6 +1627,12 @@ class MediaLibrary {
         return getLibSongs(libFavBoxName(currentServerId()));
       case albumsRootId:
         return getAlbums();
+      case moreRootId:
+        return getMoreMenu();
+      case morePlaylistsId:
+        return getPlaylists();
+      case moreRecentlyPlayedId:
+        return getLibSongs(recentlyPlayedBoxName(currentServerId()));
       case playlistsRootId:
         return getPlaylists();
       case recentlyPlayedRootId:
@@ -1646,14 +1655,32 @@ class MediaLibrary {
       return [
         const MediaItem(id: homeRootId, title: 'Home', playable: false),
         const MediaItem(id: albumsRootId, title: 'Albums', playable: false),
-        const MediaItem(id: playlistsRootId, title: 'More', playable: false),
+        const MediaItem(id: moreRootId, title: 'More', playable: false),
       ];
     }
     final l10n = AppLocalizations.of(ctx)!;
     return [
       MediaItem(id: homeRootId, title: l10n.home, playable: false),
       MediaItem(id: albumsRootId, title: l10n.albums, playable: false),
-      MediaItem(id: playlistsRootId, title: l10n.more, playable: false),
+      MediaItem(id: moreRootId, title: l10n.more, playable: false),
+    ];
+  }
+
+  /// More menu — shows Recently Played and Playlists as browsable items
+  List<MediaItem> getMoreMenu() {
+    final ctx = Get.context;
+    final l10n = ctx != null ? AppLocalizations.of(ctx)! : null;
+    return [
+      MediaItem(
+        id: moreRecentlyPlayedId,
+        title: l10n?.recentlyPlayed ?? 'Recently Played',
+        playable: false,
+      ),
+      MediaItem(
+        id: morePlaylistsId,
+        title: l10n?.playlists ?? 'Playlists',
+        playable: false,
+      ),
     ];
   }
 

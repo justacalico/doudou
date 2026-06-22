@@ -93,17 +93,38 @@ class AndroidAutoService extends GetxService {
       emptyViewTitleVariants: ['No albums in library'],
     );
 
-    final playlistsTab = AAListTemplate(
+    final moreItems = <AAListItem>[
+      AAListItem(
+        title: l10n.recentlyPlayed,
+        subtitle: '',
+        isBrowsable: true,
+        onPress: (complete, item) async {
+          await _openRecentlyPlayed();
+          complete();
+        },
+      ),
+      AAListItem(
+        title: l10n.playlists,
+        subtitle: '${playlistItems.length} playlists',
+        isBrowsable: true,
+        onPress: (complete, item) async {
+          await _openPlaylistsList(playlistItems);
+          complete();
+        },
+      ),
+    ];
+
+    final moreTab = AAListTemplate(
       title: l10n.more,
       tabTitle: l10n.more,
-      systemIcon: 'music.note.list',
-      sections: [AAListSection(items: playlistItems)],
-      emptyViewTitleVariants: ['No playlists available'],
+      systemIcon: 'ellipsis',
+      sections: [AAListSection(items: moreItems)],
+      emptyViewTitleVariants: ['Nothing here'],
     );
 
     await FlutterAndroidAuto.setRootTemplate(
       template: AATabBarTemplate(
-        tabs: [homeTab, albumsTab, playlistsTab],
+        tabs: [homeTab, albumsTab, moreTab],
       ),
     );
     // Don't call forceUpdateRootTemplate — it crashes if native side
@@ -212,6 +233,85 @@ class AndroidAutoService extends GetxService {
   }
 
   // -- Navigation helpers --
+
+  Future<void> _openRecentlyPlayed() async {
+    final l10n = AppLocalizations.of(Get.context!)!;
+    final sid = currentServerId();
+    printINFO('AndroidAuto: opening recently played');
+
+    final box = await Hive.openBox(recentlyPlayedBoxName(sid));
+    final songs = <MediaItem>[];
+    for (final raw in box.values.toList()) {
+      final song = MediaItemBuilder.fromJson(raw);
+      songs.add(MediaItem(
+        id: song.id,
+        title: song.title,
+        artist: song.artist,
+        artUri: song.artUri,
+        extras: {'libraryId': recentlyPlayedBoxName(sid)},
+        playable: true,
+      ));
+    }
+    // Hive stores oldest first, so reverse for most-recent-first
+    final reversed = songs.reversed.toList();
+
+    if (reversed.isEmpty) {
+      await FlutterAndroidAuto.push(
+        template: AAMessageTemplate(
+          title: l10n.recentlyPlayed,
+          message: 'Nothing played recently.',
+        ),
+      );
+      return;
+    }
+
+    await FlutterAndroidAuto.push(
+      template: AAListTemplate(
+        title: l10n.recentlyPlayed,
+        sections: [
+          AAListSection(
+            items: reversed.map((song) {
+              return AAListItem(
+                title: song.title,
+                subtitle: song.artist ?? '',
+                imageUrl: song.artUri?.toString(),
+                onPress: (complete, item) {
+                  _playSongs(reversed, reversed.indexOf(song));
+                  complete();
+                },
+              );
+            }).toList(),
+          ),
+        ],
+        emptyViewTitleVariants: ['Nothing played recently'],
+      ),
+    );
+  }
+
+  Future<void> _openPlaylistsList(List<AAListItem> playlistItems) async {
+    final l10n = AppLocalizations.of(Get.context!)!;
+    printINFO('AndroidAuto: opening playlists list (${playlistItems.length})');
+
+    if (playlistItems.isEmpty) {
+      await FlutterAndroidAuto.push(
+        template: AAMessageTemplate(
+          title: l10n.playlists,
+          message: 'No playlists available.',
+        ),
+      );
+      return;
+    }
+
+    await FlutterAndroidAuto.push(
+      template: AAListTemplate(
+        title: l10n.playlists,
+        sections: [
+          AAListSection(items: playlistItems),
+        ],
+        emptyViewTitleVariants: ['No playlists available'],
+      ),
+    );
+  }
 
   Future<void> _openAlbumSongs(String albumId, String title) async {
     printINFO('AndroidAuto: opening album $albumId ($title)');
