@@ -67,9 +67,9 @@ class AndroidAutoService extends GetxService {
     await _waitForFlag(playlistsCtrl.isContentFetched);
     printINFO('AndroidAuto: library controllers ready');
 
-    // Build home tab from quick picks
-    final homeItems = await _loadHomeItems();
-    printINFO('AndroidAuto: home items loaded ${homeItems.length}');
+    // Build home tab as a grid of quick picks
+    final homeGridButtons = await _loadHomeGridButtons();
+    printINFO('AndroidAuto: home grid buttons loaded ${homeGridButtons.length}');
 
     final recentItems = await _loadSongItems(recentlyPlayedBoxName(sid));
     printINFO('AndroidAuto: recent loaded ${recentItems.length}');
@@ -80,11 +80,11 @@ class AndroidAutoService extends GetxService {
     final playlistItems = _playlistsToListItems(playlistsCtrl.libraryPlaylists.toList());
     printINFO('AndroidAuto: playlists loaded ${playlistItems.length}');
 
-    final homeTab = AAListTemplate(
+    final homeTab = AAGridTemplate(
       title: l10n.home,
       tabTitle: l10n.home,
       systemIcon: 'house',
-      sections: [AAListSection(items: homeItems)],
+      buttons: homeGridButtons,
       emptyViewTitleVariants: ['No content available'],
     );
 
@@ -124,10 +124,10 @@ class AndroidAutoService extends GetxService {
 
   // -- Data loaders --
 
-  /// Load home tab items from HomeScreenController — aggregates quick picks,
-  /// continue listening, fresh picks, and based-on-favorites, same as the
-  /// app's home screen.
-  Future<List<AAListItem>> _loadHomeItems() async {
+  /// Load home tab grid buttons from HomeScreenController — aggregates quick
+  /// picks, continue listening, fresh picks, and based-on-favorites, same as
+  /// the app's home screen. Returns card-like buttons for AAGridTemplate.
+  Future<List<AAGridButton>> _loadHomeGridButtons() async {
     try {
       if (!Get.isRegistered<HomeScreenController>()) {
         printINFO('AndroidAuto: HomeScreenController not registered');
@@ -171,9 +171,18 @@ class AndroidAutoService extends GetxService {
 
       printINFO('AndroidAuto: total home items: ${allSongs.length}');
       if (allSongs.isEmpty) return [];
-      return _songsToListItems(allSongs);
+
+      return allSongs.map((song) => AAGridButton(
+        titleVariants: [song.title],
+        image: song.artUri?.toString(),
+        onPress: (complete, self) {
+          _playSongs([song], 0);
+          complete();
+          return Future.value();
+        },
+      )).toList();
     } catch (e) {
-      printWarning('AndroidAuto: _loadHomeItems failed: $e');
+      printWarning('AndroidAuto: _loadHomeGridButtons failed: $e');
       return [];
     }
   }
