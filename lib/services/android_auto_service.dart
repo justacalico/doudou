@@ -11,6 +11,7 @@ import '/models/album.dart';
 import '/models/media_Item_builder.dart';
 import '/models/playlist.dart';
 import '/ui/player/player_controller.dart';
+import '/ui/screens/Home/home_screen_controller.dart';
 import '/ui/screens/Library/library_controller.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '../utils/helper.dart';
@@ -66,9 +67,9 @@ class AndroidAutoService extends GetxService {
     await _waitForFlag(playlistsCtrl.isContentFetched);
     printINFO('AndroidAuto: library controllers ready');
 
-    // Pull from in-memory lists — these already have backend + local data
-    final songItems = _songsToListItems(songsCtrl.librarySongsList.toList());
-    printINFO('AndroidAuto: songs loaded ${songItems.length}');
+    // Build home tab from quick picks
+    final homeItems = await _loadHomeItems();
+    printINFO('AndroidAuto: home items loaded ${homeItems.length}');
 
     final recentItems = await _loadSongItems(recentlyPlayedBoxName(sid));
     printINFO('AndroidAuto: recent loaded ${recentItems.length}');
@@ -79,12 +80,12 @@ class AndroidAutoService extends GetxService {
     final playlistItems = _playlistsToListItems(playlistsCtrl.libraryPlaylists.toList());
     printINFO('AndroidAuto: playlists loaded ${playlistItems.length}');
 
-    final songsTab = AAListTemplate(
-      title: l10n.songs,
-      tabTitle: l10n.songs,
-      systemIcon: 'music.note',
-      sections: [AAListSection(items: songItems)],
-      emptyViewTitleVariants: ['No songs available'],
+    final homeTab = AAListTemplate(
+      title: l10n.home,
+      tabTitle: l10n.home,
+      systemIcon: 'house',
+      sections: [AAListSection(items: homeItems)],
+      emptyViewTitleVariants: ['No content available'],
     );
 
     final recentTab = AAListTemplate(
@@ -113,7 +114,7 @@ class AndroidAutoService extends GetxService {
 
     await FlutterAndroidAuto.setRootTemplate(
       template: AATabBarTemplate(
-        tabs: [songsTab, recentTab, albumsTab, playlistsTab],
+        tabs: [homeTab, recentTab, albumsTab, playlistsTab],
       ),
     );
     // Don't call forceUpdateRootTemplate — it crashes if native side
@@ -122,6 +123,60 @@ class AndroidAutoService extends GetxService {
   }
 
   // -- Data loaders --
+
+  /// Load home tab items from HomeScreenController — aggregates quick picks,
+  /// continue listening, fresh picks, and based-on-favorites, same as the
+  /// app's home screen.
+  Future<List<AAListItem>> _loadHomeItems() async {
+    try {
+      if (!Get.isRegistered<HomeScreenController>()) {
+        printINFO('AndroidAuto: HomeScreenController not registered');
+        return [];
+      }
+      final homeCtrl = Get.find<HomeScreenController>();
+      // Wait for home content to be fetched (up to 10s)
+      await _waitForFlag(homeCtrl.isContentFetched);
+
+      final allSongs = <MediaItem>[];
+
+      // 1. Quick picks (discover content from backend)
+      final quickPicks = homeCtrl.quickPicks.value.songList;
+      printINFO('AndroidAuto: quick picks: ${quickPicks.length}');
+      allSongs.addAll(quickPicks);
+
+      // 2. Home library sections (continue listening, fresh picks, etc.)
+      try {
+        final sections = await homeCtrl.loadHomeLibrarySections();
+        printINFO('AndroidAuto: sections - continueListening=${sections.continueListening.length}, freshPicks=${sections.freshPicks.length}, basedOnFavorites=${sections.basedOnFavorites.length}, favoriteSongs=${sections.favoriteSongs.length}');
+
+        // Add continue listening first (most relevant)
+        for (final item in sections.continueListening) {
+          if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);
+        }
+        // Then fresh picks
+        for (final item in sections.freshPicks) {
+          if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);
+        }
+        // Based on favorites
+        for (final item in sections.basedOnFavorites) {
+          if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);
+        }
+        // Favorite songs
+        for (final item in sections.favoriteSongs) {
+          if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);
+        }
+      } catch (e) {
+        printWarning('AndroidAuto: loadHomeLibrarySections failed: $e');
+      }
+
+      printINFO('AndroidAuto: total home items: ${allSongs.length}');
+      if (allSongs.isEmpty) return [];
+      return _songsToListItems(allSongs);
+    } catch (e) {
+      printWarning('AndroidAuto: _loadHomeItems failed: $e');
+      return [];
+    }
+  }
 
   /// Load songs from a Hive box (used for favorites and recently played
   /// which don't have dedicated controllers with in-memory lists).

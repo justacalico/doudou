@@ -1609,11 +1609,15 @@ class MediaLibrary {
   static const playlistsRootId = 'playlists';
   static const recentlyPlayedRootId = 'recentlyPlayed';
 
+  static const homeRootId = 'home';
+
   Future<List<MediaItem>> getByRootId(String id) async {
     printINFO('MediaLibrary: getByRootId "$id"');
     switch (id) {
       case AudioService.browsableRootId:
         return Future.value(getRoot());
+      case homeRootId:
+        return getHomeItems();
       case songsRootId:
         return getSongs();
       case favoritesRootId:
@@ -1640,7 +1644,7 @@ class MediaLibrary {
     final ctx = Get.context;
     if (ctx == null) {
       return [
-        MediaItem(id: songsRootId, title: 'Songs', playable: false),
+        MediaItem(id: homeRootId, title: 'Home', playable: false),
         MediaItem(id: recentlyPlayedRootId, title: 'Recently Played', playable: false),
         MediaItem(id: albumsRootId, title: 'Albums', playable: false),
         MediaItem(id: playlistsRootId, title: 'Playlists', playable: false),
@@ -1648,11 +1652,70 @@ class MediaLibrary {
     }
     final l10n = AppLocalizations.of(ctx)!;
     return [
-      MediaItem(id: songsRootId, title: l10n.songs, playable: false),
+      MediaItem(id: homeRootId, title: l10n.home, playable: false),
       MediaItem(id: recentlyPlayedRootId, title: l10n.recentlyPlayed, playable: false),
       MediaItem(id: albumsRootId, title: l10n.albums, playable: false),
       MediaItem(id: playlistsRootId, title: l10n.playlists, playable: false),
     ];
+  }
+
+  /// Pull home items from HomeScreenController — aggregates quick picks,
+  /// continue listening, fresh picks, and based-on-favorites, same as
+  /// the app's home screen.
+  Future<List<MediaItem>> getHomeItems() async {
+    try {
+      if (Get.isRegistered<HomeScreenController>()) {
+        final homeCtrl = Get.find<HomeScreenController>();
+        for (int i = 0; i < 20; i++) {
+          if (homeCtrl.isContentFetched.value) break;
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+
+        final allSongs = <MediaItem>[];
+
+        // 1. Quick picks (discover content from backend)
+        final quickPicks = homeCtrl.quickPicks.value.songList;
+        printINFO('MediaLibrary: getHomeItems quick picks: ${quickPicks.length}');
+        allSongs.addAll(quickPicks);
+
+        // 2. Home library sections
+        try {
+          final sections = await homeCtrl.loadHomeLibrarySections();
+          printINFO('MediaLibrary: getHomeItems sections - continueListening=${sections.continueListening.length}, freshPicks=${sections.freshPicks.length}, basedOnFavorites=${sections.basedOnFavorites.length}');
+
+          for (final item in sections.continueListening) {
+            if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);
+          }
+          for (final item in sections.freshPicks) {
+            if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);
+          }
+          for (final item in sections.basedOnFavorites) {
+            if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);
+          }
+          for (final item in sections.favoriteSongs) {
+            if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);
+          }
+        } catch (e) {
+          printWarning('MediaLibrary: getHomeItems sections failed: $e');
+        }
+
+        printINFO('MediaLibrary: getHomeItems total: ${allSongs.length}');
+        if (allSongs.isNotEmpty) {
+          return allSongs.map((s) => MediaItem(
+            id: s.id,
+            title: s.title,
+            artist: s.artist,
+            artUri: s.artUri,
+            extras: {'libraryId': songDownloadsBoxName(currentServerId())},
+            playable: true,
+          )).toList();
+        }
+      }
+    } catch (e) {
+      printWarning('MediaLibrary: getHomeItems failed: $e');
+    }
+    // Fallback to songs
+    return getSongs();
   }
 
   /// Pull songs from LibrarySongsController's in-memory list —
