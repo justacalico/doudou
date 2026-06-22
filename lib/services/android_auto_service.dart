@@ -16,6 +16,17 @@ import '/ui/screens/Settings/settings_screen_controller.dart';
 import '../utils/helper.dart';
 import '../utils/server_storage.dart';
 
+// How long to wait for library controllers to finish fetching
+const _maxWaitSeconds = 10;
+
+Future<void> _waitForFlag(RxBool flag, {int timeoutSeconds = _maxWaitSeconds}) async {
+  if (flag.value) return;
+  for (int i = 0; i < timeoutSeconds * 2; i++) {
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (flag.value) return;
+  }
+}
+
 class AndroidAutoService extends GetxService {
   final FlutterAndroidAuto _androidAuto = FlutterAndroidAuto();
 
@@ -41,16 +52,41 @@ class AndroidAutoService extends GetxService {
       return;
     }
     final l10n = AppLocalizations.of(Get.context!)!;
+    final sid = currentServerId();
+    printINFO('AndroidAuto: setting up root template, serverId=$sid');
+
+    // Wait for library controllers to finish fetching data
+    final songsCtrl = Get.find<LibrarySongsController>();
+    final albumsCtrl = Get.find<LibraryAlbumsController>();
+    final playlistsCtrl = Get.find<LibraryPlaylistsController>();
+
+    printINFO('AndroidAuto: waiting for library controllers to finish fetching...');
+    await _waitForFlag(songsCtrl.isSongFetched);
+    await _waitForFlag(albumsCtrl.isContentFetched);
+    await _waitForFlag(playlistsCtrl.isContentFetched);
+    printINFO('AndroidAuto: library controllers ready');
+
+    // Pull from in-memory lists — these already have backend + local data
+    final songItems = _songsToListItems(songsCtrl.librarySongsList.toList());
+    printINFO('AndroidAuto: songs loaded ${songItems.length}');
+
+    final favItems = await _loadSongItems(libFavBoxName(sid));
+    printINFO('AndroidAuto: favorites loaded ${favItems.length}');
+
+    final recentItems = await _loadSongItems(recentlyPlayedBoxName(sid));
+    printINFO('AndroidAuto: recent loaded ${recentItems.length}');
+
+    final albumItems = _albumsToListItems(albumsCtrl.libraryAlbums.toList());
+    printINFO('AndroidAuto: albums loaded ${albumItems.length}');
+
+    final playlistItems = _playlistsToListItems(playlistsCtrl.libraryPlaylists.toList());
+    printINFO('AndroidAuto: playlists loaded ${playlistItems.length}');
 
     final songsTab = AAListTemplate(
       title: l10n.songs,
       tabTitle: l10n.songs,
       systemIcon: 'music.note',
-      sections: [
-        AAListSection(
-          items: await _loadSongItems(songDownloadsBoxName(currentServerId())),
-        ),
-      ],
+      sections: [AAListSection(items: songItems)],
       emptyViewTitleVariants: ['No songs available'],
     );
 
@@ -58,11 +94,7 @@ class AndroidAutoService extends GetxService {
       title: l10n.favorites,
       tabTitle: l10n.favorites,
       systemIcon: 'heart.fill',
-      sections: [
-        AAListSection(
-          items: await _loadSongItems(libFavBoxName(currentServerId())),
-        ),
-      ],
+      sections: [AAListSection(items: favItems)],
       emptyViewTitleVariants: ['No favorites yet'],
     );
 
@@ -70,12 +102,7 @@ class AndroidAutoService extends GetxService {
       title: l10n.recentlyPlayed,
       tabTitle: l10n.recentlyPlayed,
       systemIcon: 'clock',
-      sections: [
-        AAListSection(
-          items:
-              await _loadSongItems(recentlyPlayedBoxName(currentServerId())),
-        ),
-      ],
+      sections: [AAListSection(items: recentItems)],
       emptyViewTitleVariants: ['Nothing played recently'],
     );
 
@@ -83,9 +110,7 @@ class AndroidAutoService extends GetxService {
       title: l10n.albums,
       tabTitle: l10n.albums,
       systemIcon: 'square.stack.3d.up',
-      sections: [
-        AAListSection(items: await _loadAlbumItems()),
-      ],
+      sections: [AAListSection(items: albumItems)],
       emptyViewTitleVariants: ['No albums in library'],
     );
 
@@ -93,9 +118,7 @@ class AndroidAutoService extends GetxService {
       title: l10n.playlists,
       tabTitle: l10n.playlists,
       systemIcon: 'music.note.list',
-      sections: [
-        AAListSection(items: await _loadPlaylistItems()),
-      ],
+      sections: [AAListSection(items: playlistItems)],
       emptyViewTitleVariants: ['No playlists available'],
     );
 
@@ -104,11 +127,15 @@ class AndroidAutoService extends GetxService {
         tabs: [songsTab, favoritesTab, recentTab, albumsTab, playlistsTab],
       ),
     );
-    _androidAuto.forceUpdateRootTemplate();
+    // Don't call forceUpdateRootTemplate — it crashes if native side
+    // hasn't fully processed setRootTemplate yet
+    printINFO('AndroidAuto: root template set');
   }
 
   // -- Data loaders --
 
+  /// Load songs from a Hive box (used for favorites and recently played
+  /// which don't have dedicated controllers with in-memory lists).
   Future<List<AAListItem>> _loadSongItems(String boxName) async {
     Box<dynamic> box;
     try {
@@ -130,9 +157,7 @@ class AndroidAutoService extends GetxService {
       ));
     }
 
-    if (!boxName.contains('SongDownloads')) {
-      await box.close();
-    }
+    // Don't close — boxes are shared with library controllers and audio_handler
 
     if (boxName == 'LIBRP' || boxName.startsWith('LIBRP_s_')) {
       return _songsToListItems(songs.reversed.toList());
@@ -155,11 +180,7 @@ class AndroidAutoService extends GetxService {
     }).toList();
   }
 
-  Future<List<AAListItem>> _loadAlbumItems() async {
-    final box = await Hive.openBox(libraryAlbumsBoxName(currentServerId()));
-    final albums = box.values.map((item) => Album.fromJson(item)).toList();
-    await box.close();
-
+  List<AAListItem> _albumsToListItems(List<Album> albums) {
     return albums.map((album) {
       return AAListItem(
         title: album.title,
@@ -176,24 +197,7 @@ class AndroidAutoService extends GetxService {
     }).toList();
   }
 
-  Future<List<AAListItem>> _loadPlaylistItems() async {
-    final box = await Hive.openBox('LibraryPlaylists');
-    final prefix = 's_${currentServerId()}_';
-    final serverKeys = box.keys
-        .where((k) => k is String && k.toString().startsWith(prefix))
-        .toList();
-
-    final playlists = [
-      ...Get.find<LibraryPlaylistsController>()
-          .initPlst
-          .map((e) => e),
-      ...serverKeys.map((k) => box.get(k.toString())).whereType<Map>().map(
-            (item) =>
-                Playlist.fromJson(Map<dynamic, dynamic>.from(item)),
-          ),
-    ];
-    await box.close();
-
+  List<AAListItem> _playlistsToListItems(List<Playlist> playlists) {
     return playlists.map((pl) {
       return AAListItem(
         title: pl.title,
@@ -214,7 +218,9 @@ class AndroidAutoService extends GetxService {
   // -- Navigation helpers --
 
   Future<void> _openAlbumSongs(String albumId, String title) async {
+    printINFO('AndroidAuto: opening album $albumId ($title)');
     final songs = await _fetchAlbumOrPlaylistSongs(albumId: albumId);
+    printINFO('AndroidAuto: album $albumId fetched ${songs.length} songs');
     if (songs.isEmpty) {
       await FlutterAndroidAuto.push(
         template: AAMessageTemplate(
@@ -249,7 +255,9 @@ class AndroidAutoService extends GetxService {
   }
 
   Future<void> _openPlaylistSongs(String playlistId, String title) async {
+    printINFO('AndroidAuto: opening playlist $playlistId ($title)');
     final songs = await _fetchAlbumOrPlaylistSongs(playlistId: playlistId);
+    printINFO('AndroidAuto: playlist $playlistId fetched ${songs.length} songs');
     if (songs.isEmpty) {
       await FlutterAndroidAuto.push(
         template: AAMessageTemplate(
@@ -298,7 +306,7 @@ class AndroidAutoService extends GetxService {
             .map((item) => MediaItemBuilder.fromJson(item))
             .whereType<MediaItem>()
             .toList();
-        await box.close();
+        // Don't close — might be cached and used elsewhere
         if (songs.isNotEmpty) return songs;
       } catch (e) {
         printWarning('AndroidAuto: failed to load local box $id: $e');
@@ -328,6 +336,7 @@ class AndroidAutoService extends GetxService {
 
   void _playSongs(List<MediaItem> songs, int index) {
     if (songs.isEmpty || index < 0 || index >= songs.length) return;
+    printINFO('AndroidAuto: playing song at index $index of ${songs.length}');
     final player = Get.find<PlayerController>();
     player.playPlayListSong(songs, index);
   }

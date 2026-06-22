@@ -1273,7 +1273,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     customEvent.add({
       'eventType': 'playFromMediaId',
       'songId': mediaId,
-      'libraryId': extras!['libraryId'],
+      'libraryId': extras?['libraryId'] ?? '',
     });
   }
 
@@ -1607,61 +1607,124 @@ class MediaLibrary {
   static const songsRootId = 'songs';
   static const favoritesRootId = "LIBFAV";
   static const playlistsRootId = 'playlists';
+  static const recentlyPlayedRootId = 'recentlyPlayed';
 
   Future<List<MediaItem>> getByRootId(String id) async {
+    printINFO('MediaLibrary: getByRootId "$id"');
     switch (id) {
       case AudioService.browsableRootId:
         return Future.value(getRoot());
       case songsRootId:
-        return getLibSongs(songDownloadsBoxName(currentServerId()));
+        return getSongs();
       case favoritesRootId:
         return getLibSongs(libFavBoxName(currentServerId()));
       case albumsRootId:
         return getAlbums();
       case playlistsRootId:
         return getPlaylists();
+      case recentlyPlayedRootId:
+        return getLibSongs(recentlyPlayedBoxName(currentServerId()));
       case AudioService.recentRootId:
         return getLibSongs(recentlyPlayedBoxName(currentServerId()));
       default:
-        return getLibSongs(id);
+        // Browsing into a specific album/playlist — try Hive box first,
+        // then fall back to backend fetch
+        return getLibSongs(id).then((songs) async {
+          if (songs.isNotEmpty) return songs;
+          return _fetchFromBackend(id);
+        });
     }
   }
 
   List<MediaItem> getRoot() {
-    final l10n = AppLocalizations.of(Get.context!)!;
+    final ctx = Get.context;
+    if (ctx == null) {
+      return [
+        MediaItem(id: songsRootId, title: 'Songs', playable: false),
+        MediaItem(id: favoritesRootId, title: 'Favourites', playable: false),
+        MediaItem(id: recentlyPlayedRootId, title: 'Recently Played', playable: false),
+        MediaItem(id: albumsRootId, title: 'Albums', playable: false),
+        MediaItem(id: playlistsRootId, title: 'Playlists', playable: false),
+      ];
+    }
+    final l10n = AppLocalizations.of(ctx)!;
     return [
-      MediaItem(
-        id: songsRootId,
-        title: l10n.songs,
-        playable: false,
-      ),
-      MediaItem(
-        id: favoritesRootId,
-        title: l10n.favorites,
-        playable: false,
-      ),
-      MediaItem(
-        id: albumsRootId,
-        title: l10n.albums,
-        playable: false,
-      ),
-      MediaItem(
-        id: playlistsRootId,
-        title: l10n.playlists,
-        playable: false,
-      ),
+      MediaItem(id: songsRootId, title: l10n.songs, playable: false),
+      MediaItem(id: favoritesRootId, title: l10n.favorites, playable: false),
+      MediaItem(id: recentlyPlayedRootId, title: l10n.recentlyPlayed, playable: false),
+      MediaItem(id: albumsRootId, title: l10n.albums, playable: false),
+      MediaItem(id: playlistsRootId, title: l10n.playlists, playable: false),
     ];
   }
 
+  /// Pull songs from LibrarySongsController's in-memory list —
+  /// this has both backend-fetched and local songs merged together.
+  Future<List<MediaItem>> getSongs() async {
+    try {
+      if (Get.isRegistered<LibrarySongsController>()) {
+        final ctrl = Get.find<LibrarySongsController>();
+        // Wait for fetch to complete (up to 10s)
+        for (int i = 0; i < 20; i++) {
+          if (ctrl.isSongFetched.value) break;
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+        final songs = ctrl.librarySongsList.toList();
+        printINFO('MediaLibrary: getSongs from controller: ${songs.length}');
+        return songs.map((s) => MediaItem(
+          id: s.id,
+          title: s.title,
+          artist: s.artist,
+          artUri: s.artUri,
+          extras: {'libraryId': songDownloadsBoxName(currentServerId())},
+          playable: true,
+        )).toList();
+      }
+    } catch (e) {
+      printWarning('MediaLibrary: getSongs from controller failed: $e');
+    }
+    // Fallback to Hive box
+    return getLibSongs(songDownloadsBoxName(currentServerId()));
+  }
+
   Future<List<MediaItem>> getAlbums() async {
+    try {
+      if (Get.isRegistered<LibraryAlbumsController>()) {
+        final ctrl = Get.find<LibraryAlbumsController>();
+        for (int i = 0; i < 20; i++) {
+          if (ctrl.isContentFetched.value) break;
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+        final albums = ctrl.libraryAlbums.toList();
+        printINFO('MediaLibrary: getAlbums from controller: ${albums.length}');
+        return albums.map((a) => a.toMediaItem()).toList();
+      }
+    } catch (e) {
+      printWarning('MediaLibrary: getAlbums from controller failed: $e');
+    }
+    // Fallback to Hive box
     final box = await Hive.openBox(libraryAlbumsBoxName(currentServerId()));
     final albums =
         box.values.map((item) => Album.fromJson(item).toMediaItem()).toList();
-    await box.close();
+    printINFO('MediaLibrary: getAlbums from box: ${albums.length}');
     return albums;
   }
 
   Future<List<MediaItem>> getPlaylists() async {
+    try {
+      if (Get.isRegistered<LibraryPlaylistsController>()) {
+        final ctrl = Get.find<LibraryPlaylistsController>();
+        for (int i = 0; i < 20; i++) {
+          if (ctrl.isContentFetched.value) break;
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+        final playlists = ctrl.libraryPlaylists.toList();
+        printINFO('MediaLibrary: getPlaylists from controller: ${playlists.length}');
+        return playlists.map((p) => p.toMediaItem()).toList();
+      }
+    } catch (e) {
+      printWarning('MediaLibrary: getPlaylists from controller failed: $e');
+    }
+    // Fallback to Hive box
     final box = await Hive.openBox("LibraryPlaylists");
     final prefix = 's_${currentServerId()}_';
     final serverKeys = box.keys
@@ -1675,7 +1738,7 @@ class MediaLibrary {
           (item) =>
               Playlist.fromJson(Map<dynamic, dynamic>.from(item)).toMediaItem())
     ];
-    await box.close();
+    printINFO('MediaLibrary: getPlaylists from box: ${playlists.length}');
     return playlists;
   }
 
@@ -1698,14 +1761,43 @@ class MediaLibrary {
       );
     }).toList();
 
-    if (!libId.contains("SongDownloads")) {
-      await box.close();
-    }
+    // Don't close — boxes are shared with library controllers
 
     if (libId == "LIBRP" || libId.startsWith("LIBRP_s_")) {
       return songs.reversed.toList();
     }
 
+    printINFO('MediaLibrary: getLibSongs from $libId: ${songs.length}');
     return songs;
+  }
+
+  /// Fetch album/playlist songs from backend when not cached locally
+  Future<List<MediaItem>> _fetchFromBackend(String id) async {
+    try {
+      final settings = Get.find<SettingsScreenController>();
+      final backend = settings.currentBackend;
+      final result = await backend.getPlaylistOrAlbumSongs(
+        albumId: id,
+        playlistId: id,
+      );
+      final tracks = (result['tracks'] as List?) ?? [];
+      final songs = tracks
+          .map((item) => MediaItemBuilder.fromJson(item))
+          .whereType<MediaItem>()
+          .map((song) => MediaItem(
+            id: song.id,
+            title: song.title,
+            artist: song.artist,
+            artUri: song.artUri,
+            extras: {'libraryId': id},
+            playable: true,
+          ))
+          .toList();
+      printINFO('MediaLibrary: _fetchFromBackend for $id: ${songs.length}');
+      return songs;
+    } catch (e) {
+      printWarning('MediaLibrary: _fetchFromBackend failed for $id: $e');
+      return [];
+    }
   }
 }
