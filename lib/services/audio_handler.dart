@@ -1644,10 +1644,10 @@ class MediaLibrary {
     final ctx = Get.context;
     if (ctx == null) {
       return [
-        MediaItem(id: homeRootId, title: 'Home', playable: false),
-        MediaItem(id: recentlyPlayedRootId, title: 'Recently Played', playable: false),
-        MediaItem(id: albumsRootId, title: 'Albums', playable: false),
-        MediaItem(id: playlistsRootId, title: 'More', playable: false),
+        const MediaItem(id: homeRootId, title: 'Home', playable: false),
+        const MediaItem(id: recentlyPlayedRootId, title: 'Recently Played', playable: false),
+        const MediaItem(id: albumsRootId, title: 'Albums', playable: false),
+        const MediaItem(id: playlistsRootId, title: 'More', playable: false),
       ];
     }
     final l10n = AppLocalizations.of(ctx)!;
