@@ -125,6 +125,12 @@ abstract class AppLocalizations {
   /// **'Playlists'**
   String get playlists;
 
+  /// No description provided for @more.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'More'**
+  String get more;
+
   /// No description provided for @albums.
   ///
   /// In en_AU, this message translates to:
@@ -1330,12 +1336,6 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'Enable slidable actions on song tile'**
   String get enableSlidableActionDes;
-
-  /// No description provided for @more.
-  ///
-  /// In en_AU, this message translates to:
-  /// **'More'**
-  String get more;
 
   /// No description provided for @loading.
   ///

@@ -1647,7 +1647,7 @@ class MediaLibrary {
         MediaItem(id: homeRootId, title: 'Home', playable: false),
         MediaItem(id: recentlyPlayedRootId, title: 'Recently Played', playable: false),
         MediaItem(id: albumsRootId, title: 'Albums', playable: false),
-        MediaItem(id: playlistsRootId, title: 'Playlists', playable: false),
+        MediaItem(id: playlistsRootId, title: 'More', playable: false),
       ];
     }
     final l10n = AppLocalizations.of(ctx)!;
@@ -1655,7 +1655,7 @@ class MediaLibrary {
       MediaItem(id: homeRootId, title: l10n.home, playable: false),
       MediaItem(id: recentlyPlayedRootId, title: l10n.recentlyPlayed, playable: false),
       MediaItem(id: albumsRootId, title: l10n.albums, playable: false),
-      MediaItem(id: playlistsRootId, title: l10n.playlists, playable: false),
+      MediaItem(id: playlistsRootId, title: l10n.more, playable: false),
     ];
   }
 

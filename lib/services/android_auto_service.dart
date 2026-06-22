@@ -105,8 +105,8 @@ class AndroidAutoService extends GetxService {
     );
 
     final playlistsTab = AAListTemplate(
-      title: l10n.playlists,
-      tabTitle: l10n.playlists,
+      title: l10n.more,
+      tabTitle: l10n.more,
       systemIcon: 'music.note.list',
       sections: [AAListSection(items: playlistItems)],
       emptyViewTitleVariants: ['No playlists available'],
