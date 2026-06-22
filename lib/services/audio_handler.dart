@@ -55,6 +55,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   late final _cacheDir;
   late AudioPlayer _player;
   late MediaLibrary _mediaLibrary;
+  MediaLibrary get mediaLibrary => _mediaLibrary;
   // ignore: prefer_typing_uninitialized_variables
   dynamic currentIndex;
   int currentShuffleIndex = 0;
@@ -1270,10 +1271,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   @override
   Future<void> playFromMediaId(String mediaId,
       [Map<String, dynamic>? extras]) async {
+    // extras from native Android Auto are usually null, so fall back
+    // to the last browsed album/playlist ID tracked by MediaLibrary
+    final libraryId = extras?['libraryId']?.toString() ??
+        _mediaLibrary._lastBrowseId;
+    printINFO('playFromMediaId: mediaId=$mediaId, libraryId=$libraryId');
     customEvent.add({
       'eventType': 'playFromMediaId',
       'songId': mediaId,
-      'libraryId': extras?['libraryId'] ?? '',
+      'libraryId': libraryId,
     });
   }
 
@@ -1613,32 +1619,44 @@ class MediaLibrary {
   static const moreRootId = 'more';
   static const morePlaylistsId = 'more_playlists';
 
+  // Track the last browsed album/playlist so playFromMediaId knows
+  // which song list to queue up
+  String _lastBrowseId = '';
+
   Future<List<MediaItem>> getByRootId(String id) async {
     printINFO('MediaLibrary: getByRootId "$id"');
     switch (id) {
       case AudioService.browsableRootId:
         return Future.value(getRoot());
       case homeRootId:
+        _lastBrowseId = homeRootId;
         return getHomeItems();
       case songsRootId:
+        _lastBrowseId = songsRootId;
         return getSongs();
       case favoritesRootId:
+        _lastBrowseId = favoritesRootId;
         return getLibSongs(libFavBoxName(currentServerId()));
       case albumsRootId:
+        _lastBrowseId = albumsRootId;
         return getAlbums();
       case moreRootId:
         return getMoreMenu();
       case morePlaylistsId:
+        _lastBrowseId = morePlaylistsId;
         return getPlaylists();
       case playlistsRootId:
+        _lastBrowseId = playlistsRootId;
         return getPlaylists();
       case recentlyPlayedRootId:
+        _lastBrowseId = recentlyPlayedRootId;
         return getLibSongs(recentlyPlayedBoxName(currentServerId()));
       case AudioService.recentRootId:
+        _lastBrowseId = recentlyPlayedRootId;
         return getLibSongs(recentlyPlayedBoxName(currentServerId()));
       default:
-        // Browsing into a specific album/playlist — try Hive box first,
-        // then fall back to backend fetch
+        // Browsing into a specific album/playlist — track it
+        _lastBrowseId = id;
         return getLibSongs(id).then((songs) async {
           if (songs.isNotEmpty) return songs;
           return _fetchFromBackend(id);

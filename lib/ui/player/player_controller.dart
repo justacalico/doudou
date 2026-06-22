@@ -19,6 +19,7 @@ import '/ui/navigator.dart';
 import '/models/server.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../services/windows_audio_service.dart';
+import '../../services/audio_handler.dart';
 import '/services/playback_diagnostics_service.dart';
 import '../../utils/helper.dart';
 import '../../utils/server_storage.dart';
@@ -682,13 +683,31 @@ class PlayerController extends GetxController
   }
 
   void _playViaAndroidAuto(String songId, String libraryId) {
-    // Try to find the song in the specified library box first
-    _playFromLibraryBox(songId, libraryId).then((found) {
-      if (!found) {
-        // Fallback: search known boxes for the song
-        _playFromAnyBox(songId);
+    _playFromContext(songId, libraryId);
+  }
+
+  Future<void> _playFromContext(String songId, String libraryId) async {
+    // 1. Try Hive box with this ID (works for SongDownloads, LIBRP, LIBFAV,
+    //    and cached album/playlist boxes)
+    if (await _playFromLibraryBox(songId, libraryId)) return;
+
+    // 2. If libraryId is a known root (home, albums, etc.) or an
+    //    album/playlist browse ID, fetch songs via MediaLibrary
+    if (libraryId.isNotEmpty) {
+      try {
+        final songs = await (_audioHandler as MyAudioHandler).mediaLibrary.getByRootId(libraryId);
+        final idx = songs.indexWhere((s) => s.id == songId);
+        if (idx >= 0 && songs.isNotEmpty) {
+          playPlayListSong(songs, idx);
+          return;
+        }
+      } catch (e) {
+        printINFO('[player] _playFromContext getByRootId failed: $e');
       }
-    });
+    }
+
+    // 3. Fallback: search known boxes
+    await _playFromAnyBox(songId);
   }
 
   Future<bool> _playFromLibraryBox(String songId, String libraryId) async {
@@ -707,13 +726,7 @@ class PlayerController extends GetxController
       }
       if (songIndex >= 0 && songList.isNotEmpty) {
         playPlayListSong(songList, songIndex);
-        if (libraryId != "SongDownloads") {
-          box.close();
-        }
         return true;
-      }
-      if (libraryId != "SongDownloads") {
-        box.close();
       }
     } catch (e) {
       printINFO('[player] _playFromLibraryBox failed for $libraryId: $e');
@@ -723,6 +736,7 @@ class PlayerController extends GetxController
 
   Future<void> _playFromAnyBox(String songId) async {
     final sid = currentServerId();
+    // Try known library boxes first
     final boxNames = [
       songDownloadsBoxName(sid),
       recentlyPlayedBoxName(sid),
@@ -732,7 +746,7 @@ class PlayerController extends GetxController
       final found = await _playFromLibraryBox(songId, name);
       if (found) return;
     }
-    // Last resort: try library songs controller
+    // Try library songs controller
     try {
       if (Get.isRegistered<LibrarySongsController>()) {
         final ctrl = Get.find<LibrarySongsController>();
