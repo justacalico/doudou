@@ -24,6 +24,7 @@ import '../../utils/helper.dart';
 import '../../utils/server_storage.dart';
 import '/models/media_Item_builder.dart';
 import '../screens/Home/home_screen_controller.dart';
+import '../screens/Library/library_controller.dart';
 import '../widgets/sliding_up_panel.dart';
 import '/models/durationstate.dart';
 import '/services/music_service.dart';
@@ -681,22 +682,71 @@ class PlayerController extends GetxController
   }
 
   void _playViaAndroidAuto(String songId, String libraryId) {
-    Hive.openBox(libraryId).then((box) {
-      List<MediaItem> songList = [];
+    // Try to find the song in the specified library box first
+    _playFromLibraryBox(songId, libraryId).then((found) {
+      if (!found) {
+        // Fallback: search known boxes for the song
+        _playFromAnyBox(songId);
+      }
+    });
+  }
+
+  Future<bool> _playFromLibraryBox(String songId, String libraryId) async {
+    if (libraryId.isEmpty) return false;
+    try {
+      final box = await Hive.openBox(libraryId);
       final songJson = box.values.toList();
-      int songIndex = 0;
-      for (int i = 0; i < box.length; i++) {
+      List<MediaItem> songList = [];
+      int songIndex = -1;
+      for (int i = 0; i < songJson.length; i++) {
         final song = MediaItemBuilder.fromJson(songJson[i]);
         if (song.id == songId) {
           songIndex = i;
         }
         songList.add(song);
       }
-      playPlayListSong(songList, songIndex);
+      if (songIndex >= 0 && songList.isNotEmpty) {
+        playPlayListSong(songList, songIndex);
+        if (libraryId != "SongDownloads") {
+          box.close();
+        }
+        return true;
+      }
       if (libraryId != "SongDownloads") {
         box.close();
       }
-    });
+    } catch (e) {
+      printINFO('[player] _playFromLibraryBox failed for $libraryId: $e');
+    }
+    return false;
+  }
+
+  Future<void> _playFromAnyBox(String songId) async {
+    final sid = currentServerId();
+    final boxNames = [
+      songDownloadsBoxName(sid),
+      recentlyPlayedBoxName(sid),
+      libFavBoxName(sid),
+    ];
+    for (final name in boxNames) {
+      final found = await _playFromLibraryBox(songId, name);
+      if (found) return;
+    }
+    // Last resort: try library songs controller
+    try {
+      if (Get.isRegistered<LibrarySongsController>()) {
+        final ctrl = Get.find<LibrarySongsController>();
+        final songs = ctrl.librarySongsList.toList();
+        final idx = songs.indexWhere((s) => s.id == songId);
+        if (idx >= 0) {
+          playPlayListSong(songs, idx);
+          return;
+        }
+      }
+    } catch (e) {
+      printINFO('[player] _playFromAnyBox library songs failed: $e');
+    }
+    printINFO('[player] could not find song $songId in any box');
   }
 
   void playNext(MediaItem song) {
