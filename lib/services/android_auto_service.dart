@@ -110,10 +110,10 @@ class AndroidAutoService extends GetxService {
         title: l10n.shuffleAll,
         subtitle: '${allSongs.length} songs',
         onPress: (complete, item) {
-          if (allSongs.isNotEmpty) {
-            allSongs.shuffle();
-            _playSongs(allSongs, 0);
-          }
+          Get.find<HomeScreenController>().shuffleAll(
+            emptyMessage: l10n.noSongsInLibrary,
+            playFromName: l10n.shuffleAll,
+          );
           complete();
         },
       ),
@@ -121,9 +121,10 @@ class AndroidAutoService extends GetxService {
         title: l10n.favorites,
         subtitle: '${favSongs.length} songs',
         onPress: (complete, item) {
-          if (favSongs.isNotEmpty) {
-            _playSongs(favSongs, 0);
-          }
+          Get.find<HomeScreenController>().shuffleFavorites(
+            emptyMessage: l10n.favoritesEmpty,
+            playFromName: l10n.favorites,
+          );
           complete();
         },
       ),

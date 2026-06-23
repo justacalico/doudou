@@ -1271,29 +1271,24 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   @override
   Future<void> playFromMediaId(String mediaId,
       [Map<String, dynamic>? extras]) async {
-    // Handle direct-play buttons from the More menu
+    // Handle direct-play buttons from the More menu — use the same
+    // HomeScreenController methods the mobile app uses for instant playback
     if (mediaId == MediaLibrary.moreShuffleAllId) {
-      final songs = await _mediaLibrary.getSongs();
-      songs.shuffle();
-      if (songs.isNotEmpty) {
-        customEvent.add({
-          'eventType': 'playFromMediaId',
-          'songId': songs.first.id,
-          'libraryId': MediaLibrary.moreShuffleAllId,
-        });
-        // Queue up all shuffled songs
-        final player = Get.find<PlayerController>();
-        player.playPlayListSong(songs, 0);
-      }
+      final ctx = Get.context;
+      final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
+      await Get.find<HomeScreenController>().shuffleAll(
+        emptyMessage: l10n?.noSongsInLibrary ?? 'No songs in library',
+        playFromName: l10n?.shuffleAll ?? 'Shuffle all',
+      );
       return;
     }
     if (mediaId == MediaLibrary.moreFavoritesId) {
-      final favs = await _mediaLibrary.getLibSongs(
-          libFavBoxName(currentServerId()));
-      if (favs.isNotEmpty) {
-        final player = Get.find<PlayerController>();
-        player.playPlayListSong(favs, 0);
-      }
+      final ctx = Get.context;
+      final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
+      await Get.find<HomeScreenController>().shuffleFavorites(
+        emptyMessage: l10n?.favoritesEmpty ?? 'Favourites is empty',
+        playFromName: l10n?.favorites ?? 'Favourites',
+      );
       return;
     }
 
