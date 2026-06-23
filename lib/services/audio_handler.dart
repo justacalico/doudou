@@ -1302,6 +1302,11 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       return;
     }
 
+    // About items are display-only — no action on tap
+    if (mediaId.startsWith('about_')) {
+      return;
+    }
+
     // extras from native Android Auto are usually null, so fall back
     // to the last browsed album/playlist ID tracked by MediaLibrary
     final libraryId = extras?['libraryId']?.toString() ??
@@ -1797,19 +1802,19 @@ class MediaLibrary {
         id: 'about_app_name',
         title: 'Doudou',
         artist: 'v${settings.currentVersion}',
-        playable: false,
+        playable: true,
       ),
       MediaItem(
         id: 'about_active_server',
         title: l10n?.servers ?? 'Servers',
         artist: activeServer?.name ?? 'None',
-        playable: false,
+        playable: true,
       ),
       MediaItem(
         id: 'about_server_type',
         title: 'Server type',
         artist: activeServer?.type.name ?? 'Unknown',
-        playable: false,
+        playable: true,
       ),
     ];
   }
