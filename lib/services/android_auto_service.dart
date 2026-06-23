@@ -240,7 +240,8 @@ class AndroidAutoService extends GetxService {
   }
 
   List<AAListItem> _playlistsToListItems(List<Playlist> playlists) {
-    return playlists.map((pl) {
+    // Filter out LIBFAV since Favorites has its own button in the More menu
+    return playlists.where((pl) => pl.playlistId != 'LIBFAV').map((pl) {
       return AAListItem(
         title: pl.title,
         subtitle: (pl.songCount != null && pl.songCount!.isNotEmpty)

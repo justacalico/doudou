@@ -1846,7 +1846,10 @@ class MediaLibrary {
           if (ctrl.isContentFetched.value) break;
           await Future.delayed(const Duration(milliseconds: 500));
         }
-        final playlists = ctrl.libraryPlaylists.toList();
+        // Filter out LIBFAV — Favorites has its own button in the More menu
+        final playlists = ctrl.libraryPlaylists
+            .where((p) => p.playlistId != 'LIBFAV')
+            .toList();
         printINFO('MediaLibrary: getPlaylists from controller: ${playlists.length}');
         return playlists.map((p) => p.toMediaItem()).toList();
       }
@@ -1862,6 +1865,7 @@ class MediaLibrary {
     final playlists = [
       ...Get.find<LibraryPlaylistsController>()
           .initPlst
+          .where((e) => e.playlistId != 'LIBFAV')
           .map((e) => e.toMediaItem()),
       ...serverKeys.map((k) => box.get(k.toString())).whereType<Map>().map(
           (item) =>
