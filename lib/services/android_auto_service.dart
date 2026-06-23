@@ -137,6 +137,14 @@ class AndroidAutoService extends GetxService {
           complete();
         },
       ),
+      AAListItem(
+        title: l10n.settings,
+        isBrowsable: true,
+        onPress: (complete, item) async {
+          await _openSettingsMenu();
+          complete();
+        },
+      ),
     ];
 
     final moreTab = AAListTemplate(
@@ -352,6 +360,83 @@ class AndroidAutoService extends GetxService {
           ),
         ],
         emptyViewTitleVariants: ['No songs in this playlist'],
+      ),
+    );
+  }
+
+  // -- Data fetching --
+
+  Future<void> _openSettingsMenu() async {
+    final l10n = AppLocalizations.of(Get.context!)!;
+    final settings = Get.find<SettingsScreenController>();
+
+    final items = <AAListItem>[
+      AAListItem(
+        title: l10n.servers,
+        subtitle: settings.activeServer?.name ?? 'None',
+        isBrowsable: true,
+        onPress: (complete, item) async {
+          await _openServersList();
+          complete();
+        },
+      ),
+      AAListItem(
+        title: l10n.about,
+        isBrowsable: true,
+        onPress: (complete, item) async {
+          await _openAboutInfo();
+          complete();
+        },
+      ),
+    ];
+
+    await FlutterAndroidAuto.push(
+      template: AAListTemplate(
+        title: l10n.settings,
+        sections: [AAListSection(items: items)],
+        emptyViewTitleVariants: ['Nothing here'],
+      ),
+    );
+  }
+
+  Future<void> _openServersList() async {
+    final l10n = AppLocalizations.of(Get.context!)!;
+    final settings = Get.find<SettingsScreenController>();
+    final activeId = settings.activeServerId.value;
+
+    final items = settings.servers.map((s) {
+      final isActive = s.id == activeId;
+      return AAListItem(
+        title: isActive ? '${s.name} ✓' : s.name,
+        subtitle: s.serverUrl ?? s.type.name,
+        onPress: (complete, item) {
+          settings.setActiveServer(s.id);
+          complete();
+        },
+      );
+    }).toList();
+
+    await FlutterAndroidAuto.push(
+      template: AAListTemplate(
+        title: l10n.servers,
+        sections: [AAListSection(items: items)],
+        emptyViewTitleVariants: ['No servers configured'],
+      ),
+    );
+  }
+
+  Future<void> _openAboutInfo() async {
+    final l10n = AppLocalizations.of(Get.context!)!;
+    final settings = Get.find<SettingsScreenController>();
+    final activeServer = settings.activeServer;
+
+    await FlutterAndroidAuto.push(
+      template: AAMessageTemplate(
+        title: l10n.about,
+        message:
+            'Doudou v${settings.currentVersion}\n\n'
+            'Active server: ${activeServer?.name ?? 'None'}\n'
+            'Server type: ${activeServer?.type.name ?? 'Unknown'}',
       ),
     );
   }

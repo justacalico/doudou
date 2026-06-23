@@ -1292,6 +1292,16 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       return;
     }
 
+    // Handle server switching from Settings -> Servers
+    if (mediaId.startsWith('server_switch_')) {
+      final idStr = mediaId.substring('server_switch_'.length);
+      final id = int.tryParse(idStr);
+      if (id != null) {
+        Get.find<SettingsScreenController>().setActiveServer(id);
+      }
+      return;
+    }
+
     // extras from native Android Auto are usually null, so fall back
     // to the last browsed album/playlist ID tracked by MediaLibrary
     final libraryId = extras?['libraryId']?.toString() ??
@@ -1641,6 +1651,9 @@ class MediaLibrary {
   static const morePlaylistsId = 'more_playlists';
   static const moreShuffleAllId = 'more_shuffleAll';
   static const moreFavoritesId = 'more_favorites';
+  static const moreSettingsId = 'more_settings';
+  static const moreSettingsServersId = 'more_settings_servers';
+  static const moreSettingsAboutId = 'more_settings_about';
 
   // Track the last browsed album/playlist so playFromMediaId knows
   // which song list to queue up
@@ -1668,6 +1681,12 @@ class MediaLibrary {
       case morePlaylistsId:
         _lastBrowseId = morePlaylistsId;
         return getPlaylists();
+      case moreSettingsId:
+        return getSettingsMenu();
+      case moreSettingsServersId:
+        return getServersList();
+      case moreSettingsAboutId:
+        return getAboutInfo();
       case playlistsRootId:
         _lastBrowseId = playlistsRootId;
         return getPlaylists();
@@ -1704,7 +1723,7 @@ class MediaLibrary {
     ];
   }
 
-  /// More menu — shows Shuffle All, Favorites, and Playlists
+  /// More menu — shows Shuffle All, Favorites, Playlists, and Settings
   List<MediaItem> getMoreMenu() {
     final ctx = Get.context;
     final l10n = ctx != null ? AppLocalizations.of(ctx)! : null;
@@ -1722,6 +1741,74 @@ class MediaLibrary {
       MediaItem(
         id: morePlaylistsId,
         title: l10n?.playlists ?? 'Playlists',
+        playable: false,
+      ),
+      MediaItem(
+        id: moreSettingsId,
+        title: l10n?.settings ?? 'Settings',
+        playable: false,
+      ),
+    ];
+  }
+
+  /// Settings submenu — Servers and About
+  List<MediaItem> getSettingsMenu() {
+    final ctx = Get.context;
+    final l10n = ctx != null ? AppLocalizations.of(ctx)! : null;
+    return [
+      MediaItem(
+        id: moreSettingsServersId,
+        title: l10n?.servers ?? 'Servers',
+        playable: false,
+      ),
+      MediaItem(
+        id: moreSettingsAboutId,
+        title: l10n?.about ?? 'About',
+        playable: false,
+      ),
+    ];
+  }
+
+  /// Servers list — allows switching active server (read-only, no add/edit/remove)
+  List<MediaItem> getServersList() {
+    final settings = Get.find<SettingsScreenController>();
+    final activeId = settings.activeServerId.value;
+    return settings.servers.map((s) {
+      final isActive = s.id == activeId;
+      final title = isActive ? '${s.name} ✓' : s.name;
+      final subtitle = s.serverUrl ?? s.type.name;
+      return MediaItem(
+        id: 'server_switch_${s.id}',
+        title: title,
+        artist: subtitle,
+        playable: true,
+      );
+    }).toList();
+  }
+
+  /// About info — pulled from SettingsScreenController
+  List<MediaItem> getAboutInfo() {
+    final settings = Get.find<SettingsScreenController>();
+    final activeServer = settings.activeServer;
+    final ctx = Get.context;
+    final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
+    return [
+      MediaItem(
+        id: 'about_app_name',
+        title: 'Doudou',
+        artist: 'v${settings.currentVersion}',
+        playable: false,
+      ),
+      MediaItem(
+        id: 'about_active_server',
+        title: l10n?.servers ?? 'Servers',
+        artist: activeServer?.name ?? 'None',
+        playable: false,
+      ),
+      MediaItem(
+        id: 'about_server_type',
+        title: 'Server type',
+        artist: activeServer?.type.name ?? 'Unknown',
         playable: false,
       ),
     ];
