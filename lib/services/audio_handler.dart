@@ -1271,6 +1271,32 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   @override
   Future<void> playFromMediaId(String mediaId,
       [Map<String, dynamic>? extras]) async {
+    // Handle direct-play buttons from the More menu
+    if (mediaId == MediaLibrary.moreShuffleAllId) {
+      final songs = await _mediaLibrary.getSongs();
+      songs.shuffle();
+      if (songs.isNotEmpty) {
+        customEvent.add({
+          'eventType': 'playFromMediaId',
+          'songId': songs.first.id,
+          'libraryId': MediaLibrary.moreShuffleAllId,
+        });
+        // Queue up all shuffled songs
+        final player = Get.find<PlayerController>();
+        player.playPlayListSong(songs, 0);
+      }
+      return;
+    }
+    if (mediaId == MediaLibrary.moreFavoritesId) {
+      final favs = await _mediaLibrary.getLibSongs(
+          libFavBoxName(currentServerId()));
+      if (favs.isNotEmpty) {
+        final player = Get.find<PlayerController>();
+        player.playPlayListSong(favs, 0);
+      }
+      return;
+    }
+
     // extras from native Android Auto are usually null, so fall back
     // to the last browsed album/playlist ID tracked by MediaLibrary
     final libraryId = extras?['libraryId']?.toString() ??
@@ -1618,6 +1644,8 @@ class MediaLibrary {
   static const homeRootId = 'home';
   static const moreRootId = 'more';
   static const morePlaylistsId = 'more_playlists';
+  static const moreShuffleAllId = 'more_shuffleAll';
+  static const moreFavoritesId = 'more_favorites';
 
   // Track the last browsed album/playlist so playFromMediaId knows
   // which song list to queue up
@@ -1681,11 +1709,21 @@ class MediaLibrary {
     ];
   }
 
-  /// More menu — shows Playlists as a browsable item
+  /// More menu — shows Shuffle All, Favorites, and Playlists
   List<MediaItem> getMoreMenu() {
     final ctx = Get.context;
     final l10n = ctx != null ? AppLocalizations.of(ctx)! : null;
     return [
+      MediaItem(
+        id: moreShuffleAllId,
+        title: l10n?.shuffleAll ?? 'Shuffle all',
+        playable: true,
+      ),
+      MediaItem(
+        id: moreFavoritesId,
+        title: l10n?.favorites ?? 'Favourites',
+        playable: true,
+      ),
       MediaItem(
         id: morePlaylistsId,
         title: l10n?.playlists ?? 'Playlists',

@@ -77,6 +77,18 @@ class AndroidAutoService extends GetxService {
     final playlistItems = _playlistsToListItems(playlistsCtrl.libraryPlaylists.toList());
     printINFO('AndroidAuto: playlists loaded ${playlistItems.length}');
 
+    // Load all songs and favorites for the More tab
+    final allSongs = songsCtrl.librarySongsList.toList();
+    printINFO('AndroidAuto: all songs for shuffle: ${allSongs.length}');
+
+    final favBox = await Hive.openBox(libFavBoxName(sid));
+    final favSongs = <MediaItem>[];
+    for (final raw in favBox.values.toList()) {
+      final song = MediaItemBuilder.fromJson(raw);
+      favSongs.add(song);
+    }
+    printINFO('AndroidAuto: favorites loaded ${favSongs.length}');
+
     final homeTab = AAGridTemplate(
       title: l10n.home,
       tabTitle: l10n.home,
@@ -94,6 +106,27 @@ class AndroidAutoService extends GetxService {
     );
 
     final moreItems = <AAListItem>[
+      AAListItem(
+        title: l10n.shuffleAll,
+        subtitle: '${allSongs.length} songs',
+        onPress: (complete, item) {
+          if (allSongs.isNotEmpty) {
+            allSongs.shuffle();
+            _playSongs(allSongs, 0);
+          }
+          complete();
+        },
+      ),
+      AAListItem(
+        title: l10n.favorites,
+        subtitle: '${favSongs.length} songs',
+        onPress: (complete, item) {
+          if (favSongs.isNotEmpty) {
+            _playSongs(favSongs, 0);
+          }
+          complete();
+        },
+      ),
       AAListItem(
         title: l10n.playlists,
         subtitle: '${playlistItems.length} playlists',
