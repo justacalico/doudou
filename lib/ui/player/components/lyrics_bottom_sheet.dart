@@ -10,11 +10,20 @@ import '../player_controller.dart';
 class LyricsBottomSheet extends StatelessWidget {
   const LyricsBottomSheet({super.key});
 
+  static bool _isSheetOpen = false;
+
   static Future<void> show(BuildContext context) async {
+    if (_isSheetOpen) return;
     final pc = Get.find<PlayerController>();
     if (pc.currentSong.value == null) return;
-    await pc.ensureLyricsLoadedForSheet();
-    if (!context.mounted) return;
+    _isSheetOpen = true;
+    // Load lyrics in the background — the sheet opens instantly and
+    // LyricsWidget shows a loading indicator until data arrives.
+    pc.ensureLyricsLoadedForSheet();
+    if (!context.mounted) {
+      _isSheetOpen = false;
+      return;
+    }
     final size = MediaQuery.of(context).size;
     final height = size.height * 0.8;
     showModalBottomSheet(
@@ -55,7 +64,7 @@ class LyricsBottomSheet extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ).whenComplete(() => _isSheetOpen = false);
   }
 
   @override
