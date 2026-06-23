@@ -184,10 +184,7 @@ class AndroidAutoService extends GetxService {
         final sections = await homeCtrl.loadHomeLibrarySections();
         printINFO('AndroidAuto: sections - continueListening=${sections.continueListening.length}, freshPicks=${sections.freshPicks.length}, basedOnFavorites=${sections.basedOnFavorites.length}, favoriteSongs=${sections.favoriteSongs.length}');
 
-        // Add continue listening first (most relevant)
-        for (final item in sections.continueListening) {
-          if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);
-        }
+        // Skip continueListening (recently played) — takes up too much space in car UI
         // Then fresh picks
         for (final item in sections.freshPicks) {
           if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);

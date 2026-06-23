@@ -1751,9 +1751,7 @@ class MediaLibrary {
           final sections = await homeCtrl.loadHomeLibrarySections();
           printINFO('MediaLibrary: getHomeItems sections - continueListening=${sections.continueListening.length}, freshPicks=${sections.freshPicks.length}, basedOnFavorites=${sections.basedOnFavorites.length}');
 
-          for (final item in sections.continueListening) {
-            if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);
-          }
+          // Skip continueListening (recently played) — too much space in car UI
           for (final item in sections.freshPicks) {
             if (!allSongs.any((s) => s.id == item.id)) allSongs.add(item);
           }
