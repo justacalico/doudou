@@ -21,6 +21,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlists => 'Playlists';
 
   @override
+  String get more => 'More';
+
+  @override
   String get albums => 'Albums';
 
   @override
@@ -652,9 +655,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enableSlidableActionDes => 'Enable slidable actions on song tile';
-
-  @override
-  String get more => 'More';
 
   @override
   String get loading => 'Loading';
@@ -1264,6 +1264,9 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get playlists => 'Playlists';
 
   @override
+  String get more => 'More';
+
+  @override
   String get albums => 'Albums';
 
   @override
@@ -1895,9 +1898,6 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get enableSlidableActionDes => 'Enable slidable actions on song tile';
-
-  @override
-  String get more => 'More';
 
   @override
   String get loading => 'Loading';

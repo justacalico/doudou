@@ -22,6 +22,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get playlists => 'Плейлисты';
 
   @override
+  String get more => 'Ещё';
+
+  @override
   String get albums => 'Альбомы';
 
   @override
@@ -655,9 +658,6 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get enableSlidableActionDes =>
       'Включить скользящие действия на плитке песни';
-
-  @override
-  String get more => 'Ещё';
 
   @override
   String get loading => 'Загрузка';

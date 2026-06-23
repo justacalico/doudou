@@ -14,6 +14,7 @@ import '/services/library_sync_service.dart';
 import '/services/piped_service.dart';
 import '/services/playback_diagnostics_service.dart';
 import 'utils/app_link_controller.dart';
+import '/services/android_auto_service.dart';
 import '/services/audio_handler.dart';
 import '/services/music_service.dart';
 import '/ui/navigator.dart';
@@ -38,6 +39,9 @@ Future<void> main() async {
   _setAppInitPrefs();
   startApplicationServices();
   Get.put<AudioHandler>(await initAudioService(), permanent: true);
+  if (GetPlatform.isAndroid) {
+    Get.find<AndroidAutoService>().init();
+  }
   WidgetsBinding.instance.addObserver(LifecycleHandler());
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -141,6 +145,9 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => LibrarySyncService(), fenix: true);
   Get.lazyPut(() => SearchScreenController(), fenix: true);
   Get.lazyPut(() => PlaybackDiagnosticsService(), fenix: true);
+  if (GetPlatform.isAndroid) {
+    Get.put(AndroidAutoService(), permanent: true);
+  }
   if (GetPlatform.isDesktop) {
     Get.put(DesktopSystemTray());
   }

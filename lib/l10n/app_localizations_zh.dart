@@ -21,6 +21,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playlists => '播放列表';
 
   @override
+  String get more => '更多';
+
+  @override
   String get albums => '专辑';
 
   @override
@@ -628,9 +631,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enableSlidableActionDes => '在歌曲板块上启用可滑动操作';
-
-  @override
-  String get more => '更多';
 
   @override
   String get loading => '加载中';
