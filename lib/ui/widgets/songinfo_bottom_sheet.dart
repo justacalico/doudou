@@ -435,8 +435,25 @@ class SongInfoController extends GetxController
   }
   _setInitStatus(MediaItem song) async {
     isDownloaded.value = Hive.box(songDownloadsBoxName(currentServerId())).containsKey(song.id);
-    final favBox = await Hive.openBox(libFavBoxName(currentServerId()));
-    isCurrentSongFav.value = favBox.containsKey(song.id);
+
+    final settings = Get.find<SettingsScreenController>();
+    final isYouTube = settings.activeServer?.type == ServerType.youtubeMusic;
+
+    if (isYouTube) {
+      final favBox = await Hive.openBox(libFavBoxName(currentServerId()));
+      isCurrentSongFav.value = favBox.containsKey(song.id);
+    } else {
+      try {
+        final favorites = await settings.currentBackend.getFavoriteSongs();
+        isCurrentSongFav.value =
+            favorites.any((e) => e['videoId']?.toString() == song.id);
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=songInfo.checkFav.remote] Failed to fetch favorites for songId=${song.id}: $e\n$st');
+        isCurrentSongFav.value = false;
+      }
+    }
+
     final artists = song.extras!['artists'];
     if (artists != null) {
       for (dynamic each in artists) {
@@ -461,10 +478,20 @@ class SongInfoController extends GetxController
         return;
       }
     }
-    final box = await Hive.openBox(libFavBoxName(currentServerId()));
-    isCurrentSongFav.isFalse
-        ? box.put(song.id, MediaItemBuilder.toJson(song))
-        : box.delete(song.id);
+
+    final settings = Get.find<SettingsScreenController>();
+    final isYouTube = settings.activeServer?.type == ServerType.youtubeMusic;
+
+    if (isYouTube) {
+      final box = await Hive.openBox(libFavBoxName(currentServerId()));
+      isCurrentSongFav.isFalse
+          ? box.put(song.id, MediaItemBuilder.toJson(song))
+          : box.delete(song.id);
+    } else {
+      final newValue = !isCurrentSongFav.value;
+      await settings.currentBackend.setSongFavorite(song.id, newValue);
+    }
+
     isCurrentSongFav.value = !isCurrentSongFav.value;
     if (Get.isRegistered<HomeScreenController>()) {
       final homeCtrl = Get.find<HomeScreenController>();
@@ -474,9 +501,7 @@ class SongInfoController extends GetxController
         homeCtrl.favoriteCount.value--;
       }
     }
-    if (Get.find<SettingsScreenController>()
-            .autoDownloadFavoriteSongEnabled
-            .isTrue &&
+    if (settings.autoDownloadFavoriteSongEnabled.isTrue &&
         isCurrentSongFav.isTrue) {
       Get.find<Downloader>().download(song);
     }
