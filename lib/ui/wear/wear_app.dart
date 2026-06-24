@@ -92,38 +92,39 @@ class _NoConnectionScreen extends StatelessWidget {
     final comm = Get.find<WearCommService>();
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.phonelink_off, size: 36),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
+              const Icon(Icons.phonelink_off, size: 32),
+              const SizedBox(height: 10),
               Text(
                 'No phone connected',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: Theme.of(context).textTheme.titleSmall,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 'Make sure Doudou is running on your phone',
                 textAlign: TextAlign.center,
                 maxLines: 3,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               GestureDetector(
                 onTap: () => comm.retry(),
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   child: Icon(
                     Icons.refresh,
-                    size: 24,
+                    size: 20,
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
