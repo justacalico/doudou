@@ -124,7 +124,7 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
       String id, bool isIdOnly, bool isPipedPlaylist) async {
     if (isPipedPlaylist) {
       songList.value = (await Get.find<PipedServices>().getPlaylistSongs(id));
-      checkDownloadStatus();
+      await checkDownloadStatus();
       return;
     }
     final settings = Get.find<SettingsScreenController>();
@@ -141,7 +141,7 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
         _animationController.forward();
       }
       songList.value = List<MediaItem>.from(content['tracks']);
-      checkDownloadStatus();
+      await checkDownloadStatus();
       return;
     }
 
@@ -153,7 +153,7 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
         .map<MediaItem?>((item) => MediaItemBuilder.fromJson(item))
         .whereType<MediaItem>()
         .toList();
-    checkDownloadStatus();
+    await checkDownloadStatus();
   }
 
   @override

@@ -98,7 +98,7 @@ class AlbumScreenController extends PlaylistAlbumScreenControllerBase
           // so we don't try to rebuild it from a track-only response.
         }
       }
-      checkDownloadStatus();
+      await checkDownloadStatus();
       isContentFetched.value = true;
     } catch (e) {
       // Handle any errors that occur during the fetch

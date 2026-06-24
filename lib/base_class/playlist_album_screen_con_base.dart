@@ -8,6 +8,7 @@ import '../models/media_Item_builder.dart';
 import '../models/playlist.dart';
 import '../services/music_service.dart';
 import '../ui/widgets/sort_widget.dart';
+import '../utils/server_storage.dart';
 
 abstract class PlaylistAlbumScreenControllerBase extends GetxController {
   final MusicServices musicServices = Get.find<MusicServices>();
@@ -49,13 +50,17 @@ abstract class PlaylistAlbumScreenControllerBase extends GetxController {
     if (id != "SongDownloads") await box.close();
     songList.value =
         id == "LIBRP" ? songList.reversed.toList() : songList.toList();
-    checkDownloadStatus();
+    await checkDownloadStatus();
   }
 
-  void checkDownloadStatus() {
+  Future<void> checkDownloadStatus() async {
     bool downloaded = true;
+    final boxName = songDownloadsBoxName(currentServerId());
+    final box = Hive.isBoxOpen(boxName)
+        ? Hive.box(boxName)
+        : await Hive.openBox(boxName);
     for (MediaItem item in songList) {
-      if (!Hive.box("SongDownloads").containsKey(item.id)) {
+      if (!box.containsKey(item.id)) {
         downloaded = false;
         break;
       }
