@@ -1,5 +1,7 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '/models/album.dart';
 import '/models/artist.dart';
@@ -9,7 +11,9 @@ import '/ui/constants/doudou_design.dart';
 import '/utils/app_l10n.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/navigator.dart';
+import '/ui/shell_controller.dart';
 import '/ui/widgets/image_widget.dart';
+import '/ui/widgets/songinfo_bottom_sheet.dart';
 import '/ui/screens/Library/library.dart';
 
 String _formatDuration(Duration d) {
@@ -217,7 +221,13 @@ Widget buildTrackRowSection({
               child: Material(
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
-                child: InkWell(
+                child: Listener(
+                  onPointerDown: (event) {
+                    if (event.buttons == kSecondaryMouseButton) {
+                      _showSongOptions(context, track);
+                    }
+                  },
+                  child: InkWell(
                   borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
                   onTap: () {
                     playerController.playPlayListSong(
@@ -229,6 +239,7 @@ Widget buildTrackRowSection({
                       ),
                     );
                   },
+                  onLongPress: () => _showSongOptions(context, track),
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -276,6 +287,7 @@ Widget buildTrackRowSection({
                     ),
                   ),
                 ),
+                ),
               ),
             );
           },
@@ -283,6 +295,19 @@ Widget buildTrackRowSection({
       ),
     ],
   );
+}
+
+void _showSongOptions(BuildContext context, MediaItem song) {
+  showModalBottomSheet(
+    constraints: const BoxConstraints(maxWidth: 500),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+    ),
+    isScrollControlled: true,
+    context: Get.find<ShellController>().overlayContextOrFallback!,
+    barrierColor: Colors.transparent.withAlpha(100),
+    builder: (context) => SongInfoBottomSheet(song),
+  ).whenComplete(() => Get.delete<SongInfoController>());
 }
 
 Widget buildPlaylistRowSection({
@@ -621,7 +646,13 @@ Widget buildFreshPicksSection({
             .map(
               (track) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: InkWell(
+                child: Listener(
+                  onPointerDown: (event) {
+                    if (event.buttons == kSecondaryMouseButton) {
+                      _showSongOptions(context, track);
+                    }
+                  },
+                  child: InkWell(
                   borderRadius: BorderRadius.circular(12),
                   onTap: () {
                     final index = items.indexOf(track);
@@ -636,6 +667,7 @@ Widget buildFreshPicksSection({
                       );
                     }
                   },
+                  onLongPress: () => _showSongOptions(context, track),
                   child: Row(
                     children: [
                       ImageWidget(
@@ -680,6 +712,7 @@ Widget buildFreshPicksSection({
                       ],
                     ],
                   ),
+                ),
                 ),
               ),
             )

@@ -258,6 +258,7 @@ class PlaylistScreen extends StatelessWidget {
                                       type: PlaylingFromType.PLAYLIST));
                             },
                             song: song,
+                            playlist: playlistController.playlist.value,
                             isPlaylistOrAlbum: true,
                             thumbReplacementWithIndex: true,
                             index: songIndex + 1,

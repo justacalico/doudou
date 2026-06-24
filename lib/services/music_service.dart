@@ -282,12 +282,23 @@ class MusicServices extends getx.GetxService {
         };
       }
 
-      results.addAll(nav(watchNextRenderer, [
+      final playlistPanel = nav(watchNextRenderer, [
         ...tab_content,
         'musicQueueRenderer',
         'content',
         'playlistPanelRenderer'
-      ]));
+      ]);
+      if (playlistPanel == null) {
+        printWarning(
+            '[RECOVERABLE][opId=musicService.getWatchPlaylist] playlistPanelRenderer not found in watchNext response');
+        return {
+          'tracks': <MediaItem>[],
+          'lyrics': lyricsBrowseId,
+          'related': relatedBrowseId,
+          'additionalParamsForNext': null,
+        };
+      }
+      results.addAll(playlistPanel);
       playlist = results['contents']
           .map((content) => nav(content,
               ['playlistPanelVideoRenderer', ...navigation_playlist_id]))

@@ -1,5 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import '/utils/app_l10n.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -55,7 +56,22 @@ class ArtistSongsTable extends StatelessWidget {
           final i = entry.key + 1;
           final song = entry.value;
           final playerController = Get.find<PlayerController>();
-          return InkWell(
+          return Listener(
+            onPointerDown: (event) {
+              if (event.buttons == kSecondaryMouseButton) {
+                showModalBottomSheet(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                  ),
+                  isScrollControlled: true,
+                  context: Get.find<ShellController>().overlayContextOrFallback!,
+                  barrierColor: Colors.transparent.withAlpha(100),
+                  builder: (ctx) => SongInfoBottomSheet(song),
+                ).whenComplete(() => Get.delete<SongInfoController>());
+              }
+            },
+            child: InkWell(
             onTap: () {
               playerController.playPlayListSong(
                 list,
@@ -134,6 +150,7 @@ class ArtistSongsTable extends StatelessWidget {
                 ],
               ),
             ),
+          ),
           );
         }),
       ],
