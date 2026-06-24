@@ -192,6 +192,10 @@ class WatchSyncService extends GetxService {
         case 'mute':
           Get.find<PlayerController>().mute();
           break;
+        case 'seek':
+          final posMs = (msg['positionMs'] as num?)?.toInt() ?? 0;
+          Get.find<PlayerController>().seek(Duration(milliseconds: posMs));
+          break;
         case 'setServer':
           final id = msg['serverId'] as int;
           Get.find<SettingsScreenController>().setActiveServer(id);

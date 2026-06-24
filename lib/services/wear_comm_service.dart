@@ -138,6 +138,7 @@ class WearCommService extends GetxService {
   void toggleFav() => sendMessage({'command': 'toggleFav'});
   void setVolume(int value) => sendMessage({'command': 'setVolume', 'value': value});
   void mute() => sendMessage({'command': 'mute'});
+  void seek(int positionMs) => sendMessage({'command': 'seek', 'positionMs': positionMs});
   void setServer(int id) => sendMessage({'command': 'setServer', 'serverId': id});
   void setTheme(String theme) => sendMessage({'command': 'setTheme', 'theme': theme});
 
