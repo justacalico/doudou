@@ -53,9 +53,6 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
                 controller: _scrollController,
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
-                  _buildSectionHeader('Theme'),
-                  _buildThemeOptions(),
-                  const SizedBox(height: 12),
                   _buildSectionHeader('Server'),
                   Obx(() => _buildServerList()),
                 ],
@@ -99,35 +96,6 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
             ),
       ),
     );
-  }
-
-  Widget _buildThemeOptions() {
-    const themes = ['dark', 'oled', 'light'];
-    const themeIcons = {
-      'dark': Icons.dark_mode,
-      'oled': Icons.contrast,
-      'light': Icons.light_mode,
-    };
-
-    return Obx(() => Column(
-          children: themes.map((t) {
-            final isActive = _comm.themeType.value == t;
-            return ListTile(
-              dense: true,
-              visualDensity: VisualDensity.compact,
-              leading: Icon(themeIcons[t]!, size: 20),
-              title: Text(
-                t[0].toUpperCase() + t.substring(1),
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              trailing: isActive
-                  ? Icon(Icons.check,
-                      size: 16, color: Theme.of(context).colorScheme.primary)
-                  : null,
-              onTap: () => _comm.setTheme(t),
-            );
-          }).toList(),
-        ));
   }
 
   Widget _buildServerList() {
