@@ -74,6 +74,26 @@ android {
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+        phone.java.srcDirs += 'src/phone/kotlin'
+        wear.java.srcDirs += 'src/wear/kotlin'
+    }
+
+    flavorDimensions "app"
+
+    productFlavors {
+        phone {
+            dimension "app"
+            applicationId "gitlab.openlyst.doudou"
+            minSdkVersion flutter.minSdkVersion
+            targetSdkVersion flutter.targetSdkVersion
+        }
+        wear {
+            dimension "app"
+            applicationId "gitlab.openlyst.doudou"
+            // Wear OS 3+ is API 30, but wear_plus needs min 23
+            minSdkVersion flutter.minSdkVersion
+            targetSdkVersion flutter.targetSdkVersion
+        }
     }
 
     defaultConfig {
