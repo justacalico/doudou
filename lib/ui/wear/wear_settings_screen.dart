@@ -149,7 +149,7 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
 
   Widget _buildAboutSection() {
     return Obx(() {
-      final name = _comm.appName.value;
+      final name = 'Doudou';
       final version = _comm.appVersion.value;
       final build = _comm.appBuildNumber.value;
       return Padding(
