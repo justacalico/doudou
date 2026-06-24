@@ -577,6 +577,29 @@ class LibraryPlaylistsController extends GetxController
     if (title.trim().isNotEmpty) {
       dynamic newplst;
 
+      final settings = Get.find<SettingsScreenController>();
+      final activeServer = settings.activeServer;
+      final isNonYouTube = activeServer != null &&
+          activeServer.type != ServerType.youtubeMusic;
+
+      // For non-YouTube backends (Subsonic, Jellyfin, Plex), create on the server
+      if (isNonYouTube && playlistCreationMode.value == "local") {
+        creationInProgress.value = true;
+        final backend = settings.currentBackend;
+        final songIds = songItems?.map((e) => e.id).toList() ?? <String>[];
+        final remoteId =
+            await backend.createPlaylist(title, songIds: songIds);
+        if (remoteId == null) {
+          creationInProgress.value = false;
+          return false;
+        }
+        // Refresh the playlist cache from the server
+        await Get.find<LibrarySyncService>()
+            .syncKind(LibraryKind.playlists, force: true);
+        creationInProgress.value = false;
+        return true;
+      }
+
       if (playlistCreationMode.value == "piped") {
         creationInProgress.value = true;
         final res = await Get.find<PipedServices>().createPlaylist(title);

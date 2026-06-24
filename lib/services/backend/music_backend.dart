@@ -41,4 +41,8 @@ abstract class MusicBackend {
   Future<Map<String, dynamic>> getSearchContinuation(
       Map<String, dynamic> additionalParamsNext,
       {int limit = 10});
+
+  Future<String?> createPlaylist(String name, {List<String> songIds = const []}) async => null;
+
+  Future<bool> addToPlaylist(String playlistId, List<String> songIds) async => false;
 }

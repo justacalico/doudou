@@ -238,6 +238,22 @@ class AddToPlaylistController extends GetxController {
   Future<bool> addSongsToPlaylist(
       List<MediaItem> songs, String playlistId, BuildContext context) async {
     additionInProgress.value = true;
+
+    // Check if this is a cloud playlist from a non-YouTube backend
+    final playlist = playlists.firstWhereOrNull((p) => p.playlistId == playlistId);
+    final settings = Get.find<SettingsScreenController>();
+    final activeServer = settings.activeServer;
+    final isNonYouTube = activeServer != null &&
+        activeServer.type != ServerType.youtubeMusic;
+
+    if (playlist != null && playlist.isCloudPlaylist && isNonYouTube) {
+      final backend = settings.currentBackend;
+      final songIds = songs.map((e) => e.id).toList();
+      final ok = await backend.addToPlaylist(playlistId, songIds);
+      additionInProgress.value = false;
+      return ok;
+    }
+
     if (playlistType.value == "local") {
       final plstBox = await Hive.openBox(playlistSongsBoxName(playlistId));
       final playlistSongIds = plstBox.values

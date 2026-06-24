@@ -352,4 +352,29 @@ class SubsonicBackend extends MusicBackend {
       {int limit = 10}) async {
     return {};
   }
+
+  @override
+  Future<String?> createPlaylist(String name,
+      {List<String> songIds = const []}) async {
+    final params = <String, String>{'name': name};
+    for (var i = 0; i < songIds.length; i++) {
+      params['songId[$i]'] = songIds[i];
+    }
+    final data = await _get('createPlaylist', params);
+    if (data == null) return null;
+    // Subsonic returns the playlist id in the response
+    final playlistId = data['playlist']?['id']?.toString();
+    return playlistId;
+  }
+
+  @override
+  Future<bool> addToPlaylist(String playlistId, List<String> songIds) async {
+    if (playlistId.isEmpty || songIds.isEmpty) return false;
+    final params = <String, String>{'playlistId': playlistId};
+    for (var i = 0; i < songIds.length; i++) {
+      params['songIdToAdd[$i]'] = songIds[i];
+    }
+    final data = await _get('updatePlaylist', params);
+    return data != null;
+  }
 }
