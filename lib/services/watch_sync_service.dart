@@ -51,6 +51,7 @@ class WatchSyncService extends GetxService {
     _subs.add(player.isShuffleModeEnabled.listen((_) => _scheduleStatePush()));
     _subs.add(player.isLoopModeEnabled.listen((_) => _scheduleStatePush()));
     _subs.add(player.isCurrentSongFav.listen((_) => _scheduleStatePush()));
+    _subs.add(player.volume.listen((_) => _scheduleStatePush()));
 
     // Subscribe to settings changes
     final settings = Get.find<SettingsScreenController>();
@@ -108,6 +109,7 @@ class WatchSyncService extends GetxService {
       'isFav': player.isCurrentSongFav.value,
       'queueLength': player.currentQueue.length,
       'queueIndex': player.currentSongIndex.value,
+      'volume': player.volume.value,
     };
 
     // Add favorites count if available
@@ -182,6 +184,13 @@ class WatchSyncService extends GetxService {
           break;
         case 'toggleFav':
           Get.find<PlayerController>().toggleFavourite();
+          break;
+        case 'setVolume':
+          final vol = (msg['value'] as num?)?.toInt() ?? 100;
+          Get.find<PlayerController>().setVolume(vol);
+          break;
+        case 'mute':
+          Get.find<PlayerController>().mute();
           break;
         case 'setServer':
           final id = msg['serverId'] as int;
