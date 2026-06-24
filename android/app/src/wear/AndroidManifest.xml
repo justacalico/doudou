@@ -1,15 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-feature android:name="android.hardware.type.watch" />
+    <uses-feature android:name="android.hardware.type.watch" android:required="true" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Remove phone-only permissions merged from main manifest -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" tools:node="remove" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" tools:node="remove" />
+    <uses-permission android:name="androidx.car.app.MEDIA_TEMPLATES" tools:node="remove" />
 
     <application
         android:label="Doudou"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="true">
+        android:icon="@mipmap/ic_launcher">
 
         <meta-data
             android:name="com.google.android.wearable.standalone"
@@ -41,5 +46,19 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Remove phone-only services/receivers that get merged from main manifest -->
+        <service android:name="com.oguzhnatly.flutter_android_auto.AndroidAutoService"
+            tools:node="remove" />
+        <service android:name="com.ryanheise.audioservice.AudioService"
+            tools:node="remove" />
+        <receiver android:name="com.ryanheise.audioservice.MediaButtonReceiver"
+            tools:node="remove" />
+
+        <!-- Remove phone-only meta-data -->
+        <meta-data android:name="com.google.android.gms.car.application"
+            tools:node="remove" />
+        <meta-data android:name="androidx.car.app.minCarApiLevel"
+            tools:node="remove" />
     </application>
 </manifest>

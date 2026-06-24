@@ -86,13 +86,20 @@ android {
             applicationId "gitlab.openlyst.doudou"
             minSdkVersion flutter.minSdkVersion
             targetSdkVersion flutter.targetSdkVersion
+            // Phone versionCode starts at 1, wear starts at 10000
+            // This ensures Play Store picks the right APK per device
+            versionCode flutterVersionCode.toInteger()
+            versionName flutterVersionName
         }
         wear {
             dimension "app"
             applicationId "gitlab.openlyst.doudou"
-            // Wear OS 3+ is API 30, but wear_plus needs min 23
-            minSdkVersion flutter.minSdkVersion
+            // Wear OS 3+ is API 30
+            minSdkVersion 30
             targetSdkVersion flutter.targetSdkVersion
+            // Offset by 10000 so Play Store can distinguish wear APKs from phone APKs
+            versionCode flutterVersionCode.toInteger() + 10000
+            versionName flutterVersionName
         }
     }
 
