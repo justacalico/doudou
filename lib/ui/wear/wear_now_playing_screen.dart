@@ -1,11 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:wearable_rotary/wearable_rotary.dart';
 
 import '../../services/wear_comm_service.dart';
 
@@ -24,9 +21,6 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen>
   final _comm = Get.find<WearCommService>();
   bool _showVolumeSlider = false;
   late AnimationController _waveController;
-  StreamSubscription<RotaryEvent>? _rotarySub;
-  int _seekDebounceMs = 0;
-  Timer? _seekDebounce;
 
   @override
   void initState() {
@@ -35,39 +29,12 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _rotarySub = rotaryEvents.listen(_handleRotary);
   }
 
   @override
   void dispose() {
     _waveController.dispose();
-    _rotarySub?.cancel();
-    _seekDebounce?.cancel();
     super.dispose();
-  }
-
-  void _handleRotary(RotaryEvent event) {
-    if (_showVolumeSlider) {
-      // Rotary controls volume when slider is open
-      final vol = _comm.volume.value;
-      final delta = event.direction == RotaryDirection.clockwise ? 5 : -5;
-      final newVol = (vol + delta).clamp(0, 100);
-      _comm.setVolume(newVol);
-      return;
-    }
-    // Rotary controls seek position
-    final total = _comm.durationMs.value;
-    if (total <= 0) return;
-    final delta = event.direction == RotaryDirection.clockwise ? 3000 : -3000;
-    _seekDebounceMs = (_seekDebounceMs + delta).clamp(0, total);
-    // Update position locally for immediate feedback
-    _comm.positionMs.value = _seekDebounceMs;
-    // Debounce the actual seek command
-    _seekDebounce?.cancel();
-    _seekDebounce = Timer(const Duration(milliseconds: 300), () {
-      _comm.seek(_seekDebounceMs);
-      _seekDebounceMs = 0;
-    });
   }
 
   String _formatTime(int ms) {
