@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 import '../../services/wear_comm_service.dart';
 
 /// Now Playing screen for Wear OS. Features album art as full-screen
-/// background, circular progress ring, soundwave bars, transport controls,
+/// background, circular progress ring, transport controls,
 /// and a volume slider overlay. Optimized for tiny round screens.
 class WearNowPlayingScreen extends StatefulWidget {
   const WearNowPlayingScreen({super.key});
@@ -16,33 +16,9 @@ class WearNowPlayingScreen extends StatefulWidget {
   State<WearNowPlayingScreen> createState() => _WearNowPlayingScreenState();
 }
 
-class _WearNowPlayingScreenState extends State<WearNowPlayingScreen>
-    with SingleTickerProviderStateMixin {
+class _WearNowPlayingScreenState extends State<WearNowPlayingScreen> {
   final _comm = Get.find<WearCommService>();
   bool _showVolumeSlider = false;
-  late AnimationController _waveController;
-
-  @override
-  void initState() {
-    super.initState();
-    _waveController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-  }
-
-  @override
-  void dispose() {
-    _waveController.dispose();
-    super.dispose();
-  }
-
-  String _formatTime(int ms) {
-    final secs = (ms / 1000).floor();
-    final m = (secs / 60).floor();
-    final s = secs % 60;
-    return '$m:${s < 10 ? '0' : ''}$s';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +32,13 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen>
       }
       return _buildNowPlaying(context);
     });
+  }
+
+  String _formatTime(int ms) {
+    final secs = (ms / 1000).floor();
+    final m = (secs / 60).floor();
+    final s = secs % 60;
+    return '$m:${s < 10 ? '0' : ''}$s';
   }
 
   Widget _buildEmpty(BuildContext context) {
@@ -80,13 +63,6 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen>
 
   Widget _buildNowPlaying(BuildContext context) {
     final artUri = _comm.songArtUri.value;
-    final isPlaying = _comm.isPlaying.value;
-
-    if (isPlaying && !_waveController.isAnimating) {
-      _waveController.repeat();
-    } else if (!isPlaying && _waveController.isAnimating) {
-      _waveController.stop();
-    }
 
     return Scaffold(
       body: Stack(
@@ -128,9 +104,7 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen>
                   _buildTopBar(context),
                   const Spacer(),
                   _buildSongInfo(context),
-                  const SizedBox(height: 6),
-                  _buildSoundwave(context),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 12),
                   _buildControls(context),
                   const SizedBox(height: 4),
                   _buildBottomRow(context),
@@ -217,40 +191,6 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen>
         ),
       ],
     );
-  }
-
-  Widget _buildSoundwave(BuildContext context) {
-    return Obx(() {
-      final isPlaying = _comm.isPlaying.value;
-      return SizedBox(
-        height: 16,
-        child: AnimatedBuilder(
-          animation: _waveController,
-          builder: (context, _) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(7, (i) {
-                final t = _waveController.value;
-                final phase = i * 0.15;
-                final wave = (math.sin((t + phase) * math.pi * 2) + 1) / 2;
-                final height = isPlaying ? 4.0 + wave * 10.0 : 3.0;
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                  width: 2,
-                  height: height,
-                  decoration: BoxDecoration(
-                    color: isPlaying
-                        ? const Color(0xFFE8A598).withOpacity(0.8)
-                        : Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                );
-              }),
-            );
-          },
-        ),
-      );
-    });
   }
 
   Widget _buildControls(BuildContext context) {
