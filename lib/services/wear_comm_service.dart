@@ -24,6 +24,7 @@ class WearCommService extends GetxService {
   final isFav = false.obs;
   final queueLength = 0.obs;
   final queueIndex = 0.obs;
+  final queue = <Map<String, dynamic>>[].obs;
   final favoritesCount = 0.obs;
   final volume = 100.obs;
   final isMuted = false.obs;
@@ -105,6 +106,12 @@ class WearCommService extends GetxService {
       isFav.value = ctx['isFav'] == true;
       queueLength.value = (ctx['queueLength'] as num?)?.toInt() ?? 0;
       queueIndex.value = (ctx['queueIndex'] as num?)?.toInt() ?? 0;
+      final rawQueue = ctx['queue'];
+      if (rawQueue is List) {
+        queue.value = rawQueue
+            .map((item) => Map<String, dynamic>.from(item as Map))
+            .toList();
+      }
       favoritesCount.value = (ctx['favoritesCount'] as num?)?.toInt() ?? 0;
       volume.value = (ctx['volume'] as num?)?.toInt() ?? 100;
       isMuted.value = volume.value == 0;
@@ -139,6 +146,7 @@ class WearCommService extends GetxService {
   void setVolume(int value) => sendMessage({'command': 'setVolume', 'value': value});
   void mute() => sendMessage({'command': 'mute'});
   void seek(int positionMs) => sendMessage({'command': 'seek', 'positionMs': positionMs});
+  void playQueueItem(int index) => sendMessage({'command': 'playQueueItem', 'index': index});
   void setServer(int id) => sendMessage({'command': 'setServer', 'serverId': id});
   void setTheme(String theme) => sendMessage({'command': 'setTheme', 'theme': theme});
 

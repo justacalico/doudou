@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:get/get.dart';
 import 'package:watch_connectivity/watch_connectivity.dart';
 
@@ -52,6 +53,7 @@ class WatchSyncService extends GetxService {
     _subs.add(player.isLoopModeEnabled.listen((_) => _scheduleStatePush()));
     _subs.add(player.isCurrentSongFav.listen((_) => _scheduleStatePush()));
     _subs.add(player.volume.listen((_) => _scheduleStatePush()));
+    _subs.add(player.currentQueue.listen((_) => _scheduleStatePush()));
 
     // Subscribe to settings changes
     final settings = Get.find<SettingsScreenController>();
@@ -109,6 +111,11 @@ class WatchSyncService extends GetxService {
       'isFav': player.isCurrentSongFav.value,
       'queueLength': player.currentQueue.length,
       'queueIndex': player.currentSongIndex.value,
+      'queue': player.currentQueue.take(50).map((item) => {
+        'title': item.title,
+        'artist': item.artist ?? '',
+        'artUri': item.artUri?.toString() ?? '',
+      }).toList(),
       'volume': player.volume.value,
     };
 
@@ -195,6 +202,10 @@ class WatchSyncService extends GetxService {
         case 'seek':
           final posMs = (msg['positionMs'] as num?)?.toInt() ?? 0;
           Get.find<PlayerController>().seek(Duration(milliseconds: posMs));
+          break;
+        case 'playQueueItem':
+          final index = (msg['index'] as num?)?.toInt() ?? 0;
+          Get.find<AudioHandler>().skipToQueueItem(index);
           break;
         case 'setServer':
           final id = msg['serverId'] as int;
