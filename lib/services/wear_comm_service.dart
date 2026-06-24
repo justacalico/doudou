@@ -33,6 +33,7 @@ class WearCommService extends GetxService {
 
   // Connection state
   final isReachable = false.obs;
+  Timer? _reachabilityTimer;
 
   @override
   void onInit() {
@@ -41,27 +42,51 @@ class WearCommService extends GetxService {
   }
 
   void _init() {
-    // Check reachability (async on Android)
-    _watch.isReachable.then((r) {
-      isReachable.value = r;
-    }).catchError((_) {});
+    checkReachability();
 
     // Listen for context updates (state pushed from phone)
     _ctxSub = _watch.contextStream.listen((ctx) {
       _handleContext(ctx);
+      // Got data from phone, so we know it's reachable
+      isReachable.value = true;
     });
 
     // Also check existing application context
     _watch.receivedApplicationContexts.then((existing) {
       if (existing.isNotEmpty) {
         _handleContext(existing.last);
+        isReachable.value = true;
       }
     }).catchError((_) {});
+
+    // Periodically check reachability every 5 seconds
+    _reachabilityTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      checkReachability();
+    });
 
     // Request initial state from phone
     sendMessage({'command': 'getState'});
 
     printINFO('WearCommService initialized');
+  }
+
+  /// Check if the phone app is reachable and update [isReachable].
+  Future<void> checkReachability() async {
+    try {
+      final r = await _watch.isReachable;
+      isReachable.value = r;
+      if (r) {
+        // Nudge the phone to send fresh state
+        sendMessage({'command': 'getState'});
+      }
+    } catch (_) {
+      isReachable.value = false;
+    }
+  }
+
+  /// Manual retry — re-checks reachability and requests state
+  void retry() {
+    checkReachability();
   }
 
   void _handleContext(Map<dynamic, dynamic> ctx) {
@@ -114,6 +139,7 @@ class WearCommService extends GetxService {
   void onClose() {
     _ctxSub?.cancel();
     _msgSub?.cancel();
+    _reachabilityTimer?.cancel();
     super.onClose();
   }
 }

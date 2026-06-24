@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:wear_plus/wear_plus.dart';
 import 'package:wearable_rotary/wearable_rotary.dart';
 
+import '../../services/wear_comm_service.dart';
 import 'wear_home_screen.dart';
 import 'wear_now_playing_screen.dart';
 import 'wear_settings_screen.dart';
@@ -107,15 +109,75 @@ class _WearNavigationState extends State<_WearNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final comm = Get.find<WearCommService>();
+    return Obx(() {
+      if (!comm.isReachable.value) {
+        return const _NoConnectionScreen();
+      }
+      return Scaffold(
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (p) => _currentPage = p,
+          children: const [
+            WearHomeScreen(),
+            WearNowPlayingScreen(),
+            WearSettingsScreen(),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+/// Shown when the watch can't reach the phone app. Lets the user
+/// retry the connection manually.
+class _NoConnectionScreen extends StatelessWidget {
+  const _NoConnectionScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final comm = Get.find<WearCommService>();
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (p) => _currentPage = p,
-        children: const [
-          WearHomeScreen(),
-          WearNowPlayingScreen(),
-          WearSettingsScreen(),
-        ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.phonelink_off, size: 36),
+              const SizedBox(height: 12),
+              Text(
+                'No phone connected',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Make sure Doudou is running on your phone',
+                textAlign: TextAlign.center,
+                maxLines: 3,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () => comm.retry(),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  child: Icon(
+                    Icons.refresh,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
