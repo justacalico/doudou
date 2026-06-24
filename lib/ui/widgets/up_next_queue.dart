@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import '/utils/app_l10n.dart';
 import '/l10n/app_localizations.dart';
 import 'package:get/get.dart';
@@ -228,7 +229,27 @@ class _UpNextQueueState extends State<UpNextQueue> {
                       direction: DismissDirection.horizontal,
                       confirmDismiss: (_) async => !isCurrent,
                       onDismissed: (_) => playerController.removeFromQueue(item),
-                      child: ListTile(
+                      child: Listener(
+                        onPointerDown: (event) {
+                          if (event.buttons == kSecondaryMouseButton) {
+                            showModalBottomSheet(
+                              constraints: const BoxConstraints(maxWidth: 500),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(10.0)),
+                              ),
+                              isScrollControlled: true,
+                              context: Get.find<ShellController>()
+                                  .overlayContextOrFallback!,
+                              barrierColor: Colors.transparent.withAlpha(100),
+                              builder: (context) => SongInfoBottomSheet(
+                                item,
+                                calledFromQueue: true,
+                              ),
+                            ).whenComplete(() => Get.delete<SongInfoController>());
+                          }
+                        },
+                        child: ListTile(
                         onTap: () => playerController.seekByIndex(index),
                         onLongPress: () {
                           showModalBottomSheet(
@@ -351,6 +372,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                             ),
                           ),
                         ),
+                      ),
                       ),
                     ),
                   );

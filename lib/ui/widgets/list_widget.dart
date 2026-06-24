@@ -110,6 +110,7 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
         return SongListTile(
           key: ValueKey<String>('song-tile-${mediaItem.id}-$index'),
           song: mediaItem,
+          playlist: playlist,
           onTap: () {
             isArtistSongs
                 // if song is from artist then play from artist
