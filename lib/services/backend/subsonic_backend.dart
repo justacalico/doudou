@@ -28,12 +28,16 @@ class SubsonicBackend extends MusicBackend {
       '$_baseUrl/rest/$method.view?u=${Uri.encodeComponent(server.username ?? '')}&p=${Uri.encodeComponent(server.password ?? '')}&v=$_version&c=$_clientName&f=json';
 
   Future<Map<String, dynamic>?> _get(String method,
-      [Map<String, String> params = const {}]) async {
+      [Map<String, String> params = const {},
+      List<MapEntry<String, String>> repeatedParams = const []]) async {
     if (_baseUrl.isEmpty || server.username == null) return null;
     _dio ??= Dio(BaseOptions(connectTimeout: const Duration(seconds: 10)));
     final sb = StringBuffer(_restUrl(method));
     for (final e in params.entries) {
       sb.write('&${e.key}=${Uri.encodeComponent(e.value)}');
+    }
+    for (final me in repeatedParams) {
+      sb.write('&${me.key}=${Uri.encodeComponent(me.value)}');
     }
     try {
       final r = await _dio!.get<Map<String, dynamic>>(sb.toString());
@@ -356,25 +360,34 @@ class SubsonicBackend extends MusicBackend {
   @override
   Future<String?> createPlaylist(String name,
       {List<String> songIds = const []}) async {
-    final params = <String, String>{'name': name};
-    for (var i = 0; i < songIds.length; i++) {
-      params['songId[$i]'] = songIds[i];
-    }
-    final data = await _get('createPlaylist', params);
+    final repeated = songIds.map((id) => MapEntry('songId', id)).toList();
+    final data = await _get('createPlaylist', {'name': name}, repeated);
     if (data == null) return null;
-    // Subsonic returns the playlist id in the response
+    // OpenSubsonic extension returns the playlist id; standard Subsonic doesn't
     final playlistId = data['playlist']?['id']?.toString();
-    return playlistId;
+    if (playlistId != null) return playlistId;
+    // Fallback: fetch playlists and find the one we just created by name
+    final plData = await _get('getPlaylists');
+    final list = plData?['playlists']?['playlist'];
+    if (list is List) {
+      for (final p in list.reversed) {
+        final m = p is Map ? Map<String, dynamic>.from(p) : null;
+        if (m != null && m['name']?.toString() == name) {
+          return m['id']?.toString() ?? '';
+        }
+      }
+    }
+    // Playlist was created but we couldn't find its ID
+    return '';
   }
 
   @override
   Future<bool> addToPlaylist(String playlistId, List<String> songIds) async {
     if (playlistId.isEmpty || songIds.isEmpty) return false;
-    final params = <String, String>{'playlistId': playlistId};
-    for (var i = 0; i < songIds.length; i++) {
-      params['songIdToAdd[$i]'] = songIds[i];
-    }
-    final data = await _get('updatePlaylist', params);
+    final repeated =
+        songIds.map((id) => MapEntry('songIdToAdd', id)).toList();
+    final data =
+        await _get('updatePlaylist', {'playlistId': playlistId}, repeated);
     return data != null;
   }
 }
