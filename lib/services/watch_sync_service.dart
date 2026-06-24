@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:watch_connectivity/watch_connectivity.dart';
 
 import '/l10n/app_localizations.dart';
@@ -70,6 +71,7 @@ class WatchSyncService extends GetxService {
     Timer(const Duration(seconds: 2), () {
       _pushState();
       _pushServerInfo();
+      _pushAboutInfo();
     });
 
     printINFO('WatchSyncService initialized');
@@ -158,6 +160,21 @@ class WatchSyncService extends GetxService {
 
     // Also push full state since theme might affect display
     _scheduleStatePush();
+  }
+
+  Future<void> _pushAboutInfo() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final ctx = <String, dynamic>{
+        'type': 'aboutInfo',
+        'appName': info.appName,
+        'version': info.version,
+        'buildNumber': info.buildNumber,
+      };
+      _watch.updateApplicationContext(ctx);
+    } catch (e) {
+      printWarning('WatchSync: failed to push about info: $e');
+    }
   }
 
   void _handleWatchMessage(Map<dynamic, dynamic> msg) {

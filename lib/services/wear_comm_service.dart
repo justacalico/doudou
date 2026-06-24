@@ -34,6 +34,11 @@ class WearCommService extends GetxService {
   final themeType = 'dark'.obs;
   final servers = <Map<String, dynamic>>[].obs;
 
+  // About info
+  final appName = ''.obs;
+  final appVersion = ''.obs;
+  final appBuildNumber = ''.obs;
+
   // Connection state
   final isReachable = false.obs;
   Timer? _reachabilityTimer;
@@ -124,6 +129,10 @@ class WearCommService extends GetxService {
             .map((s) => Map<String, dynamic>.from(s as Map))
             .toList();
       }
+    } else if (type == 'aboutInfo') {
+      appName.value = ctx['appName']?.toString() ?? '';
+      appVersion.value = ctx['version']?.toString() ?? '';
+      appBuildNumber.value = ctx['buildNumber']?.toString() ?? '';
     }
   }
 

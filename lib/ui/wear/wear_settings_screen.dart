@@ -4,7 +4,7 @@ import 'package:wearable_rotary/wearable_rotary.dart';
 
 import '../../services/wear_comm_service.dart';
 
-/// Settings screen for Wear OS. Allows changing theme and active server.
+/// Settings screen for Wear OS. Allows changing active server and shows about info.
 /// Simple scrollable list optimized for rotary input.
 class WearSettingsScreen extends StatefulWidget {
   const WearSettingsScreen({super.key});
@@ -55,6 +55,9 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
                 children: [
                   _buildSectionHeader('Server'),
                   Obx(() => _buildServerList()),
+                  const SizedBox(height: 12),
+                  _buildSectionHeader('About'),
+                  _buildAboutSection(),
                 ],
               ),
             ),
@@ -142,5 +145,52 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
         );
       }).toList(),
     );
+  }
+
+  Widget _buildAboutSection() {
+    return Obx(() {
+      final name = _comm.appName.value;
+      final version = _comm.appVersion.value;
+      final build = _comm.appBuildNumber.value;
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (name.isNotEmpty)
+              Text(
+                name,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            if (version.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  'Version $version${build.isNotEmpty ? ' ($build)' : ''}',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(Icons.phone_android,
+                    size: 14, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'More settings are available on your phone',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
