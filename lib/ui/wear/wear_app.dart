@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:wear_plus/wear_plus.dart';
-import 'package:wearable_rotary/wearable_rotary.dart';
 
 import '../../services/wear_comm_service.dart';
 import 'wear_home_screen.dart';
-import 'wear_now_playing_screen.dart';
-import 'wear_settings_screen.dart';
 
 /// Root widget for the Wear OS app. Uses WatchShape for round/square
 /// adaptation and AmbientMode for always-on display support.
@@ -23,7 +20,7 @@ class WearApp extends StatelessWidget {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
               theme: _buildTheme(isAmbient),
-              home: const _WearNavigation(),
+              home: const _WearRoot(),
             );
           },
         );
@@ -33,7 +30,6 @@ class WearApp extends StatelessWidget {
 
   ThemeData _buildTheme(bool isAmbient) {
     if (isAmbient) {
-      // Minimal theme for ambient mode - black bg, minimal colors
       return ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
@@ -50,7 +46,6 @@ class WearApp extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white54),
       );
     }
-    // Active mode - dark theme that works well on watches
     return ThemeData(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: Colors.black,
@@ -71,41 +66,10 @@ class WearApp extends StatelessWidget {
   }
 }
 
-/// Swipeable page navigation between Home, Now Playing, and Settings.
-/// Rotary input cycles through pages.
-class _WearNavigation extends StatefulWidget {
-  const _WearNavigation();
-
-  @override
-  State<_WearNavigation> createState() => _WearNavigationState();
-}
-
-class _WearNavigationState extends State<_WearNavigation> {
-  final _pageController = PageController(initialPage: 0);
-  int _currentPage = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    rotaryEvents.listen((event) {
-      if (!mounted) return;
-      final next = event.direction == RotaryDirection.clockwise
-          ? (_currentPage + 1).clamp(0, 2)
-          : (_currentPage - 1).clamp(0, 2);
-      if (next == _currentPage) return;
-      _pageController.animateToPage(
-        next,
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeInOut,
-      );
-    });
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
+/// Root widget that switches between the no-connection screen and
+/// the home screen with Navigator-based navigation.
+class _WearRoot extends StatelessWidget {
+  const _WearRoot();
 
   @override
   Widget build(BuildContext context) {
@@ -114,23 +78,12 @@ class _WearNavigationState extends State<_WearNavigation> {
       if (!comm.isReachable.value) {
         return const _NoConnectionScreen();
       }
-      return Scaffold(
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: (p) => _currentPage = p,
-          children: const [
-            WearHomeScreen(),
-            WearNowPlayingScreen(),
-            WearSettingsScreen(),
-          ],
-        ),
-      );
+      return const WearHomeScreen();
     });
   }
 }
 
-/// Shown when the watch can't reach the phone app. Lets the user
-/// retry the connection manually.
+/// Shown when the watch can't reach the phone app.
 class _NoConnectionScreen extends StatelessWidget {
   const _NoConnectionScreen();
 

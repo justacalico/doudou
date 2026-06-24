@@ -1,119 +1,219 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:wearable_rotary/wearable_rotary.dart';
 
 import '../../services/wear_comm_service.dart';
+import 'wear_now_playing_screen.dart';
+import 'wear_settings_screen.dart';
 
-/// Home screen for the Wear OS app. Shows two large tap targets:
-/// Shuffle All and Favorites. Optimized for small round screens.
-/// Navigation between these cards is handled by the parent PageView
-/// with rotary input support.
-class WearHomeScreen extends StatelessWidget {
+/// Home screen for the Wear OS app. A scrollable launcher-style menu
+/// with rotary input support. Tapping items either sends a command to
+/// the phone or navigates to a sub-screen via the Navigator.
+class WearHomeScreen extends StatefulWidget {
   const WearHomeScreen({super.key});
 
   @override
+  State<WearHomeScreen> createState() => _WearHomeScreenState();
+}
+
+class _WearHomeScreenState extends State<WearHomeScreen> {
+  final _comm = Get.find<WearCommService>();
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    rotaryEvents.listen((event) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final direction =
+          event.direction == RotaryDirection.clockwise ? 60.0 : -60.0;
+      _scrollController.animateTo(
+        (_scrollController.offset + direction).clamp(
+          0,
+          _scrollController.position.maxScrollExtent,
+        ),
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final comm = Get.find<WearCommService>();
     final size = MediaQuery.of(context).size;
     final isRound = size.width == size.height;
+    final horizontalPadding = isRound ? 20.0 : 12.0;
 
     return Scaffold(
       body: SafeArea(
-        child: PageView(
-          children: [
-            _buildShuffleAllCard(comm, isRound),
-            _buildFavoritesCard(comm, isRound),
-            _buildNowPlayingShortcut(comm, isRound),
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: 8,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildNowPlayingTile(context),
+                  _buildDivider(),
+                  _buildMenuTile(
+                    context,
+                    icon: Icons.shuffle,
+                    label: 'Shuffle All',
+                    onTap: () => _comm.shuffleAll(),
+                  ),
+                  Obx(() => _buildMenuTile(
+                        context,
+                        icon: Icons.favorite,
+                        label: 'Shuffle Favorites',
+                        subtitle:
+                            '${_comm.favoritesCount.value} songs',
+                        onTap: () => _comm.shuffleFavorites(),
+                      )),
+                  _buildDivider(),
+                  _buildMenuTile(
+                    context,
+                    icon: Icons.settings,
+                    label: 'Settings',
+                    onTap: () => _navigateToSettings(context),
+                  ),
+                  const SizedBox(height: 16),
+                ]),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildShuffleAllCard(WearCommService comm, bool isRound) {
-    return _ActionCard(
-      icon: Icons.shuffle,
-      label: 'Shuffle All',
-      onTap: () => comm.shuffleAll(),
-      isRound: isRound,
-    );
-  }
-
-  Widget _buildFavoritesCard(WearCommService comm, bool isRound) {
-    return Obx(() => _ActionCard(
-          icon: Icons.favorite,
-          label: 'Favorites',
-          subtitle: '${comm.favoritesCount.value} songs',
-          onTap: () => comm.shuffleFavorites(),
-          isRound: isRound,
-        ));
-  }
-
-  Widget _buildNowPlayingShortcut(WearCommService comm, bool isRound) {
+  Widget _buildNowPlayingTile(BuildContext context) {
     return Obx(() {
-      final hasSong = comm.songTitle.value.isNotEmpty;
-      if (!hasSong) {
-        return _ActionCard(
-          icon: Icons.music_note,
-          label: 'Nothing Playing',
-          isRound: isRound,
-        );
-      }
-      return _ActionCard(
-        icon: Icons.play_arrow,
-        label: comm.songTitle.value,
-        subtitle: comm.songArtist.value,
-        onTap: () => comm.playPause(),
-        isRound: isRound,
+      final hasSong = _comm.songTitle.value.isNotEmpty;
+      return _MenuTile(
+        icon: hasSong
+            ? (_comm.isPlaying.value ? Icons.play_circle_filled : Icons.pause_circle_filled)
+            : Icons.music_note,
+        label: hasSong ? _comm.songTitle.value : 'Nothing Playing',
+        subtitle: hasSong ? _comm.songArtist.value : 'Tap to open',
+        accent: hasSong,
+        onTap: () => _navigateToNowPlaying(context),
       );
     });
   }
+
+  Widget _buildMenuTile(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    String? subtitle,
+    VoidCallback? onTap,
+  }) {
+    return _MenuTile(
+      icon: icon,
+      label: label,
+      subtitle: subtitle,
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Divider(
+        height: 1,
+        thickness: 0.5,
+        color: Colors.white12,
+      ),
+    );
+  }
+
+  void _navigateToNowPlaying(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const WearNowPlayingScreen(),
+      ),
+    );
+  }
+
+  void _navigateToSettings(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const WearSettingsScreen(),
+      ),
+    );
+  }
 }
 
-/// A full-screen tap target with an icon and label.
-/// Kept simple for performance on slow watch hardware.
-class _ActionCard extends StatelessWidget {
-  const _ActionCard({
+/// A compact list tile optimized for small round watch screens.
+class _MenuTile extends StatelessWidget {
+  const _MenuTile({
     required this.icon,
     required this.label,
     this.subtitle,
+    this.accent = false,
     this.onTap,
-    required this.isRound,
   });
 
   final IconData icon;
   final String label;
   final String? subtitle;
+  final bool accent;
   final VoidCallback? onTap;
-  final bool isRound;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(isRound ? 24.0 : 16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        child: Row(
           children: [
-            Icon(icon, size: 48),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelLarge,
+            Icon(
+              icon,
+              size: 24,
+              color: accent ? theme.colorScheme.primary : theme.iconTheme.color,
             ),
-            if (subtitle != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                subtitle!,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleSmall,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: accent ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall,
+                    ),
+                  ],
+                ],
               ),
-            ],
+            ),
+            if (onTap != null)
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: Colors.white38,
+              ),
           ],
         ),
       ),

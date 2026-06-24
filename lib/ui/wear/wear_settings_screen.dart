@@ -45,17 +45,46 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: ListView(
-          controller: _scrollController,
-          padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
           children: [
-            _buildSectionHeader('Theme'),
-            _buildThemeOptions(),
-            const SizedBox(height: 12),
-            _buildSectionHeader('Server'),
-            Obx(() => _buildServerList()),
+            _buildAppBar(context),
+            Expanded(
+              child: ListView(
+                controller: _scrollController,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: [
+                  _buildSectionHeader('Theme'),
+                  _buildThemeOptions(),
+                  const SizedBox(height: 12),
+                  _buildSectionHeader('Server'),
+                  Obx(() => _buildServerList()),
+                ],
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return SizedBox(
+      height: 36,
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: const Padding(
+              padding: EdgeInsets.all(8),
+              child: Icon(Icons.arrow_back, size: 20),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'Settings',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+        ],
       ),
     );
   }

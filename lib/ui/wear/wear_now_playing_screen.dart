@@ -15,14 +15,44 @@ class WearNowPlayingScreen extends StatelessWidget {
     final isRound = size.width == size.height;
 
     return Scaffold(
+      backgroundColor: Colors.black,
       body: SafeArea(
-        child: Obx(() {
-          final hasSong = comm.songTitle.value.isNotEmpty;
-          if (!hasSong) {
-            return _buildEmpty(context);
-          }
-          return _buildNowPlaying(context, comm, isRound);
-        }),
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
+              child: Obx(() {
+                final hasSong = comm.songTitle.value.isNotEmpty;
+                if (!hasSong) {
+                  return _buildEmpty(context);
+                }
+                return _buildNowPlaying(context, comm, isRound);
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return SizedBox(
+      height: 36,
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: const Padding(
+              padding: EdgeInsets.all(8),
+              child: Icon(Icons.arrow_back, size: 20),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'Now Playing',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+        ],
       ),
     );
   }
