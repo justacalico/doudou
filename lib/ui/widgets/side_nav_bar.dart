@@ -6,6 +6,7 @@ import '/utils/app_l10n.dart';
 import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
+import 'package:doudou/ui/screens/tv_now_playing_screen.dart';
 import 'package:doudou/ui/widgets/tv_focus_highlight.dart';
 import 'package:doudou/ui/widgets/window_controls.dart';
 import '/services/tv_service.dart';
@@ -207,6 +208,17 @@ class _SidebarContent extends StatelessWidget {
                   onTap: () => home.onSideBarTabSelected(7),
                 ),
                 const SizedBox(height: 6),
+                // TV-only Now Playing button
+                if (Get.isRegistered<TvService>() &&
+                    Get.find<TvService>().isTV.value)
+                  _SidebarTile(
+                    icon: Icons.music_note_outlined,
+                    activeIcon: Icons.music_note,
+                    label: 'Now Playing',
+                    selected: false,
+                    compact: minimized,
+                    onTap: () => Get.to(() => const TvNowPlayingScreen()),
+                  ),
                 if (!(Get.isRegistered<TvService>() && Get.find<TvService>().isTV.value))
                   _SidebarTile(
                     icon: minimized
