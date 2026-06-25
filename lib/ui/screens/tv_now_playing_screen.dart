@@ -61,6 +61,7 @@ class TvNowPlayingScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+                      const SizedBox(width: 64),
                       // Right: track info + controls
                       Expanded(
                         flex: 3,
