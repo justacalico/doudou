@@ -20,16 +20,35 @@ class TvNowPlayingScreen extends StatelessWidget {
         child: SafeArea(
           child: Stack(
             children: [
-              // Brand text top-left
+              // Brand logo + text top-left
               Positioned(
                 top: 24,
                 left: 80,
-                child: Text(
-                  'Doudou',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
-                  ),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.asset(
+                        'assets/icons/icon.png',
+                        width: 36,
+                        height: 36,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          Icons.music_note_rounded,
+                          size: 28,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Doudou',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               // Main content
