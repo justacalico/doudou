@@ -8,6 +8,7 @@ import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
 import 'package:doudou/ui/widgets/tv_focus_highlight.dart';
 import 'package:doudou/ui/widgets/window_controls.dart';
+import '/services/tv_service.dart';
 
 class SideNavBar extends StatelessWidget {
   const SideNavBar({
@@ -206,18 +207,19 @@ class _SidebarContent extends StatelessWidget {
                   onTap: () => home.onSideBarTabSelected(7),
                 ),
                 const SizedBox(height: 6),
-                _SidebarTile(
-                  icon: minimized
-                      ? Icons.keyboard_double_arrow_right_rounded
-                      : Icons.keyboard_double_arrow_left_rounded,
-                  activeIcon: minimized
-                      ? Icons.keyboard_double_arrow_right_rounded
-                      : Icons.keyboard_double_arrow_left_rounded,
-                  label: minimized ? "Expand sidebar" : context.l10n.shrinkSidebar,
-                  selected: false,
-                  compact: minimized,
-                  onTap: () => onMinimizeChanged(!minimized),
-                ),
+                if (!(Get.isRegistered<TvService>() && Get.find<TvService>().isTV.value))
+                  _SidebarTile(
+                    icon: minimized
+                        ? Icons.keyboard_double_arrow_right_rounded
+                        : Icons.keyboard_double_arrow_left_rounded,
+                    activeIcon: minimized
+                        ? Icons.keyboard_double_arrow_right_rounded
+                        : Icons.keyboard_double_arrow_left_rounded,
+                    label: minimized ? "Expand sidebar" : context.l10n.shrinkSidebar,
+                    selected: false,
+                    compact: minimized,
+                    onTap: () => onMinimizeChanged(!minimized),
+                  ),
               ],
             ),
           ),

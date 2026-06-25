@@ -129,10 +129,11 @@ class _AppShellState extends State<AppShell> {
             }
 
             // Auto-collapse sidebar on narrower layouts while still using side navigation.
-            final autoMinimizedSidebar = !useBottomNav && width < 800;
+            // TV always gets full-width sidebar — no minimize button
+            final autoMinimizedSidebar = !useBottomNav && width < 800 && !layout.isTV;
             final effectiveSidebarMinimized = switch (sidebarMode) {
               SidebarMode.auto => autoMinimizedSidebar || _sidebarMinimized,
-              SidebarMode.collapsed => true,
+              SidebarMode.collapsed => !layout.isTV,  // TV ignores collapsed mode
               SidebarMode.expanded => false,
             };
             final sidebarWidth = effectiveSidebarMinimized ? 84.0 : 260.0;
