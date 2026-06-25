@@ -269,7 +269,7 @@ class _ShellChrome extends StatelessWidget {
             ),
             child: Focus(
               autofocus: false,
-              onKeyEvent: (node, event) {
+              onKeyEvent: DoudouLayout.of(context).isTV ? (node, event) {
                 if (event is! KeyDownEvent) return KeyEventResult.ignored;
                 if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
                   // Try moving left within content first
@@ -291,7 +291,7 @@ class _ShellChrome extends StatelessWidget {
                   }
                 }
                 return KeyEventResult.ignored;
-              },
+              } : null,
               child: Navigator(
                 key: Get.nestedKey(ScreenNavigationSetup.contentId),
                 observers: [ScreenNavigationSetup.contentNavigatorObserver],
