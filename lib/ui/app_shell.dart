@@ -269,6 +269,26 @@ class _ShellChrome extends StatelessWidget {
             ),
             child: Focus(
               autofocus: false,
+              onKeyEvent: (node, event) {
+                if (event is! KeyDownEvent) return KeyEventResult.ignored;
+                // D-pad left from content area → go back to sidebar
+                if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                  if (node.previousFocus()) {
+                    return KeyEventResult.handled;
+                  }
+                  // Try escaping to parent scope
+                  var n = node.parent;
+                  while (n != null) {
+                    if (n is FocusScopeNode) {
+                      if (n.previousFocus()) {
+                        return KeyEventResult.handled;
+                      }
+                    }
+                    n = n.parent;
+                  }
+                }
+                return KeyEventResult.ignored;
+              },
               child: Navigator(
                 key: Get.nestedKey(ScreenNavigationSetup.contentId),
                 observers: [ScreenNavigationSetup.contentNavigatorObserver],
