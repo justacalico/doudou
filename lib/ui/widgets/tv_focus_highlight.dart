@@ -45,19 +45,32 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
     super.initState();
     _focusNode = widget.focusNode ?? FocusNode(debugLabel: widget.debugLabel);
     _focusNode.addListener(_onFocusChanged);
-    // Listen for async TV detection result
+
+    // Check if TV is already detected (compile-time flag is synchronous)
+    final currentlyTv = _isTv();
+    if (currentlyTv && widget.autofocus && !_didAutofocus) {
+      _didAutofocus = true;
+      debugPrint('[TvFocusHighlight:${widget.debugLabel}] TV already detected in initState, scheduling autofocus');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _isTv()) {
+          debugPrint('[TvFocusHighlight:${widget.debugLabel}] requesting autofocus (from initState)');
+          _focusNode.requestFocus();
+        }
+      });
+    }
+
+    // Also listen for async TV detection (runtime detection path)
     if (Get.isRegistered<TvService>()) {
       final tvService = Get.find<TvService>();
       _tvWorker = ever(tvService.isTV, (_) {
         if (mounted) {
           debugPrint('[TvFocusHighlight:${widget.debugLabel}] TV state changed to ${tvService.isTV.value}, rebuilding');
           setState(() {});
-          // If TV just became true and we should autofocus, request focus
           if (tvService.isTV.value && widget.autofocus && !_didAutofocus) {
             _didAutofocus = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && _isTv()) {
-                debugPrint('[TvFocusHighlight:${widget.debugLabel}] requesting autofocus');
+                debugPrint('[TvFocusHighlight:${widget.debugLabel}] requesting autofocus (from worker)');
                 _focusNode.requestFocus();
               }
             });
@@ -89,7 +102,27 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
       widget.onSelect?.call();
       return KeyEventResult.handled;
     }
-    // Let D-pad arrows fall through to focus traversal
+    // D-pad arrows — traverse focus in the appropriate direction
+    if (key == LogicalKeyboardKey.arrowDown) {
+      debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow down, traversing next');
+      _focusNode.nextFocus();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowUp) {
+      debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow up, traversing previous');
+      _focusNode.previousFocus();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowRight) {
+      debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow right, traversing next');
+      _focusNode.nextFocus();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowLeft) {
+      debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow left, traversing previous');
+      _focusNode.previousFocus();
+      return KeyEventResult.handled;
+    }
     return KeyEventResult.ignored;
   }
 
