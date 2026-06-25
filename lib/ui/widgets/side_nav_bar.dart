@@ -114,7 +114,8 @@ class _SidebarContent extends StatelessWidget {
                             label: context.l10n.home,
                             selected: currentIndex == 0,
                             compact: minimized,
-                            autofocus: true,
+                            autofocus: Get.isRegistered<TvService>() &&
+                                Get.find<TvService>().isTV.value,
                             onTap: () => home.onSideBarTabSelected(0),
                           ),
                           _SidebarTile(
