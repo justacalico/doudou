@@ -4,8 +4,8 @@ import 'package:get/get.dart';
 
 import '/ui/player/player_controller.dart';
 import '/ui/widgets/image_widget.dart';
-import '/ui/widgets/lyrics_dialog.dart';
 import '/ui/widgets/tv_focus_highlight.dart';
+import '/ui/screens/tv_lyrics_screen.dart';
 
 class TvNowPlayingScreen extends StatelessWidget {
   const TvNowPlayingScreen({super.key});
@@ -208,14 +208,7 @@ class TvNowPlayingScreen extends StatelessWidget {
                                   debugLabel: 'TVLyrics',
                                   onSelect: () {
                                     playerController.showLyrics();
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) => const LyricsDialog(),
-                                    ).whenComplete(() {
-                                      playerController.isDesktopLyricsDialogOpen = false;
-                                      playerController.showLyricsflag.value = false;
-                                    });
-                                    playerController.isDesktopLyricsDialogOpen = true;
+                                    Get.to(() => const TvLyricsScreen());
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.all(16),
