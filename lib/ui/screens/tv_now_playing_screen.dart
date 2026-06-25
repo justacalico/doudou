@@ -123,7 +123,7 @@ class TvNowPlayingScreen extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 32),
+                                const SizedBox(width: 20),
                                 // Play/Pause
                                 Obx(() {
                                   final state = playerController.buttonState.value;
@@ -164,7 +164,7 @@ class TvNowPlayingScreen extends StatelessWidget {
                                     ),
                                   );
                                 }),
-                                const SizedBox(width: 32),
+                                const SizedBox(width: 20),
                                 // Next
                                 TvFocusHighlight(
                                   borderRadius: 12,
@@ -179,7 +179,7 @@ class TvNowPlayingScreen extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 32),
+                                const SizedBox(width: 20),
                                 // Favourite toggle
                                 Obx(() {
                                   final isFav = playerController.isCurrentSongFav.value;
@@ -201,7 +201,7 @@ class TvNowPlayingScreen extends StatelessWidget {
                                     ),
                                   );
                                 }),
-                                const SizedBox(width: 32),
+                                const SizedBox(width: 20),
                                 // Lyrics
                                 TvFocusHighlight(
                                   borderRadius: 12,
@@ -229,7 +229,17 @@ class TvNowPlayingScreen extends StatelessWidget {
                               ],
                             ),
                             ),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: 12),
+                            // Scroll hint
+                            Center(
+                              child: Text(
+                                '← Scroll for more controls →',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
                             // Back button
                             Center(
                               child: TvFocusHighlight(
