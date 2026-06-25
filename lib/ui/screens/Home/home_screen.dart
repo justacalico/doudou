@@ -16,6 +16,7 @@ import '/utils/app_l10n.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/shell_controller.dart';
+import '/services/tv_service.dart';
 import '/ui/widgets/create_playlist_dialog.dart';
 import '../../navigator.dart';
 import '../../widgets/library_section_builders.dart';
@@ -77,7 +78,8 @@ class _HomeScreenState extends State<HomeScreen> {
           () => ((homeScreenController.tabIndex.value == 0 &&
                           !GetPlatform.isDesktop) ||
                       homeScreenController.tabIndex.value == 4) &&
-                  !shellController.useBottomNav.value
+                  !shellController.useBottomNav.value &&
+                  !(Get.isRegistered<TvService>() && Get.find<TvService>().isTV.value)
               ? Obx(
                   () => Padding(
                     padding: EdgeInsets.only(
