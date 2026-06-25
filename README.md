@@ -89,6 +89,10 @@ flutter build apk --release --flavor wear -t lib/main_wear.dart
 flutter build apk --release --flavor tv --dart-define=PLAYSTORE=true --dart-define=TV=true
 flutter build appbundle --release --flavor tv --dart-define=PLAYSTORE=true --dart-define=TV=true
 
+# Android (TV — YouTube Music enabled)
+flutter build apk --release --flavor tv --dart-define=PLAYSTORE=false --dart-define=TV=true
+flutter build appbundle --release --flavor tv --dart-define=PLAYSTORE=false --dart-define=TV=true
+
 # iOS
 flutter build ipa --release
 
