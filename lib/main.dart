@@ -17,6 +17,7 @@ import 'utils/app_link_controller.dart';
 import '/services/android_auto_service.dart';
 import '/services/audio_handler.dart';
 import '/services/music_service.dart';
+import '/services/tv_service.dart';
 import '/services/watch_sync_service.dart';
 import '/ui/navigator.dart';
 import '/ui/player/player_controller.dart';
@@ -149,6 +150,7 @@ Future<void> startApplicationServices() async {
   if (GetPlatform.isAndroid) {
     Get.put(AndroidAutoService(), permanent: true);
     Get.put(WatchSyncService(), permanent: true);
+    Get.put(TvService(), permanent: true);
   }
   if (GetPlatform.isDesktop) {
     Get.put(DesktopSystemTray());

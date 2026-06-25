@@ -6,6 +6,7 @@ import '/utils/app_l10n.dart';
 import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
+import 'package:doudou/ui/widgets/tv_focus_highlight.dart';
 import 'package:doudou/ui/widgets/window_controls.dart';
 
 class SideNavBar extends StatelessWidget {
@@ -319,47 +320,50 @@ class _SidebarTileState extends State<_SidebarTile> {
         ? c.surfaceSelected
         : (_hover ? c.stateHover : Colors.transparent);
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          margin: const EdgeInsets.only(bottom: 2),
-          padding: widget.compact
-              ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
-              : const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: bgColor,
-          ),
-          child: Row(
-            mainAxisAlignment:
-                widget.compact ? MainAxisAlignment.center : MainAxisAlignment.start,
-            children: [
-              Icon(
-                widget.selected ? widget.activeIcon : widget.icon,
-                color: iconColor,
-                size: 20,
-              ),
-              if (!widget.compact) ...[
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    widget.label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight:
-                          widget.selected ? FontWeight.w600 : FontWeight.w500,
-                      color: iconColor,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+    return TvFocusHighlight(
+      borderRadius: 8,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            margin: const EdgeInsets.only(bottom: 2),
+            padding: widget.compact
+                ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
+                : const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: bgColor,
+            ),
+            child: Row(
+              mainAxisAlignment:
+                  widget.compact ? MainAxisAlignment.center : MainAxisAlignment.start,
+              children: [
+                Icon(
+                  widget.selected ? widget.activeIcon : widget.icon,
+                  color: iconColor,
+                  size: 20,
                 ),
+                if (!widget.compact) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      widget.label,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight:
+                            widget.selected ? FontWeight.w600 : FontWeight.w500,
+                        color: iconColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

@@ -26,11 +26,12 @@ A music player that connects to your own media server. Stream your library, or p
 - System media controls
 - Android Auto support
 - Wear OS companion app with playback controls, shuffle, and favorites
+- Android TV support with D-pad navigation and 10-foot UI
 - Dynamic themes pulled from album artwork
 
 ## Platforms
 
-Android, iOS, macOS, Windows and, Linux
+Android, Android TV, Wear OS, iOS, macOS, Windows and, Linux
 
 ## Download
 
@@ -74,7 +75,7 @@ sudo apt-get install -y libayatana-appindicator3-dev
 
 ### Build commands
 
-The Android app uses product flavors — `phone` for the main app and `wear` for the Wear OS companion.
+The Android app uses product flavors — `phone` for the main app, `wear` for the Wear OS companion, and `tv` for Android TV.
 
 ```bash
 # Android (phone)
@@ -83,6 +84,10 @@ flutter build appbundle --release --flavor phone -t lib/main.dart
 
 # Android (Wear OS)
 flutter build apk --release --flavor wear -t lib/main_wear.dart
+
+# Android (TV — YouTube Music disabled)
+flutter build apk --release --flavor tv --dart-define=PLAYSTORE=true --dart-define=TV=true
+flutter build appbundle --release --flavor tv --dart-define=PLAYSTORE=true --dart-define=TV=true
 
 # iOS
 flutter build ipa --release

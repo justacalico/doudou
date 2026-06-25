@@ -7,6 +7,7 @@ import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import '/ui/constants/layout.dart';
+import '/ui/design/doudou_layout.dart';
 import '/ui/widgets/snackbar.dart';
 import '/ui/widgets/modification_list.dart';
 import '../../../models/playlist.dart';
@@ -200,8 +201,8 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                       return GridView.builder(
                           physics: const BouncingScrollPhysics(),
                           gridDelegate:
-                              const SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 200,
+                              SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: DoudouLayout.of(context).isTV ? 280 : 200,
                             crossAxisSpacing: crossSpacing,
                             mainAxisSpacing: mainSpacing,
                             childAspectRatio: 0.75,

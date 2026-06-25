@@ -141,7 +141,7 @@ class _AppShellState extends State<AppShell> {
               bottomNavigationBar: useBottomNav
                   ? const BottomNavBar()
                   : null,
-              endDrawer: GetPlatform.isDesktop || isWideScreen
+              endDrawer: GetPlatform.isDesktop || isWideScreen || layout.isTV
                   ? const QueueDrawer()
                   : null,
               body: Builder(
@@ -188,7 +188,8 @@ class _AppShellState extends State<AppShell> {
                       controller: playerController.playerPanelController,
                       minHeight: panelMinHeight,
                       maxHeight: size.height,
-                      isDraggable: !isWideScreen,
+                      // Disable drag on TV — no touchscreen, D-pad only
+                      isDraggable: !isWideScreen && !(layout.isTV),
                       onSwipeUp: () {
                         playerController.queuePanelController.open();
                       },

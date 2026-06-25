@@ -76,6 +76,7 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
         phone.java.srcDirs += 'src/phone/kotlin'
         wear.java.srcDirs += 'src/wear/kotlin'
+        tv.java.srcDirs += 'src/tv/kotlin'
     }
 
     flavorDimensions "app"
@@ -99,6 +100,16 @@ android {
             targetSdkVersion flutter.targetSdkVersion
             // Offset by 10000 so Play Store can distinguish wear APKs from phone APKs
             versionCode flutterVersionCode.toInteger() + 10000
+            versionName flutterVersionName
+        }
+        tv {
+            dimension "app"
+            applicationId "gitlab.openlyst.doudou"
+            applicationIdSuffix ".tv"
+            minSdkVersion flutter.minSdkVersion
+            targetSdkVersion flutter.targetSdkVersion
+            // Offset by 20000 so Play Store can distinguish TV APKs from phone/wear
+            versionCode flutterVersionCode.toInteger() + 20000
             versionName flutterVersionName
         }
     }
