@@ -6,6 +6,7 @@ import '/ui/player/player_controller.dart';
 import '/ui/widgets/image_widget.dart';
 import '/ui/widgets/tv_focus_highlight.dart';
 import '/ui/screens/tv_lyrics_screen.dart';
+import '/ui/screens/tv_queue_screen.dart';
 
 class TvNowPlayingScreen extends StatelessWidget {
   const TvNowPlayingScreen({super.key});
@@ -214,6 +215,22 @@ class TvNowPlayingScreen extends StatelessWidget {
                                     padding: const EdgeInsets.all(16),
                                     child: Icon(
                                       Icons.mic_rounded,
+                                      size: 44,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 20),
+                                // Queue
+                                TvFocusHighlight(
+                                  borderRadius: 12,
+                                  debugLabel: 'TVQueue',
+                                  onSelect: () =>
+                                      Get.to(() => const TvQueueScreen()),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Icon(
+                                      Icons.queue_music_rounded,
                                       size: 44,
                                       color: theme.colorScheme.onSurface,
                                     ),
