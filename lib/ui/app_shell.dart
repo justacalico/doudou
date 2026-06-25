@@ -101,9 +101,11 @@ class _AppShellState extends State<AppShell> {
                 settingsController.isBottomNavBarEnabled.value;
             final sidebarMode = settingsController.sidebarMode.value;
             final layout = DoudouLayout.of(context);
-            final useBottomNav = layout.useBottomNav ||
-                isBottomNavEnabled ||
-                width < kSidebarMinWidth;
+            // TV always uses side navigation — ignore bottom nav setting
+            final useBottomNav = !layout.isTV &&
+                (layout.useBottomNav ||
+                    isBottomNavEnabled ||
+                    width < kSidebarMinWidth);
 
             final desiredMinHeight = useBottomNav
                 ? 80.0

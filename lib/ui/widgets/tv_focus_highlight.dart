@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../services/tv_service.dart';
@@ -7,7 +8,8 @@ import '../../services/tv_service.dart';
 ///
 /// On non-TV platforms this is a pass-through with no visual overhead.
 /// On TV, when the wrapped [FocusNode] gains focus, a rounded border
-/// in the accent color is drawn around the child.
+/// in the accent color is drawn around the child. D-pad select/enter
+/// triggers [onSelect].
 class TvFocusHighlight extends StatefulWidget {
   const TvFocusHighlight({
     super.key,
@@ -15,6 +17,7 @@ class TvFocusHighlight extends StatefulWidget {
     this.focusNode,
     this.autofocus = false,
     this.onFocusChange,
+    this.onSelect,
     this.borderRadius = 8.0,
   });
 
@@ -22,6 +25,7 @@ class TvFocusHighlight extends StatefulWidget {
   final FocusNode? focusNode;
   final bool autofocus;
   final ValueChanged<bool>? onFocusChange;
+  final VoidCallback? onSelect;
   final double borderRadius;
 
   @override
@@ -30,16 +34,23 @@ class TvFocusHighlight extends StatefulWidget {
 
 class _TvFocusHighlightState extends State<TvFocusHighlight> {
   late FocusNode _focusNode;
-  bool _isTv = false;
-
   bool _hasFocus = false;
+  Worker? _tvWorker;
 
   @override
   void initState() {
     super.initState();
     _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.addListener(_onFocusChanged);
-    _checkTv();
+    // Listen for async TV detection result
+    if (Get.isRegistered<TvService>()) {
+      final tvService = Get.find<TvService>();
+      // If already detected, we're fine — build will pick it up via Obx below.
+      // If not, listen for the change so we rebuild when detection completes.
+      _tvWorker = ever(tvService.isTV, (_) {
+        if (mounted) setState(() {});
+      });
+    }
   }
 
   void _onFocusChanged() {
@@ -47,23 +58,34 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
     setState(() => _hasFocus = _focusNode.hasFocus);
   }
 
-  void _checkTv() {
-    if (Get.isRegistered<TvService>()) {
-      _isTv = Get.find<TvService>().isTV.value;
+  bool _isTv() {
+    if (!Get.isRegistered<TvService>()) return false;
+    return Get.find<TvService>().isTV.value;
+  }
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.select ||
+        key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.space) {
+      widget.onSelect?.call();
+      return KeyEventResult.handled;
     }
+    return KeyEventResult.ignored;
   }
 
   @override
   void dispose() {
+    _tvWorker?.dispose();
     _focusNode.removeListener(_onFocusChanged);
-    // Only dispose if we created it internally
     if (widget.focusNode == null) _focusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_isTv) return widget.child;
+    if (!_isTv()) return widget.child;
 
     final theme = Theme.of(context);
     final accentColor = theme.colorScheme.primary;
@@ -72,6 +94,7 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
       focusNode: _focusNode,
       autofocus: widget.autofocus,
       onFocusChange: widget.onFocusChange,
+      onKeyEvent: _onKey,
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: _hasFocus

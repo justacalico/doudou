@@ -77,7 +77,8 @@ class _SidebarContent extends StatelessWidget {
       decoration: BoxDecoration(
         color: c.surfaceBase,
       ),
-      child: Column(
+      child: FocusTraversalGroup(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (Platform.isMacOS || Platform.isLinux || Platform.isWindows)
@@ -111,6 +112,7 @@ class _SidebarContent extends StatelessWidget {
                             label: context.l10n.home,
                             selected: currentIndex == 0,
                             compact: minimized,
+                            autofocus: true,
                             onTap: () => home.onSideBarTabSelected(0),
                           ),
                           _SidebarTile(
@@ -221,6 +223,7 @@ class _SidebarContent extends StatelessWidget {
           ),
         ],
       ),
+      ),
     );
   }
 }
@@ -294,6 +297,7 @@ class _SidebarTile extends StatefulWidget {
     required this.selected,
     required this.compact,
     required this.onTap,
+    this.autofocus = false,
   });
 
   final IconData icon;
@@ -302,6 +306,7 @@ class _SidebarTile extends StatefulWidget {
   final bool selected;
   final bool compact;
   final VoidCallback onTap;
+  final bool autofocus;
 
   @override
   State<_SidebarTile> createState() => _SidebarTileState();
@@ -322,6 +327,8 @@ class _SidebarTileState extends State<_SidebarTile> {
 
     return TvFocusHighlight(
       borderRadius: 8,
+      autofocus: widget.autofocus,
+      onSelect: widget.onTap,
       child: MouseRegion(
         onEnter: (_) => setState(() => _hover = true),
         onExit: (_) => setState(() => _hover = false),
