@@ -244,15 +244,18 @@ class _ShellChrome extends StatelessWidget {
                 }(),
                 curve: Curves.easeOutCubic,
                 width: sidebarWidth,
-                child: SideNavBar(
-                  minimized: effectiveSidebarMinimized,
-                  onMinimizeChanged: sidebarMode == SidebarMode.auto
-                      ? onSidebarMinimizeChanged
-                      : (_) {},
+                child: FocusTraversalGroup(
+                  child: SideNavBar(
+                    minimized: effectiveSidebarMinimized,
+                    onMinimizeChanged: sidebarMode == SidebarMode.auto
+                        ? onSidebarMinimizeChanged
+                        : (_) {},
+                  ),
                 ),
               ),
         Expanded(
-          child: Container(
+          child: FocusTraversalGroup(
+            child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -263,12 +266,16 @@ class _ShellChrome extends StatelessWidget {
                 ],
               ),
             ),
-            child: Navigator(
-              key: Get.nestedKey(ScreenNavigationSetup.contentId),
-              observers: [ScreenNavigationSetup.contentNavigatorObserver],
-              initialRoute: ScreenNavigationSetup.homeScreen,
-              onGenerateRoute: _contentRouteGenerator,
+            child: Focus(
+              autofocus: false,
+              child: Navigator(
+                key: Get.nestedKey(ScreenNavigationSetup.contentId),
+                observers: [ScreenNavigationSetup.contentNavigatorObserver],
+                initialRoute: ScreenNavigationSetup.homeScreen,
+                onGenerateRoute: _contentRouteGenerator,
+              ),
             ),
+          ),
           ),
         ),
       ],

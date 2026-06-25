@@ -91,6 +91,24 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
     return Get.find<TvService>().isTV.value;
   }
 
+  void _escapeToParent(bool forward) {
+    debugPrint('[TvFocusHighlight:${widget.debugLabel}] escaping to parent (forward=$forward)');
+    // Walk up the focus tree to find a FocusScopeNode that can traverse
+    // beyond the current FocusTraversalGroup
+    var node = _focusNode.parent;
+    while (node != null) {
+      if (node is FocusScopeNode) {
+        final result = forward ? node.nextFocus() : node.previousFocus();
+        if (result) {
+          debugPrint('[TvFocusHighlight:${widget.debugLabel}] escaped to parent scope successfully');
+          return;
+        }
+      }
+      node = node.parent;
+    }
+    debugPrint('[TvFocusHighlight:${widget.debugLabel}] no parent scope to escape to');
+  }
+
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
     final key = event.logicalKey;
@@ -102,25 +120,33 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
       widget.onSelect?.call();
       return KeyEventResult.handled;
     }
-    // D-pad arrows — traverse focus in the appropriate direction
+    // D-pad arrows — traverse focus, escaping group boundaries when needed
     if (key == LogicalKeyboardKey.arrowDown) {
       debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow down, traversing next');
-      _focusNode.nextFocus();
+      if (!_focusNode.nextFocus()) {
+        _escapeToParent(true);
+      }
       return KeyEventResult.handled;
     }
     if (key == LogicalKeyboardKey.arrowUp) {
       debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow up, traversing previous');
-      _focusNode.previousFocus();
+      if (!_focusNode.previousFocus()) {
+        _escapeToParent(false);
+      }
       return KeyEventResult.handled;
     }
     if (key == LogicalKeyboardKey.arrowRight) {
       debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow right, traversing next');
-      _focusNode.nextFocus();
+      if (!_focusNode.nextFocus()) {
+        _escapeToParent(true);
+      }
       return KeyEventResult.handled;
     }
     if (key == LogicalKeyboardKey.arrowLeft) {
       debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow left, traversing previous');
-      _focusNode.previousFocus();
+      if (!_focusNode.previousFocus()) {
+        _escapeToParent(false);
+      }
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
