@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '/ui/player/player_controller.dart';
 import '/ui/widgets/image_widget.dart';
+import '/ui/widgets/lyrics_dialog.dart';
 import '/ui/widgets/tv_focus_highlight.dart';
 
 class TvNowPlayingScreen extends StatelessWidget {
@@ -229,6 +230,31 @@ class TvNowPlayingScreen extends StatelessWidget {
                                     ),
                                   );
                                 }),
+                                const SizedBox(width: 32),
+                                // Lyrics
+                                TvFocusHighlight(
+                                  borderRadius: 12,
+                                  debugLabel: 'TVLyrics',
+                                  onSelect: () {
+                                    playerController.showLyrics();
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => const LyricsDialog(),
+                                    ).whenComplete(() {
+                                      playerController.isDesktopLyricsDialogOpen = false;
+                                      playerController.showLyricsflag.value = false;
+                                    });
+                                    playerController.isDesktopLyricsDialogOpen = true;
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Icon(
+                                      Icons.mic_rounded,
+                                      size: 44,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 32),
