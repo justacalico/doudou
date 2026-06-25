@@ -135,9 +135,11 @@ class TvNowPlayingScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 48),
                             // Controls
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
                                 // Prev
                                 TvFocusHighlight(
                                   borderRadius: 12,
@@ -256,6 +258,7 @@ class TvNowPlayingScreen extends StatelessWidget {
                                   ),
                                 ),
                               ],
+                            ),
                             ),
                             const SizedBox(height: 32),
                             // Back button
