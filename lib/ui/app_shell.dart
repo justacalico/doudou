@@ -271,12 +271,15 @@ class _ShellChrome extends StatelessWidget {
               autofocus: false,
               onKeyEvent: (node, event) {
                 if (event is! KeyDownEvent) return KeyEventResult.ignored;
-                // D-pad left from content area → go back to sidebar
                 if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-                  if (node.previousFocus()) {
-                    return KeyEventResult.handled;
+                  // Try moving left within content first
+                  final primary = FocusManager.instance.primaryFocus;
+                  if (primary != null && primary != node) {
+                    if (primary.previousFocus()) {
+                      return KeyEventResult.handled;
+                    }
                   }
-                  // Try escaping to parent scope
+                  // At leftmost item — escape to sidebar
                   var n = node.parent;
                   while (n != null) {
                     if (n is FocusScopeNode) {
