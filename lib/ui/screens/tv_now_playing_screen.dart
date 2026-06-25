@@ -173,6 +173,28 @@ class TvNowPlayingScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            const SizedBox(width: 32),
+                            // Favourite toggle
+                            Obx(() {
+                              final isFav = playerController.isCurrentSongFav.value;
+                              return TvFocusHighlight(
+                                borderRadius: 12,
+                                debugLabel: 'TVFav',
+                                onSelect: () => playerController.toggleFavourite(),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Icon(
+                                    isFav
+                                        ? Icons.favorite_rounded
+                                        : Icons.favorite_border_rounded,
+                                    size: 44,
+                                    color: isFav
+                                        ? theme.colorScheme.error
+                                        : theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                              );
+                            }),
                           ],
                         ),
                         const SizedBox(height: 32),
