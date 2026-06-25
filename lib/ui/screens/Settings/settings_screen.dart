@@ -2500,12 +2500,10 @@ class _TvProtocolChoice extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
         decoration: BoxDecoration(
-          color: selected
-              ? theme.colorScheme.primary.withValues(alpha: 0.15)
-              : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? theme.colorScheme.primary : theme.dividerColor,
+            color: selected ? theme.colorScheme.outline : theme.dividerColor,
             width: selected ? 2 : 1,
           ),
         ),
@@ -2514,7 +2512,6 @@ class _TvProtocolChoice extends StatelessWidget {
             label,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: selected ? theme.colorScheme.primary : null,
             ),
           ),
         ),
