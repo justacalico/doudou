@@ -5,6 +5,7 @@ import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/shell_controller.dart';
 import 'package:ionicons_plus/ionicons_plus.dart';
 
+import '/services/tv_service.dart';
 import '/ui/widgets/lyrics_dialog.dart';
 import '/ui/widgets/song_info_dialog.dart';
 import '/ui/player/player_controller.dart';
@@ -25,10 +26,12 @@ class MiniPlayer extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     return Obx(() {
       final bottomNavEnabled = Get.find<ShellController>().useBottomNav.value;
-      final isMobilePill = bottomNavEnabled;
-      final content = isMobilePill
-          ? _MobileMiniPlayer(controller: playerController)
-          : _DesktopMiniPlayer(controller: playerController, size: size);
+      final isTv = Get.isRegistered<TvService>() && Get.find<TvService>().isTV.value;
+      final content = isTv
+          ? _TvMiniPlayer(controller: playerController)
+          : bottomNavEnabled
+              ? _MobileMiniPlayer(controller: playerController)
+              : _DesktopMiniPlayer(controller: playerController, size: size);
       return Visibility(
         visible: playerController.isPlayerpanelTopVisible.value &&
             playerController.currentSong.value != null,
@@ -577,6 +580,100 @@ class _DesktopMiniPlayer extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _TvMiniPlayer extends StatelessWidget {
+  const _TvMiniPlayer({required this.controller});
+
+  final PlayerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final c = context.doudouColors;
+    final song = controller.currentSong.value;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: c.surfaceBase,
+        border: Border(
+          top: BorderSide(color: c.borderSubtle, width: 0.5),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+        child: Row(
+          children: [
+            // Album art
+            if (song != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: ImageWidget(size: 48, song: song),
+              )
+            else
+              const SizedBox(width: 48, height: 48),
+            const SizedBox(width: 20),
+            // Title and artist
+            Expanded(
+              child: GestureDetector(
+                onTap: controller.playerPanelController.open,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      song?.title ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      song?.artist ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: c.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 24),
+            // Timeline / progress bar
+            SizedBox(
+              width: 300,
+              child: GetX<PlayerController>(
+                init: controller,
+                builder: (pc) => ProgressBar(
+                  timeLabelLocation: TimeLabelLocation.sides,
+                  thumbRadius: 5,
+                  barHeight: 3,
+                  thumbGlowRadius: 0,
+                  baseBarColor: c.borderStrong.withValues(alpha: 0.3),
+                  bufferedBarColor: c.accentMuted.withValues(alpha: 0.2),
+                  progressBarColor: c.accentPrimary,
+                  thumbColor: c.accentPrimary,
+                  timeLabelTextStyle: textTheme.labelSmall?.copyWith(
+                    color: c.textTertiary,
+                    fontSize: 12,
+                  ),
+                  progress: pc.progressBarStatus.value.current,
+                  total: pc.progressBarStatus.value.total,
+                  buffered: pc.progressBarStatus.value.buffered,
+                  onSeek: pc.seek,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

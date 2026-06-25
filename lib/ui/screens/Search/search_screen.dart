@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
 import 'components/search_item.dart';
+import '/services/tv_service.dart';
 import '/ui/constants/doudou_design.dart';
 import '/ui/constants/layout.dart';
 import '/ui/shell_controller.dart';
@@ -17,6 +19,7 @@ class SearchScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final searchScreenController = Get.find<SearchScreenController>();
     final useBottomNav = Get.find<ShellController>().useBottomNav.value;
+    final isTv = Get.isRegistered<TvService>() && Get.find<TvService>().isTV.value;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final statusBarHeight = MediaQuery.of(context).padding.top;
@@ -27,6 +30,7 @@ class SearchScreen extends StatelessWidget {
     final listBottomPadding = useBottomNav
         ? kContentBottomPaddingWithBottomNav
         : kContentBottomPaddingWithPlayer;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Padding(
@@ -94,7 +98,72 @@ class SearchScreen extends StatelessWidget {
                   ],
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: ModifiedTextField(
+                child: isTv
+                  ? Focus(
+                      onKeyEvent: (node, event) {
+                        if (event is! KeyDownEvent) return KeyEventResult.ignored;
+                        if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                          // Unfocus text field to close keyboard, then escape to sidebar
+                          final primary = FocusManager.instance.primaryFocus;
+                          primary?.unfocus();
+                          var n = node.parent;
+                          while (n != null) {
+                            if (n is FocusScopeNode) {
+                              if (n.previousFocus()) {
+                                return KeyEventResult.handled;
+                              }
+                            }
+                            n = n.parent;
+                          }
+                        }
+                        return KeyEventResult.ignored;
+                      },
+                      child: ModifiedTextField(
+                        textCapitalization: TextCapitalization.sentences,
+                        controller: searchScreenController.textInputController,
+                        textInputAction: TextInputAction.search,
+                        onChanged: searchScreenController.onChanged,
+                        onSubmitted: (val) {
+                          final query = val.trim();
+                          if (query.isEmpty) return;
+                          if (query.contains("https://")) {
+                            searchScreenController.filterLinks(Uri.parse(query));
+                            searchScreenController.reset();
+                            return;
+                          }
+                          ScreenNavigationSetup.openContentRouteSmart(
+                              ScreenNavigationSetup.searchResultScreen,
+                              arguments: query);
+                          searchScreenController.addToHistryQueryList(query);
+                        },
+                        autofocus: false,
+                        cursorColor: theme.textTheme.bodySmall!.color,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          filled: false,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                          hintText: context.l10n.searchDes,
+                          hintStyle: TextStyle(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+                            fontSize: 14,
+                            height: 1.2,
+                          ),
+                          suffix: IconButton(
+                            onPressed: searchScreenController.reset,
+                            icon: Icon(Icons.close,
+                                size: 20,
+                                color:
+                                    theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                            splashRadius: 16,
+                            style: IconButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  : ModifiedTextField(
                 textCapitalization: TextCapitalization.sentences,
                 controller: searchScreenController.textInputController,
                 textInputAction: TextInputAction.search,
@@ -112,7 +181,7 @@ class SearchScreen extends StatelessWidget {
                       arguments: query);
                   searchScreenController.addToHistryQueryList(query);
                 },
-                autofocus: !useBottomNav,
+                autofocus: !useBottomNav && !isTv,
                 cursorColor: theme.textTheme.bodySmall!.color,
                 decoration: InputDecoration(
                   border: InputBorder.none,

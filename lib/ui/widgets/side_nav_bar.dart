@@ -6,7 +6,10 @@ import '/utils/app_l10n.dart';
 import 'package:doudou/ui/design/doudou_colors.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
+import 'package:doudou/ui/screens/tv_now_playing_screen.dart';
+import 'package:doudou/ui/widgets/tv_focus_highlight.dart';
 import 'package:doudou/ui/widgets/window_controls.dart';
+import '/services/tv_service.dart';
 
 class SideNavBar extends StatelessWidget {
   const SideNavBar({
@@ -76,7 +79,8 @@ class _SidebarContent extends StatelessWidget {
       decoration: BoxDecoration(
         color: c.surfaceBase,
       ),
-      child: Column(
+      child: FocusTraversalGroup(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (Platform.isMacOS || Platform.isLinux || Platform.isWindows)
@@ -110,6 +114,8 @@ class _SidebarContent extends StatelessWidget {
                             label: context.l10n.home,
                             selected: currentIndex == 0,
                             compact: minimized,
+                            autofocus: Get.isRegistered<TvService>() &&
+                                Get.find<TvService>().isTV.value,
                             onTap: () => home.onSideBarTabSelected(0),
                           ),
                           _SidebarTile(
@@ -203,22 +209,35 @@ class _SidebarContent extends StatelessWidget {
                   onTap: () => home.onSideBarTabSelected(7),
                 ),
                 const SizedBox(height: 6),
-                _SidebarTile(
-                  icon: minimized
-                      ? Icons.keyboard_double_arrow_right_rounded
-                      : Icons.keyboard_double_arrow_left_rounded,
-                  activeIcon: minimized
-                      ? Icons.keyboard_double_arrow_right_rounded
-                      : Icons.keyboard_double_arrow_left_rounded,
-                  label: minimized ? "Expand sidebar" : context.l10n.shrinkSidebar,
-                  selected: false,
-                  compact: minimized,
-                  onTap: () => onMinimizeChanged(!minimized),
-                ),
+                // TV-only Now Playing button
+                if (Get.isRegistered<TvService>() &&
+                    Get.find<TvService>().isTV.value)
+                  _SidebarTile(
+                    icon: Icons.music_note_outlined,
+                    activeIcon: Icons.music_note,
+                    label: 'Now Playing',
+                    selected: false,
+                    compact: minimized,
+                    onTap: () => Get.to(() => const TvNowPlayingScreen()),
+                  ),
+                if (!(Get.isRegistered<TvService>() && Get.find<TvService>().isTV.value))
+                  _SidebarTile(
+                    icon: minimized
+                        ? Icons.keyboard_double_arrow_right_rounded
+                        : Icons.keyboard_double_arrow_left_rounded,
+                    activeIcon: minimized
+                        ? Icons.keyboard_double_arrow_right_rounded
+                        : Icons.keyboard_double_arrow_left_rounded,
+                    label: minimized ? "Expand sidebar" : context.l10n.shrinkSidebar,
+                    selected: false,
+                    compact: minimized,
+                    onTap: () => onMinimizeChanged(!minimized),
+                  ),
               ],
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -293,6 +312,7 @@ class _SidebarTile extends StatefulWidget {
     required this.selected,
     required this.compact,
     required this.onTap,
+    this.autofocus = false,
   });
 
   final IconData icon;
@@ -301,6 +321,7 @@ class _SidebarTile extends StatefulWidget {
   final bool selected;
   final bool compact;
   final VoidCallback onTap;
+  final bool autofocus;
 
   @override
   State<_SidebarTile> createState() => _SidebarTileState();
@@ -319,47 +340,56 @@ class _SidebarTileState extends State<_SidebarTile> {
         ? c.surfaceSelected
         : (_hover ? c.stateHover : Colors.transparent);
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          margin: const EdgeInsets.only(bottom: 2),
-          padding: widget.compact
-              ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
-              : const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: bgColor,
-          ),
-          child: Row(
-            mainAxisAlignment:
-                widget.compact ? MainAxisAlignment.center : MainAxisAlignment.start,
-            children: [
-              Icon(
-                widget.selected ? widget.activeIcon : widget.icon,
-                color: iconColor,
-                size: 20,
-              ),
-              if (!widget.compact) ...[
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    widget.label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight:
-                          widget.selected ? FontWeight.w600 : FontWeight.w500,
-                      color: iconColor,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+    return TvFocusHighlight(
+      borderRadius: 8,
+      autofocus: widget.autofocus,
+      onSelect: () {
+        debugPrint('[SidebarTile:${widget.label}] onSelect called');
+        widget.onTap();
+      },
+      debugLabel: widget.label,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            margin: const EdgeInsets.only(bottom: 2),
+            padding: widget.compact
+                ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
+                : const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: bgColor,
+            ),
+            child: Row(
+              mainAxisAlignment:
+                  widget.compact ? MainAxisAlignment.center : MainAxisAlignment.start,
+              children: [
+                Icon(
+                  widget.selected ? widget.activeIcon : widget.icon,
+                  color: iconColor,
+                  size: 20,
                 ),
+                if (!widget.compact) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      widget.label,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight:
+                            widget.selected ? FontWeight.w600 : FontWeight.w500,
+                        color: iconColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

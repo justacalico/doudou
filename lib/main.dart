@@ -17,6 +17,7 @@ import 'utils/app_link_controller.dart';
 import '/services/android_auto_service.dart';
 import '/services/audio_handler.dart';
 import '/services/music_service.dart';
+import '/services/tv_service.dart';
 import '/services/watch_sync_service.dart';
 import '/ui/navigator.dart';
 import '/ui/player/player_controller.dart';
@@ -40,7 +41,7 @@ Future<void> main() async {
   _setAppInitPrefs();
   startApplicationServices();
   Get.put<AudioHandler>(await initAudioService(), permanent: true);
-  if (GetPlatform.isAndroid) {
+  if (GetPlatform.isAndroid && Get.isRegistered<AndroidAutoService>()) {
     Get.find<AndroidAutoService>().init();
   }
   WidgetsBinding.instance.addObserver(LifecycleHandler());
@@ -147,8 +148,16 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => SearchScreenController(), fenix: true);
   Get.lazyPut(() => PlaybackDiagnosticsService(), fenix: true);
   if (GetPlatform.isAndroid) {
-    Get.put(AndroidAutoService(), permanent: true);
-    Get.put(WatchSyncService(), permanent: true);
+    // Register TvService first so it's available even if other services fail
+    Get.put(TvService(), permanent: true);
+    final isTv = Get.find<TvService>().isTV;
+    // Skip WatchSync and AndroidAuto on TV — not needed and may crash without AudioHandler
+    // Check both the reactive value and the compile-time flag to be safe
+    const kIsTV = bool.fromEnvironment('TV', defaultValue: false);
+    if (!isTv.value && !kIsTV) {
+      Get.put(AndroidAutoService(), permanent: true);
+      Get.put(WatchSyncService(), permanent: true);
+    }
   }
   if (GetPlatform.isDesktop) {
     Get.put(DesktopSystemTray());

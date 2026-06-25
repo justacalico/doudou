@@ -6,6 +6,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 
 import '../../models/playlist.dart';
+import '../../services/tv_service.dart';
 import '../player/player_controller.dart';
 import '../screens/Settings/settings_screen_controller.dart';
 import '../shell_controller.dart';
@@ -59,8 +60,8 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
           }
         },
         child: Slidable(
-          enabled:
-              Get.find<SettingsScreenController>().slidableActionEnabled.isTrue,
+          enabled: Get.find<SettingsScreenController>().slidableActionEnabled.isTrue &&
+              !(Get.isRegistered<TvService>() && Get.find<TvService>().isTV.value),
           startActionPane: ActionPane(motion: const DrawerMotion(), children: [
             SlidableAction(
               onPressed: (context) {

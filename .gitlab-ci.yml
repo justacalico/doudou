@@ -40,6 +40,40 @@ build-android-debug:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: manual
 
+build-android-tv-debug:
+  stage: build
+  image: ubuntu:24.04
+  variables:
+    JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+  before_script:
+    - export DEBIAN_FRONTEND=noninteractive
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends ca-certificates git curl unzip xz-utils openjdk-17-jdk
+    - git clone --branch $FLUTTER_VERSION --depth 1 https://github.com/flutter/flutter.git $HOME/flutter
+    - export PATH="$HOME/flutter/bin:$PATH"
+    - flutter config --no-analytics
+    - mkdir -p $HOME/android-sdk/cmdline-tools
+    - curl -fsSL -o /tmp/cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+    - unzip -q /tmp/cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
+    - mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+    - export ANDROID_SDK_ROOT="$HOME/android-sdk"
+    - export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+    - yes | sdkmanager --licenses >/dev/null 2>&1 || true
+    - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+    - flutter doctor || true
+  script:
+    - flutter pub get
+    - flutter build apk --debug --flavor tv --dart-define=PLAYSTORE=true --dart-define=TV=true
+    - mkdir -p artifacts
+    - cp build/app/outputs/flutter-apk/app-tv-debug.apk artifacts/doudou-tv-debug-$CI_COMMIT_SHORT_SHA.apk
+  artifacts:
+    paths:
+      - artifacts/
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+
 build-linux-debug:
   stage: build
   image: ubuntu:24.04

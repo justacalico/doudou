@@ -101,9 +101,11 @@ class _AppShellState extends State<AppShell> {
                 settingsController.isBottomNavBarEnabled.value;
             final sidebarMode = settingsController.sidebarMode.value;
             final layout = DoudouLayout.of(context);
-            final useBottomNav = layout.useBottomNav ||
-                isBottomNavEnabled ||
-                width < kSidebarMinWidth;
+            // TV always uses side navigation — ignore bottom nav setting
+            final useBottomNav = !layout.isTV &&
+                (layout.useBottomNav ||
+                    isBottomNavEnabled ||
+                    width < kSidebarMinWidth);
 
             final desiredMinHeight = useBottomNav
                 ? 80.0
@@ -127,10 +129,11 @@ class _AppShellState extends State<AppShell> {
             }
 
             // Auto-collapse sidebar on narrower layouts while still using side navigation.
-            final autoMinimizedSidebar = !useBottomNav && width < 800;
+            // TV always gets full-width sidebar — no minimize button
+            final autoMinimizedSidebar = !useBottomNav && width < 800 && !layout.isTV;
             final effectiveSidebarMinimized = switch (sidebarMode) {
               SidebarMode.auto => autoMinimizedSidebar || _sidebarMinimized,
-              SidebarMode.collapsed => true,
+              SidebarMode.collapsed => !layout.isTV,  // TV ignores collapsed mode
               SidebarMode.expanded => false,
             };
             final sidebarWidth = effectiveSidebarMinimized ? 84.0 : 260.0;
@@ -141,7 +144,7 @@ class _AppShellState extends State<AppShell> {
               bottomNavigationBar: useBottomNav
                   ? const BottomNavBar()
                   : null,
-              endDrawer: GetPlatform.isDesktop || isWideScreen
+              endDrawer: GetPlatform.isDesktop || isWideScreen || layout.isTV
                   ? const QueueDrawer()
                   : null,
               body: Builder(
@@ -188,7 +191,8 @@ class _AppShellState extends State<AppShell> {
                       controller: playerController.playerPanelController,
                       minHeight: panelMinHeight,
                       maxHeight: size.height,
-                      isDraggable: !isWideScreen,
+                      // Disable drag on TV — no touchscreen, D-pad only
+                      isDraggable: !isWideScreen && !(layout.isTV),
                       onSwipeUp: () {
                         playerController.queuePanelController.open();
                       },
@@ -241,15 +245,18 @@ class _ShellChrome extends StatelessWidget {
                 }(),
                 curve: Curves.easeOutCubic,
                 width: sidebarWidth,
-                child: SideNavBar(
-                  minimized: effectiveSidebarMinimized,
-                  onMinimizeChanged: sidebarMode == SidebarMode.auto
-                      ? onSidebarMinimizeChanged
-                      : (_) {},
+                child: FocusTraversalGroup(
+                  child: SideNavBar(
+                    minimized: effectiveSidebarMinimized,
+                    onMinimizeChanged: sidebarMode == SidebarMode.auto
+                        ? onSidebarMinimizeChanged
+                        : (_) {},
+                  ),
                 ),
               ),
         Expanded(
-          child: Container(
+          child: FocusTraversalGroup(
+            child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -260,12 +267,39 @@ class _ShellChrome extends StatelessWidget {
                 ],
               ),
             ),
-            child: Navigator(
-              key: Get.nestedKey(ScreenNavigationSetup.contentId),
-              observers: [ScreenNavigationSetup.contentNavigatorObserver],
-              initialRoute: ScreenNavigationSetup.homeScreen,
-              onGenerateRoute: _contentRouteGenerator,
+            child: Focus(
+              autofocus: false,
+              onKeyEvent: DoudouLayout.of(context).isTV ? (node, event) {
+                if (event is! KeyDownEvent) return KeyEventResult.ignored;
+                if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                  // Try moving left within content first
+                  final primary = FocusManager.instance.primaryFocus;
+                  if (primary != null && primary != node) {
+                    if (primary.previousFocus()) {
+                      return KeyEventResult.handled;
+                    }
+                  }
+                  // At leftmost item — escape to sidebar
+                  var n = node.parent;
+                  while (n != null) {
+                    if (n is FocusScopeNode) {
+                      if (n.previousFocus()) {
+                        return KeyEventResult.handled;
+                      }
+                    }
+                    n = n.parent;
+                  }
+                }
+                return KeyEventResult.ignored;
+              } : null,
+              child: Navigator(
+                key: Get.nestedKey(ScreenNavigationSetup.contentId),
+                observers: [ScreenNavigationSetup.contentNavigatorObserver],
+                initialRoute: ScreenNavigationSetup.homeScreen,
+                onGenerateRoute: _contentRouteGenerator,
+              ),
             ),
+          ),
           ),
         ),
       ],

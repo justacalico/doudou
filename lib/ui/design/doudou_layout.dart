@@ -1,4 +1,7 @@
 import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
+
+import '../../services/tv_service.dart';
 
 enum DoudouLayoutClass {
   compactPhone,
@@ -7,6 +10,7 @@ enum DoudouLayoutClass {
   tabletLandscape,
   compactDesktop,
   fullDesktop,
+  tv,
 }
 
 class DoudouLayoutInfo {
@@ -32,15 +36,21 @@ class DoudouLayoutInfo {
       layoutClass == DoudouLayoutClass.compactDesktop ||
       layoutClass == DoudouLayoutClass.fullDesktop;
 
+  bool get isTV => layoutClass == DoudouLayoutClass.tv;
+
   bool get useBottomNav => isPhone;
 
   double get contentMaxWidth {
+    if (isTV) return 1400;
     if (isDesktop) return 1100;
     if (isTablet) return 920;
     return double.infinity;
   }
 
   EdgeInsets get contentPadding {
+    if (isTV) {
+      return const EdgeInsets.symmetric(horizontal: 48, vertical: 32);
+    }
     if (isDesktop) {
       return const EdgeInsets.symmetric(horizontal: 28, vertical: 20);
     }
@@ -63,6 +73,7 @@ class DoudouLayoutInfo {
         return 76;
       case DoudouLayoutClass.compactDesktop:
       case DoudouLayoutClass.fullDesktop:
+      case DoudouLayoutClass.tv:
         return 96;
     }
   }
@@ -78,7 +89,13 @@ class DoudouLayout {
     final h = size.height;
     final isLandscape = w > h;
 
-    final cls = _classify(w, isLandscape);
+    // Check TV first — TV devices should always use the TV layout regardless of screen size
+    bool isTv = false;
+    if (Get.isRegistered<TvService>()) {
+      isTv = Get.find<TvService>().isTV.value;
+    }
+
+    final cls = isTv ? DoudouLayoutClass.tv : _classify(w, isLandscape);
     return DoudouLayoutInfo(size: size, padding: mq.padding, layoutClass: cls);
   }
 
