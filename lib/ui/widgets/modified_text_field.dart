@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 class ModifiedTextField extends StatelessWidget {
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final Color? cursorColor;
   final InputDecoration? decoration;
   final bool obscureText;
@@ -17,6 +18,7 @@ class ModifiedTextField extends StatelessWidget {
   const ModifiedTextField(
       {super.key,
       this.controller,
+      this.focusNode,
       this.cursorColor,
       this.decoration,
       this.obscureText = false,
@@ -37,6 +39,7 @@ class ModifiedTextField extends StatelessWidget {
         },
         child: TextField(
             controller: controller,
+            focusNode: focusNode,
             cursorColor: cursorColor,
             decoration: decoration,
             obscureText: obscureText,
