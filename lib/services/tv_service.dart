@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 /// Detects whether the app is running on an Android TV (leanback) device.
@@ -19,23 +20,29 @@ class TvService extends GetxController {
   }
 
   Future<void> _detect() async {
+    debugPrint('[TvService] _detect() called, _kCompileTimeTV=$_kCompileTimeTV');
     if (_kCompileTimeTV) {
+      debugPrint('[TvService] compile-time TV flag is true, setting isTV=true');
       isTV.value = true;
       return;
     }
 
     // Runtime detection — useful when the flag isn't passed
     if (!Platform.isAndroid) {
+      debugPrint('[TvService] not Android, setting isTV=false');
       isTV.value = false;
       return;
     }
 
     try {
       final info = await DeviceInfoPlugin().androidInfo;
-      // systemFeatures contains "android.software.leanback" on TV devices
-      isTV.value = info.systemFeatures
+      final hasLeanback = info.systemFeatures
           .any((f) => f == 'android.software.leanback');
-    } catch (_) {
+      debugPrint('[TvService] androidInfo systemFeatures: ${info.systemFeatures}');
+      debugPrint('[TvService] hasLeanback=$hasLeanback, setting isTV=$hasLeanback');
+      isTV.value = hasLeanback;
+    } catch (e) {
+      debugPrint('[TvService] detection error: $e, setting isTV=false');
       isTV.value = false;
     }
   }

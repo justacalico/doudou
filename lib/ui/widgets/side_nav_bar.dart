@@ -328,7 +328,11 @@ class _SidebarTileState extends State<_SidebarTile> {
     return TvFocusHighlight(
       borderRadius: 8,
       autofocus: widget.autofocus,
-      onSelect: widget.onTap,
+      onSelect: () {
+        debugPrint('[SidebarTile:${widget.label}] onSelect called');
+        widget.onTap();
+      },
+      debugLabel: widget.label,
       child: MouseRegion(
         onEnter: (_) => setState(() => _hover = true),
         onExit: (_) => setState(() => _hover = false),
