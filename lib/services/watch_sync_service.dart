@@ -67,12 +67,10 @@ class WatchSyncService extends GetxService {
       _subs.add(home.favoriteCount.listen((_) => _scheduleStatePush()));
     }
 
-    // Push initial state after a short delay to let things settle
-    Timer(const Duration(seconds: 2), () {
-      _pushState();
-      _pushServerInfo();
-      _pushAboutInfo();
-    });
+    // Push initial state immediately — no reason to wait
+    _pushState();
+    _pushServerInfo();
+    _pushAboutInfo();
 
     printINFO('WatchSyncService initialized');
   }
@@ -237,6 +235,7 @@ class WatchSyncService extends GetxService {
         case 'getState':
           _pushState();
           _pushServerInfo();
+          _pushAboutInfo();
           break;
         default:
           printWarning('WatchSync: unknown command: $cmd');
