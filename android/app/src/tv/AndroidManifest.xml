@@ -75,6 +75,8 @@
         <!-- Remove Android Auto service and car meta-data -->
         <service android:name="com.oguzhnatly.flutter_android_auto.AndroidAutoService"
             tools:node="remove" />
+        <service android:name=".DoudouWearableListenerService"
+            tools:node="remove" />
         <meta-data android:name="com.google.android.gms.car.application"
             tools:node="remove" />
         <meta-data android:name="androidx.car.app.minCarApiLevel"

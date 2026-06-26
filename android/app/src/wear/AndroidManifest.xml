@@ -52,6 +52,8 @@
             tools:node="remove" />
         <service android:name="com.ryanheise.audioservice.AudioService"
             tools:node="remove" />
+        <service android:name=".DoudouWearableListenerService"
+            tools:node="remove" />
         <receiver android:name="com.ryanheise.audioservice.MediaButtonReceiver"
             tools:node="remove" />
 
