@@ -77,6 +77,7 @@ class DiscordRpcService extends GetxController {
   final PlayerStateProvider? _player;
   final _isReady = false.obs;
   final _isConnected = false.obs;
+  bool _wasInitialized = false;
 
   StreamSubscription? _songSub;
   StreamSubscription? _buttonSub;
@@ -114,6 +115,7 @@ class DiscordRpcService extends GetxController {
     try {
       printINFO('[DiscordRpc] initializing with app ID: ${appId.trim()}');
       await _client.initialize(appId.trim());
+      _wasInitialized = true;
       _isReady.value = true;
       printINFO('[DiscordRpc] connecting to Discord...');
       await _client.connect(autoRetry: true);
@@ -205,8 +207,15 @@ class DiscordRpcService extends GetxController {
     }
 
     try {
-      printINFO('[DiscordRpc] re-initializing with app ID: ${appId.trim()}');
-      await _client.initialize(appId.trim());
+      // FlutterDiscordRPC.initialize can only be called once per process.
+      // If we've already initialized, just reconnect.
+      if (!_wasInitialized) {
+        printINFO('[DiscordRpc] initializing with app ID: ${appId.trim()}');
+        await _client.initialize(appId.trim());
+        _wasInitialized = true;
+      } else {
+        printINFO('[DiscordRpc] already initialized, reconnecting...');
+      }
       _isReady.value = true;
       await _client.connect(autoRetry: true);
       printINFO('[DiscordRpc] reconnected successfully');
