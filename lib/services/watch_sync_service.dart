@@ -179,8 +179,6 @@ class WatchSyncService extends GetxService {
     final cmd = msg['command']?.toString();
     if (cmd == null) return;
 
-    printINFO('WatchSync: received command: $cmd');
-
     try {
       switch (cmd) {
         case 'play':
