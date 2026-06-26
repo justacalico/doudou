@@ -100,15 +100,24 @@ class DiscordRpcService extends GetxController {
 
   Future<void> _maybeInit() async {
     final enabled = _box.get('discordRpcEnabled') ?? false;
-    if (!enabled) return;
+    if (!enabled) {
+      printINFO('[DiscordRpc] skipping init — RPC is disabled');
+      return;
+    }
 
     final appId = _box.get('discordAppId') as String?;
-    if (appId == null || appId.trim().isEmpty) return;
+    if (appId == null || appId.trim().isEmpty) {
+      printWarning('[DiscordRpc] skipping init — no app ID configured');
+      return;
+    }
 
     try {
+      printINFO('[DiscordRpc] initializing with app ID: ${appId.trim()}');
       await _client.initialize(appId.trim());
       _isReady.value = true;
+      printINFO('[DiscordRpc] connecting to Discord...');
       await _client.connect(autoRetry: true);
+      printINFO('[DiscordRpc] connected, listening to player state');
       _listenToPlayer();
     } catch (e) {
       printWarning('[DiscordRpc] init failed: $e');
@@ -123,7 +132,10 @@ class DiscordRpcService extends GetxController {
     _songSub = player.currentSong.listen((_) => _scheduleUpdate());
     _buttonSub = player.buttonState.listen((_) => _scheduleUpdate());
     _progressSub = player.progressBarStatus.listen((_) => _scheduleUpdate());
-    _connSub = _client.isConnectedStream.listen((c) => _isConnected.value = c);
+    _connSub = _client.isConnectedStream.listen((c) {
+      _isConnected.value = c;
+      printINFO('[DiscordRpc] connection state changed: $c');
+    });
     _isConnected.value = _client.isConnected;
     // push initial state
     _updateActivity();
@@ -140,9 +152,12 @@ class DiscordRpcService extends GetxController {
     final isPlaying = player.buttonState.value == PlayButtonState.playing;
 
     if (song == null) {
+      printINFO('[DiscordRpc] no song loaded, clearing activity');
       _client.clearActivity();
       return;
     }
+
+    printINFO('[DiscordRpc] updating activity: ${song.title} — ${song.artist ?? "Unknown artist"} (${isPlaying ? "playing" : "paused"})');
 
     final progress = player.progressBarStatus.value;
     final posMs = progress.current.inMilliseconds;
@@ -173,19 +188,28 @@ class DiscordRpcService extends GetxController {
   Future<void> reconfigure() async {
     if (!isSupported) return;
 
+    printINFO('[DiscordRpc] reconfiguring...');
     // tear down existing
     await _teardown();
 
     final enabled = _box.get('discordRpcEnabled') ?? false;
-    if (!enabled) return;
+    if (!enabled) {
+      printINFO('[DiscordRpc] RPC is disabled, staying disconnected');
+      return;
+    }
 
     final appId = _box.get('discordAppId') as String?;
-    if (appId == null || appId.trim().isEmpty) return;
+    if (appId == null || appId.trim().isEmpty) {
+      printWarning('[DiscordRpc] no app ID configured, cannot reconfigure');
+      return;
+    }
 
     try {
+      printINFO('[DiscordRpc] re-initializing with app ID: ${appId.trim()}');
       await _client.initialize(appId.trim());
       _isReady.value = true;
       await _client.connect(autoRetry: true);
+      printINFO('[DiscordRpc] reconnected successfully');
       _listenToPlayer();
     } catch (e) {
       printWarning('[DiscordRpc] reconfigure failed: $e');
@@ -193,6 +217,7 @@ class DiscordRpcService extends GetxController {
   }
 
   Future<void> _teardown() async {
+    printINFO('[DiscordRpc] tearing down...');
     _debounce?.cancel();
     _debounce = null;
     await _songSub?.cancel();
@@ -208,8 +233,9 @@ class DiscordRpcService extends GetxController {
       try {
         await _client.clearActivity();
         await _client.disconnect();
-      } catch (_) {
-        // best effort
+        printINFO('[DiscordRpc] disconnected');
+      } catch (e) {
+        printWarning('[DiscordRpc] error during teardown: $e');
       }
     }
     _isReady.value = false;
