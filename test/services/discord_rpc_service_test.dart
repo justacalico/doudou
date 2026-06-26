@@ -15,13 +15,13 @@ class _MockDiscordRpcClient extends Mock implements DiscordRpcClient {}
 
 class _FakePlayerStateProvider implements PlayerStateProvider {
   @override
-  final currentSong = Rxn<MediaItem>();
+  final Rxn<MediaItem> currentSong = Rxn<MediaItem>();
 
   @override
-  final buttonState = Rx<PlayButtonState>(PlayButtonState.paused);
+  final Rx<PlayButtonState> buttonState = Rx<PlayButtonState>(PlayButtonState.paused);
 
   @override
-  final progressBarStatus = Rx<ProgressBarState>(ProgressBarState(
+  final Rx<ProgressBarState> progressBarStatus = Rx<ProgressBarState>(ProgressBarState(
     current: Duration.zero,
     buffered: Duration.zero,
     total: Duration.zero,
@@ -294,6 +294,56 @@ void main() {
       final activity = captor.last as RPCActivity;
       expect(activity.timestamps?.start, isNull);
       expect(activity.timestamps?.end, isNull);
+    });
+
+    test('updates activity when current song changes', () async {
+      await box.put('discordRpcEnabled', true);
+      await box.put('discordAppId', '123456789');
+
+      fakePlayer.currentSong.value = MediaItem(
+        id: 'song1',
+        title: 'First Song',
+        artist: 'First Artist',
+        duration: const Duration(seconds: 180),
+      );
+      fakePlayer.buttonState.value = PlayButtonState.playing;
+      fakePlayer.progressBarStatus.value = ProgressBarState(
+        current: const Duration(seconds: 30),
+        buffered: const Duration(seconds: 60),
+        total: const Duration(seconds: 180),
+      );
+
+      final svc = DiscordRpcService(
+        client: mockClient,
+        box: box,
+        player: fakePlayer,
+      );
+      svc.onInit();
+
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      final first = verify(() =>
+              mockClient.setActivity(activity: captureAny(named: 'activity')))
+          .captured
+          .last as RPCActivity;
+      expect(first.details, 'First Song');
+
+      // Change to a second song
+      fakePlayer.currentSong.value = MediaItem(
+        id: 'song2',
+        title: 'Second Song',
+        artist: 'Second Artist',
+        duration: const Duration(seconds: 200),
+      );
+
+      await Future.delayed(const Duration(milliseconds: 900));
+
+      final second = verify(() =>
+              mockClient.setActivity(activity: captureAny(named: 'activity')))
+          .captured
+          .last as RPCActivity;
+      expect(second.details, 'Second Song');
+      expect(second.state, 'Second Artist');
     });
   });
 

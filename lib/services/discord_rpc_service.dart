@@ -1,19 +1,21 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter_discord_rpc/flutter_discord_rpc.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
+import '/models/durationstate.dart';
 import '/ui/player/player_controller.dart';
 import '/utils/helper.dart';
 
 /// Just the player state we need for RPC updates.
 /// This abstraction lets us test without the full PlayerController.
 abstract class PlayerStateProvider {
-  Rxn<dynamic> get currentSong;
-  Rx<dynamic> get buttonState;
-  Rx<dynamic> get progressBarStatus;
+  Rxn<MediaItem> get currentSong;
+  Rx<PlayButtonState> get buttonState;
+  Rx<ProgressBarState> get progressBarStatus;
 }
 
 /// Wraps the real FlutterDiscordRPC so we can mock it in tests.
@@ -139,6 +141,12 @@ class DiscordRpcService extends GetxController {
       _player ?? Get.find<PlayerController>();
 
   void _listenToPlayer() {
+    // Defensive: cancel any existing subscriptions before setting up new ones.
+    _songSub?.cancel();
+    _buttonSub?.cancel();
+    _progressSub?.cancel();
+    _connSub?.cancel();
+
     final player = _playerState;
     _songSub = player.currentSong.listen((_) => _scheduleUpdate());
     _buttonSub = player.buttonState.listen((_) => _scheduleUpdate());
