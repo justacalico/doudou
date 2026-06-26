@@ -17,6 +17,7 @@ import '../../../utils/update_check_flag_file.dart';
 import '/services/piped_service.dart';
 import '/services/library_sync_service.dart';
 import '/services/playback_diagnostics_service.dart';
+import '/services/discord_rpc_service.dart';
 import '../Library/library_controller.dart';
 import '../../widgets/snackbar.dart';
 import '../../../utils/helper.dart';
@@ -83,6 +84,8 @@ class SettingsScreenController extends GetxController {
   final cacheHomeScreenData = true.obs;
   final checkForUpdatesOnStartup = true.obs;
   final playbackDiagnosticsEnabled = false.obs;
+  final discordRpcEnabled = false.obs;
+  final discordAppId = ''.obs;
   final _currentVersion = ''.obs;
   final servers = <SettingsServer>[].obs;
   final activeServerId = RxnInt();
@@ -232,6 +235,8 @@ class SettingsScreenController extends GetxController {
         setBox.get("checkForUpdatesOnStartup") ?? true;
     playbackDiagnosticsEnabled.value =
         setBox.get(PlaybackDiagnosticsService.enabledKey) ?? false;
+    discordRpcEnabled.value = setBox.get('discordRpcEnabled') ?? false;
+    discordAppId.value = setBox.get('discordAppId') ?? '';
     streamingQuality.value =
         AudioQuality.values[setBox.get('streamingQuality')];
     playerUi.value = isDesktop ? 0 : (setBox.get('playerUi') ?? 0);
@@ -712,6 +717,20 @@ class SettingsScreenController extends GetxController {
   void togglePlaybackDiagnostics(bool val) {
     setBox.put(PlaybackDiagnosticsService.enabledKey, val);
     playbackDiagnosticsEnabled.value = val;
+  }
+
+  void toggleDiscordRpc(bool val) {
+    setBox.put('discordRpcEnabled', val);
+    discordRpcEnabled.value = val;
+    if (Get.isRegistered<DiscordRpcService>()) {
+      Get.find<DiscordRpcService>().reconfigure();
+    }
+  }
+
+  void setDiscordAppId(String val) {
+    final trimmed = val.trim();
+    setBox.put('discordAppId', trimmed);
+    discordAppId.value = trimmed;
   }
 
   Future<void> clearPlaybackDiagnostics() async {
