@@ -20,6 +20,7 @@ import '/models/server.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../services/windows_audio_service.dart';
 import '../../services/audio_handler.dart';
+import '/services/discord_rpc_service.dart';
 import '/services/playback_diagnostics_service.dart';
 import '../../utils/helper.dart';
 import '../../utils/server_storage.dart';
@@ -37,7 +38,8 @@ class SyncedLyricLine {
 }
 
 class PlayerController extends GetxController
-    with GetSingleTickerProviderStateMixin {
+    with GetSingleTickerProviderStateMixin
+    implements PlayerStateProvider {
   final _audioHandler = Get.find<AudioHandler>();
   final _musicServices = Get.find<MusicServices>();
   final _diag = Get.find<PlaybackDiagnosticsService>();

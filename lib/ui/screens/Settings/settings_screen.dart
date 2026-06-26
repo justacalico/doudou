@@ -10,6 +10,7 @@ import '../../widgets/common_dialog_widget.dart';
 import '../../widgets/cust_switch.dart';
 import '../../widgets/tv_focus_highlight.dart';
 import '/services/tv_service.dart';
+import '/services/discord_rpc_service.dart';
 import '../../widgets/export_file_dialog.dart';
 import '../../widgets/backup_dialog.dart';
 import '../../widgets/restore_dialog.dart';
@@ -1223,6 +1224,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
 
   List<Widget> _buildMisc(
       BuildContext context, SettingsScreenController settings) {
+    final isDesktop = GetPlatform.isDesktop;
     return [
       Obx(() => ListTile(
             title: Text(context.l10n.playbackDiagnosticsRelease),
@@ -1254,6 +1256,60 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           );
         },
       ),
+      if (isDesktop) ...[
+        const Divider(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Text(
+            'Discord Rich Presence',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ),
+        Obx(() => ListTile(
+              leading: const Icon(Icons.discord, size: 20),
+              title: const Text('Show Discord activity'),
+              subtitle: const Text(
+                  'Display the current song as your Discord status.'),
+              trailing: CustSwitch(
+                value: settings.discordRpcEnabled.value,
+                onChanged: settings.toggleDiscordRpc,
+              ),
+            )),
+        Obx(() => ListTile(
+              leading: const Icon(Icons.vpn_key_outlined, size: 20),
+              title: const Text('Discord Application ID'),
+              subtitle: Text(
+                settings.discordAppId.value.isEmpty
+                    ? 'Not set — create one at discord.com/developers/applications'
+                    : settings.discordAppId.value,
+                style: TextStyle(
+                  color: settings.discordAppId.value.isEmpty
+                      ? Theme.of(context).colorScheme.error.withValues(alpha: 0.7)
+                      : null,
+                ),
+              ),
+              onTap: () => _showDiscordAppIdDialog(context, settings),
+            )),
+        Obx(() => ListTile(
+              leading: const Icon(Icons.bolt_outlined, size: 20),
+              title: const Text('Test Discord connection'),
+              subtitle: Text(
+                settings.discordAppId.value.isEmpty
+                    ? 'Set an Application ID first'
+                    : 'Send a test activity to Discord',
+                style: TextStyle(
+                  color: settings.discordAppId.value.isEmpty
+                      ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)
+                      : null,
+                ),
+              ),
+              enabled: settings.discordAppId.value.isNotEmpty,
+              onTap: () => _testDiscordRpc(context, settings),
+            )),
+      ],
       ListTile(
         title: Text(context.l10n.resetToDefault),
         subtitle: Text(context.l10n.resetToDefaultDes),
@@ -1267,6 +1323,82 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         },
       ),
     ];
+  }
+
+  void _testDiscordRpc(
+      BuildContext context, SettingsScreenController settings) async {
+    if (!Get.isRegistered<DiscordRpcService>()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        snackbar(context, 'Discord RPC is not available on this platform',
+            size: SnackBarSize.BIG),
+      );
+      return;
+    }
+
+    final svc = Get.find<DiscordRpcService>();
+    ScaffoldMessenger.of(context).showSnackBar(
+      snackbar(context, 'Testing Discord connection...', size: SnackBarSize.BIG),
+    );
+
+    final success = await svc.testConnection();
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      snackbar(
+        context,
+        success
+            ? 'Discord RPC is working! Check your Discord profile.'
+            : 'Discord RPC test failed. Make sure Discord is running and the Application ID is correct.',
+        size: SnackBarSize.BIG,
+      ),
+    );
+  }
+
+  void _showDiscordAppIdDialog(
+      BuildContext context, SettingsScreenController settings) {
+    final controller =
+        TextEditingController(text: settings.discordAppId.value);
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Discord Application ID'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Create a Discord application at discord.com/developers/applications and paste the Application ID here.',
+                style: TextStyle(fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  labelText: 'Application ID',
+                  border: OutlineInputBorder(),
+                  hintText: 'e.g. 1234567890123456789',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(context.l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () {
+                settings.setDiscordAppId(controller.text);
+                Navigator.of(ctx).pop();
+              },
+              child: Text(context.l10n.save),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   List<Widget> _buildInfo(

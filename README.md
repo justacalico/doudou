@@ -27,6 +27,7 @@ A music player that connects to your own media server. Stream your library, or p
 - Android Auto support
 - Wear OS companion app with playback controls, shuffle, and favorites
 - Android TV support with D-pad navigation and 10-foot UI
+- Discord Rich Presence on desktop (show what you're listening to)
 - Dynamic themes pulled from album artwork
 
 ## Platforms

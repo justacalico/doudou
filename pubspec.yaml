@@ -24,6 +24,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_carplay: ^1.5.0
+  flutter_discord_rpc: ^1.1.0
   flutter_keyboard_visibility: ^6.0.0
   flutter_lyric: ^2.0.4+6
   flutter_slidable: ^3.1.2
@@ -53,7 +54,8 @@ dependencies:
       url: https://github.com/anandnet/animated_side_bar.git
       branch: main
       ref: b53567a42b4ba3793a3cf00d478bdba0ecce33d7
-  smtc_windows: ^0.1.2
+  smtc_windows: ^1.1.0
+  flutter_rust_bridge: '2.11.1'
   terminate_restart:
     path: packages/terminate_restart
   toggle_switch: ^2.1.0
