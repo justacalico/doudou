@@ -24,6 +24,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_carplay: ^1.5.0
+  flutter_discord_rpc: ^1.1.0
   flutter_keyboard_visibility: ^6.0.0
   flutter_lyric: ^2.0.4+6
   flutter_slidable: ^3.1.2
