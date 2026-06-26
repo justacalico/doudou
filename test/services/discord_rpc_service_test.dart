@@ -46,6 +46,7 @@ void main() {
 
   setUpAll(() {
     PathProviderPlatform.instance = _MockPathProviderPlatform();
+    registerFallbackValue(const RPCActivity());
   });
 
   setUp(() async {
@@ -61,7 +62,8 @@ void main() {
     when(() => mockClient.connect(autoRetry: any(named: 'autoRetry')))
         .thenAnswer((_) async {});
     when(() => mockClient.disconnect()).thenAnswer((_) async {});
-    when(() => mockClient.setActivity(activity: any(named: 'activity')))
+    when(() => mockClient.setActivity(
+            activity: any(named: 'activity')))
         .thenAnswer((_) async {});
     when(() => mockClient.clearActivity()).thenAnswer((_) async {});
     when(() => mockClient.dispose()).thenAnswer((_) async {});
@@ -182,7 +184,8 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 50));
 
       verify(() => mockClient.clearActivity()).called(greaterThan(0));
-      verifyNever(() => mockClient.setActivity(activity: any(named: 'activity')));
+      verifyNever(() =>
+          mockClient.setActivity(activity: any(named: 'activity')));
     });
 
     test('sets activity with song details when a song is playing', () async {

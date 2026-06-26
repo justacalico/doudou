@@ -21,7 +21,7 @@ abstract class DiscordRpcClient {
   Future<void> initialize(String appId);
   Future<void> connect({bool autoRetry});
   Future<void> disconnect();
-  Future<void> setActivity(RPCActivity activity);
+  Future<void> setActivity({required RPCActivity activity});
   Future<void> clearActivity();
   Future<void> dispose();
   bool get isConnected;
@@ -41,7 +41,7 @@ class _RealDiscordRpcClient implements DiscordRpcClient {
   Future<void> disconnect() => FlutterDiscordRPC.instance.disconnect();
 
   @override
-  Future<void> setActivity(RPCActivity activity) =>
+  Future<void> setActivity({required RPCActivity activity}) =>
       FlutterDiscordRPC.instance.setActivity(activity: activity);
 
   @override
@@ -149,8 +149,8 @@ class DiscordRpcService extends GetxController {
     final durMs = progress.total.inMilliseconds;
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    final startTs = isPlaying && posMs > 0 ? now - posMs : null;
-    final endTs = isPlaying && durMs > 0 ? now - posMs + durMs : null;
+    final startTs = isPlaying && posMs > 0 ? (now - posMs).toInt() : null;
+    final endTs = isPlaying && durMs > 0 ? (now - posMs + durMs).toInt() : null;
 
     final activity = RPCActivity(
       state: song.artist?.isNotEmpty == true ? song.artist! : 'Unknown artist',
