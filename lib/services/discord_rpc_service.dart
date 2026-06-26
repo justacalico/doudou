@@ -196,6 +196,21 @@ class DiscordRpcService extends GetxController {
     final hasValidArt = artUri != null && artUri.toString().isNotEmpty;
     final albumName = song.album?.isNotEmpty == true ? song.album : null;
 
+    // YouTube Music songs don't have a backendType in extras (it's null for
+    // the default YouTube Music server). Other backends set it to 'plex',
+    // 'jellyfin', or 'subsonic'.
+    final backendType = song.extras?['backendType']?.toString();
+    final isYouTubeMusic = backendType == null;
+    final buttons = <RPCButton>[
+      const RPCButton(label: 'Download Doudou', url: 'https://gitlab.com/Openlyst/doudou'),
+    ];
+    if (isYouTubeMusic) {
+      buttons.add(RPCButton(
+        label: 'Open in YouTube Music',
+        url: 'https://music.youtube.com/watch?v=${song.id}',
+      ));
+    }
+
     final activity = RPCActivity(
       state: song.artist?.isNotEmpty == true ? song.artist! : 'Unknown artist',
       details: song.title,
@@ -205,9 +220,7 @@ class DiscordRpcService extends GetxController {
         largeImage: hasValidArt ? artUri.toString() : 'doudou',
         largeText: albumName ?? 'Doudou',
       ),
-      buttons: const [
-        RPCButton(label: 'Download Doudou', url: 'https://gitlab.com/Openlyst/doudou'),
-      ],
+      buttons: buttons,
     );
 
     _client.setActivity(activity: activity).catchError((e) {
