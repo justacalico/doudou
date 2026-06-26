@@ -182,14 +182,18 @@ class DiscordRpcService extends GetxController {
     final startTs = isPlaying && posMs > 0 ? (now - posMs).toInt() : null;
     final endTs = isPlaying && durMs > 0 ? (now - posMs + durMs).toInt() : null;
 
+    final artUri = song.artUri;
+    final hasValidArt = artUri != null && artUri.toString().isNotEmpty;
+    final albumName = song.album?.isNotEmpty == true ? song.album : null;
+
     final activity = RPCActivity(
       state: song.artist?.isNotEmpty == true ? song.artist! : 'Unknown artist',
       details: song.title,
       activityType: ActivityType.listening,
       timestamps: RPCTimestamps(start: startTs, end: endTs),
-      assets: const RPCAssets(
-        largeImage: 'doudou',
-        largeText: 'Doudou',
+      assets: RPCAssets(
+        largeImage: hasValidArt ? artUri.toString() : 'doudou',
+        largeText: albumName ?? 'Doudou',
       ),
     );
 
