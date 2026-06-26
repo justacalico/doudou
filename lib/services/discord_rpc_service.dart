@@ -135,6 +135,7 @@ class DiscordRpcService extends GetxController {
     _buttonSub = player.buttonState.listen((_) => _scheduleUpdate());
     _progressSub = player.progressBarStatus.listen((_) => _scheduleUpdate());
     _connSub = _client.isConnectedStream.listen((c) {
+      if (_isConnected.value == c) return;
       _isConnected.value = c;
       printINFO('[DiscordRpc] connection state changed: $c');
     });
