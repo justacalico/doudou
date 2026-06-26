@@ -119,8 +119,17 @@ class DiscordRpcService extends GetxController {
       _isReady.value = true;
       printINFO('[DiscordRpc] connecting to Discord...');
       await _client.connect(autoRetry: true);
-      printINFO('[DiscordRpc] connected, listening to player state');
-      _listenToPlayer();
+      // connect(autoRetry: true) doesn't throw on initial failure —
+      // it sets up a retry timer and returns. So we need to check
+      // the actual connection state before proceeding.
+      if (_client.isConnected) {
+        printINFO('[DiscordRpc] connected, listening to player state');
+        _listenToPlayer();
+      } else {
+        printWarning('[DiscordRpc] connect failed, will retry in background');
+        // still set up listeners so activity updates when connection is established
+        _listenToPlayer();
+      }
     } catch (e) {
       printWarning('[DiscordRpc] init failed: $e');
     }
@@ -138,6 +147,7 @@ class DiscordRpcService extends GetxController {
       if (_isConnected.value == c) return;
       _isConnected.value = c;
       printINFO('[DiscordRpc] connection state changed: $c');
+      if (c) _updateActivity();
     });
     _isConnected.value = _client.isConnected;
     // push initial state
@@ -150,6 +160,8 @@ class DiscordRpcService extends GetxController {
   }
 
   void _updateActivity() {
+    if (!_isConnected.value) return;
+
     final player = _playerState;
     final song = player.currentSong.value;
     final isPlaying = player.buttonState.value == PlayButtonState.playing;
@@ -219,7 +231,11 @@ class DiscordRpcService extends GetxController {
       }
       _isReady.value = true;
       await _client.connect(autoRetry: true);
-      printINFO('[DiscordRpc] reconnected successfully');
+      if (_client.isConnected) {
+        printINFO('[DiscordRpc] reconnected successfully');
+      } else {
+        printWarning('[DiscordRpc] reconnect failed, will retry in background');
+      }
       _listenToPlayer();
     } catch (e) {
       printWarning('[DiscordRpc] reconfigure failed: $e');

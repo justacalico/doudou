@@ -57,7 +57,7 @@ void main() {
 
     when(() => mockClient.isConnectedStream)
         .thenAnswer((_) => connController.stream);
-    when(() => mockClient.isConnected).thenReturn(false);
+    when(() => mockClient.isConnected).thenReturn(true);
     when(() => mockClient.initialize(any())).thenAnswer((_) async {});
     when(() => mockClient.connect(autoRetry: any(named: 'autoRetry')))
         .thenAnswer((_) async {});
