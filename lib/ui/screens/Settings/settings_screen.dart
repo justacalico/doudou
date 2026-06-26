@@ -10,6 +10,7 @@ import '../../widgets/common_dialog_widget.dart';
 import '../../widgets/cust_switch.dart';
 import '../../widgets/tv_focus_highlight.dart';
 import '/services/tv_service.dart';
+import '/services/discord_rpc_service.dart';
 import '../../widgets/export_file_dialog.dart';
 import '../../widgets/backup_dialog.dart';
 import '../../widgets/restore_dialog.dart';
@@ -1292,6 +1293,22 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
               ),
               onTap: () => _showDiscordAppIdDialog(context, settings),
             )),
+        Obx(() => ListTile(
+              leading: const Icon(Icons.bolt_outlined, size: 20),
+              title: const Text('Test Discord connection'),
+              subtitle: Text(
+                settings.discordAppId.value.isEmpty
+                    ? 'Set an Application ID first'
+                    : 'Send a test activity to Discord',
+                style: TextStyle(
+                  color: settings.discordAppId.value.isEmpty
+                      ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)
+                      : null,
+                ),
+              ),
+              enabled: settings.discordAppId.value.isNotEmpty,
+              onTap: () => _testDiscordRpc(context, settings),
+            )),
       ],
       ListTile(
         title: Text(context.l10n.resetToDefault),
@@ -1306,6 +1323,35 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         },
       ),
     ];
+  }
+
+  void _testDiscordRpc(
+      BuildContext context, SettingsScreenController settings) async {
+    if (!Get.isRegistered<DiscordRpcService>()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        snackbar(context, 'Discord RPC is not available on this platform',
+            size: SnackBarSize.BIG),
+      );
+      return;
+    }
+
+    final svc = Get.find<DiscordRpcService>();
+    ScaffoldMessenger.of(context).showSnackBar(
+      snackbar(context, 'Testing Discord connection...', size: SnackBarSize.BIG),
+    );
+
+    final success = await svc.testConnection();
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      snackbar(
+        context,
+        success
+            ? 'Discord RPC is working! Check your Discord profile.'
+            : 'Discord RPC test failed. Make sure Discord is running and the Application ID is correct.',
+        size: SnackBarSize.BIG,
+      ),
+    );
   }
 
   void _showDiscordAppIdDialog(

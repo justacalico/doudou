@@ -169,6 +169,52 @@ class DiscordRpcService extends GetxController {
     _debounce = Timer(const Duration(milliseconds: 800), _updateActivity);
   }
 
+  /// Pushes a test activity to Discord so the user can verify the connection
+  /// works from the settings screen.
+  Future<bool> testConnection() async {
+    if (!isSupported) return false;
+
+    final appId = _box.get('discordAppId') as String?;
+    if (appId == null || appId.trim().isEmpty) {
+      printWarning('[DiscordRpc] test failed — no app ID configured');
+      return false;
+    }
+
+    try {
+      if (!_wasInitialized) {
+        printINFO('[DiscordRpc] test: initializing with app ID: ${appId.trim()}');
+        await _client.initialize(appId.trim());
+        _wasInitialized = true;
+      }
+      await _client.connect(autoRetry: false);
+      if (!_client.isConnected) {
+        printWarning('[DiscordRpc] test: connect failed');
+        return false;
+      }
+      _isReady.value = true;
+      _isConnected.value = true;
+
+      final activity = RPCActivity(
+        state: 'Testing Discord RPC',
+        details: 'Doudou is connected!',
+        activityType: ActivityType.listening,
+        assets: const RPCAssets(
+          largeImage: 'doudou',
+          largeText: 'Doudou',
+        ),
+        buttons: const [
+          RPCButton(label: 'Download Doudou', url: 'https://gitlab.com/Openlyst/doudou'),
+        ],
+      );
+      await _client.setActivity(activity: activity);
+      printINFO('[DiscordRpc] test activity sent successfully');
+      return true;
+    } catch (e) {
+      printWarning('[DiscordRpc] test failed: $e');
+      return false;
+    }
+  }
+
   void _updateActivity() {
     if (!_isConnected.value) return;
 
