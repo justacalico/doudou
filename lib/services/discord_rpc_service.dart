@@ -150,7 +150,9 @@ class DiscordRpcService extends GetxController {
     final player = _playerState;
     _songSub = player.currentSong.listen((_) => _scheduleUpdate());
     _buttonSub = player.buttonState.listen((_) => _scheduleUpdate());
-    _progressSub = player.progressBarStatus.listen((_) => _scheduleUpdate());
+    // Don't listen to progressBarStatus — it fires on every position tick
+    // during playback and would starve the debounce timer so it never fires.
+    // We read the progress value directly in _updateActivity instead.
     _connSub = _client.isConnectedStream.listen((c) {
       if (_isConnected.value == c) return;
       _isConnected.value = c;
