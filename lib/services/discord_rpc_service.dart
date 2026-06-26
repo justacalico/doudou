@@ -127,7 +127,7 @@ class DiscordRpcService extends GetxController {
   }
 
   PlayerStateProvider get _playerState =>
-      _player ?? Get.find<PlayerStateProvider>();
+      _player ?? Get.find<PlayerController>();
 
   void _listenToPlayer() {
     final player = _playerState;
