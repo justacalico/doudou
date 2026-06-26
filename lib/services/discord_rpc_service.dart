@@ -8,6 +8,14 @@ import 'package:hive/hive.dart';
 import '/ui/player/player_controller.dart';
 import '/utils/helper.dart';
 
+/// Just the player state we need for RPC updates.
+/// This abstraction lets us test without the full PlayerController.
+abstract class PlayerStateProvider {
+  Rxn<dynamic> get currentSong;
+  Rx<dynamic> get buttonState;
+  Rx<dynamic> get progressBarStatus;
+}
+
 /// Wraps the real FlutterDiscordRPC so we can mock it in tests.
 abstract class DiscordRpcClient {
   Future<void> initialize(String appId);
@@ -56,12 +64,17 @@ class _RealDiscordRpcClient implements DiscordRpcClient {
 /// Discord Application ID in settings — we need it to initialize the IPC
 /// connection to Discord.
 class DiscordRpcService extends GetxController {
-  DiscordRpcService({DiscordRpcClient? client})
-      : _client = client ?? _RealDiscordRpcClient();
+  DiscordRpcService({
+    DiscordRpcClient? client,
+    Box? box,
+    PlayerStateProvider? player,
+  })  : _client = client ?? _RealDiscordRpcClient(),
+        _box = box ?? Hive.box("AppPrefs"),
+        _player = player;
 
   final DiscordRpcClient _client;
-
-  final _box = Hive.box("AppPrefs");
+  final Box _box;
+  final PlayerStateProvider? _player;
   final _isReady = false.obs;
   final _isConnected = false.obs;
 
@@ -102,8 +115,11 @@ class DiscordRpcService extends GetxController {
     }
   }
 
+  PlayerStateProvider get _playerState =>
+      _player ?? Get.find<PlayerStateProvider>();
+
   void _listenToPlayer() {
-    final player = Get.find<PlayerController>();
+    final player = _playerState;
     _songSub = player.currentSong.listen((_) => _scheduleUpdate());
     _buttonSub = player.buttonState.listen((_) => _scheduleUpdate());
     _progressSub = player.progressBarStatus.listen((_) => _scheduleUpdate());
@@ -119,7 +135,7 @@ class DiscordRpcService extends GetxController {
   }
 
   void _updateActivity() {
-    final player = Get.find<PlayerController>();
+    final player = _playerState;
     final song = player.currentSong.value;
     final isPlaying = player.buttonState.value == PlayButtonState.playing;
 
