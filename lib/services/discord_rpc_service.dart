@@ -195,6 +195,9 @@ class DiscordRpcService extends GetxController {
         largeImage: hasValidArt ? artUri.toString() : 'doudou',
         largeText: albumName ?? 'Doudou',
       ),
+      buttons: const [
+        RPCButton(label: 'Download Doudou', url: 'https://gitlab.com/Openlyst/doudou'),
+      ],
     );
 
     _client.setActivity(activity: activity).catchError((e) {
