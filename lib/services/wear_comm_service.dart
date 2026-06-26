@@ -8,7 +8,8 @@ import '/utils/helper.dart';
 /// Watch-side communication service. Receives state from the phone
 /// and sends commands back. Exposes reactive state for the UI.
 class WearCommService extends GetxService {
-  final _watch = WatchConnectivity();
+  WearCommService({WatchConnectivity? watch}) : _watch = watch ?? WatchConnectivity();
+  final WatchConnectivity _watch;
   StreamSubscription? _ctxSub;
   StreamSubscription? _msgSub;
 
