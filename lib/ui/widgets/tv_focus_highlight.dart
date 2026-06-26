@@ -50,10 +50,8 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
     final currentlyTv = _isTv();
     if (currentlyTv && widget.autofocus && !_didAutofocus) {
       _didAutofocus = true;
-      debugPrint('[TvFocusHighlight:${widget.debugLabel}] TV already detected in initState, scheduling autofocus');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _isTv()) {
-          debugPrint('[TvFocusHighlight:${widget.debugLabel}] requesting autofocus (from initState)');
           _focusNode.requestFocus();
         }
       });
@@ -64,13 +62,11 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
       final tvService = Get.find<TvService>();
       _tvWorker = ever(tvService.isTV, (_) {
         if (mounted) {
-          debugPrint('[TvFocusHighlight:${widget.debugLabel}] TV state changed to ${tvService.isTV.value}, rebuilding');
           setState(() {});
           if (tvService.isTV.value && widget.autofocus && !_didAutofocus) {
             _didAutofocus = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && _isTv()) {
-                debugPrint('[TvFocusHighlight:${widget.debugLabel}] requesting autofocus (from worker)');
                 _focusNode.requestFocus();
               }
             });
@@ -82,7 +78,6 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
 
   void _onFocusChanged() {
     if (!mounted) return;
-    debugPrint('[TvFocusHighlight:${widget.debugLabel}] focus changed: ${_focusNode.hasFocus}');
     setState(() => _hasFocus = _focusNode.hasFocus);
   }
 
@@ -92,7 +87,6 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
   }
 
   void _escapeToParent(bool forward) {
-    debugPrint('[TvFocusHighlight:${widget.debugLabel}] escaping to parent (forward=$forward)');
     // Walk up the focus tree to find a FocusScopeNode that can traverse
     // beyond the current FocusTraversalGroup
     var node = _focusNode.parent;
@@ -100,50 +94,42 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
       if (node is FocusScopeNode) {
         final result = forward ? node.nextFocus() : node.previousFocus();
         if (result) {
-          debugPrint('[TvFocusHighlight:${widget.debugLabel}] escaped to parent scope successfully');
           return;
         }
       }
       node = node.parent;
     }
-    debugPrint('[TvFocusHighlight:${widget.debugLabel}] no parent scope to escape to');
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
     final key = event.logicalKey;
-    debugPrint('[TvFocusHighlight:${widget.debugLabel}] key event: $key');
     if (key == LogicalKeyboardKey.select ||
         key == LogicalKeyboardKey.enter ||
         key == LogicalKeyboardKey.space) {
-      debugPrint('[TvFocusHighlight:${widget.debugLabel}] select/enter pressed, calling onSelect');
       widget.onSelect?.call();
       return KeyEventResult.handled;
     }
     // D-pad arrows — traverse focus, escaping group boundaries when needed
     if (key == LogicalKeyboardKey.arrowDown) {
-      debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow down, traversing next');
       if (!_focusNode.nextFocus()) {
         _escapeToParent(true);
       }
       return KeyEventResult.handled;
     }
     if (key == LogicalKeyboardKey.arrowUp) {
-      debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow up, traversing previous');
       if (!_focusNode.previousFocus()) {
         _escapeToParent(false);
       }
       return KeyEventResult.handled;
     }
     if (key == LogicalKeyboardKey.arrowRight) {
-      debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow right, traversing next');
       if (!_focusNode.nextFocus()) {
         _escapeToParent(true);
       }
       return KeyEventResult.handled;
     }
     if (key == LogicalKeyboardKey.arrowLeft) {
-      debugPrint('[TvFocusHighlight:${widget.debugLabel}] arrow left, traversing previous');
       if (!_focusNode.previousFocus()) {
         _escapeToParent(false);
       }
@@ -163,7 +149,6 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
   @override
   Widget build(BuildContext context) {
     final isTv = _isTv();
-    debugPrint('[TvFocusHighlight:${widget.debugLabel}] build, isTv=$isTv, hasFocus=$_hasFocus');
 
     if (!isTv) return widget.child;
 
