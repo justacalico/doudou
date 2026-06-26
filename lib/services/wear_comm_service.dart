@@ -43,6 +43,10 @@ class WearCommService extends GetxService {
   final isReachable = false.obs;
   Timer? _reachabilityTimer;
 
+  // Adaptive polling intervals with backoff
+  static const _pollIntervals = [200, 500, 1000, 2000];
+  int _pollIndex = 0;
+
   @override
   void onInit() {
     super.onInit();
@@ -50,27 +54,30 @@ class WearCommService extends GetxService {
   }
 
   void _init() {
-    checkReachability();
-
-    // Listen for context updates (state pushed from phone)
-    _ctxSub = _watch.contextStream.listen((ctx) {
-      _handleContext(ctx);
-      // Got data from phone, so we know it's reachable
-      isReachable.value = true;
-    });
-
-    // Also check existing application context
+    // Optimistically set reachable if we have cached context from a previous session
     _watch.receivedApplicationContexts.then((existing) {
       if (existing.isNotEmpty) {
         _handleContext(existing.last);
+        // Don't wait for isReachable — we have data so the phone was connected before
         isReachable.value = true;
       }
     }).catchError((_) {});
 
-    // Periodically check reachability every 5 seconds
-    _reachabilityTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      checkReachability();
+    // Listen for context updates (state pushed from phone)
+    _ctxSub = _watch.contextStream.listen((ctx) {
+      _handleContext(ctx);
+      isReachable.value = true;
+      _resetPollInterval();
     });
+
+    // Listen for messages from the phone — any message means we're connected
+    _msgSub = _watch.messageStream.listen((_) {
+      isReachable.value = true;
+      _resetPollInterval();
+    });
+
+    // Kick off adaptive reachability polling
+    _scheduleNextPoll();
 
     // Request initial state from phone
     sendMessage({'command': 'getState'});
@@ -78,17 +85,37 @@ class WearCommService extends GetxService {
     printINFO('WearCommService initialized');
   }
 
+  void _resetPollInterval() {
+    _pollIndex = 0;
+    _reachabilityTimer?.cancel();
+    _scheduleNextPoll();
+  }
+
+  void _scheduleNextPoll() {
+    final delay = _pollIntervals[_pollIndex.clamp(0, _pollIntervals.length - 1)];
+    _reachabilityTimer = Timer(Duration(milliseconds: delay), () {
+      checkReachability();
+      _scheduleNextPoll();
+    });
+  }
+
   /// Check if the phone app is reachable and update [isReachable].
+  /// Bumps the poll index so we back off if still unreachable.
   Future<void> checkReachability() async {
     try {
       final r = await _watch.isReachable;
       isReachable.value = r;
       if (r) {
-        // Nudge the phone to send fresh state
+        _resetPollInterval();
         sendMessage({'command': 'getState'});
+      } else if (_pollIndex < _pollIntervals.length - 1) {
+        _pollIndex++;
       }
     } catch (_) {
       isReachable.value = false;
+      if (_pollIndex < _pollIntervals.length - 1) {
+        _pollIndex++;
+      }
     }
   }
 
