@@ -673,51 +673,54 @@ class _DesktopVolumePopup extends StatelessWidget {
             width: 0.5,
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Obx(() {
-              final v = controller.volume.value;
-              return Icon(
-                v == 0
-                    ? Icons.volume_off_rounded
-                    : v < 50
-                        ? Icons.volume_down_rounded
-                        : Icons.volume_up_rounded,
-                size: 18,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
-              );
-            }),
-            const SizedBox(height: 6),
-            Expanded(
-              child: RotatedBox(
-                quarterTurns: 3,
-                child: Obx(() {
-                  final v = controller.volume.value;
-                  return SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      trackHeight: 3,
-                      thumbShape:
-                          const RoundSliderThumbShape(enabledThumbRadius: 6),
-                      overlayShape:
-                          const RoundSliderOverlayShape(overlayRadius: 12),
-                      activeTrackColor: theme.colorScheme.onSurface,
-                      inactiveTrackColor:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.25),
-                      thumbColor: theme.colorScheme.onSurface,
-                    ),
-                    child: Slider(
-                      value: v / 100,
-                      onChanged: (value) {
-                        controller
-                            .setVolume((value * 100).round().clamp(0, 100));
-                      },
-                    ),
-                  );
-                }),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: RotatedBox(
+                  quarterTurns: 3,
+                  child: Obx(() {
+                    final v = controller.volume.value;
+                    return SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 3,
+                        thumbShape:
+                            const RoundSliderThumbShape(enabledThumbRadius: 6),
+                        overlayShape:
+                            const RoundSliderOverlayShape(overlayRadius: 12),
+                        activeTrackColor: theme.colorScheme.onSurface,
+                        inactiveTrackColor:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.25),
+                        thumbColor: theme.colorScheme.onSurface,
+                      ),
+                      child: Slider(
+                        value: v / 100,
+                        onChanged: (value) {
+                          controller
+                              .setVolume((value * 100).round().clamp(0, 100));
+                        },
+                      ),
+                    );
+                  }),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Obx(() {
+                final v = controller.volume.value;
+                return Icon(
+                  v == 0
+                      ? Icons.volume_off_rounded
+                      : v < 50
+                          ? Icons.volume_down_rounded
+                          : Icons.volume_up_rounded,
+                  size: 18,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                );
+              }),
+            ],
+          ),
         ),
       ),
     );
