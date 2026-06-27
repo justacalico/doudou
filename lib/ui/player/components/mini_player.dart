@@ -656,20 +656,17 @@ class _DesktopVolumePopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = context.doudouColors;
     return Material(
       color: Colors.transparent,
       child: Container(
         width: 44,
         height: 150,
         decoration: BoxDecoration(
-          color: theme.brightness == Brightness.dark
-              ? Colors.white.withValues(alpha: 0.10)
-              : Colors.black.withValues(alpha: 0.06),
+          color: c.surfaceBase,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: theme.brightness == Brightness.dark
-                ? Colors.white.withValues(alpha: 0.18)
-                : Colors.black.withValues(alpha: 0.08),
+            color: c.borderSubtle,
             width: 0.5,
           ),
         ),
