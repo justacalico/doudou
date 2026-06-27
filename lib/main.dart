@@ -40,8 +40,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initHive();
   _setAppInitPrefs();
-  startApplicationServices();
   Get.put<AudioHandler>(await initAudioService(), permanent: true);
+  startApplicationServices();
   if (GetPlatform.isAndroid && Get.isRegistered<AndroidAutoService>()) {
     Get.find<AndroidAutoService>().init();
   }
