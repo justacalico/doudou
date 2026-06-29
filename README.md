@@ -8,6 +8,10 @@ A music player that connects to your own media server. Stream your library, or p
   <img src="images/nowplaying.png" width="30%" />
 </p>
 
+<p align="center">
+  <img src="images/desktop.png" width="100%" />
+</p>
+
 ## What it connects to
 
 - **Subsonic** / **OpenSubsonic** - Best tested and recommended
