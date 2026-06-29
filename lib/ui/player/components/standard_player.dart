@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../shell_controller.dart';
 import '../../widgets/image_widget.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/songinfo_bottom_sheet.dart';
@@ -455,7 +456,13 @@ class _CompactNowPlaying extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: () => pc.playerPanelController.close(),
+            onTap: () {
+              if (GetPlatform.isDesktop) {
+                Get.find<ShellController>().toggleNowPlayingPanel();
+              } else {
+                pc.playerPanelController.close();
+              }
+            },
             child: ClipRRect(
               borderRadius: BorderRadius.circular(borderRadius),
               child: Container(
@@ -910,7 +917,13 @@ class _ExpandedNowPlaying extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                      onPressed: () => pc.playerPanelController.close(),
+                      onPressed: () {
+                        if (GetPlatform.isDesktop) {
+                          Get.find<ShellController>().toggleNowPlayingPanel();
+                        } else {
+                          pc.playerPanelController.close();
+                        }
+                      },
                     ),
                     const Spacer(),
                     IconButton(

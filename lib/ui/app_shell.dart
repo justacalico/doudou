@@ -23,6 +23,7 @@ import 'screens/Search/search_screen.dart';
 import 'screens/Settings/settings_screen_controller.dart';
 import 'shell_controller.dart';
 import 'widgets/bottom_nav_bar.dart';
+import 'widgets/now_playing_side_panel.dart';
 import 'widgets/side_nav_bar.dart';
 import 'widgets/queue_drawer.dart';
 import 'widgets/sliding_up_panel.dart';
@@ -63,6 +64,8 @@ class _AppShellState extends State<AppShell> {
     final size = MediaQuery.sizeOf(context);
     final width = size.width;
     final isWideScreen = width > 800;
+    final layout = DoudouLayout.of(context);
+    final isDesktopLayout = layout.isDesktop && isWideScreen;
 
     return PopScope(
       canPop: false,
@@ -100,7 +103,6 @@ class _AppShellState extends State<AppShell> {
             final isBottomNavEnabled =
                 settingsController.isBottomNavBarEnabled.value;
             final sidebarMode = settingsController.sidebarMode.value;
-            final layout = DoudouLayout.of(context);
             // TV always uses side navigation — ignore bottom nav setting
             final useBottomNav = !layout.isTV &&
                 (layout.useBottomNav ||
@@ -166,6 +168,16 @@ class _AppShellState extends State<AppShell> {
                         setState(() => _sidebarMinimized = v),
                   );
 
+                  // Desktop layout: side panel instead of sliding up panel
+                  if (isDesktopLayout && !useBottomNav) {
+                    return _DesktopShellBody(
+                      chrome: chrome,
+                      shellController: shellController,
+                      playerController: playerController,
+                    );
+                  }
+
+                  // Mobile / tablet / TV: keep the sliding up panel
                   return Obx(() {
                     final hasCurrentSong =
                         playerController.currentSong.value != null;
@@ -208,6 +220,49 @@ class _AppShellState extends State<AppShell> {
         ),
       ),
     );
+  }
+}
+
+/// Desktop shell body — sidebar | main content | resize handle | now playing panel
+class _DesktopShellBody extends StatelessWidget {
+  const _DesktopShellBody({
+    required this.chrome,
+    required this.shellController,
+    required this.playerController,
+  });
+
+  final Widget chrome;
+  final ShellController shellController;
+  final PlayerController playerController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final hasSong = playerController.currentSong.value != null;
+      final panelVisible =
+          shellController.isNowPlayingPanelVisible.value && hasSong;
+      final panelWidth = shellController.nowPlayingPanelWidth.value;
+
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: chrome),
+          if (panelVisible) ...[
+            PanelResizeHandle(
+              onDragUpdate: (dx) {
+                final newWidth = panelWidth + dx;
+                shellController.setNowPlayingPanelWidth(newWidth);
+              },
+              onToggle: shellController.toggleNowPlayingPanel,
+            ),
+            SizedBox(
+              width: panelWidth,
+              child: const NowPlayingSidePanel(),
+            ),
+          ],
+        ],
+      );
+    });
   }
 }
 

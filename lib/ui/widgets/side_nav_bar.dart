@@ -10,6 +10,8 @@ import 'package:doudou/ui/screens/tv_now_playing_screen.dart';
 import 'package:doudou/ui/widgets/tv_focus_highlight.dart';
 import 'package:doudou/ui/widgets/window_controls.dart';
 import '/services/tv_service.dart';
+import 'package:doudou/ui/design/doudou_layout.dart';
+import 'package:doudou/ui/shell_controller.dart';
 
 class SideNavBar extends StatelessWidget {
   const SideNavBar({
@@ -48,9 +50,12 @@ class SideNavBar extends StatelessWidget {
           ),
           Obx(
             () => SizedBox(
-              height: playerController.currentSong.value != null
-                  ? playerController.playerPanelMinHeight.value
-                  : 0.0,
+              height: (GetPlatform.isDesktop &&
+                      DoudouLayout.of(context).isDesktop)
+                  ? 0.0
+                  : (playerController.currentSong.value != null
+                      ? playerController.playerPanelMinHeight.value
+                      : 0.0),
             ),
           ),
         ],
@@ -233,6 +238,29 @@ class _SidebarContent extends StatelessWidget {
                     compact: minimized,
                     onTap: () => onMinimizeChanged(!minimized),
                   ),
+                // Desktop now playing panel toggle
+                if (GetPlatform.isDesktop &&
+                    DoudouLayout.of(context).isDesktop &&
+                    !minimized)
+                  Obx(() {
+                    final shell = Get.find<ShellController>();
+                    final pc = Get.find<PlayerController>();
+                    final hasSong = pc.currentSong.value != null;
+                    if (!hasSong) return const SizedBox.shrink();
+                    final visible = shell.isNowPlayingPanelVisible.value;
+                    return _SidebarTile(
+                      icon: visible
+                          ? Icons.view_sidebar_outlined
+                          : Icons.view_sidebar_rounded,
+                      activeIcon: visible
+                          ? Icons.view_sidebar_outlined
+                          : Icons.view_sidebar_rounded,
+                      label: visible ? 'Hide Now Playing' : 'Show Now Playing',
+                      selected: false,
+                      compact: minimized,
+                      onTap: shell.toggleNowPlayingPanel,
+                    );
+                  }),
               ],
             ),
           ),

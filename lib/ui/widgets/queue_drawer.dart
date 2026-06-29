@@ -39,9 +39,9 @@ class _QueueDrawerState extends State<QueueDrawer> {
           top: BorderSide(color: c.borderSubtle),
         ),
       ),
-      margin: const EdgeInsets.only(
+      margin: EdgeInsets.only(
         top: 5,
-        bottom: 106,
+        bottom: GetPlatform.isDesktop ? 12 : 106,
       ),
       child: SizedBox(
         child: Column(
