@@ -458,7 +458,7 @@ class _CompactNowPlaying extends StatelessWidget {
           GestureDetector(
             onTap: () {
               if (GetPlatform.isDesktop) {
-                Get.find<ShellController>().toggleNowPlayingPanel();
+                Get.find<ShellController>().toggleNowPlayingFullscreen();
               } else {
                 pc.playerPanelController.close();
               }
@@ -476,12 +476,18 @@ class _CompactNowPlaying extends StatelessWidget {
                     width: 0.5,
                   ),
                 ),
-                child: Icon(
-                  GetPlatform.isDesktop
-                      ? Icons.fullscreen_rounded
-                      : Icons.keyboard_arrow_down_rounded,
-                  color: white,
-                  size: iconSize,
+                child: Obx(
+                  () => Icon(
+                    GetPlatform.isDesktop
+                        ? (Get.find<ShellController>()
+                                .isNowPlayingFullscreen
+                                .value
+                            ? Icons.fullscreen_exit_rounded
+                            : Icons.fullscreen_rounded)
+                        : Icons.keyboard_arrow_down_rounded,
+                    color: white,
+                    size: iconSize,
+                  ),
                 ),
               ),
             ),
@@ -918,14 +924,20 @@ class _ExpandedNowPlaying extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: Icon(
-                        GetPlatform.isDesktop
-                            ? Icons.fullscreen_rounded
-                            : Icons.keyboard_arrow_down_rounded,
+                      icon: Obx(
+                        () => Icon(
+                          GetPlatform.isDesktop
+                              ? (Get.find<ShellController>()
+                                      .isNowPlayingFullscreen
+                                      .value
+                                  ? Icons.fullscreen_exit_rounded
+                                  : Icons.fullscreen_rounded)
+                              : Icons.keyboard_arrow_down_rounded,
+                        ),
                       ),
                       onPressed: () {
                         if (GetPlatform.isDesktop) {
-                          Get.find<ShellController>().toggleNowPlayingPanel();
+                          Get.find<ShellController>().toggleNowPlayingFullscreen();
                         } else {
                           pc.playerPanelController.close();
                         }

@@ -13,6 +13,7 @@ class ShellController extends GetxController {
 
   final nowPlayingPanelWidth = _defaultPanelWidth.obs;
   final isNowPlayingPanelVisible = true.obs;
+  final isNowPlayingFullscreen = false.obs;
 
   void setUseBottomNav(bool value) {
     if (useBottomNav.value != value) {
@@ -37,6 +38,10 @@ class ShellController extends GetxController {
   void toggleNowPlayingPanel() {
     isNowPlayingPanelVisible.value = !isNowPlayingPanelVisible.value;
     Hive.box("AppPrefs").put("isNowPlayingPanelVisible", isNowPlayingPanelVisible.value);
+  }
+
+  void toggleNowPlayingFullscreen() {
+    isNowPlayingFullscreen.value = !isNowPlayingFullscreen.value;
   }
 
   @override

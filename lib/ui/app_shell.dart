@@ -12,6 +12,7 @@ import 'package:doudou/ui/design/doudou_layout.dart';
 import 'navigator.dart';
 import 'player/player.dart';
 import 'player/components/mini_player.dart';
+import 'player/components/standard_player.dart';
 import 'player/player_controller.dart';
 import 'screens/Album/album_screen.dart';
 import 'screens/Artists/artist_screen.dart';
@@ -275,6 +276,7 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
       final panelVisible =
           widget.shellController.isNowPlayingPanelVisible.value && hasSong;
       final panelWidth = widget.shellController.nowPlayingPanelWidth.value;
+      final isFullscreen = widget.shellController.isNowPlayingFullscreen.value;
 
       if (panelVisible != _wasVisible) {
         _wasVisible = panelVisible;
@@ -285,38 +287,51 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
         }
       }
 
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      return Stack(
         children: [
-          Expanded(child: widget.chrome),
-          AnimatedBuilder(
-            animation: _curve,
-            builder: (context, child) {
-              return ClipRect(
-                child: Align(
-                  alignment: const Alignment(1, 0),
-                  widthFactor: _curve.value,
-                  child: child,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: widget.chrome),
+              AnimatedBuilder(
+                animation: _curve,
+                builder: (context, child) {
+                  return ClipRect(
+                    child: Align(
+                      alignment: const Alignment(1, 0),
+                      widthFactor: _curve.value,
+                      child: child,
+                    ),
+                  );
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PanelResizeHandle(
+                      onDragUpdate: (dx) {
+                        widget.shellController
+                            .setNowPlayingPanelWidth(panelWidth + dx);
+                      },
+                      onToggle: widget.shellController.toggleNowPlayingPanel,
+                    ),
+                    SizedBox(
+                      width: panelWidth,
+                      child: const NowPlayingSidePanel(),
+                    ),
+                  ],
                 ),
-              );
-            },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                PanelResizeHandle(
-                  onDragUpdate: (dx) {
-                    widget.shellController
-                        .setNowPlayingPanelWidth(panelWidth + dx);
-                  },
-                  onToggle: widget.shellController.toggleNowPlayingPanel,
-                ),
-                SizedBox(
-                  width: panelWidth,
-                  child: const NowPlayingSidePanel(),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          if (isFullscreen && hasSong)
+            const Positioned.fill(
+              child: Material(
+                color: Colors.black,
+                child: StandardPlayer(
+                  key: ValueKey('fullscreen-player'),
+                ),
+              ),
+            ),
         ],
       );
     });
