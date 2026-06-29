@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../shell_controller.dart';
 import '../../widgets/image_widget.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/songinfo_bottom_sheet.dart';
@@ -186,8 +187,13 @@ class _CompactNowPlaying extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final pc = Get.find<PlayerController>();
     const white = CupertinoColors.white;
+    // Use the real screen width, not the MediaQuery-overridden one (the side
+    // panel overrides MediaQuery to its own width, which would break the check)
+    final realScreenWidth =
+        View.of(context).physicalSize.width / View.of(context).devicePixelRatio;
+    final isWideScreen = realScreenWidth > 800;
     final isLandscapeDense =
-        !GetPlatform.isDesktop && size.width > size.height && size.height < 560;
+        !isWideScreen && size.width > size.height && size.height < 560;
 
     return Scaffold(
       backgroundColor: const Color(0xFF000000),
@@ -224,7 +230,7 @@ class _CompactNowPlaying extends StatelessWidget {
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     child: Column(
                       children: [
-                        _buildTopActions(pc, white, dense: true),
+                        _buildTopActions(pc, white, dense: true, isWideScreen: isWideScreen),
                         Expanded(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -314,7 +320,7 @@ class _CompactNowPlaying extends StatelessWidget {
               : SafeArea(
                   child: Column(
                     children: [
-                      _buildTopActions(pc, white),
+                      _buildTopActions(pc, white, isWideScreen: isWideScreen),
                       Expanded(
                         child: Column(
                           children: [
@@ -438,7 +444,7 @@ class _CompactNowPlaying extends StatelessWidget {
   }
 
   Widget _buildTopActions(PlayerController pc, Color white,
-      {bool dense = false}) {
+      {bool dense = false, required bool isWideScreen}) {
     final buttonSize = dense ? 34.0 : 40.0;
     final iconSize = dense ? 20.0 : 22.0;
     final borderRadius = dense ? 10.0 : 12.0;
@@ -455,7 +461,13 @@ class _CompactNowPlaying extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: () => pc.playerPanelController.close(),
+            onTap: () {
+              if (isWideScreen) {
+                Get.find<ShellController>().toggleNowPlayingFullscreen();
+              } else {
+                pc.playerPanelController.close();
+              }
+            },
             child: ClipRRect(
               borderRadius: BorderRadius.circular(borderRadius),
               child: Container(
@@ -469,11 +481,23 @@ class _CompactNowPlaying extends StatelessWidget {
                     width: 0.5,
                   ),
                 ),
-                child: Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: white,
-                  size: iconSize,
-                ),
+                child: isWideScreen
+                    ? Obx(
+                        () => Icon(
+                          Get.find<ShellController>()
+                                  .isNowPlayingFullscreen
+                                  .value
+                              ? Icons.fullscreen_exit_rounded
+                              : Icons.fullscreen_rounded,
+                          color: white,
+                          size: iconSize,
+                        ),
+                      )
+                    : Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: white,
+                        size: iconSize,
+                      ),
               ),
             ),
           ),
@@ -865,6 +889,10 @@ class _ExpandedNowPlaying extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Real screen width — MediaQuery may be overridden by the side panel
+    final realScreenWidth =
+        View.of(context).physicalSize.width / View.of(context).devicePixelRatio;
+    final isWideScreen = realScreenWidth > 800;
     final pc = Get.find<PlayerController>();
     final theme = Theme.of(context);
     final textColor = theme.brightness == Brightness.dark
@@ -909,8 +937,24 @@ class _ExpandedNowPlaying extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                      onPressed: () => pc.playerPanelController.close(),
+                      icon: isWideScreen
+                          ? Obx(
+                              () => Icon(
+                                Get.find<ShellController>()
+                                        .isNowPlayingFullscreen
+                                        .value
+                                    ? Icons.fullscreen_exit_rounded
+                                    : Icons.fullscreen_rounded,
+                              ),
+                            )
+                          : const Icon(Icons.keyboard_arrow_down_rounded),
+                      onPressed: () {
+                        if (isWideScreen) {
+                          Get.find<ShellController>().toggleNowPlayingFullscreen();
+                        } else {
+                          pc.playerPanelController.close();
+                        }
+                      },
                     ),
                     const Spacer(),
                     IconButton(
