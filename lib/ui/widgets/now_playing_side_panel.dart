@@ -41,7 +41,7 @@ class NowPlayingSidePanel extends StatelessWidget {
 
 /// The drag handle between the main content and the now playing panel.
 /// Dragging it left/right resizes the panel. Double-click toggles visibility.
-class PanelResizeHandle extends StatelessWidget {
+class PanelResizeHandle extends StatefulWidget {
   const PanelResizeHandle({
     super.key,
     required this.onDragUpdate,
@@ -52,23 +52,29 @@ class PanelResizeHandle extends StatelessWidget {
   final VoidCallback onToggle;
 
   @override
+  State<PanelResizeHandle> createState() => _PanelResizeHandleState();
+}
+
+class _PanelResizeHandleState extends State<PanelResizeHandle> {
+  double _lastX = 0;
+
+  @override
   Widget build(BuildContext context) {
     final c = context.doudouColors;
-    double lastX = 0;
 
     return MouseRegion(
       cursor: SystemMouseCursors.resizeLeftRight,
       child: GestureDetector(
         onHorizontalDragStart: (details) {
-          lastX = details.globalPosition.dx;
+          _lastX = details.globalPosition.dx;
         },
         onHorizontalDragUpdate: (details) {
-          final dx = details.globalPosition.dx - lastX;
-          lastX = details.globalPosition.dx;
+          final dx = details.globalPosition.dx - _lastX;
+          _lastX = details.globalPosition.dx;
           // Moving the handle left means the panel gets wider
-          onDragUpdate(-dx);
+          widget.onDragUpdate(-dx);
         },
-        onDoubleTap: onToggle,
+        onDoubleTap: widget.onToggle,
         child: Container(
           width: 6,
           color: Colors.transparent,
