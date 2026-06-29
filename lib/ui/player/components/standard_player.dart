@@ -187,8 +187,13 @@ class _CompactNowPlaying extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final pc = Get.find<PlayerController>();
     const white = CupertinoColors.white;
+    // Use the real screen width, not the MediaQuery-overridden one (the side
+    // panel overrides MediaQuery to its own width, which would break the check)
+    final realScreenWidth =
+        View.of(context).physicalSize.width / View.of(context).devicePixelRatio;
+    final isWideScreen = realScreenWidth > 800;
     final isLandscapeDense =
-        !GetPlatform.isDesktop && size.width > size.height && size.height < 560;
+        !isWideScreen && size.width > size.height && size.height < 560;
 
     return Scaffold(
       backgroundColor: const Color(0xFF000000),
@@ -225,7 +230,7 @@ class _CompactNowPlaying extends StatelessWidget {
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     child: Column(
                       children: [
-                        _buildTopActions(pc, white, dense: true, isWideScreen: size.width > 800),
+                        _buildTopActions(pc, white, dense: true, isWideScreen: isWideScreen),
                         Expanded(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -315,7 +320,7 @@ class _CompactNowPlaying extends StatelessWidget {
               : SafeArea(
                   child: Column(
                     children: [
-                      _buildTopActions(pc, white, isWideScreen: size.width > 800),
+                      _buildTopActions(pc, white, isWideScreen: isWideScreen),
                       Expanded(
                         child: Column(
                           children: [
@@ -884,7 +889,10 @@ class _ExpandedNowPlaying extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isWideScreen = MediaQuery.of(context).size.width > 800;
+    // Real screen width — MediaQuery may be overridden by the side panel
+    final realScreenWidth =
+        View.of(context).physicalSize.width / View.of(context).devicePixelRatio;
+    final isWideScreen = realScreenWidth > 800;
     final pc = Get.find<PlayerController>();
     final theme = Theme.of(context);
     final textColor = theme.brightness == Brightness.dark
