@@ -65,6 +65,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   bool queueLoopModeEnabled = false;
   bool shuffleModeEnabled = false;
   bool loudnessNormalizationEnabled = false;
+  double _userVolume = 1.0;
   // var networkErrorPause = false;
   bool isSongLoading = true;
   ProcessingState? _lastLoggedProcessingState;
@@ -1037,7 +1038,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       case 'toggleLoudnessNormalization':
         loudnessNormalizationEnabled = (extras!['enable'] as bool);
         if (!loudnessNormalizationEnabled) {
-          _player.setVolume(1.0);
+          _player.setVolume(_userVolume);
           return;
         }
 
@@ -1132,7 +1133,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         break;
 
       case 'setVolume':
-        _player.setVolume(extras!['value'] / 100);
+        _userVolume = (extras!['value'] as num).toDouble();
+        _player.setVolume(_userVolume);
         break;
 
       case 'shuffleCmd':
@@ -1224,12 +1226,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     double loudnessDifference = -5 - currentLoudnessDb;
 
     // Converted loudness difference to a volume multiplier
-    // We use a factor to convert dB difference to a linear scale
     // 10^(difference / 20) converts dB difference to a linear volume factor
     final volumeAdjustment = pow(10.0, loudnessDifference / 20.0);
+    // Multiply by the user's volume preference so the slider still works
+    // when loudness normalization is enabled
+    final adjustedVolume =
+        (_userVolume * volumeAdjustment).toDouble().clamp(0.0, 1.0);
     printINFO(
-        "loudness:$currentLoudnessDb Normalized volume: $volumeAdjustment");
-    _player.setVolume(volumeAdjustment.toDouble().clamp(0, 1.0));
+        "loudness:$currentLoudnessDb Normalized volume: $adjustedVolume (user: $_userVolume, adj: $volumeAdjustment)");
+    _player.setVolume(adjustedVolume);
   }
 
   Future<void> saveSessionData() async {
