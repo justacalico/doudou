@@ -65,7 +65,7 @@ class _AppShellState extends State<AppShell> {
     final width = size.width;
     final isWideScreen = width > 800;
     final layout = DoudouLayout.of(context);
-    final isDesktopLayout = layout.isDesktop && isWideScreen;
+    final isDesktopLayout = GetPlatform.isDesktop && isWideScreen;
 
     return PopScope(
       canPop: false,
@@ -109,11 +109,13 @@ class _AppShellState extends State<AppShell> {
                     isBottomNavEnabled ||
                     width < kSidebarMinWidth);
 
-            final desiredMinHeight = useBottomNav
-                ? 80.0
-                : (isWideScreen
-                    ? 105.0 + Get.mediaQuery.padding.bottom
-                    : 75.0 + Get.mediaQuery.padding.bottom);
+            final desiredMinHeight = isDesktopLayout
+                ? 0.0
+                : (useBottomNav
+                    ? 80.0
+                    : (isWideScreen
+                        ? 105.0 + Get.mediaQuery.padding.bottom
+                        : 75.0 + Get.mediaQuery.padding.bottom));
 
             if (_lastUseBottomNav != useBottomNav ||
                 _lastMinPanelHeight != desiredMinHeight) {

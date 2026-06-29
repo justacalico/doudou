@@ -10,7 +10,6 @@ import 'package:doudou/ui/screens/tv_now_playing_screen.dart';
 import 'package:doudou/ui/widgets/tv_focus_highlight.dart';
 import 'package:doudou/ui/widgets/window_controls.dart';
 import '/services/tv_service.dart';
-import 'package:doudou/ui/design/doudou_layout.dart';
 import 'package:doudou/ui/shell_controller.dart';
 
 class SideNavBar extends StatelessWidget {
@@ -51,7 +50,7 @@ class SideNavBar extends StatelessWidget {
           Obx(
             () => SizedBox(
               height: (GetPlatform.isDesktop &&
-                      DoudouLayout.of(context).isDesktop)
+                      MediaQuery.of(context).size.width > 800)
                   ? 0.0
                   : (playerController.currentSong.value != null
                       ? playerController.playerPanelMinHeight.value
@@ -240,7 +239,7 @@ class _SidebarContent extends StatelessWidget {
                   ),
                 // Desktop now playing panel toggle
                 if (GetPlatform.isDesktop &&
-                    DoudouLayout.of(context).isDesktop &&
+                    MediaQuery.of(context).size.width > 800 &&
                     !minimized)
                   Obx(() {
                     final shell = Get.find<ShellController>();

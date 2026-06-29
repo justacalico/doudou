@@ -796,16 +796,16 @@ class PlayerController extends GetxController
   }
 
   void _playerPanelCheck({bool restoreSession = false}) {
-    final isWideScreen = Get.size.width > 800;
-    // On desktop the now playing panel is a side panel, not a bottom bar
+    // On desktop the now playing panel is a side panel, not a bottom bar.
+    // The app_shell build method handles setting playerPanelMinHeight to 0
+    // via desiredMinHeight, so we just skip the mobile height calc here.
     if (GetPlatform.isDesktop) {
       if (initFlagForPlayer) {
-        playerPanelMinHeight.value = 0.0;
         initFlagForPlayer = false;
       }
       return;
     }
-    // Removed auto-open on mobile to match desktop behavior
+    final isWideScreen = Get.size.width > 800;
     if (initFlagForPlayer) {
       final miniPlayerHeight = isWideScreen ? 105.0 : 75.0;
       final useBottomNav = Get.find<ShellController>().useBottomNav.value;
