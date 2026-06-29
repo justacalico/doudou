@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import '/l10n/app_localizations.dart';
 import 'package:flutter_lyric/lyric_ui/ui_netease.dart';
 import 'package:hive/hive.dart';
@@ -66,7 +67,6 @@ class PlayerController extends GetxController
   final isSleepTimerActive = false.obs;
   final isSleepEndOfSongActive = false.obs;
   final volume = 100.obs;
-  static const int _minInternalAudibleVolume = 20;
   int _lastNonZeroVolume = 100;
 
   final progressBarStatus = ProgressBarState(
@@ -953,12 +953,13 @@ class PlayerController extends GetxController
     if (uiVolume > 0) {
       _lastNonZeroVolume = uiVolume;
     }
-    final internalVolume = uiVolume == 0
-        ? 0
-        : (_minInternalAudibleVolume + (uiVolume * 0.8))
-            .round()
-            .clamp(_minInternalAudibleVolume, 100);
-    _audioHandler.customAction("setVolume", {"value": internalVolume});
+    // Human hearing is logarithmic, so a linear volume slider feels
+    // like it jumps too fast at the low end. A quadratic curve gives
+    // much better control at quiet volumes.
+    final playerVolume = uiVolume == 0
+        ? 0.0
+        : pow(uiVolume / 100.0, 2.0).toDouble();
+    _audioHandler.customAction("setVolume", {"value": playerVolume});
     volume.value = uiVolume;
     await Hive.box("AppPrefs").put("volume", uiVolume);
   }
