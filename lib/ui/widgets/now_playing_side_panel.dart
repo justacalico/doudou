@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../design/doudou_colors.dart';
-import '../player/player.dart';
+import '../player/components/standard_player.dart';
 
 /// Now playing panel that sits on the right side of the app on desktop.
 /// Shows the full player UI in a fixed-width column that can be resized
@@ -19,7 +19,7 @@ class NowPlayingSidePanel extends StatelessWidget {
           left: BorderSide(color: c.borderSubtle, width: 0.5),
         ),
       ),
-      child: const Player(),
+      child: const StandardPlayer(),
     );
   }
 }
