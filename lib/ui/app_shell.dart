@@ -247,8 +247,7 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
   late final AnimationController _anim;
   late final Animation<double> _curve;
   late final AnimationController _fsAnim;
-  late final Animation<double> _fsFade;
-  late final Animation<double> _fsScale;
+  late final Animation<double> _fsCurve;
   bool _wasVisible = true;
   bool _wasFullscreen = false;
 
@@ -272,11 +271,7 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
       vsync: this,
       value: _wasFullscreen ? 1.0 : 0.0,
     );
-    _fsFade = CurvedAnimation(parent: _fsAnim, curve: Curves.easeIn);
-    _fsScale = CurvedAnimation(
-      parent: _fsAnim,
-      curve: Curves.easeInOutCubic,
-    );
+    _fsCurve = CurvedAnimation(parent: _fsAnim, curve: Curves.easeInOutCubic);
   }
 
   @override
@@ -294,6 +289,7 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
           widget.shellController.isNowPlayingPanelVisible.value && hasSong;
       final panelWidth = widget.shellController.nowPlayingPanelWidth.value;
       final isFullscreen = widget.shellController.isNowPlayingFullscreen.value;
+      final screenWidth = MediaQuery.sizeOf(context).width;
 
       if (panelVisible != _wasVisible) {
         _wasVisible = panelVisible;
@@ -353,12 +349,16 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
             AnimatedBuilder(
               animation: _fsAnim,
               builder: (context, child) {
-                // Skip rendering when fully hidden to avoid hit-testing issues
                 if (_fsAnim.value == 0.0) return const SizedBox.shrink();
-                return Opacity(
-                  opacity: _fsFade.value,
-                  child: Transform.scale(
-                    scale: 0.92 + 0.08 * _fsScale.value,
+                // Start width as a fraction of the panel width, expand to full screen
+                final startFraction =
+                    (panelWidth / screenWidth).clamp(0.05, 1.0);
+                final widthFraction =
+                    startFraction + (1.0 - startFraction) * _fsCurve.value;
+                return ClipRect(
+                  child: Align(
+                    alignment: const Alignment(1, 0),
+                    widthFactor: widthFraction,
                     child: child,
                   ),
                 );
