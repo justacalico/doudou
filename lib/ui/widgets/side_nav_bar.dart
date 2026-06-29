@@ -47,16 +47,16 @@ class SideNavBar extends StatelessWidget {
               },
             ),
           ),
-          Obx(
-            () => SizedBox(
-              height: (GetPlatform.isDesktop &&
-                      MediaQuery.of(context).size.width > 800)
-                  ? 0.0
-                  : (playerController.currentSong.value != null
-                      ? playerController.playerPanelMinHeight.value
-                      : 0.0),
+          if (GetPlatform.isDesktop && MediaQuery.of(context).size.width > 800)
+            const SizedBox.shrink()
+          else
+            Obx(
+              () => SizedBox(
+                height: playerController.currentSong.value != null
+                    ? playerController.playerPanelMinHeight.value
+                    : 0.0,
+              ),
             ),
-          ),
         ],
       ),
     );

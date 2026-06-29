@@ -12,6 +12,7 @@ class NowPlayingSidePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.doudouColors;
+    final mq = MediaQuery.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -19,7 +20,21 @@ class NowPlayingSidePanel extends StatelessWidget {
           left: BorderSide(color: c.borderSubtle, width: 0.5),
         ),
       ),
-      child: const StandardPlayer(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Override MediaQuery so widgets inside the player see the
+          // panel's actual size, not the full screen. Without this,
+          // Scaffold and other widgets that read MediaQuery.size would
+          // use the full window dimensions and overflow the panel.
+          final panelMq = mq.copyWith(
+            size: Size(constraints.maxWidth, constraints.maxHeight),
+          );
+          return MediaQuery(
+            data: panelMq,
+            child: const StandardPlayer(),
+          );
+        },
+      ),
     );
   }
 }
