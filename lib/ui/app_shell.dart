@@ -226,7 +226,7 @@ class _AppShellState extends State<AppShell> {
 }
 
 /// Desktop shell body — sidebar | main content | resize handle | now playing panel
-class _DesktopShellBody extends StatelessWidget {
+class _DesktopShellBody extends StatefulWidget {
   const _DesktopShellBody({
     required this.chrome,
     required this.shellController,
@@ -238,30 +238,85 @@ class _DesktopShellBody extends StatelessWidget {
   final PlayerController playerController;
 
   @override
+  State<_DesktopShellBody> createState() => _DesktopShellBodyState();
+}
+
+class _DesktopShellBodyState extends State<_DesktopShellBody>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _anim;
+  late final Animation<double> _curve;
+  bool _wasVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final hasSong = widget.playerController.currentSong.value != null;
+    final visible =
+        widget.shellController.isNowPlayingPanelVisible.value && hasSong;
+    _wasVisible = visible;
+    _anim = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+      value: visible ? 1.0 : 0.0,
+    );
+    _curve = CurvedAnimation(parent: _anim, curve: Curves.easeInOutCubic);
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final hasSong = playerController.currentSong.value != null;
+      final hasSong = widget.playerController.currentSong.value != null;
       final panelVisible =
-          shellController.isNowPlayingPanelVisible.value && hasSong;
-      final panelWidth = shellController.nowPlayingPanelWidth.value;
+          widget.shellController.isNowPlayingPanelVisible.value && hasSong;
+      final panelWidth = widget.shellController.nowPlayingPanelWidth.value;
+
+      if (panelVisible != _wasVisible) {
+        _wasVisible = panelVisible;
+        if (panelVisible) {
+          _anim.forward();
+        } else {
+          _anim.reverse();
+        }
+      }
 
       return Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(child: chrome),
-          if (panelVisible) ...[
-            PanelResizeHandle(
-              onDragUpdate: (dx) {
-                final newWidth = panelWidth + dx;
-                shellController.setNowPlayingPanelWidth(newWidth);
-              },
-              onToggle: shellController.toggleNowPlayingPanel,
+          Expanded(child: widget.chrome),
+          AnimatedBuilder(
+            animation: _curve,
+            builder: (context, child) {
+              return ClipRect(
+                child: Align(
+                  alignment: const Alignment(1, 0),
+                  widthFactor: _curve.value,
+                  child: child,
+                ),
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                PanelResizeHandle(
+                  onDragUpdate: (dx) {
+                    widget.shellController
+                        .setNowPlayingPanelWidth(panelWidth + dx);
+                  },
+                  onToggle: widget.shellController.toggleNowPlayingPanel,
+                ),
+                SizedBox(
+                  width: panelWidth,
+                  child: const NowPlayingSidePanel(),
+                ),
+              ],
             ),
-            SizedBox(
-              width: panelWidth,
-              child: const NowPlayingSidePanel(),
-            ),
-          ],
+          ),
         ],
       );
     });
