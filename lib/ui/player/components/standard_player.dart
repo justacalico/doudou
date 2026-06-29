@@ -476,19 +476,23 @@ class _CompactNowPlaying extends StatelessWidget {
                     width: 0.5,
                   ),
                 ),
-                child: Obx(
-                  () => Icon(
-                    GetPlatform.isDesktop
-                        ? (Get.find<ShellController>()
-                                .isNowPlayingFullscreen
-                                .value
-                            ? Icons.fullscreen_exit_rounded
-                            : Icons.fullscreen_rounded)
-                        : Icons.keyboard_arrow_down_rounded,
-                    color: white,
-                    size: iconSize,
-                  ),
-                ),
+                child: GetPlatform.isDesktop
+                    ? Obx(
+                        () => Icon(
+                          Get.find<ShellController>()
+                                  .isNowPlayingFullscreen
+                                  .value
+                              ? Icons.fullscreen_exit_rounded
+                              : Icons.fullscreen_rounded,
+                          color: white,
+                          size: iconSize,
+                        ),
+                      )
+                    : Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: white,
+                        size: iconSize,
+                      ),
               ),
             ),
           ),
@@ -924,17 +928,17 @@ class _ExpandedNowPlaying extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: Obx(
-                        () => Icon(
-                          GetPlatform.isDesktop
-                              ? (Get.find<ShellController>()
-                                      .isNowPlayingFullscreen
-                                      .value
-                                  ? Icons.fullscreen_exit_rounded
-                                  : Icons.fullscreen_rounded)
-                              : Icons.keyboard_arrow_down_rounded,
-                        ),
-                      ),
+                      icon: GetPlatform.isDesktop
+                          ? Obx(
+                              () => Icon(
+                                Get.find<ShellController>()
+                                        .isNowPlayingFullscreen
+                                        .value
+                                    ? Icons.fullscreen_exit_rounded
+                                    : Icons.fullscreen_rounded,
+                              ),
+                            )
+                          : const Icon(Icons.keyboard_arrow_down_rounded),
                       onPressed: () {
                         if (GetPlatform.isDesktop) {
                           Get.find<ShellController>().toggleNowPlayingFullscreen();
