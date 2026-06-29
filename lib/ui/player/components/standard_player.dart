@@ -477,7 +477,9 @@ class _CompactNowPlaying extends StatelessWidget {
                   ),
                 ),
                 child: Icon(
-                  Icons.keyboard_arrow_down_rounded,
+                  GetPlatform.isDesktop
+                      ? Icons.fullscreen_rounded
+                      : Icons.keyboard_arrow_down_rounded,
                   color: white,
                   size: iconSize,
                 ),
@@ -916,7 +918,11 @@ class _ExpandedNowPlaying extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                      icon: Icon(
+                        GetPlatform.isDesktop
+                            ? Icons.fullscreen_rounded
+                            : Icons.keyboard_arrow_down_rounded,
+                      ),
                       onPressed: () {
                         if (GetPlatform.isDesktop) {
                           Get.find<ShellController>().toggleNowPlayingPanel();
