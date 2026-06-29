@@ -243,10 +243,14 @@ class _DesktopShellBody extends StatefulWidget {
 }
 
 class _DesktopShellBodyState extends State<_DesktopShellBody>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _anim;
   late final Animation<double> _curve;
+  late final AnimationController _fsAnim;
+  late final Animation<double> _fsFade;
+  late final Animation<double> _fsScale;
   bool _wasVisible = true;
+  bool _wasFullscreen = false;
 
   @override
   void initState() {
@@ -255,17 +259,30 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
     final visible =
         widget.shellController.isNowPlayingPanelVisible.value && hasSong;
     _wasVisible = visible;
+    _wasFullscreen = widget.shellController.isNowPlayingFullscreen.value;
     _anim = AnimationController(
       duration: const Duration(milliseconds: 250),
       vsync: this,
       value: visible ? 1.0 : 0.0,
     );
     _curve = CurvedAnimation(parent: _anim, curve: Curves.easeInOutCubic);
+
+    _fsAnim = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+      value: _wasFullscreen ? 1.0 : 0.0,
+    );
+    _fsFade = CurvedAnimation(parent: _fsAnim, curve: Curves.easeIn);
+    _fsScale = CurvedAnimation(
+      parent: _fsAnim,
+      curve: Curves.easeInOutCubic,
+    );
   }
 
   @override
   void dispose() {
     _anim.dispose();
+    _fsAnim.dispose();
     super.dispose();
   }
 
@@ -284,6 +301,15 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
           _anim.forward();
         } else {
           _anim.reverse();
+        }
+      }
+
+      if (isFullscreen != _wasFullscreen) {
+        _wasFullscreen = isFullscreen;
+        if (isFullscreen) {
+          _fsAnim.forward();
+        } else {
+          _fsAnim.reverse();
         }
       }
 
@@ -323,12 +349,26 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
               ),
             ],
           ),
-          if (isFullscreen && hasSong)
-            const Positioned.fill(
-              child: Material(
-                color: Colors.black,
-                child: StandardPlayer(
-                  key: ValueKey('fullscreen-player'),
+          if (hasSong)
+            AnimatedBuilder(
+              animation: _fsAnim,
+              builder: (context, child) {
+                // Skip rendering when fully hidden to avoid hit-testing issues
+                if (_fsAnim.value == 0.0) return const SizedBox.shrink();
+                return Opacity(
+                  opacity: _fsFade.value,
+                  child: Transform.scale(
+                    scale: 0.92 + 0.08 * _fsScale.value,
+                    child: child,
+                  ),
+                );
+              },
+              child: const Positioned.fill(
+                child: Material(
+                  color: Colors.black,
+                  child: StandardPlayer(
+                    key: ValueKey('fullscreen-player'),
+                  ),
                 ),
               ),
             ),
