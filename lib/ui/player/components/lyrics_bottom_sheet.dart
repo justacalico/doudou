@@ -1,4 +1,3 @@
-import 'dart:ui';
 import '/utils/app_l10n.dart';
 
 import 'package:flutter/material.dart';
@@ -36,31 +35,28 @@ class LyricsBottomSheet extends StatelessWidget {
       builder: (ctx) => Center(
         child: ClipRRect(
           borderRadius: BorderRadius.circular(26),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-            child: Container(
-              height: height,
-              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(ctx)
-                    .colorScheme
-                    .surface
-                    .withValues(alpha: 0.72),
-                borderRadius: BorderRadius.circular(26),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 22,
-                    offset: const Offset(0, 14),
-                  ),
-                ],
+          child: Container(
+            height: height,
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              color: Theme.of(ctx)
+                  .colorScheme
+                  .surface
+                  .withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+                width: 1,
               ),
-              child: const LyricsBottomSheet(),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 22,
+                  offset: const Offset(0, 14),
+                ),
+              ],
             ),
+            child: const LyricsBottomSheet(),
           ),
         ),
       ),
