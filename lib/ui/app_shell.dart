@@ -289,7 +289,6 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
           widget.shellController.isNowPlayingPanelVisible.value && hasSong;
       final panelWidth = widget.shellController.nowPlayingPanelWidth.value;
       final isFullscreen = widget.shellController.isNowPlayingFullscreen.value;
-      final screenWidth = MediaQuery.sizeOf(context).width;
 
       if (panelVisible != _wasVisible) {
         _wasVisible = panelVisible;
@@ -350,18 +349,7 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
               animation: _fsAnim,
               builder: (context, child) {
                 if (_fsAnim.value == 0.0) return const SizedBox.shrink();
-                // Start width as a fraction of the panel width, expand to full screen
-                final startFraction =
-                    (panelWidth / screenWidth).clamp(0.05, 1.0);
-                final widthFraction =
-                    startFraction + (1.0 - startFraction) * _fsCurve.value;
-                return ClipRect(
-                  child: Align(
-                    alignment: const Alignment(1, 0),
-                    widthFactor: widthFraction,
-                    child: child,
-                  ),
-                );
+                return Opacity(opacity: _fsCurve.value, child: child);
               },
               child: const Positioned.fill(
                 child: Material(
