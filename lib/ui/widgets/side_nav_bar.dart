@@ -239,8 +239,7 @@ class _SidebarContent extends StatelessWidget {
                   ),
                 // Desktop now playing panel toggle
                 if (GetPlatform.isDesktop &&
-                    MediaQuery.of(context).size.width > 800 &&
-                    !minimized)
+                    MediaQuery.of(context).size.width > 800)
                   Obx(() {
                     final shell = Get.find<ShellController>();
                     final pc = Get.find<PlayerController>();
