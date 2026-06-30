@@ -2494,4 +2494,10 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get playbackDiagnosticsCleared => 'Playback diagnostics cleared';
+
+  @override
+  String get hideNowPlaying => 'Hide Now Playing';
+
+  @override
+  String get showNowPlaying => 'Show Now Playing';
 }
