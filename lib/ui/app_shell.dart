@@ -345,14 +345,14 @@ class _DesktopShellBodyState extends State<_DesktopShellBody>
             ],
           ),
           if (hasSong)
-            AnimatedBuilder(
-              animation: _fsAnim,
-              builder: (context, child) {
-                if (_fsAnim.value == 0.0) return const SizedBox.shrink();
-                return Opacity(opacity: _fsCurve.value, child: child);
-              },
-              child: const Positioned.fill(
-                child: Material(
+            Positioned.fill(
+              child: AnimatedBuilder(
+                animation: _fsAnim,
+                builder: (context, child) {
+                  if (_fsAnim.value == 0.0) return const SizedBox.shrink();
+                  return Opacity(opacity: _fsCurve.value, child: child);
+                },
+                child: const Material(
                   color: Colors.black,
                   child: StandardPlayer(
                     key: ValueKey('fullscreen-player'),
