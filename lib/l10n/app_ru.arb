@@ -797,5 +797,9 @@
   "@playlistTypeLabel": {},
   "playbackDiagnosticsCleared": "Диагностика очищена",
   "@playbackDiagnosticsCleared": {},
+  "hideNowPlaying": "Скрыть \"Сейчас играет\"",
+  "@hideNowPlaying": {},
+  "showNowPlaying": "Показать \"Сейчас играет\"",
+  "@showNowPlaying": {},
   "@@locale": "ru"
 }

@@ -1252,4 +1252,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get playbackDiagnosticsCleared => 'Диагностика очищена';
+
+  @override
+  String get hideNowPlaying => 'Скрыть \"Сейчас играет\"';
+
+  @override
+  String get showNowPlaying => 'Показать \"Сейчас играет\"';
 }
