@@ -1245,6 +1245,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playbackDiagnosticsCleared => 'Playback diagnostics cleared';
+
+  @override
+  String get hideNowPlaying => 'Hide Now Playing';
+
+  @override
+  String get showNowPlaying => 'Show Now Playing';
 }
 
 /// The translations for English, as used in Australia (`en_AU`).

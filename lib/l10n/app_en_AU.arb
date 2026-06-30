@@ -801,5 +801,9 @@
   "playlistTypeLabel": "PLAYLIST",
   "@playlistTypeLabel": {},
   "playbackDiagnosticsCleared": "Playback diagnostics cleared",
-  "@playbackDiagnosticsCleared": {}
+  "@playbackDiagnosticsCleared": {},
+  "hideNowPlaying": "Hide Now Playing",
+  "@hideNowPlaying": {},
+  "showNowPlaying": "Show Now Playing",
+  "@showNowPlaying": {}
 }

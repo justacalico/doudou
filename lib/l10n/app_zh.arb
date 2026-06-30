@@ -409,5 +409,9 @@
   "shrinkSidebar": "收起侧边栏",
   "playlistTypeLabel": "播放列表",
   "playbackDiagnosticsCleared": "播放诊断已清除",
+  "hideNowPlaying": "隐藏正在播放",
+  "@hideNowPlaying": {},
+  "showNowPlaying": "显示正在播放",
+  "@showNowPlaying": {},
   "@@locale": "zh"
 }

@@ -1197,4 +1197,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playbackDiagnosticsCleared => '播放诊断已清除';
+
+  @override
+  String get hideNowPlaying => '隐藏正在播放';
+
+  @override
+  String get showNowPlaying => '显示正在播放';
 }

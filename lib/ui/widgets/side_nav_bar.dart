@@ -253,7 +253,7 @@ class _SidebarContent extends StatelessWidget {
                       activeIcon: visible
                           ? Icons.view_sidebar_outlined
                           : Icons.view_sidebar_rounded,
-                      label: visible ? 'Hide Now Playing' : 'Show Now Playing',
+                      label: visible ? context.l10n.hideNowPlaying : context.l10n.showNowPlaying,
                       selected: false,
                       compact: minimized,
                       onTap: shell.toggleNowPlayingPanel,

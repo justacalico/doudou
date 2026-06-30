@@ -2464,6 +2464,18 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'Playback diagnostics cleared'**
   String get playbackDiagnosticsCleared;
+
+  /// No description provided for @hideNowPlaying.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Hide Now Playing'**
+  String get hideNowPlaying;
+
+  /// No description provided for @showNowPlaying.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Show Now Playing'**
+  String get showNowPlaying;
 }
 
 class _AppLocalizationsDelegate
