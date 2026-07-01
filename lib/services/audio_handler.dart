@@ -903,6 +903,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             );
           }
         } else {
+          await _player.seek(Duration.zero);
           await _player.play();
         }
         _diag.logEvent(
@@ -1040,6 +1041,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           _normalizeVolume(streamInfo.audio!.loudnessDb);
         }
 
+        await _player.seek(Duration.zero);
         await _player.play();
         break;
 
