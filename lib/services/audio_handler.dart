@@ -755,6 +755,18 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         isSongLoading = true;
         playbackState.add(playbackState.value
             .copyWith(processingState: AudioProcessingState.loading));
+        _diag.logEvent(
+          category: 'player_event',
+          message: 'stop_before_playlist_clear',
+          songId: requestedSongId,
+          backendType: currentSong.extras?['backendType']?.toString(),
+          activeServerType: _safeServerType(),
+          data: {
+            'processingState': _player.processingState.name,
+            'playing': _player.playing,
+          },
+        );
+        await _player.stop();
         if (_playList.children.isNotEmpty) {
           await _playList.clear();
         }
@@ -950,6 +962,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             checkNGetUrl(currMed.id, extras: currMed.extras);
         isSongLoading = true;
         currentIndex = 0;
+        await _player.stop();
         await _playList.clear();
         if (_isStalePlayRequest(requestId)) {
           _diag.logEvent(
