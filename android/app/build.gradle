@@ -105,7 +105,6 @@ android {
         tv {
             dimension "app"
             applicationId "gitlab.openlyst.doudou"
-            applicationIdSuffix ".tv"
             minSdkVersion flutter.minSdkVersion
             targetSdkVersion flutter.targetSdkVersion
             // Offset by 20000 so Play Store can distinguish TV APKs from phone/wear
