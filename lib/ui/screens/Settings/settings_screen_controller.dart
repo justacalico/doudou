@@ -89,6 +89,7 @@ class SettingsScreenController extends GetxController {
   final _currentVersion = ''.obs;
   final servers = <SettingsServer>[].obs;
   final activeServerId = RxnInt();
+  final demoServerNoticePending = false.obs;
 
   String get currentVersion =>
       _currentVersion.value.isEmpty ? '0.0.0' : _currentVersion.value;
@@ -120,11 +121,25 @@ class SettingsScreenController extends GetxController {
         isDefault: true,
       );
 
+  MusicBackend? _cachedBackend;
+  int? _cachedBackendServerId;
+
   MusicBackend get currentBackend {
     final active = activeServer;
-    if (active != null) return createBackend(active);
+    if (active != null) {
+      if (_cachedBackendServerId != active.id) {
+        _cachedBackend = createBackend(active);
+        _cachedBackendServerId = active.id;
+      }
+      return _cachedBackend!;
+    }
     if (kIsPlayStore && servers.isEmpty) return NoOpBackend();
     return createBackend(_defaultServer);
+  }
+
+  void invalidateBackendCache() {
+    _cachedBackend = null;
+    _cachedBackendServerId = null;
   }
 
   double get animationSpeedFactor {
@@ -320,12 +335,29 @@ class SettingsScreenController extends GetxController {
       );
     } else if (!kIsPlayStore) {
       servers.assignAll([defaultServer]);
+    } else {
+      final demoSeeded = setBox.get('demoServerSeeded') == true;
+      if (!demoSeeded) {
+        final demoServer = SettingsServer(
+          id: DateTime.now().millisecondsSinceEpoch,
+          name: 'Jellyfin Demo',
+          type: ServerType.jellyfin,
+          isDefault: false,
+          serverUrl: 'https://demo.jellyfin.org/stable',
+          username: 'demo',
+          password: '',
+        );
+        servers.assignAll([demoServer]);
+        activeServerId.value = demoServer.id;
+        setBox.put('demoServerSeeded', true);
+        demoServerNoticePending.value = true;
+      }
     }
     final savedActive = setBox.get('activeServerId');
     if (savedActive is int &&
         servers.any((server) => server.id == savedActive)) {
       activeServerId.value = savedActive;
-    } else if (servers.isNotEmpty) {
+    } else if (servers.isNotEmpty && activeServerId.value == null) {
       final nonDefault =
           servers.firstWhereOrNull((server) => !server.isDefault);
       activeServerId.value = (nonDefault ?? servers.first).id;
@@ -604,6 +636,7 @@ class SettingsScreenController extends GetxController {
   }
 
   void _onActiveServerChanged() {
+    invalidateBackendCache();
     if (Get.isRegistered<PlayerController>()) {
       final player = Get.find<PlayerController>();
       player.clearQueue();
