@@ -9,7 +9,6 @@ import '/models/artist.dart';
 import '/models/media_Item_builder.dart';
 import '/models/playlist.dart';
 import '/models/server.dart';
-import '/services/backend/backend_factory.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/utils/helper.dart';
 import '/utils/server_storage.dart';
@@ -149,7 +148,7 @@ class LibrarySyncService extends GetxService {
         }
       }
 
-      final backend = createBackend(server);
+      final backend = Get.find<SettingsScreenController>().currentBackend;
       switch (kind) {
         case LibraryKind.songs:
           final songs = await backend.getLibrarySongs();

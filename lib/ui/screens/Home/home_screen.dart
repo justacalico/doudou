@@ -183,10 +183,17 @@ class _LazyIndexedStackState extends State<_LazyIndexedStack> {
   }
 }
 
-class Body extends StatelessWidget {
+class Body extends StatefulWidget {
   const Body({
     super.key,
   });
+
+  @override
+  State<Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<Body> {
+  bool _demoNoticeShown = false;
 
   @override
   Widget build(BuildContext context) {
@@ -205,11 +212,18 @@ class Body extends StatelessWidget {
               children: [
                 Positioned.fill(
                   child: Obx(() {
+                    final settings = Get.find<SettingsScreenController>();
+                    if (settings.demoServerNoticePending.value &&
+                        !_demoNoticeShown) {
+                      _demoNoticeShown = true;
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) _showDemoServerNotice(context);
+                      });
+                    }
                     final libSongs = Get.find<LibrarySongsController>();
                     final libAlbums = Get.find<LibraryAlbumsController>();
                     final libArtists = Get.find<LibraryArtistsController>();
                     final libPlaylists = Get.find<LibraryPlaylistsController>();
-                    final settings = Get.find<SettingsScreenController>();
                     final server = settings.activeServer;
                     final isYouTubeMusic = server?.type == ServerType.youtubeMusic;
                     
@@ -606,6 +620,61 @@ class Body extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showDemoServerNotice(BuildContext context) {
+    final settings = Get.find<SettingsScreenController>();
+    settings.demoServerNoticePending.value = false;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Demo Server'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'This app comes pre-configured with a demo Jellyfin server for evaluation.',
+            ),
+            SizedBox(height: 12),
+            Text(
+              'The demo server is provided by the Jellyfin project and contains only media that is:',
+            ),
+            SizedBox(height: 6),
+            Text(
+              '\u2022 Released under a Free Culture license\n'
+              '\u2022 In the Public Domain (US and/or Canada)\n'
+              '\u2022 Provided with explicit permission of the copyright holder',
+              style: TextStyle(fontSize: 13),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'This server is reset daily at 06:00 Eastern Time, so any changes are temporary.',
+              style: TextStyle(fontSize: 13),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'You can use this demo to explore the app, or add your own server.',
+              style: TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              Get.find<HomeScreenController>().onSideBarTabSelected(7);
+            },
+            child: const Text('Add Server'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }

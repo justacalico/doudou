@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:jellyfin_dart/jellyfin_dart.dart';
 
 import '../../models/album.dart';
@@ -16,6 +18,7 @@ class JellyfinBackend extends MusicBackend {
   JellyfinDart? _client;
   String? _token;
   String? _userId;
+  Completer<void>? _authCompleter;
 
   String get _baseUrl {
     String url = server.serverUrl ?? '';
@@ -25,8 +28,14 @@ class JellyfinBackend extends MusicBackend {
 
   Future<void> _ensureAuth() async {
     if (_token != null && _userId != null) return;
+    if (_authCompleter != null) {
+      await _authCompleter!.future;
+      return;
+    }
+    _authCompleter = Completer<void>();
     final url = _baseUrl;
-    if (url.isEmpty || server.username == null || server.password == null) {
+    if (url.isEmpty || server.username == null) {
+      _authCompleter!.complete();
       return;
     }
     _client = JellyfinDart(basePathOverride: url);
@@ -36,19 +45,21 @@ class JellyfinBackend extends MusicBackend {
       final auth = await _client!.getUserApi().authenticateUserByName(
             authenticateUserByName: AuthenticateUserByName(
               username: server.username!,
-              pw: server.password!,
+              pw: server.password ?? '',
             ),
           );
       final result = auth.data;
       _token = result?.accessToken;
       _userId = result?.user?.id;
       if (_token != null) _client!.setToken(_token);
+      _authCompleter!.complete();
     } catch (e, st) {
       printWarning(
           '[RECOVERABLE][opId=jellyfin.ensureAuth] Authentication failed for serverId=${server.id}: $e\n$st');
       _client = null;
       _token = null;
       _userId = null;
+      _authCompleter!.complete();
     }
   }
 
@@ -114,6 +125,7 @@ class JellyfinBackend extends MusicBackend {
             sortBy: [ItemSortBy.datePlayed],
             sortOrder: [SortOrder.descending],
             limit: limit,
+            recursive: true,
           );
       final items = res.data?.items ?? [];
       if (items.isEmpty) return [];
@@ -156,6 +168,7 @@ class JellyfinBackend extends MusicBackend {
               BaseItemKind.playlist,
             ],
             limit: limit,
+            recursive: true,
           );
       final items = res.data?.items ?? [];
       final songs = <dynamic>[];
@@ -291,6 +304,7 @@ class JellyfinBackend extends MusicBackend {
       final res = await _client!.getItemsApi().getItems(
         userId: _userId,
         includeItemTypes: [BaseItemKind.playlist],
+        recursive: true,
       );
       final items = res.data?.items ?? [];
       return items.map((item) {
@@ -323,6 +337,7 @@ class JellyfinBackend extends MusicBackend {
             userId: _userId,
             includeItemTypes: [BaseItemKind.musicArtist],
             limit: 10000,
+            recursive: true,
           );
       final items = (res.data?.items ?? [])
           .where((item) => item.type == BaseItemKind.musicArtist)
@@ -356,6 +371,7 @@ class JellyfinBackend extends MusicBackend {
             userId: _userId,
             includeItemTypes: [BaseItemKind.musicAlbum],
             limit: 10000,
+            recursive: true,
           );
       final items = (res.data?.items ?? [])
           .where((item) => item.type == BaseItemKind.musicAlbum)
@@ -400,6 +416,7 @@ class JellyfinBackend extends MusicBackend {
             userId: _userId,
             includeItemTypes: [BaseItemKind.audio],
             limit: 10000,
+            recursive: true,
           );
       final items = res.data?.items ?? [];
       return items.map((e) => _itemToTrack(e)).toList();
@@ -420,6 +437,7 @@ class JellyfinBackend extends MusicBackend {
             includeItemTypes: [BaseItemKind.audio],
             isFavorite: true,
             limit: 10000,
+            recursive: true,
           );
       final items = res.data?.items ?? [];
       return items.map((e) => _itemToTrack(e)).toList();
