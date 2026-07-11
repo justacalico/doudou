@@ -77,6 +77,12 @@ android {
         phone.java.srcDirs += 'src/phone/kotlin'
         wear.java.srcDirs += 'src/wear/kotlin'
         tv.java.srcDirs += 'src/tv/kotlin'
+        if (project.hasProperty('playstore') && project.property('playstore') == 'true') {
+            phone.res.srcDirs += 'src/phone/res-playstore'
+            phone.manifest.srcFile 'src/phone/AndroidManifest-playstore.xml'
+        } else {
+            phone.java.srcDirs += 'src/phone/kotlin-wearable'
+        }
     }
 
     flavorDimensions "app"
@@ -155,5 +161,7 @@ flutter {
 dependencies {
     implementation 'com.android.support:multidex:2.0.1'
     implementation 'androidx.core:core-splashscreen:1.0.0-beta02'
-    phoneImplementation 'com.google.android.gms:play-services-wearable:19.0.0'
+    if (!project.hasProperty('playstore') || project.property('playstore') != 'true') {
+        phoneImplementation 'com.google.android.gms:play-services-wearable:19.0.0'
+    }
 }
