@@ -87,6 +87,10 @@ The Android app uses product flavors — `phone` for the main app, `wear` for th
 flutter build apk --release --flavor phone -t lib/main.dart
 flutter build appbundle --release --flavor phone -t lib/main.dart
 
+# Android (phone — Play Store)
+flutter build apk --release --flavor phone --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart
+flutter build appbundle --release --flavor phone --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart
+
 # Android (Wear OS)
 flutter build apk --release --flavor wear -t lib/main_wear.dart
 

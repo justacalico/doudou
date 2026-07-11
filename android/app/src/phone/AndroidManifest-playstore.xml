@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Remove all Wear OS signals for Play Store phone builds -->
+    <uses-feature android:name="android.hardware.type.watch" tools:node="remove" />
+
+    <application>
+        <!-- WearableListenerService excluded for Play Store builds to avoid
+             Wear OS detection. Watch-to-phone sync unavailable in Play Store builds. -->
+    </application>
+</manifest>
