@@ -65,13 +65,16 @@ def isPlayStoreBuild = project.hasProperty('playstore') && project.property('pla
 if (!isPlayStoreBuild && project.hasProperty('dart-defines')) {
     def dartDefines = project.property('dart-defines').toString().split(',')
     for (def d : dartDefines) {
+        def decoded
         try {
-            def decoded = new String(d.decodeBase64(), 'UTF-8')
-            if (decoded == 'PLAYSTORE=true') {
-                isPlayStoreBuild = true
-                break
-            }
-        } catch (Exception ignored) {}
+            decoded = new String(d.decodeBase64(), 'UTF-8')
+        } catch (Exception e) {
+            throw new GradleException("Failed to decode dart-define entry (base64): '${d}'", e)
+        }
+        if (decoded == 'PLAYSTORE=true') {
+            isPlayStoreBuild = true
+            break
+        }
     }
 }
 
