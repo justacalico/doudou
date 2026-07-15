@@ -1,3 +1,0 @@
-# Builds have moved to GitHub Actions (.github/workflows/build.yml).
-# This pipeline is intentionally empty so GitLab does not run a duplicate build.
-stages: []
