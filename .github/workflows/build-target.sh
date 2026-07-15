@@ -4,8 +4,8 @@
 set -euo pipefail
 
 target="${1:?target required}"
-short_sha="${GITHUB_SHA::7}"
-[ -n "$short_sha" ] || short_sha="local"
+short_sha="${GITHUB_SHA-}"
+[ -n "$short_sha" ] && short_sha="${short_sha::7}" || short_sha="local"
 out="artifacts"
 mkdir -p "$out"
 
@@ -71,21 +71,21 @@ case "$target" in
   macos)
     echo "::group::Build macos debug"
     flutter build macos --debug
-    (cd build/macos/Build/Products/Debug && zip -ry "$OLDPWD/$out/doudou-macos-debug-${suffix}.zip" *.app)
+    (cd build/macos/Build/Products/Debug && zip -ry "$OLDPWD/$out/doudou-macos-debug-${suffix}.zip" ./*.app)
     echo "::endgroup::"
     echo "::group::Build macos release"
     flutter build macos --release
-    (cd build/macos/Build/Products/Release && zip -ry "$OLDPWD/$out/doudou-macos-release-${suffix}.zip" *.app)
+    (cd build/macos/Build/Products/Release && zip -ry "$OLDPWD/$out/doudou-macos-release-${suffix}.zip" ./*.app)
     echo "::endgroup::"
     ;;
   ios)
     echo "::group::Build ios debug (no codesign)"
     flutter build ios --debug --no-codesign
-    (cd build/ios/iphoneos && zip -ry "$OLDPWD/$out/doudou-ios-debug-${suffix}.zip" *.app)
+    (cd build/ios/iphoneos && zip -ry "$OLDPWD/$out/doudou-ios-debug-${suffix}.zip" ./*.app)
     echo "::endgroup::"
     echo "::group::Build ios release (no codesign)"
     flutter build ios --release --no-codesign
-    (cd build/ios/iphoneos && zip -ry "$OLDPWD/$out/doudou-ios-release-${suffix}.zip" *.app)
+    (cd build/ios/iphoneos && zip -ry "$OLDPWD/$out/doudou-ios-release-${suffix}.zip" ./*.app)
     echo "::endgroup::"
     ;;
   *)
