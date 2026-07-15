@@ -58,6 +58,26 @@ def resolveStoreFilePath = {
 
 def resolvedStoreFilePath = resolveStoreFilePath()
 
+// Detect Play Store builds via either -Pplaystore=true or --dart-define=PLAYSTORE=true.
+// The builds repo passes --dart-define=PLAYSTORE=true without -Pplaystore=true,
+// so we need to check both.
+def isPlayStoreBuild = project.hasProperty('playstore') && project.property('playstore') == 'true'
+if (!isPlayStoreBuild && project.hasProperty('dart-defines')) {
+    def dartDefines = project.property('dart-defines').toString().split(',')
+    for (def d : dartDefines) {
+        def decoded
+        try {
+            decoded = new String(d.decodeBase64(), 'UTF-8')
+        } catch (Exception e) {
+            throw new GradleException("Failed to decode dart-define entry (base64): '${d}'", e)
+        }
+        if (decoded == 'PLAYSTORE=true') {
+            isPlayStoreBuild = true
+            break
+        }
+    }
+}
+
 android {
     compileSdkVersion flutter.compileSdkVersion
     //ndkVersion flutter.ndkVersion
@@ -77,7 +97,7 @@ android {
         phone.java.srcDirs += 'src/phone/kotlin'
         wear.java.srcDirs += 'src/wear/kotlin'
         tv.java.srcDirs += 'src/tv/kotlin'
-        if (project.hasProperty('playstore') && project.property('playstore') == 'true') {
+        if (isPlayStoreBuild) {
             phone.res.srcDirs += 'src/phone/res-playstore'
             phone.manifest.srcFile 'src/phone/AndroidManifest-playstore.xml'
         } else {
@@ -161,7 +181,7 @@ flutter {
 dependencies {
     implementation 'com.android.support:multidex:2.0.1'
     implementation 'androidx.core:core-splashscreen:1.0.0-beta02'
-    if (!project.hasProperty('playstore') || project.property('playstore') != 'true') {
+    if (!isPlayStoreBuild) {
         phoneImplementation 'com.google.android.gms:play-services-wearable:19.0.0'
     }
 }

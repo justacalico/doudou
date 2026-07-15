@@ -105,12 +105,18 @@ jobs:
               ;;
             android-phone-playstore)
               build_apk phone phone-playstore --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart
+              flutter build appbundle --release --flavor phone --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart
+              cp build/app/outputs/bundle/phoneRelease/app-phone-release.aab \
+                 "artifacts/doudou-phone-playstore-release-${suffix}.aab"
               ;;
             android-wear)
               build_apk wear wear -t lib/main_wear.dart
               ;;
             android-tv-playstore)
               build_apk tv tv-playstore --dart-define=PLAYSTORE=true --dart-define=TV=true
+              flutter build appbundle --release --flavor tv --dart-define=PLAYSTORE=true --dart-define=TV=true
+              cp build/app/outputs/bundle/tvRelease/app-tv-release.aab \
+                 "artifacts/doudou-tv-playstore-release-${suffix}.aab"
               ;;
             android-tv-nonplaystore)
               build_apk tv tv --dart-define=PLAYSTORE=false --dart-define=TV=true
@@ -179,7 +185,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p release-assets
-          find artifacts -type f \( -name "*.apk" -o -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} release-assets/ \;
+          find artifacts -type f \( -name "*.apk" -o -name "*.aab" -o -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} release-assets/ \;
           if [ -z "$(ls -A release-assets/)" ]; then
             echo "No artifacts found — skipping release"
             exit 1
@@ -231,7 +237,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p release-assets
-          find artifacts -type f \( -name "*.apk" -o -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} release-assets/ \;
+          find artifacts -type f \( -name "*.apk" -o -name "*.aab" -o -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} release-assets/ \;
           if [ -z "$(ls -A release-assets/)" ]; then
             echo "No artifacts found — skipping release"
             exit 1

@@ -1,11 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Remove all Wear OS signals for Play Store phone builds -->
+    <!-- Remove all Wear OS signals for Play Store phone builds.
+         These come from wear_plus, watch_connectivity, and play-services-wearable
+         plugin manifests that get merged regardless of flavor. -->
     <uses-feature android:name="android.hardware.type.watch" tools:node="remove" />
 
+    <queries>
+        <package android:name="com.google.android.wearable.app" tools:node="remove" />
+        <package android:name="com.samsung.android.app.watchmanager" tools:node="remove" />
+    </queries>
+
     <application>
-        <!-- WearableListenerService excluded for Play Store builds to avoid
-             Wear OS detection. Watch-to-phone sync unavailable in Play Store builds. -->
+        <!-- Remove uses-library from play-services-wearable if it leaks transitively -->
+        <uses-library android:name="com.google.android.wearable" tools:node="remove" />
+        <!-- Remove WearableListenerService in case it leaks from non-playstore phone manifest -->
+        <service android:name=".DoudouWearableListenerService" tools:node="remove" />
     </application>
 </manifest>
