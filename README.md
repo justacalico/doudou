@@ -42,6 +42,8 @@ Android, Android TV, Wear OS, iOS, macOS, Windows and, Linux
 
 Get builds for every platform at **[openlyst.ink/apps/doudou](https://openlyst.ink/apps/doudou)**.
 
+Nightly builds are also available on **[GitHub Releases](https://github.com/openlyst/doudou/releases)**. These are unsigned — Android users will need to allow installs from unknown sources, and iOS/macOS users will need to sign them locally before installing.
+
 ## Quick start
 1. Open the app and hit "Add Server"
 2. Pick your backend type (Youtube Music is turned off for Playstore versions)
