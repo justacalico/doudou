@@ -106,7 +106,7 @@ jobs:
             android-phone-playstore)
               build_apk phone phone-playstore --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart
               flutter build appbundle --release --flavor phone --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart
-              cp build/app/outputs/flutter-apk/app-phone-release.aab \
+              cp build/app/outputs/bundle/phoneRelease/app-phone-release.aab \
                  "artifacts/doudou-phone-playstore-release-${suffix}.aab"
               ;;
             android-wear)
@@ -115,7 +115,7 @@ jobs:
             android-tv-playstore)
               build_apk tv tv-playstore --dart-define=PLAYSTORE=true --dart-define=TV=true
               flutter build appbundle --release --flavor tv --dart-define=PLAYSTORE=true --dart-define=TV=true
-              cp build/app/outputs/flutter-apk/app-tv-release.aab \
+              cp build/app/outputs/bundle/tvRelease/app-tv-release.aab \
                  "artifacts/doudou-tv-playstore-release-${suffix}.aab"
               ;;
             android-tv-nonplaystore)
