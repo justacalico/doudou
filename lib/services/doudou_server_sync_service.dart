@@ -2,8 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
 
 import '/models/doudou_server.dart';
 import '/models/server.dart';
@@ -25,19 +28,26 @@ import '/utils/server_storage.dart';
 /// other devices know about them, and remote servers are pulled down so this
 /// device can use them. Credentials never travel through doudou-server, only
 /// URLs and display metadata.
+///
+/// The shared key is stored via flutter_secure_storage (OS keychain/keystore)
+/// rather than plaintext Hive, so a compromised Hive box doesn't leak the
+/// doudou-server password.
 class DoudouServerSyncService extends GetxService {
   DoudouServerSyncService();
 
   static const Duration _syncInterval = Duration(minutes: 30);
+  static const _secureKeyKey = 'doudou_server_key';
 
   final isSyncing = false.obs;
   final lastSyncTimeMs = RxnInt();
   final lastError = ''.obs;
   final isConfigured = false.obs;
+  final config = Rxn<DoudouServerConfig>();
 
   Timer? _timer;
   DoudouServerClient? _client;
   String? _clientId;
+  final _secureStorage = const FlutterSecureStorage();
 
   @override
   void onInit() {
@@ -55,36 +65,42 @@ class DoudouServerSyncService extends GetxService {
 
   // -- config ------------------------------------------------------------
 
-  DoudouServerConfig? _config;
-
-  DoudouServerConfig? get config => _config;
-
-  Future<void> setConfig(DoudouServerConfig? config) async {
-    _config = config;
+  Future<void> setConfig(DoudouServerConfig? newConfig) async {
     _client?.close();
-    _client = config == null ? null : DoudouServerClient(config);
-    isConfigured.value = config != null;
-    final box = Hive.box('AppPrefs');
-    if (config == null) {
+    _client = null;
+    if (newConfig == null) {
+      config.value = null;
+      isConfigured.value = false;
+      await _secureStorage.delete(key: _secureKeyKey);
+      final box = Hive.box('AppPrefs');
       await box.delete('doudouServer');
     } else {
-      await box.put('doudouServer', config.toMap());
-    }
-    if (config != null) {
+      // Persist non-secret fields in Hive, the shared key in secure storage.
+      await _secureStorage.write(key: _secureKeyKey, value: newConfig.key);
+      final box = Hive.box('AppPrefs');
+      await box.put('doudouServer', newConfig.copyWith(key: '').toMap());
+      config.value = newConfig;
+      isConfigured.value = true;
+      _client = DoudouServerClient(newConfig);
       unawaited(syncNow());
     }
   }
 
-  void _loadConfig() {
+  Future<void> _loadConfig() async {
     final box = Hive.isBoxOpen('AppPrefs') ? Hive.box('AppPrefs') : null;
     if (box == null) return;
     final raw = box.get('doudouServer');
-    if (raw is Map) {
-      _config = DoudouServerConfig.fromMap(Map<String, dynamic>.from(raw));
-      _client = DoudouServerClient(_config!);
-      isConfigured.value = true;
-    }
+    if (raw is! Map) return;
+    final key = await _secureStorage.read(key: _secureKeyKey);
+    if (key == null || key.isEmpty) return;
+    final loaded = DoudouServerConfig.fromMap(Map<String, dynamic>.from(raw));
+    _config = loaded.copyWith(key: key);
+    config.value = _config;
+    isConfigured.value = true;
+    _client = DoudouServerClient(_config!);
   }
+
+  DoudouServerConfig? _config;
 
   // -- sync --------------------------------------------------------------
 
@@ -133,16 +149,10 @@ class DoudouServerSyncService extends GetxService {
       _clientId = stored;
       return stored;
     }
-    final id = _generateClientId();
+    final id = 'doudou-${const Uuid().v4()}';
     await box.put('doudouClientId', id);
     _clientId = id;
     return id;
-  }
-
-  String _generateClientId() {
-    final ts = DateTime.now().millisecondsSinceEpoch;
-    final rand = ts ^ (ts << 17) ^ (ts >> 3);
-    return 'doudou-$ts-$rand';
   }
 
   // -- server urls -------------------------------------------------------
@@ -157,7 +167,7 @@ class DoudouServerSyncService extends GetxService {
       if (s.serverUrl == null || s.serverUrl!.isEmpty) continue;
       try {
         await client.upsertServer(RemoteMusicServer(
-          id: _remoteIdFor(s),
+          id: remoteIdFor(s.type, s.serverUrl!),
           name: s.name,
           type: s.type.name,
           url: s.serverUrl!,
@@ -192,11 +202,6 @@ class DoudouServerSyncService extends GetxService {
     return null;
   }
 
-  String _remoteIdFor(SettingsServer s) {
-    final raw = '${s.type.name}:${s.serverUrl ?? ""}';
-    return raw.hashCode.toRadixString(16);
-  }
-
   // -- libraries ---------------------------------------------------------
 
   Future<void> _pushLocalLibraries(DoudouServerClient client) async {
@@ -207,12 +212,13 @@ class DoudouServerSyncService extends GetxService {
     if (libSync == null) return;
 
     for (final server in settings.servers.toList()) {
-      final remoteId = _remoteIdFor(server);
+      if (server.serverUrl == null || server.serverUrl!.isEmpty) continue;
+      final remoteId = remoteIdFor(server.type, server.serverUrl!);
       for (final kind in LibraryKind.values) {
         try {
           final payload = await _readLocalCache(server.id, kind);
           if (payload == null) continue;
-          final version = (libSync.syncVersionByKind[kind] ?? 0);
+          final version = await _readRevision(remoteId, kind);
           await client.pushSnapshot(
             musicServerId: remoteId,
             kind: kind.name,
@@ -232,16 +238,21 @@ class DoudouServerSyncService extends GetxService {
     if (libSync == null) return;
 
     for (final server in settings.servers.toList()) {
-      final remoteId = _remoteIdFor(server);
-      final remoteSnapshots = await client.listSnapshots(remoteId);
-      for (final snap in remoteSnapshots) {
-        final kind = _matchKind(snap.kind);
-        if (kind == null) continue;
-        final localVersion = libSync.syncVersionByKind[kind] ?? 0;
-        if (snap.version <= localVersion) continue;
-        await _writeLocalCache(server.id, kind, snap.payload);
-        libSync.syncVersionByKind[kind] = snap.version;
-        libSync.lastSuccessMsByKind[kind] = snap.updatedAtMs;
+      if (server.serverUrl == null || server.serverUrl!.isEmpty) continue;
+      final remoteId = remoteIdFor(server.type, server.serverUrl!);
+      try {
+        final remoteSnapshots = await client.listSnapshots(remoteId);
+        for (final snap in remoteSnapshots) {
+          final kind = _matchKind(snap.kind);
+          if (kind == null) continue;
+          final localVersion = await _readRevision(remoteId, kind);
+          if (snap.version <= localVersion) continue;
+          await _writeLocalCache(server.id, kind, snap.payload);
+          await _writeRevision(remoteId, kind, snap.version);
+          libSync.lastSuccessMsByKind[kind] = snap.updatedAtMs;
+        }
+      } catch (_) {
+        // One server failing shouldn't abort the rest.
       }
     }
   }
@@ -265,7 +276,7 @@ class DoudouServerSyncService extends GetxService {
     final items = box.values
         .map((v) => v is Map ? Map<String, dynamic>.from(v) : v)
         .toList();
-    return jsonEncode(items);
+    return encodeSnapshotPayload(items.cast<Map<String, dynamic>>());
   }
 
   Future<void> _writeLocalCache(
@@ -278,12 +289,35 @@ class DoudouServerSyncService extends GetxService {
     };
     final box = Hive.isBoxOpen(boxName) ? Hive.box(boxName) : await Hive.openBox(boxName);
     await box.clear();
-    final decoded = jsonDecode(payload);
-    if (decoded is! List) return;
+    final decoded = decodeSnapshotPayload(payload);
     final map = <int, dynamic>{};
     for (var i = 0; i < decoded.length; i++) {
       map[i] = decoded[i];
     }
     await box.putAll(map);
   }
+
+  // -- per-server revision tracking --------------------------------------
+
+  String _revisionKey(String remoteId, LibraryKind kind) =>
+      'doudou_rev_${remoteId}_${kind.name}';
+
+  Future<int> _readRevision(String remoteId, LibraryKind kind) async {
+    final box = Hive.isBoxOpen('AppPrefs') ? Hive.box('AppPrefs') : await Hive.openBox('AppPrefs');
+    final v = box.get(_revisionKey(remoteId, kind));
+    return v is int ? v : 0;
+  }
+
+  Future<void> _writeRevision(String remoteId, LibraryKind kind, int version) async {
+    final box = Hive.isBoxOpen('AppPrefs') ? Hive.box('AppPrefs') : await Hive.openBox('AppPrefs');
+    await box.put(_revisionKey(remoteId, kind), version);
+  }
+}
+
+/// Stable, content-derived ID for a music server. Identical type:url inputs
+/// produce the same id across devices and builds (unlike Dart's hashCode,
+/// which is not guaranteed to be stable across isolates or builds).
+String remoteIdFor(ServerType type, String url) {
+  final raw = '${type.name}:$url';
+  return sha1.convert(utf8.encode(raw)).toString().substring(0, 16);
 }
