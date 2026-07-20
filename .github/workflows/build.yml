@@ -41,6 +41,12 @@ jobs:
             os: macos-latest
           - target: ios
             os: macos-latest
+          - target: doudou-server-linux
+            os: ubuntu-latest
+          - target: doudou-server-windows
+            os: windows-latest
+          - target: doudou-server-macos
+            os: macos-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -63,7 +69,7 @@ jobs:
         run: flutter doctor -v
 
       - name: Install Linux build dependencies
-        if: matrix.target == 'linux'
+        if: matrix.target == 'linux' || matrix.target == 'doudou-server-linux'
         run: |
           sudo apt-get update -y
           sudo apt-get install -y \
@@ -76,6 +82,13 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Install doudou-server dependencies
+        if: startsWith(matrix.target, 'doudou-server-')
+        working-directory: packages/doudou_server
+        run: |
+          flutter pub get
+          dart run build_runner build
 
       - name: Build debug + release
         shell: bash
@@ -144,6 +157,24 @@ jobs:
               (cd build/ios/iphoneos && zip -ry "$OLDPWD/artifacts/doudou-ios-debug-${suffix}.zip" ./*.app)
               flutter build ios --release --no-codesign
               (cd build/ios/iphoneos && zip -ry "$OLDPWD/artifacts/doudou-ios-release-${suffix}.zip" ./*.app)
+              ;;
+            doudou-server-linux)
+              (cd packages/doudou_server && flutter build linux --debug)
+              tar -czf "artifacts/doudou-server-linux-debug-${suffix}.tar.gz" -C packages/doudou_server/build/linux/x64/debug/bundle .
+              (cd packages/doudou_server && flutter build linux --release)
+              tar -czf "artifacts/doudou-server-linux-release-${suffix}.tar.gz" -C packages/doudou_server/build/linux/x64/release/bundle .
+              ;;
+            doudou-server-windows)
+              (cd packages/doudou_server && flutter build windows --debug)
+              7z a "artifacts/doudou-server-windows-debug-${suffix}.zip" "packages/doudou_server/build/windows/x64/runner/Debug"
+              (cd packages/doudou_server && flutter build windows --release)
+              7z a "artifacts/doudou-server-windows-release-${suffix}.zip" "packages/doudou_server/build/windows/x64/runner/Release"
+              ;;
+            doudou-server-macos)
+              (cd packages/doudou_server && flutter build macos --debug)
+              (cd packages/doudou_server/build/macos/Build/Products/Debug && zip -ry "$OLDPWD/artifacts/doudou-server-macos-debug-${suffix}.zip" ./*.app)
+              (cd packages/doudou_server && flutter build macos --release)
+              (cd packages/doudou_server/build/macos/Build/Products/Release && zip -ry "$OLDPWD/artifacts/doudou-server-macos-release-${suffix}.zip" ./*.app)
               ;;
             *)
               echo "Unknown target: ${{ matrix.target }}" >&2
