@@ -25,12 +25,11 @@ class DoudouHttpServer {
   final int port;
 
   HttpServer? _server;
-  final _activeClients = <String, String>{}; // clientId -> name (in-memory)
 
   Future<int> start() async {
     _server = await HttpServer.bind(host, port);
     _server!.autoCompress = true;
-    unawaited(_loop());
+    _server!.listen(_handleRequest);
     return _server!.port;
   }
 
@@ -41,18 +40,12 @@ class DoudouHttpServer {
 
   int get boundPort => _server?.port ?? port;
 
-  Future<void> _loop() async {
-    final server = _server;
-    if (server == null) return;
-    await for (final req in server) {
-      try {
-        await _dispatch(req);
-      } catch (e, st) {
-        _error(req, HttpStatus.internalServerError, '$e\n$st');
-      } finally {
-        await req.response.close();
-      }
-    }
+  void _handleRequest(HttpRequest req) {
+    // Handle each request independently so long-running syncs don't block
+    // other clients.
+    _dispatch(req).catchError((e, st) {
+      _error(req, HttpStatus.internalServerError, '$e\n$st');
+    }).whenComplete(() => req.response.close());
   }
 
   Future<void> _dispatch(HttpRequest req) async {
@@ -174,14 +167,18 @@ class DoudouHttpServer {
       return;
     }
     await db.touchClient(id, name);
-    _activeClients[id] = name;
     _json(req, {'registered': id});
   }
 
   // -- helpers ------------------------------------------------------------
 
   Future<Map<String, dynamic>> _readJson(HttpRequest req) async {
-    final raw = await req.fold<String>('', (acc, chunk) => acc + utf8.decode(chunk));
+    final bytes = <int>[];
+    await for (final chunk in req) {
+      bytes.addAll(chunk);
+    }
+    if (bytes.isEmpty) return {};
+    final raw = utf8.decode(bytes, allowMalformed: true);
     if (raw.isEmpty) return {};
     return jsonDecode(raw) as Map<String, dynamic>;
   }
