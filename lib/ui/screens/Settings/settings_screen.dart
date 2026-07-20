@@ -1019,12 +1019,27 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 },
                 child: Column(
                   children: servers
-                      .map((server) => ListTile(
+                      .map((server) {
+                        final hasUrl =
+                            server.serverUrl?.isNotEmpty == true;
+                        final remoteId = hasUrl
+                            ? remoteIdFor(server.type, server.serverUrl!)
+                            : null;
+                        return ListTile(
                             leading: Icon(_serverIcon(server.type)),
-                            title: Text(
-                              server.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            title: Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    server.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (remoteId != null)
+                                  _buildServerSyncBadge(
+                                      context, remoteId, theme),
+                              ],
                             ),
                             subtitle: Text(
                               server.serverUrl?.isNotEmpty == true
@@ -1096,7 +1111,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                                 ]
                               ],
                             ),
-                          ))
+                          );
+                      })
                       .toList(),
                 ),
               ),
@@ -1125,6 +1141,58 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       const SizedBox(height: 16),
       _buildDoudouServerSection(context, theme, colorScheme),
     ];
+  }
+
+  Widget _buildServerSyncBadge(
+    BuildContext context,
+    String remoteId,
+    ThemeData theme,
+  ) {
+    final syncService = Get.find<DoudouServerSyncService>();
+    if (!syncService.isConfigured.value) return const SizedBox.shrink();
+    return Obx(() {
+      final isSyncing = syncService.syncingServerIds.contains(remoteId);
+      final hasSynced = syncService.syncedServerIds.contains(remoteId);
+      if (!isSyncing && !hasSynced) return const SizedBox.shrink();
+
+      final color = isSyncing
+          ? theme.colorScheme.primary
+          : theme.colorScheme.onSurface.withValues(alpha: 0.5);
+      final icon = isSyncing
+          ? Icons.cloud_sync
+          : Icons.cloud_done_outlined;
+      final label = isSyncing ? 'syncing' : 'synced';
+
+      return Padding(
+        padding: const EdgeInsets.only(left: 6),
+        child: Tooltip(
+          message: isSyncing
+              ? 'Syncing with doudou-server'
+              : 'Synced with doudou-server',
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 12, color: color),
+                const SizedBox(width: 3),
+                Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildDoudouServerSection(
