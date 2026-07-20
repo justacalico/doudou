@@ -2257,6 +2257,67 @@ class _AddServerDialogState extends State<AddServerDialog> {
     });
   }
 
+  /// YTM has no credentials/URL to validate, so instead of a sync button we
+  /// show a badge reflecting its current doudou-server sync state.
+  Widget _buildYtmSyncBadge(BuildContext context) {
+    final syncService = Get.find<DoudouServerSyncService>();
+    final theme = Theme.of(context);
+    return Obx(() {
+      if (!syncService.isConfigured.value) return const SizedBox.shrink();
+      final remoteId = remoteIdFor(ServerType.youtubeMusic, null);
+      final isSyncing = syncService.syncingServerIds.contains(remoteId);
+      final hasSynced = syncService.syncedServerIds.contains(remoteId);
+
+      final color = isSyncing
+          ? theme.colorScheme.primary
+          : hasSynced
+              ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
+              : theme.colorScheme.onSurface.withValues(alpha: 0.3);
+      final icon = isSyncing
+          ? Icons.cloud_sync
+          : hasSynced
+              ? Icons.cloud_done_outlined
+              : Icons.cloud_outlined;
+      final label = isSyncing
+          ? 'syncing'
+          : hasSynced
+              ? 'synced'
+              : 'will sync';
+
+      return Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Tooltip(
+          message: isSyncing
+              ? 'Syncing with doudou-server'
+              : hasSynced
+                  ? 'Synced with doudou-server'
+                  : 'Will sync with doudou-server after adding',
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 14, color: color),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
   String _title(BuildContext context) {
     final l10n = context.l10n;
     if (widget.existing != null) return l10n.editServer;
@@ -2362,12 +2423,13 @@ class _AddServerDialogState extends State<AddServerDialog> {
                 l10n.youtubeMusicNoLogin,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
+              _buildYtmSyncBadge(context),
             ],
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                _buildSyncWithDoudouServerButton(context),
+                if (_needsCredentials) _buildSyncWithDoudouServerButton(context),
                 const Spacer(),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
