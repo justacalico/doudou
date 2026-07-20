@@ -578,24 +578,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
   @override
   Future<void> play() async {
-    if (currentSongUrl == null ||
-        (GetPlatform.isDesktop &&
-            (_player.duration == null ||
-                _player.duration?.inMilliseconds == 0))) {
+    if (currentSongUrl == null) {
       await customAction("playByIndex", {'index': currentIndex});
       return;
     }
-    // Workaround for network error pause in case of PlayingUsingLockCachingSource
-    // if (isPlayingUsingLockCachingSource && networkErrorPause) {
-    //   await _player.play();
-    //   Future.delayed(const Duration(seconds: 2)).then((value) {
-    //     if (_player.playing) {
-    //       networkErrorPause = false;
-    //     }
-    //   });
-    //   await _player.play();
-    //   return;
-    // }
     await _player.play();
   }
 
@@ -766,7 +752,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             'playing': _player.playing,
           },
         );
-        await _player.stop();
+        // Only stop when the player is in completed state. Calling stop()
+        // unconditionally on desktop breaks media_kit: after stop + clear +
+        // open(new source), the subsequent play() call doesn't start playback
+        // because the platform's load() pauses the player at the wrong time.
+        // The original stop() was added to fix auto-advance getting stuck in
+        // completed state, so we only need it in that case.
+        if (_player.processingState == ProcessingState.completed) {
+          await _player.stop();
+        }
         if (_playList.children.isNotEmpty) {
           await _playList.clear();
         }
@@ -905,6 +899,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         } else {
           await _player.seek(Duration.zero);
           await _player.play();
+          _ensurePlaybackStarted();
         }
         _diag.logEvent(
           category: 'player_event',
@@ -963,7 +958,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             checkNGetUrl(currMed.id, extras: currMed.extras);
         isSongLoading = true;
         currentIndex = 0;
-        await _player.stop();
+        if (_player.processingState == ProcessingState.completed) {
+          await _player.stop();
+        }
         await _playList.clear();
         if (_isStalePlayRequest(requestId)) {
           _diag.logEvent(
@@ -1043,6 +1040,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
         await _player.seek(Duration.zero);
         await _player.play();
+        _ensurePlaybackStarted();
         break;
 
       case 'toggleSkipSilence':
@@ -1250,6 +1248,38 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     printINFO(
         "loudness:$currentLoudnessDb Normalized volume: $adjustedVolume (user: $_userVolume, adj: $volumeAdjustment)");
     _player.setVolume(adjustedVolume);
+  }
+
+  /// Guards against a race condition in just_audio_media_kit where the
+  /// platform's load() sends a pause command without awaiting it. If that
+  /// pause lands after our play() call, the player ends up paused even though
+  /// we asked it to play. This re-issues play() after a short delay on
+  /// desktop platforms where media_kit is used.
+  void _ensurePlaybackStarted() {
+    if (!GetPlatform.isDesktop) return;
+    final expectedRequestId = _activePlayRequestId;
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (_isStalePlayRequest(expectedRequestId)) return;
+      if (isSongLoading) return;
+      if (_player.processingState == ProcessingState.completed ||
+          _player.processingState == ProcessingState.idle) {
+        return;
+      }
+      if (!_player.playing) {
+        _diag.logEvent(
+          category: 'recovery',
+          message: 're_issue_play_after_race',
+          songId: _safeCurrentSongId(),
+          backendType: _safeBackendType(),
+          activeServerType: _safeServerType(),
+          data: {
+            'processingState': _player.processingState.name,
+            'playing': _player.playing,
+          },
+        );
+        _player.play();
+      }
+    });
   }
 
   Future<void> saveSessionData() async {
