@@ -1135,7 +1135,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     final syncService = Get.find<DoudouServerSyncService>();
     return Obx(() {
       final configured = syncService.isConfigured.value;
-      final config = syncService.config;
+      final config = syncService.config.value;
       final syncing = syncService.isSyncing.value;
       final lastErr = syncService.lastError.value;
       final lastMs = syncService.lastSyncTimeMs.value;
@@ -1232,74 +1232,9 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     BuildContext context,
     DoudouServerConfig? existing,
   ) async {
-    final urlCtrl = TextEditingController(text: existing?.url ?? '');
-    final keyCtrl = TextEditingController(text: existing?.key ?? '');
-    final nameCtrl = TextEditingController(text: existing?.deviceName ?? '');
     final result = await showDialog<_DoudouServerDialogResult>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(existing == null ? 'Add doudou-server' : 'Edit doudou-server'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: urlCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Server URL',
-                  hintText: 'http://192.168.1.20:7427',
-                ),
-                autofocus: true,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: keyCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Shared password',
-                  hintText: 'Set via `doudou-server -set login`',
-                ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: nameCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Device name (optional)',
-                  hintText: 'Pixel 8, Laptop, etc.',
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          if (existing != null)
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(_DoudouServerDialogResult.remove()),
-              child: const Text('Remove'),
-            ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(context.l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              final url = urlCtrl.text.trim();
-              final key = keyCtrl.text;
-              if (url.isEmpty || key.isEmpty) return;
-              Navigator.of(ctx).pop(_DoudouServerDialogResult.save(
-                DoudouServerConfig(
-                  url: url,
-                  key: key,
-                  deviceName: nameCtrl.text.trim().isEmpty
-                      ? null
-                      : nameCtrl.text.trim(),
-                ),
-              ));
-            },
-            child: Text(existing == null ? context.l10n.add : context.l10n.save),
-          ),
-        ],
-      ),
+      builder: (ctx) => _DoudouServerDialog(existing: existing),
     );
     if (result == null) return;
     final syncService = Get.find<DoudouServerSyncService>();
@@ -2867,4 +2802,118 @@ class _DoudouServerDialogResult {
 
   final DoudouServerConfig? config;
   final bool remove;
+}
+
+class _DoudouServerDialog extends StatefulWidget {
+  const _DoudouServerDialog({this.existing});
+
+  final DoudouServerConfig? existing;
+
+  @override
+  State<_DoudouServerDialog> createState() => _DoudouServerDialogState();
+}
+
+class _DoudouServerDialogState extends State<_DoudouServerDialog> {
+  late final TextEditingController _urlCtrl;
+  late final TextEditingController _keyCtrl;
+  late final TextEditingController _nameCtrl;
+  String? _urlError;
+  String? _keyError;
+
+  @override
+  void initState() {
+    super.initState();
+    _urlCtrl = TextEditingController(text: widget.existing?.url ?? '');
+    _keyCtrl = TextEditingController(text: widget.existing?.key ?? '');
+    _nameCtrl = TextEditingController(text: widget.existing?.deviceName ?? '');
+  }
+
+  @override
+  void dispose() {
+    _urlCtrl.dispose();
+    _keyCtrl.dispose();
+    _nameCtrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final url = _urlCtrl.text.trim();
+    final key = _keyCtrl.text;
+    var hasError = false;
+    setState(() {
+      _urlError = url.isEmpty ? 'URL is required' : null;
+      _keyError = key.isEmpty ? 'Password is required' : null;
+      hasError = _urlError != null || _keyError != null;
+    });
+    if (hasError) return;
+    Navigator.of(context).pop(_DoudouServerDialogResult.save(
+      DoudouServerConfig(
+        url: url,
+        key: key,
+        deviceName: _nameCtrl.text.trim().isEmpty
+            ? null
+            : _nameCtrl.text.trim(),
+      ),
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final existing = widget.existing;
+    return AlertDialog(
+      title: Text(existing == null ? 'Add doudou-server' : 'Edit doudou-server'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _urlCtrl,
+              decoration: InputDecoration(
+                labelText: 'Server URL',
+                hintText: 'http://192.168.1.20:7427',
+                errorText: _urlError,
+              ),
+              autofocus: true,
+              onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _keyCtrl,
+              decoration: InputDecoration(
+                labelText: 'Shared password',
+                hintText: 'Set via `doudou-server -set login`',
+                errorText: _keyError,
+              ),
+              obscureText: true,
+              onSubmitted: (_) => _submit(),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _nameCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Device name (optional)',
+                hintText: 'Pixel 8, Laptop, etc.',
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        if (existing != null)
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_DoudouServerDialogResult.remove()),
+            child: const Text('Remove'),
+          ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(context.l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(existing == null ? context.l10n.add : context.l10n.save),
+        ),
+      ],
+    );
+  }
 }
