@@ -45,13 +45,16 @@ class DoudouDaemon {
     // Watch for a stop signal file written by `doudou-server -stop`.
     final stopWatcher = _watchStopSignal(stateFile, stopCompleter);
 
-    // Also stop on SIGINT / SIGTERM for clean shutdown on Unix.
+    // Stop on SIGINT everywhere. SIGTERM only exists on non-Windows.
     final sigint = ProcessSignal.sigint.watch().listen((_) {
       if (!stopCompleter.isCompleted) stopCompleter.complete();
     });
-    final sigterm = ProcessSignal.sigterm.watch().listen((_) {
-      if (!stopCompleter.isCompleted) stopCompleter.complete();
-    });
+    StreamSubscription<ProcessSignal>? sigterm;
+    if (!Platform.isWindows) {
+      sigterm = ProcessSignal.sigterm.watch().listen((_) {
+        if (!stopCompleter.isCompleted) stopCompleter.complete();
+      });
+    }
 
     stdout.writeln('doudou-server listening on $host:$boundPort');
     stdout.writeln('state file: ${stateFile.path}');
@@ -62,7 +65,7 @@ class DoudouDaemon {
     keepalive.cancel();
     await stopWatcher.cancel();
     await sigint.cancel();
-    await sigterm.cancel();
+    await sigterm?.cancel();
     await http.stop();
     await db.close();
     try {
