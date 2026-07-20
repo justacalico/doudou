@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
@@ -1319,16 +1320,11 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       builder: (_) => const _AddProviderDialog(),
     );
     if (selected == null || !context.mounted) return;
-    
-    final controller = Get.find<SettingsScreenController>();
-    if (selected == ServerType.youtubeMusic) {
-      controller.addServerWithCredentials(ServerType.youtubeMusic);
-    } else {
-      showDialog(
-        context: context,
-        builder: (_) => AddServerDialog(serverType: selected),
-      );
-    }
+
+    showDialog(
+      context: context,
+      builder: (_) => AddServerDialog(serverType: selected),
+    );
   }
 
   List<Widget> _buildDownload(
@@ -2190,6 +2186,77 @@ class _AddServerDialogState extends State<AddServerDialog> {
       widget.serverType == ServerType.jellyfin ||
       widget.serverType == ServerType.plex;
 
+  Widget _buildSyncWithDoudouServerButton(BuildContext context) {
+    final syncService = Get.find<DoudouServerSyncService>();
+    return Obx(() {
+      if (!syncService.isConfigured.value) return const SizedBox.shrink();
+      final remoteId = remoteIdFor(widget.serverType, _buildServerUrl().isEmpty
+          ? null
+          : _buildServerUrl());
+      final isSyncing = syncService.syncingServerIds.contains(remoteId);
+      return TextButton.icon(
+        onPressed: isSyncing
+            ? null
+            : () async {
+                final settings = Get.find<SettingsScreenController>();
+                // If editing an existing server, sync it directly.
+                if (widget.existing != null) {
+                  await syncService.syncServer(widget.existing!);
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Syncing with doudou-server...'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                  return;
+                }
+                // For a new server, we need to add it first, then sync.
+                // Find the server we just added by matching type+url.
+                final beforeIds = settings.servers.map((s) => s.id).toSet();
+                if (_needsCredentials) {
+                  final serverUrl = _buildServerUrl();
+                  if (serverUrl.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(context.l10n.serverUrlRequired)),
+                    );
+                    return;
+                  }
+                  settings.addServerWithCredentials(
+                    widget.serverType,
+                    serverUrl: serverUrl,
+                    username: _usernameController.text,
+                    password: _passwordController.text,
+                  );
+                } else {
+                  settings.addServerWithCredentials(widget.serverType);
+                }
+                final newServer = settings.servers.firstWhereOrNull(
+                    (s) => !beforeIds.contains(s.id));
+                if (newServer != null) {
+                  unawaited(syncService.syncServer(newServer));
+                }
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Server added, syncing with doudou-server...'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+        icon: isSyncing
+            ? const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.cloud_sync, size: 18),
+        label: Text(isSyncing ? 'Syncing...' : 'Sync with doudou-server'),
+      );
+    });
+  }
+
   String _title(BuildContext context) {
     final l10n = context.l10n;
     if (widget.existing != null) return l10n.editServer;
@@ -2300,6 +2367,8 @@ class _AddServerDialogState extends State<AddServerDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                _buildSyncWithDoudouServerButton(context),
+                const Spacer(),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(l10n.cancel),
@@ -2333,7 +2402,7 @@ class _AddServerDialogState extends State<AddServerDialog> {
                         );
                       } else {
                         controller
-                            .addServerWithCredentials(ServerType.youtubeMusic);
+                            .addServerWithCredentials(widget.serverType);
                       }
                     }
                     Navigator.of(context).pop();
