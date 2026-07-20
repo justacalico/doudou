@@ -19,7 +19,7 @@ media server credentials.
 
 ## Build
 
-```
+```shell
 cd packages/doudou_server
 flutter build linux   # or macos / windows
 ```
@@ -28,7 +28,7 @@ The resulting binary is a CLI. Run it with `-h` to see options.
 
 ## CLI
 
-```
+```shell
 doudou-server -start                       # run the server in the foreground
 doudou-server -start --host 0.0.0.0 --port 7427
 doudou-server -stop                        # stop a running server on this machine
