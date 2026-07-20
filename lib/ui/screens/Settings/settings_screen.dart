@@ -24,6 +24,8 @@ import '/ui/player/player_controller.dart';
 import '/ui/utils/theme_controller.dart';
 import '/ui/constants/layout.dart';
 import '/models/server.dart';
+import '/models/doudou_server.dart';
+import '/services/doudou_server_sync_service.dart';
 import 'settings_screen_controller.dart';
 import '/app/theme/app_theme_provider.dart';
 
@@ -1120,7 +1122,192 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           ],
         );
       }),
+      const SizedBox(height: 16),
+      _buildDoudouServerSection(context, theme, colorScheme),
     ];
+  }
+
+  Widget _buildDoudouServerSection(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final syncService = Get.find<DoudouServerSyncService>();
+    return Obx(() {
+      final configured = syncService.isConfigured.value;
+      final config = syncService.config;
+      final syncing = syncService.isSyncing.value;
+      final lastErr = syncService.lastError.value;
+      final lastMs = syncService.lastSyncTimeMs.value;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 4),
+            child: Text(
+              'doudou-server',
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => _showDoudouServerDialog(context, config),
+              child: Ink(
+                decoration: BoxDecoration(
+                  color: theme.cardColor.withValues(alpha: 0.82),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.dividerColor.withValues(alpha: 0.28),
+                  ),
+                ),
+                child: ListTile(
+                  dense: true,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                  leading: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: colorScheme.onSurface.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      configured ? Icons.cloud_done_outlined : Icons.cloud_outlined,
+                      size: 16,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  title: Text(
+                    configured
+                        ? (config?.url ?? 'doudou-server')
+                        : 'Add doudou-server',
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    configured
+                        ? (syncing
+                            ? 'Syncing...'
+                            : (lastErr.isNotEmpty
+                                ? lastErr
+                                : (lastMs != null
+                                    ? 'Last sync: ${DateTime.fromMillisecondsSinceEpoch(lastMs).toLocal()}'
+                                    : 'Connected')))
+                        : 'Sync your library across all your devices',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (configured)
+                        IconButton(
+                          icon: const Icon(Icons.sync, size: 18),
+                          tooltip: 'Sync now',
+                          onPressed: syncing
+                              ? null
+                              : () => syncService.syncNow(),
+                        ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  Future<void> _showDoudouServerDialog(
+    BuildContext context,
+    DoudouServerConfig? existing,
+  ) async {
+    final urlCtrl = TextEditingController(text: existing?.url ?? '');
+    final keyCtrl = TextEditingController(text: existing?.key ?? '');
+    final nameCtrl = TextEditingController(text: existing?.deviceName ?? '');
+    final result = await showDialog<_DoudouServerDialogResult>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(existing == null ? 'Add doudou-server' : 'Edit doudou-server'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: urlCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Server URL',
+                  hintText: 'http://192.168.1.20:7427',
+                ),
+                autofocus: true,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: keyCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Shared password',
+                  hintText: 'Set via `doudou-server -set login`',
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Device name (optional)',
+                  hintText: 'Pixel 8, Laptop, etc.',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          if (existing != null)
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(_DoudouServerDialogResult.remove()),
+              child: const Text('Remove'),
+            ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(context.l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              final url = urlCtrl.text.trim();
+              final key = keyCtrl.text;
+              if (url.isEmpty || key.isEmpty) return;
+              Navigator.of(ctx).pop(_DoudouServerDialogResult.save(
+                DoudouServerConfig(
+                  url: url,
+                  key: key,
+                  deviceName: nameCtrl.text.trim().isEmpty
+                      ? null
+                      : nameCtrl.text.trim(),
+                ),
+              ));
+            },
+            child: Text(existing == null ? context.l10n.add : context.l10n.save),
+          ),
+        ],
+      ),
+    );
+    if (result == null) return;
+    final syncService = Get.find<DoudouServerSyncService>();
+    if (result.remove) {
+      await syncService.setConfig(null);
+    } else if (result.config != null) {
+      await syncService.setConfig(result.config);
+    }
   }
 
   Future<void> _showAddProviderPicker(BuildContext context) async {
@@ -2670,4 +2857,14 @@ String _serverTypeLabel(BuildContext context, ServerType type) {
     ServerType.jellyfin => l10n.jellyfin,
     ServerType.plex => l10n.plex,
   };
+}
+
+class _DoudouServerDialogResult {
+  _DoudouServerDialogResult.save(this.config) : remove = false;
+  _DoudouServerDialogResult.remove()
+      : config = null,
+        remove = true;
+
+  final DoudouServerConfig? config;
+  final bool remove;
 }
