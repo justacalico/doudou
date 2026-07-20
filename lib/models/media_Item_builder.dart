@@ -60,6 +60,11 @@ class MediaItemBuilder {
   }
 
   static String? _inferBackendTypeFromServer(dynamic rawServerId) {
+    // Only infer the backend type from an explicit serverId. YouTube Music is
+    // the default backend and never tags its songs, so falling back to the
+    // active server here would mislabel YouTube Music songs as subsonic/jellyfin
+    // when a non-YouTube server is active. That causes playback to route the
+    // YouTube video id through the wrong backend and fail with TrackNotFound.
     try {
       if (!Get.isRegistered<SettingsScreenController>()) return null;
       final settings = Get.find<SettingsScreenController>();
@@ -69,22 +74,18 @@ class MediaItemBuilder {
       } else if (rawServerId is String) {
         serverId = int.tryParse(rawServerId);
       }
-      SettingsServer? server;
-      if (serverId != null) {
-        for (final s in settings.servers) {
-          if (s.id == serverId) {
-            server = s;
-            break;
-          }
+      if (serverId == null) return null;
+      for (final s in settings.servers) {
+        if (s.id == serverId) {
+          return switch (s.type) {
+            ServerType.plex => 'plex',
+            ServerType.jellyfin => 'jellyfin',
+            ServerType.subsonic => 'subsonic',
+            _ => null,
+          };
         }
       }
-      server ??= settings.activeServer;
-      return switch (server?.type) {
-        ServerType.plex => 'plex',
-        ServerType.jellyfin => 'jellyfin',
-        ServerType.subsonic => 'subsonic',
-        _ => null,
-      };
+      return null;
     } catch (_) {
       return null;
     }

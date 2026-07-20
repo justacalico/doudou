@@ -1605,6 +1605,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
   ServerType? _serverTypeForExtras(Map<String, dynamic>? extras) {
+    // YouTube Music is the default backend and never tags its songs with a
+    // serverId. Only resolve a server type when the song explicitly carries
+    // one, otherwise fall back to YouTube Music so untagged songs aren't
+    // misrouted through whatever non-YouTube server happens to be active.
     final settings = Get.find<SettingsScreenController>();
     final rawServerId = extras?['serverId'];
     int? serverId;
@@ -1618,7 +1622,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         if (server.id == serverId) return server.type;
       }
     }
-    return settings.activeServer?.type;
+    return null;
   }
 
   String? _safeCurrentSongId() {
