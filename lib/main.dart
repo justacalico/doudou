@@ -147,7 +147,9 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => SettingsScreenController(), fenix: true);
   Get.lazyPut(() => Downloader(), fenix: true);
   Get.lazyPut(() => LibrarySyncService(), fenix: true);
-  Get.lazyPut(() => DoudouServerSyncService(), fenix: true);
+  // Eager registration so onInit runs at launch and the periodic sync starts
+  // immediately, even before the settings screen is opened.
+  Get.put(DoudouServerSyncService(), permanent: true);
   Get.lazyPut(() => SearchScreenController(), fenix: true);
   Get.lazyPut(() => PlaybackDiagnosticsService(), fenix: true);
   if (GetPlatform.isAndroid) {
