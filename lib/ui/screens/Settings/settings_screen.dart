@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
@@ -24,6 +25,8 @@ import '/ui/player/player_controller.dart';
 import '/ui/utils/theme_controller.dart';
 import '/ui/constants/layout.dart';
 import '/models/server.dart';
+import '/models/doudou_server.dart';
+import '/services/doudou_server_sync_service.dart';
 import 'settings_screen_controller.dart';
 import '/app/theme/app_theme_provider.dart';
 
@@ -1017,12 +1020,27 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 },
                 child: Column(
                   children: servers
-                      .map((server) => ListTile(
+                      .map((server) {
+                        final hasUrl =
+                            server.serverUrl?.isNotEmpty == true;
+                        final remoteId = hasUrl
+                            ? remoteIdFor(server.type, server.serverUrl!)
+                            : null;
+                        return ListTile(
                             leading: Icon(_serverIcon(server.type)),
-                            title: Text(
-                              server.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            title: Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    server.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (remoteId != null)
+                                  _buildServerSyncBadge(
+                                      context, remoteId, theme),
+                              ],
                             ),
                             subtitle: Text(
                               server.serverUrl?.isNotEmpty == true
@@ -1094,7 +1112,8 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                                 ]
                               ],
                             ),
-                          ))
+                          );
+                      })
                       .toList(),
                 ),
               ),
@@ -1120,7 +1139,179 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           ],
         );
       }),
+      const SizedBox(height: 16),
+      _buildDoudouServerSection(context, theme, colorScheme),
     ];
+  }
+
+  Widget _buildServerSyncBadge(
+    BuildContext context,
+    String remoteId,
+    ThemeData theme,
+  ) {
+    final syncService = Get.find<DoudouServerSyncService>();
+    if (!syncService.isConfigured.value) return const SizedBox.shrink();
+    return Obx(() {
+      final isSyncing = syncService.syncingServerIds.contains(remoteId);
+      final hasSynced = syncService.syncedServerIds.contains(remoteId);
+      if (!isSyncing && !hasSynced) return const SizedBox.shrink();
+
+      final color = isSyncing
+          ? theme.colorScheme.primary
+          : theme.colorScheme.onSurface.withValues(alpha: 0.5);
+      final icon = isSyncing
+          ? Icons.cloud_sync
+          : Icons.cloud_done_outlined;
+      final label = isSyncing ? 'syncing' : 'synced';
+
+      return Padding(
+        padding: const EdgeInsets.only(left: 6),
+        child: Tooltip(
+          message: isSyncing
+              ? 'Syncing with doudou-server'
+              : 'Synced with doudou-server',
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 12, color: color),
+                const SizedBox(width: 3),
+                Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildDoudouServerSection(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final syncService = Get.find<DoudouServerSyncService>();
+    return Obx(() {
+      final configured = syncService.isConfigured.value;
+      final config = syncService.config.value;
+      final syncing = syncService.isSyncing.value;
+      final lastErr = syncService.lastError.value;
+      final lastMs = syncService.lastSyncTimeMs.value;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 4),
+            child: Text(
+              'doudou-server',
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => _showDoudouServerDialog(context, config),
+              child: Ink(
+                decoration: BoxDecoration(
+                  color: theme.cardColor.withValues(alpha: 0.82),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.dividerColor.withValues(alpha: 0.28),
+                  ),
+                ),
+                child: ListTile(
+                  dense: true,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                  leading: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: colorScheme.onSurface.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      configured ? Icons.cloud_done_outlined : Icons.cloud_outlined,
+                      size: 16,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  title: Text(
+                    configured
+                        ? (config?.url ?? 'doudou-server')
+                        : 'Add doudou-server',
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    configured
+                        ? (syncing
+                            ? 'Syncing...'
+                            : (lastErr.isNotEmpty
+                                ? lastErr
+                                : (lastMs != null
+                                    ? 'Last sync: ${DateTime.fromMillisecondsSinceEpoch(lastMs).toLocal()}'
+                                    : 'Connected')))
+                        : 'Sync your library across all your devices',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (configured)
+                        IconButton(
+                          icon: const Icon(Icons.sync, size: 18),
+                          tooltip: 'Sync now',
+                          onPressed: syncing
+                              ? null
+                              : () => syncService.syncNow(),
+                        ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  Future<void> _showDoudouServerDialog(
+    BuildContext context,
+    DoudouServerConfig? existing,
+  ) async {
+    final result = await showDialog<_DoudouServerDialogResult>(
+      context: context,
+      builder: (ctx) => _DoudouServerDialog(existing: existing),
+    );
+    if (result == null) return;
+    final syncService = Get.find<DoudouServerSyncService>();
+    if (result.remove) {
+      await syncService.setConfig(null);
+    } else if (result.config != null) {
+      await syncService.setConfig(result.config);
+    }
   }
 
   Future<void> _showAddProviderPicker(BuildContext context) async {
@@ -1129,16 +1320,11 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       builder: (_) => const _AddProviderDialog(),
     );
     if (selected == null || !context.mounted) return;
-    
-    final controller = Get.find<SettingsScreenController>();
-    if (selected == ServerType.youtubeMusic) {
-      controller.addServerWithCredentials(ServerType.youtubeMusic);
-    } else {
-      showDialog(
-        context: context,
-        builder: (_) => AddServerDialog(serverType: selected),
-      );
-    }
+
+    showDialog(
+      context: context,
+      builder: (_) => AddServerDialog(serverType: selected),
+    );
   }
 
   List<Widget> _buildDownload(
@@ -2000,6 +2186,138 @@ class _AddServerDialogState extends State<AddServerDialog> {
       widget.serverType == ServerType.jellyfin ||
       widget.serverType == ServerType.plex;
 
+  Widget _buildSyncWithDoudouServerButton(BuildContext context) {
+    final syncService = Get.find<DoudouServerSyncService>();
+    return Obx(() {
+      if (!syncService.isConfigured.value) return const SizedBox.shrink();
+      final remoteId = remoteIdFor(widget.serverType, _buildServerUrl().isEmpty
+          ? null
+          : _buildServerUrl());
+      final isSyncing = syncService.syncingServerIds.contains(remoteId);
+      return TextButton.icon(
+        onPressed: isSyncing
+            ? null
+            : () async {
+                final settings = Get.find<SettingsScreenController>();
+                // If editing an existing server, sync it directly.
+                if (widget.existing != null) {
+                  await syncService.syncServer(widget.existing!);
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Syncing with doudou-server...'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                  return;
+                }
+                // For a new server, we need to add it first, then sync.
+                // Find the server we just added by matching type+url.
+                final beforeIds = settings.servers.map((s) => s.id).toSet();
+                if (_needsCredentials) {
+                  final serverUrl = _buildServerUrl();
+                  if (serverUrl.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(context.l10n.serverUrlRequired)),
+                    );
+                    return;
+                  }
+                  settings.addServerWithCredentials(
+                    widget.serverType,
+                    serverUrl: serverUrl,
+                    username: _usernameController.text,
+                    password: _passwordController.text,
+                  );
+                } else {
+                  settings.addServerWithCredentials(widget.serverType);
+                }
+                final newServer = settings.servers.firstWhereOrNull(
+                    (s) => !beforeIds.contains(s.id));
+                if (newServer != null) {
+                  unawaited(syncService.syncServer(newServer));
+                }
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Server added, syncing with doudou-server...'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+        icon: isSyncing
+            ? const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.cloud_sync, size: 18),
+        label: Text(isSyncing ? 'Syncing...' : 'Sync with doudou-server'),
+      );
+    });
+  }
+
+  /// YTM has no credentials/URL to validate, so instead of a sync button we
+  /// show a badge reflecting its current doudou-server sync state.
+  Widget _buildYtmSyncBadge(BuildContext context) {
+    final syncService = Get.find<DoudouServerSyncService>();
+    final theme = Theme.of(context);
+    return Obx(() {
+      if (!syncService.isConfigured.value) return const SizedBox.shrink();
+      final remoteId = remoteIdFor(ServerType.youtubeMusic, null);
+      final isSyncing = syncService.syncingServerIds.contains(remoteId);
+      final hasSynced = syncService.syncedServerIds.contains(remoteId);
+
+      final color = isSyncing
+          ? theme.colorScheme.primary
+          : hasSynced
+              ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
+              : theme.colorScheme.onSurface.withValues(alpha: 0.3);
+      final icon = isSyncing
+          ? Icons.cloud_sync
+          : hasSynced
+              ? Icons.cloud_done_outlined
+              : Icons.cloud_outlined;
+      final label = isSyncing
+          ? 'syncing'
+          : hasSynced
+              ? 'synced'
+              : 'will sync';
+
+      return Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Tooltip(
+          message: isSyncing
+              ? 'Syncing with doudou-server'
+              : hasSynced
+                  ? 'Synced with doudou-server'
+                  : 'Will sync with doudou-server after adding',
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 14, color: color),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
   String _title(BuildContext context) {
     final l10n = context.l10n;
     if (widget.existing != null) return l10n.editServer;
@@ -2105,11 +2423,14 @@ class _AddServerDialogState extends State<AddServerDialog> {
                 l10n.youtubeMusicNoLogin,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
+              _buildYtmSyncBadge(context),
             ],
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                if (_needsCredentials) _buildSyncWithDoudouServerButton(context),
+                const Spacer(),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(l10n.cancel),
@@ -2143,7 +2464,7 @@ class _AddServerDialogState extends State<AddServerDialog> {
                         );
                       } else {
                         controller
-                            .addServerWithCredentials(ServerType.youtubeMusic);
+                            .addServerWithCredentials(widget.serverType);
                       }
                     }
                     Navigator.of(context).pop();
@@ -2670,4 +2991,128 @@ String _serverTypeLabel(BuildContext context, ServerType type) {
     ServerType.jellyfin => l10n.jellyfin,
     ServerType.plex => l10n.plex,
   };
+}
+
+class _DoudouServerDialogResult {
+  _DoudouServerDialogResult.save(this.config) : remove = false;
+  _DoudouServerDialogResult.remove()
+      : config = null,
+        remove = true;
+
+  final DoudouServerConfig? config;
+  final bool remove;
+}
+
+class _DoudouServerDialog extends StatefulWidget {
+  const _DoudouServerDialog({this.existing});
+
+  final DoudouServerConfig? existing;
+
+  @override
+  State<_DoudouServerDialog> createState() => _DoudouServerDialogState();
+}
+
+class _DoudouServerDialogState extends State<_DoudouServerDialog> {
+  late final TextEditingController _urlCtrl;
+  late final TextEditingController _keyCtrl;
+  late final TextEditingController _nameCtrl;
+  String? _urlError;
+  String? _keyError;
+
+  @override
+  void initState() {
+    super.initState();
+    _urlCtrl = TextEditingController(text: widget.existing?.url ?? '');
+    _keyCtrl = TextEditingController(text: widget.existing?.key ?? '');
+    _nameCtrl = TextEditingController(text: widget.existing?.deviceName ?? '');
+  }
+
+  @override
+  void dispose() {
+    _urlCtrl.dispose();
+    _keyCtrl.dispose();
+    _nameCtrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final url = _urlCtrl.text.trim();
+    final key = _keyCtrl.text;
+    var hasError = false;
+    setState(() {
+      _urlError = url.isEmpty ? 'URL is required' : null;
+      _keyError = key.isEmpty ? 'Password is required' : null;
+      hasError = _urlError != null || _keyError != null;
+    });
+    if (hasError) return;
+    Navigator.of(context).pop(_DoudouServerDialogResult.save(
+      DoudouServerConfig(
+        url: url,
+        key: key,
+        deviceName: _nameCtrl.text.trim().isEmpty
+            ? null
+            : _nameCtrl.text.trim(),
+      ),
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final existing = widget.existing;
+    return AlertDialog(
+      title: Text(existing == null ? 'Add doudou-server' : 'Edit doudou-server'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _urlCtrl,
+              decoration: InputDecoration(
+                labelText: 'Server URL',
+                hintText: 'http://192.168.1.20:7427',
+                errorText: _urlError,
+              ),
+              autofocus: true,
+              onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _keyCtrl,
+              decoration: InputDecoration(
+                labelText: 'Shared password',
+                hintText: 'Set via `doudou-server -set login`',
+                errorText: _keyError,
+              ),
+              obscureText: true,
+              onSubmitted: (_) => _submit(),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _nameCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Device name (optional)',
+                hintText: 'Pixel 8, Laptop, etc.',
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        if (existing != null)
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_DoudouServerDialogResult.remove()),
+            child: const Text('Remove'),
+          ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(context.l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(existing == null ? context.l10n.add : context.l10n.save),
+        ),
+      ],
+    );
+  }
 }
