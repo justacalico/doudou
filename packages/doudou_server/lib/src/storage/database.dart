@@ -45,11 +45,13 @@ class DoudouServerDatabase extends _$DoudouServerDatabase {
   Future<void> upsertMusicServer(MusicServersCompanion entry) =>
       into(musicServers).insertOnConflictUpdate(entry);
 
-  Future<void> deleteMusicServer(String id) async {
-    await (delete(musicServers)..where((t) => t.id.equals(id))).go();
-    await (delete(librarySnapshots)
-          ..where((t) => t.musicServerId.equals(id)))
-        .go();
+  Future<void> deleteMusicServer(String id) {
+    return transaction(() async {
+      await (delete(librarySnapshots)
+            ..where((t) => t.musicServerId.equals(id)))
+          .go();
+      await (delete(musicServers)..where((t) => t.id.equals(id))).go();
+    });
   }
 
   // -- library snapshots --------------------------------------------------
