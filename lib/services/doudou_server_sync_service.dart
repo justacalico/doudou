@@ -44,6 +44,13 @@ class DoudouServerSyncService extends GetxService {
   final isConfigured = false.obs;
   final config = Rxn<DoudouServerConfig>();
 
+  /// remoteIds of music servers currently being pushed/pulled this round.
+  final syncingServerIds = <String>{}.obs;
+
+  /// remoteIds of music servers that have completed at least one successful
+  /// sync round with doudou-server. Persisted across restarts.
+  final syncedServerIds = <String>{}.obs;
+
   Timer? _timer;
   DoudouServerClient? _client;
   String? _clientId;
@@ -53,6 +60,7 @@ class DoudouServerSyncService extends GetxService {
   void onInit() {
     super.onInit();
     _loadConfig();
+    _loadSyncedServerIds();
     _startPeriodicSync();
   }
 
@@ -71,9 +79,12 @@ class DoudouServerSyncService extends GetxService {
     if (newConfig == null) {
       config.value = null;
       isConfigured.value = false;
+      syncingServerIds.clear();
+      syncedServerIds.clear();
       await _secureStorage.delete(key: _secureKeyKey);
       final box = Hive.box('AppPrefs');
       await box.delete('doudouServer');
+      await box.delete('doudouSyncedServerIds');
     } else {
       // Persist non-secret fields in Hive, the shared key in secure storage.
       await _secureStorage.write(key: _secureKeyKey, value: newConfig.key);
@@ -84,6 +95,20 @@ class DoudouServerSyncService extends GetxService {
       _client = DoudouServerClient(newConfig);
       unawaited(syncNow());
     }
+  }
+
+  Future<void> _loadSyncedServerIds() async {
+    final box = Hive.isBoxOpen('AppPrefs') ? Hive.box('AppPrefs') : null;
+    if (box == null) return;
+    final raw = box.get('doudouSyncedServerIds');
+    if (raw is List) {
+      syncedServerIds.addAll(raw.whereType<String>());
+    }
+  }
+
+  Future<void> _persistSyncedServerIds() async {
+    final box = Hive.isBoxOpen('AppPrefs') ? Hive.box('AppPrefs') : await Hive.openBox('AppPrefs');
+    await box.put('doudouSyncedServerIds', syncedServerIds.toList());
   }
 
   Future<void> _loadConfig() async {
@@ -214,6 +239,8 @@ class DoudouServerSyncService extends GetxService {
     for (final server in settings.servers.toList()) {
       if (server.serverUrl == null || server.serverUrl!.isEmpty) continue;
       final remoteId = remoteIdFor(server.type, server.serverUrl!);
+      syncingServerIds.add(remoteId);
+      var anyOk = false;
       for (final kind in LibraryKind.values) {
         try {
           final payload = await _readLocalCache(server.id, kind);
@@ -225,9 +252,15 @@ class DoudouServerSyncService extends GetxService {
             version: version,
             payload: payload,
           );
+          anyOk = true;
         } catch (_) {}
       }
+      if (anyOk) {
+        syncedServerIds.add(remoteId);
+      }
+      syncingServerIds.remove(remoteId);
     }
+    await _persistSyncedServerIds();
   }
 
   Future<void> _pullRemoteLibraries(DoudouServerClient client) async {
@@ -240,6 +273,7 @@ class DoudouServerSyncService extends GetxService {
     for (final server in settings.servers.toList()) {
       if (server.serverUrl == null || server.serverUrl!.isEmpty) continue;
       final remoteId = remoteIdFor(server.type, server.serverUrl!);
+      syncingServerIds.add(remoteId);
       try {
         final remoteSnapshots = await client.listSnapshots(remoteId);
         for (final snap in remoteSnapshots) {
@@ -251,10 +285,13 @@ class DoudouServerSyncService extends GetxService {
           await _writeRevision(remoteId, kind, snap.version);
           libSync.lastSuccessMsByKind[kind] = snap.updatedAtMs;
         }
+        syncedServerIds.add(remoteId);
       } catch (_) {
         // One server failing shouldn't abort the rest.
       }
+      syncingServerIds.remove(remoteId);
     }
+    await _persistSyncedServerIds();
   }
 
   LibraryKind? _matchKind(String name) {
