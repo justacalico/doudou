@@ -136,6 +136,59 @@ class DoudouServerSyncService extends GetxService {
 
   Future<void> onAppResumed() => syncNow();
 
+  /// Syncs a single music server with doudou-server. Used by the add/edit
+  /// server dialog's "Sync with doudou-server" button.
+  Future<void> syncServer(SettingsServer server) async {
+    final client = _client;
+    if (client == null) return;
+    final remoteId = remoteIdFor(server.type, server.serverUrl);
+    syncingServerIds.add(remoteId);
+    try {
+      // Push this server's URL up so other devices can see it.
+      if (!server.isDefault) {
+        try {
+          await client.upsertServer(RemoteMusicServer(
+            id: remoteId,
+            name: server.name,
+            type: server.type.name,
+            url: server.serverUrl ?? '',
+            isDefault: false,
+          ));
+        } catch (_) {}
+      }
+      // Push local cache for this server.
+      for (final kind in LibraryKind.values) {
+        try {
+          final payload = await _readLocalCache(server.id, kind);
+          if (payload == null) continue;
+          final version = await _readRevision(remoteId, kind);
+          await client.pushSnapshot(
+            musicServerId: remoteId,
+            kind: kind.name,
+            version: version,
+            payload: payload,
+          );
+        } catch (_) {}
+      }
+      // Pull remote snapshots for this server.
+      try {
+        final remoteSnapshots = await client.listSnapshots(remoteId);
+        for (final snap in remoteSnapshots) {
+          final kind = _matchKind(snap.kind);
+          if (kind == null) continue;
+          final localVersion = await _readRevision(remoteId, kind);
+          if (snap.version <= localVersion) continue;
+          await _writeLocalCache(server.id, kind, snap.payload);
+          await _writeRevision(remoteId, kind, snap.version);
+        }
+      } catch (_) {}
+      syncedServerIds.add(remoteId);
+    } finally {
+      syncingServerIds.remove(remoteId);
+      await _persistSyncedServerIds();
+    }
+  }
+
   Future<void> syncNow() async {
     final client = _client;
     if (client == null) return;
@@ -189,34 +242,37 @@ class DoudouServerSyncService extends GetxService {
     // Push every non-default local server up. Credentials are stripped.
     for (final s in localServers) {
       if (s.isDefault) continue;
-      if (s.serverUrl == null || s.serverUrl!.isEmpty) continue;
       try {
         await client.upsertServer(RemoteMusicServer(
-          id: remoteIdFor(s.type, s.serverUrl!),
+          id: remoteIdFor(s.type, s.serverUrl),
           name: s.name,
           type: s.type.name,
-          url: s.serverUrl!,
+          url: s.serverUrl ?? '',
           isDefault: false,
         ));
       } catch (_) {}
     }
 
     // Pull remote servers and mirror them locally. We only add servers we
-    // don't already have by URL. We never overwrite credentials.
+    // don't already have by URL. We never overwrite credentials. YouTube
+    // Music entries have no URL so they're matched by type instead.
     final remote = await client.listServers();
     final localUrls = localServers
-        .where((s) => s.serverUrl != null)
+        .where((s) => s.serverUrl != null && s.serverUrl!.isNotEmpty)
         .map((s) => s.serverUrl!.toLowerCase())
         .toSet();
+    final localTypes = localServers.map((s) => s.type).toSet();
     for (final r in remote) {
-      if (r.url.isEmpty) continue;
-      if (localUrls.contains(r.url.toLowerCase())) continue;
       final type = _parseServerType(r.type);
       if (type == null) continue;
-      settings.addServerWithCredentials(
-        type,
-        serverUrl: r.url,
-      );
+      if (r.url.isEmpty) {
+        // YTM-style entry with no URL. Skip if we already have this type.
+        if (localTypes.contains(type)) continue;
+        settings.addServerWithCredentials(type);
+      } else {
+        if (localUrls.contains(r.url.toLowerCase())) continue;
+        settings.addServerWithCredentials(type, serverUrl: r.url);
+      }
     }
   }
 
@@ -237,8 +293,7 @@ class DoudouServerSyncService extends GetxService {
     if (libSync == null) return;
 
     for (final server in settings.servers.toList()) {
-      if (server.serverUrl == null || server.serverUrl!.isEmpty) continue;
-      final remoteId = remoteIdFor(server.type, server.serverUrl!);
+      final remoteId = remoteIdFor(server.type, server.serverUrl);
       syncingServerIds.add(remoteId);
       var anyOk = false;
       for (final kind in LibraryKind.values) {
@@ -271,8 +326,7 @@ class DoudouServerSyncService extends GetxService {
     if (libSync == null) return;
 
     for (final server in settings.servers.toList()) {
-      if (server.serverUrl == null || server.serverUrl!.isEmpty) continue;
-      final remoteId = remoteIdFor(server.type, server.serverUrl!);
+      final remoteId = remoteIdFor(server.type, server.serverUrl);
       syncingServerIds.add(remoteId);
       try {
         final remoteSnapshots = await client.listSnapshots(remoteId);
@@ -353,8 +407,11 @@ class DoudouServerSyncService extends GetxService {
 
 /// Stable, content-derived ID for a music server. Identical type:url inputs
 /// produce the same id across devices and builds (unlike Dart's hashCode,
-/// which is not guaranteed to be stable across isolates or builds).
-String remoteIdFor(ServerType type, String url) {
-  final raw = '${type.name}:$url';
+/// which is not guaranteed to be stable across isolates or builds). YouTube
+/// Music has no URL, so it's keyed by type alone.
+String remoteIdFor(ServerType type, String? url) {
+  final raw = url == null || url.isEmpty
+      ? type.name
+      : '${type.name}:$url';
   return sha1.convert(utf8.encode(raw)).toString().substring(0, 16);
 }
