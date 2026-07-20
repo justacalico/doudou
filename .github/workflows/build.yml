@@ -88,7 +88,7 @@ jobs:
         working-directory: packages/doudou_server
         run: |
           flutter pub get
-          dart run build_runner build
+          dart run build_runner build --delete-conflicting-outputs
 
       - name: Build debug + release
         shell: bash
@@ -166,9 +166,9 @@ jobs:
               ;;
             doudou-server-windows)
               (cd packages/doudou_server && flutter build windows --debug)
-              7z a "artifacts/doudou-server-windows-debug-${suffix}.zip" "packages/doudou_server/build/windows/x64/runner/Debug"
+              (cd packages/doudou_server/build/windows/x64/runner/Debug && 7z a "$OLDPWD/artifacts/doudou-server-windows-debug-${suffix}.zip" "*")
               (cd packages/doudou_server && flutter build windows --release)
-              7z a "artifacts/doudou-server-windows-release-${suffix}.zip" "packages/doudou_server/build/windows/x64/runner/Release"
+              (cd packages/doudou_server/build/windows/x64/runner/Release && 7z a "$OLDPWD/artifacts/doudou-server-windows-release-${suffix}.zip" "*")
               ;;
             doudou-server-macos)
               (cd packages/doudou_server && flutter build macos --debug)
