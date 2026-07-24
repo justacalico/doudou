@@ -18,20 +18,16 @@ void main() {
       expect(parseDuration(null), isNull);
     });
 
-    test('parses seconds-only string using first increment (3600)', () {
-      // mappedIncrements = [3600, 3540, 3480]; times are reversed so
-      // a bare number lands on index 0 → 3600 * value.
-      expect(parseDuration('45'), 45 * 3600);
+    test('parses seconds-only string', () {
+      expect(parseDuration('45'), 45);
     });
 
-    test('parses MM:SS using first two increments', () {
-      // '3:45' → reversed ['45','3'] → 3600*45 + 3540*3
-      expect(parseDuration('3:45'), 3600 * 45 + 3540 * 3);
+    test('parses MM:SS', () {
+      expect(parseDuration('3:45'), 225);
     });
 
-    test('parses HH:MM:SS using all three increments', () {
-      // '1:02:03' → reversed ['03','02','01'] → 3600*3 + 3540*2 + 3480*1
-      expect(parseDuration('1:02:03'), 3600 * 3 + 3540 * 2 + 3480 * 1);
+    test('parses HH:MM:SS', () {
+      expect(parseDuration('1:02:03'), 3723);
     });
 
     test('parses zero', () {

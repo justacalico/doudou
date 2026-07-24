@@ -95,7 +95,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Comment coverage on PR
-        if: github.event_name == 'pull_request' && always()
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always()
         uses: actions/github-script@v7
         with:
           script: |
@@ -116,14 +116,15 @@ jobs:
               return;
             }
             if (totalLines === 0) return;
-            const pct = Math.round((coveredLines / totalLines) * 100);
-            const body = `## Test Coverage\n\n| Metric | Value |\n|--------|-------|\n| Total lines | ${totalLines} |\n| Covered lines | ${coveredLines} |\n| **Coverage** | **${pct}%** |\n\n_Coverage report generated from \`flutter test --coverage\`.`;
+            const pct = Math.floor((coveredLines / totalLines) * 100);
+            const marker = '<!-- doudou-coverage-bot -->';
+            const body = `${marker}\n## Test Coverage\n\n| Metric | Value |\n|--------|-------|\n| Total lines | ${totalLines} |\n| Covered lines | ${coveredLines} |\n| **Coverage** | **${pct}%** |\n\n_Coverage report generated from \`flutter test --coverage\`.`;
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
             });
-            const existing = comments.find(c => c.body.startsWith('## Test Coverage'));
+            const existing = comments.find(c => c.body.startsWith(marker));
             if (existing) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,

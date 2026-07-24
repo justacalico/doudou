@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'nav_parser.dart';
 
 int getDatestamp() {
@@ -14,11 +12,11 @@ int? parseDuration(String? duration) {
   if (duration == null) {
     return null;
   }
-  List<int> mappedIncrements = List.generate(3, (i) => max(0, 3600 - 60 * i));
+  const increments = [1, 60, 3600];
   List<String> times = duration.split(":").reversed.toList();
   int seconds = 0;
   for (var i = 0; i < times.length; i++) {
-    seconds += mappedIncrements[i] * int.parse(times[i]);
+    seconds += increments[i] * int.parse(times[i]);
   }
   return seconds;
 }

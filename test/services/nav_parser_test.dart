@@ -98,8 +98,7 @@ void main() {
       final parsed = parseSongRuns(runs);
 
       expect(parsed['length'], '3:45');
-      // parseDuration uses mappedIncrements [3600, 3540, 3480] on reversed parts
-      expect(parsed['duration_seconds'], 3600 * 45 + 3540 * 3);
+      expect(parsed['duration_seconds'], 225);
     });
 
     test('parses duration in HH:MM:SS format', () {
@@ -110,7 +109,7 @@ void main() {
       final parsed = parseSongRuns(runs);
 
       expect(parsed['length'], '1:02:03');
-      expect(parsed['duration_seconds'], 3600 * 3 + 3540 * 2 + 3480 * 1);
+      expect(parsed['duration_seconds'], 3723);
     });
 
     test('parses year', () {
@@ -675,9 +674,7 @@ void main() {
   });
 
   group('parseSongArtistsRuns', () {
-    test('extracts artists from runs', () {
-      // Single artist run (no separator) to avoid the n+1 index quirk
-      // in parseSongArtistsRuns.
+    test('extracts multiple artists from runs with separators', () {
       final runs = [
         {
           'text': 'Artist A',
@@ -685,13 +682,39 @@ void main() {
             'browseEndpoint': {'browseId': 'UCa'}
           }
         },
+        {'text': ' • '},
+        {
+          'text': 'Artist B',
+          'navigationEndpoint': {
+            'browseEndpoint': {'browseId': 'UCb'}
+          }
+        },
       ];
 
       final artists = parseSongArtistsRuns(runs);
 
-      expect(artists.length, greaterThanOrEqualTo(1));
+      expect(artists.length, 2);
       expect(artists[0]['name'], 'Artist A');
       expect(artists[0]['id'], 'UCa');
+      expect(artists[1]['name'], 'Artist B');
+      expect(artists[1]['id'], 'UCb');
+    });
+
+    test('extracts single artist from runs without separator', () {
+      final runs = [
+        {
+          'text': 'Solo Artist',
+          'navigationEndpoint': {
+            'browseEndpoint': {'browseId': 'UCsolo'}
+          }
+        },
+      ];
+
+      final artists = parseSongArtistsRuns(runs);
+
+      expect(artists.length, 1);
+      expect(artists[0]['name'], 'Solo Artist');
+      expect(artists[0]['id'], 'UCsolo');
     });
   });
 
@@ -729,6 +752,13 @@ void main() {
                       'browseEndpoint': {'browseId': 'UCx'}
                     }
                   },
+                  {'text': ' • '},
+                  {
+                    'text': 'Artist Y',
+                    'navigationEndpoint': {
+                      'browseEndpoint': {'browseId': 'UCy'}
+                    }
+                  },
                 ]
               }
             }
@@ -739,8 +769,9 @@ void main() {
       final artists = parseSongArtists(data, 1);
 
       expect(artists, isNotNull);
-      expect(artists!.length, greaterThanOrEqualTo(1));
+      expect(artists!.length, 2);
       expect(artists[0]['name'], 'Artist X');
+      expect(artists[1]['name'], 'Artist Y');
     });
   });
 

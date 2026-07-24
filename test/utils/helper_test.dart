@@ -134,38 +134,37 @@ void main() {
   });
 
   group('sortAlbumNSingles', () {
-    test('sorts by year ascending via Name sortType (quirk: Name maps to year)', () {
-      // Note: sortAlbumNSingles has a swapped implementation where
-      // SortType.Name actually sorts by year and SortType.Date sorts by title.
+    test('sorts by title ascending via Name sortType', () {
       final albums = [
-        (title: 'A', year: '2020'),
-        (title: 'B', year: '2010'),
-        (title: 'C', year: '2024'),
+        (title: 'Zebra', year: '2020'),
+        (title: 'Apple', year: '2010'),
+        (title: 'Mango', year: '2024'),
       ].map((e) => _FakeAlbum(title: e.title, year: e.year)).toList();
 
       sortAlbumNSingles(albums, SortType.Name, true);
 
-      expect(albums.map((a) => a.year).toList(), ['2010', '2020', '2024']);
+      expect(albums.map((a) => a.title).toList(), ['Apple', 'Mango', 'Zebra']);
     });
 
-    test('sorts by title via Date sortType', () {
+    test('sorts by year ascending via Date sortType', () {
       final albums = [
-        _FakeAlbum(title: 'Zebra', year: '2020'),
-        _FakeAlbum(title: 'Apple', year: '2020'),
+        _FakeAlbum(title: 'New', year: '2024'),
+        _FakeAlbum(title: 'Old', year: '2010'),
+        _FakeAlbum(title: 'Mid', year: '2020'),
       ];
 
       sortAlbumNSingles(albums, SortType.Date, true);
 
-      expect(albums.map((a) => a.title).toList(), ['Apple', 'Zebra']);
+      expect(albums.map((a) => a.year).toList(), ['2010', '2020', '2024']);
     });
 
-    test('handles null years as equal', () {
+    test('handles null years as equal in Date sort', () {
       final albums = [
         _FakeAlbum(title: 'A', year: null),
         _FakeAlbum(title: 'B', year: null),
       ];
 
-      sortAlbumNSingles(albums, SortType.Name, true);
+      sortAlbumNSingles(albums, SortType.Date, true);
 
       expect(albums.length, 2);
     });
