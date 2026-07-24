@@ -339,7 +339,7 @@ Playlist parsePlaylist(Map<String, dynamic> data) {
 List<dynamic> parseSongArtistsRuns(List<dynamic> runs) {
   //print(runs);
   List<Map<String, dynamic>> artists = [];
-  int n = (runs.length / 2).floor() + 1;
+  int n = (runs.length + 1) ~/ 2;
   for (var j = 0; j < n; j++) {
     artists.add({
       'name': runs[j * 2]['text'],
