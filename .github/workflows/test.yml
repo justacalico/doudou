@@ -1,0 +1,141 @@
+name: Tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  FLUTTER_CHANNEL: stable
+
+jobs:
+  test:
+    name: Test & Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests with coverage
+        run: flutter test --coverage --reporter expanded
+
+      - name: Check coverage threshold
+        run: |
+          if [ ! -f coverage/lcov.info ]; then
+            echo "No coverage file generated"
+            exit 1
+          fi
+
+          # Calculate total line coverage from lcov.info
+          TOTAL_LINES=0
+          COVERED_LINES=0
+
+          while IFS= read -r line; do
+            case "$line" in
+              DA:*)
+                # DA:line_number,hit_count
+                hits=$(echo "$line" | cut -d: -f2 | cut -d, -f2)
+                TOTAL_LINES=$((TOTAL_LINES + 1))
+                if [ "$hits" -gt 0 ]; then
+                  COVERED_LINES=$((COVERED_LINES + 1))
+                fi
+                ;;
+            esac
+          done < coverage/lcov.info
+
+          if [ "$TOTAL_LINES" -eq 0 ]; then
+            echo "No coverage data found"
+            exit 1
+          fi
+
+          PERCENTAGE=$((COVERED_LINES * 100 / TOTAL_LINES))
+          echo "Total lines: $TOTAL_LINES"
+          echo "Covered lines: $COVERED_LINES"
+          echo "Coverage: ${PERCENTAGE}%"
+
+          # Fail if coverage drops below 5% of total lines.
+          # This is intentionally conservative — platform-dependent code
+          # (audio_handler, android_auto, watch_connectivity, JNI, etc.)
+          # and UI widgets cannot be unit tested and drag the overall
+          # number down. The threshold protects against regressions in
+          # the testable logic (models, utils, services parsers).
+          THRESHOLD=5
+          if [ "$PERCENTAGE" -lt "$THRESHOLD" ]; then
+            echo "Coverage ${PERCENTAGE}% is below threshold ${THRESHOLD}%"
+            exit 1
+          fi
+
+          echo "Coverage ${PERCENTAGE}% meets threshold ${THRESHOLD}%"
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: warn
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let totalLines = 0;
+            let coveredLines = 0;
+            try {
+              const info = fs.readFileSync('coverage/lcov.info', 'utf8');
+              for (const line of info.split('\n')) {
+                if (line.startsWith('DA:')) {
+                  const hits = parseInt(line.split(':')[1].split(',')[1], 10);
+                  totalLines++;
+                  if (hits > 0) coveredLines++;
+                }
+              }
+            } catch (e) {
+              core.warning('Could not read coverage file: ' + e.message);
+              return;
+            }
+            if (totalLines === 0) return;
+            const pct = Math.round((coveredLines / totalLines) * 100);
+            const body = `## Test Coverage\n\n| Metric | Value |\n|--------|-------|\n| Total lines | ${totalLines} |\n| Covered lines | ${coveredLines} |\n| **Coverage** | **${pct}%** |\n\n_Coverage report generated from \`flutter test --coverage\`.`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.startsWith('## Test Coverage'));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
