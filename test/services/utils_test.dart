@@ -33,6 +33,10 @@ void main() {
     test('parses zero', () {
       expect(parseDuration('0:00'), 0);
     });
+
+    test('returns null for more than 3 colon-separated parts', () {
+      expect(parseDuration('1:2:3:4'), isNull);
+    });
   });
 
   group('validatePlaylistId', () {

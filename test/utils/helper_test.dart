@@ -158,15 +158,36 @@ void main() {
       expect(albums.map((a) => a.year).toList(), ['2010', '2020', '2024']);
     });
 
-    test('handles null years as equal in Date sort', () {
+    test('preserves all items with mixed null and non-null years', () {
+      // The comparator returns 0 when either year is null, making it
+      // non-transitive with mixed null/non-null items. This means sort
+      // order is unspecified. We verify that all items survive the sort
+      // without crashing.
       final albums = [
-        _FakeAlbum(title: 'A', year: null),
-        _FakeAlbum(title: 'B', year: null),
+        _FakeAlbum(title: 'NullA', year: null),
+        _FakeAlbum(title: 'New', year: '2024'),
+        _FakeAlbum(title: 'NullB', year: null),
+        _FakeAlbum(title: 'Old', year: '2010'),
       ];
 
       sortAlbumNSingles(albums, SortType.Date, true);
 
-      expect(albums.length, 2);
+      expect(albums.length, 4);
+      final titles = albums.map((a) => a.title).toSet();
+      expect(titles, {'NullA', 'New', 'NullB', 'Old'});
+    });
+
+    test('preserves order for all-null years in Date sort', () {
+      final albums = [
+        _FakeAlbum(title: 'A', year: null),
+        _FakeAlbum(title: 'B', year: null),
+        _FakeAlbum(title: 'C', year: null),
+      ];
+
+      sortAlbumNSingles(albums, SortType.Date, true);
+
+      // All comparisons return 0, so order is unchanged.
+      expect(albums.map((a) => a.title).toList(), ['A', 'B', 'C']);
     });
   });
 

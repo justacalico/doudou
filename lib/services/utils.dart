@@ -14,6 +14,9 @@ int? parseDuration(String? duration) {
   }
   const increments = [1, 60, 3600];
   List<String> times = duration.split(":").reversed.toList();
+  if (times.length > increments.length) {
+    return null;
+  }
   int seconds = 0;
   for (var i = 0; i < times.length; i++) {
     seconds += increments[i] * int.parse(times[i]);
