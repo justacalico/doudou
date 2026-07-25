@@ -17,15 +17,6 @@ media server credentials.
 - Audio bytes. Stream URLs are resolved by the client directly against the
   music server.
 
-## Build
-
-```shell
-cd packages/doudou_server
-flutter build linux   # or macos / windows
-```
-
-The resulting binary is a CLI. Run it with `-h` to see options.
-
 ## CLI
 
 ```shell
