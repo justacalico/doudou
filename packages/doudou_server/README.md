@@ -38,10 +38,15 @@ doudou-server -clients                     # list clients that have synced
 doudou-server -health                      # probe the running server health endpoint
 ```
 
+Defaults are `0.0.0.0:7427`. `--host` and `--port` override them. A running
+daemon also stops on `Ctrl+C` (and `SIGTERM` on non-Windows platforms).
+
 ## API
 
-All routes are under `/api/v1` and require the `X-Doudou-Key` header (the
-shared password) except `/api/v1/health` which is open.
+All routes are under `/api/v1` and require the shared password, sent either in
+the `X-Doudou-Key` header or as a `?key=` query parameter. `/api/v1/health` is
+the only open route. Until a password is set with `doudou-server -set login`,
+every authenticated route returns `401`.
 
 | Method | Path                      | Purpose                                  |
 |--------|---------------------------|------------------------------------------|

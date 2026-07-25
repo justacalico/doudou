@@ -34,6 +34,12 @@ A music player that connects to your own media server. Stream your library, or p
 - Discord Rich Presence on desktop (show what you're listening to)
 - Dynamic themes pulled from album artwork
 
+## Companion sync server
+
+doudou-server is an optional headless sync server that keeps library snapshots and music server URLs in one place, so several doudou clients (phone, desktop, TV) stay in sync from a single local server without ever exposing media server credentials. It stores no passwords and no audio bytes, just metadata.
+
+See [`packages/doudou_server/README.md`](packages/doudou_server/README.md) for build and CLI usage.
+
 ## Platforms
 
 Android, Android TV, Wear OS, iOS, macOS, Windows and, Linux
