@@ -777,16 +777,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'Если вы столкнулись с проблемами уведомлений или воспроизведение остановлено оптимизацией системы, пожалуйста, включите эту опцию';
 
   @override
-  String get batteryOptPromptTitle => 'Отключить оптимизацию батареи?';
-
-  @override
-  String get batteryOptPromptBody =>
-      'Android может приостанавливать музыку при выключенном экране. Разрешение doudou игнорировать оптимизацию батареи позволяет воспроизведению продолжаться в фоновом режиме.';
-
-  @override
-  String get batteryOptPromptLater => 'Может быть позже';
-
-  @override
   String get status => 'Статус';
 
   @override

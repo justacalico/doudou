@@ -744,16 +744,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ignoreBatOptDes => '如果遇到通知问题或后台播放被系统停止，请启用此选项';
 
   @override
-  String get batteryOptPromptTitle => '关闭电池优化？';
-
-  @override
-  String get batteryOptPromptBody =>
-      '安卓可能会在息屏时暂停音乐。允许 doudou 忽略电池优化可以让播放持续在后台运行。';
-
-  @override
-  String get batteryOptPromptLater => '以后再说';
-
-  @override
   String get status => '状态';
 
   @override

@@ -8,7 +8,6 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../models/playling_from.dart';
 import '../../services/downloader.dart';
@@ -102,7 +101,6 @@ class PlayerController extends GetxController
   bool _wakelockActive = false;
   bool _wakelockUnavailable = false;
   bool _wakelockUnavailableLogged = false;
-  bool _batteryOptPromptShown = false;
 
   var _newSongFlag = true;
   final isCurrentSongBuffered = false.obs;
@@ -219,12 +217,6 @@ class PlayerController extends GetxController
       // Keep the screen awake whenever playback is active and the setting is enabled.
       final shouldEnable = settings.keepScreenAwake.isTrue && isPlaying;
       unawaited(_setWakelock(shouldEnable));
-
-      if (isPlaying &&
-          processingState == AudioProcessingState.ready &&
-          GetPlatform.isAndroid) {
-        unawaited(_maybePromptBatteryOptimization());
-      }
     });
   }
 
@@ -262,40 +254,6 @@ class PlayerController extends GetxController
       }
       printERROR(e);
     }
-  }
-
-  Future<void> _maybePromptBatteryOptimization() async {
-    if (_batteryOptPromptShown) return;
-    final granted = await Permission.ignoreBatteryOptimizations.isGranted;
-    if (granted) {
-      _batteryOptPromptShown = true;
-      return;
-    }
-    _batteryOptPromptShown = true;
-    final l10n = AppLocalizations.of(Get.context!);
-    if (l10n == null) return;
-    await Get.dialog<void>(
-      AlertDialog(
-        title: Text(l10n.batteryOptPromptTitle),
-        content: Text(l10n.batteryOptPromptBody),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back<void>(),
-            child: Text(l10n.batteryOptPromptLater),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.back<void>();
-              unawaited(
-                Get.find<SettingsScreenController>()
-                    .enableIgnoringBatteryOptimizations(),
-              );
-            },
-            child: Text(l10n.ignoreBatOpt),
-          ),
-        ],
-      ),
-    );
   }
 
   void _listenForChangesInPosition() {
