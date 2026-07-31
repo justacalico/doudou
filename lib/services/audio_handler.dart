@@ -131,9 +131,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     _listenForDurationChanges();
     if (GetPlatform.isAndroid) {
       _listenSessionIdStream();
-      // Let just_audio hold a partial wake lock for network streams so the CPU
-      // stays awake while the screen is off. Complements the foreground service.
-      unawaited(_player.setWakeMode(WakeMode.network));
     }
   }
 

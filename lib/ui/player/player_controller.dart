@@ -272,9 +272,7 @@ class PlayerController extends GetxController
       return;
     }
     _batteryOptPromptShown = true;
-    final ctx = Get.context;
-    if (ctx == null) return;
-    final l10n = AppLocalizations.of(ctx);
+    final l10n = AppLocalizations.of(Get.context!);
     if (l10n == null) return;
     await Get.dialog<void>(
       AlertDialog(
