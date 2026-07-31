@@ -17,6 +17,7 @@ import '/services/playback_diagnostics_service.dart';
 import 'utils/app_link_controller.dart';
 import '/services/android_auto_service.dart';
 import '/services/audio_handler.dart';
+import '/services/playback_wakelock_service.dart';
 import '/services/discord_rpc_service.dart';
 import '/services/music_service.dart';
 import '/services/tv_service.dart';
@@ -42,6 +43,9 @@ Future<void> main() async {
   await initHive();
   _setAppInitPrefs();
   Get.put<AudioHandler>(await initAudioService(), permanent: true);
+  if (GetPlatform.isAndroid) {
+    Get.put(PlaybackWakeLockService(), permanent: true);
+  }
   startApplicationServices();
   if (GetPlatform.isAndroid && Get.isRegistered<AndroidAutoService>()) {
     Get.find<AndroidAutoService>().init();

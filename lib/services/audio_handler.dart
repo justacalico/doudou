@@ -26,6 +26,7 @@ import '/ui/player/player_controller.dart';
 import '../ui/screens/Home/home_screen_controller.dart';
 import '/services/background_task.dart';
 import '/services/permission_service.dart';
+import '/services/playback_wakelock_service.dart';
 import '/services/backend/backend_factory.dart';
 import '/services/playback_diagnostics_service.dart';
 import '/services/playback_transition_utils.dart';
@@ -160,9 +161,27 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     });
   }
 
+  void _syncPlaybackWakeLock(bool playing) {
+    if (!GetPlatform.isAndroid) return;
+    final state = _player.processingState;
+    final shouldHold =
+        playing && state != ProcessingState.completed && state != ProcessingState.idle;
+    try {
+      final svc = Get.find<PlaybackWakeLockService>();
+      if (shouldHold) {
+        unawaited(svc.acquire());
+      } else {
+        unawaited(svc.release());
+      }
+    } catch (_) {
+      // service not registered (non-Android or before init) - ignore
+    }
+  }
+
   void _notifyAudioHandlerAboutPlaybackEvents() {
     _player.playbackEventStream.listen((PlaybackEvent event) {
       final playing = _player.playing;
+      _syncPlaybackWakeLock(playing);
       if (_lastLoggedProcessingState != _player.processingState) {
         _lastLoggedProcessingState = _player.processingState;
         _diag.logEvent(
@@ -700,6 +719,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   Future<void> customAction(String name, [Map<String, dynamic>? extras]) async {
     switch (name) {
       case 'dispose':
+        _syncPlaybackWakeLock(false);
         await _player.dispose();
         super.stop();
         break;
