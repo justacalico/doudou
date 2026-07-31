@@ -3418,7 +3418,7 @@ Map<String, Map<String, String>> get keys => {
     "queuerearrangingDeniedMsg": "Hindi mababago ang hanay kapag bukas ang Shuffle Mode",
     "randomSelection": "Pa-random Pili",
     "randomRadio": "Pa-random Radyo",
-    "playnextMsg": "Gamitin para sa => Susunod {Pangalan ng Kanta}",
+    "playnextMsg": "Susunod",
     "shuffleQueue": "Guluhin ang Hanay",
     "queueLoop": "Hanay Ulit-ulitin",
     "queueLoopNotDisMsg1": "Hindi madi-disable ang pag-uulit sa hanay sa Shuffle Mode.",
@@ -4682,7 +4682,6 @@ Map<String, Map<String, String>> get keys => {
     "loudnessNormalization": "Normalisation del volumine",
     "loudnessNormalizationDes": "Define le mesme nivello de volumine pro tote le cantos (Experimental) (Non functionara con le cantos discargate sur le versiones previe (< v1.10.0))",
     "urlSearchDes": "URL detegite. Clicca lo pro aperir/reproducer le contento associate",
-    "androidBackupWarning": "",
     "downloadError3": "Falleva le discargamento a causa de un error de rete! Tenta de novo",
     "downloadError2": "Le canto requestate non pote discargar se a causa de un restriction de servitor. Tu pote retentar lo",
     "playerUi": "IU de reproductor",
@@ -5462,7 +5461,7 @@ Map<String, Map<String, String>> get keys => {
     "playerUiDes": "プレイヤーの外観を選択",
     "shuffleQueue": "キューをシャッフル",
     "queueLoop": "キューをループ",
-    "playnextMsg": "公開予定 {Song Name}",
+    "playnextMsg": "次の曲",
     "queueLoopNotDisMsg1": "シャッフル有効時は、ループを無効にできません。",
     "queueLoopNotDisMsg2": "ラジオモードでは、ループはできません。",
     "enableSlidableActionDes": "曲のタイルをスライドする操作を使う",
@@ -5527,7 +5526,6 @@ Map<String, Map<String, String>> get keys => {
     "keepScreenOnWhilePlayingDes": "ប្រសិនបើបានបើក អេក្រង់ឧបករណ៍នឹងនៅភ្លឺខណៈពេលចាក់តន្ត្រី"
 }
 ,"kn" : {
-    "libArtists": "",
     "artists": "ಕಲಾವಿದರು",
     "home": "ಮುಖಪುಟ",
     "retry": "ಮರುಪ್ರಯತ್ನಿಸಿ!",

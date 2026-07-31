@@ -224,7 +224,7 @@
     "playerUiDes": "プレイヤーの外観を選択",
     "shuffleQueue": "キューをシャッフル",
     "queueLoop": "キューをループ",
-    "playnextMsg": "公開予定 {Song Name}",
+    "playnextMsg": "次の曲",
     "queueLoopNotDisMsg1": "シャッフル有効時は、ループを無効にできません。",
     "queueLoopNotDisMsg2": "ラジオモードでは、ループはできません。",
     "enableSlidableActionDes": "曲のタイルをスライドする操作を使う",
