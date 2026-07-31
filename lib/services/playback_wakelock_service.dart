@@ -7,25 +7,32 @@ const _channel = MethodChannel('gitlab.openlyst.doudou/wakelock');
 
 class PlaybackWakeLockService extends GetxService {
   bool _held = false;
+  Future<void> _pending = Future<void>.value();
 
-  Future<void> acquire() async {
-    if (_held) return;
-    try {
-      await _channel.invokeMethod<bool>('acquire');
-      _held = true;
-    } catch (e) {
-      printERROR('Failed to acquire playback wakelock: $e');
-    }
-  }
+  Future<void> acquire() => _enqueue(() async {
+        if (_held) return;
+        await _channel.invokeMethod<bool>('acquire');
+        _held = true;
+      });
 
-  Future<void> release() async {
-    if (!_held) return;
-    try {
-      await _channel.invokeMethod<bool>('release');
-    } catch (e) {
-      printERROR('Failed to release playback wakelock: $e');
-    }
-    _held = false;
+  Future<void> release() => _enqueue(() async {
+        if (!_held) return;
+        await _channel.invokeMethod<bool>('release');
+        _held = false;
+      });
+
+  Future<void> _enqueue(Future<void> Function() task) {
+    final completer = Completer<void>();
+    _pending = _pending.whenComplete(() async {
+      try {
+        await task();
+        completer.complete();
+      } catch (e) {
+        printERROR('Playback wakelock operation failed: $e');
+        completer.completeError(e);
+      }
+    });
+    return completer.future;
   }
 
   @override
