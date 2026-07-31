@@ -774,6 +774,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'If you are facing notification issues or playback stopped by system optimization, please enable this option';
 
   @override
+  String get batteryOptPromptTitle => 'Disable battery optimization?';
+
+  @override
+  String get batteryOptPromptBody =>
+      'Android may pause music when the screen is off. Allowing doudou to ignore battery optimization keeps playback running in the background.';
+
+  @override
+  String get batteryOptPromptLater => 'Maybe later';
+
+  @override
   String get status => 'Status';
 
   @override
@@ -2021,6 +2031,16 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   @override
   String get ignoreBatOptDes =>
       'If you are facing notification issues or playback stopped by system optimization, please enable this option';
+
+  @override
+  String get batteryOptPromptTitle => 'Disable battery optimization?';
+
+  @override
+  String get batteryOptPromptBody =>
+      'Android may pause music when the screen is off. Allowing doudou to ignore battery optimization keeps playback running in the background.';
+
+  @override
+  String get batteryOptPromptLater => 'Maybe later';
 
   @override
   String get status => 'Status';

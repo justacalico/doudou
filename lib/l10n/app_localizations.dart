@@ -1559,6 +1559,24 @@ abstract class AppLocalizations {
   /// **'If you are facing notification issues or playback stopped by system optimization, please enable this option'**
   String get ignoreBatOptDes;
 
+  /// No description provided for @batteryOptPromptTitle.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Disable battery optimization?'**
+  String get batteryOptPromptTitle;
+
+  /// No description provided for @batteryOptPromptBody.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Android may pause music when the screen is off. Allowing doudou to ignore battery optimization keeps playback running in the background.'**
+  String get batteryOptPromptBody;
+
+  /// No description provided for @batteryOptPromptLater.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Maybe later'**
+  String get batteryOptPromptLater;
+
   /// No description provided for @status.
   ///
   /// In en_AU, this message translates to:
