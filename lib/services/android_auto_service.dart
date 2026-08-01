@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart' show MediaItem;
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_carplay/flutter_carplay.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -16,6 +17,10 @@ import '/ui/screens/Library/library_controller.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '../utils/helper.dart';
 import '../utils/server_storage.dart';
+import '/services/backend/noop_backend.dart';
+
+const MethodChannel _wakeLockChannel =
+    MethodChannel('gitlab.openlyst.doudou/wakelock');
 
 // How long to wait for library controllers to finish fetching
 const _maxWaitSeconds = 10;
@@ -47,11 +52,63 @@ class AndroidAutoService extends GetxService {
     }
   }
 
+  // Returns true when the user has a usable backend to play music from.
+  // On the Play Store build YouTube Music is disabled, so a user with only
+  // the default server (or no servers at all) gets a NoOpBackend and needs
+  // to sign in to a real server on the phone first.
+  bool _isLoggedIn() {
+    final settings = Get.find<SettingsScreenController>();
+    return settings.currentBackend is! NoOpBackend;
+  }
+
+  Future<void> _showLoginRequiredAlert() async {
+    if (Get.context == null) return;
+    final l10n = AppLocalizations.of(Get.context!)!;
+    printINFO('AndroidAuto: user not logged in, showing login-required alert');
+
+    await FlutterAndroidAuto.setRootTemplate(
+      template: AAAlertTemplate(
+        title: l10n.autoLoginRequiredTitle,
+        message: l10n.autoLoginRequiredMessage,
+        actions: [
+          AAAlertAction(
+            title: l10n.autoLoginRequiredAction,
+            onPress: () async {
+              await _bringAppToForeground();
+              await FlutterAndroidAuto.popModal();
+            },
+          ),
+          AAAlertAction(
+            title: l10n.autoLoginRequiredDismiss,
+            style: AAAlertActionStyle.cancel,
+            onPress: () async {
+              await FlutterAndroidAuto.popModal();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _bringAppToForeground() async {
+    try {
+      await _wakeLockChannel.invokeMethod<bool>('bringToForeground');
+    } catch (e) {
+      printWarning('AndroidAuto: bringToForeground failed: $e');
+    }
+  }
+
   Future<void> _setupRootTemplate() async {
     if (Get.context == null) {
       printINFO('AndroidAuto: Get.context is null, deferring template setup');
       return;
     }
+
+    if (!_isLoggedIn()) {
+      await _showLoginRequiredAlert();
+      return;
+    }
+
     final l10n = AppLocalizations.of(Get.context!)!;
     final sid = currentServerId();
     printINFO('AndroidAuto: setting up root template, serverId=$sid');
