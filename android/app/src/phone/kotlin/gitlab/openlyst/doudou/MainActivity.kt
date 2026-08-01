@@ -1,5 +1,6 @@
 package gitlab.openlyst.doudou
 
+import android.content.Intent
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
@@ -21,6 +22,17 @@ class MainActivity : AudioServiceActivity() {
                     }
                     "release" -> {
                         PlaybackWakeLock.release()
+                        result.success(true)
+                    }
+                    "bringToForeground" -> {
+                        val intent = Intent(applicationContext, MainActivity::class.java).apply {
+                            addFlags(
+                                Intent.FLAG_ACTIVITY_NEW_TASK or
+                                Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                                Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            )
+                        }
+                        applicationContext.startActivity(intent)
                         result.success(true)
                     }
                     else -> result.notImplemented()
