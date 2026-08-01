@@ -413,5 +413,13 @@
   "@hideNowPlaying": {},
   "showNowPlaying": "显示正在播放",
   "@showNowPlaying": {},
+  "autoLoginRequiredTitle": "登录以使用 Doudou",
+  "@autoLoginRequiredTitle": {},
+  "autoLoginRequiredMessage": "在手机上打开 Doudou 并登录服务器，即可在此播放音乐。",
+  "@autoLoginRequiredMessage": {},
+  "autoLoginRequiredAction": "在手机上打开",
+  "@autoLoginRequiredAction": {},
+  "autoLoginRequiredDismiss": "确定",
+  "@autoLoginRequiredDismiss": {},
   "@@locale": "zh"
 }
