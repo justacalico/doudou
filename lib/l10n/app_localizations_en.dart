@@ -1251,6 +1251,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showNowPlaying => 'Show Now Playing';
+
+  @override
+  String get autoLoginRequiredTitle => 'Log in to use Doudou';
+
+  @override
+  String get autoLoginRequiredMessage =>
+      'Open Doudou on your phone and sign in to a server to start playing music here.';
+
+  @override
+  String get autoLoginRequiredAction => 'Open on phone';
+
+  @override
+  String get autoLoginRequiredDismiss => 'OK';
 }
 
 /// The translations for English, as used in Australia (`en_AU`).
@@ -2500,4 +2513,17 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get showNowPlaying => 'Show Now Playing';
+
+  @override
+  String get autoLoginRequiredTitle => 'Log in to use Doudou';
+
+  @override
+  String get autoLoginRequiredMessage =>
+      'Open Doudou on your phone and sign in to a server to start playing music here.';
+
+  @override
+  String get autoLoginRequiredAction => 'Open on phone';
+
+  @override
+  String get autoLoginRequiredDismiss => 'OK';
 }

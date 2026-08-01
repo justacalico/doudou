@@ -2476,6 +2476,30 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'Show Now Playing'**
   String get showNowPlaying;
+
+  /// No description provided for @autoLoginRequiredTitle.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Log in to use Doudou'**
+  String get autoLoginRequiredTitle;
+
+  /// No description provided for @autoLoginRequiredMessage.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Open Doudou on your phone and sign in to a server to start playing music here.'**
+  String get autoLoginRequiredMessage;
+
+  /// No description provided for @autoLoginRequiredAction.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Open on phone'**
+  String get autoLoginRequiredAction;
+
+  /// No description provided for @autoLoginRequiredDismiss.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'OK'**
+  String get autoLoginRequiredDismiss;
 }
 
 class _AppLocalizationsDelegate

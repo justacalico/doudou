@@ -1203,4 +1203,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get showNowPlaying => '显示正在播放';
+
+  @override
+  String get autoLoginRequiredTitle => '登录以使用 Doudou';
+
+  @override
+  String get autoLoginRequiredMessage => '在手机上打开 Doudou 并登录服务器，即可在此播放音乐。';
+
+  @override
+  String get autoLoginRequiredAction => '在手机上打开';
+
+  @override
+  String get autoLoginRequiredDismiss => '确定';
 }
