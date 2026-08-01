@@ -66,7 +66,7 @@ class AndroidAutoService extends GetxService {
     final l10n = AppLocalizations.of(Get.context!)!;
     printINFO('AndroidAuto: user not logged in, showing login-required alert');
 
-    await FlutterAndroidAuto.setRootTemplate(
+    await FlutterAndroidAuto.showAlert(
       template: AAAlertTemplate(
         title: l10n.autoLoginRequiredTitle,
         message: l10n.autoLoginRequiredMessage,
@@ -74,8 +74,12 @@ class AndroidAutoService extends GetxService {
           AAAlertAction(
             title: l10n.autoLoginRequiredAction,
             onPress: () async {
-              await _bringAppToForeground();
+              final broughtUp = await _bringAppToForeground();
+              // Only dismiss and rebuild once we actually surfaced the app.
+              // If foregrounding failed, keep the alert so the user can retry.
+              if (!broughtUp) return;
               await FlutterAndroidAuto.popModal();
+              await _setupRootTemplate();
             },
           ),
           AAAlertAction(
@@ -83,6 +87,10 @@ class AndroidAutoService extends GetxService {
             style: AAAlertActionStyle.cancel,
             onPress: () async {
               await FlutterAndroidAuto.popModal();
+              // Re-check in case the user signed in on the phone while the
+              // alert was up — restores real content instead of the loading
+              // placeholder that the alert was pushed on top of.
+              await _setupRootTemplate();
             },
           ),
         ],
@@ -90,11 +98,13 @@ class AndroidAutoService extends GetxService {
     );
   }
 
-  Future<void> _bringAppToForeground() async {
+  Future<bool> _bringAppToForeground() async {
     try {
       await _wakeLockChannel.invokeMethod<bool>('bringToForeground');
+      return true;
     } catch (e) {
       printWarning('AndroidAuto: bringToForeground failed: $e');
+      return false;
     }
   }
 
