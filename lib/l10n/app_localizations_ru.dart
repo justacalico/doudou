@@ -1258,4 +1258,17 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get showNowPlaying => 'Показать \"Сейчас играет\"';
+
+  @override
+  String get autoLoginRequiredTitle => 'Войдите, чтобы пользоваться Doudou';
+
+  @override
+  String get autoLoginRequiredMessage =>
+      'Откройте Doudou на телефоне и войдите на сервер, чтобы слушать музыку здесь.';
+
+  @override
+  String get autoLoginRequiredAction => 'Открыть на телефоне';
+
+  @override
+  String get autoLoginRequiredDismiss => 'OK';
 }

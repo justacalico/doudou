@@ -805,5 +805,13 @@
   "hideNowPlaying": "Hide Now Playing",
   "@hideNowPlaying": {},
   "showNowPlaying": "Show Now Playing",
-  "@showNowPlaying": {}
+  "@showNowPlaying": {},
+  "autoLoginRequiredTitle": "Log in to use Doudou",
+  "@autoLoginRequiredTitle": {},
+  "autoLoginRequiredMessage": "Open Doudou on your phone and sign in to a server to start playing music here.",
+  "@autoLoginRequiredMessage": {},
+  "autoLoginRequiredAction": "Open on phone",
+  "@autoLoginRequiredAction": {},
+  "autoLoginRequiredDismiss": "OK",
+  "@autoLoginRequiredDismiss": {}
 }

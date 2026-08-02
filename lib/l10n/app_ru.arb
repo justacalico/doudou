@@ -801,5 +801,13 @@
   "@hideNowPlaying": {},
   "showNowPlaying": "Показать \"Сейчас играет\"",
   "@showNowPlaying": {},
+  "autoLoginRequiredTitle": "Войдите, чтобы пользоваться Doudou",
+  "@autoLoginRequiredTitle": {},
+  "autoLoginRequiredMessage": "Откройте Doudou на телефоне и войдите на сервер, чтобы слушать музыку здесь.",
+  "@autoLoginRequiredMessage": {},
+  "autoLoginRequiredAction": "Открыть на телефоне",
+  "@autoLoginRequiredAction": {},
+  "autoLoginRequiredDismiss": "OK",
+  "@autoLoginRequiredDismiss": {},
   "@@locale": "ru"
 }
