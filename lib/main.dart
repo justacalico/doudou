@@ -11,7 +11,6 @@ import '/l10n/app_localizations.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
 import '/services/downloader.dart';
 import '/services/library_sync_service.dart';
-import '/services/doudou_server_sync_service.dart';
 import '/services/piped_service.dart';
 import '/services/playback_diagnostics_service.dart';
 import 'utils/app_link_controller.dart';
@@ -151,9 +150,6 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => SettingsScreenController(), fenix: true);
   Get.lazyPut(() => Downloader(), fenix: true);
   Get.lazyPut(() => LibrarySyncService(), fenix: true);
-  // Eager registration so onInit runs at launch and the periodic sync starts
-  // immediately, even before the settings screen is opened.
-  Get.put(DoudouServerSyncService(), permanent: true);
   Get.lazyPut(() => SearchScreenController(), fenix: true);
   Get.lazyPut(() => PlaybackDiagnosticsService(), fenix: true);
   if (GetPlatform.isAndroid) {
