@@ -9,6 +9,11 @@ on:
   schedule:
     - cron: '0 2 * * *'
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Publish a nightly release from this build (leave unchecked for plain branch builds)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -454,7 +459,10 @@ jobs:
     name: Nightly Release
     runs-on: ubuntu-latest
     needs: build
-    if: ${{ !cancelled() && !startsWith(github.ref, 'refs/tags/v') && !startsWith(github.ref, 'refs/pull/') && contains(needs.build.result, 'success') }}
+    # Skip on tag pushes (handled by the release job) and PR builds.
+    # On manual dispatch, only publish when create_release is explicitly
+    # checked — plain branch builds just produce artifacts, no release.
+    if: ${{ !cancelled() && contains(needs.build.result, 'success') && !startsWith(github.ref, 'refs/tags/v') && !startsWith(github.ref, 'refs/pull/') && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.create_release == true)) }}
     permissions:
       contents: write
 
