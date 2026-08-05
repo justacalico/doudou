@@ -1,15 +1,17 @@
-name: Build
+name: Build and Release
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
     tags: ['v*']
+  pull_request:
+    branches: [main]
   schedule:
     - cron: '0 2 * * *'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   FLUTTER_CHANNEL: stable
@@ -18,34 +20,58 @@ jobs:
   build:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 90
+    continue-on-error: false
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: android-phone
             os: ubuntu-latest
+            artifact: doudou-android
           - target: android-phone-playstore
             os: ubuntu-latest
+            artifact: doudou-playstore-android
           - target: android-wear
             os: ubuntu-latest
+            artifact: doudou-wearos
           - target: android-tv-playstore
             os: ubuntu-latest
-          - target: android-tv-nonplaystore
+            artifact: doudou-tv-playstore
+          - target: android-tv
             os: ubuntu-latest
+            artifact: doudou-tv
           - target: linux
             os: ubuntu-latest
+            artifact: doudou-linux
           - target: windows
             os: windows-latest
+            artifact: doudou-windows
           - target: macos
             os: macos-latest
+            artifact: doudou-macos
           - target: ios
             os: macos-latest
+            artifact: doudou-ios
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      build_number: ${{ steps.version.outputs.build_number }}
+      build_date: ${{ steps.version.outputs.build_date }}
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+
+      - name: Read version from pubspec
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //g' | cut -d'+' -f1)
+          BUILD_NUMBER="${{ github.run_number }}"
+          BUILD_DATE=$(date +%Y-%m-%d)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "build_date=$BUILD_DATE" >> "$GITHUB_OUTPUT"
 
       - name: Set up Java 17
         if: startsWith(matrix.target, 'android')
@@ -74,76 +100,211 @@ jobs:
             libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
           flutter config --enable-linux-desktop
 
+      - name: Install Rust
+        if: matrix.target == 'ios'
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Install iOS Rust targets
+        if: matrix.target == 'ios'
+        run: |
+          rustup target add aarch64-apple-ios
+          rustup target add x86_64-apple-ios
+          rustup target add aarch64-apple-ios-sim
+
+      - name: Fix RepeatMode conflict with Flutter
+        if: startsWith(matrix.target, 'android') || matrix.target == 'ios' || matrix.target == 'macos'
+        shell: bash
+        run: |
+          AUDIO_HANDLER="lib/services/audio/unified_audio_handler.dart"
+          if [ -f "$AUDIO_HANDLER" ]; then
+            perl -i -pe 's/\bRepeatMode\b/AudioRepeatMode/g' "$AUDIO_HANDLER"
+            find lib -name "*.dart" -exec grep -l "unified_audio_handler" {} \; | while read f; do
+              [ "$f" = "$AUDIO_HANDLER" ] || ! grep -q '\bRepeatMode\b' "$f" || perl -i -pe 's/\bRepeatMode\b/AudioRepeatMode/g' "$f"
+            done
+          fi
+
+      - name: Setup Android signing
+        id: signing
+        if: startsWith(matrix.target, 'android')
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.DOUDOU_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.DOUDOU_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.DOUDOU_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.DOUDOU_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "signing=debug" >> "$GITHUB_OUTPUT"
+            echo "No keystore configured, using debug signing"
+            exit 0
+          fi
+
+          echo "Setting up release signing..."
+          STORE_PASSWORD=$(printf '%s' "$ANDROID_KEYSTORE_PASSWORD" | tr -d '\r')
+          KEY_PASSWORD=$(printf '%s' "$ANDROID_KEY_PASSWORD" | tr -d '\r')
+          KEY_ALIAS=$(printf '%s' "$ANDROID_KEY_ALIAS" | tr -d '\r')
+
+          mkdir -p android/keystore android/app/keystore
+          if ! printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n ' | base64 --decode > android/keystore/upload-keystore.jks 2>/dev/null; then
+            echo "signing=debug" >> "$GITHUB_OUTPUT"
+            echo "Keystore base64 is invalid, using debug signing"
+            exit 0
+          fi
+          cp android/keystore/upload-keystore.jks android/app/keystore/upload-keystore.jks
+          KEYSTORE_ABS_PATH="$PWD/android/keystore/upload-keystore.jks"
+
+          printf '%s\n' \
+            "storePassword=$STORE_PASSWORD" \
+            "keyPassword=$KEY_PASSWORD" \
+            "keyAlias=$KEY_ALIAS" \
+            "storeFile=$KEYSTORE_ABS_PATH" > android/key.properties
+          cp android/key.properties android/app/key.properties
+          echo "signing=release" >> "$GITHUB_OUTPUT"
+          echo "Release signing is configured"
+
+      - name: Validate Android keystore
+        if: startsWith(matrix.target, 'android') && steps.signing.outputs.signing == 'release'
+        run: |
+          set -euo pipefail
+          STORE_PASSWORD=$(grep '^storePassword=' android/key.properties | cut -d'=' -f2-)
+          KEY_PASSWORD=$(grep '^keyPassword=' android/key.properties | cut -d'=' -f2-)
+          KEY_ALIAS=$(grep '^keyAlias=' android/key.properties | cut -d'=' -f2-)
+          STORE_FILE=$(grep '^storeFile=' android/key.properties | cut -d'=' -f2-)
+
+          if [ -z "$STORE_PASSWORD" ] || [ -z "$KEY_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$STORE_FILE" ]; then
+            echo "key.properties is missing required keystore fields"
+            exit 1
+          fi
+
+          if [ ! -f "$STORE_FILE" ]; then
+            echo "Keystore file not found for storeFile=$STORE_FILE"
+            exit 1
+          fi
+
+          echo "Validating release keystore and alias..."
+          keytool -list -keystore "$STORE_FILE" -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" -keypass "$KEY_PASSWORD" >/dev/null
+          echo "Android keystore validation passed"
+
+      - name: Enable Windows Developer Mode
+        if: matrix.target == 'windows'
+        shell: powershell
+        run: |
+          New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Value 1 -PropertyType DWORD -Force
+
+      - name: Patch clipboard plugin (Windows C4189)
+        if: matrix.target == 'windows'
+        shell: bash
+        run: |
+          cache="${PUB_CACHE:-$HOME/.pub-cache}"
+          [ -d "$cache" ] || cache="/c/Users/$USER/AppData/Local/Pub/Cache"
+          f=$(find "$cache" -name "clipboard_plugin.cpp" -path "*/clipboard/*" 2>/dev/null | head -1)
+          if [ -n "$f" ] && grep -q "headerSize" "$f"; then
+            sed -i.bak '/headerSize.*=/a\  (void)headerSize;' "$f" && rm -f "${f}.bak" || true
+          fi
+
+      - name: Patch plugin CMake for Windows symlink extraction
+        if: matrix.target == 'windows'
+        shell: powershell
+        run: |
+          $smtc = Get-ChildItem -Path "$env:PUB_CACHE\hosted\pub.dev" -Recurse -Filter "CMakeLists.txt" -ErrorAction SilentlyContinue |
+                    Where-Object { $_.FullName -match "smtc_windows-[\d.]+\\windows\\CMakeLists\.txt" } |
+                    Select-Object -First 1
+          if ($smtc) {
+            $txt = Get-Content $smtc.FullName -Raw
+            if ($txt -notmatch 'file\(REAL_PATH "\$\{CMAKE_CURRENT_SOURCE_DIR\}" REAL_SOURCE_DIR\)') {
+              $txt = $txt -replace 'set\(LibRoot "\$\{CMAKE_CURRENT_SOURCE_DIR\}/\$\{LibraryVersion\}"\)',
+                                 "file(REAL_PATH `"`${CMAKE_CURRENT_SOURCE_DIR}`" REAL_SOURCE_DIR)`r`nset(LibRoot `"`${REAL_SOURCE_DIR}/`${LibraryVersion}`")"
+              Set-Content $smtc.FullName -Value $txt -NoNewline
+            }
+          }
+          $audio = Get-ChildItem -Path "$env:PUB_CACHE\hosted\pub.dev" -Recurse -Filter "CMakeLists.txt" -ErrorAction SilentlyContinue |
+                     Where-Object { $_.FullName -match "audiotags-[\d.]+\\windows\\CMakeLists\.txt" } |
+                     Select-Object -First 1
+          if ($audio) {
+            $txt = Get-Content $audio.FullName -Raw
+            if ($txt -notmatch 'file\(REAL_PATH "\$\{CMAKE_CURRENT_SOURCE_DIR\}" REAL_SOURCE_DIR\)') {
+              $txt = $txt -replace 'set\(LibPath "\$\{CMAKE_CURRENT_SOURCE_DIR\}/windows\.tar\.gz"\)',
+                                 "file(REAL_PATH `"`${CMAKE_CURRENT_SOURCE_DIR}`" REAL_SOURCE_DIR)`r`nset(LibPath `"`${REAL_SOURCE_DIR}/windows.tar.gz`")"
+              $txt = $txt -replace '\$\{CMAKE_CURRENT_SOURCE_DIR\}/audiotags\.dll', '${REAL_SOURCE_DIR}/audiotags.dll'
+              $txt = $txt -replace 'WORKING_DIRECTORY \$\{CMAKE_CURRENT_SOURCE_DIR\}', 'WORKING_DIRECTORY ${REAL_SOURCE_DIR}'
+              Set-Content $audio.FullName -Value $txt -NoNewline
+            }
+          }
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build debug + release
+      - name: Run iOS prebuild patches
+        if: matrix.target == 'ios'
+        run: bash scripts/build-ios.sh
+
+      - name: Run flutter_rust_bridge codegen
+        if: matrix.target == 'ios'
+        continue-on-error: true
+        run: dart run flutter_rust_bridge_codegen build-ios --release
+
+      - name: Build
         shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD_NUMBER: ${{ steps.version.outputs.build_number }}
+          BUILD_DATE: ${{ steps.version.outputs.build_date }}
+          _SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS: 1
         run: |
           set -euo pipefail
-          short_sha="${GITHUB_SHA-}"
-          [ -n "$short_sha" ] && short_sha="${short_sha::7}" || short_sha="local"
-          tag="${GITHUB_REF#refs/tags/}"
-          [ "$tag" = "$GITHUB_REF" ] && tag=""
-          suffix="$short_sha"
-          [ -n "$tag" ] && suffix="$tag"
           mkdir -p artifacts
 
           build_apk() {
             local flavor="$1" name="$2"; shift 2
-            flutter build apk --debug --flavor "$flavor" "$@"
-            cp "build/app/outputs/flutter-apk/app-${flavor}-debug.apk" \
-               "artifacts/doudou-${name}-debug-${suffix}.apk"
-            flutter build apk --release --flavor "$flavor" "$@"
+            flutter build apk --release --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER"
             cp "build/app/outputs/flutter-apk/app-${flavor}-release.apk" \
-               "artifacts/doudou-${name}-release-${suffix}.apk"
+               "artifacts/doudou-${name}-${VERSION}-${BUILD_DATE}.apk"
+          }
+
+          build_aab() {
+            local flavor="$1" name="$2"; shift 2
+            flutter build appbundle --release --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER"
+            cp "build/app/outputs/bundle/${flavor}Release/app-${flavor}-release.aab" \
+               "artifacts/doudou-${name}-${VERSION}-${BUILD_DATE}.aab"
           }
 
           case "${{ matrix.target }}" in
             android-phone)
               build_apk phone phone -t lib/main.dart
+              build_aab phone phone -t lib/main.dart
               ;;
             android-phone-playstore)
-              build_apk phone phone-playstore --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart
-              flutter build appbundle --release --flavor phone --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart
-              cp build/app/outputs/bundle/phoneRelease/app-phone-release.aab \
-                 "artifacts/doudou-phone-playstore-release-${suffix}.aab"
+              build_aab phone phone-playstore --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart
               ;;
             android-wear)
               build_apk wear wear -t lib/main_wear.dart
+              build_aab wear wear -t lib/main_wear.dart
               ;;
             android-tv-playstore)
               build_apk tv tv-playstore --dart-define=PLAYSTORE=true --dart-define=TV=true
-              flutter build appbundle --release --flavor tv --dart-define=PLAYSTORE=true --dart-define=TV=true
-              cp build/app/outputs/bundle/tvRelease/app-tv-release.aab \
-                 "artifacts/doudou-tv-playstore-release-${suffix}.aab"
+              build_aab tv tv-playstore --dart-define=PLAYSTORE=true --dart-define=TV=true
               ;;
-            android-tv-nonplaystore)
+            android-tv)
               build_apk tv tv --dart-define=PLAYSTORE=false --dart-define=TV=true
+              build_aab tv tv --dart-define=PLAYSTORE=false --dart-define=TV=true
               ;;
             linux)
-              flutter build linux --debug
-              tar -czf "artifacts/doudou-linux-debug-${suffix}.tar.gz" -C build/linux/x64/debug/bundle .
               flutter build linux --release
-              tar -czf "artifacts/doudou-linux-release-${suffix}.tar.gz" -C build/linux/x64/release/bundle .
+              tar -czf "artifacts/doudou-linux-${VERSION}-${BUILD_DATE}.tar.gz" -C build/linux/x64/release/bundle .
               ;;
             windows)
-              flutter build windows --debug
-              7z a "artifacts/doudou-windows-debug-${suffix}.zip" "build/windows/x64/runner/Debug"
               flutter build windows --release
-              7z a "artifacts/doudou-windows-release-${suffix}.zip" "build/windows/x64/runner/Release"
+              7z a "artifacts/doudou-windows-${VERSION}-${BUILD_DATE}.zip" "build/windows/x64/runner/Release"
               ;;
             macos)
-              flutter build macos --debug
-              (cd build/macos/Build/Products/Debug && zip -ry "$OLDPWD/artifacts/doudou-macos-debug-${suffix}.zip" ./*.app)
-              flutter build macos --release
-              (cd build/macos/Build/Products/Release && zip -ry "$OLDPWD/artifacts/doudou-macos-release-${suffix}.zip" ./*.app)
+              flutter config --enable-macos-desktop
+              flutter build macos --release --build-name="$VERSION"
               ;;
             ios)
-              flutter build ios --debug --no-codesign
-              (cd build/ios/iphoneos && zip -ry "$OLDPWD/artifacts/doudou-ios-debug-${suffix}.zip" ./*.app)
               flutter build ios --release --no-codesign
-              (cd build/ios/iphoneos && zip -ry "$OLDPWD/artifacts/doudou-ios-release-${suffix}.zip" ./*.app)
               ;;
             *)
               echo "Unknown target: ${{ matrix.target }}" >&2
@@ -153,70 +314,90 @@ jobs:
 
           ls -la artifacts/
 
+      - name: Disable macOS code signing in Xcode project
+        if: matrix.target == 'macos'
+        run: |
+          cd macos
+          /usr/libexec/PlistBuddy -c "Set :buildSettings:CODE_SIGN_IDENTITY ''" Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+          xcodebuild -project Runner.xcodeproj -scheme Runner -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -derivedDataPath ../build/macos_unsigned || true
+
+      - name: Create macOS ZIP
+        if: matrix.target == 'macos'
+        run: |
+          cd build/macos/Build/Products/Release
+          zip -r "$GITHUB_WORKSPACE/artifacts/doudou-macos-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build_date }}-unsigned.zip" *.app
+
+      - name: Create iOS IPA
+        if: matrix.target == 'ios'
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r "artifacts/doudou-ios-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build_date }}-unsigned.ipa" Payload/
+          rm -rf Payload
+
+      - name: Create Windows installer
+        if: matrix.target == 'windows'
+        shell: powershell
+        run: |
+          @"
+          [Setup]
+          AppName=Doudou
+          AppVersion=${{ steps.version.outputs.version }}
+          AppPublisher=Openlyst
+          DefaultDirName={autopf}\Doudou
+          DefaultGroupName=Doudou
+          OutputDir=artifacts
+          OutputBaseFilename=doudou-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build_date }}-windows-x64-setup
+          Compression=lzma2
+          SolidCompression=yes
+          ArchitecturesInstallIn64BitMode=x64compatible
+          WizardStyle=modern
+          UninstallDisplayIcon={app}\doudou.exe
+          PrivilegesRequired=lowest
+
+          [Languages]
+          Name: "english"; MessagesFile: "compiler:Default.isl"
+
+          [Tasks]
+          Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+          [Files]
+          Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+          [Icons]
+          Name: "{group}\Doudou"; Filename: "{app}\doudou.exe"
+          Name: "{group}\{cm:UninstallProgram,Doudou}"; Filename: "{uninstallexe}"
+          Name: "{autodesktop}\Doudou"; Filename: "{app}\doudou.exe"; Tasks: desktopicon
+
+          [Run]
+          Filename: "{app}\doudou.exe"; Description: "{cm:LaunchProgram,Doudou}"; Flags: nowait postinstall skipifsilent
+          "@ | Out-File -FilePath installer.iss -Encoding UTF8
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer.iss
+
+      - name: Verify Android signature
+        if: startsWith(matrix.target, 'android') && steps.signing.outputs.signing == 'release'
+        shell: bash
+        run: |
+          for pkg in artifacts/*.apk artifacts/*.aab; do
+            [ -f "$pkg" ] || continue
+            echo "Verifying $pkg..."
+            if command -v apksigner >/dev/null 2>&1; then
+              apksigner verify "$pkg" >/dev/null 2>&1 || { echo "Signature verification failed: $pkg"; exit 1; }
+            else
+              jarsigner -verify "$pkg" >/dev/null 2>&1 || { echo "Signature verification failed: $pkg"; exit 1; }
+            fi
+            echo "Verified: $pkg"
+          done
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: doudou-${{ matrix.target }}-${{ github.sha }}
+          name: ${{ matrix.artifact }}
           path: artifacts/*
           if-no-files-found: error
 
-  nightly:
-    name: Publish Nightly Release
-    runs-on: ubuntu-latest
-    needs: build
-    if: ${{ !cancelled() && !startsWith(github.ref, 'refs/tags/v') && contains(needs.build.result, 'success') }}
-    concurrency:
-      group: nightly-release
-      cancel-in-progress: false
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Prepare release assets
-        shell: bash
-        run: |
-          mkdir -p release-assets
-          find artifacts -type f \( -name "*.apk" -o -name "*.aab" -o -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} release-assets/ \;
-          if [ -z "$(ls -A release-assets/)" ]; then
-            echo "No artifacts found — skipping release"
-            exit 1
-          fi
-          ls -la release-assets/
-
-      - name: Delete existing nightly release
-        run: gh release delete nightly --yes --cleanup-tag || true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create nightly release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: nightly
-          name: Nightly Build
-          body: |
-            Automated nightly build from commit ${{ github.sha }}
-
-            **Branch:** ${{ github.ref_name }}
-            **Commit:** ${{ github.sha }}
-            **Built on:** ${{ github.event.head_commit.timestamp }}
-
-            > This release is automatically updated on every push. Artifacts are untested nightly builds.
-          prerelease: true
-          files: release-assets/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   release:
-    name: Publish Tagged Release
+    name: Release
     runs-on: ubuntu-latest
     needs: build
     if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') && contains(needs.build.result, 'success') }}
@@ -226,7 +407,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Read version from pubspec
+        id: version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //g' | cut -d'+' -f1)
+          BUILD_DATE=$(date +%Y-%m-%d)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "build_date=$BUILD_DATE" >> "$GITHUB_OUTPUT"
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -234,22 +423,49 @@ jobs:
           path: artifacts
 
       - name: Prepare release assets
-        shell: bash
         run: |
           mkdir -p release-assets
-          find artifacts -type f \( -name "*.apk" -o -name "*.aab" -o -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} release-assets/ \;
-          if [ -z "$(ls -A release-assets/)" ]; then
-            echo "No artifacts found — skipping release"
-            exit 1
-          fi
+          find artifacts -type f \( -name "*.apk" -o -name "*.aab" -o -name "*.tar.gz" -o -name "*.zip" -o -name "*.ipa" -o -name "*.exe" \) -exec cp {} release-assets/ \;
           ls -la release-assets/
 
-      - name: Create tagged release
+      - name: Generate SHA256 checksums
+        working-directory: release-assets
+        run: |
+          sha256sum * > ../SHA256SUMS.txt
+          cat ../SHA256SUMS.txt
+
+      - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Doudou v${{ steps.version.outputs.version }}
           generate_release_notes: true
-          files: release-assets/*
+          body: |
+            ## Doudou v${{ steps.version.outputs.version }}
+
+            **Build:** #${{ github.run_number }}
+            **Date:** ${{ steps.version.outputs.build_date }}
+            **Commit:** ${{ github.sha }}
+
+            ### Artifacts
+            - Android Phone: APK + AAB (release signed)
+            - Android Play Store: AAB (release signed)
+            - Android Wear OS: APK + AAB (release signed)
+            - Android TV: APK + AAB (release signed)
+            - Android TV Play Store: APK + AAB (release signed)
+            - Linux: tar.gz
+            - Windows: zip + installer
+            - macOS: zip (unsigned)
+            - iOS: IPA (unsigned)
+
+            ### Verification
+            SHA256 checksums are in `SHA256SUMS.txt`. Verify with:
+            ```
+            sha256sum -c SHA256SUMS.txt --ignore-missing
+            ```
+          files: |
+            release-assets/*
+            SHA256SUMS.txt
+          prerelease: ${{ github.event_name == 'schedule' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
