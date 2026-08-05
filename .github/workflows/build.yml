@@ -439,7 +439,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if gh release view nightly -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release delete-asset nightly -R "$GITHUB_REPOSITORY" --yes $(gh release view nightly -R "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' 2>/dev/null) 2>/dev/null || true
+            gh release view nightly -R "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' 2>/dev/null | while read -r asset; do
+              [ -n "$asset" ] && gh release delete-asset nightly -R "$GITHUB_REPOSITORY" "$asset" --yes 2>/dev/null || true
+            done
           fi
 
       - name: Update nightly release
