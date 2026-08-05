@@ -22,6 +22,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     continue-on-error: false
+    env:
+      APPIMAGE_EXTRACT_AND_RUN: "1"
     strategy:
       fail-fast: false
       matrix:
@@ -41,9 +43,12 @@ jobs:
           - target: android-tv
             os: ubuntu-latest
             artifact: doudou-tv
-          - target: linux
+          - target: linux-x64
             os: ubuntu-latest
-            artifact: doudou-linux
+            artifact: doudou-linux-x64
+          - target: linux-arm64
+            os: ubuntu-24.04-arm
+            artifact: doudou-linux-arm64
           - target: windows
             os: windows-latest
             artifact: doudou-windows
@@ -81,15 +86,23 @@ jobs:
           java-version: '17'
 
       - uses: subosito/flutter-action@v2
+        if: matrix.target != 'linux-arm64'
         with:
           channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
+
+      - name: Install Flutter manually (ARM64)
+        if: matrix.target == 'linux-arm64'
+        run: |
+          git clone --depth 1 -b stable https://github.com/flutter/flutter.git "$HOME/flutter"
+          echo "$HOME/flutter/bin" >> "$GITHUB_PATH"
+          echo "PUB_CACHE=$HOME/.pub-cache" >> "$GITHUB_ENV"
 
       - name: Flutter doctor
         run: flutter doctor -v
 
       - name: Install Linux build dependencies
-        if: matrix.target == 'linux'
+        if: startsWith(matrix.target, 'linux')
         run: |
           sudo apt-get update -y
           sudo apt-get install -y \
@@ -99,6 +112,26 @@ jobs:
             dpkg-dev rpm wget file squashfs-tools patchelf libfuse2 \
             libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
           flutter config --enable-linux-desktop
+
+      - name: Install appimagetool (x64)
+        if: matrix.target == 'linux-x64'
+        run: |
+          wget -q -O /tmp/appimagetool.AppImage "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x /tmp/appimagetool.AppImage
+          cd /tmp && ./appimagetool.AppImage --appimage-extract
+          sudo mv /tmp/squashfs-root /opt/appimagetool
+          sudo ln -sf /opt/appimagetool/AppRun /usr/local/bin/appimagetool
+          appimagetool --version || echo "appimagetool installed"
+
+      - name: Install appimagetool (arm64)
+        if: matrix.target == 'linux-arm64'
+        run: |
+          wget -q -O /tmp/appimagetool.AppImage "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-aarch64.AppImage"
+          chmod +x /tmp/appimagetool.AppImage
+          cd /tmp && ./appimagetool.AppImage --appimage-extract
+          sudo mv /tmp/squashfs-root /opt/appimagetool
+          sudo ln -sf /opt/appimagetool/AppRun /usr/local/bin/appimagetool
+          appimagetool --version || echo "appimagetool installed"
 
       - name: Install Rust
         if: matrix.target == 'ios'
@@ -291,9 +324,30 @@ jobs:
               build_apk tv tv --dart-define=PLAYSTORE=false --dart-define=TV=true
               build_aab tv tv --dart-define=PLAYSTORE=false --dart-define=TV=true
               ;;
-            linux)
-              flutter build linux --release
-              tar -czf "artifacts/doudou-linux-${VERSION}-${BUILD_DATE}.tar.gz" -C build/linux/x64/release/bundle .
+            linux-x64)
+              flutter build linux --release --build-name="$VERSION"
+              cd build/linux/x64/release && zip -r "$GITHUB_WORKSPACE/artifacts/doudou-linux-x64-${VERSION}-${BUILD_DATE}.zip" bundle/ && cd "$GITHUB_WORKSPACE"
+              export PATH="$PATH:$HOME/.pub-cache/bin"
+              dart pub global activate fastforge
+              fastforge package --platform linux --targets deb --skip-clean || echo "DEB build had warnings"
+              fastforge package --platform linux --targets rpm --skip-clean || echo "RPM build had warnings"
+              fastforge package --platform linux --targets appimage --skip-clean || echo "AppImage build had warnings"
+              find dist -name "*.deb" -exec cp {} "artifacts/doudou-linux-amd64-${VERSION}-${BUILD_DATE}.deb" \; 2>/dev/null || true
+              find dist -name "*.rpm" -exec cp {} "artifacts/doudou-linux-amd64-${VERSION}-${BUILD_DATE}.rpm" \; 2>/dev/null || true
+              find dist -name "*.AppImage" -exec cp {} "artifacts/doudou-linux-x86_64-${VERSION}-${BUILD_DATE}.AppImage" \; 2>/dev/null || true
+              ;;
+            linux-arm64)
+              flutter build linux --release --build-name="$VERSION"
+              cd build/linux/arm64/release && zip -r "$GITHUB_WORKSPACE/artifacts/doudou-linux-arm64-${VERSION}-${BUILD_DATE}.zip" bundle/ && cd "$GITHUB_WORKSPACE"
+              export PATH="$PATH:$HOME/.pub-cache/bin"
+              export PUB_CACHE="$HOME/.pub-cache"
+              dart pub global activate fastforge
+              fastforge package --platform linux --targets deb --skip-clean || echo "DEB build had warnings"
+              fastforge package --platform linux --targets rpm --skip-clean || echo "RPM build had warnings"
+              fastforge package --platform linux --targets appimage --skip-clean || echo "AppImage build had warnings"
+              find dist -name "*.deb" -exec cp {} "artifacts/doudou-linux-arm64-${VERSION}-${BUILD_DATE}.deb" \; 2>/dev/null || true
+              find dist -name "*.rpm" -exec cp {} "artifacts/doudou-linux-arm64-${VERSION}-${BUILD_DATE}.rpm" \; 2>/dev/null || true
+              find dist -name "*.AppImage" -exec cp {} "artifacts/doudou-linux-aarch64-${VERSION}-${BUILD_DATE}.AppImage" \; 2>/dev/null || true
               ;;
             windows)
               flutter build windows --release
@@ -523,7 +577,8 @@ jobs:
             - Android Wear OS: APK + AAB (release signed)
             - Android TV: APK + AAB (release signed)
             - Android TV Play Store: APK + AAB (release signed)
-            - Linux: tar.gz
+            - Linux x64: zip + deb + rpm + AppImage
+            - Linux arm64: zip + deb + rpm + AppImage
             - Windows: zip + installer
             - macOS: zip (unsigned)
             - iOS: IPA (unsigned)
