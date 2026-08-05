@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //g' | cut -d'+' -f1)
-          BUILD_NUMBER="${{ github.run_number }}"
+          BUILD_NUMBER=$(date +%s | cut -c4-10)
           BUILD_DATE=$(date +%Y-%m-%d)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
