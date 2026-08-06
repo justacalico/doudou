@@ -356,7 +356,7 @@ jobs:
               ;;
             windows)
               flutter build windows --release
-              7z a "artifacts/doudou-windows-${VERSION}-${BUILD_DATE}.zip" "build/windows/x64/runner/Release"
+              7z a "artifacts/doudou-windows-x64-${VERSION}-${BUILD_DATE}.zip" "build/windows/x64/runner/Release"
               ;;
             macos)
               flutter config --enable-macos-desktop
