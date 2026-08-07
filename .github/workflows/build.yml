@@ -35,13 +35,13 @@ jobs:
         include:
           - target: android-phone
             os: ubuntu-latest
-            artifact: doudou-android
+            artifact: doudou-phone
           - target: android-phone-playstore
             os: ubuntu-latest
-            artifact: doudou-playstore-android
+            artifact: doudou-phone-playstore
           - target: android-wear
             os: ubuntu-latest
-            artifact: doudou-wearos
+            artifact: doudou-wear
           - target: android-tv-playstore
             os: ubuntu-latest
             artifact: doudou-tv-playstore
@@ -356,7 +356,7 @@ jobs:
               ;;
             windows)
               flutter build windows --release
-              7z a "artifacts/doudou-windows-${VERSION}-${BUILD_DATE}.zip" "build/windows/x64/runner/Release"
+              7z a "artifacts/doudou-windows-x64-${VERSION}-${BUILD_DATE}.zip" "build/windows/x64/runner/Release"
               ;;
             macos)
               flutter config --enable-macos-desktop
@@ -384,14 +384,14 @@ jobs:
         if: matrix.target == 'macos'
         run: |
           cd build/macos/Build/Products/Release
-          zip -r "$GITHUB_WORKSPACE/artifacts/doudou-macos-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build_date }}-unsigned.zip" *.app
+          zip -r "$GITHUB_WORKSPACE/artifacts/doudou-macos-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build_date }}.zip" *.app
 
       - name: Create iOS IPA
         if: matrix.target == 'ios'
         run: |
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
-          zip -r "artifacts/doudou-ios-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build_date }}-unsigned.ipa" Payload/
+          zip -r "artifacts/doudou-ios-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build_date }}.ipa" Payload/
           rm -rf Payload
 
       - name: Create Windows installer
@@ -406,7 +406,7 @@ jobs:
           DefaultDirName={autopf}\Doudou
           DefaultGroupName=Doudou
           OutputDir=artifacts
-          OutputBaseFilename=doudou-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build_date }}-windows-x64-setup
+          OutputBaseFilename=doudou-windows-x64-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build_date }}-setup
           Compression=lzma2
           SolidCompression=yes
           ArchitecturesInstallIn64BitMode=x64compatible
@@ -512,14 +512,15 @@ jobs:
           tag_name: nightly
           name: Nightly Build
           body: |
-            Automated nightly build from the latest commit on main.
+            Automated nightly build from commit ${{ github.sha }}
 
+            **Branch:** ${{ github.ref_name }}
             **Version:** ${{ steps.version.outputs.version }}
             **Build:** #${{ github.run_number }}
             **Date:** ${{ steps.version.outputs.build_date }}
             **Commit:** ${{ github.sha }}
 
-            > This release is automatically updated on every push to main. Artifacts are untested nightly builds.
+            > This release is automatically updated on every push. Artifacts are untested nightly builds.
           files: |
             release-assets/*
             SHA256SUMS.txt
