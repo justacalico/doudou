@@ -7,6 +7,14 @@ class WindowControls extends StatelessWidget {
 
   static const MethodChannel _channel = MethodChannel('com.openlyst.doudou/window_controls');
 
+  /// Hyprland (Wayland) doesn't support client-side minimize/maximize the way
+  /// the method channel expects, so only the close button is shown there.
+  static final bool _isHyprland = Platform.isLinux &&
+      ((Platform.environment['XDG_CURRENT_DESKTOP'] ?? '')
+          .toLowerCase()
+          .contains('hyprland') ||
+          (Platform.environment['HYPRLAND_INSTANCE_SIGNATURE'] ?? '').isNotEmpty);
+
   Future<void> _minimize() async {
     try {
       await _channel.invokeMethod('minimize');
@@ -63,16 +71,18 @@ class WindowControls extends StatelessWidget {
               onPressed: _close,
               isCloseButton: true,
             ),
-            const SizedBox(width: 4),
-            _WindowControlButton(
-              icon: Icons.crop_square,
-              onPressed: _maximize,
-            ),
-            const SizedBox(width: 4),
-            _WindowControlButton(
-              icon: Icons.minimize,
-              onPressed: _minimize,
-            ),
+            if (!_isHyprland) ...[
+              const SizedBox(width: 4),
+              _WindowControlButton(
+                icon: Icons.crop_square,
+                onPressed: _maximize,
+              ),
+              const SizedBox(width: 4),
+              _WindowControlButton(
+                icon: Icons.minimize,
+                onPressed: _minimize,
+              ),
+            ],
           ],
         ],
       ),
