@@ -59,8 +59,9 @@ class WindowControls extends StatelessWidget {
             ),
           ] else ...[
             _WindowControlButton(
-              icon: Icons.minimize,
-              onPressed: _minimize,
+              icon: Icons.close,
+              onPressed: _close,
+              isCloseButton: true,
             ),
             const SizedBox(width: 4),
             _WindowControlButton(
@@ -69,9 +70,8 @@ class WindowControls extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             _WindowControlButton(
-              icon: Icons.close,
-              onPressed: _close,
-              isCloseButton: true,
+              icon: Icons.minimize,
+              onPressed: _minimize,
             ),
           ],
         ],
