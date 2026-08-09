@@ -45,6 +45,8 @@ previously per-version files that lived under `changelog/`.
 - Updated the compact now playing layout to use LayoutBuilder constraints instead of MediaQuery for sizing, preventing overflow inside the constrained side panel
 - Adjusted the queue drawer bottom margin on desktop to account for the removal of the mini player bottom bar
 - Made PanelController methods safe to call when not attached, returning early instead of asserting, to support the desktop side panel layout where no SlidingUpPanel is used
+- Reordered the Windows and Linux window control buttons to close, maximize, minimize (x, +, -) to match the sidebar layout (!112)
+- On Hyprland (Wayland), only the close button is now shown since client-side minimize and maximize are not supported (!113)
 
 ## 20.0.1
 
