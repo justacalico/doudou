@@ -15,14 +15,6 @@ class WindowControls extends StatelessWidget {
           .contains('hyprland') ||
           (Platform.environment['HYPRLAND_INSTANCE_SIGNATURE'] ?? '').isNotEmpty);
 
-  /// KDE (Plasma) draws its own native title bar, so the in-app controls are
-  /// redundant and would duplicate the window manager's buttons.
-  static final bool _isKde = Platform.isLinux &&
-      ((Platform.environment['XDG_CURRENT_DESKTOP'] ?? '')
-          .toUpperCase()
-          .contains('KDE') ||
-          (Platform.environment['KDE_FULL_SESSION'] ?? '').isNotEmpty);
-
   Future<void> _minimize() async {
     try {
       await _channel.invokeMethod('minimize');
@@ -50,12 +42,6 @@ class WindowControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!Platform.isMacOS && !Platform.isLinux && !Platform.isWindows) {
-      return const SizedBox.shrink();
-    }
-
-    // KDE draws its own title bar with window controls, so hide the in-app
-    // ones to avoid duplicating them.
-    if (_isKde) {
       return const SizedBox.shrink();
     }
 

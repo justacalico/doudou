@@ -59,6 +59,13 @@ static void setup_window_control_channel(FlView* view) {
                                             g_object_ref(view), g_object_unref);
 }
 
+// On KDE/KWin (Wayland), gtk_window_set_decorated(FALSE) called before the
+// window is realized is ignored because the Wayland surface doesn't exist yet.
+// Re-assert it once the surface is created so KWin honors the request.
+static void on_window_realize(GtkWidget* widget, gpointer user_data) {
+  gtk_window_set_decorated(GTK_WINDOW(widget), FALSE);
+}
+
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
@@ -76,7 +83,13 @@ static void my_application_activate(GApplication* application) {
   gtk_window_set_title(window, "doudou");
   gtk_window_set_decorated(window, FALSE);
   gtk_window_set_default_size(window, 1280, 720);
+
+  // Re-assert undecorated state after the window is realized so that KWin
+  // (KDE Wayland) honors the request once the Wayland surface exists.
+  g_signal_connect(window, "realize", G_CALLBACK(on_window_realize), nullptr);
+
   gtk_widget_show(GTK_WIDGET(window));
+  gtk_window_set_decorated(window, FALSE);
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(project, self->dart_entrypoint_arguments);

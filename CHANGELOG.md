@@ -47,7 +47,7 @@ previously per-version files that lived under `changelog/`.
 - Made PanelController methods safe to call when not attached, returning early instead of asserting, to support the desktop side panel layout where no SlidingUpPanel is used
 - Reordered the Windows and Linux window control buttons to close, maximize, minimize (x, +, -) to match the sidebar layout (!112)
 - On Hyprland (Wayland), only the close button is now shown since client-side minimize and maximize are not supported (!113)
-- On KDE (Plasma), the in-app window controls are now hidden since the window manager draws its own title bar (!114)
+- Fixed KDE (KWin/Wayland) showing its own native title bar alongside the in-app window controls. The undecorated state is now re-asserted after the window is realized so KWin honors the request (!114)
 
 ## 20.0.1
 
