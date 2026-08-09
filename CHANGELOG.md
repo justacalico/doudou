@@ -3,6 +3,11 @@
 All notable changes to Doudou are recorded here. This file consolidates the
 previously per-version files that lived under `changelog/`.
 
+## Unreleased
+
+- Reordered the Windows and Linux window control buttons to close, maximize, minimize (x, +, -) to match the sidebar layout (!112)
+- On Hyprland (Wayland), only the close button is now shown since client-side minimize and maximize are not supported (!113)
+
 ## 21.0.0 - 2026-08-05
 
 - Bumped version to 21.0.0
