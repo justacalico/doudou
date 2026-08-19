@@ -28,6 +28,22 @@ ensure_flutter() {
   echo "Flutter installed at $flutter_dir"
 }
 
+ensure_rust() {
+  if command -v rustup >/dev/null 2>&1 || command -v cargo >/dev/null 2>&1; then
+    echo "Rust: $(which rustup 2>/dev/null || which cargo 2>/dev/null)"
+    return
+  fi
+
+  if command -v curl >/dev/null 2>&1; then
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+    export PATH="$HOME/.cargo/bin:$PATH"
+    rustup target add armv7-linux-androideabi aarch64-linux-android x86_64-linux-android >/dev/null 2>&1 || true
+    echo "Rust installed at $HOME/.cargo"
+  else
+    echo "Rust not found and curl unavailable" >&2
+  fi
+}
+
 install_linux_deps() {
   if ! command -v apt-get >/dev/null 2>&1; then
     return
@@ -168,6 +184,7 @@ patch_repeat_mode() {
 main() {
   mkdir -p "$PUB_CACHE"
   ensure_flutter
+  ensure_rust
   flutter config --no-analytics
 
   case "$TARGET" in
