@@ -1,3 +1,5 @@
+image: ghcr.io/cirruslabs/flutter:stable
+
 stages:
   - test
   - info

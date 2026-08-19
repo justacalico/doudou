@@ -82,21 +82,30 @@ setup_java() {
 }
 
 setup_android_sdk() {
+  local sdk_dir=""
+
   if [ -n "${ANDROID_HOME:-}" ] && [ -d "$ANDROID_HOME" ]; then
-    export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$PATH"
-    echo "Android SDK: $ANDROID_HOME"
-    return
+    sdk_dir="$ANDROID_HOME"
+  else
+    for d in /opt/android-sdk /home/calico/android-sdk /opt/android-studio/sdk "$HOME/android-sdk"; do
+      if [ -d "$d" ]; then
+        sdk_dir="$d"
+        break
+      fi
+    done
   fi
 
-  for d in /opt/android-sdk /home/calico/android-sdk /opt/android-studio/sdk "$HOME/android-sdk"; do
-    if [ -d "$d" ]; then
-      export ANDROID_HOME="$d"
-      export ANDROID_SDK_ROOT="$d"
-      export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$PATH"
-      echo "Android SDK found at $d"
-      return
+  if [ -n "$sdk_dir" ]; then
+    export ANDROID_HOME="$sdk_dir"
+    export ANDROID_SDK_ROOT="$sdk_dir"
+    export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$PATH"
+    echo "Android SDK found at $sdk_dir"
+    if command -v sdkmanager >/dev/null 2>&1; then
+      yes | sdkmanager --licenses >/dev/null 2>&1 || true
+      sdkmanager "platforms;android-31" "platforms;android-33" "platforms;android-34" "platforms;android-35" "platforms;android-36" "build-tools;35.0.0" "build-tools;36.0.0" "cmake;3.22.1" "ndk;28.2.13676358" >/dev/null 2>&1 || true
     fi
-  done
+    return
+  fi
 
   if ! command -v curl >/dev/null 2>&1; then
     echo "Android SDK not found and curl is unavailable" >&2
