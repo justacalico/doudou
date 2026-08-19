@@ -54,7 +54,7 @@ test:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "web"
   before_script:
-    - bash scripts/ci-setup.sh test
+    - . scripts/ci-setup.sh test
   script:
     - set -euo pipefail; flutter test --coverage --reporter expanded
     - set -euo pipefail; bash scripts/ci-coverage-threshold.sh
@@ -97,7 +97,7 @@ build-info:
     - job: test
     - job: build-info
   before_script:
-    - bash scripts/ci-setup.sh "$BUILD_TARGET"
+    - . scripts/ci-setup.sh "$BUILD_TARGET"
   script:
     - bash scripts/ci-build.sh "$BUILD_TARGET"
   after_script:
