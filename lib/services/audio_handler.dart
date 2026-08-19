@@ -96,6 +96,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
   final _playList =
       ConcatenatingAudioSource(children: [], useLazyPreparation: false);
+  late Future<void> _audioSourceReady;
 
   PlaybackDiagnosticsService get _diag =>
       Get.find<PlaybackDiagnosticsService>();
@@ -145,11 +146,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
   void _addEmptyList() {
-    try {
-      _player.setAudioSource(_playList);
-    } catch (r) {
+    _audioSourceReady = _player.setAudioSource(_playList).catchError((r) {
       printERROR(r.toString());
-    }
+    });
   }
 
   void _listenSessionIdStream() {
@@ -936,7 +935,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           );
           return;
         }
-        printINFO('playByIndex: adding audio source to playlist');
+        printINFO('playByIndex: waiting for audio source');
+        await _audioSourceReady;
+        printINFO('playByIndex: audio source ready');
         await _playList.add(_createAudioSource(activeSong));
         printINFO('playByIndex: audio source added, playlist length=${_playList.children.length}');
 
@@ -1094,7 +1095,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           );
           return;
         }
-        printINFO('setSourceAndPlay: adding audio source');
+        printINFO('setSourceAndPlay: waiting for audio source');
+        await _audioSourceReady;
+        printINFO('setSourceAndPlay: audio source ready');
         await _playList.add(_createAudioSource(currMed));
         printINFO('setSourceAndPlay: audio source added');
         isSongLoading = false;
