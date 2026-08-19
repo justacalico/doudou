@@ -13,6 +13,8 @@ import 'package:universal_platform/universal_platform.dart';
 class JustAudioMediaKit extends JustAudioPlatform {
   JustAudioMediaKit._();
 
+  static JustAudioMediaKit? _instance;
+
   /// The internal MPV player's logLevel
   static MPVLogLevel mpvLogLevel = MPVLogLevel.error;
 
@@ -87,7 +89,8 @@ class JustAudioMediaKit extends JustAudioPlatform {
 
   /// Registers the plugin with [JustAudioPlatform]
   static void registerWith() {
-    JustAudioPlatform.instance = JustAudioMediaKit._();
+    _instance ??= JustAudioMediaKit._();
+    JustAudioPlatform.instance = _instance!;
   }
 
   @override

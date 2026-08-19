@@ -62,7 +62,7 @@ Set MPV's log level. Default: `MPVLogLevel.error`
 JustAudioMediaKit.mpvLogLevel = MPVLogLevel.debug;
 ```
 
-Sets the demuxer's cache size (in bytes). Default: `32 * 1024 * 1204` (32 MB)
+Sets the demuxer's cache size (in bytes). Default: `32 * 1024 * 1024` (32 MB)
 
 ```dart
 JustAudioMediaKit.bufferSize = 8 * 1024 * 1024; // 8 MB
