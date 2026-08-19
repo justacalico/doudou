@@ -95,6 +95,8 @@ class MediaKitPlayer extends AudioPlayerPlatform {
         }
         if (_processingState == ProcessingStateMessage.loading) {
           if (!isBuffering && _mediaOpened) {
+            // ignore: avoid_print
+            print('[JAMK] buffering: ready, duration=$_duration');
             _processingState = ProcessingStateMessage.ready;
             if (_loadCompleter?.isCompleted != true) {
               _loadCompleter?.complete(_duration);
@@ -146,6 +148,8 @@ class MediaKitPlayer extends AudioPlayerPlatform {
         _updatePlaybackEvent();
       }),
       _player.stream.error.listen((error) {
+        // ignore: avoid_print
+        print('[JAMK] error: $error');
         final errorUri = RegExp(r'Failed to open (.*)\.').firstMatch(error)?[1];
         if (errorUri == null || errorUri == _currentMedia?.uri) {
           _processingState = ProcessingStateMessage.idle;
@@ -181,6 +185,8 @@ class MediaKitPlayer extends AudioPlayerPlatform {
   }
 
   void _updateDuration(Duration duration) {
+    // ignore: avoid_print
+    print('[JAMK] duration: $duration');
     final start = _currentMedia?.start;
     final end = _currentMedia?.end;
     if (end != null) duration = end;
@@ -230,6 +236,8 @@ class MediaKitPlayer extends AudioPlayerPlatform {
 
   @override
   Future<LoadResponse> load(LoadRequest request) async {
+    // ignore: avoid_print
+    print('[JAMK] load: type=${request.audioSourceMessage.runtimeType} index=${request.initialIndex} playing=$_playing');
     _logger.finest('load(${request.toMap()})');
     _mediaOpened = false;
     _loadCompleter = Completer();
@@ -274,6 +282,8 @@ class MediaKitPlayer extends AudioPlayerPlatform {
 
   @override
   Future<PlayResponse> play(PlayRequest request) async {
+    // ignore: avoid_print
+    print('[JAMK] play: mediaOpened=$_mediaOpened playing=$_playing');
     _playing = true;
     if (_mediaOpened) {
       await _player.play();
@@ -356,6 +366,8 @@ class MediaKitPlayer extends AudioPlayerPlatform {
   @override
   Future<ConcatenatingInsertAllResponse> concatenatingInsertAll(
       ConcatenatingInsertAllRequest request) async {
+    // ignore: avoid_print
+    print('[JAMK] concatenatingInsertAll: index=${request.index} children=${request.children.length} currentPlaylistLength=${_player.state.playlist.medias.length} playing=$_playing');
     final medias =
         request.children.map(_convertAudioSourceIntoMediaKit).toList();
 
