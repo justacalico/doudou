@@ -1,4 +1,4 @@
-image: ghcr.io/cirruslabs/flutter:stable
+image: $CI_REGISTRY_IMAGE/builder:latest
 
 stages:
   - test
@@ -100,6 +100,15 @@ build-info:
   needs:
     - job: test
     - job: build-info
+  cache:
+    - key: gradle
+      paths:
+        - .gradle/
+      policy: pull-push
+    - key: cargo
+      paths:
+        - .cargo/
+      policy: pull-push
   before_script:
     - . scripts/ci-setup.sh "$BUILD_TARGET"
   script:
@@ -138,6 +147,13 @@ build-android-tv:
 
 build-linux-x64:
   extends: .common-build
+  needs:
+    - job: build-info
+    - job: build-android-phone
+    - job: build-android-phone-playstore
+    - job: build-android-wear
+    - job: build-android-tv-playstore
+    - job: build-android-tv
   variables:
     BUILD_TARGET: linux-x64
 

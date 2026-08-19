@@ -5,8 +5,11 @@ TARGET="${1:-}"
 
 PROJECT_DIR="${CI_PROJECT_DIR:-$PWD}"
 PUB_CACHE="${PUB_CACHE:-/tmp/pub-cache-${CI_JOB_ID:-$$}}"
-export PUB_CACHE
-export PATH="$PUB_CACHE/bin:$PATH"
+GRADLE_USER_HOME="${GRADLE_USER_HOME:-$PROJECT_DIR/.gradle}"
+CARGO_HOME="${CARGO_HOME:-$PROJECT_DIR/.cargo}"
+export PUB_CACHE GRADLE_USER_HOME CARGO_HOME
+export PATH="$PUB_CACHE/bin:$CARGO_HOME/bin:$PATH"
+mkdir -p "$GRADLE_USER_HOME" "$CARGO_HOME"
 
 ensure_flutter() {
   if command -v flutter >/dev/null 2>&1; then

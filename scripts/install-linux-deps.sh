@@ -17,9 +17,11 @@ elif apt-cache show libstdc++-12-dev >/dev/null 2>&1; then
   GCC_DEV="libstdc++-12-dev"
 fi
 
-$SUDO apt-get install -y -qq \
+$SUDO apt-get install -y -qq --no-install-recommends \
   clang cmake ninja-build pkg-config \
   libgtk-3-dev liblzma-dev libsecret-1-dev libmpv-dev mpv \
-  libayatana-appindicator3-dev \
+  libayatana-appindicator3-dev libmimalloc-dev libasound2-dev \
+  libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+  gstreamer1.0-libav gstreamer1.0-plugins-base \
   dpkg-dev rpm wget file squashfs-tools patchelf libfuse2 zip unzip \
   $GCC_DEV
