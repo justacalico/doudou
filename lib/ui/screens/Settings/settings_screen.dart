@@ -219,13 +219,25 @@ class _SettingsViewState extends State<_SettingsView> {
             ),
             child: KeyedSubtree(
               key: ValueKey(_selected),
-              child: SingleChildScrollView(
-                child: _SettingsCard(
-                  icon: _sectionIcon(_selected),
-                  title: _sectionTitle(context, _selected),
-                  children:
-                      _buildSectionChildren(context, settings, sync, _selected),
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight),
+                      child: _SettingsCard(
+                        icon: _sectionIcon(_selected),
+                        title: _sectionTitle(context, _selected),
+                        children: _buildSectionChildren(
+                          context,
+                          settings,
+                          sync,
+                          _selected,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
