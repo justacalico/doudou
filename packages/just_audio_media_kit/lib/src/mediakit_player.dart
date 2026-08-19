@@ -262,6 +262,9 @@ class MediaKitPlayer extends AudioPlayerPlatform {
       if (playable.medias.isEmpty &&
           _loadCompleter?.isCompleted != true) {
         _loadCompleter?.complete(Duration.zero);
+        _duration = Duration.zero;
+        _processingState = ProcessingStateMessage.ready;
+        _updatePlaybackEvent();
       }
     } else {
       final playable =
