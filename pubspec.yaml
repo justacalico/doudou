@@ -38,9 +38,9 @@ dependencies:
   jni: ^0.14.0
   just_audio: ^0.9.46
   just_audio_media_kit:
-    git:
-      url: https://github.com/anandnet/just_audio_media_kit.git
-      ref: 6672eb82657d9e671abbf42122031c88aa9e6d80
+    path: packages/just_audio_media_kit
+  media_kit_libs_linux: ^1.2.1
+  media_kit_libs_windows_audio: ^1.0.9
   palette_generator: ^0.3.3+4
   flutter_colorpicker: ^1.1.0
   path: ^1.8.3
@@ -67,8 +67,8 @@ dependencies:
   flutter_acrylic: ^1.1.0
   youtube_explode_dart:
     git:
-      url: https://github.com/anandnet/youtube_explode_dart.git
-      ref: 1d9ec9baa806705b1d859260eeb389ec28c6b024
+      url: https://github.com/justacalico/youtube_explode_dart.git
+      ref: c80de27
   wear_plus: ^1.2.5
   wearable_rotary: ^2.0.4
   watch_connectivity: ^0.2.9

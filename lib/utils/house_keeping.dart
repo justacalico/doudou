@@ -20,10 +20,20 @@ Future<void> removeExpiredSongsUrlFromDb() async {
         songsUrlCacheBox.keys.whereType<String>().toList();
     for (var i = 0; i < songsUrlCacheKeysList.length; i++) {
       final songUrlKey = songsUrlCacheKeysList[i];
-      final streamData = songsUrlCacheBox.get(songUrlKey)[1];
-      if (streamData == null ||
-          streamData.runtimeType == String ||
-          (streamData != null && isExpired(url: streamData['url'] as String))) {
+      final songUrlValue = songsUrlCacheBox.get(songUrlKey);
+      if (songUrlValue == null) continue;
+
+      String? url;
+      if (songUrlValue is List && songUrlValue.length > 1) {
+        final streamData = songUrlValue[1];
+        if (streamData is Map) url = streamData['url'] as String?;
+      } else if (songUrlValue is Map) {
+        final audio = songUrlValue['highQualityAudio'] ??
+            songUrlValue['lowQualityAudio'];
+        if (audio is Map) url = audio['url'] as String?;
+      }
+
+      if (url == null || url.isEmpty || isExpired(url: url)) {
         await songsUrlCacheBox.delete(songUrlKey);
       }
     }
