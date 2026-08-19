@@ -104,6 +104,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (GetPlatform.isWindows || GetPlatform.isLinux) {
       JustAudioMediaKit.title = 'Doudou';
       JustAudioMediaKit.protocolWhitelist = const ['http', 'https', 'file'];
+      JustAudioMediaKit.ensureInitialized();
     }
     _mediaLibrary = MediaLibrary();
     _player = AudioPlayer(
@@ -556,6 +557,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       return LockCachingAudioSource(
         Uri.parse(url),
         cacheFile: File("$_cacheDir/cachedSongs/${mediaItem.id}.mp3"),
+        headers: _youtubeStreamHeaders(url),
         tag: mediaItem,
       );
     }
@@ -574,8 +576,43 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     isPlayingUsingLockCachingSource = false;
     return AudioSource.uri(
       Uri.tryParse(url)!,
+      headers: _youtubeStreamHeaders(url),
       tag: mediaItem,
     );
+  }
+
+  Map<String, String>? _youtubeStreamHeaders(String url) {
+    if (!url.contains('googlevideo.com')) return null;
+    final uri = Uri.tryParse(url);
+    if (uri == null) return null;
+    final client = uri.queryParameters['c'];
+    const uaMap = {
+      'IOS':
+          'com.google.ios.youtube/21.24.3 (iPhone16,2; U; CPU iOS 18_2_1 like Mac OS X;)',
+      'ANDROID_VR':
+          'com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip',
+      'ANDROID':
+          'com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip',
+      'ANDROID_MUSIC':
+          'com.google.android.youtube/19.29.1 (Linux; U; Android 11) gzip',
+      'TVHTML5':
+          'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version,gzip(gfe)',
+      'MWEB':
+          'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36',
+      'MEDIA_CONNECT_FRONTEND':
+          'com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip',
+      'WEB':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15,gzip(gfe)',
+      'VISIONOS':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15',
+    };
+    final ua = uaMap[client];
+    if (ua == null) return null;
+    return {
+      'User-Agent': ua,
+      'Origin': 'https://www.youtube.com',
+      'Referer': 'https://www.youtube.com/',
+    };
   }
 
   @override

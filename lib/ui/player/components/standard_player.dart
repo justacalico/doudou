@@ -397,13 +397,14 @@ class _CompactNowPlaying extends StatelessWidget {
                                           fontWeight: FontWeight.w700,
                                           color: CupertinoColors.white,
                                           letterSpacing: -0.5,
+                                          height: 1.0,
                                         ),
                                         textAlign: TextAlign.center,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       );
                                     }),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 4),
                                     Obx(() {
                                       final song = pc.currentSong.value;
                                       return Text(
@@ -411,9 +412,10 @@ class _CompactNowPlaying extends StatelessWidget {
                                         style: const TextStyle(
                                           fontSize: 16,
                                           color: CupertinoColors.systemGrey,
+                                          height: 1.0,
                                         ),
                                         textAlign: TextAlign.center,
-                                        maxLines: 2,
+                                        maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       );
                                     }),
@@ -1378,6 +1380,7 @@ class _ExpandedLeftColumnState extends State<_ExpandedLeftColumn> {
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Obx(() {
               if (pc.currentSong.value == null) return const SizedBox.shrink();
