@@ -35,8 +35,6 @@ import '../utils/server_storage.dart';
 import '/models/media_Item_builder.dart';
 import '/services/utils.dart';
 import '../ui/screens/Settings/settings_screen_controller.dart';
-// ignore: unused_import, implementation_imports, depend_on_referenced_packages
-import "package:media_kit/src/player/platform_player.dart" show MPVLogLevel;
 
 Future<AudioHandler> initAudioService() async {
   return await AudioService.init(
@@ -105,7 +103,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (GetPlatform.isWindows || GetPlatform.isLinux) {
       JustAudioMediaKit.title = 'Doudou';
       JustAudioMediaKit.protocolWhitelist = const ['http', 'https', 'file'];
-      JustAudioMediaKit.mpvLogLevel = MPVLogLevel.trace;
       JustAudioMediaKit.ensureInitialized();
     }
     _mediaLibrary = MediaLibrary();
@@ -183,7 +180,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   void _notifyAudioHandlerAboutPlaybackEvents() {
     _player.playbackEventStream.listen((PlaybackEvent event) {
       final playing = _player.playing;
-      printINFO('playbackEvent: state=${_player.processingState.name} playing=$playing position=${_player.position} duration=${_player.duration} buffered=${_player.bufferedPosition}');
       _syncPlaybackWakeLock(playing);
       if (_lastLoggedProcessingState != _player.processingState) {
         _lastLoggedProcessingState = _player.processingState;
@@ -575,12 +571,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       },
     );
     printINFO("Playing Using AudioSource.uri");
-    final headers = _youtubeStreamHeaders(url);
-    printINFO("AudioSource headers: ${headers ?? 'none'}");
     isPlayingUsingLockCachingSource = false;
     return AudioSource.uri(
       Uri.tryParse(url)!,
-      headers: headers,
+      headers: _youtubeStreamHeaders(url),
       tag: mediaItem,
     );
   }
@@ -935,11 +929,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           );
           return;
         }
-        printINFO('playByIndex: waiting for audio source');
         await _audioSourceReady;
-        printINFO('playByIndex: audio source ready');
         await _playList.add(_createAudioSource(activeSong));
-        printINFO('playByIndex: audio source added, playlist length=${_playList.children.length}');
 
         isSongLoading = false;
         if (loudnessNormalizationEnabled && GetPlatform.isAndroid) {
@@ -1095,11 +1086,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           );
           return;
         }
-        printINFO('setSourceAndPlay: waiting for audio source');
         await _audioSourceReady;
-        printINFO('setSourceAndPlay: audio source ready');
         await _playList.add(_createAudioSource(currMed));
-        printINFO('setSourceAndPlay: audio source added');
         isSongLoading = false;
 
         // Normalize audio
@@ -1107,11 +1095,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           _normalizeVolume(streamInfo.audio!.loudnessDb);
         }
 
-        printINFO('setSourceAndPlay: seeking to zero');
         await _player.seek(Duration.zero);
-        printINFO('setSourceAndPlay: calling _player.play()');
         await _player.play();
-        printINFO('setSourceAndPlay: _player.play() completed, playing=${_player.playing}');
         _ensurePlaybackStarted();
         break;
 
