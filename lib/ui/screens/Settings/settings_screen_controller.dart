@@ -33,7 +33,8 @@ import '/services/backend/music_backend.dart';
 import '/services/backend/subsonic_backend.dart';
 import '/services/backend/noop_backend.dart';
 
-const bool kIsPlayStore = bool.fromEnvironment('PLAYSTORE', defaultValue: false);
+const bool kIsPlayStore =
+    bool.fromEnvironment('PLAYSTORE', defaultValue: false);
 
 enum SidebarMode { auto, collapsed, expanded }
 
@@ -272,7 +273,8 @@ class SettingsScreenController extends GetxController {
 
     final exportPath =
         setBox.get("exportLocationPath") ?? "/storage/emulated/0/Music";
-    if (PermissionService.isScopedStorage && exportPath.contains('/storage/emulated/')) {
+    if (PermissionService.isScopedStorage &&
+        exportPath.contains('/storage/emulated/')) {
       final defaultExport = "$_supportDir/Exports";
       await Directory(defaultExport).create(recursive: true);
       setBox.put("exportLocationPath", defaultExport);
@@ -306,8 +308,8 @@ class SettingsScreenController extends GetxController {
     if (rawLyricsHighlightStyle is! int ||
         styleIndex < 0 ||
         styleIndex >= SyncedLyricsHighlightStyle.values.length) {
-      setBox.put(
-          "syncedLyricsHighlightStyle", SyncedLyricsHighlightStyle.karaoke.index);
+      setBox.put("syncedLyricsHighlightStyle",
+          SyncedLyricsHighlightStyle.karaoke.index);
     }
 
     String defaultServerDisplayName() {
@@ -363,10 +365,10 @@ class SettingsScreenController extends GetxController {
       activeServerId.value = (nonDefault ?? servers.first).id;
     }
     _persistServers();
-    
+
     // Migrate data from global boxes to server-specific boxes
     await _migrateGlobalToServerSpecific();
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!Get.isRegistered<SettingsScreenController>()) return;
       _onActiveServerChanged();
@@ -880,18 +882,19 @@ class SettingsScreenController extends GetxController {
 
     try {
       const serverId = SettingsServer.defaultServerId;
-      
+
       // Migrate SongsCache
       if (await Hive.boxExists('SongsCache')) {
         final oldBox = await Hive.openBox('SongsCache');
         final newBoxName = songsCacheBoxName(serverId);
         final newBox = await Hive.openBox(newBoxName);
-        
+
         if (oldBox.isNotEmpty && newBox.isEmpty) {
           for (final key in oldBox.keys) {
             await newBox.put(key, oldBox.get(key));
           }
-          printINFO('Migrated ${oldBox.length} items from SongsCache to $newBoxName');
+          printINFO(
+              'Migrated ${oldBox.length} items from SongsCache to $newBoxName');
         }
         await oldBox.close();
         await Hive.deleteBoxFromDisk('SongsCache');
@@ -902,12 +905,13 @@ class SettingsScreenController extends GetxController {
         final oldBox = await Hive.openBox('SongDownloads');
         final newBoxName = songDownloadsBoxName(serverId);
         final newBox = await Hive.openBox(newBoxName);
-        
+
         if (oldBox.isNotEmpty && newBox.isEmpty) {
           for (final key in oldBox.keys) {
             await newBox.put(key, oldBox.get(key));
           }
-          printINFO('Migrated ${oldBox.length} items from SongDownloads to $newBoxName');
+          printINFO(
+              'Migrated ${oldBox.length} items from SongDownloads to $newBoxName');
         }
         await oldBox.close();
         await Hive.deleteBoxFromDisk('SongDownloads');
@@ -918,12 +922,13 @@ class SettingsScreenController extends GetxController {
         final oldBox = await Hive.openBox('LIBFAV');
         final newBoxName = libFavBoxName(serverId);
         final newBox = await Hive.openBox(newBoxName);
-        
+
         if (oldBox.isNotEmpty && newBox.isEmpty) {
           for (final key in oldBox.keys) {
             await newBox.put(key, oldBox.get(key));
           }
-          printINFO('Migrated ${oldBox.length} items from LIBFAV to $newBoxName');
+          printINFO(
+              'Migrated ${oldBox.length} items from LIBFAV to $newBoxName');
         }
         await oldBox.close();
         await Hive.deleteBoxFromDisk('LIBFAV');
@@ -934,12 +939,13 @@ class SettingsScreenController extends GetxController {
         final oldBox = await Hive.openBox('SongsUrlCache');
         final newBoxName = songsUrlCacheBoxName(serverId);
         final newBox = await Hive.openBox(newBoxName);
-        
+
         if (oldBox.isNotEmpty && newBox.isEmpty) {
           for (final key in oldBox.keys) {
             await newBox.put(key, oldBox.get(key));
           }
-          printINFO('Migrated ${oldBox.length} items from SongsUrlCache to $newBoxName');
+          printINFO(
+              'Migrated ${oldBox.length} items from SongsUrlCache to $newBoxName');
         }
         await oldBox.close();
         await Hive.deleteBoxFromDisk('SongsUrlCache');
@@ -948,7 +954,8 @@ class SettingsScreenController extends GetxController {
       setBox.put(migrationKey, true);
       printINFO('Server data migration completed');
     } catch (e, st) {
-      printWarning('[RECOVERABLE][opId=settings.migrateGlobalToServerSpecific] Migration failed: $e\n$st');
+      printWarning(
+          '[RECOVERABLE][opId=settings.migrateGlobalToServerSpecific] Migration failed: $e\n$st');
     }
   }
 }
