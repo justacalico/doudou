@@ -117,10 +117,14 @@ if [[ "$TARGET" == android* ]]; then
   for pkg in "$ARTIFACTS_DIR"/*.apk "$ARTIFACTS_DIR"/*.aab; do
     [ -f "$pkg" ] || continue
     echo "Verifying $pkg..."
-    if [ -n "$apksigner" ] && [ -x "$apksigner" ]; then
-      "$apksigner" verify "$pkg" >/dev/null 2>&1 || { echo "Signature verification failed: $pkg" >&2; exit 1; }
+    if [[ "$pkg" == *.apk ]]; then
+      if [ -n "$apksigner" ] && [ -x "$apksigner" ]; then
+        "$apksigner" verify "$pkg" >/dev/null 2>&1 || { echo "APK signature verification failed: $pkg" >&2; exit 1; }
+      else
+        jarsigner -verify "$pkg" >/dev/null 2>&1 || { echo "APK signature verification failed: $pkg" >&2; exit 1; }
+      fi
     else
-      jarsigner -verify "$pkg" >/dev/null 2>&1 || { echo "Signature verification failed: $pkg" >&2; exit 1; }
+      jarsigner -verify "$pkg" >/dev/null 2>&1 || { echo "AAB signature verification failed: $pkg" >&2; exit 1; }
     fi
     echo "Verified: $pkg"
   done

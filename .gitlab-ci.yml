@@ -93,6 +93,7 @@ build-info:
 .common-build:
   stage: build
   tags: [linux-truenas]
+  timeout: 2h
   rules: !reference [.build-rules, rules]
   needs:
     - job: test
@@ -165,6 +166,7 @@ build-linux-x64:
 .release-common:
   stage: release
   tags: [linux-truenas]
+  timeout: 2h
   needs:
     - job: build-info
     - job: build-android-phone
