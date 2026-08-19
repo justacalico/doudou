@@ -29,12 +29,12 @@ ensure_flutter() {
 }
 
 install_linux_deps() {
-  if ! command -v apt-get >/dev/null 2>&1 || ! command -v sudo >/dev/null 2>&1; then
+  if ! command -v apt-get >/dev/null 2>&1; then
     return
   fi
-  sudo -n apt-get update -qq || true
+
   if [ -f "$PROJECT_DIR/scripts/install-linux-deps.sh" ]; then
-    sudo -n bash "$PROJECT_DIR/scripts/install-linux-deps.sh" || true
+    bash "$PROJECT_DIR/scripts/install-linux-deps.sh" || true
   fi
 }
 
@@ -56,24 +56,19 @@ install_appimagetool() {
   chmod +x /tmp/appimagetool.AppImage
   cd /tmp
   ./appimagetool.AppImage --appimage-extract
-  if command -v sudo >/dev/null 2>&1 && [ -w /opt ]; then
-    sudo mv /tmp/squashfs-root /opt/appimagetool
-    sudo ln -sf /opt/appimagetool/AppRun /usr/local/bin/appimagetool
-  else
-    mv /tmp/squashfs-root /tmp/appimagetool
-    ln -sf /tmp/appimagetool/AppRun /tmp/appimagetool-bin
-    export PATH="/tmp:$PATH"
-  fi
+  mv /tmp/squashfs-root /tmp/appimagetool
+  ln -sf /tmp/appimagetool/AppRun /tmp/appimagetool-bin
+  export PATH="/tmp:$PATH"
   appimagetool --version || echo "appimagetool installed"
 }
 
 setup_java() {
   if [ -d /usr/lib/jvm/java-17-openjdk-* ]; then
-    export JAVA_HOME
     JAVA_HOME=$(ls -d /usr/lib/jvm/java-17-openjdk-* | head -1)
-  elif command -v apt-get >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
-    sudo -n apt-get update -qq || true
-    sudo -n apt-get install -y -qq openjdk-17-jdk || true
+    export JAVA_HOME
+  elif command -v apt-get >/dev/null 2>&1; then
+    apt-get update -qq || true
+    apt-get install -y -qq openjdk-17-jdk || true
     if [ -d /usr/lib/jvm/java-17-openjdk-* ]; then
       JAVA_HOME=$(ls -d /usr/lib/jvm/java-17-openjdk-* | head -1)
       export JAVA_HOME
