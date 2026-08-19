@@ -104,6 +104,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (GetPlatform.isWindows || GetPlatform.isLinux) {
       JustAudioMediaKit.title = 'Doudou';
       JustAudioMediaKit.protocolWhitelist = const ['http', 'https', 'file'];
+      JustAudioMediaKit.mpvLogLevel = MPVLogLevel.trace;
       JustAudioMediaKit.ensureInitialized();
     }
     _mediaLibrary = MediaLibrary();
@@ -182,6 +183,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   void _notifyAudioHandlerAboutPlaybackEvents() {
     _player.playbackEventStream.listen((PlaybackEvent event) {
       final playing = _player.playing;
+      printINFO('playbackEvent: state=${_player.processingState.name} playing=$playing position=${_player.position} duration=${_player.duration} buffered=${_player.bufferedPosition}');
       _syncPlaybackWakeLock(playing);
       if (_lastLoggedProcessingState != _player.processingState) {
         _lastLoggedProcessingState = _player.processingState;
@@ -573,10 +575,12 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       },
     );
     printINFO("Playing Using AudioSource.uri");
+    final headers = _youtubeStreamHeaders(url);
+    printINFO("AudioSource headers: ${headers ?? 'none'}");
     isPlayingUsingLockCachingSource = false;
     return AudioSource.uri(
       Uri.tryParse(url)!,
-      headers: _youtubeStreamHeaders(url),
+      headers: headers,
       tag: mediaItem,
     );
   }
@@ -931,7 +935,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           );
           return;
         }
+        printINFO('playByIndex: adding audio source to playlist');
         await _playList.add(_createAudioSource(activeSong));
+        printINFO('playByIndex: audio source added, playlist length=${_playList.children.length}');
 
         isSongLoading = false;
         if (loudnessNormalizationEnabled && GetPlatform.isAndroid) {
@@ -1087,7 +1093,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           );
           return;
         }
+        printINFO('setSourceAndPlay: adding audio source');
         await _playList.add(_createAudioSource(currMed));
+        printINFO('setSourceAndPlay: audio source added');
         isSongLoading = false;
 
         // Normalize audio
@@ -1095,8 +1103,11 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           _normalizeVolume(streamInfo.audio!.loudnessDb);
         }
 
+        printINFO('setSourceAndPlay: seeking to zero');
         await _player.seek(Duration.zero);
+        printINFO('setSourceAndPlay: calling _player.play()');
         await _player.play();
+        printINFO('setSourceAndPlay: _player.play() completed, playing=${_player.playing}');
         _ensurePlaybackStarted();
         break;
 
