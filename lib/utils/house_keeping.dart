@@ -21,7 +21,10 @@ Future<void> removeExpiredSongsUrlFromDb() async {
     for (var i = 0; i < songsUrlCacheKeysList.length; i++) {
       final songUrlKey = songsUrlCacheKeysList[i];
       final songUrlValue = songsUrlCacheBox.get(songUrlKey);
-      if (songUrlValue == null) continue;
+      if (songUrlValue == null) {
+        await songsUrlCacheBox.delete(songUrlKey);
+        continue;
+      }
 
       String? url;
       if (songUrlValue is List && songUrlValue.length > 1) {

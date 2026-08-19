@@ -148,6 +148,9 @@ class MediaKitPlayer extends AudioPlayerPlatform {
       _player.stream.error.listen((error) {
         final errorUri = RegExp(r'Failed to open (.*)\.').firstMatch(error)?[1];
         if (errorUri == null || errorUri == _currentMedia?.uri) {
+          if (_loadCompleter?.isCompleted != true) {
+            _loadCompleter?.completeError(error);
+          }
           _processingState = ProcessingStateMessage.idle;
           _errorCode = kErrorCode;
           _errorMessage = error;
@@ -440,7 +443,9 @@ class MediaKitPlayer extends AudioPlayerPlatform {
 
       case final ClippingAudioSourceMessage clippingSource:
         return Media(clippingSource.child.uri,
-            start: clippingSource.start, end: clippingSource.end);
+            start: clippingSource.start,
+            end: clippingSource.end,
+            httpHeaders: clippingSource.child.headers);
 
       default:
         throw UnsupportedError(
