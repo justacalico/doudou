@@ -19,8 +19,7 @@ fi
 
 $SUDO apt-get install -y -qq \
   clang cmake ninja-build pkg-config \
-  libgtk-3-dev liblzma-dev libsecret-1-dev libmpv-dev \
+  libgtk-3-dev liblzma-dev libsecret-1-dev libmpv-dev mpv \
   libayatana-appindicator3-dev \
-  dpkg-dev rpm wget file squashfs-tools patchelf plocate libfuse2 zip unzip \
-  libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+  dpkg-dev rpm wget file squashfs-tools patchelf libfuse2 zip unzip \
   $GCC_DEV

@@ -70,11 +70,13 @@ install_appimagetool() {
   rm -rf /tmp/appimagetool /tmp/appimagetool.AppImage /tmp/squashfs-root
   curl -fsSL "$url" -o /tmp/appimagetool.AppImage
   chmod +x /tmp/appimagetool.AppImage
-  cd /tmp
-  ./appimagetool.AppImage --appimage-extract
+  (cd /tmp && ./appimagetool.AppImage --appimage-extract)
   mv /tmp/squashfs-root /tmp/appimagetool
-  ln -sf /tmp/appimagetool/AppRun /tmp/appimagetool-bin
-  export PATH="/tmp:$PATH"
+
+  mkdir -p "$HOME/.local/bin"
+  ln -sf /tmp/appimagetool/AppRun "$HOME/.local/bin/appimagetool"
+  chmod +x "$HOME/.local/bin/appimagetool"
+  export PATH="$HOME/.local/bin:$PATH"
   appimagetool --version || echo "appimagetool installed"
 }
 
