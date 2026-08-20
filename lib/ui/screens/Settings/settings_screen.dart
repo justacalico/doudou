@@ -184,7 +184,6 @@ class _SettingsViewState extends State<_SettingsView> {
           width: 260,
           child: _buildSectionNav(context),
         ),
-        const VerticalDivider(width: 1),
         Expanded(
           child: AnimatedSwitcher(
             duration: Duration(
@@ -280,18 +279,19 @@ class _SettingsViewState extends State<_SettingsView> {
   }
 
   Widget _buildSectionNav(BuildContext context) {
-    final theme = Theme.of(context);
     final colors = context.doudouColors;
     final grouped = <String, List<_SettingsSectionId>>{};
     for (final cluster in _mobileClusters) {
       grouped.putIfAbsent(cluster.$2, () => []).add(cluster.$1);
     }
 
-    return Card(
-      color: theme.scaffoldBackgroundColor,
-      elevation: 0,
-      shape: const RoundedRectangleBorder(),
-      margin: EdgeInsets.zero,
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surfaceBase,
+        border: Border(
+          right: BorderSide(color: colors.borderSubtle),
+        ),
+      ),
       child: ListView(
         padding: const EdgeInsets.all(DoudouSpace.s12),
         children: [
@@ -305,11 +305,11 @@ class _SettingsViewState extends State<_SettingsView> {
               ),
               child: Text(
                 entry.key,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: colors.textSecondary,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
-                ),
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ).copyWith(color: colors.textSecondary),
               ),
             ),
             for (final id in entry.value) _buildNavTile(context, id),
@@ -321,49 +321,22 @@ class _SettingsViewState extends State<_SettingsView> {
 
   Widget _buildNavTile(BuildContext context, _SettingsSectionId id) {
     final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
-    final selected = _selected == id;
-    final theme = Theme.of(context);
-    final colors = context.doudouColors;
-
-    final tile = ListTile(
-      dense: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+    final label = _sectionTitle(context, id);
+    final tile = _SettingsNavTile(
+      icon: meta.$2,
+      label: label,
+      selected: _selected == id,
       onTap: () => setState(() => _selected = id),
-      leading: Icon(
-        meta.$2,
-        size: 18,
-        color: selected ? colors.textPrimary : colors.textSecondary,
-      ),
-      title: Text(
-        _sectionTitle(context, id),
-        style: theme.textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        color: selected ? colors.textTertiary : colors.textDisabled,
-      ),
-      selected: selected,
-      selectedTileColor: colors.surfaceSelected,
     );
 
     if (_isTv(context)) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: TvFocusHighlight(
-          borderRadius: 10,
-          onSelect: () => setState(() => _selected = id),
-          child: tile,
-        ),
+      return TvFocusHighlight(
+        borderRadius: 8,
+        onSelect: () => setState(() => _selected = id),
+        child: tile,
       );
     }
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: tile,
-    );
+    return tile;
   }
 
   Widget _buildMobileSectionRow(
@@ -1615,6 +1588,77 @@ class _SettingsCard extends StatelessWidget {
           if (title != null) const Divider(height: 1),
           ...children,
         ],
+      ),
+    );
+  }
+}
+
+class _SettingsNavTile extends StatefulWidget {
+  const _SettingsNavTile({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_SettingsNavTile> createState() => _SettingsNavTileState();
+}
+
+class _SettingsNavTileState extends State<_SettingsNavTile> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.doudouColors;
+    final iconColor = widget.selected
+        ? c.textPrimary
+        : (_hover ? c.textPrimary : c.textSecondary);
+    final bgColor = widget.selected
+        ? c.surfaceSelected
+        : (_hover ? c.stateHover : Colors.transparent);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          margin: const EdgeInsets.only(bottom: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: bgColor,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                widget.icon,
+                size: 20,
+                color: iconColor,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight:
+                        widget.selected ? FontWeight.w600 : FontWeight.w500,
+                    color: iconColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
