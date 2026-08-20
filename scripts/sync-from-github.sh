@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PATH="$HOME/.local/bin:$PATH"
+
 RELEASE_TAG="${RELEASE_TAG:-}"
 GITHUB_RUN_ID="${GITHUB_RUN_ID:-}"
 PROJECT_DIR="${CI_PROJECT_DIR:-$PWD}"
