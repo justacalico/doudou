@@ -1,18 +1,31 @@
+spec:
+  inputs:
+    build_all:
+      type: boolean
+      default: false
+      description: 'Build all Android variants (wear, tv, playstore) in addition to phone and linux'
+    create_release:
+      type: boolean
+      default: false
+      description: 'Create a versioned release after building all variants (requires build_all)'
+
+---
+
 variables:
   FLUTTER_CHANNEL: stable
   APPIMAGE_EXTRACT_AND_RUN: "1"
   GLAB_ENABLE_CI_AUTOLOGIN: "true"
   PUB_CACHE: "/tmp/pub-cache-$CI_JOB_ID"
   GIT_DEPTH: "10"
-  CREATE_RELEASE: "false"
-  BUILD_ALL: "false"
+  CREATE_RELEASE: "$[[ inputs.create_release ]]"
+  BUILD_ALL: "$[[ inputs.build_all ]]"
 
 # No GitLab cache for pub to avoid long-term issues.
 cache: {}
 
 workflow:
   rules:
-    - if: $CREATE_RELEASE == "true"
+    - if: '"$[[ inputs.create_release ]]" == "true"'
       variables:
         BUILD_ALL: "true"
     - when: always
