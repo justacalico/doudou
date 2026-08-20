@@ -40,7 +40,9 @@ mkdir -p "$ARTIFACTS_DIR"
 case "$TARGET" in
   android-phone)
     build_apk phone phone -t lib/main.dart
-    build_aab phone phone -t lib/main.dart
+    if [ -n "${CI_COMMIT_TAG:-}" ] || [ "${BUILD_ALL:-}" = "true" ] || [ "${BUILD_AAB:-}" = "true" ]; then
+      build_aab phone phone -t lib/main.dart
+    fi
     ;;
   android-phone-playstore)
     build_aab phone phone-playstore --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart

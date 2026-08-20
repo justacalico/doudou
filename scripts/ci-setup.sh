@@ -189,14 +189,17 @@ patch_repeat_mode() {
 main() {
   mkdir -p "$PUB_CACHE"
   ensure_flutter
+
+  if [ "$TARGET" = "test" ]; then
+    flutter doctor -v
+    flutter pub get
+    return
+  fi
+
   ensure_rust
   flutter config --no-analytics
 
   case "$TARGET" in
-    test)
-      flutter doctor -v
-      flutter pub get
-      ;;
     linux-x64)
       install_linux_deps
       install_appimagetool x86_64
