@@ -59,6 +59,32 @@ github-dispatch:
       fi
       gh workflow run build.yml -R justacalico/doudou -f build_all="$BUILD_ALL" -f create_release="$CREATE_RELEASE"
 
+github-mr-build:
+  stage: sync
+  tags: [linux-truenas]
+  image: alpine:3.19
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    GH_TOKEN: $GH_TOKEN
+  before_script:
+    - apk add --no-cache bash curl jq git github-cli openssh-client
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - cp "$GITHUB_SSH_PRIVATE_KEY" ~/.ssh/id_ed25519
+    - echo "" >> ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - ssh-keyscan -t ed25519 github.com > ~/.ssh/known_hosts
+  script:
+    - |
+      git remote add github git@github.com:justacalico/doudou.git 2>/dev/null || true
+      git remote update github
+      git push -f github "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
+      gh workflow run build.yml -R justacalico/doudou \
+        --ref "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" \
+        -f build_all=true \
+        -f create_release=false
+
 github-release-sync:
   stage: release
   tags: [linux-truenas]
