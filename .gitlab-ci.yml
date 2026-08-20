@@ -107,9 +107,7 @@ build-info:
   needs:
     - job: test
     - job: build-info
-  image:
-    name: $CI_REGISTRY_IMAGE/builder:latest
-    pull_policy: if-not-present
+  image: $CI_REGISTRY_IMAGE/builder:latest
   cache:
     - key: gradle
       paths:
