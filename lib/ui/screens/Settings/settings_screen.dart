@@ -124,7 +124,6 @@ class _SettingsViewState extends State<_SettingsView> {
                 ? _buildTwoPane(context, settings, sync)
                 : _buildSinglePane(context, settings, sync, bottomPadding),
           ),
-          if (useTwoPane) _buildVersionFooter(context, settings),
         ],
       ),
     );
@@ -166,28 +165,6 @@ class _SettingsViewState extends State<_SettingsView> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildVersionFooter(
-    BuildContext context,
-    SettingsScreenController settings,
-  ) {
-    final theme = Theme.of(context);
-    final colors = context.doudouColors;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        DoudouSpace.s4,
-        DoudouSpace.s8,
-        0,
-        DoudouSpace.s12,
-      ),
-      child: Text(
-        settings.currentVersion,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: colors.textTertiary,
-        ),
       ),
     );
   }
