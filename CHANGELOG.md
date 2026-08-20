@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 21.0.0 - 2026-08-05
 
+- Fixed YouTube Music 403 errors
 - Bumped version to 21.0.0
 - Updated dependencies
 - Added Android Auto support

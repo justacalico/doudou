@@ -648,12 +648,10 @@ packages:
   just_audio_media_kit:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "6672eb82657d9e671abbf42122031c88aa9e6d80"
-      resolved-ref: "6672eb82657d9e671abbf42122031c88aa9e6d80"
-      url: "https://github.com/anandnet/just_audio_media_kit.git"
-    source: git
-    version: "1.0.0"
+      path: "packages/just_audio_media_kit"
+      relative: true
+    source: path
+    version: "2.1.0"
   just_audio_platform_interface:
     dependency: transitive
     description:
@@ -702,14 +700,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
-  lists:
-    dependency: transitive
-    description:
-      name: lists
-      sha256: "4ca5c19ae4350de036a7e996cdd1ee39c93ac0a2b840f4915459b7d0a7d4ab27"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.1"
   logging:
     dependency: transitive
     description:
@@ -751,7 +741,7 @@ packages:
     source: hosted
     version: "1.2.6"
   media_kit_libs_linux:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: media_kit_libs_linux
       sha256: "2b473399a49ec94452c4d4ae51cfc0f6585074398d74216092bf3d54aac37ecf"
@@ -759,7 +749,7 @@ packages:
     source: hosted
     version: "1.2.1"
   media_kit_libs_windows_audio:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: media_kit_libs_windows_audio
       sha256: c2fd558cc87b9d89a801141fcdffe02e338a3b21a41a18fbd63d5b221a1b8e53
@@ -1095,6 +1085,14 @@ packages:
       url: "https://github.com/anandnet/animated_side_bar.git"
     source: git
     version: "0.0.3"
+  simple_sparse_list:
+    dependency: transitive
+    description:
+      name: simple_sparse_list
+      sha256: aa648fd240fa39b49dcd11c19c266990006006de6699a412de485695910fbc1f
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.4"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -1247,10 +1245,10 @@ packages:
     dependency: transitive
     description:
       name: unicode
-      sha256: "0f69e46593d65245774d4f17125c6084d2c20b4e473a983f6e21b7d7762218f1"
+      sha256: "48f8b6c50ed70ba61647f4987d56ec505923041956bbdb651db2838ce7b47b58"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.1"
+    version: "1.1.7"
   universal_platform:
     dependency: transitive
     description:
@@ -1495,11 +1493,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1d9ec9baa806705b1d859260eeb389ec28c6b024"
-      resolved-ref: "1d9ec9baa806705b1d859260eeb389ec28c6b024"
-      url: "https://github.com/anandnet/youtube_explode_dart.git"
+      ref: c80de27
+      resolved-ref: c80de2735c18be0cccc283fe840b48f1b183b4e1
+      url: "https://github.com/justacalico/youtube_explode_dart.git"
     source: git
-    version: "2.3.7"
+    version: "3.1.0"
 sdks:
   dart: ">=3.12.0 <4.0.0"
   flutter: ">=3.44.0"
