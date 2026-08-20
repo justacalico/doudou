@@ -20,6 +20,16 @@ if [ -n "$PUSH_REF" ]; then
   git push -f github "$PUSH_REF:refs/heads/$REF"
 fi
 
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+update_comment() {
+  [ -n "${CI_MERGE_REQUEST_IID:-}" ] || return 0
+  "${BASE_DIR}/scripts/mr-pipeline-comment.sh" "$@"
+}
+
+# Post the initial "in progress" MR comment.
+update_comment start
+
 echo "Triggering GitHub workflow: $WORKFLOW @ $REF (build_all=$BUILD_ALL, create_release=$CREATE_RELEASE)"
 gh workflow run "$WORKFLOW" -R "$REPO" --ref "$REF" \
   -f build_all="$BUILD_ALL" \
@@ -38,10 +48,15 @@ done
 
 if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
   echo "Could not find GitHub run for $REF" >&2
+  update_comment finish failure
   exit 1
 fi
 
+export RUN_ID
+update_comment update
+
 echo "Watching GitHub run $RUN_ID..."
+FINAL_CONCLUSION="success"
 for attempt in 1 2 3; do
   if gh run watch "$RUN_ID" -R "$REPO" --exit-status 2>&1; then
     break
@@ -54,8 +69,8 @@ for attempt in 1 2 3; do
       break
       ;;
     failure|cancelled|timed_out|startup_failure|action_required|stale)
-      echo "GitHub run $RUN_ID concluded as $CONCLUSION" >&2
-      exit 1
+      FINAL_CONCLUSION="$CONCLUSION"
+      break
       ;;
     *)
       echo "gh run watch lost connection (attempt $attempt), retrying..."
@@ -63,3 +78,10 @@ for attempt in 1 2 3; do
       ;;
   esac
 done
+
+if [ "$FINAL_CONCLUSION" != "success" ]; then
+  update_comment finish "$FINAL_CONCLUSION"
+  exit 1
+fi
+
+update_comment finish success
