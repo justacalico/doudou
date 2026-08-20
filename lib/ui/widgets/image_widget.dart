@@ -77,7 +77,7 @@ class ImageWidget extends StatelessWidget {
     }
 
     final dpr = MediaQuery.devicePixelRatioOf(context);
-    final cachePx = (size * dpr).round().clamp(64, isPlayerArtImage ? 800 : 220);
+    final cacheWidth = (size * dpr).round().clamp(64, isPlayerArtImage ? 800 : 220);
     final cacheKey = song != null
         ? "${song!.id}_song"
         : playlist != null
@@ -117,8 +117,7 @@ class ImageWidget extends StatelessWidget {
           : imageUrl.trim().isEmpty
               ? placeholder()
               : CachedNetworkImage(
-                  memCacheHeight: cachePx,
-                  memCacheWidth: cachePx,
+                  memCacheWidth: cacheWidth,
                   cacheKey: cacheKey,
                   imageUrl: imageUrl,
                   imageBuilder: (context, imageProvider) => DecoratedBox(
