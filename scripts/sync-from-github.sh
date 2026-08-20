@@ -43,4 +43,5 @@ glab release create "$RELEASE_TAG" \
   --name "Doudou $RELEASE_TAG" \
   --notes "Mirrored from the GitHub release." \
   --ref "$CI_COMMIT_SHA" \
+  --use-package-registry \
   "$PROJECT_DIR/release-assets"/*
