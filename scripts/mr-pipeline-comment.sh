@@ -13,9 +13,12 @@ RUN_ID="${RUN_ID:-}"
 
 [ -n "$MR_IID" ] || exit 0
 [ -n "$PROJECT_ID" ] || exit 0
-command -v glab >/dev/null 2>&1 || exit 0
 command -v jq >/dev/null 2>&1 || exit 0
 
+TOKEN="${GITLAB_MR_COMMENT_TOKEN:-${CI_JOB_TOKEN:-}}"
+[ -n "$TOKEN" ] || exit 0
+
+API_BASE="${CI_SERVER_URL:-https://gitlab.com}/api/v4"
 PROJECT_PATH="${CI_PROJECT_PATH:-Openlyst/doudou}"
 MARKER="<!-- mr-pipeline-${PIPELINE_ID} -->"
 PIPELINE_URL="https://gitlab.com/${PROJECT_PATH}/-/pipelines/${PIPELINE_ID}"
@@ -24,11 +27,11 @@ RUN_URL="https://github.com/justacalico/doudou/actions/runs/${RUN_ID}"
 post_or_update() {
   local body="$1"
   local note_id
-  note_id=$(glab api "projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes?per_page=100" 2>/dev/null | jq -r --arg marker "$MARKER" '.[] | select(.body | contains($marker)) | .id' | head -n1)
+  note_id=$(curl -fsS -H "PRIVATE-TOKEN: ${TOKEN}" "${API_BASE}/projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes?per_page=100" 2>/dev/null | jq -r --arg marker "$MARKER" '.[] | select(.body | contains($marker)) | .id' | head -n1)
   if [ -n "$note_id" ] && [ "$note_id" != "null" ]; then
-    glab api --method PUT "projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes/${note_id}" --field "body=${body}" >/dev/null
+    curl -fsS -X PUT -H "PRIVATE-TOKEN: ${TOKEN}" "${API_BASE}/projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes/${note_id}" --data-urlencode "body=${body}" >/dev/null
   else
-    glab api --method POST "projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes" --field "body=${body}" >/dev/null
+    curl -fsS -X POST -H "PRIVATE-TOKEN: ${TOKEN}" "${API_BASE}/projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes" --data-urlencode "body=${body}" >/dev/null
   fi
 }
 
