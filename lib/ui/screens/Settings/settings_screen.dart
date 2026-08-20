@@ -94,10 +94,13 @@ class _SettingsViewState extends State<_SettingsView> {
     final layout = DoudouLayout.of(context);
     final useTwoPane =
         layout.isDesktop || (layout.isTablet && layout.size.width >= 840);
+    final showHeader = !useTwoPane || !layout.isDesktop;
     final mq = MediaQuery.of(context);
 
     final topPadding = mq.padding.top +
-        (layout.isPhone ? kTopPaddingNarrow : kTopPaddingDesktop);
+        (layout.isPhone
+            ? kTopPaddingNarrow
+            : (showHeader ? kTopPaddingDesktop : DoudouSpace.s16));
     final horizontalPadding = widget.isBottomNavActive
         ? kContentLeftPaddingWithBottomNav
         : (useTwoPane ? 0.0 : layout.contentPadding.left);
@@ -116,9 +119,9 @@ class _SettingsViewState extends State<_SettingsView> {
         0,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildHeader(context, useTwoPane),
+          if (showHeader) _buildHeader(context, useTwoPane),
           Expanded(
             child: useTwoPane
                 ? _buildTwoPane(context, settings, sync)
@@ -1581,7 +1584,7 @@ class _SettingsCard extends StatelessWidget {
       margin: margin,
       shape: RoundedRectangleBorder(borderRadius: borderRadius),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (title != null)
             Padding(
