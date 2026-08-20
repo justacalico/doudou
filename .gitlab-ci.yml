@@ -10,6 +10,13 @@ variables:
 # No GitLab cache for pub to avoid long-term issues.
 cache: {}
 
+workflow:
+  rules:
+    - if: $CREATE_RELEASE == "true"
+      variables:
+        BUILD_ALL: "true"
+    - when: always
+
 stages:
   - test
   - info
@@ -52,7 +59,7 @@ stages:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
     - if: $CI_COMMIT_TAG
-    - if: $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CREATE_RELEASE == "true"
+    - if: $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CREATE_RELEASE == "true" && $BUILD_ALL == "true"
 
 test:
   stage: test

@@ -96,5 +96,4 @@ glab release create "$TAG" \
   --name "$NAME" \
   --notes "$NOTES" \
   --ref "$CI_COMMIT_SHA" \
-  --use-package-registry \
   "$PROJECT_DIR/release-assets"/*
