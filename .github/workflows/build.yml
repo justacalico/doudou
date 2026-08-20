@@ -305,11 +305,6 @@ jobs:
         if: matrix.target == 'ios'
         run: bash scripts/build-ios.sh
 
-      - name: Run flutter_rust_bridge codegen
-        if: matrix.target == 'ios'
-        continue-on-error: true
-        run: dart run flutter_rust_bridge_codegen build-ios --release
-
       - name: Build
         shell: bash
         env:
@@ -499,7 +494,7 @@ jobs:
     # Skip on tag pushes (handled by the release job) and PR builds.
     # On manual dispatch, only publish when create_release is explicitly
     # checked — plain branch builds just produce artifacts, no release.
-    if: ${{ !cancelled() && contains(needs.build.result, 'success') && !startsWith(github.ref, 'refs/tags/v') && !startsWith(github.ref, 'refs/pull/') && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.create_release == true)) }}
+    if: ${{ !cancelled() && contains(needs.build.result, 'success') && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.create_release == true)) }}
     permissions:
       contents: write
 

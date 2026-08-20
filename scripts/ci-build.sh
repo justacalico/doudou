@@ -98,7 +98,6 @@ case "$TARGET" in
     ;;
   ios)
     bash "$PROJECT_DIR/scripts/build-ios.sh"
-    dart run flutter_rust_bridge_codegen build-ios --release || true
     flutter build ios --release --no-codesign
     mkdir -p "$PROJECT_DIR/Payload"
     cp -r "$PROJECT_DIR/build/ios/iphoneos/Runner.app" "$PROJECT_DIR/Payload/"
