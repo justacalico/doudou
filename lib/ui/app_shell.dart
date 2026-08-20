@@ -104,6 +104,8 @@ class _AppShellState extends State<AppShell> {
             final isBottomNavEnabled =
                 settingsController.isBottomNavBarEnabled.value;
             final sidebarMode = settingsController.sidebarMode.value;
+            final nowPlayingLayout =
+                settingsController.nowPlayingLayout.value;
             // TV always uses side navigation — ignore bottom nav setting
             final useBottomNav = !layout.isTV &&
                 (layout.useBottomNav ||
@@ -177,8 +179,7 @@ class _AppShellState extends State<AppShell> {
                   // Narrow windows always fall back to the play bar.
                   final useSidePanel = isDesktopLayout &&
                       !useBottomNav &&
-                      settingsController.nowPlayingLayout.value ==
-                          NowPlayingLayout.sideView;
+                      nowPlayingLayout == NowPlayingLayout.sideView;
                   if (useSidePanel) {
                     return _DesktopShellBody(
                       chrome: chrome,
