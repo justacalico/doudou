@@ -50,11 +50,9 @@ github-dispatch:
     GH_TOKEN: $GH_TOKEN
   before_script:
     - apk add --no-cache bash curl jq git github-cli
-    - |
-      gh auth login --hostname github.com --git-protocol https --with-token < <(echo "$GH_TOKEN")
   script:
     - |
-      if [ "$[[ inputs.create_release ]]" = "true" ] || [ "$[[ inputs.build_all ]]" = "true" ]; then
+      if [ "$[[ inputs.create_release ]]" = "true" ]; then
         gh workflow run build.yml -R justacalico/doudou -f create_release=true
       else
         gh workflow run build.yml -R justacalico/doudou
