@@ -197,11 +197,15 @@ build-linux-x64:
   needs:
     - job: build-info
     - job: build-android-phone
-    - job: build-android-phone-playstore
-    - job: build-android-wear
-    - job: build-android-tv-playstore
-    - job: build-android-tv
     - job: build-linux-x64
+    - job: build-android-phone-playstore
+      optional: true
+    - job: build-android-wear
+      optional: true
+    - job: build-android-tv-playstore
+      optional: true
+    - job: build-android-tv
+      optional: true
   before_script:
     - rm -rf artifacts release-assets SHA256SUMS.txt
   script:
