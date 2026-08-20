@@ -77,11 +77,12 @@ test:
 
 build-info:
   stage: info
-  tags: [linux-truenas]
+  tags: [saas-linux-small-amd64]
+  image: debian:stable-slim
   rules: !reference [.default-build-rules, rules]
   script:
     - |
-      set -euo pipefail
+      set -eu
       VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //g' | cut -d'+' -f1)
       BUILD_NUMBER=$(date +%s | cut -c4-10)
       BUILD_DATE=$(date +%Y-%m-%d)
