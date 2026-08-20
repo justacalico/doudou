@@ -101,7 +101,7 @@ build-info:
 
 .common-build:
   stage: build
-  tags: [saas-linux-xlarge-amd64]
+  tags: [saas-linux-medium-amd64]
   timeout: 30m
   rules: !reference [.default-build-rules, rules]
   needs:
