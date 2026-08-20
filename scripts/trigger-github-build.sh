@@ -24,7 +24,10 @@ BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 update_comment() {
   [ -n "${CI_MERGE_REQUEST_IID:-}" ] || return 0
-  "${BASE_DIR}/scripts/mr-pipeline-comment.sh" "$@"
+  "${BASE_DIR}/scripts/mr-pipeline-comment.sh" "$@" || {
+    echo "Warning: MR comment update failed, continuing build" >&2
+    return 0
+  }
 }
 
 # Post the initial "in progress" MR comment.

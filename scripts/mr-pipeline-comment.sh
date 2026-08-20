@@ -24,14 +24,21 @@ MARKER="<!-- mr-pipeline-${PIPELINE_ID} -->"
 PIPELINE_URL="https://gitlab.com/${PROJECT_PATH}/-/pipelines/${PIPELINE_ID}"
 RUN_URL="https://github.com/justacalico/doudou/actions/runs/${RUN_ID}"
 
+# CI job tokens use the JOB-TOKEN header; personal tokens use PRIVATE-TOKEN.
+if [ -n "${GITLAB_MR_COMMENT_TOKEN:-}" ]; then
+  AUTH_HEADER="PRIVATE-TOKEN: ${TOKEN}"
+else
+  AUTH_HEADER="JOB-TOKEN: ${TOKEN}"
+fi
+
 post_or_update() {
   local body="$1"
   local note_id
-  note_id=$(curl -fsS -H "PRIVATE-TOKEN: ${TOKEN}" "${API_BASE}/projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes?per_page=100" 2>/dev/null | jq -r --arg marker "$MARKER" '.[] | select(.body | contains($marker)) | .id' | head -n1)
+  note_id=$(curl -fsS -H "$AUTH_HEADER" "${API_BASE}/projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes?per_page=100" 2>/dev/null | jq -r --arg marker "$MARKER" '.[] | select(.body | contains($marker)) | .id' | head -n1)
   if [ -n "$note_id" ] && [ "$note_id" != "null" ]; then
-    curl -fsS -X PUT -H "PRIVATE-TOKEN: ${TOKEN}" "${API_BASE}/projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes/${note_id}" --data-urlencode "body=${body}" >/dev/null
+    curl -fsS -X PUT -H "$AUTH_HEADER" "${API_BASE}/projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes/${note_id}" --data-urlencode "body=${body}" >/dev/null
   else
-    curl -fsS -X POST -H "PRIVATE-TOKEN: ${TOKEN}" "${API_BASE}/projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes" --data-urlencode "body=${body}" >/dev/null
+    curl -fsS -X POST -H "$AUTH_HEADER" "${API_BASE}/projects/${PROJECT_ID}/merge_requests/${MR_IID}/notes" --data-urlencode "body=${body}" >/dev/null
   fi
 }
 
