@@ -426,7 +426,7 @@ class _SettingsViewState extends State<_SettingsView> {
       MaterialPageRoute(
         builder: (ctx) => _SettingsSubPage(
           icon: meta.$2,
-          title: _sectionTitle(context, id),
+          title: _sectionTitle(ctx, id),
           childrenBuilder: (ctx) =>
               _buildSectionChildren(ctx, settings, sync, id),
         ),
