@@ -65,9 +65,9 @@ jobs:
               {"target":"macos","os":"macos-latest","artifact":"doudou-macos"},
               {"target":"ios","os":"macos-latest","artifact":"doudou-ios"}
             ]'
-            matrix=$(echo "$always $extra" | jq -s 'add')
+            matrix=$(echo "$always $extra" | jq -s -c 'add')
           else
-            matrix="$always"
+            matrix=$(echo "$always" | jq -c '.')
           fi
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
