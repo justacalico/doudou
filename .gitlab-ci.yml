@@ -207,7 +207,7 @@ build-linux-x64:
     - job: build-android-tv
       optional: true
   before_script:
-    - rm -rf artifacts release-assets SHA256SUMS.txt
+    - rm -rf release-assets SHA256SUMS.txt
   script:
     - bash scripts/ci-release.sh "$RELEASE_TYPE"
 
