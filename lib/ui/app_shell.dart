@@ -112,7 +112,8 @@ class _AppShellState extends State<AppShell> {
                     isBottomNavEnabled ||
                     width < kSidebarMinWidth);
 
-            final desiredMinHeight = isDesktopLayout
+            final usePlayBar = nowPlayingLayout == NowPlayingLayout.playBar;
+            final desiredMinHeight = (isDesktopLayout && !usePlayBar)
                 ? 0.0
                 : (useBottomNav
                     ? 80.0
