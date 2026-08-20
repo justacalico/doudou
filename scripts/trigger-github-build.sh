@@ -21,25 +21,23 @@ if [ -n "$PUSH_REF" ]; then
 fi
 
 echo "Triggering GitHub workflow: $WORKFLOW @ $REF (build_all=$BUILD_ALL, create_release=$CREATE_RELEASE)"
-RUN_URL=$(gh workflow run "$WORKFLOW" -R "$REPO" --ref "$REF" \
+gh workflow run "$WORKFLOW" -R "$REPO" --ref "$REF" \
   -f build_all="$BUILD_ALL" \
-  -f create_release="$CREATE_RELEASE" 2>&1 | head -n 1)
+  -f create_release="$CREATE_RELEASE"
 
+echo "Looking for run ID..."
 RUN_ID=""
-if [[ "$RUN_URL" =~ ^https://github.com/[^/]+/[^/]+/actions/runs/([0-9]+) ]]; then
-  RUN_ID="${BASH_REMATCH[1]}"
-  echo "GitHub run URL: $RUN_URL"
-else
-  # Fallback: search the list by commit
-  for i in {1..30}; do
-    sleep 5
-    RUN_ID=$(gh run list -R "$REPO" -w "$WORKFLOW" -b "$REF" -e workflow_dispatch -c "$CI_COMMIT_SHA" -L 1 --json databaseId -q '.[0].databaseId' 2>/dev/null || true)
-    [ -n "$RUN_ID" ] && break
-  done
-fi
+for i in {1..30}; do
+  sleep 5
+  # Use the API directly so it works on older gh versions in the container.
+  RUN_ID=$(gh api "repos/justacalico/doudou/actions/runs?branch=$REF&event=workflow_dispatch&per_page=1" -q '.workflow_runs[0].id' 2>/dev/null || true)
+  if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+    break
+  fi
+done
 
-if [ -z "$RUN_ID" ]; then
-  echo "Could not find GitHub run for $REF @ $CI_COMMIT_SHA" >&2
+if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+  echo "Could not find GitHub run for $REF" >&2
   exit 1
 fi
 
