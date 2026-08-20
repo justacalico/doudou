@@ -79,7 +79,7 @@ github-mr-build:
     - |
       git remote add github git@github.com:justacalico/doudou.git 2>/dev/null || true
       git remote update github
-      git push -f github "HEAD:$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
+      git push -f github "HEAD:refs/heads/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
       gh workflow run build.yml -R justacalico/doudou \
         --ref "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" \
         -f build_all=true \
