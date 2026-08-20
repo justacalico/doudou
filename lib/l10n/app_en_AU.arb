@@ -813,5 +813,34 @@
   "autoLoginRequiredAction": "Open on phone",
   "@autoLoginRequiredAction": {},
   "autoLoginRequiredDismiss": "OK",
-  "@autoLoginRequiredDismiss": {}
+  "@autoLoginRequiredDismiss": {},
+  "protocol": "Protocol",
+  "@protocol": {},
+  "done": "Done",
+  "@done": {},
+  "syncing": "Syncing...",
+  "@syncing": {},
+  "sync": "Sync",
+  "@sync": {},
+  "accounts": "ACCOUNTS",
+  "@accounts": {},
+  "user": "USER",
+  "@user": {},
+  "appearance": "APPEARANCE",
+  "@appearance": {},
+  "diagnosticsCopied": "Diagnostics copied to clipboard",
+  "@diagnosticsCopied": {},
+  "noDiagnosticsToCopy": "No diagnostics to copy",
+  "@noDiagnosticsToCopy": {},
+  "refresh": "Refresh",
+  "@refresh": {},
+  "eventsCount": "Events: {count} (showing up to {max})",
+  "@eventsCount": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "noDiagnosticsHint": "No diagnostics yet.\nEnable diagnostics and reproduce the issue.",
+  "@noDiagnosticsHint": {}
 }

@@ -1,34 +1,33 @@
 import 'package:flutter/material.dart';
-import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:doudou/utils/helper.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../widgets/common_dialog_widget.dart';
-import '../../widgets/cust_switch.dart';
-import '../../widgets/tv_focus_highlight.dart';
-import '/services/tv_service.dart';
-import '/services/discord_rpc_service.dart';
-import '../../widgets/export_file_dialog.dart';
-import '../../widgets/backup_dialog.dart';
-import '../../widgets/restore_dialog.dart';
-import '../Library/library_controller.dart';
-import '../../widgets/snackbar.dart';
-import '../../widgets/new_version_dialog.dart';
-import '/ui/widgets/link_piped.dart';
-import '/services/music_service.dart';
-import '/services/library_sync_service.dart';
-import '/ui/player/player_controller.dart';
-import '/ui/utils/theme_controller.dart';
-import '/ui/constants/layout.dart';
+import '/utils/app_l10n.dart';
+import '/utils/helper.dart';
 import '/models/server.dart';
-import 'settings_screen_controller.dart';
-import '/app/theme/app_theme_provider.dart';
-
-const bool kIsPlayStore = bool.fromEnvironment('PLAYSTORE', defaultValue: false);
-bool _ytmProviderUnlocked = false;
+import '/services/discord_rpc_service.dart';
+import '/services/library_sync_service.dart';
+import '/services/music_service.dart';
+import '/services/tv_service.dart';
+import '/ui/constants/layout.dart';
+import '/ui/design/doudou_colors.dart';
+import '/ui/design/doudou_layout.dart';
+import '/ui/design/doudou_tokens.dart';
+import '/ui/player/player_controller.dart';
+import '/ui/screens/Library/library_controller.dart';
+import '/ui/screens/Settings/add_server_dialog.dart';
+import '/ui/screens/Settings/settings_dialogs.dart';
+import '/ui/screens/Settings/settings_screen_controller.dart';
+import '/ui/utils/theme_controller.dart';
+import '/ui/widgets/backup_dialog.dart';
+import '/ui/widgets/cust_switch.dart';
+import '/ui/widgets/export_file_dialog.dart';
+import '/ui/widgets/link_piped.dart';
+import '/ui/widgets/new_version_dialog.dart';
+import '/ui/widgets/restore_dialog.dart';
+import '/ui/widgets/snackbar.dart';
+import '/ui/widgets/tv_focus_highlight.dart';
 
 class SettingsScreen extends GetView<SettingsScreenController> {
   const SettingsScreen({super.key, this.isBottomNavActive = false});
@@ -36,7 +35,7 @@ class SettingsScreen extends GetView<SettingsScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return _IOSSettingsView(isBottomNavActive: isBottomNavActive);
+    return _SettingsView(isBottomNavActive: isBottomNavActive);
   }
 }
 
@@ -51,308 +50,247 @@ enum _SettingsSectionId {
   info,
 }
 
-class _SettingsCluster {
-  const _SettingsCluster({
-    required this.title,
-    required this.sections,
-  });
-
-  final String title;
-  final List<_SettingsSectionId> sections;
-}
-
-class _IOSSettingsView extends StatefulWidget {
-  const _IOSSettingsView({required this.isBottomNavActive});
-
+class _SettingsView extends StatefulWidget {
+  const _SettingsView({required this.isBottomNavActive});
   final bool isBottomNavActive;
 
   @override
-  State<_IOSSettingsView> createState() => _IOSSettingsViewState();
+  State<_SettingsView> createState() => _SettingsViewState();
 }
 
-class _IOSSettingsViewState extends State<_IOSSettingsView> {
+class _SettingsViewState extends State<_SettingsView> {
   _SettingsSectionId _selected = _SettingsSectionId.personalisation;
 
   static const _sectionMeta = <(_SettingsSectionId, IconData, String)>[
     (
       _SettingsSectionId.personalisation,
       Icons.palette_outlined,
-      "personalisation"
+      'personalisation'
     ),
-    (_SettingsSectionId.content, Icons.movie_outlined, "content"),
-    (_SettingsSectionId.playback, Icons.music_note_outlined, "musicPlayback"),
-    (_SettingsSectionId.servers, Icons.dns_outlined, "servers"),
-    (_SettingsSectionId.download, Icons.download_outlined, "download"),
-    (_SettingsSectionId.backup, Icons.restore_outlined, "backup"),
-    (_SettingsSectionId.misc, Icons.miscellaneous_services_outlined, "misc"),
-    (_SettingsSectionId.info, Icons.info_outline, "appInfo"),
+    (_SettingsSectionId.content, Icons.movie_outlined, 'content'),
+    (_SettingsSectionId.playback, Icons.music_note_outlined, 'musicPlayback'),
+    (_SettingsSectionId.servers, Icons.dns_outlined, 'servers'),
+    (_SettingsSectionId.download, Icons.download_outlined, 'download'),
+    (_SettingsSectionId.backup, Icons.restore_outlined, 'backup'),
+    (_SettingsSectionId.misc, Icons.miscellaneous_services_outlined, 'misc'),
+    (_SettingsSectionId.info, Icons.info_outline, 'appInfo'),
   ];
 
-  static const _mobileClusters = <_SettingsCluster>[
-    _SettingsCluster(
-      title: 'ACCOUNTS',
-      sections: [
-        _SettingsSectionId.servers,
-        _SettingsSectionId.backup,
-      ],
-    ),
-    _SettingsCluster(
-      title: 'USER',
-      sections: [
-        _SettingsSectionId.content,
-        _SettingsSectionId.playback,
-        _SettingsSectionId.misc,
-      ],
-    ),
-    _SettingsCluster(
-      title: 'APPEARANCE',
-      sections: [
-        _SettingsSectionId.personalisation,
-        _SettingsSectionId.download,
-        _SettingsSectionId.info,
-      ],
-    ),
+  static const _mobileClusters = <(_SettingsSectionId, String, String)>[
+    (_SettingsSectionId.servers, 'ACCOUNTS', 'accounts'),
+    (_SettingsSectionId.backup, 'ACCOUNTS', 'accounts'),
+    (_SettingsSectionId.content, 'USER', 'user'),
+    (_SettingsSectionId.playback, 'USER', 'user'),
+    (_SettingsSectionId.misc, 'USER', 'user'),
+    (_SettingsSectionId.personalisation, 'APPEARANCE', 'appearance'),
+    (_SettingsSectionId.download, 'APPEARANCE', 'appearance'),
+    (_SettingsSectionId.info, 'APPEARANCE', 'appearance'),
   ];
+
+  late final _groupedClusters = _buildGroupedClusters();
+  static List<(String, String, List<_SettingsSectionId>)> _buildGroupedClusters() {
+    final map = <String, (String, List<_SettingsSectionId>)>{};
+    for (final c in _mobileClusters) {
+      final existing = map[c.$2];
+      if (existing == null) {
+        map[c.$2] = (c.$3, [c.$1]);
+      } else {
+        existing.$2.add(c.$1);
+      }
+    }
+    return map.entries
+        .map((e) => (e.key, e.value.$1, e.value.$2))
+        .toList();
+  }
+
+  String _clusterLabel(BuildContext context, String key) {
+    final l10n = context.l10n;
+    return switch (key) {
+      'accounts' => l10n.accounts,
+      'user' => l10n.user,
+      'appearance' => l10n.appearance,
+      _ => key,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsScreenController>();
-    final syncService = Get.find<LibrarySyncService>();
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final statusBarHeight = MediaQuery.of(context).padding.top;
-    final topPadding = statusBarHeight +
-        (context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault);
-    final isDesktop = GetPlatform.isDesktop;
-    final useTwoPane = isDesktop && MediaQuery.sizeOf(context).width >= 980;
+    final sync = Get.find<LibrarySyncService>();
+    final layout = DoudouLayout.of(context);
+    final useTwoPane =
+        layout.isDesktop || (layout.isTablet && layout.size.width >= 840);
+    final showHeader = !useTwoPane || !layout.isDesktop;
+    final mq = MediaQuery.of(context);
 
-    final outerPadding = widget.isBottomNavActive
-        ? EdgeInsets.only(
-            left: kContentLeftPaddingWithBottomNav,
-            top: topPadding,
-            right: kContentRightPaddingSettingsWithBottomNav,
-          )
-        : EdgeInsets.only(
-            top: topPadding,
-            left: kContentLeftPaddingWithoutBottomNav,
-            right: kContentLeftPaddingWithoutBottomNav,
-          );
-
-    return Padding(
-      padding: outerPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(useTwoPane ? 0 : 8, 10, 8, 12),
-            child: Row(
-              children: [
-                if (useTwoPane)
-                  Icon(
-                    Icons.settings_outlined,
-                    color: theme.textTheme.bodyMedium?.color
-                        ?.withValues(alpha: 0.75),
-                    size: 18,
-                  ),
-                if (useTwoPane) const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.l10n.settings,
-                    textAlign: TextAlign.left,
-                    style: (useTwoPane
-                            ? theme.textTheme.headlineSmall
-                            : theme.textTheme.titleLarge)
-                        ?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.1,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: useTwoPane
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(
-                        width: 300,
-                        child: _buildSectionNav(context),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            return AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 220),
-                              child: KeyedSubtree(
-                                key: ValueKey(_selected),
-                                child: _buildSingleSection(
-                                    context, settings, syncService, _selected),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  )
-                : _buildMobileSectionList(context, settings, syncService),
-          ),
-          if (useTwoPane)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 0, 12),
-              child: Text(
-                settings.currentVersion,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.55),
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionNav(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.cardColor.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.25)),
-      ),
-      child: ListView(
-        children: [
-          for (final cluster in _mobileClusters) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
-              child: Text(
-                cluster.title,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.72),
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.0,
-                ),
-              ),
-            ),
-            ...cluster.sections.map((id) {
-              final (sectionId, icon, titleKey) =
-                  _sectionMeta.firstWhere((e) => e.$1 == id);
-              final selected = sectionId == _selected;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 6),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? colorScheme.onSurface.withValues(alpha: 0.10)
-                      : theme.cardColor.withValues(alpha: 0.45),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: selected
-                        ? colorScheme.primary.withValues(alpha: 0.50)
-                        : theme.dividerColor.withValues(alpha: 0.18),
-                  ),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(14),
-                  child: ListTile(
-                    dense: true,
-                    onTap: () => setState(() => _selected = sectionId),
-                    leading: Icon(
-                      icon,
-                      size: 18,
-                      color: selected
-                          ? colorScheme.onSurface
-                          : colorScheme.onSurface.withValues(alpha: 0.78),
-                    ),
-                    title: Text(
-                      _sectionTitle(context, titleKey),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    trailing: Icon(
-                      Icons.chevron_right_rounded,
-                      color: selected
-                          ? colorScheme.onSurface.withValues(alpha: 0.4)
-                          : colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileSectionList(
-    BuildContext context,
-    SettingsScreenController settings,
-    LibrarySyncService syncService,
-  ) {
+    final topPadding = mq.padding.top +
+        (layout.isPhone
+            ? kTopPaddingNarrow
+            : (showHeader ? kTopPaddingDesktop : 0.0));
+    final horizontalPadding = widget.isBottomNavActive
+        ? kContentLeftPaddingWithBottomNav
+        : (useTwoPane ? 0.0 : layout.contentPadding.left);
+    final rightPadding = widget.isBottomNavActive
+        ? kContentRightPaddingSettingsWithBottomNav
+        : layout.contentPadding.right;
     final bottomPadding = widget.isBottomNavActive
         ? kSettingsListBottomPadding
         : kContentBottomPaddingWithPlayer;
+
+    final content = Padding(
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding,
+        topPadding,
+        rightPadding,
+        0,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (showHeader) _buildHeader(context, useTwoPane),
+          Expanded(
+            child: useTwoPane
+                ? _buildTwoPane(context, settings, sync)
+                : _buildSinglePane(context, settings, sync, bottomPadding),
+          ),
+        ],
+      ),
+    );
+
+    return content;
+  }
+
+  Widget _buildHeader(BuildContext context, bool useTwoPane) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colors = context.doudouColors;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        DoudouSpace.s4,
+        10,
+        DoudouSpace.s8,
+        DoudouSpace.s16,
+      ),
+      child: Row(
+        children: [
+          if (useTwoPane) ...[
+            Icon(
+              Icons.settings_outlined,
+              color: colors.textSecondary,
+              size: 20,
+            ),
+            const SizedBox(width: DoudouSpace.s8),
+          ],
+          Expanded(
+            child: Text(
+              context.l10n.settings,
+              style: (useTwoPane
+                      ? theme.textTheme.headlineSmall
+                      : theme.textTheme.titleLarge)
+                  ?.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTwoPane(
+    BuildContext context,
+    SettingsScreenController settings,
+    LibrarySyncService sync,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: 260,
+          child: _buildSectionNav(context),
+        ),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: Duration(
+              milliseconds: (220 * settings.animationSpeedFactor).round(),
+            ),
+            child: KeyedSubtree(
+              key: ValueKey(_selected),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight),
+                      child: _SettingsCard(
+                        icon: _sectionIcon(_selected),
+                        title: _sectionTitle(context, _selected),
+                        borderRadius: BorderRadius.zero,
+                        margin: EdgeInsets.zero,
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        children: _buildSectionChildren(
+                          context,
+                          settings,
+                          sync,
+                          _selected,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSinglePane(
+    BuildContext context,
+    SettingsScreenController settings,
+    LibrarySyncService sync,
+    double bottomPadding,
+  ) {
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.only(bottom: bottomPadding),
-      itemCount: _mobileClusters.length,
-      itemBuilder: (context, clusterIndex) {
-        final cluster = _mobileClusters[clusterIndex];
+      itemCount: _groupedClusters.length,
+      itemBuilder: (context, index) {
+        final group = _groupedClusters[index];
+        final header = _clusterLabel(context, group.$2);
+        final sections = group.$3;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding:
-                  EdgeInsets.fromLTRB(10, clusterIndex == 0 ? 2 : 14, 10, 8),
+              padding: EdgeInsets.fromLTRB(
+                DoudouSpace.s8,
+                index == 0 ? DoudouSpace.s2 : DoudouSpace.s20,
+                DoudouSpace.s8,
+                DoudouSpace.s8,
+              ),
               child: Text(
-                cluster.title,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.78),
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.0,
-                ),
+                header,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: context.doudouColors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                    ),
               ),
             ),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                color: theme.cardColor.withValues(alpha: 0.80),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                    color: theme.dividerColor.withValues(alpha: 0.25)),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
-                child: Column(
-                  children: [
-                    for (int i = 0; i < cluster.sections.length; i++) ...[
-                      _buildMobileSectionRow(
-                        context,
-                        settings,
-                        syncService,
-                        cluster.sections[i],
-                      ),
-                      if (i < cluster.sections.length - 1)
-                        Divider(
-                          height: 1,
-                          indent: 56,
-                          endIndent: 12,
-                          color: theme.dividerColor.withValues(alpha: 0.35),
-                        ),
-                    ],
-                  ],
-                ),
-              ),
+            _SettingsCard(
+              children: [
+                for (int i = 0; i < sections.length; i++) ...[
+                  _buildMobileSectionRow(
+                    context,
+                    settings,
+                    sync,
+                    sections[i],
+                  ),
+                  if (i < sections.length - 1) const Divider(height: 1),
+                ],
+              ],
             ),
           ],
         );
@@ -360,73 +298,149 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     );
   }
 
+  Widget _buildSectionNav(BuildContext context) {
+    final colors = context.doudouColors;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surfaceBase,
+        border: Border(
+          right: BorderSide(color: colors.borderSubtle),
+        ),
+      ),
+      child: ListView(
+        padding: const EdgeInsets.all(DoudouSpace.s12),
+        children: [
+          for (final group in _groupedClusters) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                DoudouSpace.s4,
+                DoudouSpace.s8,
+                DoudouSpace.s4,
+                DoudouSpace.s8,
+              ),
+              child: Text(
+                _clusterLabel(context, group.$2),
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ).copyWith(color: colors.textSecondary),
+              ),
+            ),
+            for (final id in group.$3) _buildNavTile(context, id),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavTile(BuildContext context, _SettingsSectionId id) {
+    final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
+    final label = _sectionTitle(context, id);
+    final tile = _SettingsNavTile(
+      icon: meta.$2,
+      label: label,
+      selected: _selected == id,
+      onTap: () => setState(() => _selected = id),
+    );
+
+    if (_isTv(context)) {
+      return TvFocusHighlight(
+        borderRadius: 8,
+        onSelect: () => setState(() => _selected = id),
+        child: tile,
+      );
+    }
+    return tile;
+  }
+
   Widget _buildMobileSectionRow(
     BuildContext context,
     SettingsScreenController settings,
-    LibrarySyncService syncService,
+    LibrarySyncService sync,
     _SettingsSectionId id,
   ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
-    final badge = _sectionBadge(id);
-    return ListTile(
+    final theme = Theme.of(context);
+    final colors = context.doudouColors;
+
+    final tile = ListTile(
       dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       leading: Container(
-        width: 34,
-        height: 34,
+        width: 36,
+        height: 36,
         decoration: BoxDecoration(
-          color: colorScheme.onSurface.withValues(alpha: 0.10),
+          color: colors.surfaceElevated,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
           meta.$2,
           size: 18,
-          color: colorScheme.onSurface.withValues(alpha: 0.82),
+          color: colors.textSecondary,
         ),
       ),
       title: Text(
-        _sectionTitle(context, meta.$3),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+        _sectionTitle(context, id),
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w600,
           fontSize: 15,
         ),
       ),
       subtitle: Text(
-        _sectionSubtitle(id),
-        maxLines: 2,
+        _sectionSubtitle(context, id),
+        maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: theme.textTheme.bodySmall?.copyWith(
-          color: colorScheme.onSurface.withValues(alpha: 0.62),
+          color: colors.textTertiary,
         ),
       ),
-      trailing: badge == null
-          ? Icon(Icons.chevron_right_rounded,
-              color: colorScheme.onSurface.withValues(alpha: 0.6))
-          : Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                badge,
-                style: TextStyle(
-                  color: colorScheme.onPrimary,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 11,
-                ),
-              ),
-            ),
-      onTap: () => _openSectionSubPage(context, settings, syncService, id),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: colors.textDisabled,
+      ),
+      onTap: () => _openSectionSubPage(context, settings, sync, id),
+    );
+
+    if (_isTv(context)) {
+      return TvFocusHighlight(
+        borderRadius: 10,
+        onSelect: () => _openSectionSubPage(context, settings, sync, id),
+        child: tile,
+      );
+    }
+    return tile;
+  }
+
+  void _openSectionSubPage(
+    BuildContext context,
+    SettingsScreenController settings,
+    LibrarySyncService sync,
+    _SettingsSectionId id,
+  ) {
+    final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => _SettingsSubPage(
+          icon: meta.$2,
+          title: _sectionTitle(context, id),
+          childrenBuilder: (ctx) =>
+              _buildSectionChildren(ctx, settings, sync, id),
+        ),
+      ),
     );
   }
 
-  String _sectionTitle(BuildContext context, String key) {
+  IconData _sectionIcon(_SettingsSectionId id) {
+    return _sectionMeta.firstWhere((e) => e.$1 == id).$2;
+  }
+
+  String _sectionTitle(BuildContext context, _SettingsSectionId id) {
     final l10n = context.l10n;
+    final key = _sectionMeta.firstWhere((e) => e.$1 == id).$3;
     return switch (key) {
       'personalisation' => l10n.personalisation,
       'content' => l10n.content,
@@ -440,65 +454,29 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     };
   }
 
-  String _sectionSubtitle(_SettingsSectionId id) {
+  String _sectionSubtitle(BuildContext context, _SettingsSectionId id) {
+    final l10n = context.l10n;
     return switch (id) {
-      _SettingsSectionId.servers => context.l10n.servers,
-      _SettingsSectionId.backup => context.l10n.backupSettingsAndPlaylistsDes,
-      _SettingsSectionId.content => context.l10n.content,
-      _SettingsSectionId.playback => context.l10n.musicPlayback,
-      _SettingsSectionId.misc => context.l10n.misc,
-      _SettingsSectionId.personalisation => context.l10n.themeMode,
-      _SettingsSectionId.download => context.l10n.download,
-      _SettingsSectionId.info => context.l10n.appInfo,
+      _SettingsSectionId.servers => l10n.servers,
+      _SettingsSectionId.backup => l10n.backupSettingsAndPlaylistsDes,
+      _SettingsSectionId.content => l10n.content,
+      _SettingsSectionId.playback => l10n.musicPlayback,
+      _SettingsSectionId.misc => l10n.misc,
+      _SettingsSectionId.personalisation => l10n.themeMode,
+      _SettingsSectionId.download => l10n.download,
+      _SettingsSectionId.info => l10n.appInfo,
     };
   }
 
-  String? _sectionBadge(_SettingsSectionId id) {
-    return switch (id) {
-      _SettingsSectionId.personalisation => 'Theme',
-      _SettingsSectionId.playback => 'Audio',
-      _SettingsSectionId.download => 'Files',
-      _ => null,
-    };
-  }
-
-  void _openSectionSubPage(
-    BuildContext context,
-    SettingsScreenController settings,
-    LibrarySyncService syncService,
-    _SettingsSectionId id,
-  ) {
-    final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => _SettingsSubPage(
-          icon: meta.$2,
-          title: _sectionTitle(context, meta.$3),
-          children: _buildSectionChildren(context, settings, syncService, id),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSingleSection(
-    BuildContext context,
-    SettingsScreenController settings,
-    LibrarySyncService syncService,
-    _SettingsSectionId id,
-  ) {
-    final children = _buildSectionChildren(context, settings, syncService, id);
-    final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
-    return _SettingsCard(
-      icon: meta.$2,
-      title: _sectionTitle(context, meta.$3),
-      children: children,
-    );
+  bool _isTv(BuildContext context) {
+    if (!Get.isRegistered<TvService>()) return false;
+    return Get.find<TvService>().isTV.value;
   }
 
   List<Widget> _buildSectionChildren(
     BuildContext context,
     SettingsScreenController settings,
-    LibrarySyncService syncService,
+    LibrarySyncService sync,
     _SettingsSectionId id,
   ) {
     return switch (id) {
@@ -506,8 +484,7 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         _buildPersonalisation(context, settings),
       _SettingsSectionId.content => _buildContent(context, settings),
       _SettingsSectionId.playback => _buildPlayback(context, settings),
-      _SettingsSectionId.servers =>
-        _buildServers(context, settings, syncService),
+      _SettingsSectionId.servers => _buildServers(context, settings, sync),
       _SettingsSectionId.download => _buildDownload(context, settings),
       _SettingsSectionId.backup => _buildBackup(context),
       _SettingsSectionId.misc => _buildMisc(context, settings),
@@ -516,196 +493,127 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   }
 
   List<Widget> _buildPersonalisation(
-      BuildContext context, SettingsScreenController settings) {
+    BuildContext context,
+    SettingsScreenController settings,
+  ) {
     final isDesktop = GetPlatform.isDesktop;
-    final theme = Theme.of(context);
+
     return [
-      ListTile(
-        title: Text(context.l10n.themeMode),
-        trailing: Consumer(
-          builder: (context, ref, _) {
-            return Obx(
-              () => SizedBox(
-                width: 140,
-                child: DropdownButton<ThemeType>(
-                  isDense: true,
-                  value: settings.themeModetype.value,
-                  underline: const SizedBox.shrink(),
-                  icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-                  style: theme.textTheme.bodyMedium,
-                  dropdownColor: theme.cardColor,
-                  borderRadius: BorderRadius.circular(12),
-                  items: [
-                    DropdownMenuItem(
-                      value: ThemeType.dynamic,
-                      child: Text(context.l10n.dynamicTheme),
-                    ),
-                    DropdownMenuItem(
-                      value: ThemeType.system,
-                      child: Text(context.l10n.systemDefault),
-                    ),
-                    DropdownMenuItem(
-                      value: ThemeType.dark,
-                      child: Text(context.l10n.dark),
-                    ),
-                    DropdownMenuItem(
-                      value: ThemeType.oled,
-                      child: Text(context.l10n.oled),
-                    ),
-                    DropdownMenuItem(
-                      value: ThemeType.light,
-                      child: Text(context.l10n.light),
-                    ),
-                  ],
-                  onChanged: (v) {
-                    if (v != null) {
-                      settings.onThemeChange(v);
-                      ref.read(appThemeProvider.notifier).setThemeType(v);
-                    }
-                  },
-                ),
-              ),
-            );
-          },
+      _SettingsListTile(
+        title: context.l10n.themeMode,
+        subtitle:
+            Obx(() => Text(_themeModeLabel(context, settings.themeModetype.value))),
+        onTap: () => showDialog(
+          context: context,
+          builder: (_) => const ThemeSelectorDialog(),
         ),
       ),
-      Obx(() => ListTile(
-            title: Text(context.l10n.lyricsDynamicColor),
-            subtitle: Text(context.l10n.lyricsDynamicColorDes),
-            trailing: CustSwitch(
+      _SettingsListTile(
+        title: context.l10n.lyricsDynamicColor,
+        subtitle: context.l10n.lyricsDynamicColorDes,
+        trailing: Obx(() => CustSwitch(
               value: settings.lyricsDynamicColorEnabled.value,
               onChanged: settings.setLyricsDynamicColorEnabled,
-            ),
-          )),
-      ListTile(
-        title: Text(context.l10n.syncedLyricsHighlightStyle),
-        subtitle: Text(context.l10n.syncedLyricsHighlightStyleDes),
-        trailing: Obx(
-          () => DropdownButton<SyncedLyricsHighlightStyle>(
-            value: settings.syncedLyricsHighlightStyle.value,
-            underline: const SizedBox.shrink(),
-            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-            style: theme.textTheme.bodyMedium,
-            dropdownColor: theme.cardColor,
-            borderRadius: BorderRadius.circular(12),
-            items: [
-              DropdownMenuItem(
-                value: SyncedLyricsHighlightStyle.block,
-                child: Text(context.l10n.lyricsHighlightBlock),
-              ),
-              DropdownMenuItem(
-                value: SyncedLyricsHighlightStyle.karaoke,
-                child: Text(context.l10n.lyricsHighlightKaraoke),
-              ),
-            ],
-            onChanged: (v) {
-              if (v != null) settings.setSyncedLyricsHighlightStyle(v);
-            },
-          ),
+            )),
+        onTap: () => settings.setLyricsDynamicColorEnabled(
+          !settings.lyricsDynamicColorEnabled.value,
         ),
       ),
-      ListTile(
-        title: Text(context.l10n.language),
-        subtitle: Text(context.l10n.languageDes),
-        trailing: Obx(
-          () => DropdownButton(
-            menuMaxHeight: Get.height - 250,
-            underline: const SizedBox.shrink(),
-            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-            style: theme.textTheme.bodyMedium,
-            dropdownColor: theme.cardColor,
-            borderRadius: BorderRadius.circular(12),
-            value: settings.currentAppLanguageCode.value,
-            items: supportedLocalesDisplay.entries
-                .map((lang) =>
-                    DropdownMenuItem(value: lang.key, child: Text(lang.value)))
-                .whereType<DropdownMenuItem<String>>()
-                .toList(),
-            onChanged: settings.setAppLanguage,
-          ),
-        ),
+      _SettingsListTile(
+        title: context.l10n.syncedLyricsHighlightStyle,
+        subtitle: context.l10n.syncedLyricsHighlightStyleDes,
+        trailing: Obx(() => _SettingsDropdown<SyncedLyricsHighlightStyle>(
+              value: settings.syncedLyricsHighlightStyle.value,
+              items: [
+                (
+                  SyncedLyricsHighlightStyle.block,
+                  context.l10n.lyricsHighlightBlock
+                ),
+                (
+                  SyncedLyricsHighlightStyle.karaoke,
+                  context.l10n.lyricsHighlightKaraoke
+                ),
+              ],
+              onChanged: settings.setSyncedLyricsHighlightStyle,
+            )),
+      ),
+      _SettingsListTile(
+        title: context.l10n.language,
+        subtitle: context.l10n.languageDes,
+        trailing: Obx(() => _SettingsDropdown<String>(
+              value: settings.currentAppLanguageCode.value,
+              items: supportedLocalesDisplay.entries
+                  .map((e) => (e.key, e.value))
+                  .toList(),
+              onChanged: settings.setAppLanguage,
+            )),
       ),
       if (!isDesktop)
-        ListTile(
-          title: Text(context.l10n.playerUi),
-          subtitle: Text(context.l10n.playerUiDes),
-          trailing: Obx(
-            () => DropdownButton(
-              underline: const SizedBox.shrink(),
-              icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-              style: theme.textTheme.bodyMedium,
-              dropdownColor: theme.cardColor,
-              borderRadius: BorderRadius.circular(12),
-              value: settings.playerUi.value,
+        _SettingsListTile(
+          title: context.l10n.playerUi,
+          subtitle: context.l10n.playerUiDes,
+          trailing: Obx(() => _SettingsDropdown<int>(
+                value: settings.playerUi.value,
+                items: [
+                  (0, context.l10n.standard),
+                  (1, context.l10n.gesture),
+                ],
+                onChanged: settings.setPlayerUi,
+              )),
+        ),
+      _SettingsListTile(
+        title: context.l10n.animationSpeed,
+        subtitle: context.l10n.animationSpeedDes,
+        trailing: Obx(() => _SettingsDropdown<AnimationSpeed>(
+              value: settings.animationSpeed.value,
               items: [
-                DropdownMenuItem(value: 0, child: Text(context.l10n.standard)),
-                DropdownMenuItem(value: 1, child: Text(context.l10n.gesture)),
+                (AnimationSpeed.off, context.l10n.animationSpeedOff),
+                (AnimationSpeed.fast, context.l10n.animationSpeedFast),
+                (AnimationSpeed.normal, context.l10n.animationSpeedNormal),
+                (AnimationSpeed.slow, context.l10n.animationSpeedSlow),
               ],
-              onChanged: settings.setPlayerUi,
-            ),
-          ),
-        ),
-      ListTile(
-        title: Text(context.l10n.animationSpeed),
-        subtitle: Text(context.l10n.animationSpeedDes),
-        trailing: Obx(
-          () => DropdownButton<AnimationSpeed>(
-            underline: const SizedBox.shrink(),
-            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-            style: theme.textTheme.bodyMedium,
-            dropdownColor: theme.cardColor,
-            borderRadius: BorderRadius.circular(12),
-            value: settings.animationSpeed.value,
-            items: [
-              DropdownMenuItem(
-                  value: AnimationSpeed.off,
-                  child: Text(context.l10n.animationSpeedOff)),
-              DropdownMenuItem(
-                  value: AnimationSpeed.fast,
-                  child: Text(context.l10n.animationSpeedFast)),
-              DropdownMenuItem(
-                  value: AnimationSpeed.normal,
-                  child: Text(context.l10n.animationSpeedNormal)),
-              DropdownMenuItem(
-                  value: AnimationSpeed.slow,
-                  child: Text(context.l10n.animationSpeedSlow)),
-            ],
-            onChanged: (v) {
-              if (v != null) settings.setAnimationSpeed(v);
-            },
-          ),
-        ),
+              onChanged: settings.setAnimationSpeed,
+            )),
       ),
-      Obx(() => ListTile(
-            title: Text(context.l10n.enableSlidableAction),
-            subtitle: Text(context.l10n.enableSlidableActionDes),
-            trailing: CustSwitch(
+      _SettingsListTile(
+        title: context.l10n.enableSlidableAction,
+        subtitle: context.l10n.enableSlidableActionDes,
+        trailing: Obx(() => CustSwitch(
               value: settings.slidableActionEnabled.value,
               onChanged: settings.toggleSlidableAction,
-            ),
-          )),
+            )),
+        onTap: () => settings.toggleSlidableAction(
+          !settings.slidableActionEnabled.value,
+        ),
+      ),
     ];
   }
 
+  String _themeModeLabel(BuildContext context, ThemeType type) {
+    final l10n = context.l10n;
+    return switch (type) {
+      ThemeType.dynamic => l10n.dynamicTheme,
+      ThemeType.system => l10n.systemDefault,
+      ThemeType.dark => l10n.dark,
+      ThemeType.oled => l10n.oled,
+      ThemeType.light => l10n.light,
+    };
+  }
+
   List<Widget> _buildContent(
-      BuildContext context, SettingsScreenController settings) {
+    BuildContext context,
+    SettingsScreenController settings,
+  ) {
     final isDesktop = GetPlatform.isDesktop;
-    final theme = Theme.of(context);
+
     return [
       Obx(() {
         final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
         if (!isYt) return const SizedBox.shrink();
-        return ListTile(
-          title: Text(context.l10n.setDiscoverContent),
-          subtitle: Text(
-            settings.discoverContentType.value == "QP"
-                ? context.l10n.quickpicks
-                : settings.discoverContentType.value == "TMV"
-                    ? context.l10n.topmusicvideos
-                    : settings.discoverContentType.value == "TR"
-                        ? context.l10n.trending
-                        : context.l10n.basedOnLast,
-          ),
+        return _SettingsListTile(
+          title: context.l10n.setDiscoverContent,
+          subtitle: Obx(() => Text(_discoverContentLabel(
+              context, settings.discoverContentType.value))),
           onTap: () => showDialog(
             context: context,
             builder: (_) => const DiscoverContentSelectorDialog(),
@@ -715,64 +623,47 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       Obx(() {
         final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
         if (!isYt) return const SizedBox.shrink();
-        return ListTile(
-          title: Text(context.l10n.homeContentCount),
-          subtitle: Text(context.l10n.homeContentCountDes),
-          trailing: DropdownButton(
-            underline: const SizedBox.shrink(),
-            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-            style: theme.textTheme.bodyMedium,
-            dropdownColor: theme.cardColor,
-            borderRadius: BorderRadius.circular(12),
+        return _SettingsListTile(
+          title: context.l10n.homeContentCount,
+          subtitle: context.l10n.homeContentCountDes,
+          trailing: _SettingsDropdown<int>(
             value: settings.noOfHomeScreenContent.value,
-            items: ([3, 5, 7, 9, 11])
-                .map((e) => DropdownMenuItem(value: e, child: Text("$e")))
-                .toList(),
+            items: const [3, 5, 7, 9, 11].map((e) => (e, '$e')).toList(),
             onChanged: settings.setContentNumber,
           ),
         );
       }),
       if (isDesktop)
-        ListTile(
-          title: Text(context.l10n.sidebarMode),
-          subtitle: Text(context.l10n.sidebarModeDes),
-          trailing: Obx(
-            () => DropdownButton<SidebarMode>(
-              underline: const SizedBox.shrink(),
-              icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-              style: theme.textTheme.bodyMedium,
-              dropdownColor: theme.cardColor,
-              borderRadius: BorderRadius.circular(12),
-              value: settings.sidebarMode.value,
-              items: [
-                DropdownMenuItem(
-                    value: SidebarMode.auto,
-                    child: Text(context.l10n.sidebarModeAuto)),
-                DropdownMenuItem(
-                    value: SidebarMode.collapsed,
-                    child: Text(context.l10n.sidebarModeCollapsed)),
-                DropdownMenuItem(
-                    value: SidebarMode.expanded,
-                    child: Text(context.l10n.sidebarModeExpanded)),
-              ],
-              onChanged: settings.setSidebarMode,
-            ),
-          ),
+        _SettingsListTile(
+          title: context.l10n.sidebarMode,
+          subtitle: context.l10n.sidebarModeDes,
+          trailing: Obx(() => _SettingsDropdown<SidebarMode>(
+                value: settings.sidebarMode.value,
+                items: [
+                  (SidebarMode.auto, context.l10n.sidebarModeAuto),
+                  (SidebarMode.collapsed, context.l10n.sidebarModeCollapsed),
+                  (SidebarMode.expanded, context.l10n.sidebarModeExpanded),
+                ],
+                onChanged: settings.setSidebarMode,
+              )),
         ),
-      Obx(() => ListTile(
-            title: Text(context.l10n.cacheHomeScreenData),
-            subtitle: Text(context.l10n.cacheHomeScreenDataDes),
-            trailing: CustSwitch(
+      _SettingsListTile(
+        title: context.l10n.cacheHomeScreenData,
+        subtitle: context.l10n.cacheHomeScreenDataDes,
+        trailing: Obx(() => CustSwitch(
               value: settings.cacheHomeScreenData.value,
               onChanged: settings.toggleCacheHomeScreenData,
-            ),
-          )),
+            )),
+        onTap: () => settings.toggleCacheHomeScreenData(
+          !settings.cacheHomeScreenData.value,
+        ),
+      ),
       Obx(() {
         final isYt = settings.activeServer?.type == ServerType.youtubeMusic;
         if (!isYt) return const SizedBox.shrink();
-        return ListTile(
-          title: Text(context.l10n.piped),
-          subtitle: Text(context.l10n.linkPipedDes),
+        return _SettingsListTile(
+          title: context.l10n.piped,
+          subtitle: context.l10n.linkPipedDes,
           trailing: TextButton(
             onPressed: () {
               if (settings.isLinkedWithPiped.isFalse) {
@@ -793,9 +684,9 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         if (!isYt || !settings.isLinkedWithPiped.value) {
           return const SizedBox.shrink();
         }
-        return ListTile(
-          title: Text(context.l10n.resetblacklistedplaylist),
-          subtitle: Text(context.l10n.resetblacklistedplaylistDes),
+        return _SettingsListTile(
+          title: context.l10n.resetblacklistedplaylist,
+          subtitle: context.l10n.resetblacklistedplaylistDes,
           trailing: TextButton(
             onPressed: () async {
               await Get.find<LibraryPlaylistsController>()
@@ -810,9 +701,9 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           ),
         );
       }),
-      ListTile(
-        title: Text(context.l10n.clearImgCache),
-        subtitle: Text(context.l10n.clearImgCacheDes),
+      _SettingsListTile(
+        title: context.l10n.clearImgCache,
+        subtitle: context.l10n.clearImgCacheDes,
         onTap: () async {
           await settings.clearImagesCache();
           if (!context.mounted) return;
@@ -825,104 +716,130 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     ];
   }
 
+  String _discoverContentLabel(BuildContext context, String value) {
+    final l10n = context.l10n;
+    return switch (value) {
+      'QP' => l10n.quickpicks,
+      'TMV' => l10n.topmusicvideos,
+      'TR' => l10n.trending,
+      'BOLI' => l10n.basedOnLast,
+      _ => value,
+    };
+  }
+
   List<Widget> _buildPlayback(
-      BuildContext context, SettingsScreenController settings) {
+    BuildContext context,
+    SettingsScreenController settings,
+  ) {
     final isDesktop = GetPlatform.isDesktop;
-    final theme = Theme.of(context);
+
     return [
-      ListTile(
-        title: Text(context.l10n.streamingQuality),
-        subtitle: Text(context.l10n.streamingQualityDes),
-        trailing: Obx(
-          () => DropdownButton(
-            underline: const SizedBox.shrink(),
-            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-            style: theme.textTheme.bodyMedium,
-            dropdownColor: theme.cardColor,
-            borderRadius: BorderRadius.circular(12),
-            value: settings.streamingQuality.value,
-            items: [
-              DropdownMenuItem(
-                  value: AudioQuality.Low, child: Text(context.l10n.low)),
-              DropdownMenuItem(
-                  value: AudioQuality.High, child: Text(context.l10n.high)),
-            ],
-            onChanged: settings.setStreamingQuality,
-          ),
-        ),
+      _SettingsListTile(
+        title: context.l10n.streamingQuality,
+        subtitle: context.l10n.streamingQualityDes,
+        trailing: Obx(() => _SettingsDropdown<AudioQuality>(
+              value: settings.streamingQuality.value,
+              items: [
+                (AudioQuality.Low, context.l10n.low),
+                (AudioQuality.High, context.l10n.high),
+              ],
+              onChanged: settings.setStreamingQuality,
+            )),
       ),
       if (GetPlatform.isAndroid)
-        Obx(() => ListTile(
-              title: Text(context.l10n.loudnessNormalization),
-              subtitle: Text(context.l10n.loudnessNormalizationDes),
-              trailing: CustSwitch(
+        _SettingsListTile(
+          title: context.l10n.loudnessNormalization,
+          subtitle: context.l10n.loudnessNormalizationDes,
+          trailing: Obx(() => CustSwitch(
                 value: settings.loudnessNormalizationEnabled.value,
                 onChanged: settings.toggleLoudnessNormalization,
-              ),
-            )),
+              )),
+          onTap: () => settings.toggleLoudnessNormalization(
+            !settings.loudnessNormalizationEnabled.value,
+          ),
+        ),
       if (!isDesktop)
-        Obx(() => ListTile(
-              title: Text(context.l10n.cacheSongs),
-              subtitle: Text(context.l10n.cacheSongsDes),
-              trailing: CustSwitch(
+        _SettingsListTile(
+          title: context.l10n.cacheSongs,
+          subtitle: context.l10n.cacheSongsDes,
+          trailing: Obx(() => CustSwitch(
                 value: settings.cacheSongs.value,
                 onChanged: settings.toggleCachingSongsValue,
-              ),
-            )),
+              )),
+          onTap: () => settings.toggleCachingSongsValue(
+            !settings.cacheSongs.value,
+          ),
+        ),
       if (!isDesktop)
-        Obx(() => ListTile(
-              title: Text(context.l10n.skipSilence),
-              subtitle: Text(context.l10n.skipSilenceDes),
-              trailing: CustSwitch(
+        _SettingsListTile(
+          title: context.l10n.skipSilence,
+          subtitle: context.l10n.skipSilenceDes,
+          trailing: Obx(() => CustSwitch(
                 value: settings.skipSilenceEnabled.value,
                 onChanged: settings.toggleSkipSilence,
-              ),
-            )),
+              )),
+          onTap: () => settings.toggleSkipSilence(
+            !settings.skipSilenceEnabled.value,
+          ),
+        ),
       if (isDesktop)
-        Obx(() => ListTile(
-              title: Text(context.l10n.backgroundPlay),
-              subtitle: Text(context.l10n.backgroundPlayDes),
-              trailing: CustSwitch(
+        _SettingsListTile(
+          title: context.l10n.backgroundPlay,
+          subtitle: context.l10n.backgroundPlayDes,
+          trailing: Obx(() => CustSwitch(
                 value: settings.backgroundPlayEnabled.value,
                 onChanged: settings.toggleBackgroundPlay,
-              ),
-            )),
-      Obx(() => ListTile(
-            title: Text(context.l10n.keepScreenOnWhilePlaying),
-            subtitle: Text(context.l10n.keepScreenOnWhilePlayingDes),
-            trailing: CustSwitch(
+              )),
+          onTap: () => settings.toggleBackgroundPlay(
+            !settings.backgroundPlayEnabled.value,
+          ),
+        ),
+      _SettingsListTile(
+        title: context.l10n.keepScreenOnWhilePlaying,
+        subtitle: context.l10n.keepScreenOnWhilePlayingDes,
+        trailing: Obx(() => CustSwitch(
               value: settings.keepScreenAwake.value,
               onChanged: settings.toggleKeepScreenAwake,
-            ),
-          )),
-      Obx(() => ListTile(
-            title: Text(context.l10n.autoRadio),
-            subtitle: Text(context.l10n.autoRadioDes),
-            trailing: CustSwitch(
+            )),
+        onTap: () => settings.toggleKeepScreenAwake(
+          !settings.keepScreenAwake.value,
+        ),
+      ),
+      _SettingsListTile(
+        title: context.l10n.autoRadio,
+        subtitle: context.l10n.autoRadioDes,
+        trailing: Obx(() => CustSwitch(
               value: settings.autoRadioEnabled.value,
               onChanged: settings.toggleAutoRadio,
-            ),
-          )),
-      Obx(() => ListTile(
-            title: Text(context.l10n.restoreLastPlaybackSession),
-            subtitle: Text(context.l10n.restoreLastPlaybackSessionDes),
-            trailing: CustSwitch(
+            )),
+        onTap: () => settings.toggleAutoRadio(!settings.autoRadioEnabled.value),
+      ),
+      _SettingsListTile(
+        title: context.l10n.restoreLastPlaybackSession,
+        subtitle: context.l10n.restoreLastPlaybackSessionDes,
+        trailing: Obx(() => CustSwitch(
               value: settings.restorePlaybackSession.value,
               onChanged: settings.toggleRestorePlaybackSession,
-            ),
-          )),
-      Obx(() => ListTile(
-            title: Text(context.l10n.autoOpenPlayer),
-            subtitle: Text(context.l10n.autoOpenPlayerDes),
-            trailing: CustSwitch(
+            )),
+        onTap: () => settings.toggleRestorePlaybackSession(
+          !settings.restorePlaybackSession.value,
+        ),
+      ),
+      _SettingsListTile(
+        title: context.l10n.autoOpenPlayer,
+        subtitle: context.l10n.autoOpenPlayerDes,
+        trailing: Obx(() => CustSwitch(
               value: settings.autoOpenPlayer.value,
               onChanged: settings.toggleAutoOpenPlayer,
-            ),
-          )),
+            )),
+        onTap: () => settings.toggleAutoOpenPlayer(
+          !settings.autoOpenPlayer.value,
+        ),
+      ),
       if (!isDesktop)
-        ListTile(
-          title: Text(context.l10n.equalizer),
-          subtitle: Text(context.l10n.equalizerDes),
+        _SettingsListTile(
+          title: context.l10n.equalizer,
+          subtitle: context.l10n.equalizerDes,
           onTap: () async {
             try {
               await Get.find<PlayerController>().openEqualizer();
@@ -932,254 +849,235 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           },
         ),
       if (!isDesktop)
-        Obx(() => ListTile(
-              title: Text(context.l10n.stopMusicOnTaskClear),
-              subtitle: Text(context.l10n.stopMusicOnTaskClearDes),
-              trailing: CustSwitch(
+        _SettingsListTile(
+          title: context.l10n.stopMusicOnTaskClear,
+          subtitle: context.l10n.stopMusicOnTaskClearDes,
+          trailing: Obx(() => CustSwitch(
                 value: settings.stopPlyabackOnSwipeAway.value,
                 onChanged: settings.toggleStopPlyabackOnSwipeAway,
-              ),
-            )),
+              )),
+          onTap: () => settings.toggleStopPlyabackOnSwipeAway(
+            !settings.stopPlyabackOnSwipeAway.value,
+          ),
+        ),
       if (GetPlatform.isAndroid)
-        Obx(() => ListTile(
-              title: Text(context.l10n.ignoreBatOpt),
-              onTap: settings.isIgnoringBatteryOptimizations.isFalse
-                  ? settings.enableIgnoringBatteryOptimizations
-                  : null,
-              subtitle: Text(
-                "${context.l10n.status}: ${settings.isIgnoringBatteryOptimizations.isTrue ? context.l10n.enabled : context.l10n.disabled}\n${context.l10n.ignoreBatOptDes}",
-              ),
-            )),
+        _SettingsListTile(
+          title: context.l10n.ignoreBatOpt,
+          subtitle: Obx(() => _batteryStatusText(context, settings)),
+          onTap: () {
+            if (settings.isIgnoringBatteryOptimizations.isFalse) {
+              settings.enableIgnoringBatteryOptimizations();
+            }
+          },
+        ),
     ];
+  }
+
+  Widget _batteryStatusText(
+    BuildContext context,
+    SettingsScreenController settings,
+  ) {
+    final l10n = context.l10n;
+    final colors = context.doudouColors;
+    final theme = Theme.of(context);
+
+    return RichText(
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colors.textTertiary,
+        ),
+        children: [
+          TextSpan(text: '${l10n.status}: '),
+          TextSpan(
+            text: settings.isIgnoringBatteryOptimizations.isTrue
+                ? l10n.enabled
+                : l10n.disabled,
+            style: TextStyle(
+              color: settings.isIgnoringBatteryOptimizations.isTrue
+                  ? colors.success
+                  : null,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          TextSpan(text: '\n${l10n.ignoreBatOptDes}'),
+        ],
+      ),
+    );
   }
 
   List<Widget> _buildServers(
     BuildContext context,
     SettingsScreenController settings,
-    LibrarySyncService syncService,
+    LibrarySyncService sync,
   ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colors = context.doudouColors;
+
     return [
+      _SettingsListTile(
+        title: context.l10n.addServer,
+        leading: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: colors.surfaceElevated,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(Icons.add, color: colors.textSecondary),
+        ),
+        onTap: () => _showAddProviderPicker(context),
+      ),
+      const SizedBox(height: DoudouSpace.s8),
       Obx(() {
         final servers = settings.servers;
         final activeId = settings.activeServerId.value;
-        return Column(
-          children: [
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () => _showAddProviderPicker(context),
-                child: Ink(
-                  decoration: BoxDecoration(
-                    color: theme.cardColor.withValues(alpha: 0.82),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: theme.dividerColor.withValues(alpha: 0.28),
-                    ),
-                  ),
-                  child: ListTile(
-                    dense: true,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                    leading: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: colorScheme.onSurface.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
+
+        if (servers.isEmpty) {
+          return _SettingsListTile(
+            title: context.l10n.noServersConfigured,
+            enabled: false,
+          );
+        }
+
+        return RadioGroup<int>(
+          groupValue: activeId,
+          onChanged: (v) {
+            if (v != null) settings.setActiveServer(v);
+          },
+          child: Column(
+            children: servers.map((server) {
+              return _SettingsListTile(
+                leading:
+                    Icon(serverIcon(server.type), color: colors.textSecondary),
+                title: server.name,
+                subtitle: server.serverUrl?.isNotEmpty == true
+                    ? server.serverUrl!
+                    : serverTypeLabel(context, server.type),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<int>(value: server.id),
+                    if (!server.isDefault) ...[
+                      if (server.type != ServerType.youtubeMusic)
+                        IconButton(
+                          icon: const Icon(Icons.wifi_find, size: 18),
+                          tooltip: context.l10n.testConnection,
+                          onPressed: () async {
+                            final err =
+                                await settings.testServerConnection(server);
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(err == null
+                                    ? context.l10n.connectionSuccess
+                                    : '${context.l10n.connectionFailed}: $err'),
+                              ),
+                            );
+                          },
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        onPressed: () => showDialog(
+                          context: context,
+                          builder: (_) => AddServerDialog(
+                            serverType: server.type,
+                            existing: server,
+                          ),
+                        ),
                       ),
-                      child: Icon(Icons.add,
-                          size: 16, color: colorScheme.onSurface),
-                    ),
-                    title: Text(
-                      context.l10n.addServer,
-                      style: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    trailing: Icon(
-                      Icons.chevron_right_rounded,
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (servers.isEmpty)
-              ListTile(title: Text(context.l10n.noServersConfigured))
-            else ...[
-              RadioGroup<int>(
-                groupValue: activeId,
-                onChanged: (v) {
-                  if (v != null) settings.setActiveServer(v);
-                },
-                child: Column(
-                  children: servers
-                      .map((server) {
-                        return ListTile(
-                            leading: Icon(_serverIcon(server.type)),
-                            title: Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    server.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 18),
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (dialogContext) => AlertDialog(
+                              title: Text(context.l10n.deleteServer),
+                              content: Text(context.l10n.deleteServerConfirm),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(dialogContext).pop(false),
+                                  child: Text(context.l10n.cancel),
+                                ),
+                                FilledButton(
+                                  onPressed: () =>
+                                      Navigator.of(dialogContext).pop(true),
+                                  child: Text(context.l10n.delete),
                                 ),
                               ],
                             ),
-                            subtitle: Text(
-                              server.serverUrl?.isNotEmpty == true
-                                  ? server.serverUrl!
-                                  : _serverTypeLabel(context, server.type),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Radio<int>(value: server.id),
-                                if (!server.isDefault) ...[
-                                  if (server.type != ServerType.youtubeMusic)
-                                    IconButton(
-                                      icon: const Icon(Icons.wifi_find, size: 18),
-                                      tooltip: context.l10n.testConnection,
-                                      onPressed: () async {
-                                        final err = await settings
-                                            .testServerConnection(server);
-                                        if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(err == null
-                                                ? context.l10n.connectionSuccess
-                                                : "${context.l10n.connectionFailed}: $err"),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  IconButton(
-                                    icon:
-                                        const Icon(Icons.edit_outlined, size: 18),
-                                    onPressed: () => showDialog(
-                                      context: context,
-                                      builder: (_) => AddServerDialog(
-                                        serverType: server.type,
-                                        existing: server,
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline,
-                                        size: 18),
-                                    onPressed: () async {
-                                      final confirmed = await showDialog<bool>(
-                                        context: context,
-                                        builder: (dialogContext) => AlertDialog(
-                                          title: Text(context.l10n.deleteServer),
-                                          content: Text(context.l10n.deleteServerConfirm),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () => Navigator.of(dialogContext).pop(false),
-                                              child: Text(context.l10n.cancel),
-                                            ),
-                                            FilledButton(
-                                              onPressed: () => Navigator.of(dialogContext).pop(true),
-                                              child: Text(context.l10n.delete),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                      if (confirmed == true && context.mounted) {
-                                        settings.removeServer(server.id);
-                                      }
-                                    },
-                                  ),
-                                ]
-                              ],
-                            ),
                           );
-                      })
-                      .toList(),
+                          if (confirmed == true && context.mounted) {
+                            settings.removeServer(server.id);
+                          }
+                        },
+                      ),
+                    ],
+                  ],
                 ),
-              ),
-              Obx(() {
-                final active = settings.activeServer;
-                final isNonYouTube =
-                    active != null && active.type != ServerType.youtubeMusic;
-                if (!isNonYouTube) return const SizedBox.shrink();
-                return ListTile(
-                  title: Text(context.l10n.resyncLibraryNow),
-                  trailing: TextButton(
-                    onPressed: syncService.isSyncing.value
-                        ? null
-                        : () async {
-                            await settings.resyncLibraryNow();
-                          },
-                    child:
-                        Text(syncService.isSyncing.value ? "Syncing..." : "Sync"),
-                  ),
-                );
-              }),
-            ],
-          ],
+                onTap: () => settings.setActiveServer(server.id),
+              );
+            }).toList(),
+          ),
+        );
+      }),
+      Obx(() {
+        final active = settings.activeServer;
+        final isNonYouTube =
+            active != null && active.type != ServerType.youtubeMusic;
+        if (!isNonYouTube) return const SizedBox.shrink();
+        return _SettingsListTile(
+          title: context.l10n.resyncLibraryNow,
+          trailing: TextButton(
+            onPressed:
+                sync.isSyncing.value ? null : () => settings.resyncLibraryNow(),
+            child: Text(sync.isSyncing.value
+                ? context.l10n.syncing
+                : context.l10n.sync),
+          ),
         );
       }),
     ];
   }
 
-  Future<void> _showAddProviderPicker(BuildContext context) async {
-    final selected = await showDialog<ServerType>(
-      context: context,
-      builder: (_) => const _AddProviderDialog(),
-    );
-    if (selected == null || !context.mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (_) => AddServerDialog(serverType: selected),
-    );
-  }
-
   List<Widget> _buildDownload(
-      BuildContext context, SettingsScreenController settings) {
-    final theme = Theme.of(context);
+    BuildContext context,
+    SettingsScreenController settings,
+  ) {
     return [
-      Obx(() => ListTile(
-            title: Text(context.l10n.autoDownFavSong),
-            subtitle: Text(context.l10n.autoDownFavSongDes),
-            trailing: CustSwitch(
+      _SettingsListTile(
+        title: context.l10n.autoDownFavSong,
+        subtitle: context.l10n.autoDownFavSongDes,
+        trailing: Obx(() => CustSwitch(
               value: settings.autoDownloadFavoriteSongEnabled.value,
               onChanged: settings.toggleAutoDownloadFavoriteSong,
-            ),
-          )),
-      ListTile(
-        title: Text(context.l10n.downloadingFormat),
-        subtitle: Text(context.l10n.downloadingFormatDes),
-        trailing: Obx(
-          () => DropdownButton(
-            underline: const SizedBox.shrink(),
-            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-            style: theme.textTheme.bodyMedium,
-            dropdownColor: theme.cardColor,
-            borderRadius: BorderRadius.circular(12),
-            value: settings.downloadingFormat.value,
-            items: const [
-              DropdownMenuItem(value: "opus", child: Text("Opus/Ogg")),
-              DropdownMenuItem(value: "m4a", child: Text("M4a")),
-            ],
-            onChanged: settings.changeDownloadingFormat,
-          ),
+            )),
+        onTap: () => settings.toggleAutoDownloadFavoriteSong(
+          !settings.autoDownloadFavoriteSongEnabled.value,
         ),
       ),
-      ListTile(
-        title: Text(context.l10n.downloadLocation),
-        subtitle: Obx(() => Text(settings.isCurrentPathsupportDownDir
-            ? "In App storage directory"
-            : settings.downloadLocationPath.value)),
+      _SettingsListTile(
+        title: context.l10n.downloadingFormat,
+        subtitle: context.l10n.downloadingFormatDes,
+        trailing: Obx(() => _SettingsDropdown<String>(
+              value: settings.downloadingFormat.value,
+              items: const [
+                ('opus', 'Opus/Ogg'),
+                ('m4a', 'M4a'),
+              ],
+              onChanged: settings.changeDownloadingFormat,
+            )),
+      ),
+      _SettingsListTile(
+        title: context.l10n.downloadLocation,
+        subtitle: Obx(() => Text(
+              settings.isCurrentPathsupportDownDir
+                  ? 'In App storage directory'
+                  : settings.downloadLocationPath.value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            )),
         trailing: TextButton(
           onPressed: settings.resetDownloadLocation,
           child: Text(context.l10n.reset),
@@ -1187,18 +1085,22 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
         onTap: settings.setDownloadLocation,
       ),
       if (GetPlatform.isAndroid)
-        ListTile(
-          title: Text(context.l10n.exportDowloadedFiles),
-          subtitle: Text(context.l10n.exportDowloadedFilesDes),
+        _SettingsListTile(
+          title: context.l10n.exportDowloadedFiles,
+          subtitle: context.l10n.exportDowloadedFilesDes,
           onTap: () => showDialog(
             context: context,
             builder: (_) => const ExportFileDialog(),
           ).whenComplete(() => Get.delete<ExportFileDialogController>()),
         ),
       if (GetPlatform.isAndroid)
-        ListTile(
-          title: Text(context.l10n.exportedFileLocation),
-          subtitle: Obx(() => Text(settings.exportLocationPath.value)),
+        _SettingsListTile(
+          title: context.l10n.exportedFileLocation,
+          subtitle: Obx(() => Text(
+                settings.exportLocationPath.value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )),
           onTap: settings.setExportedLocation,
         ),
     ];
@@ -1206,17 +1108,17 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
 
   List<Widget> _buildBackup(BuildContext context) {
     return [
-      ListTile(
-        title: Text(context.l10n.backupAppData),
-        subtitle: Text(context.l10n.backupSettingsAndPlaylistsDes),
+      _SettingsListTile(
+        title: context.l10n.backupAppData,
+        subtitle: context.l10n.backupSettingsAndPlaylistsDes,
         onTap: () => showDialog(
           context: context,
           builder: (_) => const BackupDialog(),
         ).whenComplete(() => Get.delete<BackupDialogController>()),
       ),
-      ListTile(
-        title: Text(context.l10n.restoreAppData),
-        subtitle: Text(context.l10n.restoreSettingsAndPlaylistsDes),
+      _SettingsListTile(
+        title: context.l10n.restoreAppData,
+        subtitle: context.l10n.restoreSettingsAndPlaylistsDes,
         onTap: () => showDialog(
           context: context,
           builder: (_) => const RestoreDialog(),
@@ -1226,30 +1128,35 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
   }
 
   List<Widget> _buildMisc(
-      BuildContext context, SettingsScreenController settings) {
+    BuildContext context,
+    SettingsScreenController settings,
+  ) {
     final isDesktop = GetPlatform.isDesktop;
+
     return [
-      Obx(() => ListTile(
-            title: Text(context.l10n.playbackDiagnosticsRelease),
-            subtitle: const Text(
-                "Record bounded playback/network events for troubleshooting."),
-            trailing: CustSwitch(
+      _SettingsListTile(
+        title: context.l10n.playbackDiagnosticsRelease,
+        subtitle: 'Record bounded playback/network events for troubleshooting.',
+        trailing: Obx(() => CustSwitch(
               value: settings.playbackDiagnosticsEnabled.value,
               onChanged: settings.togglePlaybackDiagnostics,
-            ),
-          )),
-      ListTile(
-        title: Text(context.l10n.viewPlaybackDiagnostics),
-        subtitle: Text(context.l10n.viewPlaybackDiagnosticsSubtitle),
+            )),
+        onTap: () => settings.togglePlaybackDiagnostics(
+          !settings.playbackDiagnosticsEnabled.value,
+        ),
+      ),
+      _SettingsListTile(
+        title: context.l10n.viewPlaybackDiagnostics,
+        subtitle: context.l10n.viewPlaybackDiagnosticsSubtitle,
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => const _PlaybackDiagnosticsPage(),
+            builder: (_) => const PlaybackDiagnosticsPage(),
           ),
         ),
       ),
-      ListTile(
-        title: Text(context.l10n.clearPlaybackDiagnostics),
-        subtitle: Text(context.l10n.clearPlaybackDiagnosticsSubtitle),
+      _SettingsListTile(
+        title: context.l10n.clearPlaybackDiagnostics,
+        subtitle: context.l10n.clearPlaybackDiagnosticsSubtitle,
         onTap: () async {
           final l10n = context.l10n;
           await settings.clearPlaybackDiagnostics();
@@ -1262,60 +1169,72 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       if (isDesktop) ...[
         const Divider(),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          padding: const EdgeInsets.fromLTRB(
+            DoudouSpace.s16,
+            DoudouSpace.s12,
+            DoudouSpace.s16,
+            DoudouSpace.s4,
+          ),
           child: Text(
             'Discord Rich Presence',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: context.doudouColors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
           ),
         ),
-        Obx(() => ListTile(
-              leading: const Icon(Icons.discord, size: 20),
-              title: const Text('Show Discord activity'),
-              subtitle: const Text(
-                  'Display the current song as your Discord status.'),
-              trailing: CustSwitch(
+        _SettingsListTile(
+          leading: const Icon(Icons.discord, size: 20),
+          title: 'Show Discord activity',
+          subtitle: 'Display the current song as your Discord status.',
+          trailing: Obx(() => CustSwitch(
                 value: settings.discordRpcEnabled.value,
                 onChanged: settings.toggleDiscordRpc,
-              ),
-            )),
-        Obx(() => ListTile(
-              leading: const Icon(Icons.vpn_key_outlined, size: 20),
-              title: const Text('Discord Application ID'),
-              subtitle: Text(
+              )),
+          onTap: () => settings.toggleDiscordRpc(
+            !settings.discordRpcEnabled.value,
+          ),
+        ),
+        _SettingsListTile(
+          leading: const Icon(Icons.vpn_key_outlined, size: 20),
+          title: 'Discord Application ID',
+          subtitle: Obx(() => Text(
                 settings.discordAppId.value.isEmpty
                     ? 'Not set — create one at discord.com/developers/applications'
                     : settings.discordAppId.value,
                 style: TextStyle(
                   color: settings.discordAppId.value.isEmpty
-                      ? Theme.of(context).colorScheme.error.withValues(alpha: 0.7)
+                      ? Theme.of(context)
+                          .colorScheme
+                          .error
+                          .withValues(alpha: 0.7)
                       : null,
                 ),
-              ),
-              onTap: () => _showDiscordAppIdDialog(context, settings),
-            )),
-        Obx(() => ListTile(
+              )),
+          onTap: () => _showDiscordAppIdDialog(context, settings),
+        ),
+        Obx(() => _SettingsListTile(
               leading: const Icon(Icons.bolt_outlined, size: 20),
-              title: const Text('Test Discord connection'),
-              subtitle: Text(
-                settings.discordAppId.value.isEmpty
-                    ? 'Set an Application ID first'
-                    : 'Send a test activity to Discord',
-                style: TextStyle(
-                  color: settings.discordAppId.value.isEmpty
-                      ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)
-                      : null,
-                ),
-              ),
+              title: 'Test Discord connection',
+              subtitle: Obx(() => Text(
+                    settings.discordAppId.value.isEmpty
+                        ? 'Set an Application ID first'
+                        : 'Send a test activity to Discord',
+                    style: TextStyle(
+                      color: settings.discordAppId.value.isEmpty
+                          ? context.doudouColors.textDisabled
+                          : null,
+                    ),
+                  )),
               enabled: settings.discordAppId.value.isNotEmpty,
-              onTap: () => _testDiscordRpc(context, settings),
+              onTap: settings.discordAppId.value.isNotEmpty
+                  ? () => _testDiscordRpc(context, settings)
+                  : null,
             )),
       ],
-      ListTile(
-        title: Text(context.l10n.resetToDefault),
-        subtitle: Text(context.l10n.resetToDefaultDes),
+      _SettingsListTile(
+        title: context.l10n.resetToDefault,
+        subtitle: context.l10n.resetToDefaultDes,
         onTap: () async {
           await settings.resetAppSettingsToDefault();
           if (!context.mounted) return;
@@ -1328,39 +1247,11 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
     ];
   }
 
-  void _testDiscordRpc(
-      BuildContext context, SettingsScreenController settings) async {
-    if (!Get.isRegistered<DiscordRpcService>()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        snackbar(context, 'Discord RPC is not available on this platform',
-            size: SnackBarSize.BIG),
-      );
-      return;
-    }
-
-    final svc = Get.find<DiscordRpcService>();
-    ScaffoldMessenger.of(context).showSnackBar(
-      snackbar(context, 'Testing Discord connection...', size: SnackBarSize.BIG),
-    );
-
-    final success = await svc.testConnection();
-    if (!context.mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      snackbar(
-        context,
-        success
-            ? 'Discord RPC is working! Check your Discord profile.'
-            : 'Discord RPC test failed. Make sure Discord is running and the Application ID is correct.',
-        size: SnackBarSize.BIG,
-      ),
-    );
-  }
-
   void _showDiscordAppIdDialog(
-      BuildContext context, SettingsScreenController settings) {
-    final controller =
-        TextEditingController(text: settings.discordAppId.value);
+    BuildContext context,
+    SettingsScreenController settings,
+  ) {
+    final controller = TextEditingController(text: settings.discordAppId.value);
     showDialog(
       context: context,
       builder: (ctx) {
@@ -1374,12 +1265,11 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 'Create a Discord application at discord.com/developers/applications and paste the Application ID here.',
                 style: TextStyle(fontSize: 13),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: DoudouSpace.s12),
               TextField(
                 controller: controller,
                 decoration: const InputDecoration(
                   labelText: 'Application ID',
-                  border: OutlineInputBorder(),
                   hintText: 'e.g. 1234567890123456789',
                 ),
                 keyboardType: TextInputType.number,
@@ -1401,26 +1291,63 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           ],
         );
       },
+    ).whenComplete(() => controller.dispose());
+  }
+
+  void _testDiscordRpc(
+    BuildContext context,
+    SettingsScreenController settings,
+  ) async {
+    if (!Get.isRegistered<DiscordRpcService>()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        snackbar(context, 'Discord RPC is not available on this platform',
+            size: SnackBarSize.BIG),
+      );
+      return;
+    }
+
+    final svc = Get.find<DiscordRpcService>();
+    ScaffoldMessenger.of(context).showSnackBar(
+      snackbar(context, 'Testing Discord connection...',
+          size: SnackBarSize.BIG),
+    );
+
+    final success = await svc.testConnection();
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      snackbar(
+        context,
+        success
+            ? 'Discord RPC is working! Check your Discord profile.'
+            : 'Discord RPC test failed. Make sure Discord is running and the Application ID is correct.',
+        size: SnackBarSize.BIG,
+      ),
     );
   }
 
   List<Widget> _buildInfo(
-      BuildContext context, SettingsScreenController settings) {
+    BuildContext context,
+    SettingsScreenController settings,
+  ) {
     return [
-      Obx(() => ListTile(
-            leading: const Icon(Icons.system_update_alt, size: 20),
-            title: Text(context.l10n.checkForUpdatesOnStartup),
-            trailing: CustSwitch(
+      _SettingsListTile(
+        leading: const Icon(Icons.system_update_alt, size: 20),
+        title: context.l10n.checkForUpdatesOnStartup,
+        trailing: Obx(() => CustSwitch(
               value: settings.checkForUpdatesOnStartup.value,
               onChanged: settings.toggleCheckForUpdatesOnStartup,
-            ),
-          )),
-      ListTile(
+            )),
+        onTap: () => settings.toggleCheckForUpdatesOnStartup(
+          !settings.checkForUpdatesOnStartup.value,
+        ),
+      ),
+      _SettingsListTile(
         leading: const Icon(Icons.system_update, size: 20),
-        title: Text(context.l10n.checkForUpdates),
+        title: context.l10n.checkForUpdates,
         onTap: () async {
-          final upToDate = context.l10n.upToDate;
           final checking = context.l10n.checkingForUpdates;
+          final upToDate = context.l10n.upToDate;
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(checking)));
           final info = await PackageInfo.fromPlatform();
@@ -1440,27 +1367,28 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
           }
         },
       ),
-      ListTile(
+      _SettingsListTile(
         leading: const Icon(Icons.public, size: 20),
-        title: Text(context.l10n.openGitlab),
-        subtitle: Text(context.l10n.gitlabDes),
+        title: context.l10n.openGitlab,
+        subtitle: context.l10n.gitlabDes,
         onTap: () => launchUrl(
           Uri.parse('https://gitlab.com/Openlyst/doudou/'),
           mode: LaunchMode.externalApplication,
         ),
       ),
       Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: DoudouSpace.s20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GestureDetector(
               onLongPress: () {
-                if (kIsPlayStore && !_ytmProviderUnlocked) {
-                  _ytmProviderUnlocked = true;
+                if (kIsPlayStore && !ytmProviderUnlocked) {
+                  ytmProviderUnlocked = true;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Additional providers unlocked')),
+                      content: Text('Additional providers unlocked'),
+                    ),
                   );
                 }
               },
@@ -1470,12 +1398,12 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
                 height: 48,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DoudouSpace.s12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Doudou",
+                  'Doudou',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -1488,68 +1416,271 @@ class _IOSSettingsViewState extends State<_IOSSettingsView> {
       ),
     ];
   }
+
+  Future<void> _showAddProviderPicker(BuildContext context) async {
+    final selected = await showDialog<ServerType>(
+      context: context,
+      builder: (_) => const AddProviderDialog(),
+    );
+    if (selected == null || !context.mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (_) => AddServerDialog(serverType: selected),
+    );
+  }
+}
+
+class _SettingsListTile extends StatelessWidget {
+  const _SettingsListTile({
+    this.leading,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+    this.enabled = true,
+  });
+
+  final Widget? leading;
+  final String title;
+  final Object? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = context.doudouColors;
+
+    Widget? leadingWidget;
+    if (leading is Widget) {
+      leadingWidget = leading as Widget;
+    }
+
+    Widget? subtitleWidget;
+    if (subtitle is Widget) {
+      subtitleWidget = subtitle as Widget;
+    } else if (subtitle is String) {
+      subtitleWidget = Text(
+        subtitle as String,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colors.textTertiary,
+        ),
+      );
+    } else if (subtitle is TextSpan) {
+      subtitleWidget = RichText(
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
+        text: subtitle as TextSpan,
+      );
+    }
+
+    Widget tile = ListTile(
+      enabled: enabled,
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: DoudouSpace.s12,
+        vertical: DoudouSpace.s2,
+      ),
+      leading: leadingWidget,
+      title: Text(
+        title,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+        ),
+      ),
+      subtitle: subtitleWidget,
+      trailing: trailing,
+      onTap: onTap,
+    );
+
+    if (onTap != null && _isTv(context)) {
+      tile = TvFocusHighlight(
+        borderRadius: 10,
+        onSelect: onTap,
+        child: tile,
+      );
+    }
+
+    return tile;
+  }
+
+  bool _isTv(BuildContext context) {
+    if (!Get.isRegistered<TvService>()) return false;
+    return Get.find<TvService>().isTV.value;
+  }
+}
+
+class _SettingsDropdown<T> extends StatelessWidget {
+  const _SettingsDropdown({
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final T value;
+  final List<(T, String)> items;
+  final void Function(T) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return DropdownButton<T>(
+      isDense: true,
+      value: value,
+      underline: const SizedBox.shrink(),
+      icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+      style: theme.textTheme.bodyMedium,
+      dropdownColor: theme.cardColor,
+      borderRadius: DoudouRadii.r12,
+      items: items
+          .map((e) => DropdownMenuItem<T>(
+                value: e.$1,
+                child: Text(e.$2),
+              ))
+          .toList(),
+      onChanged: (v) {
+        if (v != null) onChanged(v);
+      },
+    );
+  }
 }
 
 class _SettingsCard extends StatelessWidget {
   const _SettingsCard({
-    required this.icon,
-    required this.title,
+    this.icon,
+    this.title,
+    this.borderRadius = DoudouRadii.r16,
+    this.margin = const EdgeInsets.symmetric(horizontal: DoudouSpace.s4),
+    this.color,
     required this.children,
   });
 
-  final IconData icon;
-  final String title;
+  final IconData? icon;
+  final String? title;
+  final BorderRadius borderRadius;
+  final EdgeInsets margin;
+  final Color? color;
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.cardColor.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.25)),
-      ),
+    final colors = context.doudouColors;
+
+    return Card(
+      color: color ?? theme.cardColor,
+      elevation: 0,
+      margin: margin,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-            child: Row(
-              children: [
-                Icon(icon,
-                    size: 18,
-                    color: colorScheme.onSurface.withValues(alpha: 0.82)),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w700,
+          if (title != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                DoudouSpace.s16,
+                DoudouSpace.s16,
+                DoudouSpace.s16,
+                DoudouSpace.s8,
+              ),
+              child: Row(
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 18, color: colors.textSecondary),
+                    const SizedBox(width: DoudouSpace.s8),
+                  ],
+                  Text(
+                    title!,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (title != null) const Divider(height: 1),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsNavTile extends StatefulWidget {
+  const _SettingsNavTile({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_SettingsNavTile> createState() => _SettingsNavTileState();
+}
+
+class _SettingsNavTileState extends State<_SettingsNavTile> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.doudouColors;
+    final iconColor = widget.selected
+        ? c.textPrimary
+        : (_hover ? c.textPrimary : c.textSecondary);
+    final bgColor = widget.selected
+        ? c.surfaceSelected
+        : (_hover ? c.stateHover : Colors.transparent);
+
+    return Semantics(
+      button: true,
+      selected: widget.selected,
+      child: InkWell(
+        onTap: widget.onTap,
+        onHover: (v) => setState(() => _hover = v),
+        borderRadius: BorderRadius.circular(8),
+        hoverColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          margin: const EdgeInsets.only(bottom: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: bgColor,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                widget.icon,
+                size: 20,
+                color: iconColor,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight:
+                        widget.selected ? FontWeight.w600 : FontWeight.w500,
+                    color: iconColor,
                   ),
                 ),
-              ],
-            ),
-          ),
-          Divider(
-            height: 1,
-            color: theme.dividerColor.withValues(alpha: 0.28),
-          ),
-          Theme(
-            data: theme.copyWith(
-              listTileTheme: ListTileThemeData(
-                iconColor: colorScheme.onSurface.withValues(alpha: 0.78),
-                textColor: colorScheme.onSurface,
               ),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: Column(
-                children: children,
-              ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1559,1119 +1690,32 @@ class _SettingsSubPage extends StatelessWidget {
   const _SettingsSubPage({
     required this.icon,
     required this.title,
-    required this.children,
+    required this.childrenBuilder,
   });
 
   final IconData icon;
   final String title;
-  final List<Widget> children;
+  final List<Widget> Function(BuildContext) childrenBuilder;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
-        title: Text(
-          title,
-          style: theme.textTheme.titleLarge?.copyWith(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
       ),
       body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _SettingsCard(
-                    icon: icon,
-                    title: title,
-                    children: children,
-                  ),
-                ]),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ThemeSelectorDialog extends StatelessWidget {
-  const ThemeSelectorDialog({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final settingsController = Get.find<SettingsScreenController>();
-    return CommonDialog(
-      child: Material(
-        color:
-            theme.dialogTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 24.0, vertical: 12.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    context.l10n.themeMode,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.textTheme.bodyLarge?.color),
-                  ),
-                ),
-              ),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      radioWidget(
-                        context: context,
-                        label: context.l10n.dynamicTheme,
-                        controller: settingsController,
-                        value: ThemeType.dynamic,
-                      ),
-                      radioWidget(
-                          context: context,
-                          label: context.l10n.systemDefault,
-                          controller: settingsController,
-                          value: ThemeType.system),
-                      radioWidget(
-                          context: context,
-                          label: context.l10n.dark,
-                          controller: settingsController,
-                          value: ThemeType.dark),
-                      radioWidget(
-                          context: context,
-                          label: context.l10n.oled,
-                          controller: settingsController,
-                          value: ThemeType.oled),
-                      radioWidget(
-                          context: context,
-                          label: context.l10n.light,
-                          controller: settingsController,
-                          value: ThemeType.light),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(context.l10n.cancel,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.primary)),
-                    )),
-              )
-            ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(DoudouSpace.s16),
+          child: _SettingsCard(
+            icon: icon,
+            title: title,
+            children: childrenBuilder(context),
           ),
         ),
       ),
     );
   }
-}
-
-class DiscoverContentSelectorDialog extends StatelessWidget {
-  const DiscoverContentSelectorDialog({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final settingsController = Get.find<SettingsScreenController>();
-    return CommonDialog(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  context.l10n.setDiscoverContent,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    radioWidget(
-                        context: context,
-                        label: context.l10n.quickpicks,
-                        controller: settingsController,
-                        value: "QP"),
-                    radioWidget(
-                        context: context,
-                        label: context.l10n.topmusicvideos,
-                        controller: settingsController,
-                        value: "TMV"),
-                    radioWidget(
-                        context: context,
-                        label: context.l10n.trending,
-                        controller: settingsController,
-                        value: "TR"),
-                    radioWidget(
-                        context: context,
-                        label: context.l10n.basedOnLast,
-                        controller: settingsController,
-                        value: "BOLI"),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(context.l10n.cancel,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                  )),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AddProviderDialog extends StatelessWidget {
-  const _AddProviderDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    final types = ServerType.values.where((t) {
-      if (t == ServerType.youtubeMusic &&
-          kIsPlayStore &&
-          !_ytmProviderUnlocked) {
-        return false;
-      }
-      return true;
-    }).toList();
-
-    // TV mode: bigger tiles with focus highlights
-    final isTv = Get.isRegistered<TvService>() && Get.find<TvService>().isTV.value;
-    if (isTv) {
-      return _TvAddProviderDialog(types: types);
-    }
-
-    return CommonDialog(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
-              child: Row(
-                children: [
-                  Text(
-                    context.l10n.addServer,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                ],
-              ),
-            ),
-            for (int i = 0; i < types.length; i++) ...[
-              ListTile(
-                dense: true,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                leading: Icon(_serverIcon(types[i])),
-                title: Text(_serverTypeLabel(context, types[i])),
-                trailing: const Icon(Icons.chevron_right_rounded, size: 18),
-                onTap: () => Navigator.of(context).pop(types[i]),
-              ),
-              if (i < types.length - 1)
-                Divider(
-                  height: 1,
-                  color: Theme.of(context).dividerColor.withValues(alpha: 0.28),
-                ),
-            ],
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(context.l10n.cancel),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class AddServerDialog extends StatefulWidget {
-  const AddServerDialog({
-    super.key,
-    required this.serverType,
-    this.existing,
-  });
-
-  final ServerType serverType;
-  final SettingsServer? existing;
-
-  @override
-  State<AddServerDialog> createState() => _AddServerDialogState();
-}
-
-class _PlaybackDiagnosticsPage extends StatefulWidget {
-  const _PlaybackDiagnosticsPage();
-
-  @override
-  State<_PlaybackDiagnosticsPage> createState() =>
-      _PlaybackDiagnosticsPageState();
-}
-
-class _PlaybackDiagnosticsPageState extends State<_PlaybackDiagnosticsPage> {
-  static const int _maxShownEvents = 400;
-  bool _prettyFormat = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final settings = Get.find<SettingsScreenController>();
-    final text = settings.getPlaybackDiagnosticsText(
-      limit: _maxShownEvents,
-      pretty: _prettyFormat,
-    );
-    final count = settings.playbackDiagnosticsCount;
-    final isEmpty = text.trim().isEmpty;
-
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(context.l10n.playbackDiagnostics),
-        actions: [
-          IconButton(
-            tooltip: context.l10n.toggleFormat,
-            onPressed: () => setState(() => _prettyFormat = !_prettyFormat),
-            icon: Icon(_prettyFormat ? Icons.code : Icons.notes),
-          ),
-          IconButton(
-            tooltip: context.l10n.copyDiagnostics,
-            onPressed: () async {
-              final copied = await settings.copyPlaybackDiagnosticsToClipboard(
-                limit: _maxShownEvents,
-                pretty: _prettyFormat,
-              );
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(copied
-                      ? "Diagnostics copied to clipboard"
-                      : "No diagnostics to copy"),
-                ),
-              );
-            },
-            icon: const Icon(Icons.copy_all_outlined),
-          ),
-          IconButton(
-            tooltip: "Refresh",
-            onPressed: () => setState(() {}),
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Events: $count (showing up to $_maxShownEvents)",
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color:
-                        Theme.of(context).dividerColor.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: isEmpty
-                    ? const Center(
-                        child: Text(
-                          "No diagnostics yet.\nEnable diagnostics and reproduce the issue.",
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                    : SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: SelectableText(
-                          text,
-                          style: const TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 12,
-                            height: 1.35,
-                          ),
-                        ),
-                      ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AddServerDialogState extends State<AddServerDialog> {
-  late final TextEditingController _urlController;
-  late final TextEditingController _usernameController;
-  late final TextEditingController _passwordController;
-  late String _protocol;
-
-  @override
-  void initState() {
-    super.initState();
-    var existingUrl = widget.existing?.serverUrl ?? '';
-    if (existingUrl.startsWith('http://')) {
-      _protocol = 'http';
-      existingUrl = existingUrl.substring(7);
-    } else if (existingUrl.startsWith('https://')) {
-      _protocol = 'https';
-      existingUrl = existingUrl.substring(8);
-    } else {
-      _protocol = 'https';
-    }
-    _urlController = TextEditingController(text: existingUrl);
-    _usernameController =
-        TextEditingController(text: widget.existing?.username ?? '');
-    _passwordController =
-        TextEditingController(text: widget.existing?.password ?? '');
-  }
-
-  @override
-  void dispose() {
-    _urlController.dispose();
-    _usernameController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  String _buildServerUrl() {
-    var url = _urlController.text.trim();
-    url = url.replaceFirst(RegExp(r'^https?://'), '');
-    if (url.isEmpty) return '';
-    return '$_protocol://$url';
-  }
-
-  bool get _needsCredentials =>
-      widget.serverType == ServerType.subsonic ||
-      widget.serverType == ServerType.jellyfin ||
-      widget.serverType == ServerType.plex;
-
-  String _title(BuildContext context) {
-    final l10n = context.l10n;
-    if (widget.existing != null) return l10n.editServer;
-    switch (widget.serverType) {
-      case ServerType.youtubeMusic:
-        return '${l10n.addServer} - ${l10n.youtubeMusic}';
-      case ServerType.subsonic:
-        return '${l10n.addServer} - ${l10n.subsonic}';
-      case ServerType.jellyfin:
-        return '${l10n.addServer} - ${l10n.jellyfin}';
-      case ServerType.plex:
-        return '${l10n.addServer} - ${l10n.plex}';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // TV mode: show staged wizard instead of the cramped dialog
-    if (Get.isRegistered<TvService>() && Get.find<TvService>().isTV.value) {
-      return _TvAddServerWizard(
-        serverType: widget.serverType,
-        existing: widget.existing,
-        urlController: _urlController,
-        usernameController: _usernameController,
-        passwordController: _passwordController,
-        protocol: _protocol,
-        onProtocolChanged: (v) => setState(() => _protocol = v),
-        buildServerUrl: _buildServerUrl,
-        needsCredentials: _needsCredentials,
-        title: _title(context),
-      );
-    }
-
-    final controller = Get.find<SettingsScreenController>();
-    final l10n = context.l10n;
-    return CommonDialog(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              _title(context),
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            if (_needsCredentials) ...[
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  SizedBox(
-                    width: 110,
-                    child: DropdownButtonFormField<String>(
-                      value: _protocol,
-                      decoration: const InputDecoration(
-                        labelText: 'Protocol',
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'https', child: Text('HTTPS')),
-                        DropdownMenuItem(value: 'http', child: Text('HTTP')),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) setState(() => _protocol = v);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _urlController,
-                      decoration: InputDecoration(
-                        labelText: l10n.serverUrl,
-                        hintText: 'example.com',
-                      ),
-                      keyboardType: TextInputType.url,
-                      textInputAction: TextInputAction.next,
-                    ),
-                  ),
-                ],
-              ),
-              if (widget.serverType != ServerType.plex) ...[
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _usernameController,
-                  decoration: InputDecoration(labelText: l10n.username),
-                  textInputAction: TextInputAction.next,
-                ),
-              ],
-              const SizedBox(height: 12),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: widget.serverType == ServerType.plex
-                      ? l10n.plexToken
-                      : l10n.password,
-                ),
-                obscureText: true,
-              ),
-            ] else ...[
-              const SizedBox(height: 12),
-              Text(
-                l10n.youtubeMusicNoLogin,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const Spacer(),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.cancel),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: () {
-                    if (widget.existing != null) {
-                      if (_needsCredentials) {
-                        controller.updateServer(
-                          widget.existing!.id,
-                          serverUrl: _buildServerUrl(),
-                          username: _usernameController.text,
-                          password: _passwordController.text,
-                        );
-                      }
-                    } else {
-                      if (_needsCredentials) {
-                        final serverUrl = _buildServerUrl();
-                        if (serverUrl.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l10n.serverUrlRequired)),
-                          );
-                          return;
-                        }
-                        controller.addServerWithCredentials(
-                          widget.serverType,
-                          serverUrl: serverUrl,
-                          username: _usernameController.text,
-                          password: _passwordController.text,
-                        );
-                      } else {
-                        controller
-                            .addServerWithCredentials(widget.serverType);
-                      }
-                    }
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(widget.existing != null ? l10n.save : l10n.add),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-Widget radioWidget(
-    {required BuildContext context,
-    required String label,
-    required SettingsScreenController controller,
-    required value}) {
-  return Obx(() => ListTile(
-        visualDensity: const VisualDensity(vertical: -4),
-        onTap: () {
-          if (value.runtimeType == ThemeType) {
-            controller.onThemeChange(value);
-          } else {
-            controller.onContentChange(value);
-            Navigator.of(context).pop();
-          }
-        },
-        leading: RadioGroup<dynamic>(
-            groupValue: value.runtimeType == ThemeType
-                ? controller.themeModetype.value
-                : controller.discoverContentType.value,
-            onChanged: value.runtimeType == ThemeType
-                ? controller.onThemeChange
-                : (v) {
-                    controller.onContentChange(v);
-                    Navigator.of(context).pop();
-                  },
-            child: Radio(value: value)),
-        title: Text(label),
-      ));
-}
-
-/// TV-optimized server type picker with large focusable tiles.
-class _TvAddProviderDialog extends StatelessWidget {
-  const _TvAddProviderDialog({required this.types});
-
-  final List<ServerType> types;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = context.l10n;
-
-    return Dialog(
-      backgroundColor: theme.colorScheme.surface,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 80, vertical: 60),
-      child: FocusTraversalGroup(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 600),
-          padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 40),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l10n.addServer,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 32),
-              for (int i = 0; i < types.length; i++) ...[
-                TvFocusHighlight(
-                  borderRadius: 12,
-                  autofocus: i == 0,
-                  debugLabel: 'ServerType_${types[i].name}',
-                  onSelect: () => Navigator.of(context).pop(types[i]),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 28),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: theme.dividerColor),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(_serverIcon(types[i]), size: 32),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Text(
-                            _serverTypeLabel(context, types[i]),
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right_rounded, size: 28),
-                      ],
-                    ),
-                  ),
-                ),
-                if (i < types.length - 1) const SizedBox(height: 12),
-              ],
-              const SizedBox(height: 32),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TvFocusHighlight(
-                  borderRadius: 8,
-                  debugLabel: 'CancelProvider',
-                  onSelect: () => Navigator.of(context).pop(),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    child: Text(
-                      l10n.cancel,
-                      style: theme.textTheme.titleMedium,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// TV-optimized staged wizard for adding/editing a server.
-/// Each field gets its own full-screen stage so D-pad navigation is simple
-/// and text input is large enough for a 10-foot UI.
-class _TvAddServerWizard extends StatefulWidget {
-  const _TvAddServerWizard({
-    required this.serverType,
-    this.existing,
-    required this.urlController,
-    required this.usernameController,
-    required this.passwordController,
-    required this.protocol,
-    required this.onProtocolChanged,
-    required this.buildServerUrl,
-    required this.needsCredentials,
-    required this.title,
-  });
-
-  final ServerType serverType;
-  final SettingsServer? existing;
-  final TextEditingController urlController;
-  final TextEditingController usernameController;
-  final TextEditingController passwordController;
-  final String protocol;
-  final ValueChanged<String> onProtocolChanged;
-  final String Function() buildServerUrl;
-  final bool needsCredentials;
-  final String title;
-
-  @override
-  State<_TvAddServerWizard> createState() => _TvAddServerWizardState();
-}
-
-class _TvAddServerWizardState extends State<_TvAddServerWizard> {
-  int _stage = 0;
-  late int _maxStage;
-
-  @override
-  void initState() {
-    super.initState();
-    // Stages: 0=protocol, 1=url, 2=username (if needed), 3=password, 4=confirm
-    // For Plex: no username, just token
-    // For YouTube Music: no credentials at all
-    if (!widget.needsCredentials) {
-      _maxStage = 0; // just confirm
-    } else if (widget.serverType == ServerType.plex) {
-      _maxStage = 2; // protocol, url, token
-    } else {
-      _maxStage = 3; // protocol, url, username, password
-    }
-  }
-
-  void _next() {
-    if (_stage < _maxStage) {
-      setState(() => _stage++);
-    } else {
-      _submit();
-    }
-  }
-
-  void _back() {
-    if (_stage > 0) {
-      setState(() => _stage--);
-    } else {
-      Navigator.of(context).pop();
-    }
-  }
-
-  void _submit() {
-    final controller = Get.find<SettingsScreenController>();
-    final l10n = context.l10n;
-
-    if (widget.needsCredentials) {
-      final serverUrl = widget.buildServerUrl();
-      if (serverUrl.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.serverUrlRequired)),
-        );
-        return;
-      }
-
-      if (widget.existing != null) {
-        controller.updateServer(
-          widget.existing!.id,
-          serverUrl: serverUrl,
-          username: widget.usernameController.text,
-          password: widget.passwordController.text,
-        );
-      } else {
-        controller.addServerWithCredentials(
-          widget.serverType,
-          serverUrl: serverUrl,
-          username: widget.usernameController.text,
-          password: widget.passwordController.text,
-        );
-      }
-    } else {
-      // YouTube Music — no creds needed
-      if (widget.existing != null) {
-        // nothing to update for YTM
-      } else {
-        controller.addServerWithCredentials(widget.serverType);
-      }
-    }
-    Navigator.of(context).pop();
-  }
-
-  String _stageTitle() {
-    final l10n = context.l10n;
-    if (!widget.needsCredentials) return l10n.youtubeMusicNoLogin;
-    switch (_stage) {
-      case 0:
-        return 'Protocol';
-      case 1:
-        return l10n.serverUrl;
-      case 2:
-        return widget.serverType == ServerType.plex ? l10n.plexToken : l10n.username;
-      case 3:
-        return l10n.password;
-      default:
-        return '';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = context.l10n;
-
-    return Dialog(
-      backgroundColor: theme.colorScheme.surface,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 80, vertical: 60),
-      child: FocusTraversalGroup(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 700),
-          padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 40),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header with title and stage indicator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.title,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  if (widget.needsCredentials)
-                    Text(
-                      'Step ${_stage + 1} of ${_maxStage + 1}',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Stage title
-              Text(
-                _stageTitle(),
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 32),
-              // Stage content
-              Expanded(
-                flex: 0,
-                child: _buildStageContent(context),
-              ),
-              const SizedBox(height: 40),
-              // Navigation buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TvFocusHighlight(
-                    borderRadius: 8,
-                    debugLabel: 'BackBtn',
-                    onSelect: _back,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      child: Text(
-                        _stage == 0 ? l10n.cancel : 'Back',
-                        style: theme.textTheme.titleMedium,
-                      ),
-                    ),
-                  ),
-                  TvFocusHighlight(
-                    borderRadius: 8,
-                    autofocus: true,
-                    debugLabel: 'NextBtn',
-                    onSelect: _next,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        _stage == _maxStage
-                            ? (widget.existing != null ? l10n.save : l10n.add)
-                            : 'Next',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStageContent(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = context.l10n;
-
-    if (!widget.needsCredentials) {
-      // YouTube Music — just a message
-      return Text(
-        l10n.youtubeMusicNoLogin,
-        style: theme.textTheme.titleMedium,
-      );
-    }
-
-    switch (_stage) {
-      case 0:
-        // Protocol selection — two big buttons
-        return Row(
-          children: [
-            Expanded(
-              child: _TvProtocolChoice(
-                label: 'HTTPS',
-                selected: widget.protocol == 'https',
-                onSelect: () {
-                  widget.onProtocolChanged('https');
-                  _next();
-                },
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _TvProtocolChoice(
-                label: 'HTTP',
-                selected: widget.protocol == 'http',
-                onSelect: () {
-                  widget.onProtocolChanged('http');
-                  _next();
-                },
-              ),
-            ),
-          ],
-        );
-
-      case 1:
-        // URL input
-        return TextField(
-          controller: widget.urlController,
-          autofocus: true,
-          style: const TextStyle(fontSize: 22),
-          decoration: InputDecoration(
-            labelText: l10n.serverUrl,
-            labelStyle: const TextStyle(fontSize: 18),
-            hintText: 'example.com',
-            hintStyle: const TextStyle(fontSize: 18),
-            border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-          ),
-          keyboardType: TextInputType.url,
-          textInputAction: TextInputAction.done,
-          onSubmitted: (_) => _next(),
-        );
-
-      case 2:
-        if (widget.serverType == ServerType.plex) {
-          // Plex token
-          return TextField(
-            controller: widget.passwordController,
-            autofocus: true,
-            style: const TextStyle(fontSize: 22),
-            decoration: InputDecoration(
-              labelText: l10n.plexToken,
-              labelStyle: const TextStyle(fontSize: 18),
-              border: const OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-            ),
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _next(),
-          );
-        }
-        // Username
-        return TextField(
-          controller: widget.usernameController,
-          autofocus: true,
-          style: const TextStyle(fontSize: 22),
-          decoration: InputDecoration(
-            labelText: l10n.username,
-            labelStyle: const TextStyle(fontSize: 18),
-            border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-          ),
-          textInputAction: TextInputAction.done,
-          onSubmitted: (_) => _next(),
-        );
-
-      case 3:
-        // Password
-        return TextField(
-          controller: widget.passwordController,
-          autofocus: true,
-          style: const TextStyle(fontSize: 22),
-          decoration: InputDecoration(
-            labelText: l10n.password,
-            labelStyle: const TextStyle(fontSize: 18),
-            border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-          ),
-          obscureText: true,
-          textInputAction: TextInputAction.done,
-          onSubmitted: (_) => _next(),
-        );
-
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-}
-
-class _TvProtocolChoice extends StatelessWidget {
-  const _TvProtocolChoice({
-    required this.label,
-    required this.selected,
-    required this.onSelect,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return TvFocusHighlight(
-      borderRadius: 12,
-      onSelect: onSelect,
-      debugLabel: 'Protocol_$label',
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected ? theme.colorScheme.outline : theme.dividerColor,
-            width: selected ? 2 : 1,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-IconData _serverIcon(ServerType type) {
-  const icons = <ServerType, IconData>{
-    ServerType.youtubeMusic: Icons.play_circle_outline,
-    ServerType.subsonic: Icons.waves,
-    ServerType.jellyfin: Icons.tv,
-    ServerType.plex: Icons.cloud,
-  };
-  return icons[type] ?? Icons.storage_outlined;
-}
-
-String _serverTypeLabel(BuildContext context, ServerType type) {
-  final l10n = context.l10n;
-  return switch (type) {
-    ServerType.youtubeMusic => l10n.youtubeMusic,
-    ServerType.subsonic => l10n.subsonic,
-    ServerType.jellyfin => l10n.jellyfin,
-    ServerType.plex => l10n.plex,
-  };
 }
