@@ -8,6 +8,8 @@ import 'package:hive/hive.dart';
 import 'package:palette_generator/palette_generator.dart';
 import '/ui/design/doudou_theme.dart';
 import '/utils/helper.dart';
+import '/app/theme/app_theme_provider.dart';
+import '/main.dart' show appContainer;
 
 ThemeType themeTypeFromStorage(dynamic rawThemeModeType) {
   if (rawThemeModeType is! int) return ThemeType.system;
@@ -96,9 +98,14 @@ class ThemeController extends GetxController {
     final platformDispatcher = WidgetsBinding.instance.platformDispatcher;
     platformDispatcher.onPlatformBrightnessChanged = () {
       systemBrightness = platformDispatcher.platformBrightness;
-      changeThemeModeType(
-          themeTypeFromStorage(Hive.box('AppPrefs').get("themeModeType")),
-          sysCall: true);
+      final savedType =
+          themeTypeFromStorage(Hive.box('AppPrefs').get("themeModeType"));
+      changeThemeModeType(savedType, sysCall: true);
+      if (savedType == ThemeType.system) {
+        appContainer
+            .read(appThemeProvider.notifier)
+            .setThemeType(ThemeType.system, systemBrightness: systemBrightness);
+      }
     };
   }
 
