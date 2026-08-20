@@ -100,7 +100,9 @@ class _SettingsViewState extends State<_SettingsView> {
     final topPadding = mq.padding.top +
         (layout.isPhone
             ? kTopPaddingNarrow
-            : (showHeader ? kTopPaddingDesktop : DoudouSpace.s16));
+            : (showHeader
+                ? kTopPaddingDesktop
+                : (useTwoPane && layout.isDesktop ? 0 : DoudouSpace.s16)));
     final horizontalPadding = widget.isBottomNavActive
         ? kContentLeftPaddingWithBottomNav
         : (useTwoPane ? 0.0 : layout.contentPadding.left);
