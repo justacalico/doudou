@@ -49,7 +49,13 @@ github-dispatch:
   variables:
     GH_TOKEN: $GH_TOKEN
   before_script:
-    - apk add --no-cache bash curl jq git github-cli
+    - apk add --no-cache bash curl jq git github-cli openssh-client
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - cp "$GITHUB_SSH_PRIVATE_KEY" ~/.ssh/id_ed25519
+    - echo "" >> ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - ssh-keyscan -t ed25519 github.com > ~/.ssh/known_hosts
   script:
     - |
       BUILD_ALL="$[[ inputs.build_all ]]"
@@ -57,7 +63,7 @@ github-dispatch:
       if [ "$CREATE_RELEASE" = "true" ]; then
         BUILD_ALL="true"
       fi
-      gh workflow run build.yml -R justacalico/doudou -f build_all="$BUILD_ALL" -f create_release="$CREATE_RELEASE"
+      bash scripts/trigger-github-build.sh main "$BUILD_ALL" "$CREATE_RELEASE"
 
 github-mr-build:
   stage: sync
@@ -76,14 +82,7 @@ github-mr-build:
     - chmod 600 ~/.ssh/id_ed25519
     - ssh-keyscan -t ed25519 github.com > ~/.ssh/known_hosts
   script:
-    - |
-      git remote add github git@github.com:justacalico/doudou.git 2>/dev/null || true
-      git remote update github
-      git push -f github "HEAD:refs/heads/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
-      gh workflow run build.yml -R justacalico/doudou \
-        --ref "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" \
-        -f build_all=true \
-        -f create_release=false
+    - bash scripts/trigger-github-build.sh "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" true false HEAD
 
 github-release-sync:
   stage: release
