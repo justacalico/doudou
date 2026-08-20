@@ -37,6 +37,10 @@ import '/app/theme/app_theme_provider.dart';
 
 final _perfMonitor = PerfMonitorController.devDefault();
 
+/// Shared Riverpod container so non-widget code (GetX controllers, platform
+/// brightness callbacks) can drive providers that own app state.
+final appContainer = ProviderContainer();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initHive();
@@ -56,7 +60,10 @@ Future<void> main() async {
     statusBarBrightness: Brightness.dark,
   ));
   TerminateRestart.instance.initialize();
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(UncontrolledProviderScope(
+    container: appContainer,
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends ConsumerWidget {
