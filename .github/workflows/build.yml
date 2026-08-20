@@ -193,6 +193,13 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Non-main branches and non-tag refs only get debug/unsigned builds.
+          if [ "${{ github.ref }}" != "refs/heads/main" ] && [[ ! "${{ github.ref }}" =~ ^refs/tags/ ]]; then
+            echo "signing=debug" >> "$GITHUB_OUTPUT"
+            echo "Non-main branch, using debug signing only"
+            exit 0
+          fi
+
           if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
             echo "signing=debug" >> "$GITHUB_OUTPUT"
             echo "No keystore configured, using debug signing"
@@ -310,21 +317,32 @@ jobs:
           BUILD_NUMBER: ${{ steps.version.outputs.build_number }}
           BUILD_DATE: ${{ steps.version.outputs.build_date }}
           _SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS: 1
+          SIGNING: ${{ steps.signing.outputs.signing }}
         run: |
           set -euo pipefail
           mkdir -p artifacts
 
           build_apk() {
             local flavor="$1" name="$2"; shift 2
-            flutter build apk --release --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER"
-            cp "build/app/outputs/flutter-apk/app-${flavor}-release.apk" \
+            local build_mode="release" mode_dir="Release"
+            if [ "${SIGNING:-}" = "debug" ]; then
+              build_mode="debug"
+              mode_dir="Debug"
+            fi
+            flutter build apk --"$build_mode" --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER"
+            cp "build/app/outputs/flutter-apk/app-${flavor}-${build_mode}.apk" \
                "artifacts/doudou-${name}-${VERSION}-${BUILD_DATE}.apk"
           }
 
           build_aab() {
             local flavor="$1" name="$2"; shift 2
-            flutter build appbundle --release --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER"
-            cp "build/app/outputs/bundle/${flavor}Release/app-${flavor}-release.aab" \
+            local build_mode="release" mode_dir="Release"
+            if [ "${SIGNING:-}" = "debug" ]; then
+              build_mode="debug"
+              mode_dir="Debug"
+            fi
+            flutter build appbundle --"$build_mode" --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER"
+            cp "build/app/outputs/bundle/${flavor}${mode_dir}/app-${flavor}-${build_mode}.aab" \
                "artifacts/doudou-${name}-${VERSION}-${BUILD_DATE}.aab"
           }
 
