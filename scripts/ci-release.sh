@@ -17,18 +17,19 @@ ensure_glab() {
     return
   fi
 
-  local version="${GLAB_VERSION:-1.49.1}"
+  local version="${GLAB_VERSION:-1.106.0}"
   local arch="${CI_RUNNER_ARCH:-amd64}"
   case "$arch" in
-    arm|armv7l) arch="armv6l" ;;
+    arm|armv7l) arch="armv6" ;;
     aarch64|arm64) arch="arm64" ;;
-    x86_64|amd64) arch="x86_64" ;;
+    386|i386) arch="386" ;;
+    x86_64|amd64) arch="amd64" ;;
   esac
 
-  local url="https://gitlab.com/gitlab-org/cli/-/releases/download/v${version}/glab_${version}_Linux_${arch}.tar.gz"
+  local url="https://gitlab.com/gitlab-org/cli/-/releases/v${version}/downloads/glab_${version}_linux_${arch}.tar.gz"
   mkdir -p "$HOME/.local/bin"
   curl -fsSL "$url" -o /tmp/glab.tar.gz
-  tar -xzf /tmp/glab.tar.gz -C /tmp
+  tar -xzf /tmp/glab.tar.gz -C /tmp --strip-components=1
   install /tmp/glab "$HOME/.local/bin/glab" 2>/dev/null || cp /tmp/glab "$HOME/.local/bin/glab"
   chmod +x "$HOME/.local/bin/glab"
   export PATH="$HOME/.local/bin:$PATH"
