@@ -40,10 +40,19 @@ ls -la release-assets/
 # Remove any stale GitLab release, tag and generic package so the
 # package-registry upload does not collide with existing assets and the release
 # is recreated at the current commit.
-glab release delete "$RELEASE_TAG" -R "$CI_PROJECT_PATH" --with-tag -y || true
+glab release delete "$RELEASE_TAG" -R "$CI_PROJECT_PATH" -y 2>/dev/null || true
 PKG_ID=$(glab api "projects/$CI_PROJECT_ID/packages?package_name=release-assets&package_version=$RELEASE_TAG" 2>/dev/null | jq -r '.[0].id // empty')
 if [ -n "$PKG_ID" ] && [ "$PKG_ID" != "null" ]; then
   glab api --method DELETE "projects/$CI_PROJECT_ID/packages/$PKG_ID" 2>/dev/null || true
+fi
+
+# Move the release tag to the current commit using an SSH deploy key.
+# The CI job token cannot modify tags, but a deploy key with write access can.
+if [ -n "${GITLAB_RELEASE_SSH_KEY:-}" ]; then
+  git remote add gitlab-ssh "git@gitlab.com:${CI_PROJECT_PATH}.git" 2>/dev/null || true
+  git fetch --depth=1 gitlab-ssh "$RELEASE_TAG" 2>/dev/null || true
+  git tag -f "$RELEASE_TAG" "$CI_COMMIT_SHA"
+  git push -f gitlab-ssh "$RELEASE_TAG"
 fi
 
 # Mirror to a GitLab release. The tag is kept the same as GitHub.
