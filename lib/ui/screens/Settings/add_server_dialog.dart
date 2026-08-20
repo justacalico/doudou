@@ -120,7 +120,7 @@ class _AddServerDialogState extends State<AddServerDialog> {
                     child: DropdownButtonFormField<String>(
                       initialValue: _protocol,
                       decoration: InputDecoration(
-                        labelText: 'Protocol',
+                        labelText: l10n.protocol,
                         filled: true,
                         fillColor: theme.inputDecorationTheme.fillColor,
                       ),
@@ -183,30 +183,32 @@ class _AddServerDialogState extends State<AddServerDialog> {
                 const SizedBox(width: DoudouSpace.s8),
                 FilledButton(
                   onPressed: () {
-                    if (widget.existing != null) {
-                      if (_needsCredentials) {
+                    if (_needsCredentials) {
+                      final serverUrl = _buildServerUrl();
+                      if (serverUrl.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l10n.serverUrlRequired)),
+                        );
+                        return;
+                      }
+                      if (widget.existing != null) {
                         controller.updateServer(
                           widget.existing!.id,
-                          serverUrl: _buildServerUrl(),
+                          serverUrl: serverUrl,
                           username: _usernameController.text,
                           password: _passwordController.text,
                         );
-                      }
-                    } else {
-                      if (_needsCredentials) {
-                        final serverUrl = _buildServerUrl();
-                        if (serverUrl.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l10n.serverUrlRequired)),
-                          );
-                          return;
-                        }
+                      } else {
                         controller.addServerWithCredentials(
                           widget.serverType,
                           serverUrl: serverUrl,
                           username: _usernameController.text,
                           password: _passwordController.text,
                         );
+                      }
+                    } else {
+                      if (widget.existing != null) {
+                        controller.updateServer(widget.existing!.id);
                       } else {
                         controller.addServerWithCredentials(widget.serverType);
                       }
@@ -297,7 +299,6 @@ class _TvAddServerWizardState extends State<_TvAddServerWizard> {
         );
         return;
       }
-
       if (widget.existing != null) {
         controller.updateServer(
           widget.existing!.id,
@@ -315,6 +316,7 @@ class _TvAddServerWizardState extends State<_TvAddServerWizard> {
       }
     } else {
       if (widget.existing != null) {
+        controller.updateServer(widget.existing!.id);
       } else {
         controller.addServerWithCredentials(widget.serverType);
       }
@@ -409,7 +411,7 @@ class _TvAddServerWizardState extends State<_TvAddServerWizard> {
                   ),
                   TvFocusHighlight(
                     borderRadius: 8,
-                    autofocus: true,
+                    autofocus: _stage == 0,
                     debugLabel: 'NextBtn',
                     onSelect: _next,
                     child: Container(

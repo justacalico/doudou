@@ -87,6 +87,32 @@ class _SettingsViewState extends State<_SettingsView> {
     (_SettingsSectionId.info, 'APPEARANCE', 'appearance'),
   ];
 
+  late final _groupedClusters = _buildGroupedClusters();
+  static List<(String, String, List<_SettingsSectionId>)> _buildGroupedClusters() {
+    final map = <String, (String, List<_SettingsSectionId>)>{};
+    for (final c in _mobileClusters) {
+      final existing = map[c.$2];
+      if (existing == null) {
+        map[c.$2] = (c.$3, [c.$1]);
+      } else {
+        existing.$2.add(c.$1);
+      }
+    }
+    return map.entries
+        .map((e) => (e.key, e.value.$1, e.value.$2))
+        .toList();
+  }
+
+  String _clusterLabel(BuildContext context, String key) {
+    final l10n = context.l10n;
+    return switch (key) {
+      'accounts' => l10n.accounts,
+      'user' => l10n.user,
+      'appearance' => l10n.appearance,
+      _ => key,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsScreenController>();
@@ -100,9 +126,7 @@ class _SettingsViewState extends State<_SettingsView> {
     final topPadding = mq.padding.top +
         (layout.isPhone
             ? kTopPaddingNarrow
-            : (showHeader
-                ? kTopPaddingDesktop
-                : (useTwoPane && layout.isDesktop ? 0 : DoudouSpace.s16)));
+            : (showHeader ? kTopPaddingDesktop : 0.0));
     final horizontalPadding = widget.isBottomNavActive
         ? kContentLeftPaddingWithBottomNav
         : (useTwoPane ? 0.0 : layout.contentPadding.left);
@@ -133,7 +157,6 @@ class _SettingsViewState extends State<_SettingsView> {
       ),
     );
 
-    if (useTwoPane) return content;
     return content;
   }
 
@@ -229,19 +252,14 @@ class _SettingsViewState extends State<_SettingsView> {
     LibrarySyncService sync,
     double bottomPadding,
   ) {
-    final grouped = <String, List<_SettingsSectionId>>{};
-    for (final cluster in _mobileClusters) {
-      grouped.putIfAbsent(cluster.$2, () => []).add(cluster.$1);
-    }
-
-    final entries = grouped.entries.toList();
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.only(bottom: bottomPadding),
-      itemCount: entries.length,
+      itemCount: _groupedClusters.length,
       itemBuilder: (context, index) {
-        final header = entries[index].key;
-        final sections = entries[index].value;
+        final group = _groupedClusters[index];
+        final header = _clusterLabel(context, group.$2);
+        final sections = group.$3;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -282,10 +300,6 @@ class _SettingsViewState extends State<_SettingsView> {
 
   Widget _buildSectionNav(BuildContext context) {
     final colors = context.doudouColors;
-    final grouped = <String, List<_SettingsSectionId>>{};
-    for (final cluster in _mobileClusters) {
-      grouped.putIfAbsent(cluster.$2, () => []).add(cluster.$1);
-    }
 
     return Container(
       decoration: BoxDecoration(
@@ -297,7 +311,7 @@ class _SettingsViewState extends State<_SettingsView> {
       child: ListView(
         padding: const EdgeInsets.all(DoudouSpace.s12),
         children: [
-          for (final entry in grouped.entries) ...[
+          for (final group in _groupedClusters) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 DoudouSpace.s4,
@@ -306,7 +320,7 @@ class _SettingsViewState extends State<_SettingsView> {
                 DoudouSpace.s8,
               ),
               child: Text(
-                entry.key,
+                _clusterLabel(context, group.$2),
                 style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -314,7 +328,7 @@ class _SettingsViewState extends State<_SettingsView> {
                 ).copyWith(color: colors.textSecondary),
               ),
             ),
-            for (final id in entry.value) _buildNavTile(context, id),
+            for (final id in group.$3) _buildNavTile(context, id),
           ],
         ],
       ),
@@ -410,10 +424,11 @@ class _SettingsViewState extends State<_SettingsView> {
     final meta = _sectionMeta.firstWhere((e) => e.$1 == id);
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => _SettingsSubPage(
+        builder: (ctx) => _SettingsSubPage(
           icon: meta.$2,
           title: _sectionTitle(context, id),
-          children: _buildSectionChildren(context, settings, sync, id),
+          childrenBuilder: (ctx) =>
+              _buildSectionChildren(ctx, settings, sync, id),
         ),
       ),
     );
@@ -487,7 +502,7 @@ class _SettingsViewState extends State<_SettingsView> {
       _SettingsListTile(
         title: context.l10n.themeMode,
         subtitle:
-            Obx(() => Text(_themeModeLabel(settings.themeModetype.value))),
+            Obx(() => Text(_themeModeLabel(context, settings.themeModetype.value))),
         onTap: () => showDialog(
           context: context,
           builder: (_) => const ThemeSelectorDialog(),
@@ -574,9 +589,8 @@ class _SettingsViewState extends State<_SettingsView> {
     ];
   }
 
-  String _themeModeLabel(ThemeType type) {
-    final l10n = Get.context?.l10n;
-    if (l10n == null) return '';
+  String _themeModeLabel(BuildContext context, ThemeType type) {
+    final l10n = context.l10n;
     return switch (type) {
       ThemeType.dynamic => l10n.dynamicTheme,
       ThemeType.system => l10n.systemDefault,
@@ -598,8 +612,8 @@ class _SettingsViewState extends State<_SettingsView> {
         if (!isYt) return const SizedBox.shrink();
         return _SettingsListTile(
           title: context.l10n.setDiscoverContent,
-          subtitle: Obx(() =>
-              Text(_discoverContentLabel(settings.discoverContentType.value))),
+          subtitle: Obx(() => Text(_discoverContentLabel(
+              context, settings.discoverContentType.value))),
           onTap: () => showDialog(
             context: context,
             builder: (_) => const DiscoverContentSelectorDialog(),
@@ -702,9 +716,8 @@ class _SettingsViewState extends State<_SettingsView> {
     ];
   }
 
-  String _discoverContentLabel(String value) {
-    final l10n = Get.context?.l10n;
-    if (l10n == null) return value;
+  String _discoverContentLabel(BuildContext context, String value) {
+    final l10n = context.l10n;
     return switch (value) {
       'QP' => l10n.quickpicks,
       'TMV' => l10n.topmusicvideos,
@@ -1019,7 +1032,9 @@ class _SettingsViewState extends State<_SettingsView> {
           trailing: TextButton(
             onPressed:
                 sync.isSyncing.value ? null : () => settings.resyncLibraryNow(),
-            child: Text(sync.isSyncing.value ? 'Syncing...' : 'Sync'),
+            child: Text(sync.isSyncing.value
+                ? context.l10n.syncing
+                : context.l10n.sync),
           ),
         );
       }),
@@ -1198,22 +1213,24 @@ class _SettingsViewState extends State<_SettingsView> {
               )),
           onTap: () => _showDiscordAppIdDialog(context, settings),
         ),
-        _SettingsListTile(
-          leading: const Icon(Icons.bolt_outlined, size: 20),
-          title: 'Test Discord connection',
-          subtitle: Obx(() => Text(
-                settings.discordAppId.value.isEmpty
-                    ? 'Set an Application ID first'
-                    : 'Send a test activity to Discord',
-                style: TextStyle(
-                  color: settings.discordAppId.value.isEmpty
-                      ? context.doudouColors.textDisabled
-                      : null,
-                ),
-              )),
-          enabled: settings.discordAppId.value.isNotEmpty,
-          onTap: () => _testDiscordRpc(context, settings),
-        ),
+        Obx(() => _SettingsListTile(
+              leading: const Icon(Icons.bolt_outlined, size: 20),
+              title: 'Test Discord connection',
+              subtitle: Obx(() => Text(
+                    settings.discordAppId.value.isEmpty
+                        ? 'Set an Application ID first'
+                        : 'Send a test activity to Discord',
+                    style: TextStyle(
+                      color: settings.discordAppId.value.isEmpty
+                          ? context.doudouColors.textDisabled
+                          : null,
+                    ),
+                  )),
+              enabled: settings.discordAppId.value.isNotEmpty,
+              onTap: settings.discordAppId.value.isNotEmpty
+                  ? () => _testDiscordRpc(context, settings)
+                  : null,
+            )),
       ],
       _SettingsListTile(
         title: context.l10n.resetToDefault,
@@ -1274,7 +1291,7 @@ class _SettingsViewState extends State<_SettingsView> {
           ],
         );
       },
-    );
+    ).whenComplete(() => controller.dispose());
   }
 
   void _testDiscordRpc(
@@ -1424,9 +1441,9 @@ class _SettingsListTile extends StatelessWidget {
     this.enabled = true,
   });
 
-  final dynamic leading;
+  final Widget? leading;
   final String title;
-  final dynamic subtitle;
+  final Object? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool enabled;
@@ -1436,9 +1453,9 @@ class _SettingsListTile extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = context.doudouColors;
 
-    Widget? titleWidget;
+    Widget? leadingWidget;
     if (leading is Widget) {
-      titleWidget = leading as Widget;
+      leadingWidget = leading as Widget;
     }
 
     Widget? subtitleWidget;
@@ -1468,7 +1485,7 @@ class _SettingsListTile extends StatelessWidget {
         horizontal: DoudouSpace.s12,
         vertical: DoudouSpace.s2,
       ),
-      leading: titleWidget,
+      leading: leadingWidget,
       title: Text(
         title,
         style: theme.textTheme.titleMedium?.copyWith(
@@ -1625,12 +1642,15 @@ class _SettingsNavTileState extends State<_SettingsNavTile> {
         ? c.surfaceSelected
         : (_hover ? c.stateHover : Colors.transparent);
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
+    return Semantics(
+      button: true,
+      selected: widget.selected,
+      child: InkWell(
         onTap: widget.onTap,
+        onHover: (v) => setState(() => _hover = v),
+        borderRadius: BorderRadius.circular(8),
+        hoverColor: Colors.transparent,
+        splashColor: Colors.transparent,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
           margin: const EdgeInsets.only(bottom: 2),
@@ -1670,12 +1690,12 @@ class _SettingsSubPage extends StatelessWidget {
   const _SettingsSubPage({
     required this.icon,
     required this.title,
-    required this.children,
+    required this.childrenBuilder,
   });
 
   final IconData icon;
   final String title;
-  final List<Widget> children;
+  final List<Widget> Function(BuildContext) childrenBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -1685,7 +1705,6 @@ class _SettingsSubPage extends StatelessWidget {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
-        title: Text(title),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -1693,7 +1712,7 @@ class _SettingsSubPage extends StatelessWidget {
           child: _SettingsCard(
             icon: icon,
             title: title,
-            children: children,
+            children: childrenBuilder(context),
           ),
         ),
       ),

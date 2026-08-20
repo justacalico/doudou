@@ -1215,4 +1215,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get autoLoginRequiredDismiss => '确定';
+
+  @override
+  String get protocol => 'Protocol';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get syncing => 'Syncing...';
+
+  @override
+  String get sync => 'Sync';
+
+  @override
+  String get accounts => 'ACCOUNTS';
+
+  @override
+  String get user => 'USER';
+
+  @override
+  String get appearance => 'APPEARANCE';
+
+  @override
+  String get diagnosticsCopied => 'Diagnostics copied to clipboard';
+
+  @override
+  String get noDiagnosticsToCopy => 'No diagnostics to copy';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String eventsCount(int count, int max) {
+    return 'Events: $count (showing up to $max)';
+  }
+
+  @override
+  String get noDiagnosticsHint =>
+      'No diagnostics yet.\nEnable diagnostics and reproduce the issue.';
 }

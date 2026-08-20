@@ -65,7 +65,7 @@ Same app, same backend. The layout adapts to screen size.
 
 ## Compile
 
-You need the Flutter SDK (3.1.5 or newer).
+You need the Flutter SDK (3.35.0 or newer).
 
 ```bash
 git clone https://gitlab.com/Openlyst/doudou.git

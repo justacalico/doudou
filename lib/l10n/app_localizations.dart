@@ -2500,6 +2500,78 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'OK'**
   String get autoLoginRequiredDismiss;
+
+  /// No description provided for @protocol.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Protocol'**
+  String get protocol;
+
+  /// No description provided for @done.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @syncing.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Syncing...'**
+  String get syncing;
+
+  /// No description provided for @sync.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Sync'**
+  String get sync;
+
+  /// No description provided for @accounts.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'ACCOUNTS'**
+  String get accounts;
+
+  /// No description provided for @user.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'USER'**
+  String get user;
+
+  /// No description provided for @appearance.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'APPEARANCE'**
+  String get appearance;
+
+  /// No description provided for @diagnosticsCopied.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Diagnostics copied to clipboard'**
+  String get diagnosticsCopied;
+
+  /// No description provided for @noDiagnosticsToCopy.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No diagnostics to copy'**
+  String get noDiagnosticsToCopy;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @eventsCount.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Events: {count} (showing up to {max})'**
+  String eventsCount(int count, int max);
+
+  /// No description provided for @noDiagnosticsHint.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No diagnostics yet.\nEnable diagnostics and reproduce the issue.'**
+  String get noDiagnosticsHint;
 }
 
 class _AppLocalizationsDelegate

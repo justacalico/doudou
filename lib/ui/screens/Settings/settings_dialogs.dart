@@ -32,21 +32,24 @@ String serverTypeLabel(BuildContext context, ServerType type) {
 
 bool ytmProviderUnlocked = false;
 
-class ThemeSelectorDialog extends StatelessWidget {
-  const ThemeSelectorDialog({super.key});
+class _RadioSelectorDialog<T> extends StatelessWidget {
+  const _RadioSelectorDialog({
+    required this.title,
+    required this.options,
+    required this.selected,
+    required this.onChanged,
+    required this.cancelLabel,
+  });
+
+  final String title;
+  final List<(T, String)> options;
+  final Rx<T> selected;
+  final ValueChanged<T?> onChanged;
+  final String cancelLabel;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final settings = Get.find<SettingsScreenController>();
-
-    final options = [
-      (ThemeType.dynamic, context.l10n.dynamicTheme),
-      (ThemeType.system, context.l10n.systemDefault),
-      (ThemeType.dark, context.l10n.dark),
-      (ThemeType.oled, context.l10n.oled),
-      (ThemeType.light, context.l10n.light),
-    ];
 
     return CommonDialog(
       child: Material(
@@ -67,7 +70,7 @@ class ThemeSelectorDialog extends StatelessWidget {
                   DoudouSpace.s4,
                 ),
                 child: Text(
-                  context.l10n.themeMode,
+                  title,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -76,14 +79,12 @@ class ThemeSelectorDialog extends StatelessWidget {
               Flexible(
                 child: SingleChildScrollView(
                   child: Obx(() {
-                    return RadioGroup<ThemeType>(
-                      groupValue: settings.themeModetype.value,
-                      onChanged: (v) {
-                        if (v != null) settings.onThemeChange(v);
-                      },
+                    return RadioGroup<T>(
+                      groupValue: selected.value,
+                      onChanged: onChanged,
                       child: Column(
                         children: options.map((o) {
-                          return RadioListTile<ThemeType>(
+                          return RadioListTile<T>(
                             title: Text(o.$2),
                             value: o.$1,
                           );
@@ -102,7 +103,7 @@ class ThemeSelectorDialog extends StatelessWidget {
                   ),
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text(context.l10n.cancel),
+                    child: Text(cancelLabel),
                   ),
                 ),
               ),
@@ -114,86 +115,54 @@ class ThemeSelectorDialog extends StatelessWidget {
   }
 }
 
+class ThemeSelectorDialog extends StatelessWidget {
+  const ThemeSelectorDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = Get.find<SettingsScreenController>();
+
+    return _RadioSelectorDialog<ThemeType>(
+      title: context.l10n.themeMode,
+      options: [
+        (ThemeType.dynamic, context.l10n.dynamicTheme),
+        (ThemeType.system, context.l10n.systemDefault),
+        (ThemeType.dark, context.l10n.dark),
+        (ThemeType.oled, context.l10n.oled),
+        (ThemeType.light, context.l10n.light),
+      ],
+      selected: settings.themeModetype,
+      onChanged: (v) {
+        if (v != null) settings.onThemeChange(v);
+      },
+      cancelLabel: context.l10n.done,
+    );
+  }
+}
+
 class DiscoverContentSelectorDialog extends StatelessWidget {
   const DiscoverContentSelectorDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final settings = Get.find<SettingsScreenController>();
 
-    final options = [
-      ('QP', context.l10n.quickpicks),
-      ('TMV', context.l10n.topmusicvideos),
-      ('TR', context.l10n.trending),
-      ('BOLI', context.l10n.basedOnLast),
-    ];
-
-    return CommonDialog(
-      child: Material(
-        color:
-            theme.dialogTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
-        borderRadius: DoudouRadii.r16,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: DoudouSpace.s16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  DoudouSpace.s24,
-                  DoudouSpace.s8,
-                  DoudouSpace.s24,
-                  DoudouSpace.s4,
-                ),
-                child: Text(
-                  context.l10n.setDiscoverContent,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Obx(() {
-                    return RadioGroup<String>(
-                      groupValue: settings.discoverContentType.value,
-                      onChanged: (v) {
-                        if (v != null) {
-                          settings.onContentChange(v);
-                          Navigator.of(context).pop();
-                        }
-                      },
-                      child: Column(
-                        children: options.map((o) {
-                          return RadioListTile<String>(
-                            title: Text(o.$2),
-                            value: o.$1,
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    right: DoudouSpace.s12,
-                    top: DoudouSpace.s8,
-                  ),
-                  child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(context.l10n.cancel),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return _RadioSelectorDialog<String>(
+      title: context.l10n.setDiscoverContent,
+      options: [
+        ('QP', context.l10n.quickpicks),
+        ('TMV', context.l10n.topmusicvideos),
+        ('TR', context.l10n.trending),
+        ('BOLI', context.l10n.basedOnLast),
+      ],
+      selected: settings.discoverContentType,
+      onChanged: (v) {
+        if (v != null) {
+          settings.onContentChange(v);
+          Navigator.of(context).pop();
+        }
+      },
+      cancelLabel: context.l10n.cancel,
     );
   }
 }
@@ -243,15 +212,15 @@ class _PlaybackDiagnosticsPageState extends State<PlaybackDiagnosticsPage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(copied
-                      ? 'Diagnostics copied to clipboard'
-                      : 'No diagnostics to copy'),
+                      ? context.l10n.diagnosticsCopied
+                      : context.l10n.noDiagnosticsToCopy),
                 ),
               );
             },
             icon: const Icon(Icons.copy_all_outlined),
           ),
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: context.l10n.refresh,
             onPressed: () => setState(() {}),
             icon: const Icon(Icons.refresh),
           ),
@@ -263,7 +232,7 @@ class _PlaybackDiagnosticsPageState extends State<PlaybackDiagnosticsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Events: $count (showing up to $_maxShownEvents)',
+              context.l10n.eventsCount(count, _maxShownEvents),
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: DoudouSpace.s12),
@@ -276,9 +245,9 @@ class _PlaybackDiagnosticsPageState extends State<PlaybackDiagnosticsPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(DoudouSpace.s12),
                   child: isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Text(
-                            'No diagnostics yet.\nEnable diagnostics and reproduce the issue.',
+                            context.l10n.noDiagnosticsHint,
                             textAlign: TextAlign.center,
                           ),
                         )
