@@ -46,7 +46,6 @@ github-dispatch:
   image: alpine:3.19
   rules:
     - if: $CI_PIPELINE_SOURCE == "web"
-    - if: $CI_PIPELINE_SOURCE == "api"
   variables:
     GH_TOKEN: $GH_TOKEN
   before_script:
