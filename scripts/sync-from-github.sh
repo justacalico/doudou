@@ -37,9 +37,11 @@ cp SHA256SUMS.txt release-assets/
 
 ls -la release-assets/
 
-# Remove any stale GitLab release and generic package for this tag so the
-# package-registry upload does not collide with existing assets.
+# Remove any stale GitLab release, tag and generic package for this tag so the
+# package-registry upload does not collide with existing assets and the release
+# points to the current commit.
 glab release delete "$RELEASE_TAG" -R "$CI_PROJECT_PATH" -y 2>/dev/null || true
+glab api --method DELETE "projects/$CI_PROJECT_ID/repository/tags/$RELEASE_TAG" 2>/dev/null || true
 PKG_ID=$(glab api "projects/$CI_PROJECT_ID/packages?package_name=release-assets&package_version=$RELEASE_TAG" 2>/dev/null | jq -r '.[0].id // empty')
 if [ -n "$PKG_ID" ] && [ "$PKG_ID" != "null" ]; then
   glab api --method DELETE "projects/$CI_PROJECT_ID/packages/$PKG_ID" 2>/dev/null || true
