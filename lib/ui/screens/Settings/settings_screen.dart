@@ -100,7 +100,7 @@ class _SettingsViewState extends State<_SettingsView> {
         (layout.isPhone ? kTopPaddingNarrow : kTopPaddingDesktop);
     final horizontalPadding = widget.isBottomNavActive
         ? kContentLeftPaddingWithBottomNav
-        : layout.contentPadding.left;
+        : (useTwoPane ? 0.0 : layout.contentPadding.left);
     final rightPadding = widget.isBottomNavActive
         ? kContentRightPaddingSettingsWithBottomNav
         : layout.contentPadding.right;
@@ -129,14 +129,7 @@ class _SettingsViewState extends State<_SettingsView> {
       ),
     );
 
-    if (useTwoPane) {
-      return Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: layout.contentMaxWidth),
-          child: content,
-        ),
-      );
-    }
+    if (useTwoPane) return content;
     return content;
   }
 
@@ -211,7 +204,7 @@ class _SettingsViewState extends State<_SettingsView> {
           width: 260,
           child: _buildSectionNav(context),
         ),
-        const SizedBox(width: DoudouSpace.s24),
+        const VerticalDivider(width: 1),
         Expanded(
           child: AnimatedSwitcher(
             duration: Duration(
@@ -228,6 +221,8 @@ class _SettingsViewState extends State<_SettingsView> {
                       child: _SettingsCard(
                         icon: _sectionIcon(_selected),
                         title: _sectionTitle(context, _selected),
+                        borderRadius: BorderRadius.zero,
+                        margin: EdgeInsets.zero,
                         children: _buildSectionChildren(
                           context,
                           settings,
@@ -314,7 +309,7 @@ class _SettingsViewState extends State<_SettingsView> {
     return Card(
       color: theme.cardColor,
       elevation: 0,
-      shape: const RoundedRectangleBorder(borderRadius: DoudouRadii.r16),
+      shape: const RoundedRectangleBorder(),
       margin: EdgeInsets.zero,
       child: ListView(
         padding: const EdgeInsets.all(DoudouSpace.s12),
@@ -1587,11 +1582,15 @@ class _SettingsCard extends StatelessWidget {
   const _SettingsCard({
     this.icon,
     this.title,
+    this.borderRadius = DoudouRadii.r16,
+    this.margin = const EdgeInsets.symmetric(horizontal: DoudouSpace.s4),
     required this.children,
   });
 
   final IconData? icon;
   final String? title;
+  final BorderRadius borderRadius;
+  final EdgeInsets margin;
   final List<Widget> children;
 
   @override
@@ -1602,8 +1601,8 @@ class _SettingsCard extends StatelessWidget {
     return Card(
       color: theme.cardColor,
       elevation: 0,
-      margin: const EdgeInsets.symmetric(horizontal: DoudouSpace.s4),
-      shape: const RoundedRectangleBorder(borderRadius: DoudouRadii.r16),
+      margin: margin,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
