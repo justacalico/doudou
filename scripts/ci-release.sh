@@ -17,7 +17,7 @@ ensure_glab() {
     return
   fi
 
-  local version="${GLAB_VERSION:-1.106.0}"
+  local version="${GLAB_VERSION:-1.113.0}"
   local arch="${CI_RUNNER_ARCH:-amd64}"
   case "$arch" in
     arm|armv7l) arch="armv6" ;;
