@@ -37,20 +37,14 @@ cp SHA256SUMS.txt release-assets/
 
 ls -la release-assets/
 
-# Remove any stale GitLab release, generic package and move the tag to the
-# current commit so the package-registry upload does not collide with existing
-# assets and the release points to the right commit.
-glab release delete "$RELEASE_TAG" -R "$CI_PROJECT_PATH" -y 2>/dev/null || true
+# Remove any stale GitLab release, tag and generic package so the
+# package-registry upload does not collide with existing assets and the release
+# is recreated at the current commit.
+glab release delete "$RELEASE_TAG" -R "$CI_PROJECT_PATH" --with-tag -y 2>/dev/null || true
 PKG_ID=$(glab api "projects/$CI_PROJECT_ID/packages?package_name=release-assets&package_version=$RELEASE_TAG" 2>/dev/null | jq -r '.[0].id // empty')
 if [ -n "$PKG_ID" ] && [ "$PKG_ID" != "null" ]; then
   glab api --method DELETE "projects/$CI_PROJECT_ID/packages/$PKG_ID" 2>/dev/null || true
 fi
-
-# Force update the release tag to the current commit using the job token.
-git remote add origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" 2>/dev/null || true
-git fetch --depth=1 origin "$RELEASE_TAG" 2>/dev/null || true
-git tag -f "$RELEASE_TAG" "$CI_COMMIT_SHA"
-git push -f origin "$RELEASE_TAG"
 
 # Mirror to a GitLab release. The tag is kept the same as GitHub.
 # glab in CI will use CI_JOB_TOKEN when GLAB_ENABLE_CI_AUTOLOGIN is set.
