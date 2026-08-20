@@ -203,6 +203,7 @@ class _SettingsViewState extends State<_SettingsView> {
                         title: _sectionTitle(context, _selected),
                         borderRadius: BorderRadius.zero,
                         margin: EdgeInsets.zero,
+                        color: Theme.of(context).scaffoldBackgroundColor,
                         children: _buildSectionChildren(
                           context,
                           settings,
@@ -287,7 +288,7 @@ class _SettingsViewState extends State<_SettingsView> {
     }
 
     return Card(
-      color: theme.cardColor,
+      color: theme.scaffoldBackgroundColor,
       elevation: 0,
       shape: const RoundedRectangleBorder(),
       margin: EdgeInsets.zero,
@@ -1564,6 +1565,7 @@ class _SettingsCard extends StatelessWidget {
     this.title,
     this.borderRadius = DoudouRadii.r16,
     this.margin = const EdgeInsets.symmetric(horizontal: DoudouSpace.s4),
+    this.color,
     required this.children,
   });
 
@@ -1571,6 +1573,7 @@ class _SettingsCard extends StatelessWidget {
   final String? title;
   final BorderRadius borderRadius;
   final EdgeInsets margin;
+  final Color? color;
   final List<Widget> children;
 
   @override
@@ -1579,7 +1582,7 @@ class _SettingsCard extends StatelessWidget {
     final colors = context.doudouColors;
 
     return Card(
-      color: theme.cardColor,
+      color: color ?? theme.cardColor,
       elevation: 0,
       margin: margin,
       shape: RoundedRectangleBorder(borderRadius: borderRadius),
