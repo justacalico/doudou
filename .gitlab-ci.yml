@@ -57,9 +57,6 @@ stages:
 test:
   stage: test
   tags: [linux-truenas]
-  image:
-    name: ghcr.io/cirruslabs/flutter:stable
-    pull_policy: if-not-present
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH
@@ -81,9 +78,6 @@ test:
 build-info:
   stage: info
   tags: [linux-truenas]
-  image:
-    name: ghcr.io/cirruslabs/flutter:stable
-    pull_policy: if-not-present
   rules: !reference [.default-build-rules, rules]
   script:
     - |
