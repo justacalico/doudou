@@ -40,6 +40,8 @@ const bool kIsPlayStore =
 
 enum SidebarMode { auto, collapsed, expanded }
 
+enum NowPlayingLayout { sideView, playBar }
+
 const supportedLocalesDisplay = {
   "en_AU": "English (Australian)",
   "zh": "简体中文",
@@ -78,6 +80,7 @@ class SettingsScreenController extends GetxController {
   final animationSpeed = AnimationSpeed.fast.obs;
   final isBottomNavBarEnabled = false.obs;
   final sidebarMode = SidebarMode.auto.obs;
+  final nowPlayingLayout = NowPlayingLayout.sideView.obs;
   final lyricsDynamicColorEnabled = true.obs;
   final syncedLyricsHighlightStyle = SyncedLyricsHighlightStyle.karaoke.obs;
   final backgroundPlayEnabled = true.obs;
@@ -214,6 +217,12 @@ class SettingsScreenController extends GetxController {
         (modeIndex >= 0 && modeIndex < SidebarMode.values.length)
             ? SidebarMode.values[modeIndex]
             : SidebarMode.auto;
+    final rawNowPlayingLayout = setBox.get("nowPlayingLayout");
+    final npIndex = rawNowPlayingLayout is int ? rawNowPlayingLayout : 0;
+    nowPlayingLayout.value =
+        (npIndex >= 0 && npIndex < NowPlayingLayout.values.length)
+            ? NowPlayingLayout.values[npIndex]
+            : NowPlayingLayout.sideView;
     noOfHomeScreenContent.value = setBox.get("noOfHomeScreenContent") ?? 3;
 
     final legacyDisabled = setBox.get("isTransitionAnimationDisabled") ?? false;
@@ -437,6 +446,12 @@ class SettingsScreenController extends GetxController {
     if (mode == null) return;
     sidebarMode.value = mode;
     setBox.put("sidebarMode", mode.index);
+  }
+
+  void setNowPlayingLayout(NowPlayingLayout? layout) {
+    if (layout == null) return;
+    nowPlayingLayout.value = layout;
+    setBox.put("nowPlayingLayout", layout.index);
   }
 
   void setLyricsDynamicColorEnabled(bool value) {

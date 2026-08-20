@@ -552,6 +552,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sidebarModeExpanded => 'Full view';
 
   @override
+  String get nowPlayingLayout => 'Now playing layout';
+
+  @override
+  String get nowPlayingLayoutDes =>
+      'Choose whether the now playing player appears as a side panel or a play bar on large screens.';
+
+  @override
+  String get nowPlayingLayoutSideView => 'Side view';
+
+  @override
+  String get nowPlayingLayoutPlayBar => 'Play bar';
+
+  @override
   String get dynamicColorDes =>
       'Dynamic theme using a fixed colour (not now playing).';
 
@@ -1851,6 +1864,19 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get sidebarModeExpanded => 'Full view';
+
+  @override
+  String get nowPlayingLayout => 'Now playing layout';
+
+  @override
+  String get nowPlayingLayoutDes =>
+      'Choose whether the now playing player appears as a side panel or a play bar on large screens.';
+
+  @override
+  String get nowPlayingLayoutSideView => 'Side view';
+
+  @override
+  String get nowPlayingLayoutPlayBar => 'Play bar';
 
   @override
   String get dynamicColorDes =>
