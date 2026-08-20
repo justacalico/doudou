@@ -660,7 +660,7 @@ jobs:
           fi
       - name: Trigger GitLab sync pipeline
         run: |
-          curl -fsSL -X POST \
+          curl -fsSL --max-time 30 --retry 2 -X POST \
             -F token="${{ secrets.GITLAB_TRIGGER_TOKEN }}" \
             -F ref=main \
             -F "variables[GITHUB_RUN_ID]=${{ github.run_id }}" \
