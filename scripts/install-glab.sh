@@ -16,10 +16,9 @@ case "$arch" in
 esac
 
 url="https://gitlab.com/gitlab-org/cli/-/releases/v${version}/downloads/glab_${version}_linux_${arch}.tar.gz"
-mkdir -p "$HOME/.local/bin"
+mkdir -p /usr/local/bin
 curl -fsSL "$url" -o /tmp/glab.tar.gz
 tar -xzf /tmp/glab.tar.gz -C /tmp --strip-components=1
-cp /tmp/glab "$HOME/.local/bin/glab"
-chmod +x "$HOME/.local/bin/glab"
-export PATH="$HOME/.local/bin:$PATH"
+cp /tmp/glab /usr/local/bin/glab
+chmod +x /usr/local/bin/glab
 glab --version
