@@ -40,7 +40,7 @@ ls -la release-assets/
 # Remove any stale GitLab release, tag and generic package so the
 # package-registry upload does not collide with existing assets and the release
 # is recreated at the current commit.
-glab release delete "$RELEASE_TAG" -R "$CI_PROJECT_PATH" --with-tag -y 2>/dev/null || true
+glab release delete "$RELEASE_TAG" -R "$CI_PROJECT_PATH" --with-tag -y || true
 PKG_ID=$(glab api "projects/$CI_PROJECT_ID/packages?package_name=release-assets&package_version=$RELEASE_TAG" 2>/dev/null | jq -r '.[0].id // empty')
 if [ -n "$PKG_ID" ] && [ "$PKG_ID" != "null" ]; then
   glab api --method DELETE "projects/$CI_PROJECT_ID/packages/$PKG_ID" 2>/dev/null || true
