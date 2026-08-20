@@ -42,4 +42,24 @@ if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
 fi
 
 echo "Watching GitHub run $RUN_ID..."
-gh run watch "$RUN_ID" -R "$REPO" --exit-status
+for attempt in 1 2 3; do
+  if gh run watch "$RUN_ID" -R "$REPO" --exit-status 2>&1; then
+    break
+  fi
+
+  # watch can fail due to transient GitHub API errors; verify the real run conclusion.
+  CONCLUSION=$(gh api "repos/justacalico/doudou/actions/runs/$RUN_ID" -q '.conclusion' 2>/dev/null || true)
+  case "$CONCLUSION" in
+    success)
+      break
+      ;;
+    failure|cancelled|timed_out|startup_failure|action_required|stale)
+      echo "GitHub run $RUN_ID concluded as $CONCLUSION" >&2
+      exit 1
+      ;;
+    *)
+      echo "gh run watch lost connection (attempt $attempt), retrying..."
+      sleep 10
+      ;;
+  esac
+done
