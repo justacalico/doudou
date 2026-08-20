@@ -52,11 +52,12 @@ github-dispatch:
     - apk add --no-cache bash curl jq git github-cli
   script:
     - |
-      if [ "$[[ inputs.create_release ]]" = "true" ]; then
-        gh workflow run build.yml -R justacalico/doudou -f create_release=true
-      else
-        gh workflow run build.yml -R justacalico/doudou
+      BUILD_ALL="$[[ inputs.build_all ]]"
+      CREATE_RELEASE="$[[ inputs.create_release ]]"
+      if [ "$CREATE_RELEASE" = "true" ]; then
+        BUILD_ALL="true"
       fi
+      gh workflow run build.yml -R justacalico/doudou -f build_all="$BUILD_ALL" -f create_release="$CREATE_RELEASE"
 
 github-release-sync:
   stage: release

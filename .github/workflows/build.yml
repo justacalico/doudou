@@ -10,8 +10,12 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
+      build_all:
+        description: 'Build all variants (wear, tv, playstore, arm, windows, macos, ios). If unchecked only phone and linux x64 are built.'
+        type: boolean
+        default: true
       create_release:
-        description: 'Publish a nightly release from this build (leave unchecked for plain branch builds)'
+        description: 'Publish a release from this build'
         type: boolean
         default: false
 
@@ -22,8 +26,54 @@ env:
   FLUTTER_CHANNEL: stable
 
 jobs:
+  setup:
+    name: Setup build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      build_all: ${{ steps.matrix.outputs.build_all }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Determine build matrix
+        id: matrix
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.build_all }}" ]; then
+            BUILD_ALL="${{ inputs.build_all }}"
+          elif [ "${{ github.ref_type }}" = "tag" ] || \
+               [ "${{ github.event_name }}" = "push" ] || \
+               [ "${{ github.event_name }}" = "pull_request" ] || \
+               [ "${{ github.event_name }}" = "schedule" ]; then
+            BUILD_ALL="true"
+          else
+            BUILD_ALL="false"
+          fi
+          echo "build_all=$BUILD_ALL" >> "$GITHUB_OUTPUT"
+
+          always='[
+            {"target":"android-phone","os":"ubuntu-latest","artifact":"doudou-phone"},
+            {"target":"linux-x64","os":"ubuntu-latest","artifact":"doudou-linux-x64"}
+          ]'
+
+          if [ "$BUILD_ALL" = "true" ]; then
+            extra='[
+              {"target":"android-phone-playstore","os":"ubuntu-latest","artifact":"doudou-phone-playstore"},
+              {"target":"android-wear","os":"ubuntu-latest","artifact":"doudou-wear"},
+              {"target":"android-tv-playstore","os":"ubuntu-latest","artifact":"doudou-tv-playstore"},
+              {"target":"android-tv","os":"ubuntu-latest","artifact":"doudou-tv"},
+              {"target":"linux-arm64","os":"ubuntu-24.04-arm","artifact":"doudou-linux-arm64"},
+              {"target":"windows","os":"windows-latest","artifact":"doudou-windows"},
+              {"target":"macos","os":"macos-latest","artifact":"doudou-macos"},
+              {"target":"ios","os":"macos-latest","artifact":"doudou-ios"}
+            ]'
+            matrix=$(echo "$always $extra" | jq -s 'add')
+          else
+            matrix="$always"
+          fi
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build ${{ matrix.target }}
+    needs: setup
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     continue-on-error: false
@@ -31,38 +81,7 @@ jobs:
       APPIMAGE_EXTRACT_AND_RUN: "1"
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - target: android-phone
-            os: ubuntu-latest
-            artifact: doudou-phone
-          - target: android-phone-playstore
-            os: ubuntu-latest
-            artifact: doudou-phone-playstore
-          - target: android-wear
-            os: ubuntu-latest
-            artifact: doudou-wear
-          - target: android-tv-playstore
-            os: ubuntu-latest
-            artifact: doudou-tv-playstore
-          - target: android-tv
-            os: ubuntu-latest
-            artifact: doudou-tv
-          - target: linux-x64
-            os: ubuntu-latest
-            artifact: doudou-linux-x64
-          - target: linux-arm64
-            os: ubuntu-24.04-arm
-            artifact: doudou-linux-arm64
-          - target: windows
-            os: windows-latest
-            artifact: doudou-windows
-          - target: macos
-            os: macos-latest
-            artifact: doudou-macos
-          - target: ios
-            os: macos-latest
-            artifact: doudou-ios
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
 
     outputs:
       version: ${{ steps.version.outputs.version }}
