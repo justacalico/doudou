@@ -539,7 +539,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nowPlayingLayout => '正在播放布局';
 
   @override
-  String get nowPlayingLayoutDes => '选择大屏幕上正在播放播放器的显示方式：侧边面板或播放条。';
+  String get nowPlayingLayoutDes => '选择在大屏幕上显示正在播放内容的方式：侧边面板或播放条。';
 
   @override
   String get nowPlayingLayoutSideView => '侧边视图';

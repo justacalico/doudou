@@ -179,7 +179,6 @@ class _AppShellState extends State<AppShell> {
                   // set to playBar, desktop still uses the sliding up panel.
                   // Narrow windows always fall back to the play bar.
                   final useSidePanel = isDesktopLayout &&
-                      !useBottomNav &&
                       nowPlayingLayout == NowPlayingLayout.sideView;
                   if (useSidePanel) {
                     return _DesktopShellBody(
