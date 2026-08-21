@@ -49,6 +49,7 @@ previously per-version files that lived under `changelog/`.
 - Reordered the Windows and Linux window control buttons to close, maximize, minimize (x, +, -) to match the sidebar layout (!112)
 - On Hyprland (Wayland), only the close button is now shown since client-side minimize and maximize are not supported (!113)
 - On KDE (Plasma), the in-app window controls are now hidden since the window manager draws its own title bar (!114)
+- Fixed the fullscreen player duration display truncating hours for songs over one hour, so 1:03:05 no longer appears as 03:05 (!128)
 
 ## 20.0.1
 
