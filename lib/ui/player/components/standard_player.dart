@@ -42,6 +42,13 @@ _NowPlayingMode _resolveNowPlayingMode(BoxConstraints constraints) {
   return _NowPlayingMode.expandedSplit;
 }
 
+String _formatDuration(Duration d) {
+  final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+  final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+  final h = d.inHours;
+  return h > 0 ? '$h:$m:$s' : '$m:$s';
+}
+
 class _NowPlayingLayoutMetrics {
   const _NowPlayingLayoutMetrics({
     required this.mode,
@@ -683,12 +690,6 @@ class _CompactProgressBar extends StatelessWidget {
         ],
       );
     });
-  }
-
-  String _formatDuration(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
   }
 }
 
@@ -1353,12 +1354,6 @@ class _WideShortNowPlayingStrip extends StatelessWidget {
       },
     );
   }
-
-  String _formatDuration(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
 }
 
 class _ExpandedLeftColumnState extends State<_ExpandedLeftColumn> {
@@ -1691,12 +1686,6 @@ class _ExpandedLeftColumnState extends State<_ExpandedLeftColumn> {
         ),
       ),
     );
-  }
-
-  String _formatDuration(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
   }
 }
 
