@@ -50,6 +50,7 @@ previously per-version files that lived under `changelog/`.
 - On Hyprland (Wayland), only the close button is now shown since client-side minimize and maximize are not supported (!113)
 - On KDE (Plasma), the in-app window controls are now hidden since the window manager draws its own title bar (!114)
 - Fixed the fullscreen player duration display truncating hours for songs over one hour, so 1:03:05 no longer appears as 03:05 (!128)
+- Fixed the now playing player showing a fullscreen button instead of a minimize button when opened from the bottom bar on wide screens, so the panel can be closed correctly
 
 ## 20.0.1
 

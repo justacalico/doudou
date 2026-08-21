@@ -12,6 +12,7 @@ import '../player_controller.dart';
 import 'background_image.dart';
 import 'lyrics_widget.dart';
 import 'player_mobile_bottom_bar.dart';
+import '../../widgets/sliding_up_panel.dart';
 
 enum _NowPlayingMode {
   compact,
@@ -47,6 +48,10 @@ String _formatDuration(Duration d) {
   final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
   final h = d.inHours;
   return h > 0 ? '$h:$m:$s' : '$m:$s';
+}
+
+bool _isInSlidingPanel(BuildContext context) {
+  return context.findAncestorWidgetOfExactType<SlidingUpPanel>() != null;
 }
 
 class _NowPlayingLayoutMetrics {
@@ -199,6 +204,7 @@ class _CompactNowPlaying extends StatelessWidget {
     final realScreenWidth =
         View.of(context).physicalSize.width / View.of(context).devicePixelRatio;
     final isWideScreen = realScreenWidth > 800;
+    final isInSlidingPanel = _isInSlidingPanel(context);
     final isLandscapeDense =
         !isWideScreen && size.width > size.height && size.height < 560;
 
@@ -237,7 +243,8 @@ class _CompactNowPlaying extends StatelessWidget {
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     child: Column(
                       children: [
-                        _buildTopActions(pc, white, dense: true, isWideScreen: isWideScreen),
+                        _buildTopActions(pc, white, dense: true,
+                            isInSlidingPanel: isInSlidingPanel),
                         Expanded(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -327,7 +334,8 @@ class _CompactNowPlaying extends StatelessWidget {
               : SafeArea(
                   child: Column(
                     children: [
-                      _buildTopActions(pc, white, isWideScreen: isWideScreen),
+                      _buildTopActions(pc, white,
+                          isInSlidingPanel: isInSlidingPanel),
                       Expanded(
                         child: Column(
                           children: [
@@ -453,7 +461,7 @@ class _CompactNowPlaying extends StatelessWidget {
   }
 
   Widget _buildTopActions(PlayerController pc, Color white,
-      {bool dense = false, required bool isWideScreen}) {
+      {bool dense = false, required bool isInSlidingPanel}) {
     final buttonSize = dense ? 34.0 : 40.0;
     final iconSize = dense ? 20.0 : 22.0;
     final borderRadius = dense ? 10.0 : 12.0;
@@ -471,10 +479,10 @@ class _CompactNowPlaying extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: () {
-              if (isWideScreen) {
-                Get.find<ShellController>().toggleNowPlayingFullscreen();
-              } else {
+              if (isInSlidingPanel) {
                 pc.playerPanelController.close();
+              } else {
+                Get.find<ShellController>().toggleNowPlayingFullscreen();
               }
             },
             child: ClipRRect(
@@ -490,8 +498,13 @@ class _CompactNowPlaying extends StatelessWidget {
                     width: 0.5,
                   ),
                 ),
-                child: isWideScreen
-                    ? Obx(
+                child: isInSlidingPanel
+                    ? Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: white,
+                        size: iconSize,
+                      )
+                    : Obx(
                         () => Icon(
                           Get.find<ShellController>()
                                   .isNowPlayingFullscreen
@@ -501,11 +514,6 @@ class _CompactNowPlaying extends StatelessWidget {
                           color: white,
                           size: iconSize,
                         ),
-                      )
-                    : Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: white,
-                        size: iconSize,
                       ),
               ),
             ),
@@ -892,10 +900,7 @@ class _ExpandedNowPlaying extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Real screen width — MediaQuery may be overridden by the side panel
-    final realScreenWidth =
-        View.of(context).physicalSize.width / View.of(context).devicePixelRatio;
-    final isWideScreen = realScreenWidth > 800;
+    final isInSlidingPanel = _isInSlidingPanel(context);
     final pc = Get.find<PlayerController>();
     final theme = Theme.of(context);
     final textColor = theme.brightness == Brightness.dark
@@ -940,8 +945,9 @@ class _ExpandedNowPlaying extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: isWideScreen
-                          ? Obx(
+                      icon: isInSlidingPanel
+                          ? const Icon(Icons.keyboard_arrow_down_rounded)
+                          : Obx(
                               () => Icon(
                                 Get.find<ShellController>()
                                         .isNowPlayingFullscreen
@@ -949,13 +955,12 @@ class _ExpandedNowPlaying extends StatelessWidget {
                                     ? Icons.fullscreen_exit_rounded
                                     : Icons.fullscreen_rounded,
                               ),
-                            )
-                          : const Icon(Icons.keyboard_arrow_down_rounded),
+                            ),
                       onPressed: () {
-                        if (isWideScreen) {
-                          Get.find<ShellController>().toggleNowPlayingFullscreen();
-                        } else {
+                        if (isInSlidingPanel) {
                           pc.playerPanelController.close();
+                        } else {
+                          Get.find<ShellController>().toggleNowPlayingFullscreen();
                         }
                       },
                     ),
