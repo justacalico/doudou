@@ -120,3 +120,7 @@ Bugs and feature requests go in the [issue tracker](https://gitlab.com/Openlyst/
 ## License
 
 [GPL-3.0](LICENSE)
+
+## Acknowledgements
+
+Doudou (version 16.0.0 and later) is based on [Harmony-Music](https://github.com/anandnet/Harmony-Music) by anandnet.
