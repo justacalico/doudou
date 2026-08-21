@@ -8,8 +8,7 @@ import 'package:hive/hive.dart';
 import 'package:palette_generator/palette_generator.dart';
 import '/ui/design/doudou_theme.dart';
 import '/utils/helper.dart';
-import '/app/theme/app_theme_provider.dart';
-import '/main.dart' show appContainer;
+
 
 ThemeType themeTypeFromStorage(dynamic rawThemeModeType) {
   if (rawThemeModeType is! int) return ThemeType.system;
@@ -84,10 +83,12 @@ class ThemeController extends GetxController {
   void setNowPlayingAccent(Color? color) {
     _cancelTrackAccentAnimation();
     primaryColor.value = color ?? _peachPinkFallback;
+    dynamicColor.value = color ?? _peachPinkFallback;
     currentSongId = null;
     if (color != null) {
       final appPrefs = Hive.box('AppPrefs');
       appPrefs.put("themePrimaryColor", primaryColor.value!.toARGB32());
+      appPrefs.put("dynamicColorPrimary", dynamicColor.value.toARGB32());
     }
     final savedType =
         themeTypeFromStorage(Hive.box('AppPrefs').get("themeModeType"));
@@ -101,11 +102,6 @@ class ThemeController extends GetxController {
       final savedType =
           themeTypeFromStorage(Hive.box('AppPrefs').get("themeModeType"));
       changeThemeModeType(savedType, sysCall: true);
-      if (savedType == ThemeType.system) {
-        appContainer
-            .read(appThemeProvider.notifier)
-            .setThemeType(ThemeType.system, systemBrightness: systemBrightness);
-      }
     };
   }
 
