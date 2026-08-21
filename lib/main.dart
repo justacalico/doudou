@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:terminate_restart/terminate_restart.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '/l10n/app_localizations.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
@@ -32,14 +31,9 @@ import 'utils/system_tray.dart';
 import 'utils/update_check_flag_file.dart';
 import '/ui/widgets/playlist_album_scroll_behaviour.dart';
 import '/utils/perf_monitor.dart';
-import '/app/settings/app_settings_provider.dart';
-import '/app/theme/app_theme_provider.dart';
+import '/app/settings/app_settings_controller.dart';
 
 final _perfMonitor = PerfMonitorController.devDefault();
-
-/// Shared Riverpod container so non-widget code (GetX controllers, platform
-/// brightness callbacks) can drive providers that own app state.
-final appContainer = ProviderContainer();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,38 +54,32 @@ Future<void> main() async {
     statusBarBrightness: Brightness.dark,
   ));
   TerminateRestart.instance.initialize();
-  runApp(UncontrolledProviderScope(
-    container: appContainer,
-    child: const MyApp(),
-  ));
+  runApp(const MyApp());
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     if (!GetPlatform.isDesktop) Get.put(AppLinksController());
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarIconBrightness: Brightness.light,
       statusBarBrightness: Brightness.dark,
     ));
-    final settings = ref.watch(appSettingsProvider);
-    final themeState = ref.watch(appThemeProvider);
-    final locale = settings.locale;
-
-    final desiredPerf = settings.perfMonitorEnabled;
+    final desiredPerf =
+        Get.find<AppSettingsController>().settings.value.perfMonitorEnabled;
     if (_perfMonitor.enabled.value != desiredPerf) {
       _perfMonitor.enabled.value = desiredPerf;
     }
-    return GetMaterialApp(
+    return GetX<AppSettingsController>(builder: (settingsController) {
+      return GetMaterialApp(
         title: 'Doudou',
         scrollBehavior: PlaylistAlbumScrollBehaviour(),
         home: const ScreenNavigation(),
         debugShowCheckedModeBanner: false,
-        locale: locale,
+        locale: settingsController.settings.value.locale,
         fallbackLocale: const Locale("en", "AU"),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: const [
@@ -103,51 +91,63 @@ class MyApp extends ConsumerWidget {
           final mQuery = MediaQuery.of(context);
           final scale =
               mQuery.textScaler.clamp(minScaleFactor: 1.0, maxScaleFactor: 1.1);
-          return PerfMonitor(
-            controller: _perfMonitor,
-            child: Stack(
-              children: [
-                MediaQuery(
-                  data: mQuery.copyWith(textScaler: scale),
-                  child: AnnotatedRegion<SystemUiOverlayStyle>(
-                    value: const SystemUiOverlayStyle(
-                      statusBarIconBrightness: Brightness.light,
-                      statusBarBrightness: Brightness.dark,
-                      statusBarColor: Colors.transparent,
-                    ),
-                    child: AnimatedTheme(
-                      duration: DoudouMotion.theme,
-                      data: themeState.theme,
-                      child: Stack(
-                        children: [
-                          child!,
-                          const _AppLoadingOverlay(),
-                        ],
+          return Obx(() {
+            final theme = Get.find<ThemeController>().themedata.value;
+            return PerfMonitor(
+              controller: _perfMonitor,
+              child: Stack(
+                children: [
+                  MediaQuery(
+                    data: mQuery.copyWith(textScaler: scale),
+                    child: AnnotatedRegion<SystemUiOverlayStyle>(
+                      value: const SystemUiOverlayStyle(
+                        statusBarIconBrightness: Brightness.light,
+                        statusBarBrightness: Brightness.dark,
+                        statusBarColor: Colors.transparent,
+                      ),
+                      child: AnimatedTheme(
+                        duration: DoudouMotion.theme,
+                        data: theme ??
+                            ThemeData.from(
+                              colorScheme: ColorScheme.fromSeed(
+                                seedColor: const Color(0xFFE8A598),
+                                brightness: Brightness.dark,
+                              ),
+                            ),
+                        child: Stack(
+                          children: [
+                            child!,
+                            const _AppLoadingOverlay(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                GestureDetector(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      color: Colors.transparent,
-                      height: mQuery.padding.bottom,
-                      width: mQuery.size.width,
+                  GestureDetector(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        color: Colors.transparent,
+                        height: mQuery.padding.bottom,
+                        width: mQuery.size.width,
+                      ),
                     ),
-                  ),
-                )
-              ],
-            ),
-          );
-        });
+                  )
+                ],
+              ),
+            );
+          });
+        },
+      );
+    });
   }
 }
 
 Future<void> startApplicationServices() async {
+  Get.put(AppSettingsController(), permanent: true);
+  Get.put(ThemeController(), permanent: true);
   Get.lazyPut(() => PipedServices(), fenix: true);
   Get.lazyPut(() => MusicServices(), fenix: true);
-  Get.lazyPut(() => ThemeController(), fenix: true);
   Get.lazyPut(() => PlayerController(), fenix: true);
   Get.lazyPut(() => HomeScreenController(), fenix: true);
   Get.lazyPut(() => LibrarySongsController(), fenix: true);

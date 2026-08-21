@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:doudou/app/theme/app_theme_provider.dart';
+import 'package:doudou/ui/utils/theme_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 
@@ -27,20 +27,19 @@ void main() {
 
   setUp(() async {
     await box.clear();
+    Get.reset();
   });
 
   test('initializes from Hive and can persist accent', () {
     box.put('themePrimaryColor', const Color(0xFF112233).toARGB32());
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
+    final controller = Get.put(ThemeController());
 
-    final st = container.read(appThemeProvider);
-    expect(st.accent, const Color(0xFF112233));
+    expect(controller.primaryColor.value, const Color(0xFF112233));
 
-    container.read(appThemeProvider.notifier).setAccent(const Color(0xFF334455));
-    final st2 = container.read(appThemeProvider);
-    expect(st2.accent, const Color(0xFF334455));
+    controller.setNowPlayingAccent(const Color(0xFF334455));
+    expect(controller.primaryColor.value, const Color(0xFF334455));
+    expect(controller.dynamicColor.value, const Color(0xFF334455));
     expect(box.get('themePrimaryColor'), const Color(0xFF334455).toARGB32());
+    expect(box.get('dynamicColorPrimary'), const Color(0xFF334455).toARGB32());
   });
 }
-

@@ -25,8 +25,7 @@ import '/services/music_service.dart';
 import '/ui/player/player_controller.dart';
 import '../Home/home_screen_controller.dart';
 import '/ui/utils/theme_controller.dart';
-import '/app/theme/app_theme_provider.dart';
-import '/main.dart' show appContainer;
+import '/app/settings/app_settings_controller.dart';
 
 import '/models/server.dart';
 import '/services/backend/backend_factory.dart';
@@ -402,6 +401,7 @@ class SettingsScreenController extends GetxController {
       Get.find<HomeScreenController>().loadContentFromNetwork(silent: true);
       currentAppLanguageCode.value = langCode;
       setBox.put('currentAppLanguageCode', langCode);
+      Get.find<AppSettingsController>().setLocale(langCode);
     });
   }
 
@@ -714,7 +714,6 @@ class SettingsScreenController extends GetxController {
     setBox.put('themeModeType', themeTypeToStorage(type));
     themeModetype.value = type;
     Get.find<ThemeController>().changeThemeModeType(type);
-    appContainer.read(appThemeProvider.notifier).setThemeType(type);
   }
 
   void onContentChange(dynamic value) {

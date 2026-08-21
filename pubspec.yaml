@@ -62,7 +62,6 @@ dependencies:
   toggle_switch: ^2.1.0
   tray_manager: ^0.5.2
   url_launcher: ^6.2.1
-  flutter_riverpod: ^2.6.1
   widget_marquee: ^0.0.8
   window_manager: ^0.4.2
   flutter_acrylic: ^1.1.0

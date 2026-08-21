@@ -2,20 +2,19 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 
 import '../../screens/Settings/settings_screen_controller.dart';
-import '/app/theme/now_playing_accent_provider.dart';
+import '/ui/utils/theme_controller.dart';
 import '../player_controller.dart';
 
-class BackgroundImage extends ConsumerWidget {
+class BackgroundImage extends StatelessWidget {
   const BackgroundImage({super.key, this.cacheHeight});
 
   final int? cacheHeight;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return GetX<PlayerController>(
       builder: (playerController) => SizedBox.expand(
         /// if song is null then return empty container
@@ -33,12 +32,10 @@ class BackgroundImage extends ConsumerWidget {
                         if (snapshot.connectionState == ConnectionState.done &&
                             snapshot.hasData &&
                             snapshot.data == true) {
-                          ref
-                              .read(nowPlayingAccentProvider.notifier)
-                              .setFromArtwork(
-                                FileImage(imgFile),
-                                playerController.currentSong.value!.id,
-                              );
+                          Get.find<ThemeController>().setTheme(
+                            FileImage(imgFile),
+                            playerController.currentSong.value!.id,
+                          );
 
                           return Image.file(
                             imgFile,
@@ -56,12 +53,10 @@ class BackgroundImage extends ConsumerWidget {
                     memCacheHeight: cacheHeight,
                     imageBuilder: (context, imageProvider) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        ref
-                            .read(nowPlayingAccentProvider.notifier)
-                            .setFromArtwork(
-                              imageProvider,
-                              playerController.currentSong.value!.id,
-                            );
+                        Get.find<ThemeController>().setTheme(
+                          imageProvider,
+                          playerController.currentSong.value!.id,
+                        );
                       });
                       return Image(
                         image: imageProvider,
