@@ -68,12 +68,12 @@ class MyApp extends StatelessWidget {
       statusBarIconBrightness: Brightness.light,
       statusBarBrightness: Brightness.dark,
     ));
-    final desiredPerf =
-        Get.find<AppSettingsController>().settings.value.perfMonitorEnabled;
-    if (_perfMonitor.enabled.value != desiredPerf) {
-      _perfMonitor.enabled.value = desiredPerf;
-    }
     return GetX<AppSettingsController>(builder: (settingsController) {
+      final desiredPerf =
+          settingsController.settings.value.perfMonitorEnabled;
+      if (_perfMonitor.enabled.value != desiredPerf) {
+        _perfMonitor.enabled.value = desiredPerf;
+      }
       return GetMaterialApp(
         title: 'Doudou',
         scrollBehavior: PlaylistAlbumScrollBehaviour(),

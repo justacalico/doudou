@@ -711,7 +711,7 @@ class SettingsScreenController extends GetxController {
 
   void onThemeChange(dynamic val) {
     final type = val as ThemeType;
-    setBox.put('themeModeType', themeTypeToStorage(type));
+    Get.find<AppSettingsController>().setThemeModeType(themeTypeToStorage(type));
     themeModetype.value = type;
     Get.find<ThemeController>().changeThemeModeType(type);
   }
