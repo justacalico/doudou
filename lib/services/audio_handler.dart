@@ -145,6 +145,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   void _addEmptyList() {
     _audioSourceReady = _player.setAudioSource(_playList).catchError((r) {
       printERROR(r.toString());
+      return null;
     });
   }
 
