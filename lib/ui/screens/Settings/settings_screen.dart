@@ -561,6 +561,25 @@ class _SettingsViewState extends State<_SettingsView> {
                 onChanged: settings.setPlayerUi,
               )),
         ),
+      if (isDesktop)
+        _SettingsListTile(
+          title: context.l10n.nowPlayingLayout,
+          subtitle: context.l10n.nowPlayingLayoutDes,
+          trailing: Obx(() => _SettingsDropdown<NowPlayingLayout>(
+                value: settings.nowPlayingLayout.value,
+                items: [
+                  (
+                    NowPlayingLayout.sideView,
+                    context.l10n.nowPlayingLayoutSideView
+                  ),
+                  (
+                    NowPlayingLayout.playBar,
+                    context.l10n.nowPlayingLayoutPlayBar
+                  ),
+                ],
+                onChanged: settings.setNowPlayingLayout,
+              )),
+        ),
       _SettingsListTile(
         title: context.l10n.animationSpeed,
         subtitle: context.l10n.animationSpeedDes,

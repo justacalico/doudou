@@ -1145,6 +1145,30 @@ abstract class AppLocalizations {
   /// **'Full view'**
   String get sidebarModeExpanded;
 
+  /// No description provided for @nowPlayingLayout.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Now playing layout'**
+  String get nowPlayingLayout;
+
+  /// No description provided for @nowPlayingLayoutDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Choose whether the now playing player appears as a side panel or a play bar on large screens.'**
+  String get nowPlayingLayoutDes;
+
+  /// No description provided for @nowPlayingLayoutSideView.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Side view'**
+  String get nowPlayingLayoutSideView;
+
+  /// No description provided for @nowPlayingLayoutPlayBar.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Play bar'**
+  String get nowPlayingLayoutPlayBar;
+
   /// No description provided for @dynamicColorDes.
   ///
   /// In en_AU, this message translates to:

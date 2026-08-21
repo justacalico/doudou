@@ -104,13 +104,16 @@ class _AppShellState extends State<AppShell> {
             final isBottomNavEnabled =
                 settingsController.isBottomNavBarEnabled.value;
             final sidebarMode = settingsController.sidebarMode.value;
+            final nowPlayingLayout =
+                settingsController.nowPlayingLayout.value;
             // TV always uses side navigation — ignore bottom nav setting
             final useBottomNav = !layout.isTV &&
                 (layout.useBottomNav ||
                     isBottomNavEnabled ||
                     width < kSidebarMinWidth);
 
-            final desiredMinHeight = isDesktopLayout
+            final usePlayBar = nowPlayingLayout == NowPlayingLayout.playBar;
+            final desiredMinHeight = (isDesktopLayout && !usePlayBar)
                 ? 0.0
                 : (useBottomNav
                     ? 80.0
@@ -171,8 +174,13 @@ class _AppShellState extends State<AppShell> {
                         setState(() => _sidebarMinimized = v),
                   );
 
-                  // Desktop layout: side panel instead of sliding up panel
-                  if (isDesktopLayout && !useBottomNav) {
+                  // Desktop layout: side panel instead of sliding up panel.
+                  // Respects the user's "Now playing layout" preference: when
+                  // set to playBar, desktop still uses the sliding up panel.
+                  // Narrow windows always fall back to the play bar.
+                  final useSidePanel = isDesktopLayout &&
+                      nowPlayingLayout == NowPlayingLayout.sideView;
+                  if (useSidePanel) {
                     return _DesktopShellBody(
                       chrome: chrome,
                       shellController: shellController,
@@ -180,7 +188,7 @@ class _AppShellState extends State<AppShell> {
                     );
                   }
 
-                  // Mobile / tablet / TV: keep the sliding up panel
+                  // Mobile / tablet / TV (or desktop with playBar): sliding up panel
                   return Obx(() {
                     final hasCurrentSong =
                         playerController.currentSong.value != null;
@@ -192,13 +200,11 @@ class _AppShellState extends State<AppShell> {
                     final panelHeader = useBottomNav
                         ? null
                         : (hasCurrentSong
-                            ? (!isWideScreen
-                                ? InkWell(
-                                    onTap: playerController
-                                        .playerPanelController.open,
-                                    child: const MiniPlayer(),
-                                  )
-                                : const MiniPlayer())
+                            ? InkWell(
+                                onTap: playerController
+                                    .playerPanelController.open,
+                                child: const MiniPlayer(),
+                              )
                             : null);
 
                     return SlidingUpPanel(
@@ -207,7 +213,7 @@ class _AppShellState extends State<AppShell> {
                       minHeight: panelMinHeight,
                       maxHeight: size.height,
                       // Disable drag on TV — no touchscreen, D-pad only
-                      isDraggable: !isWideScreen && !(layout.isTV),
+                      isDraggable: !(layout.isTV),
                       onSwipeUp: () {
                         playerController.queuePanelController.open();
                       },

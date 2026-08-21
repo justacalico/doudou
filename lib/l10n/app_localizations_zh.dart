@@ -536,6 +536,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sidebarModeExpanded => '完整显示';
 
   @override
+  String get nowPlayingLayout => '正在播放布局';
+
+  @override
+  String get nowPlayingLayoutDes => '选择在大屏幕上显示正在播放内容的方式：侧边面板或播放条。';
+
+  @override
+  String get nowPlayingLayoutSideView => '侧边视图';
+
+  @override
+  String get nowPlayingLayoutPlayBar => '播放条';
+
+  @override
   String get dynamicColorDes => '使用固定颜色的动态主题（非正在播放）';
 
   @override

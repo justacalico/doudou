@@ -554,6 +554,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sidebarModeExpanded => 'Развёрнуто';
 
   @override
+  String get nowPlayingLayout => 'Расположение плеера';
+
+  @override
+  String get nowPlayingLayoutDes =>
+      'Выберите, как отображать плеер на больших экранах: боковая панель или полоса воспроизведения.';
+
+  @override
+  String get nowPlayingLayoutSideView => 'Боковая панель';
+
+  @override
+  String get nowPlayingLayoutPlayBar => 'Полоса воспроизведения';
+
+  @override
   String get dynamicColorDes =>
       'Динамическая тема с фиксированным цветом (не из воспроизведения)';
 
