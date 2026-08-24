@@ -1379,24 +1379,43 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   @override
   Future<void> playFromMediaId(String mediaId,
       [Map<String, dynamic>? extras]) async {
-    // Handle direct-play buttons from the More menu — use the same
-    // HomeScreenController methods the mobile app uses for instant playback
+    // Handle direct-play buttons from the More menu
     if (mediaId == MediaLibrary.moreShuffleAllId) {
-      final ctx = Get.context;
-      final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
-      await Get.find<HomeScreenController>().shuffleAll(
-        emptyMessage: l10n?.noSongsInLibrary ?? 'No songs in library',
-        playFromName: l10n?.shuffleAll ?? 'Shuffle all',
-      );
+      if (Get.isRegistered<HomeScreenController>()) {
+        final ctx = Get.context;
+        final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
+        await Get.find<HomeScreenController>().shuffleAll(
+          emptyMessage: l10n?.noSongsInLibrary ?? 'No songs in library',
+          playFromName: l10n?.shuffleAll ?? 'Shuffle all',
+        );
+      } else {
+        final songs = await _mediaLibrary.getSongs();
+        if (songs.isNotEmpty) {
+          songs.shuffle();
+          await updateQueue(songs);
+          await customAction('playByIndex', {'index': 0});
+        }
+      }
       return;
     }
+
     if (mediaId == MediaLibrary.moreFavoritesId) {
-      final ctx = Get.context;
-      final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
-      await Get.find<HomeScreenController>().shuffleFavorites(
-        emptyMessage: l10n?.favoritesEmpty ?? 'Favourites is empty',
-        playFromName: l10n?.favorites ?? 'Favourites',
-      );
+      if (Get.isRegistered<HomeScreenController>()) {
+        final ctx = Get.context;
+        final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
+        await Get.find<HomeScreenController>().shuffleFavorites(
+          emptyMessage: l10n?.favoritesEmpty ?? 'Favourites is empty',
+          playFromName: l10n?.favorites ?? 'Favorites',
+        );
+      } else {
+        final songs =
+            await _mediaLibrary.getByRootId(MediaLibrary.favoritesRootId);
+        if (songs.isNotEmpty) {
+          songs.shuffle();
+          await updateQueue(songs);
+          await customAction('playByIndex', {'index': 0});
+        }
+      }
       return;
     }
 
@@ -1404,7 +1423,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (mediaId.startsWith('server_switch_')) {
       final idStr = mediaId.substring('server_switch_'.length);
       final id = int.tryParse(idStr);
-      if (id != null) {
+      if (id != null && Get.isRegistered<SettingsScreenController>()) {
         Get.find<SettingsScreenController>().setActiveServer(id);
       }
       return;
@@ -1420,11 +1439,75 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     final libraryId = extras?['libraryId']?.toString() ??
         _mediaLibrary._lastBrowseId;
     printINFO('playFromMediaId: mediaId=$mediaId, libraryId=$libraryId');
-    customEvent.add({
-      'eventType': 'playFromMediaId',
-      'songId': mediaId,
-      'libraryId': libraryId,
-    });
+
+    try {
+      final songs = await _findSongsForAndroidAuto(mediaId, libraryId);
+      final index = songs.indexWhere((s) => s.id == mediaId);
+      if (index >= 0) {
+        await updateQueue(songs);
+        await customAction('playByIndex', {'index': index});
+      } else {
+        printWarning('playFromMediaId: could not find song $mediaId');
+      }
+    } catch (e, st) {
+      printWarning('playFromMediaId: failed to play $mediaId: $e\n$st');
+    }
+  }
+
+  /// Resolve the song list that contains [songId] for Android Auto playback.
+  /// First tries the [libraryId] it was browsed from, then falls back to
+  /// known local boxes and the library controller.
+  Future<List<MediaItem>> _findSongsForAndroidAuto(
+      String songId, String libraryId) async {
+    if (libraryId.isNotEmpty) {
+      try {
+        final songs = await _mediaLibrary.getByRootId(libraryId);
+        if (songs.any((s) => s.id == songId)) {
+          return songs;
+        }
+      } catch (e, st) {
+        printWarning(
+            '_findSongsForAndroidAuto: getByRootId($libraryId) failed: $e\n$st');
+      }
+    }
+
+    // Fallback: search known local boxes and the full library.
+    try {
+      final sid = Get.isRegistered<SettingsScreenController>()
+          ? Get.find<SettingsScreenController>().activeServerId.value ?? 0
+          : 0;
+      final boxNames = [
+        songDownloadsBoxName(sid),
+        recentlyPlayedBoxName(sid),
+        libFavBoxName(sid),
+      ];
+      for (final box in boxNames) {
+        try {
+          final songs = await _mediaLibrary.getLibSongs(box);
+          if (songs.any((s) => s.id == songId)) {
+            return songs;
+          }
+        } catch (_) {
+          // ignore and try next box
+        }
+      }
+
+      if (Get.isRegistered<LibrarySongsController>()) {
+        final ctrl = Get.find<LibrarySongsController>();
+        for (int i = 0; i < 20; i++) {
+          if (ctrl.isSongFetched.value) break;
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+        final songs = ctrl.librarySongsList.toList();
+        if (songs.any((s) => s.id == songId)) {
+          return songs;
+        }
+      }
+    } catch (e) {
+      printWarning('_findSongsForAndroidAuto: fallback search failed: $e');
+    }
+
+    return [];
   }
 
   @override
