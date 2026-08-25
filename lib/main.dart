@@ -39,6 +39,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initHive();
   _setAppInitPrefs();
+  Get.lazyPut(() => PlaybackDiagnosticsService(), fenix: true);
   Get.put<AudioHandler>(await initAudioService(), permanent: true);
   if (GetPlatform.isAndroid) {
     Get.put(PlaybackWakeLockService(), permanent: true);
@@ -158,7 +159,6 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => Downloader(), fenix: true);
   Get.lazyPut(() => LibrarySyncService(), fenix: true);
   Get.lazyPut(() => SearchScreenController(), fenix: true);
-  Get.lazyPut(() => PlaybackDiagnosticsService(), fenix: true);
   if (GetPlatform.isAndroid) {
     // Register TvService first so it's available even if other services fail
     Get.put(TvService(), permanent: true);
