@@ -5,7 +5,6 @@ previously per-version files that lived under `changelog/`.
 
 ## 21.0.0 - 2026-08-05
 
-- Fixed YouTube Music 403 errors
 - Bumped version to 21.0.0
 - Updated dependencies
 - Added Android Auto support
@@ -49,8 +48,18 @@ previously per-version files that lived under `changelog/`.
 - Reordered the Windows and Linux window control buttons to close, maximize, minimize (x, +, -) to match the sidebar layout (!112)
 - On Hyprland (Wayland), only the close button is now shown since client-side minimize and maximize are not supported (!113)
 - On KDE (Plasma), the in-app window controls are now hidden since the window manager draws its own title bar (!114)
+- Fixed YouTube Music playback, including 403 errors, by switching to a patched `youtube_explode_dart` fork and moving `just_audio_media_kit` in-tree (!117)
+- Reworked the settings page with a real desktop sidebar, updated server add/edit dialogs, and improved accessibility text (!119)
+- Fixed theme changes not applying, including when following system brightness, by syncing `onThemeChange` with `appThemeProvider` (!120)
+- Fixed a crash in settings sub-pages caused by looking up localizations on a deactivated widget (!121)
+- Fixed album art appearing squashed on the vertical now playing screen (!122)
+- Removed unsupported translation JSON files (!123)
+- Added a `Now playing layout` setting on desktop to choose between a side panel or a play bar, and fixed the play bar layout on large screens and when changing the setting (!124)
+- Removed Riverpod and consolidated app settings and theme management under GetX (!126)
+- Fixed a return type warning in `audio_handler` `catchError` handling (!127)
 - Fixed the fullscreen player duration display truncating hours for songs over one hour, so 1:03:05 no longer appears as 03:05 (!128)
 - Fixed the now playing player showing a fullscreen button instead of a minimize button when opened from the bottom bar on wide screens, so the panel can be closed correctly
+- Fixed `PlaybackDiagnosticsService` not being registered before `AudioHandler` initialization (!132)
 
 ## 20.0.1
 
