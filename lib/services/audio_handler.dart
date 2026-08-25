@@ -52,8 +52,10 @@ Future<AudioHandler> initAudioService() async {
 class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   // ignore: prefer_typing_uninitialized_variables
   late final _cacheDir;
-  late AudioPlayer _player;
-  late MediaLibrary _mediaLibrary;
+  final AudioPlayer _player;
+  final MediaLibrary _mediaLibrary;
+  final PlaybackDiagnosticsService _diag;
+  final bool _testable;
   MediaLibrary get mediaLibrary => _mediaLibrary;
   // ignore: prefer_typing_uninitialized_variables
   dynamic currentIndex;
@@ -96,30 +98,48 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       ConcatenatingAudioSource(children: [], useLazyPreparation: false);
   late Future<void> _audioSourceReady;
 
-  PlaybackDiagnosticsService get _diag =>
-      Get.find<PlaybackDiagnosticsService>();
-
-  MyAudioHandler() {
+  static AudioPlayer _createDefaultPlayer() {
     if (GetPlatform.isWindows || GetPlatform.isLinux) {
       JustAudioMediaKit.title = 'Doudou';
       JustAudioMediaKit.protocolWhitelist = const ['http', 'https', 'file'];
       JustAudioMediaKit.ensureInitialized();
     }
-    _mediaLibrary = MediaLibrary();
-    _player = AudioPlayer(
-        handleAudioSessionActivation: !GetPlatform.isLinux && !GetPlatform.isWindows,
-        audioLoadConfiguration: const AudioLoadConfiguration(
-            androidLoadControl: AndroidLoadControl(
-      minBufferDuration: Duration(seconds: 50),
-      maxBufferDuration: Duration(seconds: 120),
-      bufferForPlaybackDuration: Duration(milliseconds: 50),
-      bufferForPlaybackAfterRebufferDuration: Duration(seconds: 2),
-    )));
-    _createCacheDir();
-    _addEmptyList();
-    _notifyAudioHandlerAboutPlaybackEvents();
-    _listenToPlaybackForNextSong();
-    _listenForSequenceStateChanges();
+    return AudioPlayer(
+      handleAudioSessionActivation:
+          !GetPlatform.isLinux && !GetPlatform.isWindows,
+      audioLoadConfiguration: const AudioLoadConfiguration(
+        androidLoadControl: AndroidLoadControl(
+          minBufferDuration: Duration(seconds: 50),
+          maxBufferDuration: Duration(seconds: 120),
+          bufferForPlaybackDuration: Duration(milliseconds: 50),
+          bufferForPlaybackAfterRebufferDuration: Duration(seconds: 2),
+        ),
+      ),
+    );
+  }
+
+  MyAudioHandler({
+    AudioPlayer? player,
+    MediaLibrary? mediaLibrary,
+    PlaybackDiagnosticsService? diagnostics,
+  })  : _testable = player != null,
+        _player = player ?? _createDefaultPlayer(),
+        _mediaLibrary = mediaLibrary ?? MediaLibrary(),
+        _diag = diagnostics ?? Get.find<PlaybackDiagnosticsService>() {
+    if (_testable) {
+      _cacheDir = '';
+      _audioSourceReady = Future.value();
+    } else {
+      _createCacheDir();
+      _addEmptyList();
+      _notifyAudioHandlerAboutPlaybackEvents();
+      _listenToPlaybackForNextSong();
+      _listenForSequenceStateChanges();
+      _listenForDurationChanges();
+      if (GetPlatform.isAndroid) {
+        _listenSessionIdStream();
+      }
+    }
     final appPrefsBox = Hive.box("AppPrefs");
     _player
         .setSkipSilenceEnabled(appPrefsBox.get("skipSilenceEnabled") ?? false);
@@ -129,10 +149,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         Hive.box("AppPrefs").get("queueLoopModeEnabled") ?? false;
     loudnessNormalizationEnabled =
         appPrefsBox.get("loudnessNormalizationEnabled") ?? false;
-    _listenForDurationChanges();
-    if (GetPlatform.isAndroid) {
-      _listenSessionIdStream();
-    }
   }
 
   Future<void> _createCacheDir() async {
