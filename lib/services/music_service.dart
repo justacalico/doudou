@@ -76,7 +76,7 @@ class MusicServices extends getx.GetxService {
           'id': visitorData['id'],
           'exp': DateTime.now().millisecondsSinceEpoch ~/ 1000 + 2590200
         });
-        printINFO("Got Visitor id ($visitorData['id']) from Box");
+        printINFO("Got Visitor id (${visitorData['id']}) from Box");
         return;
       }
     }
