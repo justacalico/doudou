@@ -60,6 +60,7 @@ previously per-version files that lived under `changelog/`.
 - Fixed the fullscreen player duration display truncating hours for songs over one hour, so 1:03:05 no longer appears as 03:05 (!128)
 - Fixed the now playing player showing a fullscreen button instead of a minimize button when opened from the bottom bar on wide screens, so the panel can be closed correctly
 - Fixed `PlaybackDiagnosticsService` not being registered before `AudioHandler` initialization (!132)
+- Redesigned the App Info settings card with a compact horizontal header and fixed GitLab description text truncation (!137)
 
 ## 20.0.1
 
