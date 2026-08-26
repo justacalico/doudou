@@ -74,6 +74,7 @@ mixin _PlayerControllerBase on GetSingleTickerProviderStateMixin {
       List<SyncedLyricLine>.unmodifiable(_syncedLyricLines);
 
   late StreamSubscription<bool> keyboardSubscription;
+  final _playerStreamSubscriptions = <StreamSubscription>[];
 
   ///pushSongToPlaylist method clear previous song queue, plays the tapped song and push related
   ///songs into Queue

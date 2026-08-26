@@ -85,7 +85,7 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
   }
 
   void _listenForChangesInPlayerState() {
-    _audioHandler.playbackState.listen((playerState) {
+    _playerStreamSubscriptions.add(_audioHandler.playbackState.listen((playerState) {
       final isPlaying = playerState.playing;
       final processingState = playerState.processingState;
       if (processingState == AudioProcessingState.loading) {
@@ -104,7 +104,7 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
       // Keep the screen awake whenever playback is active and the setting is enabled.
       final shouldEnable = settings.keepScreenAwake.isTrue && isPlaying;
       unawaited(_setWakelock(shouldEnable));
-    });
+    }));
   }
 
   Future<void> _setWakelock(bool enable) async {
@@ -144,7 +144,7 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
   }
 
   void _listenForChangesInPosition() {
-    AudioService.position.listen((position) {
+    _playerStreamSubscriptions.add(AudioService.position.listen((position) {
       final oldState = progressBarStatus.value;
       if (isSleepEndOfSongActive.isTrue) {
         timerDurationLeft.value = oldState.total.inSeconds - position.inSeconds;
@@ -163,11 +163,11 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
         val.total = oldState.total;
       });
       _updateDynamicColorFromLyrics(clampedCurrent);
-    });
+    }));
   }
 
   void _listenForChangesInBufferedPosition() {
-    _audioHandler.playbackState.listen((playbackState) {
+    _playerStreamSubscriptions.add(_audioHandler.playbackState.listen((playbackState) {
       final oldState = progressBarStatus.value;
       if (progressBarStatus.value.total.inSeconds != 0 &&
           playbackState.bufferedPosition.inSeconds /
@@ -184,11 +184,11 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
         val.current = oldState.current;
         val.total = oldState.total;
       });
-    });
+    }));
   }
 
   void _listenForChangesInDuration() {
-    _audioHandler.mediaItem.listen((mediaItem) async {
+    _playerStreamSubscriptions.add(_audioHandler.mediaItem.listen((mediaItem) async {
       final oldState = progressBarStatus.value;
       progressBarStatus.update((val) {
         val!.total = mediaItem?.duration ?? Duration.zero;
@@ -254,14 +254,14 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
       } else {
         currentSong.value = null;
       }
-    });
+    }));
   }
 
   void _listenForPlaylistChange() {
-    _audioHandler.queue.listen((queue) {
+    _playerStreamSubscriptions.add(_audioHandler.queue.listen((queue) {
       currentQueue.value = queue;
       currentQueue.refresh();
-    });
+    }));
   }
 
   Future<void> _restorePrevSession() async {
@@ -289,11 +289,11 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
   }
 
   void _listenForCustomEvents() {
-    _audioHandler.customEvent.listen((event) {
+    _playerStreamSubscriptions.add(_audioHandler.customEvent.listen((event) {
       if (event['eventType'] == 'playFromMediaId') {
         _playViaAndroidAuto(event['songId'], event['libraryId']);
       }
-    });
+    }));
   }
 
   void _playerPanelCheck({bool restoreSession = false}) {
@@ -324,6 +324,10 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
   void dispose() {
     _audioHandler.customAction('dispose');
     keyboardSubscription.cancel();
+    for (final sub in _playerStreamSubscriptions) {
+      sub.cancel();
+    }
+    _playerStreamSubscriptions.clear();
     scrollController.dispose();
     gesturePlayerStateAnimationController?.dispose();
     sleepTimer?.cancel();
