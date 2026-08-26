@@ -115,36 +115,36 @@ class _AppInfoHeader extends StatelessWidget {
     final colors = context.doudouColors;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        DoudouSpace.s20,
-        DoudouSpace.s24,
-        DoudouSpace.s20,
-        DoudouSpace.s20,
-      ),
-      child: Column(
+      padding: const EdgeInsets.all(DoudouSpace.s20),
+      child: Row(
         children: [
           GestureDetector(
             onLongPress: onLongPress,
             child: ClipRRect(
-              borderRadius: DoudouRadii.r16,
+              borderRadius: DoudouRadii.r12,
               child: Image.asset(
                 'assets/icons/icon.png',
-                width: 72,
-                height: 72,
+                width: 56,
+                height: 56,
               ),
             ),
           ),
-          const SizedBox(height: DoudouSpace.s12),
-          Text(
-            'Doudou',
-            style: DoudouType.pageTitle,
-          ),
-          const SizedBox(height: DoudouSpace.s2),
-          Text(
-            version,
-            style: DoudouType.body.copyWith(
-              color: colors.textTertiary,
-            ),
+          const SizedBox(width: DoudouSpace.s16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Doudou',
+                style: DoudouType.pageTitle,
+              ),
+              const SizedBox(height: DoudouSpace.s2),
+              Text(
+                version,
+                style: DoudouType.meta.copyWith(
+                  color: colors.textTertiary,
+                ),
+              ),
+            ],
           ),
         ],
       ),
