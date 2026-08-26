@@ -555,6 +555,22 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
   AudioSource _createAudioSource(MediaItem mediaItem) {
     final url = mediaItem.extras!['url'] as String;
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      _diag.logEvent(
+        category: 'audio_source',
+        message: 'invalid_stream_url',
+        songId: mediaItem.id,
+        backendType: mediaItem.extras?['backendType']?.toString(),
+        activeServerType: _safeServerType(),
+        data: {
+          'url': PlaybackDiagnosticsService.sanitizeUrl(url),
+        },
+      );
+      throw Exception(
+          'Unable to parse stream URL for songId=${mediaItem.id}');
+    }
+
     if (url.contains('/cache') ||
         (Get.find<SettingsScreenController>().cacheSongs.isTrue &&
             url.contains("http"))) {
@@ -572,7 +588,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       isPlayingUsingLockCachingSource = true;
       // ignore: experimental_member_use
       return LockCachingAudioSource(
-        Uri.parse(url),
+        uri,
         cacheFile: File("$_cacheDir/cachedSongs/${mediaItem.id}.mp3"),
         headers: _youtubeStreamHeaders(url),
         tag: mediaItem,
@@ -592,7 +608,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     printINFO("Playing Using AudioSource.uri");
     isPlayingUsingLockCachingSource = false;
     return AudioSource.uri(
-      Uri.tryParse(url)!,
+      uri,
       headers: _youtubeStreamHeaders(url),
       tag: mediaItem,
     );
