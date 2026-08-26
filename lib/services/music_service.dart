@@ -953,25 +953,21 @@ class MusicServices extends getx.GetxService {
   Future<String?> getSongYear(String songId) async {
     final data = Map.from(_context);
     data['browseId'] = "MPTC$songId";
-    try {
-      final response = (await _sendRequest('browse', data)).data;
-      String? year = nav(response, [
-        "onResponseReceivedActions",
-        0,
-        "openPopupAction",
-        "popup",
-        "dismissableDialogRenderer",
-        "metadata",
-        "musicMultiRowListItemRenderer",
-        "secondTitle",
-        "runs",
-        2,
-        "text"
-      ]);
-      return year;
-    } catch (e) {
-      rethrow;
-    }
+    final response = (await _sendRequest('browse', data)).data;
+    String? year = nav(response, [
+      "onResponseReceivedActions",
+      0,
+      "openPopupAction",
+      "popup",
+      "dismissableDialogRenderer",
+      "metadata",
+      "musicMultiRowListItemRenderer",
+      "secondTitle",
+      "runs",
+      2,
+      "text"
+    ]);
+    return year;
   }
 
   @override
