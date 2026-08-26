@@ -118,8 +118,31 @@ class MusicServices extends getx.GetxService {
   }
 
   Future<Response> _sendRequest(String action, Map<dynamic, dynamic> data,
-      {additionalParams = ""}) async {
+      {additionalParams = "", int attempt = 0}) async {
     //print("$baseUrl$action$fixedParms$additionalParams          data:$data");
+    const maxAttempts = 3;
+    const baseDelay = Duration(milliseconds: 500);
+
+    bool shouldRetryOnStatusCode(int? statusCode) {
+      return statusCode == null ||
+          statusCode >= 500 ||
+          statusCode == 429; // rate limited
+    }
+
+    bool isRetryableDioError(DioException e) {
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+        case DioExceptionType.connectionError:
+          return true;
+        case DioExceptionType.badResponse:
+          return shouldRetryOnStatusCode(e.response?.statusCode);
+        default:
+          return false;
+      }
+    }
+
     try {
       final response =
           await dio.post("$baseUrl$action$fixedParms$additionalParams",
@@ -130,10 +153,22 @@ class MusicServices extends getx.GetxService {
 
       if (response.statusCode == 200) {
         return response;
-      } else {
-        return _sendRequest(action, data, additionalParams: additionalParams);
       }
+
+      if (attempt < maxAttempts - 1 &&
+          shouldRetryOnStatusCode(response.statusCode)) {
+        await Future.delayed(baseDelay * (1 << attempt));
+        return _sendRequest(action, data,
+            additionalParams: additionalParams, attempt: attempt + 1);
+      }
+
+      throw NetworkError();
     } on DioException catch (e) {
+      if (attempt < maxAttempts - 1 && isRetryableDioError(e)) {
+        await Future.delayed(baseDelay * (1 << attempt));
+        return _sendRequest(action, data,
+            additionalParams: additionalParams, attempt: attempt + 1);
+      }
       printINFO("Error $e");
       throw NetworkError();
     }
