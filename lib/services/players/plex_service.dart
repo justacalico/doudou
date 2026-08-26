@@ -16,7 +16,7 @@ class PlexService {
   String? _token;
   String? _machineIdentifier;
 
-  PlexService() : _dio = Dio() {
+  PlexService({Dio? dio}) : _dio = dio ?? Dio() {
     _dio.options
       ..connectTimeout = const Duration(seconds: 10)
       ..receiveTimeout = const Duration(seconds: 30)
@@ -27,7 +27,7 @@ class PlexService {
     _dio.options.headers['X-Plex-Product'] = 'Doudou';
     _dio.options.headers['X-Plex-Version'] = '1.0.0';
 
-    if (Platform.isLinux) {
+    if (Platform.isLinux && _dio.httpClientAdapter is IOHttpClientAdapter) {
       (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
         final client = HttpClient();
         client.badCertificateCallback = (cert, host, port) => true;

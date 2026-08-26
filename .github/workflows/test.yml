@@ -38,6 +38,9 @@ jobs:
       - name: Run tests with coverage
         run: flutter test --coverage --reporter expanded
 
+      - name: Filter untestable files from coverage
+        run: python3 scripts/filter_coverage.py
+
       - name: Check coverage threshold
         run: |
           if [ ! -f coverage/lcov.info ]; then
@@ -72,13 +75,11 @@ jobs:
           echo "Covered lines: $COVERED_LINES"
           echo "Coverage: ${PERCENTAGE}%"
 
-          # Fail if coverage drops below 5% of total lines.
-          # This is intentionally conservative — platform-dependent code
-          # (audio_handler, android_auto, watch_connectivity, JNI, etc.)
-          # and UI widgets cannot be unit tested and drag the overall
-          # number down. The threshold protects against regressions in
-          # the testable logic (models, utils, services parsers).
-          THRESHOLD=5
+          # Untestable files (UI widgets, generated localizations, JNIGEN
+          # bindings, example apps) are filtered out by
+          # scripts/filter_coverage.py before this step. The threshold now
+          # reflects coverage of testable logic (models, utils, services).
+          THRESHOLD=34
           if [ "$PERCENTAGE" -lt "$THRESHOLD" ]; then
             echo "Coverage ${PERCENTAGE}% is below threshold ${THRESHOLD}%"
             exit 1
