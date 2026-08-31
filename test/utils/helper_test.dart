@@ -268,6 +268,42 @@ void main() {
       expect(artists[1].name, 'apple');
     });
   });
+
+  group('logPlaybackDebugError', () {
+    test('passes context and error to the logger', () {
+      final logs = <String>[];
+      logPlaybackDebugError(
+        'StreamProvider.fetch',
+        Exception('boom'),
+        log: (message, {tag = 'Doudou'}) => logs.add('$tag: $message'),
+      );
+
+      expect(logs, ['Doudou: [StreamProvider.fetch] Exception: boom']);
+    });
+
+    test('uses the provided tag', () {
+      final logs = <String>[];
+      logPlaybackDebugError(
+        'play',
+        'track failed',
+        tag: 'Playback',
+        log: (message, {tag = 'Doudou'}) => logs.add('$tag: $message'),
+      );
+
+      expect(logs, ['Playback: [play] track failed']);
+    });
+
+    test('handles null error', () {
+      final logs = <String>[];
+      logPlaybackDebugError(
+        'null-test',
+        null,
+        log: (message, {tag = 'Doudou'}) => logs.add(message),
+      );
+
+      expect(logs, ['[null-test] null']);
+    });
+  });
 }
 
 class _FakeAlbum {

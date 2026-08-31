@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
+import '../utils/helper.dart';
+
 class StreamProvider {
   final bool playable;
   final List<Audio>? audioFormats;
@@ -29,6 +31,7 @@ class StreamProvider {
                   size: e.size.totalBytes))
               .toList());
     } catch (e) {
+      logPlaybackDebugError('StreamProvider.fetch($videoId)', e);
       if (e is SocketException) {
         return StreamProvider(
           playable: false,
