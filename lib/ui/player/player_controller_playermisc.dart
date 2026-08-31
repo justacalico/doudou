@@ -6,6 +6,8 @@ mixin _PlayerMiscMixin on _PlayerControllerBase {
   }
 
   void notifyPlayError(String message) {
+    logPlaybackDebugError('notifyPlayError',
+        'song=${currentSong.value?.id ?? 'unknown'}, message=$message');
     _diag.logEvent(
       category: 'ui_error',
       message: 'notify_play_error',

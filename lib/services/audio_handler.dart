@@ -1531,6 +1531,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
               lowQualityAudio: audio);
         }
       } catch (e) {
+        logPlaybackDebugError('checkNGetUrl($songId)', e);
         _diag.logEvent(
           category: 'stream_fetch',
           message: 'backend_stream_url_failed',

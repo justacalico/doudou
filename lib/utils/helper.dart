@@ -38,6 +38,17 @@ void printINFO(dynamic text, {String tag = 'Doudou'}) {
   debugPrint("\x1B[32m[$tag]: $message\x1B[0m");
 }
 
+typedef PlaybackDebugLogger = void Function(String message, {String tag});
+
+void logPlaybackDebugError(String context, Object? error,
+    {String tag = 'Doudou', PlaybackDebugLogger log = _defaultPlaybackLog}) {
+  if (kReleaseMode) return;
+  log('[$context] $error', tag: tag);
+}
+
+void _defaultPlaybackLog(String message, {String tag = 'Doudou'}) =>
+    printERROR(message, tag: tag);
+
 String _formatLogOutput(dynamic value) {
   final sanitized = sanitizeForLog(value);
   return sanitized is String ? sanitized : sanitized.toString();
