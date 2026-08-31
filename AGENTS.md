@@ -7,4 +7,4 @@ All changes must follow these rules.
 5. Write tests for EVERY new thing you do any code change should be testable no matter how small it is write the test. Make sure tests are created just to pass they should test the actural changes. EXPECT for non-code changes editing a md file or linaece file or anything that is not a actural code change no test is needed and should not be written.
 6. Ensure all tests pass after any change.
 7. When opening a merge request in the body include what model, provider and the harness used to create the merge request. If the code was human made then state "Created by human, PR created with ...."
-8. When opening a new merge request make sure to update the changelog.md file for the change you did UNLESS its not a code change.
+8. When opening a new merge request make sure to update the changelog.md file for the change you did UNLESS its not a code change. Make sure it is listed under the same version in the pubspec version.
