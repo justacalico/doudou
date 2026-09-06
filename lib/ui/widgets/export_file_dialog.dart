@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:doudou/ui/screens/Settings/settings_screen_controller.dart';
 import 'package:doudou/ui/widgets/loader.dart';
 
+import '../../services/export_service.dart';
 import '../../services/permission_service.dart';
 import 'common_dialog_widget.dart';
 
@@ -142,13 +143,28 @@ class ExportFileDialogController extends GetxController {
 
     exportProgress.value = 0;
     exportRunning.value = true;
-    final exportDirPath =
-        Get.find<SettingsScreenController>().exportLocationPath.toString();
+
+    final settings = Get.find<SettingsScreenController>();
+    var exportDirPath = settings.exportLocationPath.value;
+    if (exportDirPath.isEmpty ||
+        !await ExportService.hasWriteAccess(exportDirPath)) {
+      exportDirPath = await ExportService.pickExportFolder(
+              dialogTitle: "Select export file folder") ??
+          '';
+      if (exportDirPath.isEmpty) {
+        exportRunning.value = false;
+        exportProgress.value = -1;
+        return;
+      }
+      settings.setBox.put("exportLocationPath", exportDirPath);
+      settings.exportLocationPath.value = exportDirPath;
+    }
+
     final length_ = filesToExport.length;
     for (int i = 0; i < length_; i++) {
       final filePath = filesToExport[i];
-      final newFilePath = "$exportDirPath/${filePath.split("/").last}";
-      await File(filePath).copy(newFilePath);
+      await ExportService.copyToExportLocation(
+          filePath, filePath.split("/").last, exportDirPath);
       exportProgress.value = i + 1;
     }
     exportRunning.value = false;
