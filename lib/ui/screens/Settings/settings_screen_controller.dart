@@ -48,6 +48,9 @@ part 'settings_screen_controller_settingsui.dart';
 const bool kIsPlayStore =
     bool.fromEnvironment('PLAYSTORE', defaultValue: false);
 
+const bool kIsNightly =
+    bool.fromEnvironment('NIGHTLY', defaultValue: false);
+
 enum SidebarMode { auto, collapsed, expanded }
 
 enum NowPlayingLayout { sideView, playBar }

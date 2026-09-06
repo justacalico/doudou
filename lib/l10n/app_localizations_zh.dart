@@ -792,6 +792,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkForUpdatesOnStartup => '启动时检查更新';
 
   @override
+  String get nightlyBuild => '夜间构建';
+
+  @override
   String get openGitlab => '打开 GitLab';
 
   @override

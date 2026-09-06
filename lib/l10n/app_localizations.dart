@@ -1655,6 +1655,12 @@ abstract class AppLocalizations {
   /// **'Check for updates on startup'**
   String get checkForUpdatesOnStartup;
 
+  /// No description provided for @nightlyBuild.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Nightly build'**
+  String get nightlyBuild;
+
   /// No description provided for @openGitlab.
   ///
   /// In en_AU, this message translates to:

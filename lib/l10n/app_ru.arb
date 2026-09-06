@@ -597,6 +597,8 @@
   "@checkForUpdates": {},
   "checkForUpdatesOnStartup": "Проверять обновления при запуске",
   "@checkForUpdatesOnStartup": {},
+  "nightlyBuild": "Ночная сборка",
+  "@nightlyBuild": {},
   "checkingForUpdates": "Проверка обновлений…",
   "@checkingForUpdates": {},
   "connectionFailed": "Ошибка подключения",

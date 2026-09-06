@@ -300,6 +300,7 @@
   "change": "更改",
   "checkForUpdates": "检查更新",
   "checkForUpdatesOnStartup": "启动时检查更新",
+  "nightlyBuild": "夜间构建",
   "checkingForUpdates": "正在检查更新…",
   "connectionFailed": "连接失败",
   "connectionSuccess": "连接成功",

@@ -49,6 +49,8 @@ mixin _SettingsScreenControllerBase on GetxController {
   String get currentVersion =>
       _currentVersion.value.isEmpty ? '0.0.0' : _currentVersion.value;
 
+  bool get isNightlyBuild => kIsNightly;
+
   SettingsServer? get activeServer {
     final id = activeServerId.value;
     if (id != null) {
