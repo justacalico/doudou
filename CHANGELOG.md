@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 22.0.0
 
+- Removed the queue button from the now playing bottom bar on mobile/compact layouts. The queue is still reachable from the side panel and other entry points.
 - Added debug-only playback error logging via `logPlaybackDebugError` for
   YouTube Music stream failures and playback errors.
 - Exports on Android and iOS now ask the user where to save instead of writing
