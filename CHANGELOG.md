@@ -7,6 +7,11 @@ previously per-version files that lived under `changelog/`.
 
 - Added debug-only playback error logging via `logPlaybackDebugError` for
   YouTube Music stream failures and playback errors.
+- Exports on Android and iOS now ask the user where to save instead of writing
+  to the app directory. Downloaded file exports and backups use the system
+  folder/save pickers, and playlist exports (JSON/CSV) use the system save
+  dialog. The "Exported file location" setting now opens the Android folder
+  picker.
 
 ## 21.0.0 - 2026-08-05
 
