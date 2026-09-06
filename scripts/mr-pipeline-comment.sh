@@ -67,10 +67,21 @@ GitHub run: [View on GitHub](${RUN_URL})"
     [ "$conclusion" = "success" ] && icon="✅"
 
     jobs=""
+    downloads=""
     if [ -n "$RUN_ID" ] && command -v gh >/dev/null 2>&1; then
       jobs=$(gh run view "$RUN_ID" -R justacalico/doudou --json jobs 2>/dev/null | jq -r '.jobs[] | select(.conclusion != null or .status != null) | "- **\(.name)**: \(.conclusion // .status)"' || true)
+      downloads=$(gh api "repos/justacalico/doudou/actions/runs/${RUN_ID}/artifacts?per_page=100" 2>/dev/null \
+        | jq -r --arg run "$RUN_ID" '.artifacts[] | select(.expired != true) | "- [\(.name)](https://github.com/justacalico/doudou/actions/runs/\($run)/artifacts/\(.id))"' || true)
     fi
     [ -n "$jobs" ] || jobs="GitHub job details unavailable."
+
+    downloads_section=""
+    if [ -n "$downloads" ]; then
+      downloads_section="
+
+Downloads (GitHub sign-in required):
+${downloads}"
+    fi
 
     body="${MARKER}
 **Pipeline ${PIPELINE_ID}** · ${JOB_NAME} · ${icon} ${conclusion}
@@ -79,7 +90,7 @@ GitHub run: [View on GitHub](${RUN_URL})
 GitLab pipeline: [View on GitLab](${PIPELINE_URL})
 
 GitHub jobs:
-${jobs}"
+${jobs}${downloads_section}"
     post_or_update "$body"
     ;;
 esac
