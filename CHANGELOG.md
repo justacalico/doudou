@@ -14,6 +14,7 @@ previously per-version files that lived under `changelog/`.
   bug, and the existing correction now falls back to the song's length label
   and stream size when metadata is missing or corrupted.
 - Removed the queue button from the now playing bottom bar on mobile/compact layouts. The queue is still reachable from the side panel and other entry points.
+- Fixed the queue panel and queue drawer sliding under the status bar on Android and iOS, so the top of the queue is no longer covered.
 - Added debug-only playback error logging via `logPlaybackDebugError` for
   YouTube Music stream failures and playback errors.
 - Exports on Android and iOS now ask the user where to save instead of writing

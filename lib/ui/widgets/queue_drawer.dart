@@ -40,7 +40,7 @@ class _QueueDrawerState extends State<QueueDrawer> {
         ),
       ),
       margin: EdgeInsets.only(
-        top: 5,
+        top: 5 + MediaQuery.paddingOf(context).top,
         bottom: GetPlatform.isDesktop ? 12 : 106,
       ),
       child: SizedBox(

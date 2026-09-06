@@ -83,7 +83,12 @@ class _UpNextQueueState extends State<UpNextQueue> {
       color: widget.isQueueInSlidePanel
           ? Theme.of(context).bottomSheetTheme.backgroundColor
           : Colors.transparent,
-      child: Obx(() {
+      child: SafeArea(
+        top: widget.isQueueInSlidePanel,
+        bottom: false,
+        left: false,
+        right: false,
+        child: Obx(() {
         final queue = playerController.currentQueue;
         final isShuffled = playerController.isShuffleModeEnabled.isTrue;
         final currentIndex = playerController.currentSongIndex.value;
@@ -382,6 +387,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
           ],
         );
       }),
+      ),
     );
   }
 }
