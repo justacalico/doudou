@@ -83,6 +83,88 @@ void main() {
     });
   });
 
+  group('isDoubledDurationMs', () {
+    test('returns true inside the 1.8x-2.2x band', () {
+      expect(isDoubledDurationMs(360000, 200000), isTrue);
+      expect(isDoubledDurationMs(400000, 200000), isTrue);
+      expect(isDoubledDurationMs(440000, 200000), isTrue);
+    });
+
+    test('returns false outside the band', () {
+      expect(isDoubledDurationMs(200000, 200000), isFalse);
+      expect(isDoubledDurationMs(350000, 200000), isFalse);
+      expect(isDoubledDurationMs(500000, 200000), isFalse);
+    });
+  });
+
+  group('cleanDurationCandidatesMs', () {
+    test('drops a candidate that is ~2x another candidate', () {
+      // 360s looks like a doubled 180s, so it is removed.
+      expect(
+        cleanDurationCandidatesMs([360000, 180000]),
+        [180000],
+      );
+    });
+
+    test('keeps healthy equal candidates', () {
+      expect(
+        cleanDurationCandidatesMs([180000, 181000, 180500]),
+        [180000, 181000, 180500],
+      );
+    });
+
+    test('keeps candidates that differ by less than the doubled band', () {
+      expect(
+        cleanDurationCandidatesMs([200000, 240000]),
+        [200000, 240000],
+      );
+    });
+
+    test('filters out null and non-positive values', () {
+      expect(
+        cleanDurationCandidatesMs([null, 0, -5, 180000]),
+        [180000],
+      );
+    });
+
+    test('returns empty list when nothing is usable', () {
+      expect(cleanDurationCandidatesMs([null, 0]), isEmpty);
+    });
+  });
+
+  group('pickBaselineDurationMs', () {
+    test('returns first usable candidate', () {
+      expect(pickBaselineDurationMs([200000, 180000]), 200000);
+    });
+
+    test('skips an inflated first candidate', () {
+      expect(pickBaselineDurationMs([360000, 180000]), 180000);
+    });
+
+    test('returns null when no candidate is usable', () {
+      expect(pickBaselineDurationMs([null, 0, -1]), isNull);
+    });
+  });
+
+  group('streamDurationEstimateMs', () {
+    test('computes duration from size and bitrate', () {
+      // 2.88 MB at 128 kbps = 180 seconds
+      expect(
+        streamDurationEstimateMs(sizeBytes: 2880000, bitrateBps: 128000),
+        180000,
+      );
+    });
+
+    test('returns null when size or bitrate is unknown', () {
+      expect(
+          streamDurationEstimateMs(sizeBytes: 0, bitrateBps: 128000), isNull);
+      expect(
+          streamDurationEstimateMs(sizeBytes: 2880000, bitrateBps: 0), isNull);
+      expect(
+          streamDurationEstimateMs(sizeBytes: -1, bitrateBps: -1), isNull);
+    });
+  });
+
   group('resolveEffectiveTrackDuration', () {
     test('returns mediaDuration when playerDuration is null', () {
       final result = resolveEffectiveTrackDuration(
@@ -163,6 +245,41 @@ void main() {
       );
 
       expect(result, const Duration(seconds: 350));
+    });
+
+    test('corrects a doubled duration even when stored metadata is polluted', () {
+      // A 180s song whose cached duration/originalDurationMs were corrupted to
+      // the doubled 360s value. The 'length'-derived baseline still detects it.
+      final result = resolveEffectiveTrackDuration(
+        playerDuration: const Duration(seconds: 360),
+        mediaDuration: const Duration(seconds: 360),
+        originalDurationMs: 360000,
+        extraBaselineMs: [180000],
+      );
+
+      expect(result, const Duration(seconds: 180));
+    });
+
+    test('uses extra baseline when metadata is missing entirely', () {
+      final result = resolveEffectiveTrackDuration(
+        playerDuration: const Duration(seconds: 360),
+        mediaDuration: null,
+        originalDurationMs: null,
+        extraBaselineMs: [180000],
+      );
+
+      expect(result, const Duration(seconds: 180));
+    });
+
+    test('returns playerDuration when player is not doubled vs extra baseline', () {
+      final result = resolveEffectiveTrackDuration(
+        playerDuration: const Duration(seconds: 190),
+        mediaDuration: null,
+        originalDurationMs: null,
+        extraBaselineMs: [180000],
+      );
+
+      expect(result, const Duration(seconds: 190));
     });
   });
 

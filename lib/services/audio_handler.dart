@@ -76,6 +76,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   int _playRequestSeq = 0;
   int _activePlayRequestId = 0;
   int _suppressAutoAdvanceUntilMs = 0;
+  // Real track duration per song id, resolved at play time. Used as a
+  // baseline on iOS/macOS where AVPlayer can report ~2x the real duration and
+  // the queue item's own duration may be missing or polluted by that bug.
+  final Map<String, int> _knownBaselineMs = {};
 
   int? get _safeCurrentIndex =>
       currentIndex is int ? currentIndex as int : null;
@@ -353,6 +357,23 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     });
   }
 
+  // 'length' is the API-provided "m:ss" label. Unlike the duration field it
+  // is never overwritten with a player-reported value, so it stays a
+  // trustworthy baseline even for cache entries written while the iOS
+  // doubled-duration bug was active.
+  int? _lengthLabelMs(MediaItem song) {
+    final raw = song.extras?['length'];
+    if (raw == null) return null;
+    final parsed = MediaItemBuilder.toDuration(raw.toString());
+    if (parsed == null || parsed.inMilliseconds <= 0) return null;
+    return parsed.inMilliseconds;
+  }
+
+  List<int?> _extraBaselinesFor(MediaItem song) => [
+        _lengthLabelMs(song),
+        _knownBaselineMs[song.id],
+      ];
+
   Duration? _effectiveCurrentTrackDuration() {
     final queueSnapshot = queue.value;
     final idx = _safeCurrentIndex;
@@ -367,6 +388,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       playerDuration: _player.duration,
       mediaDuration: currentSong.duration,
       originalDurationMs: originalMs,
+      extraBaselineMs: _extraBaselinesFor(currentSong),
     );
   }
 
@@ -473,28 +495,28 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         Map<String, dynamic>? newExtras = currentSong.extras != null
             ? Map<String, dynamic>.from(currentSong.extras!)
             : null;
+        final extraBaselines = _extraBaselinesFor(currentSong);
         final rawOriginalMs = currentSong.extras?['originalDurationMs'];
         int? originalMs = rawOriginalMs is int ? rawOriginalMs : null;
         if (Platform.isIOS || Platform.isMacOS) {
-          if (originalMs == null || originalMs <= 0) {
-            if (currentSong.duration != null &&
-                currentSong.duration!.inMilliseconds > 0) {
-              originalMs = currentSong.duration!.inMilliseconds;
-              newExtras ??= {};
-              newExtras['originalDurationMs'] = originalMs;
-            }
+          final baselineMs = pickBaselineDurationMs([
+            currentSong.duration?.inMilliseconds,
+            originalMs,
+            ...extraBaselines,
+          ]);
+          // Persist the cleaned baseline so later reads don't trust a
+          // duration that was polluted by the doubled-duration bug.
+          if (baselineMs != null && originalMs != baselineMs) {
+            newExtras ??= {};
+            newExtras['originalDurationMs'] = baselineMs;
           }
-          if (originalMs != null &&
-              originalMs > 0 &&
-              newExtras != null &&
-              !newExtras.containsKey('originalDurationMs')) {
-            newExtras['originalDurationMs'] = originalMs;
-          }
+          originalMs ??= baselineMs;
         }
         final effectiveDuration = resolveEffectiveTrackDuration(
           playerDuration: duration,
           mediaDuration: currentSong.duration,
           originalDurationMs: originalMs,
+          extraBaselineMs: extraBaselines,
         );
         if (effectiveDuration == null) return;
         final newMediaItem = currentSong.copyWith(
@@ -551,6 +573,26 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     } else {
       originalQueue = newQueue.toList();
     }
+  }
+
+  // On iOS/macOS, AVPlayer misreads the container of some streams and reports
+  // roughly double the real duration, then keeps playing silence for the
+  // phantom tail. Clipping the source to the known duration makes the player
+  // report and complete at the real end. StreamAudioSource variants (e.g.
+  // LockCachingAudioSource) can't be clipped, so they keep the metadata-level
+  // correction in _listenForDurationChanges instead.
+  AudioSource _audioSourceFor(MediaItem mediaItem, int? baselineMs) {
+    final source = _createAudioSource(mediaItem);
+    if ((GetPlatform.isIOS || GetPlatform.isMacOS) &&
+        baselineMs != null &&
+        source is UriAudioSource) {
+      return ClippingAudioSource(
+        child: source,
+        end: Duration(milliseconds: baselineMs),
+        tag: mediaItem,
+      );
+    }
+    return source;
   }
 
   AudioSource _createAudioSource(MediaItem mediaItem) {
@@ -926,11 +968,24 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             'fromCache': !isNewUrlReq,
           },
         );
-        final songToAdd = activeSong.duration != null
+        final streamEstimateMs = streamDurationEstimateMs(
+          sizeBytes: streamInfo.audio?.size ?? 0,
+          bitrateBps: streamInfo.audio?.bitrate ?? 0,
+        );
+        final baselineMs = pickBaselineDurationMs([
+          activeSong.duration?.inMilliseconds,
+          _lengthLabelMs(activeSong),
+          streamEstimateMs,
+        ]);
+        if (baselineMs != null) {
+          _knownBaselineMs[activeSong.id] = baselineMs;
+        }
+        final songToAdd = baselineMs != null
             ? activeSong.copyWith(
+                duration: Duration(milliseconds: baselineMs),
                 extras: {
                   ...?activeSong.extras,
-                  'originalDurationMs': activeSong.duration!.inMilliseconds,
+                  'originalDurationMs': baselineMs,
                 },
               )
             : activeSong;
@@ -949,7 +1004,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           return;
         }
         await _audioSourceReady;
-        await _playList.add(_createAudioSource(activeSong));
+        await _playList.add(_audioSourceFor(activeSong, baselineMs));
 
         isSongLoading = false;
         if (loudnessNormalizationEnabled && GetPlatform.isAndroid) {
@@ -996,7 +1051,12 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             song.extras!['date'] = DateTime.now().millisecondsSinceEpoch;
             final dbStreamData = Hive.box(songsUrlCacheBoxName(currentServerId())).get(song.id);
             final jsonData = MediaItemBuilder.toJson(song);
-            jsonData['duration'] = _player.duration!.inSeconds;
+            // Never persist the raw player duration: on iOS/macOS AVPlayer can
+            // report ~2x the real length, which would corrupt the stored
+            // duration and later defeat the doubled-duration correction.
+            jsonData['duration'] =
+                (_effectiveCurrentTrackDuration() ?? song.duration)
+                    ?.inSeconds;
             // playbility status and info
             jsonData['streamInfo'] = dbStreamData != null
                 ? [
@@ -1076,8 +1136,27 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
               .copyWith(processingState: AudioProcessingState.error));
           return;
         }
+        final singleBaselineMs = pickBaselineDurationMs([
+          currMed.duration?.inMilliseconds,
+          _lengthLabelMs(currMed),
+          streamDurationEstimateMs(
+            sizeBytes: streamInfo.audio?.size ?? 0,
+            bitrateBps: streamInfo.audio?.bitrate ?? 0,
+          ),
+        ]);
+        if (singleBaselineMs != null) {
+          _knownBaselineMs[currMed.id] = singleBaselineMs;
+        }
         queue.add([currMed]);
-        mediaItem.add(currMed);
+        mediaItem.add(singleBaselineMs != null
+            ? currMed.copyWith(
+                duration: Duration(milliseconds: singleBaselineMs),
+                extras: {
+                  ...?currMed.extras,
+                  'originalDurationMs': singleBaselineMs,
+                },
+              )
+            : currMed);
         currentSongUrl = currMed.extras!['url'] = streamInfo.audio!.url;
         _diag.logEvent(
           category: 'stream_select',
@@ -1106,7 +1185,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           return;
         }
         await _audioSourceReady;
-        await _playList.add(_createAudioSource(currMed));
+        await _playList.add(_audioSourceFor(currMed, singleBaselineMs));
         isSongLoading = false;
 
         // Normalize audio
