@@ -8,7 +8,6 @@ import '/ui/widgets/sleep_timer_bottom_sheet.dart';
 import '/ui/shell_controller.dart';
 import '/ui/widgets/song_download_btn.dart';
 import '/ui/widgets/songinfo_bottom_sheet.dart';
-import '/ui/widgets/up_next_queue.dart';
 import '../player_controller.dart';
 
 class PlayerMobileBottomBar extends StatelessWidget {
@@ -47,26 +46,6 @@ class PlayerMobileBottomBar extends StatelessWidget {
             ? MainAxisAlignment.spaceBetween
             : MainAxisAlignment.spaceEvenly,
         children: [
-          IconButton(
-            onPressed: () {
-              final ctx = Get.find<ShellController>().overlayContextOrFallback;
-              if (ctx == null) return;
-              final size = MediaQuery.of(ctx).size;
-              final height = size.height * 0.8;
-              showModalBottomSheet(
-                context: ctx,
-                isScrollControlled: true,
-                useSafeArea: true,
-                backgroundColor: Colors.transparent,
-                barrierColor: Colors.transparent,
-                constraints: const BoxConstraints(maxWidth: 520),
-                builder: (c) => _MobileQueueSheet(height: height),
-              );
-            },
-            icon: Icon(Icons.queue_music_rounded, size: iconSize),
-            color: effectiveIconColor,
-            tooltip: "Queue",
-          ),
           Obx(() => IconButton(
                 onPressed: pc.toggleFavourite,
                 icon: Icon(
@@ -149,56 +128,3 @@ class PlayerMobileBottomBar extends StatelessWidget {
   }
 }
 
-class _MobileQueueSheet extends StatefulWidget {
-  const _MobileQueueSheet({required this.height});
-
-  final double height;
-
-  @override
-  State<_MobileQueueSheet> createState() => _MobileQueueSheetState();
-}
-
-class _MobileQueueSheetState extends State<_MobileQueueSheet> {
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(26),
-        child: Container(
-          height: widget.height,
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .surface
-                .withValues(alpha: 0.72),
-            borderRadius: BorderRadius.circular(26),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.35),
-                blurRadius: 22,
-                offset: const Offset(0, 14),
-              ),
-            ],
-          ),
-          child: UpNextQueue(
-            isQueueInSlidePanel: false,
-            scrollController: _scrollController,
-          ),
-        ),
-      ),
-    );
-  }
-}

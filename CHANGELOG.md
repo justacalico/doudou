@@ -5,6 +5,9 @@ previously per-version files that lived under `changelog/`.
 
 ## 22.0.0
 
+- Removed the redundant floating queue bottom sheet from the now playing
+  mobile bottom bar; the queue is still reachable from the queue panel
+  and the desktop queue drawer.
 - Added debug-only playback error logging via `logPlaybackDebugError` for
   YouTube Music stream failures and playback errors.
 - Exports on Android and iOS now ask the user where to save instead of writing
