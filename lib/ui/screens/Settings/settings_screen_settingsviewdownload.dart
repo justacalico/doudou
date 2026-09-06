@@ -57,7 +57,12 @@ mixin _SettingsViewDownloadMixin on __SettingsViewStateBase {
         _SettingsListTile(
           title: context.l10n.exportedFileLocation,
           subtitle: Obx(() => Text(
-                settings.exportLocationPath.value,
+                ExportService.locationLabel(
+                        settings.exportLocationPath.value)
+                        .isEmpty
+                    ? 'Not set'
+                    : ExportService.locationLabel(
+                        settings.exportLocationPath.value),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               )),

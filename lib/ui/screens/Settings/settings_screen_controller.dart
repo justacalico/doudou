@@ -18,6 +18,7 @@ import '/services/piped_service.dart';
 import '/services/library_sync_service.dart';
 import '/services/playback_diagnostics_service.dart';
 import '/services/discord_rpc_service.dart';
+import '/services/export_service.dart';
 import '../Library/library_controller.dart';
 import '../../widgets/snackbar.dart';
 import '../../../utils/helper.dart';
