@@ -317,6 +317,15 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts
 
+          NIGHTLY=false
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "schedule" ]; then
+              NIGHTLY=true
+            elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.create_release }}" != "true" ]; then
+              NIGHTLY=true
+            fi
+          fi
+
           build_apk() {
             local flavor="$1" name="$2"; shift 2
             local build_mode="release" mode_dir="Release"
@@ -324,7 +333,7 @@ jobs:
               build_mode="debug"
               mode_dir="Debug"
             fi
-            flutter build apk --"$build_mode" --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER"
+            flutter build apk --"$build_mode" --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER" --dart-define=NIGHTLY="$NIGHTLY"
             cp "build/app/outputs/flutter-apk/app-${flavor}-${build_mode}.apk" \
                "artifacts/doudou-${name}-${VERSION}-${BUILD_DATE}.apk"
           }
@@ -336,7 +345,7 @@ jobs:
               build_mode="debug"
               mode_dir="Debug"
             fi
-            flutter build appbundle --"$build_mode" --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER"
+            flutter build appbundle --"$build_mode" --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER" --dart-define=NIGHTLY="$NIGHTLY"
             cp "build/app/outputs/bundle/${flavor}${mode_dir}/app-${flavor}-${build_mode}.aab" \
                "artifacts/doudou-${name}-${VERSION}-${BUILD_DATE}.aab"
           }
@@ -362,7 +371,7 @@ jobs:
               build_aab tv tv --dart-define=PLAYSTORE=false --dart-define=TV=true
               ;;
             linux-x64)
-              flutter build linux --release --build-name="$VERSION"
+              flutter build linux --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY"
               cd build/linux/x64/release && zip -r "$GITHUB_WORKSPACE/artifacts/doudou-linux-x64-${VERSION}-${BUILD_DATE}.zip" bundle/ && cd "$GITHUB_WORKSPACE"
               export PATH="$PATH:$HOME/.pub-cache/bin"
               dart pub global activate fastforge
@@ -374,7 +383,7 @@ jobs:
               find dist -name "*.AppImage" -exec cp {} "artifacts/doudou-linux-x86_64-${VERSION}-${BUILD_DATE}.AppImage" \; 2>/dev/null || true
               ;;
             linux-arm64)
-              flutter build linux --release --build-name="$VERSION"
+              flutter build linux --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY"
               cd build/linux/arm64/release && zip -r "$GITHUB_WORKSPACE/artifacts/doudou-linux-arm64-${VERSION}-${BUILD_DATE}.zip" bundle/ && cd "$GITHUB_WORKSPACE"
               export PATH="$PATH:$HOME/.pub-cache/bin"
               export PUB_CACHE="$HOME/.pub-cache"
@@ -387,15 +396,15 @@ jobs:
               find dist -name "*.AppImage" -exec cp {} "artifacts/doudou-linux-aarch64-${VERSION}-${BUILD_DATE}.AppImage" \; 2>/dev/null || true
               ;;
             windows)
-              flutter build windows --release
+              flutter build windows --release --dart-define=NIGHTLY="$NIGHTLY"
               7z a "artifacts/doudou-windows-x64-${VERSION}-${BUILD_DATE}.zip" "build/windows/x64/runner/Release"
               ;;
             macos)
               flutter config --enable-macos-desktop
-              flutter build macos --release --build-name="$VERSION"
+              flutter build macos --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY"
               ;;
             ios)
-              flutter build ios --release --no-codesign
+              flutter build ios --release --no-codesign --dart-define=NIGHTLY="$NIGHTLY"
               ;;
             *)
               echo "Unknown target: ${{ matrix.target }}" >&2

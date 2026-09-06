@@ -1,5 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:doudou/models/server.dart';
+import 'package:doudou/services/library_sync_service.dart';
 import 'package:doudou/services/music_service.dart';
 import 'package:doudou/services/playback_diagnostics_service.dart';
 import 'package:doudou/ui/screens/Settings/settings_screen_controller.dart';
@@ -125,6 +126,9 @@ class FakePlaybackDiagnosticsService extends PlaybackDiagnosticsService {
 
 class FakeSettingsScreenController extends SettingsScreenController {
   @override
+  bool isNightlyBuild = false;
+
+  @override
   // ignore: must_call_super
   void onInit() {}
 
@@ -134,4 +138,10 @@ class FakeSettingsScreenController extends SettingsScreenController {
         name: 'Test',
         type: ServerType.youtubeMusic,
       );
+}
+
+class FakeLibrarySyncService extends LibrarySyncService {
+  @override
+  // ignore: must_call_super
+  void onInit() {}
 }

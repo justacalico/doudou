@@ -830,6 +830,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get checkForUpdatesOnStartup => 'Проверять обновления при запуске';
 
   @override
+  String get nightlyBuild => 'Ночная сборка';
+
+  @override
   String get openGitlab => 'Открыть GitLab';
 
   @override

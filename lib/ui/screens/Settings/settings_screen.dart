@@ -22,6 +22,7 @@ import '/ui/screens/Settings/settings_dialogs.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/utils/theme_controller.dart';
 import '/ui/widgets/backup_dialog.dart';
+import '/ui/widgets/nightly_build_badge.dart';
 import '/ui/widgets/cust_switch.dart';
 import '/ui/widgets/export_file_dialog.dart';
 import '/ui/widgets/link_piped.dart';

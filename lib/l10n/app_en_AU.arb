@@ -532,6 +532,8 @@
   "@checkForUpdates": {},
   "checkForUpdatesOnStartup": "Check for updates on startup",
   "@checkForUpdatesOnStartup": {},
+  "nightlyBuild": "Nightly build",
+  "@nightlyBuild": {},
   "openGitlab": "Open GitLab",
   "@openGitlab": {},
   "upToDate": "You're right, mate – you're up to date",

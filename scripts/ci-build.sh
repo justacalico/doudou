@@ -16,6 +16,7 @@ fi
 VERSION="${VERSION:-$(grep '^version:' "$PROJECT_DIR/pubspec.yaml" | sed 's/version: //g' | cut -d'+' -f1)}"
 BUILD_NUMBER="${BUILD_NUMBER:-$(date +%s | cut -c4-10)}"
 BUILD_DATE="${BUILD_DATE:-$(date +%Y-%m-%d)}"
+NIGHTLY="${NIGHTLY:-false}"
 
 APK_DIR="$PROJECT_DIR/build/app/outputs/flutter-apk"
 AAB_DIR="$PROJECT_DIR/build/app/outputs/bundle"
@@ -24,14 +25,14 @@ ARTIFACTS_DIR="$PROJECT_DIR/artifacts"
 build_apk() {
   local flavor="$1" name="$2"
   shift 2
-  flutter build apk --release --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER"
+  flutter build apk --release --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER" --dart-define=NIGHTLY="$NIGHTLY"
   cp "$APK_DIR/app-${flavor}-release.apk" "$ARTIFACTS_DIR/doudou-${name}-${VERSION}-${BUILD_DATE}.apk"
 }
 
 build_aab() {
   local flavor="$1" name="$2"
   shift 2
-  flutter build appbundle --release --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER"
+  flutter build appbundle --release --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER" --dart-define=NIGHTLY="$NIGHTLY"
   cp "$AAB_DIR/${flavor}Release/app-${flavor}-release.aab" "$ARTIFACTS_DIR/doudou-${name}-${VERSION}-${BUILD_DATE}.aab"
 }
 
@@ -60,7 +61,7 @@ case "$TARGET" in
     build_aab tv tv --dart-define=PLAYSTORE=false --dart-define=TV=true
     ;;
   linux-x64)
-    flutter build linux --release --build-name="$VERSION"
+    flutter build linux --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY"
     (cd "$PROJECT_DIR/build/linux/x64/release" && zip -r "$ARTIFACTS_DIR/doudou-linux-x64-${VERSION}-${BUILD_DATE}.zip" bundle/)
     dart pub global activate fastforge
     fastforge package --platform linux --targets deb --skip-clean || echo "DEB build had warnings"
@@ -71,7 +72,7 @@ case "$TARGET" in
     find "$PROJECT_DIR/dist" -name "*.AppImage" -exec cp {} "$ARTIFACTS_DIR/doudou-linux-x86_64-${VERSION}-${BUILD_DATE}.AppImage" \; 2>/dev/null || true
     ;;
   linux-arm64)
-    flutter build linux --release --build-name="$VERSION"
+    flutter build linux --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY"
     (cd "$PROJECT_DIR/build/linux/arm64/release" && zip -r "$ARTIFACTS_DIR/doudou-linux-arm64-${VERSION}-${BUILD_DATE}.zip" bundle/)
     dart pub global activate fastforge
     fastforge package --platform linux --targets deb --skip-clean || echo "DEB build had warnings"
@@ -82,7 +83,7 @@ case "$TARGET" in
     find "$PROJECT_DIR/dist" -name "*.AppImage" -exec cp {} "$ARTIFACTS_DIR/doudou-linux-aarch64-${VERSION}-${BUILD_DATE}.AppImage" \; 2>/dev/null || true
     ;;
   windows)
-    flutter build windows --release
+    flutter build windows --release --dart-define=NIGHTLY="$NIGHTLY"
     if command -v 7z >/dev/null 2>&1; then
       7z a "$ARTIFACTS_DIR/doudou-windows-x64-${VERSION}-${BUILD_DATE}.zip" "$PROJECT_DIR/build/windows/x64/runner/Release"
     else
@@ -91,14 +92,14 @@ case "$TARGET" in
     ;;
   macos)
     flutter config --enable-macos-desktop
-    flutter build macos --release --build-name="$VERSION"
+    flutter build macos --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY"
     (cd "$PROJECT_DIR/macos" && /usr/libexec/PlistBuddy -c "Set :buildSettings:CODE_SIGN_IDENTITY ''" Runner.xcodeproj/project.pbxproj 2>/dev/null || true)
     xcodebuild -project "$PROJECT_DIR/macos/Runner.xcodeproj" -scheme Runner -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -derivedDataPath "$PROJECT_DIR/build/macos_unsigned" || true
     (cd "$PROJECT_DIR/build/macos/Build/Products/Release" && zip -r "$ARTIFACTS_DIR/doudou-macos-${VERSION}-${BUILD_DATE}.zip" *.app)
     ;;
   ios)
     bash "$PROJECT_DIR/scripts/build-ios.sh"
-    flutter build ios --release --no-codesign
+    flutter build ios --release --no-codesign --dart-define=NIGHTLY="$NIGHTLY"
     mkdir -p "$PROJECT_DIR/Payload"
     cp -r "$PROJECT_DIR/build/ios/iphoneos/Runner.app" "$PROJECT_DIR/Payload/"
     (cd "$PROJECT_DIR" && zip -r "$ARTIFACTS_DIR/doudou-ios-${VERSION}-${BUILD_DATE}.ipa" Payload/)

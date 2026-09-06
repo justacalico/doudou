@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 22.0.0
 
+- Added a nightly build indicator in Settings > App Info, controlled by the `NIGHTLY` compile-time flag.
 - Removed the queue button from the now playing bottom bar on mobile/compact layouts. The queue is still reachable from the side panel and other entry points.
 - Added debug-only playback error logging via `logPlaybackDebugError` for
   YouTube Music stream failures and playback errors.

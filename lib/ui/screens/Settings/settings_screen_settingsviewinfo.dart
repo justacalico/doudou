@@ -7,8 +7,9 @@ mixin _SettingsViewInfoMixin on __SettingsViewStateBase {
     SettingsScreenController settings,
   ) {
     return [
-      _AppInfoHeader(
+      AppInfoHeader(
         version: settings.currentVersion,
+        isNightly: settings.isNightlyBuild,
         onLongPress: () {
           if (kIsPlayStore && !ytmProviderUnlocked) {
             ytmProviderUnlocked = true;
@@ -101,13 +102,15 @@ mixin _SettingsViewInfoMixin on __SettingsViewStateBase {
   }
 }
 
-class _AppInfoHeader extends StatelessWidget {
-  const _AppInfoHeader({
+class AppInfoHeader extends StatelessWidget {
+  const AppInfoHeader({
     required this.version,
+    required this.isNightly,
     this.onLongPress,
   });
 
   final String version;
+  final bool isNightly;
   final VoidCallback? onLongPress;
 
   @override
@@ -144,6 +147,13 @@ class _AppInfoHeader extends StatelessWidget {
                   color: colors.textTertiary,
                 ),
               ),
+              if (isNightly) ...[
+                const SizedBox(height: DoudouSpace.s2),
+                NightlyBuildBadge(
+                  isNightly: isNightly,
+                  label: context.l10n.nightlyBuild,
+                ),
+              ],
             ],
           ),
         ],

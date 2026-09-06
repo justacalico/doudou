@@ -827,6 +827,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkForUpdatesOnStartup => 'Check for updates on startup';
 
   @override
+  String get nightlyBuild => 'Nightly build';
+
+  @override
   String get openGitlab => 'Open GitLab';
 
   @override
@@ -2139,6 +2142,9 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get checkForUpdatesOnStartup => 'Check for updates on startup';
+
+  @override
+  String get nightlyBuild => 'Nightly build';
 
   @override
   String get openGitlab => 'Open GitLab';
