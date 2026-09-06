@@ -6,6 +6,12 @@ previously per-version files that lived under `changelog/`.
 ## 22.0.0
 
 - Added a nightly build indicator in Settings > App Info, controlled by the `NIGHTLY` compile-time flag.
+- Fixed some songs on iOS/macOS showing twice their real length and then
+  playing silence for the extra half. The audio source is now clipped to the
+  true track duration so the song actually ends on time, song durations stored
+  in the cache can no longer be polluted by the platform's doubled-duration
+  bug, and the existing correction now falls back to the song's length label
+  and stream size when metadata is missing or corrupted.
 - Removed the queue button from the now playing bottom bar on mobile/compact layouts. The queue is still reachable from the side panel and other entry points.
 - Added debug-only playback error logging via `logPlaybackDebugError` for
   YouTube Music stream failures and playback errors.
