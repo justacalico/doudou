@@ -206,7 +206,7 @@ class BackupDialogController extends GetxController {
     try {
       if (GetPlatform.isAndroid) {
         final exportDirPath = await ExportService.pickExportFolder(
-            dialogTitle: "Select backup file folder");
+            dialogTitle: l10nFromPrefs().selectBackupFolder);
         if (exportDirPath == null) {
           backupRunning.value = false;
           return;
@@ -222,7 +222,7 @@ class BackupDialogController extends GetxController {
         final zipPath = '${tempDir.path}/$fileName';
         await compressFilesInBackground(filesToExport, zipPath);
         final saved = await FilePicker.platform.saveFile(
-          dialogTitle: "Save backup file",
+          dialogTitle: l10nFromPrefs().saveBackupFile,
           fileName: fileName,
           bytes: await File(zipPath).readAsBytes(),
         );
@@ -237,7 +237,7 @@ class BackupDialogController extends GetxController {
           return;
         }
         final exportDirPath = await ExportService.pickExportFolder(
-            dialogTitle: "Select backup file folder");
+            dialogTitle: l10nFromPrefs().selectBackupFolder);
         if (exportDirPath == null) {
           backupRunning.value = false;
           return;

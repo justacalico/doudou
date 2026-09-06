@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import '/l10n/app_localizations.dart';
+import '/utils/app_l10n.dart';
 import 'package:flutter_lyric/lyric_ui/ui_netease.dart';
 import 'package:hive/hive.dart';
 import 'package:get/get.dart';

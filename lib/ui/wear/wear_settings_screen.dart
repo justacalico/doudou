@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:wearable_rotary/wearable_rotary.dart';
 
 import '../../services/wear_comm_service.dart';
+import '../../utils/app_l10n.dart';
 
 /// Settings screen for Wear OS. Allows changing active server and shows about info.
 /// Simple scrollable list optimized for rotary input.
@@ -53,11 +54,11 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
                 controller: _scrollController,
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
-                  _buildSectionHeader('Server'),
-                  Obx(() => _buildServerList()),
+                  _buildSectionHeader(context.l10n.servers),
+                  Obx(() => _buildServerList(context)),
                   const SizedBox(height: 12),
-                  _buildSectionHeader('About'),
-                  _buildAboutSection(),
+                  _buildSectionHeader(context.l10n.about),
+                  _buildAboutSection(context),
                 ],
               ),
             ),
@@ -81,7 +82,7 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
           ),
           const SizedBox(width: 4),
           Text(
-            'Settings',
+            context.l10n.settings,
             style: Theme.of(context).textTheme.titleSmall,
           ),
         ],
@@ -101,13 +102,13 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
     );
   }
 
-  Widget _buildServerList() {
+  Widget _buildServerList(BuildContext context) {
     final servers = _comm.servers;
     if (servers.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          'No servers configured',
+          context.l10n.noServersConfigured,
           style: Theme.of(context).textTheme.titleSmall,
           textAlign: TextAlign.center,
         ),
@@ -117,7 +118,7 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
     return Column(
       children: servers.map((s) {
         final id = s['id'] as int? ?? 0;
-        final name = s['name']?.toString() ?? 'Unknown';
+        final name = s['name']?.toString() ?? context.l10n.unknown;
         final type = s['type']?.toString() ?? '';
         final isActive = id == _comm.activeServerId.value;
 
@@ -147,7 +148,7 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
     );
   }
 
-  Widget _buildAboutSection() {
+  Widget _buildAboutSection(BuildContext context) {
     return Obx(() {
       final name = 'Doudou';
       final version = _comm.appVersion.value;
@@ -168,7 +169,7 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 2),
                 child: Text(
-                  'Version $version${build.isNotEmpty ? ' ($build)' : ''}',
+                  '${context.l10n.version} $version${build.isNotEmpty ? ' ($build)' : ''}',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
@@ -180,7 +181,7 @@ class _WearSettingsScreenState extends State<WearSettingsScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'More settings are available on your phone',
+                    context.l10n.wearMoreSettings,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                         ),

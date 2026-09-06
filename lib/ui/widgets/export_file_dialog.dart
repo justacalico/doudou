@@ -149,7 +149,7 @@ class ExportFileDialogController extends GetxController {
     if (exportDirPath.isEmpty ||
         !await ExportService.hasWriteAccess(exportDirPath)) {
       exportDirPath = await ExportService.pickExportFolder(
-              dialogTitle: "Select export file folder") ??
+              dialogTitle: l10nFromPrefs().selectExportFileFolder) ??
           '';
       if (exportDirPath.isEmpty) {
         exportRunning.value = false;

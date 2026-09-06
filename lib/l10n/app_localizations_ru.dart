@@ -9,11 +9,255 @@ class AppLocalizationsRu extends AppLocalizations {
   AppLocalizationsRu([String locale = 'ru']) : super(locale);
 
   @override
+  String get addFavoritesToStartRadio =>
+      'Добавьте треки в избранное, чтобы запустить радио';
+
+  @override
+  String get additionalProvidersUnlocked =>
+      'Дополнительные провайдеры разблокированы';
+
+  @override
+  String get applicationId => 'ID приложения';
+
+  @override
+  String get back => 'Назад';
+
+  @override
+  String get clear => 'Очистить';
+
+  @override
+  String get clearQueue => 'Очистить очередь';
+
+  @override
+  String get demoServer => 'Демо-сервер';
+
+  @override
+  String get demoServerBullets =>
+      '• Выпущено по лицензии Free Culture\n• Находится в общественном достоянии (США и/или Канада)\n• Предоставлено с явного разрешения правообладателя';
+
+  @override
+  String get demoServerContent =>
+      'Демо-сервер предоставлен проектом Jellyfin и содержит только медиа, которое:';
+
+  @override
+  String get demoServerExplore =>
+      'Вы можете изучить приложение через демо или добавить свой сервер.';
+
+  @override
+  String get demoServerIntro =>
+      'Приложение поставляется с предустановленным демо-сервером Jellyfin для ознакомления.';
+
+  @override
+  String get demoServerReset =>
+      'Сервер сбрасывается ежедневно в 06:00 по восточному времени, поэтому все изменения временны.';
+
+  @override
+  String get discordAppId => 'ID приложения Discord';
+
+  @override
+  String get discordAppIdDialogDes =>
+      'Создайте приложение на discord.com/developers/applications и вставьте сюда его ID.';
+
+  @override
+  String get discordAppIdHint => 'напр. 1234567890123456789';
+
+  @override
+  String get discordAppIdNotSet =>
+      'Не задано - создайте на discord.com/developers/applications';
+
+  @override
+  String get discordRichPresence => 'Discord Rich Presence';
+
+  @override
+  String get discordRpcFailed =>
+      'Тест Discord RPC не удался. Убедитесь, что Discord запущен и ID приложения указан верно.';
+
+  @override
+  String get discordRpcUnavailable =>
+      'Discord RPC недоступен на этой платформе';
+
+  @override
+  String get discordRpcWorking =>
+      'Discord RPC работает! Проверьте свой профиль Discord.';
+
+  @override
+  String get doudouConnected => 'Doudou подключен!';
+
+  @override
+  String get downloadDoudou => 'Скачать Doudou';
+
+  @override
+  String get expandSidebar => 'Развернуть боковую панель';
+
+  @override
+  String get favorite => 'В избранное';
+
+  @override
+  String get inAppStorageDirectory => 'Во внутреннем хранилище приложения';
+
+  @override
+  String get libraryPlaylist => 'Плейлист библиотеки';
+
+  @override
+  String get loadingLibraryInBackground => 'Загрузка библиотеки в фоне...';
+
+  @override
   String get home => 'Главная';
 
   @override
   String get homeSubtitle =>
       'Недавние прослушивания, новые добавления и подборка для вас';
+
+  @override
+  String get locationAppDocuments => 'Документы приложения/Doudou';
+
+  @override
+  String get locationDownloads => 'Загрузки/Doudou';
+
+  @override
+  String get locationFilesApp => 'Файлы > Doudou';
+
+  @override
+  String get loop => 'Повтор';
+
+  @override
+  String get next => 'Далее';
+
+  @override
+  String get noAlbumsInLibrary => 'В библиотеке нет альбомов';
+
+  @override
+  String noCategoryItems(String category) {
+    return 'Нет: $category';
+  }
+
+  @override
+  String get noContentAvailable => 'Нет доступного контента';
+
+  @override
+  String get none => 'Нет';
+
+  @override
+  String get noPhoneConnected => 'Телефон не подключен';
+
+  @override
+  String get noPlaylistsAvailable => 'Нет доступных плейлистов.';
+
+  @override
+  String get noSongPlaying => 'Сейчас ничего не играет';
+
+  @override
+  String get noSongsForAlbum => 'В этом альбоме нет треков.';
+
+  @override
+  String get noSongsForPlaylist => 'В этом плейлисте нет треков.';
+
+  @override
+  String get nothingHere => 'Здесь пусто';
+
+  @override
+  String get notSet => 'Не задано';
+
+  @override
+  String get nowPlaying => 'Сейчас играет';
+
+  @override
+  String get ok => 'ОК';
+
+  @override
+  String get openInYoutubeMusic => 'Открыть в YouTube Music';
+
+  @override
+  String get pipedPlaylist => 'Плейлист Piped';
+
+  @override
+  String get playbackDiagnosticsDes =>
+      'Записывает ограниченные события воспроизведения и сети для диагностики.';
+
+  @override
+  String get playingFromQueue => 'Воспроизведение из очереди';
+
+  @override
+  String get playlistsCount => 'плейлистов';
+
+  @override
+  String get playPause => 'Воспроизведение/пауза';
+
+  @override
+  String get prev => 'Назад';
+
+  @override
+  String get proceed => 'Продолжить';
+
+  @override
+  String get queue => 'Очередь';
+
+  @override
+  String get queueEmpty => 'Очередь пуста';
+
+  @override
+  String get quit => 'Выход';
+
+  @override
+  String get recent => 'Недавние';
+
+  @override
+  String removedFrom(String name) {
+    return 'Удалено из $name';
+  }
+
+  @override
+  String get saveBackupFile => 'Сохранить файл резервной копии';
+
+  @override
+  String get savePlaybackDiagnostics => 'Сохранить диагностику воспроизведения';
+
+  @override
+  String get scrollForMoreControls =>
+      '← Прокрутите для дополнительных элементов управления →';
+
+  @override
+  String get selectBackupFile => 'Выберите файл резервной копии';
+
+  @override
+  String get selectBackupFolder => 'Выберите папку для резервной копии';
+
+  @override
+  String get selectDownloadsFolder => 'Выберите папку загрузок';
+
+  @override
+  String get selectExportFileFolder => 'Выберите папку для экспорта файлов';
+
+  @override
+  String get selectExportFolder => 'Выберите папку для экспорта';
+
+  @override
+  String get sendTestActivity => 'Отправить тестовую активность в Discord';
+
+  @override
+  String serverErrorCode(String code) {
+    return 'Ошибка сервера $code при начале воспроизведения.';
+  }
+
+  @override
+  String get serverErrorPlayback =>
+      'Ошибка сервера при начале воспроизведения.';
+
+  @override
+  String get serverType => 'Тип сервера';
+
+  @override
+  String get setAppIdFirst => 'Сначала задайте ID приложения';
+
+  @override
+  String get showDiscordActivity => 'Показывать активность Discord';
+
+  @override
+  String get showDiscordActivityDes =>
+      'Отображать текущий трек в статусе Discord.';
+
+  @override
+  String get showHide => 'Показать/скрыть';
 
   @override
   String get songs => 'Песни';
@@ -47,6 +291,59 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get libraryOverviewSubtitle => 'Обзор / Ваша музыкальная коллекция.';
+
+  @override
+  String stepXofY(int current, int total) {
+    return 'Шаг $current из $total';
+  }
+
+  @override
+  String get suggestions => 'Предложения';
+
+  @override
+  String get tapToOpen => 'Нажмите, чтобы открыть';
+
+  @override
+  String get testDiscordConnection => 'Проверить подключение Discord';
+
+  @override
+  String get testingDiscordConnection => 'Проверка подключения Discord...';
+
+  @override
+  String get testingDiscordRpc => 'Тестирование Discord RPC';
+
+  @override
+  String get trackNotAvailableOnServer => 'Трек больше недоступен на сервере.';
+
+  @override
+  String trayAlbum(String name) {
+    return 'Альбом: $name';
+  }
+
+  @override
+  String trayArtist(String name) {
+    return 'Исполнитель: $name';
+  }
+
+  @override
+  String traySong(String name) {
+    return 'Трек: $name';
+  }
+
+  @override
+  String get unableToStartPlayback => 'Не удалось начать воспроизведение.';
+
+  @override
+  String get unknown => 'Неизвестно';
+
+  @override
+  String get volume => 'Громкость';
+
+  @override
+  String get wearMoreSettings => 'Больше настроек доступно на телефоне';
+
+  @override
+  String get wearPhoneHint => 'Убедитесь, что Doudou запущен на телефоне';
 
   @override
   String get yourLibrary => 'Ваша библиотека';

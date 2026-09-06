@@ -1,6 +1,172 @@
 {
+  "addFavoritesToStartRadio": "添加一些收藏以启动电台",
+  "@addFavoritesToStartRadio": {},
+  "additionalProvidersUnlocked": "已解锁额外内容源",
+  "@additionalProvidersUnlocked": {},
+  "applicationId": "应用 ID",
+  "@applicationId": {},
+  "back": "返回",
+  "@back": {},
+  "clear": "清除",
+  "@clear": {},
+  "clearQueue": "清空队列",
+  "@clearQueue": {},
+  "demoServer": "演示服务器",
+  "@demoServer": {},
+  "demoServerBullets": "• 以自由文化许可证发布\n• 属于公有领域（美国和/或加拿大）\n• 经版权持有人明确许可提供",
+  "@demoServerBullets": {},
+  "demoServerContent": "该演示服务器由 Jellyfin 项目提供，仅包含以下类型的媒体：",
+  "@demoServerContent": {},
+  "demoServerExplore": "你可以使用此演示探索应用，或添加自己的服务器。",
+  "@demoServerExplore": {},
+  "demoServerIntro": "本应用预置了一个用于体验的 Jellyfin 演示服务器。",
+  "@demoServerIntro": {},
+  "demoServerReset": "该服务器每天于东部时间 06:00 重置，所有更改均为临时性的。",
+  "@demoServerReset": {},
+  "discordAppId": "Discord 应用 ID",
+  "@discordAppId": {},
+  "discordAppIdDialogDes": "在 discord.com/developers/applications 创建 Discord 应用，并将应用 ID 粘贴到这里。",
+  "@discordAppIdDialogDes": {},
+  "discordAppIdHint": "例如 1234567890123456789",
+  "@discordAppIdHint": {},
+  "discordAppIdNotSet": "未设置 - 请在 discord.com/developers/applications 创建",
+  "@discordAppIdNotSet": {},
+  "discordRichPresence": "Discord Rich Presence",
+  "@discordRichPresence": {},
+  "discordRpcFailed": "Discord RPC 测试失败。请确认 Discord 正在运行且应用 ID 正确。",
+  "@discordRpcFailed": {},
+  "discordRpcUnavailable": "此平台不支持 Discord RPC",
+  "@discordRpcUnavailable": {},
+  "discordRpcWorking": "Discord RPC 正常工作！请查看你的 Discord 资料。",
+  "@discordRpcWorking": {},
+  "doudouConnected": "Doudou 已连接！",
+  "@doudouConnected": {},
+  "downloadDoudou": "下载 Doudou",
+  "@downloadDoudou": {},
+  "expandSidebar": "展开侧边栏",
+  "@expandSidebar": {},
+  "favorite": "收藏",
+  "@favorite": {},
   "home": "首页",
   "homeSubtitle": "最近播放、新添加与为你推荐",
+  "inAppStorageDirectory": "应用内存储目录",
+  "@inAppStorageDirectory": {},
+  "libraryPlaylist": "媒体库播放列表",
+  "@libraryPlaylist": {},
+  "loadingLibraryInBackground": "正在后台加载你的媒体库...",
+  "@loadingLibraryInBackground": {},
+  "locationAppDocuments": "应用文档/Doudou",
+  "@locationAppDocuments": {},
+  "locationDownloads": "下载/Doudou",
+  "@locationDownloads": {},
+  "locationFilesApp": "文件 App > Doudou",
+  "@locationFilesApp": {},
+  "loop": "循环",
+  "@loop": {},
+  "next": "下一步",
+  "@next": {},
+  "noAlbumsInLibrary": "媒体库中没有专辑",
+  "@noAlbumsInLibrary": {},
+  "noCategoryItems": "没有{category}！",
+  "@noCategoryItems": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "noContentAvailable": "暂无可用内容",
+  "@noContentAvailable": {},
+  "none": "无",
+  "@none": {},
+  "noPhoneConnected": "未连接手机",
+  "@noPhoneConnected": {},
+  "noPlaylistsAvailable": "没有可用的播放列表。",
+  "@noPlaylistsAvailable": {},
+  "noSongPlaying": "暂无歌曲播放",
+  "@noSongPlaying": {},
+  "noSongsForAlbum": "此专辑中没有歌曲。",
+  "@noSongsForAlbum": {},
+  "noSongsForPlaylist": "此播放列表中没有歌曲。",
+  "@noSongsForPlaylist": {},
+  "nothingHere": "这里什么都没有",
+  "@nothingHere": {},
+  "notSet": "未设置",
+  "@notSet": {},
+  "nowPlaying": "正在播放",
+  "@nowPlaying": {},
+  "ok": "确定",
+  "@ok": {},
+  "openInYoutubeMusic": "在 YouTube Music 中打开",
+  "@openInYoutubeMusic": {},
+  "pipedPlaylist": "Piped 播放列表",
+  "@pipedPlaylist": {},
+  "playbackDiagnosticsDes": "记录有上限的播放和网络事件，用于排查问题。",
+  "@playbackDiagnosticsDes": {},
+  "playingFromQueue": "正在播放队列",
+  "@playingFromQueue": {},
+  "playlistsCount": "个播放列表",
+  "@playlistsCount": {},
+  "playPause": "播放/暂停",
+  "@playPause": {},
+  "prev": "上一首",
+  "@prev": {},
+  "proceed": "继续",
+  "@proceed": {},
+  "queue": "播放队列",
+  "@queue": {},
+  "queueEmpty": "队列为空",
+  "@queueEmpty": {},
+  "quit": "退出",
+  "@quit": {},
+  "recent": "最近",
+  "@recent": {},
+  "removedFrom": "已从{name}中移除",
+  "@removedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "saveBackupFile": "保存备份文件",
+  "@saveBackupFile": {},
+  "savePlaybackDiagnostics": "保存播放诊断",
+  "@savePlaybackDiagnostics": {},
+  "scrollForMoreControls": "← 滚动查看更多控制 →",
+  "@scrollForMoreControls": {},
+  "selectBackupFile": "选择备份文件",
+  "@selectBackupFile": {},
+  "selectBackupFolder": "选择备份文件夹",
+  "@selectBackupFolder": {},
+  "selectDownloadsFolder": "选择下载文件夹",
+  "@selectDownloadsFolder": {},
+  "selectExportFileFolder": "选择导出文件夹",
+  "@selectExportFileFolder": {},
+  "selectExportFolder": "选择导出文件夹",
+  "@selectExportFolder": {},
+  "sendTestActivity": "发送测试动态到 Discord",
+  "@sendTestActivity": {},
+  "serverErrorCode": "开始播放时服务器返回错误 {code}。",
+  "@serverErrorCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "serverErrorPlayback": "开始播放时服务器出错。",
+  "@serverErrorPlayback": {},
+  "serverType": "服务器类型",
+  "@serverType": {},
+  "setAppIdFirst": "请先设置应用 ID",
+  "@setAppIdFirst": {},
+  "showDiscordActivity": "显示 Discord 动态",
+  "@showDiscordActivity": {},
+  "showDiscordActivityDes": "将当前播放的歌曲显示为你的 Discord 状态。",
+  "@showDiscordActivityDes": {},
+  "showHide": "显示/隐藏",
+  "@showHide": {},
   "songs": "歌曲",
   "playlists": "播放列表",
   "more": "更多",
@@ -29,6 +195,57 @@
   "noLibPlaylist": "没有任何已入库的播放列表！",
   "enqueueSong": "将此曲加入队列",
   "goToAlbum": "去往专辑",
+  "stepXofY": "第 {current} 步，共 {total} 步",
+  "@stepXofY": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestions": "建议",
+  "@suggestions": {},
+  "tapToOpen": "点击打开",
+  "@tapToOpen": {},
+  "testDiscordConnection": "测试 Discord 连接",
+  "@testDiscordConnection": {},
+  "testingDiscordConnection": "正在测试 Discord 连接...",
+  "@testingDiscordConnection": {},
+  "testingDiscordRpc": "正在测试 Discord RPC",
+  "@testingDiscordRpc": {},
+  "trackNotAvailableOnServer": "该曲目在服务器上已不可用。",
+  "@trackNotAvailableOnServer": {},
+  "trayAlbum": "专辑：{name}",
+  "@trayAlbum": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trayArtist": "艺人：{name}",
+  "@trayArtist": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "traySong": "歌曲：{name}",
+  "@traySong": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "unableToStartPlayback": "无法开始播放。",
+  "@unableToStartPlayback": {},
+  "unknown": "未知",
+  "@unknown": {},
   "viewArtist": "查看音乐人",
   "shareSong": "分享这首歌",
   "removeFromQueue": "从队列移除",
@@ -336,7 +553,6 @@
   "lyricsHighlightBlock": "块高亮",
   "lyricsHighlightKaraoke": "卡拉OK填充",
   "manage": "管理",
-  "more": "更多",
   "noServersConfigured": "尚未配置服务器",
   "noSongsInLibrary": "曲库中无歌曲",
   "oled": "OLED",
@@ -400,6 +616,12 @@
   "useCustomAccentColor": "使用自定义强调色",
   "useCustomAccentColorDes": "在所有主题下应用所选强调色",
   "version": "版本",
+  "volume": "音量",
+  "@volume": {},
+  "wearMoreSettings": "更多设置可在手机上进行",
+  "@wearMoreSettings": {},
+  "wearPhoneHint": "请确保 Doudou 正在手机上运行",
+  "@wearPhoneHint": {},
   "yourArtists": "你的音乐人",
   "yourLibrary": "你的曲库",
   "yourMusicCollection": "你的音乐收藏",
@@ -453,8 +675,12 @@
   "eventsCount": "Events: {count} (showing up to {max})",
   "@eventsCount": {
     "placeholders": {
-      "count": {"type": "int"},
-      "max": {"type": "int"}
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
     }
   },
   "noDiagnosticsHint": "No diagnostics yet.\nEnable diagnostics and reproduce the issue.",

@@ -14,8 +14,8 @@ mixin _SettingsViewInfoMixin on __SettingsViewStateBase {
           if (kIsPlayStore && !ytmProviderUnlocked) {
             ytmProviderUnlocked = true;
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Additional providers unlocked'),
+              SnackBar(
+                content: Text(context.l10n.additionalProvidersUnlocked),
               ),
             );
           }

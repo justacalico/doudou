@@ -37,7 +37,7 @@ mixin _StandardPlayerStateBuildMixin on _StandardPlayerStateBase {
                 color: _showMobileVolumePanel
                     ? Theme.of(context).colorScheme.primary
                     : Colors.white,
-                tooltip: "Volume",
+                tooltip: context.l10n.volume,
               ),
             ),
             if (_showMobileVolumePanel)

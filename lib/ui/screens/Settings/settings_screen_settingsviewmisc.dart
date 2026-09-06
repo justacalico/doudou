@@ -10,7 +10,7 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
     return [
       _SettingsListTile(
         title: context.l10n.playbackDiagnosticsRelease,
-        subtitle: 'Record bounded playback/network events for troubleshooting.',
+        subtitle: context.l10n.playbackDiagnosticsDes,
         trailing: Obx(() => CustSwitch(
               value: settings.playbackDiagnosticsEnabled.value,
               onChanged: settings.togglePlaybackDiagnostics,
@@ -50,7 +50,7 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
             DoudouSpace.s4,
           ),
           child: Text(
-            'Discord Rich Presence',
+            context.l10n.discordRichPresence,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: context.doudouColors.textSecondary,
                   fontWeight: FontWeight.w600,
@@ -59,8 +59,8 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
         ),
         _SettingsListTile(
           leading: const Icon(Icons.discord, size: 20),
-          title: 'Show Discord activity',
-          subtitle: 'Display the current song as your Discord status.',
+          title: context.l10n.showDiscordActivity,
+          subtitle: context.l10n.showDiscordActivityDes,
           trailing: Obx(() => CustSwitch(
                 value: settings.discordRpcEnabled.value,
                 onChanged: settings.toggleDiscordRpc,
@@ -71,10 +71,10 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
         ),
         _SettingsListTile(
           leading: const Icon(Icons.vpn_key_outlined, size: 20),
-          title: 'Discord Application ID',
+          title: context.l10n.discordAppId,
           subtitle: Obx(() => Text(
                 settings.discordAppId.value.isEmpty
-                    ? 'Not set — create one at discord.com/developers/applications'
+                    ? context.l10n.discordAppIdNotSet
                     : settings.discordAppId.value,
                 style: TextStyle(
                   color: settings.discordAppId.value.isEmpty
@@ -89,11 +89,11 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
         ),
         Obx(() => _SettingsListTile(
               leading: const Icon(Icons.bolt_outlined, size: 20),
-              title: 'Test Discord connection',
+              title: context.l10n.testDiscordConnection,
               subtitle: Obx(() => Text(
                     settings.discordAppId.value.isEmpty
-                        ? 'Set an Application ID first'
-                        : 'Send a test activity to Discord',
+                        ? context.l10n.setAppIdFirst
+                        : context.l10n.sendTestActivity,
                     style: TextStyle(
                       color: settings.discordAppId.value.isEmpty
                           ? context.doudouColors.textDisabled
@@ -130,21 +130,21 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Discord Application ID'),
+          title: Text(ctx.l10n.discordAppId),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Create a Discord application at discord.com/developers/applications and paste the Application ID here.',
-                style: TextStyle(fontSize: 13),
+              Text(
+                ctx.l10n.discordAppIdDialogDes,
+                style: const TextStyle(fontSize: 13),
               ),
               const SizedBox(height: DoudouSpace.s12),
               TextField(
                 controller: controller,
-                decoration: const InputDecoration(
-                  labelText: 'Application ID',
-                  hintText: 'e.g. 1234567890123456789',
+                decoration: InputDecoration(
+                  labelText: ctx.l10n.applicationId,
+                  hintText: ctx.l10n.discordAppIdHint,
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -174,7 +174,7 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
   ) async {
     if (!Get.isRegistered<DiscordRpcService>()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        snackbar(context, 'Discord RPC is not available on this platform',
+        snackbar(context, context.l10n.discordRpcUnavailable,
             size: SnackBarSize.BIG),
       );
       return;
@@ -182,7 +182,7 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
 
     final svc = Get.find<DiscordRpcService>();
     ScaffoldMessenger.of(context).showSnackBar(
-      snackbar(context, 'Testing Discord connection...',
+      snackbar(context, context.l10n.testingDiscordConnection,
           size: SnackBarSize.BIG),
     );
 
@@ -193,8 +193,8 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
       snackbar(
         context,
         success
-            ? 'Discord RPC is working! Check your Discord profile.'
-            : 'Discord RPC test failed. Make sure Discord is running and the Application ID is correct.',
+            ? context.l10n.discordRpcWorking
+            : context.l10n.discordRpcFailed,
         size: SnackBarSize.BIG,
       ),
     );

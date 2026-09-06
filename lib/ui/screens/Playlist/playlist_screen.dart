@@ -445,7 +445,7 @@ class PlaylistScreen extends StatelessWidget {
                             playlist.description!.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text(
-                            playlist.description!,
+                            localizedPlaylistDescription(context, playlist),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.titleSmall

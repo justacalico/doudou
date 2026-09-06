@@ -694,12 +694,13 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
 
   // Helper method to get a user-friendly location message
   String _getLocationMessage(String path) {
+    final l10n = l10nFromPrefs();
     if (Platform.isAndroid) {
-      return "App Documents/Doudou";
+      return l10n.locationAppDocuments;
     } else if (Platform.isIOS) {
-      return "Files App > Doudou";
+      return l10n.locationFilesApp;
     } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      return "Downloads/Doudou";
+      return l10n.locationDownloads;
     } else {
       return path.split('/').last;
     }

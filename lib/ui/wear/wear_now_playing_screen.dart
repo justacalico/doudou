@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:wearable_rotary/wearable_rotary.dart';
 
 import '../../services/wear_comm_service.dart';
+import '../../utils/app_l10n.dart';
 
 /// Now Playing screen for Wear OS. Features album art as full-screen
 /// background, circular progress ring, transport controls,
@@ -77,7 +78,7 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen> {
         const Icon(Icons.music_off, size: 32),
         const SizedBox(height: 8),
         Text(
-          'No song playing',
+          context.l10n.noSongPlaying,
           style: Theme.of(context).textTheme.titleSmall,
           textAlign: TextAlign.center,
         ),
@@ -200,7 +201,7 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'NOW PLAYING',
+          context.l10n.nowPlaying.toUpperCase(),
           style: TextStyle(
             color: const Color(0xFFE8A598).withOpacity(0.8),
             fontSize: 8,
@@ -427,7 +428,7 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen> {
                         color: Color(0xFFE8A598)),
                     const SizedBox(width: 4),
                     Text(
-                      'Queue',
+                      context.l10n.queue,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.8),
                         fontSize: 10,
@@ -444,7 +445,7 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen> {
                   if (items.isEmpty) {
                     return Center(
                       child: Text(
-                        'Queue is empty',
+                        context.l10n.queueEmpty,
                         style: TextStyle(
                           color: Colors.white54,
                           fontSize: 12,
@@ -461,7 +462,7 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen> {
                       final item = items[index];
                       final isCurrent = index == currentIndex;
                       final title =
-                          item['title']?.toString() ?? 'Unknown';
+                          item['title']?.toString() ?? context.l10n.unknown;
                       final artist =
                           item['artist']?.toString() ?? '';
                       return GestureDetector(

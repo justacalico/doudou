@@ -9,10 +9,241 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get addFavoritesToStartRadio => '添加一些收藏以启动电台';
+
+  @override
+  String get additionalProvidersUnlocked => '已解锁额外内容源';
+
+  @override
+  String get applicationId => '应用 ID';
+
+  @override
+  String get back => '返回';
+
+  @override
+  String get clear => '清除';
+
+  @override
+  String get clearQueue => '清空队列';
+
+  @override
+  String get demoServer => '演示服务器';
+
+  @override
+  String get demoServerBullets =>
+      '• 以自由文化许可证发布\n• 属于公有领域（美国和/或加拿大）\n• 经版权持有人明确许可提供';
+
+  @override
+  String get demoServerContent => '该演示服务器由 Jellyfin 项目提供，仅包含以下类型的媒体：';
+
+  @override
+  String get demoServerExplore => '你可以使用此演示探索应用，或添加自己的服务器。';
+
+  @override
+  String get demoServerIntro => '本应用预置了一个用于体验的 Jellyfin 演示服务器。';
+
+  @override
+  String get demoServerReset => '该服务器每天于东部时间 06:00 重置，所有更改均为临时性的。';
+
+  @override
+  String get discordAppId => 'Discord 应用 ID';
+
+  @override
+  String get discordAppIdDialogDes =>
+      '在 discord.com/developers/applications 创建 Discord 应用，并将应用 ID 粘贴到这里。';
+
+  @override
+  String get discordAppIdHint => '例如 1234567890123456789';
+
+  @override
+  String get discordAppIdNotSet =>
+      '未设置 - 请在 discord.com/developers/applications 创建';
+
+  @override
+  String get discordRichPresence => 'Discord Rich Presence';
+
+  @override
+  String get discordRpcFailed => 'Discord RPC 测试失败。请确认 Discord 正在运行且应用 ID 正确。';
+
+  @override
+  String get discordRpcUnavailable => '此平台不支持 Discord RPC';
+
+  @override
+  String get discordRpcWorking => 'Discord RPC 正常工作！请查看你的 Discord 资料。';
+
+  @override
+  String get doudouConnected => 'Doudou 已连接！';
+
+  @override
+  String get downloadDoudou => '下载 Doudou';
+
+  @override
+  String get expandSidebar => '展开侧边栏';
+
+  @override
+  String get favorite => '收藏';
+
+  @override
+  String get inAppStorageDirectory => '应用内存储目录';
+
+  @override
+  String get libraryPlaylist => '媒体库播放列表';
+
+  @override
+  String get loadingLibraryInBackground => '正在后台加载你的媒体库...';
+
+  @override
   String get home => '首页';
 
   @override
   String get homeSubtitle => '最近播放、新添加与为你推荐';
+
+  @override
+  String get locationAppDocuments => '应用文档/Doudou';
+
+  @override
+  String get locationDownloads => '下载/Doudou';
+
+  @override
+  String get locationFilesApp => '文件 App > Doudou';
+
+  @override
+  String get loop => '循环';
+
+  @override
+  String get next => '下一步';
+
+  @override
+  String get noAlbumsInLibrary => '媒体库中没有专辑';
+
+  @override
+  String noCategoryItems(String category) {
+    return '没有$category！';
+  }
+
+  @override
+  String get noContentAvailable => '暂无可用内容';
+
+  @override
+  String get none => '无';
+
+  @override
+  String get noPhoneConnected => '未连接手机';
+
+  @override
+  String get noPlaylistsAvailable => '没有可用的播放列表。';
+
+  @override
+  String get noSongPlaying => '暂无歌曲播放';
+
+  @override
+  String get noSongsForAlbum => '此专辑中没有歌曲。';
+
+  @override
+  String get noSongsForPlaylist => '此播放列表中没有歌曲。';
+
+  @override
+  String get nothingHere => '这里什么都没有';
+
+  @override
+  String get notSet => '未设置';
+
+  @override
+  String get nowPlaying => '正在播放';
+
+  @override
+  String get ok => '确定';
+
+  @override
+  String get openInYoutubeMusic => '在 YouTube Music 中打开';
+
+  @override
+  String get pipedPlaylist => 'Piped 播放列表';
+
+  @override
+  String get playbackDiagnosticsDes => '记录有上限的播放和网络事件，用于排查问题。';
+
+  @override
+  String get playingFromQueue => '正在播放队列';
+
+  @override
+  String get playlistsCount => '个播放列表';
+
+  @override
+  String get playPause => '播放/暂停';
+
+  @override
+  String get prev => '上一首';
+
+  @override
+  String get proceed => '继续';
+
+  @override
+  String get queue => '播放队列';
+
+  @override
+  String get queueEmpty => '队列为空';
+
+  @override
+  String get quit => '退出';
+
+  @override
+  String get recent => '最近';
+
+  @override
+  String removedFrom(String name) {
+    return '已从$name中移除';
+  }
+
+  @override
+  String get saveBackupFile => '保存备份文件';
+
+  @override
+  String get savePlaybackDiagnostics => '保存播放诊断';
+
+  @override
+  String get scrollForMoreControls => '← 滚动查看更多控制 →';
+
+  @override
+  String get selectBackupFile => '选择备份文件';
+
+  @override
+  String get selectBackupFolder => '选择备份文件夹';
+
+  @override
+  String get selectDownloadsFolder => '选择下载文件夹';
+
+  @override
+  String get selectExportFileFolder => '选择导出文件夹';
+
+  @override
+  String get selectExportFolder => '选择导出文件夹';
+
+  @override
+  String get sendTestActivity => '发送测试动态到 Discord';
+
+  @override
+  String serverErrorCode(String code) {
+    return '开始播放时服务器返回错误 $code。';
+  }
+
+  @override
+  String get serverErrorPlayback => '开始播放时服务器出错。';
+
+  @override
+  String get serverType => '服务器类型';
+
+  @override
+  String get setAppIdFirst => '请先设置应用 ID';
+
+  @override
+  String get showDiscordActivity => '显示 Discord 动态';
+
+  @override
+  String get showDiscordActivityDes => '将当前播放的歌曲显示为你的 Discord 状态。';
+
+  @override
+  String get showHide => '显示/隐藏';
 
   @override
   String get songs => '歌曲';
@@ -46,6 +277,59 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get libraryOverviewSubtitle => '概览 / 你的音乐库。';
+
+  @override
+  String stepXofY(int current, int total) {
+    return '第 $current 步，共 $total 步';
+  }
+
+  @override
+  String get suggestions => '建议';
+
+  @override
+  String get tapToOpen => '点击打开';
+
+  @override
+  String get testDiscordConnection => '测试 Discord 连接';
+
+  @override
+  String get testingDiscordConnection => '正在测试 Discord 连接...';
+
+  @override
+  String get testingDiscordRpc => '正在测试 Discord RPC';
+
+  @override
+  String get trackNotAvailableOnServer => '该曲目在服务器上已不可用。';
+
+  @override
+  String trayAlbum(String name) {
+    return '专辑：$name';
+  }
+
+  @override
+  String trayArtist(String name) {
+    return '艺人：$name';
+  }
+
+  @override
+  String traySong(String name) {
+    return '歌曲：$name';
+  }
+
+  @override
+  String get unableToStartPlayback => '无法开始播放。';
+
+  @override
+  String get unknown => '未知';
+
+  @override
+  String get volume => '音量';
+
+  @override
+  String get wearMoreSettings => '更多设置可在手机上进行';
+
+  @override
+  String get wearPhoneHint => '请确保 Doudou 正在手机上运行';
 
   @override
   String get yourLibrary => '你的曲库';

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../models/playlist.dart';
+import '../../utils/app_l10n.dart';
 import '../design/doudou_colors.dart';
 import '../navigator.dart';
 import 'image_widget.dart';
@@ -22,10 +24,10 @@ class ContentListItem extends StatelessWidget {
   final dynamic content;
   final bool isLibraryItem;
 
-  String _subtitle(bool isAlbum) {
+  String _subtitle(BuildContext context, bool isAlbum) {
     if (isLibraryItem) return "";
     if (isAlbum) return _albumSubtitle(content);
-    return content.description ?? "";
+    return localizedPlaylistDescription(context, content as Playlist);
   }
 
   @override
@@ -176,7 +178,7 @@ class ContentListItem extends StatelessWidget {
                     child: Align(
                       alignment: Alignment.topLeft,
                       child: Text(
-                        _subtitle(isAlbum),
+                        _subtitle(context, isAlbum),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleSmall,

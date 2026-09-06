@@ -142,7 +142,7 @@ class RestoreDialogController extends GetxController {
 
     final FilePickerResult? pickedFileResult = await FilePicker.platform
         .pickFiles(
-            dialogTitle: "Select backup file",
+            dialogTitle: l10nFromPrefs().selectBackupFile,
             type: GetPlatform.isWindows ? FileType.custom : FileType.any,
             allowedExtensions: GetPlatform.isWindows ? ['hmb'] : null,
             allowMultiple: false);

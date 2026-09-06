@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '/ui/player/player_controller.dart';
 import '/ui/widgets/image_widget.dart';
+import '/utils/app_l10n.dart';
 import '/ui/widgets/tv_focus_highlight.dart';
 
 class TvLyricsScreen extends StatefulWidget {
@@ -98,14 +99,14 @@ class _TvLyricsScreenState extends State<TvLyricsScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               _TvLyricsModeButton(
-                                label: 'Synced',
+                                label: context.l10n.synced,
                                 selected: playerController.lyricsMode.value == 0,
                                 onSelect: () =>
                                     playerController.changeLyricsMode(0),
                               ),
                               const SizedBox(width: 12),
                               _TvLyricsModeButton(
-                                label: 'Plain',
+                                label: context.l10n.plain,
                                 selected: playerController.lyricsMode.value == 1,
                                 onSelect: () =>
                                     playerController.changeLyricsMode(1),
@@ -136,7 +137,7 @@ class _TvLyricsScreenState extends State<TvLyricsScreen> {
                           if (plain.isEmpty || plain == 'NA') {
                             return Center(
                               child: Text(
-                                'Lyrics not available',
+                                context.l10n.lyricsNotAvailable,
                                 style: theme.textTheme.titleLarge?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
@@ -223,7 +224,7 @@ class _TvLyricsScreenState extends State<TvLyricsScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 32, vertical: 12),
                             child: Text(
-                              'Back',
+                              context.l10n.back,
                               style: theme.textTheme.titleMedium,
                             ),
                           ),

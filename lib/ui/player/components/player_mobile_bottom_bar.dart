@@ -57,7 +57,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
                 color: pc.isCurrentSongFav.isTrue
                     ? theme.colorScheme.error
                     : effectiveIconColor,
-                tooltip: "Favorite",
+                tooltip: context.l10n.favorite,
               )),
           if (volumeAction != null) volumeAction!,
           IconButton(
@@ -120,7 +120,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
             },
             icon: Icon(Icons.more_horiz_rounded, size: iconSize),
             color: effectiveIconColor,
-            tooltip: "More",
+            tooltip: context.l10n.more,
           ),
         ],
       ),

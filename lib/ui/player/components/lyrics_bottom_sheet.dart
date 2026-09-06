@@ -97,7 +97,7 @@ class LyricsBottomSheet extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        "SYNC",
+                        context.l10n.synced.toUpperCase(),
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.w600,

@@ -1,9 +1,175 @@
 {
+  "addFavoritesToStartRadio": "Add some favorites to start radio",
+  "@addFavoritesToStartRadio": {},
+  "additionalProvidersUnlocked": "Additional providers unlocked",
+  "@additionalProvidersUnlocked": {},
+  "applicationId": "Application ID",
+  "@applicationId": {},
+  "back": "Back",
+  "@back": {},
+  "clear": "Clear",
+  "@clear": {},
+  "clearQueue": "Clear queue",
+  "@clearQueue": {},
+  "demoServer": "Demo server",
+  "@demoServer": {},
+  "demoServerBullets": "• Released under a Free Culture license\n• In the Public Domain (US and/or Canada)\n• Provided with explicit permission of the copyright holder",
+  "@demoServerBullets": {},
+  "demoServerContent": "The demo server is provided by the Jellyfin project and contains only media that is:",
+  "@demoServerContent": {},
+  "demoServerExplore": "You can use this demo to explore the app, or add your own server.",
+  "@demoServerExplore": {},
+  "demoServerIntro": "This app comes pre-configured with a demo Jellyfin server for evaluation.",
+  "@demoServerIntro": {},
+  "demoServerReset": "This server is reset daily at 06:00 Eastern Time, so any changes are temporary.",
+  "@demoServerReset": {},
+  "discordAppId": "Discord Application ID",
+  "@discordAppId": {},
+  "discordAppIdDialogDes": "Create a Discord application at discord.com/developers/applications and paste the Application ID here.",
+  "@discordAppIdDialogDes": {},
+  "discordAppIdHint": "e.g. 1234567890123456789",
+  "@discordAppIdHint": {},
+  "discordAppIdNotSet": "Not set - create one at discord.com/developers/applications",
+  "@discordAppIdNotSet": {},
+  "discordRichPresence": "Discord Rich Presence",
+  "@discordRichPresence": {},
+  "discordRpcFailed": "Discord RPC test failed. Make sure Discord is running and the Application ID is correct.",
+  "@discordRpcFailed": {},
+  "discordRpcUnavailable": "Discord RPC is not available on this platform",
+  "@discordRpcUnavailable": {},
+  "discordRpcWorking": "Discord RPC is working! Check your Discord profile.",
+  "@discordRpcWorking": {},
+  "doudouConnected": "Doudou is connected!",
+  "@doudouConnected": {},
+  "downloadDoudou": "Download Doudou",
+  "@downloadDoudou": {},
+  "expandSidebar": "Expand sidebar",
+  "@expandSidebar": {},
+  "favorite": "Favorite",
+  "@favorite": {},
+  "inAppStorageDirectory": "In App storage directory",
+  "@inAppStorageDirectory": {},
+  "libraryPlaylist": "Library playlist",
+  "@libraryPlaylist": {},
+  "loadingLibraryInBackground": "Loading your library in background...",
+  "@loadingLibraryInBackground": {},
   "@@locale": "en",
   "home": "Home",
   "@home": {},
   "homeSubtitle": "Recent listens, new additions and picks for you",
   "@homeSubtitle": {},
+  "locationAppDocuments": "App Documents/Doudou",
+  "@locationAppDocuments": {},
+  "locationDownloads": "Downloads/Doudou",
+  "@locationDownloads": {},
+  "locationFilesApp": "Files App > Doudou",
+  "@locationFilesApp": {},
+  "loop": "Loop",
+  "@loop": {},
+  "next": "Next",
+  "@next": {},
+  "noAlbumsInLibrary": "No albums in library",
+  "@noAlbumsInLibrary": {},
+  "noCategoryItems": "No {category}!",
+  "@noCategoryItems": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "noContentAvailable": "No content available",
+  "@noContentAvailable": {},
+  "none": "None",
+  "@none": {},
+  "noPhoneConnected": "No phone connected",
+  "@noPhoneConnected": {},
+  "noPlaylistsAvailable": "No playlists available.",
+  "@noPlaylistsAvailable": {},
+  "noSongPlaying": "No song playing",
+  "@noSongPlaying": {},
+  "noSongsForAlbum": "No songs found for this album.",
+  "@noSongsForAlbum": {},
+  "noSongsForPlaylist": "No songs found for this playlist.",
+  "@noSongsForPlaylist": {},
+  "nothingHere": "Nothing here",
+  "@nothingHere": {},
+  "notSet": "Not set",
+  "@notSet": {},
+  "nowPlaying": "Now playing",
+  "@nowPlaying": {},
+  "ok": "OK",
+  "@ok": {},
+  "openInYoutubeMusic": "Open in YouTube Music",
+  "@openInYoutubeMusic": {},
+  "pipedPlaylist": "Piped playlist",
+  "@pipedPlaylist": {},
+  "playbackDiagnosticsDes": "Record bounded playback/network events for troubleshooting.",
+  "@playbackDiagnosticsDes": {},
+  "playingFromQueue": "Playing from queue",
+  "@playingFromQueue": {},
+  "playlistsCount": "playlists",
+  "@playlistsCount": {},
+  "playPause": "Play/Pause",
+  "@playPause": {},
+  "prev": "Prev",
+  "@prev": {},
+  "proceed": "Proceed",
+  "@proceed": {},
+  "queue": "Queue",
+  "@queue": {},
+  "queueEmpty": "Queue is empty",
+  "@queueEmpty": {},
+  "quit": "Quit",
+  "@quit": {},
+  "recent": "Recent",
+  "@recent": {},
+  "removedFrom": "Removed from {name}",
+  "@removedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "saveBackupFile": "Save backup file",
+  "@saveBackupFile": {},
+  "savePlaybackDiagnostics": "Save playback diagnostics",
+  "@savePlaybackDiagnostics": {},
+  "scrollForMoreControls": "← Scroll for more controls →",
+  "@scrollForMoreControls": {},
+  "selectBackupFile": "Select backup file",
+  "@selectBackupFile": {},
+  "selectBackupFolder": "Select backup file folder",
+  "@selectBackupFolder": {},
+  "selectDownloadsFolder": "Select downloads folder",
+  "@selectDownloadsFolder": {},
+  "selectExportFileFolder": "Select export file folder",
+  "@selectExportFileFolder": {},
+  "selectExportFolder": "Select export folder",
+  "@selectExportFolder": {},
+  "sendTestActivity": "Send a test activity to Discord",
+  "@sendTestActivity": {},
+  "serverErrorCode": "Server error {code} while starting playback.",
+  "@serverErrorCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "serverErrorPlayback": "Server error while starting playback.",
+  "@serverErrorPlayback": {},
+  "serverType": "Server type",
+  "@serverType": {},
+  "setAppIdFirst": "Set an Application ID first",
+  "@setAppIdFirst": {},
+  "showDiscordActivity": "Show Discord activity",
+  "@showDiscordActivity": {},
+  "showDiscordActivityDes": "Display the current song as your Discord status.",
+  "@showDiscordActivityDes": {},
+  "showHide": "Show/Hide",
+  "@showHide": {},
   "songs": "Songs",
   "@songs": {},
   "playlists": "Playlists",
@@ -26,6 +192,63 @@
   "@library": {},
   "libraryOverviewSubtitle": "Overview / Your music collection.",
   "@libraryOverviewSubtitle": {},
+  "stepXofY": "Step {current} of {total}",
+  "@stepXofY": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestions": "Suggestions",
+  "@suggestions": {},
+  "tapToOpen": "Tap to open",
+  "@tapToOpen": {},
+  "testDiscordConnection": "Test Discord connection",
+  "@testDiscordConnection": {},
+  "testingDiscordConnection": "Testing Discord connection...",
+  "@testingDiscordConnection": {},
+  "testingDiscordRpc": "Testing Discord RPC",
+  "@testingDiscordRpc": {},
+  "trackNotAvailableOnServer": "Track is no longer available on the server.",
+  "@trackNotAvailableOnServer": {},
+  "trayAlbum": "Album: {name}",
+  "@trayAlbum": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trayArtist": "Artist: {name}",
+  "@trayArtist": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "traySong": "Song: {name}",
+  "@traySong": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "unableToStartPlayback": "Unable to start playback.",
+  "@unableToStartPlayback": {},
+  "unknown": "Unknown",
+  "@unknown": {},
+  "volume": "Volume",
+  "@volume": {},
+  "wearMoreSettings": "More settings are available on your phone",
+  "@wearMoreSettings": {},
+  "wearPhoneHint": "Make sure Doudou is running on your phone",
+  "@wearPhoneHint": {},
   "yourLibrary": "Your Library",
   "@yourLibrary": {},
   "manage": "Manage",
@@ -432,8 +655,6 @@
   "@enableSlidableAction": {},
   "enableSlidableActionDes": "Enable slidable actions on song tile",
   "@enableSlidableActionDes": {},
-  "more": "More",
-  "@more": {},
   "loading": "Loading",
   "@loading": {},
   "imported": "Imported",
@@ -847,8 +1068,12 @@
   "eventsCount": "Events: {count} (showing up to {max})",
   "@eventsCount": {
     "placeholders": {
-      "count": {"type": "int"},
-      "max": {"type": "int"}
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
     }
   },
   "noDiagnosticsHint": "No diagnostics yet.\nEnable diagnostics and reproduce the issue.",

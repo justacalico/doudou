@@ -219,7 +219,7 @@ class _SidebarContent extends StatelessWidget {
                   _SidebarTile(
                     icon: Icons.music_note_outlined,
                     activeIcon: Icons.music_note,
-                    label: 'Now Playing',
+                    label: context.l10n.nowPlaying,
                     selected: false,
                     compact: minimized,
                     onTap: () => Get.to(() => const TvNowPlayingScreen()),
@@ -232,7 +232,7 @@ class _SidebarContent extends StatelessWidget {
                     activeIcon: minimized
                         ? Icons.keyboard_double_arrow_right_rounded
                         : Icons.keyboard_double_arrow_left_rounded,
-                    label: minimized ? "Expand sidebar" : context.l10n.shrinkSidebar,
+                    label: minimized ? context.l10n.expandSidebar : context.l10n.shrinkSidebar,
                     selected: false,
                     compact: minimized,
                     onTap: () => onMinimizeChanged(!minimized),

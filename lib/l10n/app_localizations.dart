@@ -101,6 +101,168 @@ abstract class AppLocalizations {
     Locale('zh')
   ];
 
+  /// No description provided for @addFavoritesToStartRadio.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Add some favorites to start radio'**
+  String get addFavoritesToStartRadio;
+
+  /// No description provided for @additionalProvidersUnlocked.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Additional providers unlocked'**
+  String get additionalProvidersUnlocked;
+
+  /// No description provided for @applicationId.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Application ID'**
+  String get applicationId;
+
+  /// No description provided for @back.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @clear.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @clearQueue.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Clear queue'**
+  String get clearQueue;
+
+  /// No description provided for @demoServer.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Demo server'**
+  String get demoServer;
+
+  /// No description provided for @demoServerBullets.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'• Released under a Free Culture license\n• In the Public Domain (US and/or Canada)\n• Provided with explicit permission of the copyright holder'**
+  String get demoServerBullets;
+
+  /// No description provided for @demoServerContent.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'The demo server is provided by the Jellyfin project and contains only media that is:'**
+  String get demoServerContent;
+
+  /// No description provided for @demoServerExplore.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'You can use this demo to explore the app, or add your own server.'**
+  String get demoServerExplore;
+
+  /// No description provided for @demoServerIntro.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'This app comes pre-configured with a demo Jellyfin server for evaluation.'**
+  String get demoServerIntro;
+
+  /// No description provided for @demoServerReset.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'This server is reset daily at 06:00 Eastern Time, so any changes are temporary.'**
+  String get demoServerReset;
+
+  /// No description provided for @discordAppId.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Discord Application ID'**
+  String get discordAppId;
+
+  /// No description provided for @discordAppIdDialogDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Create a Discord application at discord.com/developers/applications and paste the Application ID here.'**
+  String get discordAppIdDialogDes;
+
+  /// No description provided for @discordAppIdHint.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'e.g. 1234567890123456789'**
+  String get discordAppIdHint;
+
+  /// No description provided for @discordAppIdNotSet.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Not set - create one at discord.com/developers/applications'**
+  String get discordAppIdNotSet;
+
+  /// No description provided for @discordRichPresence.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Discord Rich Presence'**
+  String get discordRichPresence;
+
+  /// No description provided for @discordRpcFailed.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Discord RPC test failed. Make sure Discord is running and the Application ID is correct.'**
+  String get discordRpcFailed;
+
+  /// No description provided for @discordRpcUnavailable.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Discord RPC is not available on this platform'**
+  String get discordRpcUnavailable;
+
+  /// No description provided for @discordRpcWorking.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Discord RPC is working! Check your Discord profile.'**
+  String get discordRpcWorking;
+
+  /// No description provided for @doudouConnected.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Doudou is connected!'**
+  String get doudouConnected;
+
+  /// No description provided for @downloadDoudou.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Download Doudou'**
+  String get downloadDoudou;
+
+  /// No description provided for @expandSidebar.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Expand sidebar'**
+  String get expandSidebar;
+
+  /// No description provided for @favorite.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Favorite'**
+  String get favorite;
+
+  /// No description provided for @inAppStorageDirectory.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'In App storage directory'**
+  String get inAppStorageDirectory;
+
+  /// No description provided for @libraryPlaylist.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Library playlist'**
+  String get libraryPlaylist;
+
+  /// No description provided for @loadingLibraryInBackground.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Loading your library in background...'**
+  String get loadingLibraryInBackground;
+
   /// No description provided for @home.
   ///
   /// In en_AU, this message translates to:
@@ -112,6 +274,288 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'Recent listens, new additions and picks for you'**
   String get homeSubtitle;
+
+  /// No description provided for @locationAppDocuments.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'App Documents/Doudou'**
+  String get locationAppDocuments;
+
+  /// No description provided for @locationDownloads.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Downloads/Doudou'**
+  String get locationDownloads;
+
+  /// No description provided for @locationFilesApp.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Files App > Doudou'**
+  String get locationFilesApp;
+
+  /// No description provided for @loop.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Loop'**
+  String get loop;
+
+  /// No description provided for @next.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Next'**
+  String get next;
+
+  /// No description provided for @noAlbumsInLibrary.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No albums in library'**
+  String get noAlbumsInLibrary;
+
+  /// No description provided for @noCategoryItems.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No {category}!'**
+  String noCategoryItems(String category);
+
+  /// No description provided for @noContentAvailable.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No content available'**
+  String get noContentAvailable;
+
+  /// No description provided for @none.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'None'**
+  String get none;
+
+  /// No description provided for @noPhoneConnected.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No phone connected'**
+  String get noPhoneConnected;
+
+  /// No description provided for @noPlaylistsAvailable.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No playlists available.'**
+  String get noPlaylistsAvailable;
+
+  /// No description provided for @noSongPlaying.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No song playing'**
+  String get noSongPlaying;
+
+  /// No description provided for @noSongsForAlbum.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No songs found for this album.'**
+  String get noSongsForAlbum;
+
+  /// No description provided for @noSongsForPlaylist.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No songs found for this playlist.'**
+  String get noSongsForPlaylist;
+
+  /// No description provided for @nothingHere.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Nothing here'**
+  String get nothingHere;
+
+  /// No description provided for @notSet.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Not set'**
+  String get notSet;
+
+  /// No description provided for @nowPlaying.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Now playing'**
+  String get nowPlaying;
+
+  /// No description provided for @ok.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @openInYoutubeMusic.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Open in YouTube Music'**
+  String get openInYoutubeMusic;
+
+  /// No description provided for @pipedPlaylist.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Piped playlist'**
+  String get pipedPlaylist;
+
+  /// No description provided for @playbackDiagnosticsDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Record bounded playback/network events for troubleshooting.'**
+  String get playbackDiagnosticsDes;
+
+  /// No description provided for @playingFromQueue.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Playing from queue'**
+  String get playingFromQueue;
+
+  /// No description provided for @playlistsCount.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'playlists'**
+  String get playlistsCount;
+
+  /// No description provided for @playPause.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Play/Pause'**
+  String get playPause;
+
+  /// No description provided for @prev.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Prev'**
+  String get prev;
+
+  /// No description provided for @proceed.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Proceed'**
+  String get proceed;
+
+  /// No description provided for @queue.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Queue'**
+  String get queue;
+
+  /// No description provided for @queueEmpty.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Queue is empty'**
+  String get queueEmpty;
+
+  /// No description provided for @quit.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Quit'**
+  String get quit;
+
+  /// No description provided for @recent.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Recent'**
+  String get recent;
+
+  /// No description provided for @removedFrom.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Removed from {name}'**
+  String removedFrom(String name);
+
+  /// No description provided for @saveBackupFile.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Save backup file'**
+  String get saveBackupFile;
+
+  /// No description provided for @savePlaybackDiagnostics.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Save playback diagnostics'**
+  String get savePlaybackDiagnostics;
+
+  /// No description provided for @scrollForMoreControls.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'← Scroll for more controls →'**
+  String get scrollForMoreControls;
+
+  /// No description provided for @selectBackupFile.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Select backup file'**
+  String get selectBackupFile;
+
+  /// No description provided for @selectBackupFolder.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Select backup file folder'**
+  String get selectBackupFolder;
+
+  /// No description provided for @selectDownloadsFolder.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Select downloads folder'**
+  String get selectDownloadsFolder;
+
+  /// No description provided for @selectExportFileFolder.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Select export file folder'**
+  String get selectExportFileFolder;
+
+  /// No description provided for @selectExportFolder.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Select export folder'**
+  String get selectExportFolder;
+
+  /// No description provided for @sendTestActivity.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Send a test activity to Discord'**
+  String get sendTestActivity;
+
+  /// No description provided for @serverErrorCode.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Server error {code} while starting playback.'**
+  String serverErrorCode(String code);
+
+  /// No description provided for @serverErrorPlayback.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Server error while starting playback.'**
+  String get serverErrorPlayback;
+
+  /// No description provided for @serverType.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Server type'**
+  String get serverType;
+
+  /// No description provided for @setAppIdFirst.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Set an Application ID first'**
+  String get setAppIdFirst;
+
+  /// No description provided for @showDiscordActivity.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Show Discord activity'**
+  String get showDiscordActivity;
+
+  /// No description provided for @showDiscordActivityDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Display the current song as your Discord status.'**
+  String get showDiscordActivityDes;
+
+  /// No description provided for @showHide.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Show/Hide'**
+  String get showHide;
 
   /// No description provided for @songs.
   ///
@@ -178,6 +622,96 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'Overview / Your music collection.'**
   String get libraryOverviewSubtitle;
+
+  /// No description provided for @stepXofY.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Step {current} of {total}'**
+  String stepXofY(int current, int total);
+
+  /// No description provided for @suggestions.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Suggestions'**
+  String get suggestions;
+
+  /// No description provided for @tapToOpen.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Tap to open'**
+  String get tapToOpen;
+
+  /// No description provided for @testDiscordConnection.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Test Discord connection'**
+  String get testDiscordConnection;
+
+  /// No description provided for @testingDiscordConnection.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Testing Discord connection...'**
+  String get testingDiscordConnection;
+
+  /// No description provided for @testingDiscordRpc.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Testing Discord RPC'**
+  String get testingDiscordRpc;
+
+  /// No description provided for @trackNotAvailableOnServer.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Track is no longer available on the server.'**
+  String get trackNotAvailableOnServer;
+
+  /// No description provided for @trayAlbum.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Album: {name}'**
+  String trayAlbum(String name);
+
+  /// No description provided for @trayArtist.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Artist: {name}'**
+  String trayArtist(String name);
+
+  /// No description provided for @traySong.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Song: {name}'**
+  String traySong(String name);
+
+  /// No description provided for @unableToStartPlayback.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Unable to start playback.'**
+  String get unableToStartPlayback;
+
+  /// No description provided for @unknown.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Unknown'**
+  String get unknown;
+
+  /// No description provided for @volume.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Volume'**
+  String get volume;
+
+  /// No description provided for @wearMoreSettings.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'More settings are available on your phone'**
+  String get wearMoreSettings;
+
+  /// No description provided for @wearPhoneHint.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Make sure Doudou is running on your phone'**
+  String get wearPhoneHint;
 
   /// No description provided for @yourLibrary.
   ///

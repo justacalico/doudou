@@ -99,7 +99,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Queue",
+                        context.l10n.queue,
                         style: Theme.of(context)
                             .textTheme
                             .titleLarge
@@ -107,7 +107,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Playing from queue",
+                        context.l10n.playingFromQueue,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context)
                                 .textTheme
@@ -184,7 +184,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                           const Icon(Icons.close_rounded, size: 18),
                           const SizedBox(width: 8),
                           Text(
-                            "Clear Queue",
+                            context.l10n.clearQueue,
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall

@@ -1,8 +1,174 @@
 {
+  "addFavoritesToStartRadio": "Добавьте треки в избранное, чтобы запустить радио",
+  "@addFavoritesToStartRadio": {},
+  "additionalProvidersUnlocked": "Дополнительные провайдеры разблокированы",
+  "@additionalProvidersUnlocked": {},
+  "applicationId": "ID приложения",
+  "@applicationId": {},
+  "back": "Назад",
+  "@back": {},
+  "clear": "Очистить",
+  "@clear": {},
+  "clearQueue": "Очистить очередь",
+  "@clearQueue": {},
+  "demoServer": "Демо-сервер",
+  "@demoServer": {},
+  "demoServerBullets": "• Выпущено по лицензии Free Culture\n• Находится в общественном достоянии (США и/или Канада)\n• Предоставлено с явного разрешения правообладателя",
+  "@demoServerBullets": {},
+  "demoServerContent": "Демо-сервер предоставлен проектом Jellyfin и содержит только медиа, которое:",
+  "@demoServerContent": {},
+  "demoServerExplore": "Вы можете изучить приложение через демо или добавить свой сервер.",
+  "@demoServerExplore": {},
+  "demoServerIntro": "Приложение поставляется с предустановленным демо-сервером Jellyfin для ознакомления.",
+  "@demoServerIntro": {},
+  "demoServerReset": "Сервер сбрасывается ежедневно в 06:00 по восточному времени, поэтому все изменения временны.",
+  "@demoServerReset": {},
+  "discordAppId": "ID приложения Discord",
+  "@discordAppId": {},
+  "discordAppIdDialogDes": "Создайте приложение на discord.com/developers/applications и вставьте сюда его ID.",
+  "@discordAppIdDialogDes": {},
+  "discordAppIdHint": "напр. 1234567890123456789",
+  "@discordAppIdHint": {},
+  "discordAppIdNotSet": "Не задано - создайте на discord.com/developers/applications",
+  "@discordAppIdNotSet": {},
+  "discordRichPresence": "Discord Rich Presence",
+  "@discordRichPresence": {},
+  "discordRpcFailed": "Тест Discord RPC не удался. Убедитесь, что Discord запущен и ID приложения указан верно.",
+  "@discordRpcFailed": {},
+  "discordRpcUnavailable": "Discord RPC недоступен на этой платформе",
+  "@discordRpcUnavailable": {},
+  "discordRpcWorking": "Discord RPC работает! Проверьте свой профиль Discord.",
+  "@discordRpcWorking": {},
+  "doudouConnected": "Doudou подключен!",
+  "@doudouConnected": {},
+  "downloadDoudou": "Скачать Doudou",
+  "@downloadDoudou": {},
+  "expandSidebar": "Развернуть боковую панель",
+  "@expandSidebar": {},
+  "favorite": "В избранное",
+  "@favorite": {},
   "home": "Главная",
   "@home": {},
   "homeSubtitle": "Недавние прослушивания, новые добавления и подборка для вас",
   "@homeSubtitle": {},
+  "inAppStorageDirectory": "Во внутреннем хранилище приложения",
+  "@inAppStorageDirectory": {},
+  "libraryPlaylist": "Плейлист библиотеки",
+  "@libraryPlaylist": {},
+  "loadingLibraryInBackground": "Загрузка библиотеки в фоне...",
+  "@loadingLibraryInBackground": {},
+  "locationAppDocuments": "Документы приложения/Doudou",
+  "@locationAppDocuments": {},
+  "locationDownloads": "Загрузки/Doudou",
+  "@locationDownloads": {},
+  "locationFilesApp": "Файлы > Doudou",
+  "@locationFilesApp": {},
+  "loop": "Повтор",
+  "@loop": {},
+  "next": "Далее",
+  "@next": {},
+  "noAlbumsInLibrary": "В библиотеке нет альбомов",
+  "@noAlbumsInLibrary": {},
+  "noCategoryItems": "Нет: {category}",
+  "@noCategoryItems": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "noContentAvailable": "Нет доступного контента",
+  "@noContentAvailable": {},
+  "none": "Нет",
+  "@none": {},
+  "noPhoneConnected": "Телефон не подключен",
+  "@noPhoneConnected": {},
+  "noPlaylistsAvailable": "Нет доступных плейлистов.",
+  "@noPlaylistsAvailable": {},
+  "noSongPlaying": "Сейчас ничего не играет",
+  "@noSongPlaying": {},
+  "noSongsForAlbum": "В этом альбоме нет треков.",
+  "@noSongsForAlbum": {},
+  "noSongsForPlaylist": "В этом плейлисте нет треков.",
+  "@noSongsForPlaylist": {},
+  "nothingHere": "Здесь пусто",
+  "@nothingHere": {},
+  "notSet": "Не задано",
+  "@notSet": {},
+  "nowPlaying": "Сейчас играет",
+  "@nowPlaying": {},
+  "ok": "ОК",
+  "@ok": {},
+  "openInYoutubeMusic": "Открыть в YouTube Music",
+  "@openInYoutubeMusic": {},
+  "pipedPlaylist": "Плейлист Piped",
+  "@pipedPlaylist": {},
+  "playbackDiagnosticsDes": "Записывает ограниченные события воспроизведения и сети для диагностики.",
+  "@playbackDiagnosticsDes": {},
+  "playingFromQueue": "Воспроизведение из очереди",
+  "@playingFromQueue": {},
+  "playlistsCount": "плейлистов",
+  "@playlistsCount": {},
+  "playPause": "Воспроизведение/пауза",
+  "@playPause": {},
+  "prev": "Назад",
+  "@prev": {},
+  "proceed": "Продолжить",
+  "@proceed": {},
+  "queue": "Очередь",
+  "@queue": {},
+  "queueEmpty": "Очередь пуста",
+  "@queueEmpty": {},
+  "quit": "Выход",
+  "@quit": {},
+  "recent": "Недавние",
+  "@recent": {},
+  "removedFrom": "Удалено из {name}",
+  "@removedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "saveBackupFile": "Сохранить файл резервной копии",
+  "@saveBackupFile": {},
+  "savePlaybackDiagnostics": "Сохранить диагностику воспроизведения",
+  "@savePlaybackDiagnostics": {},
+  "scrollForMoreControls": "← Прокрутите для дополнительных элементов управления →",
+  "@scrollForMoreControls": {},
+  "selectBackupFile": "Выберите файл резервной копии",
+  "@selectBackupFile": {},
+  "selectBackupFolder": "Выберите папку для резервной копии",
+  "@selectBackupFolder": {},
+  "selectDownloadsFolder": "Выберите папку загрузок",
+  "@selectDownloadsFolder": {},
+  "selectExportFileFolder": "Выберите папку для экспорта файлов",
+  "@selectExportFileFolder": {},
+  "selectExportFolder": "Выберите папку для экспорта",
+  "@selectExportFolder": {},
+  "sendTestActivity": "Отправить тестовую активность в Discord",
+  "@sendTestActivity": {},
+  "serverErrorCode": "Ошибка сервера {code} при начале воспроизведения.",
+  "@serverErrorCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "serverErrorPlayback": "Ошибка сервера при начале воспроизведения.",
+  "@serverErrorPlayback": {},
+  "serverType": "Тип сервера",
+  "@serverType": {},
+  "setAppIdFirst": "Сначала задайте ID приложения",
+  "@setAppIdFirst": {},
+  "showDiscordActivity": "Показывать активность Discord",
+  "@showDiscordActivity": {},
+  "showDiscordActivityDes": "Отображать текущий трек в статусе Discord.",
+  "@showDiscordActivityDes": {},
+  "showHide": "Показать/скрыть",
+  "@showHide": {},
   "songs": "Песни",
   "@songs": {},
   "playlists": "Плейлисты",
@@ -67,6 +233,57 @@
   "@enqueueSong": {},
   "goToAlbum": "Перейти в альбом",
   "@goToAlbum": {},
+  "stepXofY": "Шаг {current} из {total}",
+  "@stepXofY": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestions": "Предложения",
+  "@suggestions": {},
+  "tapToOpen": "Нажмите, чтобы открыть",
+  "@tapToOpen": {},
+  "testDiscordConnection": "Проверить подключение Discord",
+  "@testDiscordConnection": {},
+  "testingDiscordConnection": "Проверка подключения Discord...",
+  "@testingDiscordConnection": {},
+  "testingDiscordRpc": "Тестирование Discord RPC",
+  "@testingDiscordRpc": {},
+  "trackNotAvailableOnServer": "Трек больше недоступен на сервере.",
+  "@trackNotAvailableOnServer": {},
+  "trayAlbum": "Альбом: {name}",
+  "@trayAlbum": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trayArtist": "Исполнитель: {name}",
+  "@trayArtist": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "traySong": "Трек: {name}",
+  "@traySong": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "unableToStartPlayback": "Не удалось начать воспроизведение.",
+  "@unableToStartPlayback": {},
+  "unknown": "Неизвестно",
+  "@unknown": {},
   "viewArtist": "Показать исполнителя",
   "@viewArtist": {},
   "shareSong": "Поделиться этой песней",
@@ -667,8 +884,6 @@
   "@lyricsHighlightKaraoke": {},
   "manage": "Управление",
   "@manage": {},
-  "more": "Ещё",
-  "@more": {},
   "noServersConfigured": "Серверы ещё не настроены",
   "@noServersConfigured": {},
   "noSongsInLibrary": "В библиотеке нет песен",
@@ -771,6 +986,12 @@
   "@useCustomAccentColorDes": {},
   "version": "Версия",
   "@version": {},
+  "volume": "Громкость",
+  "@volume": {},
+  "wearMoreSettings": "Больше настроек доступно на телефоне",
+  "@wearMoreSettings": {},
+  "wearPhoneHint": "Убедитесь, что Doudou запущен на телефоне",
+  "@wearPhoneHint": {},
   "yourArtists": "Ваши исполнители",
   "@yourArtists": {},
   "yourLibrary": "Ваша библиотека",
@@ -842,8 +1063,12 @@
   "eventsCount": "Events: {count} (showing up to {max})",
   "@eventsCount": {
     "placeholders": {
-      "count": {"type": "int"},
-      "max": {"type": "int"}
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
     }
   },
   "noDiagnosticsHint": "No diagnostics yet.\nEnable diagnostics and reproduce the issue.",

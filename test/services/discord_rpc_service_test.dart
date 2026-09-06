@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:doudou/models/durationstate.dart';
 import 'package:doudou/services/discord_rpc_service.dart';
 import 'package:doudou/ui/player/player_controller.dart';
+import 'package:doudou/utils/app_l10n.dart';
 import 'package:flutter_discord_rpc/flutter_discord_rpc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -258,7 +259,7 @@ void main() {
           .captured;
 
       final activity = captor.last as RPCActivity;
-      expect(activity.state, 'Unknown artist');
+      expect(activity.state, l10nFromPrefs().unknownArtist);
       expect(activity.details, 'No Artist Song');
     });
 

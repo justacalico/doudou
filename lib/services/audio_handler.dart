@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import '/l10n/app_localizations.dart';
+import '/utils/app_l10n.dart';
 import '/ui/screens/Library/library_controller.dart';
 import 'dart:math';
 
@@ -1479,20 +1479,18 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     // Handle direct-play buttons from the More menu — use the same
     // HomeScreenController methods the mobile app uses for instant playback
     if (mediaId == MediaLibrary.moreShuffleAllId) {
-      final ctx = Get.context;
-      final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
+      final l10n = l10nFromPrefs();
       await Get.find<HomeScreenController>().shuffleAll(
-        emptyMessage: l10n?.noSongsInLibrary ?? 'No songs in library',
-        playFromName: l10n?.shuffleAll ?? 'Shuffle all',
+        emptyMessage: l10n.noSongsInLibrary,
+        playFromName: l10n.shuffleAll,
       );
       return;
     }
     if (mediaId == MediaLibrary.moreFavoritesId) {
-      final ctx = Get.context;
-      final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
+      final l10n = l10nFromPrefs();
       await Get.find<HomeScreenController>().shuffleFavorites(
-        emptyMessage: l10n?.favoritesEmpty ?? 'Favourites is empty',
-        playFromName: l10n?.favorites ?? 'Favourites',
+        emptyMessage: l10n.favoritesEmpty,
+        playFromName: l10n.favorites,
       );
       return;
     }

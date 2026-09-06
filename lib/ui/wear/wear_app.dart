@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:wear_plus/wear_plus.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../services/wear_comm_service.dart';
+import '../../utils/app_l10n.dart';
 import 'wear_home_screen.dart';
 
 /// Root widget for the Wear OS app. Uses WatchShape for round/square
@@ -20,6 +22,13 @@ class WearApp extends StatelessWidget {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
               theme: _buildTheme(isAmbient),
+              locale: localeFromPrefs(),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: const [
+                Locale('en', 'AU'),
+                Locale('zh'),
+                Locale('ru'),
+              ],
               home: const _WearRoot(),
             );
           },
@@ -101,13 +110,13 @@ class _NoConnectionScreen extends StatelessWidget {
               const Icon(Icons.phonelink_off, size: 32),
               const SizedBox(height: 10),
               Text(
-                'No phone connected',
+                context.l10n.noPhoneConnected,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: 6),
               Text(
-                'Make sure Doudou is running on your phone',
+                context.l10n.wearPhoneHint,
                 textAlign: TextAlign.center,
                 maxLines: 3,
                 style: Theme.of(context).textTheme.titleSmall,

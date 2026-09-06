@@ -9,10 +9,251 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get addFavoritesToStartRadio => 'Add some favorites to start radio';
+
+  @override
+  String get additionalProvidersUnlocked => 'Additional providers unlocked';
+
+  @override
+  String get applicationId => 'Application ID';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get clearQueue => 'Clear queue';
+
+  @override
+  String get demoServer => 'Demo server';
+
+  @override
+  String get demoServerBullets =>
+      '• Released under a Free Culture license\n• In the Public Domain (US and/or Canada)\n• Provided with explicit permission of the copyright holder';
+
+  @override
+  String get demoServerContent =>
+      'The demo server is provided by the Jellyfin project and contains only media that is:';
+
+  @override
+  String get demoServerExplore =>
+      'You can use this demo to explore the app, or add your own server.';
+
+  @override
+  String get demoServerIntro =>
+      'This app comes pre-configured with a demo Jellyfin server for evaluation.';
+
+  @override
+  String get demoServerReset =>
+      'This server is reset daily at 06:00 Eastern Time, so any changes are temporary.';
+
+  @override
+  String get discordAppId => 'Discord Application ID';
+
+  @override
+  String get discordAppIdDialogDes =>
+      'Create a Discord application at discord.com/developers/applications and paste the Application ID here.';
+
+  @override
+  String get discordAppIdHint => 'e.g. 1234567890123456789';
+
+  @override
+  String get discordAppIdNotSet =>
+      'Not set - create one at discord.com/developers/applications';
+
+  @override
+  String get discordRichPresence => 'Discord Rich Presence';
+
+  @override
+  String get discordRpcFailed =>
+      'Discord RPC test failed. Make sure Discord is running and the Application ID is correct.';
+
+  @override
+  String get discordRpcUnavailable =>
+      'Discord RPC is not available on this platform';
+
+  @override
+  String get discordRpcWorking =>
+      'Discord RPC is working! Check your Discord profile.';
+
+  @override
+  String get doudouConnected => 'Doudou is connected!';
+
+  @override
+  String get downloadDoudou => 'Download Doudou';
+
+  @override
+  String get expandSidebar => 'Expand sidebar';
+
+  @override
+  String get favorite => 'Favorite';
+
+  @override
+  String get inAppStorageDirectory => 'In App storage directory';
+
+  @override
+  String get libraryPlaylist => 'Library playlist';
+
+  @override
+  String get loadingLibraryInBackground =>
+      'Loading your library in background...';
+
+  @override
   String get home => 'Home';
 
   @override
   String get homeSubtitle => 'Recent listens, new additions and picks for you';
+
+  @override
+  String get locationAppDocuments => 'App Documents/Doudou';
+
+  @override
+  String get locationDownloads => 'Downloads/Doudou';
+
+  @override
+  String get locationFilesApp => 'Files App > Doudou';
+
+  @override
+  String get loop => 'Loop';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get noAlbumsInLibrary => 'No albums in library';
+
+  @override
+  String noCategoryItems(String category) {
+    return 'No $category!';
+  }
+
+  @override
+  String get noContentAvailable => 'No content available';
+
+  @override
+  String get none => 'None';
+
+  @override
+  String get noPhoneConnected => 'No phone connected';
+
+  @override
+  String get noPlaylistsAvailable => 'No playlists available.';
+
+  @override
+  String get noSongPlaying => 'No song playing';
+
+  @override
+  String get noSongsForAlbum => 'No songs found for this album.';
+
+  @override
+  String get noSongsForPlaylist => 'No songs found for this playlist.';
+
+  @override
+  String get nothingHere => 'Nothing here';
+
+  @override
+  String get notSet => 'Not set';
+
+  @override
+  String get nowPlaying => 'Now playing';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get openInYoutubeMusic => 'Open in YouTube Music';
+
+  @override
+  String get pipedPlaylist => 'Piped playlist';
+
+  @override
+  String get playbackDiagnosticsDes =>
+      'Record bounded playback/network events for troubleshooting.';
+
+  @override
+  String get playingFromQueue => 'Playing from queue';
+
+  @override
+  String get playlistsCount => 'playlists';
+
+  @override
+  String get playPause => 'Play/Pause';
+
+  @override
+  String get prev => 'Prev';
+
+  @override
+  String get proceed => 'Proceed';
+
+  @override
+  String get queue => 'Queue';
+
+  @override
+  String get queueEmpty => 'Queue is empty';
+
+  @override
+  String get quit => 'Quit';
+
+  @override
+  String get recent => 'Recent';
+
+  @override
+  String removedFrom(String name) {
+    return 'Removed from $name';
+  }
+
+  @override
+  String get saveBackupFile => 'Save backup file';
+
+  @override
+  String get savePlaybackDiagnostics => 'Save playback diagnostics';
+
+  @override
+  String get scrollForMoreControls => '← Scroll for more controls →';
+
+  @override
+  String get selectBackupFile => 'Select backup file';
+
+  @override
+  String get selectBackupFolder => 'Select backup file folder';
+
+  @override
+  String get selectDownloadsFolder => 'Select downloads folder';
+
+  @override
+  String get selectExportFileFolder => 'Select export file folder';
+
+  @override
+  String get selectExportFolder => 'Select export folder';
+
+  @override
+  String get sendTestActivity => 'Send a test activity to Discord';
+
+  @override
+  String serverErrorCode(String code) {
+    return 'Server error $code while starting playback.';
+  }
+
+  @override
+  String get serverErrorPlayback => 'Server error while starting playback.';
+
+  @override
+  String get serverType => 'Server type';
+
+  @override
+  String get setAppIdFirst => 'Set an Application ID first';
+
+  @override
+  String get showDiscordActivity => 'Show Discord activity';
+
+  @override
+  String get showDiscordActivityDes =>
+      'Display the current song as your Discord status.';
+
+  @override
+  String get showHide => 'Show/Hide';
 
   @override
   String get songs => 'Songs';
@@ -46,6 +287,60 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryOverviewSubtitle => 'Overview / Your music collection.';
+
+  @override
+  String stepXofY(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get suggestions => 'Suggestions';
+
+  @override
+  String get tapToOpen => 'Tap to open';
+
+  @override
+  String get testDiscordConnection => 'Test Discord connection';
+
+  @override
+  String get testingDiscordConnection => 'Testing Discord connection...';
+
+  @override
+  String get testingDiscordRpc => 'Testing Discord RPC';
+
+  @override
+  String get trackNotAvailableOnServer =>
+      'Track is no longer available on the server.';
+
+  @override
+  String trayAlbum(String name) {
+    return 'Album: $name';
+  }
+
+  @override
+  String trayArtist(String name) {
+    return 'Artist: $name';
+  }
+
+  @override
+  String traySong(String name) {
+    return 'Song: $name';
+  }
+
+  @override
+  String get unableToStartPlayback => 'Unable to start playback.';
+
+  @override
+  String get unknown => 'Unknown';
+
+  @override
+  String get volume => 'Volume';
+
+  @override
+  String get wearMoreSettings => 'More settings are available on your phone';
+
+  @override
+  String get wearPhoneHint => 'Make sure Doudou is running on your phone';
 
   @override
   String get yourLibrary => 'Your Library';
@@ -1326,10 +1621,251 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   AppLocalizationsEnAu() : super('en_AU');
 
   @override
+  String get addFavoritesToStartRadio => 'Add some favorites to start radio';
+
+  @override
+  String get additionalProvidersUnlocked => 'Additional providers unlocked';
+
+  @override
+  String get applicationId => 'Application ID';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get clearQueue => 'Clear queue';
+
+  @override
+  String get demoServer => 'Demo server';
+
+  @override
+  String get demoServerBullets =>
+      '• Released under a Free Culture license\n• In the Public Domain (US and/or Canada)\n• Provided with explicit permission of the copyright holder';
+
+  @override
+  String get demoServerContent =>
+      'The demo server is provided by the Jellyfin project and contains only media that is:';
+
+  @override
+  String get demoServerExplore =>
+      'You can use this demo to explore the app, or add your own server.';
+
+  @override
+  String get demoServerIntro =>
+      'This app comes pre-configured with a demo Jellyfin server for evaluation.';
+
+  @override
+  String get demoServerReset =>
+      'This server is reset daily at 06:00 Eastern Time, so any changes are temporary.';
+
+  @override
+  String get discordAppId => 'Discord Application ID';
+
+  @override
+  String get discordAppIdDialogDes =>
+      'Create a Discord application at discord.com/developers/applications and paste the Application ID here.';
+
+  @override
+  String get discordAppIdHint => 'e.g. 1234567890123456789';
+
+  @override
+  String get discordAppIdNotSet =>
+      'Not set - create one at discord.com/developers/applications';
+
+  @override
+  String get discordRichPresence => 'Discord Rich Presence';
+
+  @override
+  String get discordRpcFailed =>
+      'Discord RPC test failed. Make sure Discord is running and the Application ID is correct.';
+
+  @override
+  String get discordRpcUnavailable =>
+      'Discord RPC is not available on this platform';
+
+  @override
+  String get discordRpcWorking =>
+      'Discord RPC is working! Check your Discord profile.';
+
+  @override
+  String get doudouConnected => 'Doudou is connected!';
+
+  @override
+  String get downloadDoudou => 'Download Doudou';
+
+  @override
+  String get expandSidebar => 'Expand sidebar';
+
+  @override
+  String get favorite => 'Favorite';
+
+  @override
+  String get inAppStorageDirectory => 'In App storage directory';
+
+  @override
+  String get libraryPlaylist => 'Library playlist';
+
+  @override
+  String get loadingLibraryInBackground =>
+      'Loading your library in background...';
+
+  @override
   String get home => 'Home';
 
   @override
   String get homeSubtitle => 'Recent listens, new additions and picks for you';
+
+  @override
+  String get locationAppDocuments => 'App Documents/Doudou';
+
+  @override
+  String get locationDownloads => 'Downloads/Doudou';
+
+  @override
+  String get locationFilesApp => 'Files App > Doudou';
+
+  @override
+  String get loop => 'Loop';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get noAlbumsInLibrary => 'No albums in library';
+
+  @override
+  String noCategoryItems(String category) {
+    return 'No $category!';
+  }
+
+  @override
+  String get noContentAvailable => 'No content available';
+
+  @override
+  String get none => 'None';
+
+  @override
+  String get noPhoneConnected => 'No phone connected';
+
+  @override
+  String get noPlaylistsAvailable => 'No playlists available.';
+
+  @override
+  String get noSongPlaying => 'No song playing';
+
+  @override
+  String get noSongsForAlbum => 'No songs found for this album.';
+
+  @override
+  String get noSongsForPlaylist => 'No songs found for this playlist.';
+
+  @override
+  String get nothingHere => 'Nothing here';
+
+  @override
+  String get notSet => 'Not set';
+
+  @override
+  String get nowPlaying => 'Now playing';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get openInYoutubeMusic => 'Open in YouTube Music';
+
+  @override
+  String get pipedPlaylist => 'Piped playlist';
+
+  @override
+  String get playbackDiagnosticsDes =>
+      'Record bounded playback/network events for troubleshooting.';
+
+  @override
+  String get playingFromQueue => 'Playing from queue';
+
+  @override
+  String get playlistsCount => 'playlists';
+
+  @override
+  String get playPause => 'Play/Pause';
+
+  @override
+  String get prev => 'Prev';
+
+  @override
+  String get proceed => 'Proceed';
+
+  @override
+  String get queue => 'Queue';
+
+  @override
+  String get queueEmpty => 'Queue is empty';
+
+  @override
+  String get quit => 'Quit';
+
+  @override
+  String get recent => 'Recent';
+
+  @override
+  String removedFrom(String name) {
+    return 'Removed from $name';
+  }
+
+  @override
+  String get saveBackupFile => 'Save backup file';
+
+  @override
+  String get savePlaybackDiagnostics => 'Save playback diagnostics';
+
+  @override
+  String get scrollForMoreControls => '← Scroll for more controls →';
+
+  @override
+  String get selectBackupFile => 'Select backup file';
+
+  @override
+  String get selectBackupFolder => 'Select backup file folder';
+
+  @override
+  String get selectDownloadsFolder => 'Select downloads folder';
+
+  @override
+  String get selectExportFileFolder => 'Select export file folder';
+
+  @override
+  String get selectExportFolder => 'Select export folder';
+
+  @override
+  String get sendTestActivity => 'Send a test activity to Discord';
+
+  @override
+  String serverErrorCode(String code) {
+    return 'Server error $code while starting playback.';
+  }
+
+  @override
+  String get serverErrorPlayback => 'Server error while starting playback.';
+
+  @override
+  String get serverType => 'Server type';
+
+  @override
+  String get setAppIdFirst => 'Set an Application ID first';
+
+  @override
+  String get showDiscordActivity => 'Show Discord activity';
+
+  @override
+  String get showDiscordActivityDes =>
+      'Display the current song as your Discord status.';
+
+  @override
+  String get showHide => 'Show/Hide';
 
   @override
   String get songs => 'Songs';
@@ -1363,6 +1899,60 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get libraryOverviewSubtitle => 'Overview / Your music collection.';
+
+  @override
+  String stepXofY(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get suggestions => 'Suggestions';
+
+  @override
+  String get tapToOpen => 'Tap to open';
+
+  @override
+  String get testDiscordConnection => 'Test Discord connection';
+
+  @override
+  String get testingDiscordConnection => 'Testing Discord connection...';
+
+  @override
+  String get testingDiscordRpc => 'Testing Discord RPC';
+
+  @override
+  String get trackNotAvailableOnServer =>
+      'Track is no longer available on the server.';
+
+  @override
+  String trayAlbum(String name) {
+    return 'Album: $name';
+  }
+
+  @override
+  String trayArtist(String name) {
+    return 'Artist: $name';
+  }
+
+  @override
+  String traySong(String name) {
+    return 'Song: $name';
+  }
+
+  @override
+  String get unableToStartPlayback => 'Unable to start playback.';
+
+  @override
+  String get unknown => 'Unknown';
+
+  @override
+  String get volume => 'Volume';
+
+  @override
+  String get wearMoreSettings => 'More settings are available on your phone';
+
+  @override
+  String get wearPhoneHint => 'Make sure Doudou is running on your phone';
 
   @override
   String get yourLibrary => 'Your Library';

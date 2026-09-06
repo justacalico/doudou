@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/screens/Settings/settings_screen_controller.dart';
+import 'app_l10n.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -45,11 +46,12 @@ class DesktopSystemTray extends GetxService with TrayListener {
   Future<void> updateContextMenu() async {
     final playerController = Get.find<PlayerController>();
     final song = currentSong.value;
+    final l10n = l10nFromPrefs();
 
     // create context menu
     final Menu menu = Menu(items: [
       MenuItem(
-        label: 'Show/Hide',
+        label: l10n.showHide,
         onClick: (menuItem) async => await windowManager.isVisible()
             ? await windowManager.hide()
             : await windowManager.show(),
@@ -57,21 +59,21 @@ class DesktopSystemTray extends GetxService with TrayListener {
       MenuItem.separator(),
       if (song != null) ...[
         MenuItem(
-          label: 'Song: ${song.title}',
+          label: l10n.traySong(song.title),
           disabled: true,
         ),
         MenuItem(
-          label: 'Album: ${song.album ?? "Unknown"}',
+          label: l10n.trayAlbum(song.album ?? l10n.unknown),
           disabled: true,
         ),
         MenuItem(
-          label: 'Artist: ${song.artist ?? "Unknown"}',
+          label: l10n.trayArtist(song.artist ?? l10n.unknown),
           disabled: true,
         ),
         MenuItem.separator(),
       ],
       MenuItem(
-        label: 'Prev',
+        label: l10n.prev,
         onClick: (menuItem) {
           if (playerController.currentQueue.isNotEmpty) {
             playerController.prev();
@@ -79,7 +81,7 @@ class DesktopSystemTray extends GetxService with TrayListener {
         },
       ),
       MenuItem(
-        label: 'Play/Pause',
+        label: l10n.playPause,
         onClick: (menuItem) {
           if (playerController.currentQueue.isNotEmpty) {
             playerController.playPause();
@@ -87,7 +89,7 @@ class DesktopSystemTray extends GetxService with TrayListener {
         },
       ),
       MenuItem(
-        label: 'Next',
+        label: l10n.next,
         onClick: (menuItem) {
           if (playerController.currentQueue.isNotEmpty) {
             playerController.next();
@@ -96,7 +98,7 @@ class DesktopSystemTray extends GetxService with TrayListener {
       ),
       MenuItem.separator(),
       MenuItem(
-        label: 'Quit',
+        label: l10n.quit,
         onClick: (menuItem) async {
           await Get.find<AudioHandler>().customAction("saveSession");
           exit(0);

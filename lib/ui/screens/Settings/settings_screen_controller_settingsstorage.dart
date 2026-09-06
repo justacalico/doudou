@@ -4,7 +4,7 @@ mixin _SettingsStorageMixin on _SettingsScreenControllerBase {
   Future<void> setExportedLocation() async {
     if (PermissionService.isScopedStorage) {
       final picked = await ExportService.pickExportFolder(
-          dialogTitle: "Select export file folder");
+          dialogTitle: l10nFromPrefs().selectExportFileFolder);
       if (picked == null) {
         return;
       }
@@ -18,7 +18,7 @@ mixin _SettingsStorageMixin on _SettingsScreenControllerBase {
     }
 
     final String? pickedFolderPath = await FilePicker.platform
-        .getDirectoryPath(dialogTitle: "Select export file folder");
+        .getDirectoryPath(dialogTitle: l10nFromPrefs().selectExportFileFolder);
     if (pickedFolderPath == '/' || pickedFolderPath == null) {
       return;
     }
@@ -38,7 +38,7 @@ mixin _SettingsStorageMixin on _SettingsScreenControllerBase {
     }
 
     final String? pickedFolderPath = await FilePicker.platform
-        .getDirectoryPath(dialogTitle: "Select downloads folder");
+        .getDirectoryPath(dialogTitle: l10nFromPrefs().selectDownloadsFolder);
     if (pickedFolderPath == '/' || pickedFolderPath == null) {
       return;
     }
