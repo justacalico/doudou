@@ -33,7 +33,7 @@ mixin _SettingsViewDownloadMixin on __SettingsViewStateBase {
         title: context.l10n.downloadLocation,
         subtitle: Obx(() => Text(
               settings.isCurrentPathsupportDownDir
-                  ? 'In App storage directory'
+                  ? context.l10n.inAppStorageDirectory
                   : settings.downloadLocationPath.value,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -60,7 +60,7 @@ mixin _SettingsViewDownloadMixin on __SettingsViewStateBase {
                 ExportService.locationLabel(
                         settings.exportLocationPath.value)
                         .isEmpty
-                    ? 'Not set'
+                    ? context.l10n.notSet
                     : ExportService.locationLabel(
                         settings.exportLocationPath.value),
                 maxLines: 1,

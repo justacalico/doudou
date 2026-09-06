@@ -23,16 +23,14 @@ mixin _PlayerMiscMixin on _PlayerControllerBase {
   }
 
   String _formatPlayErrorMessage(String raw) {
-    final ctx = Get.context;
+    final l10n = l10nFromPrefs();
     if (raw.startsWith('networkError')) {
-      return ctx != null
-          ? AppLocalizations.of(ctx)!.networkError
-          : 'Network error while starting playback.';
+      return l10n.networkError;
     }
 
     var message = raw.trim();
     if (message.isEmpty) {
-      return 'Unable to start playback.';
+      return l10n.unableToStartPlayback;
     }
 
     // Handle errors returned as a JSON object, e.g. from custom backends.
@@ -48,15 +46,15 @@ mixin _PlayerMiscMixin on _PlayerControllerBase {
     }
 
     if (message.contains('TrackNotFound')) {
-      return 'Track is no longer available on the server.';
+      return l10n.trackNotAvailableOnServer;
     }
 
     if (message.startsWith('DioException')) {
       final m = RegExp(r'status code of (\d+)').firstMatch(message);
       final code = m?.group(1);
       return code != null
-          ? 'Server error $code while starting playback.'
-          : 'Server error while starting playback.';
+          ? l10n.serverErrorCode(code)
+          : l10n.serverErrorPlayback;
     }
 
     // Clamp any remaining message to a sane length for the snackbar.

@@ -12,6 +12,7 @@ import '../../widgets/loader.dart';
 import '../../widgets/separate_tab_item_widget.dart';
 import 'artist_screen_controller.dart';
 import '../Library/library_controller.dart';
+import '../../../utils/app_l10n.dart';
 
 class ArtistScreen extends StatelessWidget {
   const ArtistScreen({super.key});
@@ -161,7 +162,7 @@ class _TabBody extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                'Loading your library in background...',
+                context.l10n.loadingLibraryInBackground,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),

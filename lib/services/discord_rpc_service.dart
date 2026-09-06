@@ -8,6 +8,7 @@ import 'package:hive/hive.dart';
 
 import '/models/durationstate.dart';
 import '/ui/player/player_controller.dart';
+import '/utils/app_l10n.dart';
 import '/utils/helper.dart';
 
 /// Just the player state we need for RPC updates.
@@ -194,16 +195,17 @@ class DiscordRpcService extends GetxController {
       _isReady.value = true;
       _isConnected.value = true;
 
+      final l10n = l10nFromPrefs();
       final activity = RPCActivity(
-        state: 'Testing Discord RPC',
-        details: 'Doudou is connected!',
+        state: l10n.testingDiscordRpc,
+        details: l10n.doudouConnected,
         activityType: ActivityType.listening,
         assets: const RPCAssets(
           largeImage: 'doudou',
           largeText: 'Doudou',
         ),
-        buttons: const [
-          RPCButton(label: 'Download Doudou', url: 'https://gitlab.com/Openlyst/doudou'),
+        buttons: [
+          RPCButton(label: l10n.downloadDoudou, url: 'https://gitlab.com/Openlyst/doudou'),
         ],
       );
       await _client.setActivity(activity: activity);
@@ -228,7 +230,7 @@ class DiscordRpcService extends GetxController {
       return;
     }
 
-    printINFO('[DiscordRpc] updating activity: ${song.title} — ${song.artist ?? "Unknown artist"} (${isPlaying ? "playing" : "paused"})');
+    printINFO('[DiscordRpc] updating activity: ${song.title} - ${song.artist ?? "Unknown artist"} (${isPlaying ? "playing" : "paused"})');
 
     final progress = player.progressBarStatus.value;
     final posMs = progress.current.inMilliseconds;
@@ -247,18 +249,19 @@ class DiscordRpcService extends GetxController {
     // 'jellyfin', or 'subsonic'.
     final backendType = song.extras?['backendType']?.toString();
     final isYouTubeMusic = backendType == null;
+    final l10n = l10nFromPrefs();
     final buttons = <RPCButton>[
-      const RPCButton(label: 'Download Doudou', url: 'https://gitlab.com/Openlyst/doudou'),
+      RPCButton(label: l10n.downloadDoudou, url: 'https://gitlab.com/Openlyst/doudou'),
     ];
     if (isYouTubeMusic) {
       buttons.add(RPCButton(
-        label: 'Open in YouTube Music',
+        label: l10n.openInYoutubeMusic,
         url: 'https://music.youtube.com/watch?v=${song.id}',
       ));
     }
 
     final activity = RPCActivity(
-      state: song.artist?.isNotEmpty == true ? song.artist! : 'Unknown artist',
+      state: song.artist?.isNotEmpty == true ? song.artist! : l10n.unknownArtist,
       details: song.title,
       activityType: ActivityType.listening,
       timestamps: RPCTimestamps(start: startTs, end: endTs),

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:wearable_rotary/wearable_rotary.dart';
 
 import '../../services/wear_comm_service.dart';
+import '../../utils/app_l10n.dart';
 import 'wear_now_playing_screen.dart';
 import 'wear_settings_screen.dart';
 
@@ -67,22 +68,22 @@ class _WearHomeScreenState extends State<WearHomeScreen> {
                   _buildMenuTile(
                     context,
                     icon: Icons.shuffle,
-                    label: 'Shuffle All',
+                    label: context.l10n.shuffleAll,
                     onTap: () => _comm.shuffleAll(),
                   ),
                   Obx(() => _buildMenuTile(
                         context,
                         icon: Icons.favorite,
-                        label: 'Shuffle Favorites',
+                        label: context.l10n.shuffleFavorites,
                         subtitle:
-                            '${_comm.favoritesCount.value} songs',
+                            '${_comm.favoritesCount.value} ${context.l10n.songsCount}',
                         onTap: () => _comm.shuffleFavorites(),
                       )),
                   _buildDivider(),
                   _buildMenuTile(
                     context,
                     icon: Icons.settings,
-                    label: 'Settings',
+                    label: context.l10n.settings,
                     onTap: () => _navigateToSettings(context),
                   ),
                   const SizedBox(height: 16),
@@ -102,8 +103,8 @@ class _WearHomeScreenState extends State<WearHomeScreen> {
         icon: hasSong
             ? (_comm.isPlaying.value ? Icons.play_circle_filled : Icons.pause_circle_filled)
             : Icons.music_note,
-        label: hasSong ? _comm.songTitle.value : 'Nothing Playing',
-        subtitle: hasSong ? _comm.songArtist.value : 'Tap to open',
+        label: hasSong ? _comm.songTitle.value : context.l10n.noSongPlaying,
+        subtitle: hasSong ? _comm.songArtist.value : context.l10n.tapToOpen,
         accent: hasSong,
         onTap: () => _navigateToNowPlaying(context),
       );

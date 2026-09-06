@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '/ui/player/player_controller.dart';
 import '/ui/widgets/image_widget.dart';
+import '/utils/app_l10n.dart';
 import '/ui/widgets/tv_focus_highlight.dart';
 
 class TvQueueScreen extends StatelessWidget {
@@ -26,7 +27,7 @@ class TvQueueScreen extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Up Next',
+                      context.l10n.upNext,
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -35,7 +36,7 @@ class TvQueueScreen extends StatelessWidget {
                     Obx(() {
                       final count = playerController.currentQueue.length;
                       return Text(
-                        '$count songs',
+                        '$count ${context.l10n.songsCount}',
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -82,7 +83,7 @@ class TvQueueScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Loop',
+                                    context.l10n.loop,
                                     style: theme.textTheme.titleSmall?.copyWith(
                                       color: loopEnabled
                                           ? theme.colorScheme.primary
@@ -117,7 +118,7 @@ class TvQueueScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Shuffle',
+                                  context.l10n.shuffle,
                                   style: theme.textTheme.titleSmall,
                                 ),
                               ],
@@ -147,7 +148,7 @@ class TvQueueScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Clear',
+                                  context.l10n.clear,
                                   style: theme.textTheme.titleSmall,
                                 ),
                               ],
@@ -170,7 +171,7 @@ class TvQueueScreen extends StatelessWidget {
                     if (queue.isEmpty) {
                       return Center(
                         child: Text(
-                          'Queue is empty',
+                          context.l10n.queueEmpty,
                           style: theme.textTheme.titleLarge?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -310,7 +311,7 @@ class TvQueueScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 32, vertical: 12),
                       child: Text(
-                        'Back',
+                        context.l10n.back,
                         style: theme.textTheme.titleMedium,
                       ),
                     ),

@@ -631,34 +631,32 @@ class _BodyState extends State<Body> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Demo Server'),
-        content: const Column(
+        title: Text(dialogContext.l10n.demoServer),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'This app comes pre-configured with a demo Jellyfin server for evaluation.',
+              dialogContext.l10n.demoServerIntro,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'The demo server is provided by the Jellyfin project and contains only media that is:',
+              dialogContext.l10n.demoServerContent,
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
-              '\u2022 Released under a Free Culture license\n'
-              '\u2022 In the Public Domain (US and/or Canada)\n'
-              '\u2022 Provided with explicit permission of the copyright holder',
-              style: TextStyle(fontSize: 13),
+              dialogContext.l10n.demoServerBullets,
+              style: const TextStyle(fontSize: 13),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'This server is reset daily at 06:00 Eastern Time, so any changes are temporary.',
-              style: TextStyle(fontSize: 13),
+              dialogContext.l10n.demoServerReset,
+              style: const TextStyle(fontSize: 13),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'You can use this demo to explore the app, or add your own server.',
-              style: TextStyle(fontSize: 13),
+              dialogContext.l10n.demoServerExplore,
+              style: const TextStyle(fontSize: 13),
             ),
           ],
         ),
@@ -668,11 +666,11 @@ class _BodyState extends State<Body> {
               Navigator.of(dialogContext).pop();
               Get.find<HomeScreenController>().onSideBarTabSelected(7);
             },
-            child: const Text('Add Server'),
+            child: Text(dialogContext.l10n.addServer),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('OK'),
+            child: Text(dialogContext.l10n.ok),
           ),
         ],
       ),

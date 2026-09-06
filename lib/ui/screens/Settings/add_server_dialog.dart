@@ -329,7 +329,7 @@ class _TvAddServerWizardState extends State<_TvAddServerWizard> {
     if (!widget.needsCredentials) return l10n.youtubeMusicNoLogin;
     switch (_stage) {
       case 0:
-        return 'Protocol';
+        return l10n.protocol;
       case 1:
         return l10n.serverUrl;
       case 2:
@@ -372,7 +372,7 @@ class _TvAddServerWizardState extends State<_TvAddServerWizard> {
                   ),
                   if (widget.needsCredentials)
                     Text(
-                      'Step ${_stage + 1} of ${_maxStage + 1}',
+                      l10n.stepXofY(_stage + 1, _maxStage + 1),
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.primary,
                       ),
@@ -404,7 +404,7 @@ class _TvAddServerWizardState extends State<_TvAddServerWizard> {
                         vertical: 12,
                       ),
                       child: Text(
-                        _stage == 0 ? l10n.cancel : 'Back',
+                        _stage == 0 ? l10n.cancel : l10n.back,
                         style: theme.textTheme.titleMedium,
                       ),
                     ),
@@ -426,7 +426,7 @@ class _TvAddServerWizardState extends State<_TvAddServerWizard> {
                       child: Text(
                         _stage == _maxStage
                             ? (widget.existing != null ? l10n.save : l10n.add)
-                            : 'Next',
+                            : l10n.next,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,

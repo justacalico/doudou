@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
+import '/utils/app_l10n.dart';
 import '/utils/helper.dart';
 
 class PlaybackDiagnosticsService extends GetxService {
@@ -158,7 +159,7 @@ class PlaybackDiagnosticsService extends GetxService {
     if (GetPlatform.isAndroid || GetPlatform.isIOS) {
       // On mobile the picker writes the bytes itself at the picked location.
       return FilePicker.platform.saveFile(
-        dialogTitle: 'Save playback diagnostics',
+        dialogTitle: l10nFromPrefs().savePlaybackDiagnostics,
         fileName: filename,
         type: FileType.custom,
         allowedExtensions: const ['jsonl', 'txt'],
@@ -170,7 +171,7 @@ class PlaybackDiagnosticsService extends GetxService {
 
     try {
       outputPath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save playback diagnostics',
+        dialogTitle: l10nFromPrefs().savePlaybackDiagnostics,
         fileName: filename,
         type: FileType.custom,
         allowedExtensions: const ['jsonl', 'txt'],
@@ -183,7 +184,7 @@ class PlaybackDiagnosticsService extends GetxService {
 
     if (outputPath == null || outputPath.isEmpty) {
       final dir = await FilePicker.platform
-          .getDirectoryPath(dialogTitle: 'Select export folder');
+          .getDirectoryPath(dialogTitle: l10nFromPrefs().selectExportFolder);
       if (dir == null || dir.isEmpty) return null;
       outputPath = '$dir/$filename';
     }

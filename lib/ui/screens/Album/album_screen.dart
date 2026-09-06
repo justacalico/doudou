@@ -391,7 +391,7 @@ class AlbumScreen extends StatelessWidget {
                                     color: Colors.white.withValues(alpha: 0.1)),
                               ),
                               child: Text(
-                                "ALBUM",
+                                context.l10n.album.toUpperCase(),
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,

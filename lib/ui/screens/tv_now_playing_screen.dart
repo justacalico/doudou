@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '/ui/player/player_controller.dart';
 import '/ui/widgets/image_widget.dart';
+import '/utils/app_l10n.dart';
 import '/ui/widgets/tv_focus_highlight.dart';
 import '/ui/screens/tv_lyrics_screen.dart';
 import '/ui/screens/tv_queue_screen.dart';
@@ -30,7 +31,7 @@ class TvNowPlayingScreen extends StatelessWidget {
                   if (song == null) {
                     return Center(
                       child: Text(
-                        'No song playing',
+                        context.l10n.noSongPlaying,
                         style: theme.textTheme.headlineMedium,
                       ),
                     );
@@ -243,7 +244,7 @@ class TvNowPlayingScreen extends StatelessWidget {
                             // Scroll hint
                             Center(
                               child: Text(
-                                '← Scroll for more controls →',
+                                context.l10n.scrollForMoreControls,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
@@ -260,7 +261,7 @@ class TvNowPlayingScreen extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 32, vertical: 12),
                                   child: Text(
-                                    'Back',
+                                    context.l10n.back,
                                     style: theme.textTheme.titleMedium,
                                   ),
                                 ),

@@ -7,6 +7,7 @@ import '/ui/models/content_category.dart';
 import '../../models/artist.dart';
 import '../../models/playling_from.dart';
 import '../../models/playlist.dart';
+import '../../utils/app_l10n.dart';
 import '../navigator.dart';
 import '../player/player_controller.dart';
 import 'image_widget.dart';
@@ -50,7 +51,8 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
       return _expandIfNeeded(
         Center(
           child: Text(
-            "No ${category.localizedLabel(context).toLowerCase()}!",
+            context.l10n.noCategoryItems(
+                category.localizedLabel(context).toLowerCase()),
             style: Theme.of(context).textTheme.titleSmall,
           ),
         ),
@@ -153,7 +155,9 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
                 'playlist-row-${playlists[index].playlistId}-$index'),
             playlist: playlists[index],
             title: playlists[index].title,
-            subtitle: playlists[index]?.description ?? "NA",
+            subtitle: playlists[index] != null
+                ? localizedPlaylistDescription(context, playlists[index]!)
+                : "NA",
             subtitle2: ""));
   }
 

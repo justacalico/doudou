@@ -7,7 +7,7 @@ import 'package:flutter_carplay/flutter_carplay.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
-import '/l10n/app_localizations.dart';
+import '/utils/app_l10n.dart';
 import '/models/album.dart';
 import '/models/media_Item_builder.dart';
 import '/models/playlist.dart';
@@ -63,7 +63,7 @@ class AndroidAutoService extends GetxService {
 
   Future<void> _showLoginRequiredAlert() async {
     if (Get.context == null) return;
-    final l10n = AppLocalizations.of(Get.context!)!;
+    final l10n = l10nFromPrefs();
     printINFO('AndroidAuto: user not logged in, showing login-required alert');
 
     await FlutterAndroidAuto.showAlert(
@@ -119,7 +119,7 @@ class AndroidAutoService extends GetxService {
       return;
     }
 
-    final l10n = AppLocalizations.of(Get.context!)!;
+    final l10n = l10nFromPrefs();
     final sid = currentServerId();
     printINFO('AndroidAuto: setting up root template, serverId=$sid');
 
@@ -161,7 +161,7 @@ class AndroidAutoService extends GetxService {
       tabTitle: l10n.home,
       systemIcon: 'house',
       buttons: homeGridButtons,
-      emptyViewTitleVariants: ['No content available'],
+      emptyViewTitleVariants: [l10n.noContentAvailable],
     );
 
     final albumsTab = AAListTemplate(
@@ -169,13 +169,13 @@ class AndroidAutoService extends GetxService {
       tabTitle: l10n.albums,
       systemIcon: 'square.stack.3d.up',
       sections: [AAListSection(items: albumItems)],
-      emptyViewTitleVariants: ['No albums in library'],
+      emptyViewTitleVariants: [l10n.noAlbumsInLibrary],
     );
 
     final moreItems = <AAListItem>[
       AAListItem(
         title: l10n.shuffleAll,
-        subtitle: '${allSongs.length} songs',
+        subtitle: '${allSongs.length} ${l10n.songsCount}',
         onPress: (complete, item) {
           Get.find<HomeScreenController>().shuffleAll(
             emptyMessage: l10n.noSongsInLibrary,
@@ -186,7 +186,7 @@ class AndroidAutoService extends GetxService {
       ),
       AAListItem(
         title: l10n.favorites,
-        subtitle: '${favSongs.length} songs',
+        subtitle: '${favSongs.length} ${l10n.songsCount}',
         onPress: (complete, item) {
           Get.find<HomeScreenController>().shuffleFavorites(
             emptyMessage: l10n.favoritesEmpty,
@@ -197,7 +197,7 @@ class AndroidAutoService extends GetxService {
       ),
       AAListItem(
         title: l10n.playlists,
-        subtitle: '${playlistItems.length} playlists',
+        subtitle: '${playlistItems.length} ${l10n.playlistsCount}',
         isBrowsable: true,
         onPress: (complete, item) async {
           await _openPlaylistsList(playlistItems);
@@ -219,7 +219,7 @@ class AndroidAutoService extends GetxService {
       tabTitle: l10n.more,
       systemIcon: 'ellipsis',
       sections: [AAListSection(items: moreItems)],
-      emptyViewTitleVariants: ['Nothing here'],
+      emptyViewTitleVariants: [l10n.nothingHere],
     );
 
     await FlutterAndroidAuto.setRootTemplate(
@@ -333,14 +333,14 @@ class AndroidAutoService extends GetxService {
   // -- Navigation helpers --
 
   Future<void> _openPlaylistsList(List<AAListItem> playlistItems) async {
-    final l10n = AppLocalizations.of(Get.context!)!;
+    final l10n = l10nFromPrefs();
     printINFO('AndroidAuto: opening playlists list (${playlistItems.length})');
 
     if (playlistItems.isEmpty) {
       await FlutterAndroidAuto.push(
         template: AAMessageTemplate(
           title: l10n.playlists,
-          message: 'No playlists available.',
+          message: l10n.noPlaylistsAvailable,
         ),
       );
       return;
@@ -352,12 +352,13 @@ class AndroidAutoService extends GetxService {
         sections: [
           AAListSection(items: playlistItems),
         ],
-        emptyViewTitleVariants: ['No playlists available'],
+        emptyViewTitleVariants: [l10n.noPlaylistsAvailable],
       ),
     );
   }
 
   Future<void> _openAlbumSongs(String albumId, String title) async {
+    final l10n = l10nFromPrefs();
     printINFO('AndroidAuto: opening album $albumId ($title)');
     final songs = await _fetchAlbumOrPlaylistSongs(albumId: albumId);
     printINFO('AndroidAuto: album $albumId fetched ${songs.length} songs');
@@ -365,7 +366,7 @@ class AndroidAutoService extends GetxService {
       await FlutterAndroidAuto.push(
         template: AAMessageTemplate(
           title: title,
-          message: 'No songs found for this album.',
+          message: l10n.noSongsForAlbum,
         ),
       );
       return;
@@ -389,12 +390,13 @@ class AndroidAutoService extends GetxService {
             }).toList(),
           ),
         ],
-        emptyViewTitleVariants: ['No songs in this album'],
+        emptyViewTitleVariants: [l10n.noSongsForAlbum],
       ),
     );
   }
 
   Future<void> _openPlaylistSongs(String playlistId, String title) async {
+    final l10n = l10nFromPrefs();
     printINFO('AndroidAuto: opening playlist $playlistId ($title)');
     final songs = await _fetchAlbumOrPlaylistSongs(playlistId: playlistId);
     printINFO('AndroidAuto: playlist $playlistId fetched ${songs.length} songs');
@@ -402,7 +404,7 @@ class AndroidAutoService extends GetxService {
       await FlutterAndroidAuto.push(
         template: AAMessageTemplate(
           title: title,
-          message: 'No songs found for this playlist.',
+          message: l10n.noSongsForPlaylist,
         ),
       );
       return;
@@ -426,7 +428,7 @@ class AndroidAutoService extends GetxService {
             }).toList(),
           ),
         ],
-        emptyViewTitleVariants: ['No songs in this playlist'],
+        emptyViewTitleVariants: [l10n.noSongsForPlaylist],
       ),
     );
   }
@@ -434,13 +436,13 @@ class AndroidAutoService extends GetxService {
   // -- Data fetching --
 
   Future<void> _openSettingsMenu() async {
-    final l10n = AppLocalizations.of(Get.context!)!;
+    final l10n = l10nFromPrefs();
     final settings = Get.find<SettingsScreenController>();
 
     final items = <AAListItem>[
       AAListItem(
         title: l10n.servers,
-        subtitle: settings.activeServer?.name ?? 'None',
+        subtitle: settings.activeServer?.name ?? l10n.none,
         isBrowsable: true,
         onPress: (complete, item) async {
           await _openServersList();
@@ -461,13 +463,13 @@ class AndroidAutoService extends GetxService {
       template: AAListTemplate(
         title: l10n.settings,
         sections: [AAListSection(items: items)],
-        emptyViewTitleVariants: ['Nothing here'],
+        emptyViewTitleVariants: [l10n.nothingHere],
       ),
     );
   }
 
   Future<void> _openServersList() async {
-    final l10n = AppLocalizations.of(Get.context!)!;
+    final l10n = l10nFromPrefs();
     final settings = Get.find<SettingsScreenController>();
     final activeId = settings.activeServerId.value;
 
@@ -487,13 +489,13 @@ class AndroidAutoService extends GetxService {
       template: AAListTemplate(
         title: l10n.servers,
         sections: [AAListSection(items: items)],
-        emptyViewTitleVariants: ['No servers configured'],
+        emptyViewTitleVariants: [l10n.noServersConfigured],
       ),
     );
   }
 
   Future<void> _openAboutInfo() async {
-    final l10n = AppLocalizations.of(Get.context!)!;
+    final l10n = l10nFromPrefs();
     final settings = Get.find<SettingsScreenController>();
     final activeServer = settings.activeServer;
 
@@ -502,8 +504,8 @@ class AndroidAutoService extends GetxService {
         title: l10n.about,
         message:
             'Doudou v${settings.currentVersion}\n\n'
-            'Active server: ${activeServer?.name ?? 'None'}\n'
-            'Server type: ${activeServer?.type.name ?? 'Unknown'}',
+            '${l10n.activeServer}: ${activeServer?.name ?? l10n.none}\n'
+            '${l10n.serverType}: ${activeServer?.type.name ?? l10n.unknown}',
       ),
     );
   }

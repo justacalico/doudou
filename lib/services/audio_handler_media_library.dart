@@ -68,15 +68,7 @@ class MediaLibrary {
   }
 
   List<MediaItem> getRoot() {
-    final ctx = Get.context;
-    if (ctx == null) {
-      return [
-        const MediaItem(id: homeRootId, title: 'Home', playable: false),
-        const MediaItem(id: albumsRootId, title: 'Albums', playable: false),
-        const MediaItem(id: moreRootId, title: 'More', playable: false),
-      ];
-    }
-    final l10n = AppLocalizations.of(ctx)!;
+    final l10n = l10nFromPrefs();
     return [
       MediaItem(id: homeRootId, title: l10n.home, playable: false),
       MediaItem(id: albumsRootId, title: l10n.albums, playable: false),
@@ -86,27 +78,26 @@ class MediaLibrary {
 
   /// More menu — shows Shuffle All, Favorites, Playlists, and Settings
   List<MediaItem> getMoreMenu() {
-    final ctx = Get.context;
-    final l10n = ctx != null ? AppLocalizations.of(ctx)! : null;
+    final l10n = l10nFromPrefs();
     return [
       MediaItem(
         id: moreShuffleAllId,
-        title: l10n?.shuffleAll ?? 'Shuffle all',
+        title: l10n.shuffleAll,
         playable: true,
       ),
       MediaItem(
         id: moreFavoritesId,
-        title: l10n?.favorites ?? 'Favourites',
+        title: l10n.favorites,
         playable: true,
       ),
       MediaItem(
         id: morePlaylistsId,
-        title: l10n?.playlists ?? 'Playlists',
+        title: l10n.playlists,
         playable: false,
       ),
       MediaItem(
         id: moreSettingsId,
-        title: l10n?.settings ?? 'Settings',
+        title: l10n.settings,
         playable: false,
       ),
     ];
@@ -114,17 +105,16 @@ class MediaLibrary {
 
   /// Settings submenu — Servers and About
   List<MediaItem> getSettingsMenu() {
-    final ctx = Get.context;
-    final l10n = ctx != null ? AppLocalizations.of(ctx)! : null;
+    final l10n = l10nFromPrefs();
     return [
       MediaItem(
         id: moreSettingsServersId,
-        title: l10n?.servers ?? 'Servers',
+        title: l10n.servers,
         playable: false,
       ),
       MediaItem(
         id: moreSettingsAboutId,
-        title: l10n?.about ?? 'About',
+        title: l10n.about,
         playable: false,
       ),
     ];
@@ -151,8 +141,7 @@ class MediaLibrary {
   List<MediaItem> getAboutInfo() {
     final settings = Get.find<SettingsScreenController>();
     final activeServer = settings.activeServer;
-    final ctx = Get.context;
-    final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
+    final l10n = l10nFromPrefs();
     return [
       MediaItem(
         id: 'about_app_name',
@@ -162,14 +151,14 @@ class MediaLibrary {
       ),
       MediaItem(
         id: 'about_active_server',
-        title: l10n?.servers ?? 'Servers',
-        artist: activeServer?.name ?? 'None',
+        title: l10n.servers,
+        artist: activeServer?.name ?? l10n.none,
         playable: true,
       ),
       MediaItem(
         id: 'about_server_type',
-        title: 'Server type',
-        artist: activeServer?.type.name ?? 'Unknown',
+        title: l10n.serverType,
+        artist: activeServer?.type.name ?? l10n.unknown,
         playable: true,
       ),
     ];

@@ -279,7 +279,8 @@ class SearchScreen extends StatelessWidget {
                   );
                 }
 
-                final sectionLabel = isEmpty ? "Recent" : "Suggestions";
+                final sectionLabel =
+                    isEmpty ? context.l10n.recent : context.l10n.suggestions;
                 return ListView(
                   padding: EdgeInsets.only(top: 8, bottom: listBottomPadding),
                   physics: const BouncingScrollPhysics(

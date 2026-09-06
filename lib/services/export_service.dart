@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:saf_stream/saf_stream.dart';
 import 'package:saf_util/saf_util.dart';
 
+import '/utils/app_l10n.dart';
 import '/utils/helper.dart';
 
 /// Helpers for writing exported files to a user-picked destination.
@@ -27,8 +28,8 @@ class ExportService {
       );
       return picked?.uri;
     }
-    final dir = await FilePicker.platform
-        .getDirectoryPath(dialogTitle: dialogTitle ?? 'Select export folder');
+    final dir = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: dialogTitle ?? l10nFromPrefs().selectExportFolder);
     if (dir == null || dir == '/') return null;
     return dir;
   }
