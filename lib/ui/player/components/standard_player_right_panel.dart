@@ -13,59 +13,45 @@ class _RightPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TabBar(
-              labelColor: textColor,
-              unselectedLabelColor: mutedColor,
-              indicatorColor: theme.colorScheme.primary,
-              tabs: [
-                Tab(text: context.l10n.upNext),
-                Tab(text: context.l10n.lyrics),
-              ],
-            ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            context.l10n.lyrics,
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(color: textColor),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Text(
-                  context.l10n.playingFrom,
-                  style: TextStyle(fontSize: 12, color: mutedColor),
-                ),
-                Expanded(
-                  child: Obx(() => Text(
-                        pc.playinfrom.value.nameString,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: textColor,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      )),
-                ),
-              ],
-            ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Text(
+                context.l10n.playingFrom,
+                style: TextStyle(fontSize: 12, color: mutedColor),
+              ),
+              Expanded(
+                child: Obx(() => Text(
+                      pc.playinfrom.value.nameString,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: textColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    )),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: TabBarView(
-              children: [
-                _UpNextList(
-                    pc: pc, textColor: textColor, mutedColor: mutedColor),
-                Obx(() => pc.isLyricsLoading.isTrue
-                    ? const Center(child: LoadingIndicator())
-                    : _LyricsPanel(pc: pc)),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 8),
+        const Expanded(
+          child: _LyricsPanel(),
+        ),
+      ],
     );
   }
 }

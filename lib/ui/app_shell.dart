@@ -26,7 +26,6 @@ import 'shell_controller.dart';
 import 'widgets/bottom_nav_bar.dart';
 import 'widgets/now_playing_side_panel.dart';
 import 'widgets/side_nav_bar.dart';
-import 'widgets/queue_drawer.dart';
 import 'widgets/sliding_up_panel.dart';
 
 class AppShell extends StatefulWidget {
@@ -151,9 +150,6 @@ class _AppShellState extends State<AppShell> {
               drawerScrimColor: Colors.transparent,
               bottomNavigationBar: useBottomNav
                   ? const BottomNavBar()
-                  : null,
-              endDrawer: GetPlatform.isDesktop || isWideScreen || layout.isTV
-                  ? const QueueDrawer()
                   : null,
               body: Builder(
                 builder: (shellContext) {

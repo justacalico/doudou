@@ -16,8 +16,6 @@ import '../../widgets/sliding_up_panel.dart';
 
 part 'standard_player_lyrics_panel.dart';
 
-part 'standard_player_up_next_list.dart';
-
 part 'standard_player_right_panel.dart';
 
 part 'standard_player_expanded_now_playing.dart';

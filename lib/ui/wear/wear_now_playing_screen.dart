@@ -3,7 +3,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:wearable_rotary/wearable_rotary.dart';
 
 import '../../services/wear_comm_service.dart';
 
@@ -20,33 +19,10 @@ class WearNowPlayingScreen extends StatefulWidget {
 class _WearNowPlayingScreenState extends State<WearNowPlayingScreen> {
   final _comm = Get.find<WearCommService>();
   bool _showVolumeSlider = false;
-  bool _showQueue = false;
-  final _queueScrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    rotaryEvents.listen((event) {
-      if (!mounted) return;
-      if (_showQueue && _queueScrollController.hasClients) {
-        final direction =
-            event.direction == RotaryDirection.clockwise ? 40.0 : -40.0;
-        _queueScrollController.animateTo(
-          (_queueScrollController.offset + direction).clamp(
-            0,
-            _queueScrollController.position.maxScrollExtent,
-          ),
-          duration: const Duration(milliseconds: 80),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _queueScrollController.dispose();
-    super.dispose();
   }
 
   @override
@@ -94,16 +70,9 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen> {
     final artUri = _comm.songArtUri.value;
 
     return Scaffold(
-      body: GestureDetector(
-        onVerticalDragEnd: (details) {
-          if (details.primaryVelocity != null &&
-              details.primaryVelocity! < -200) {
-            setState(() => _showQueue = true);
-          }
-        },
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
           // Album art as full-screen background
           if (artUri.isNotEmpty)
             Image.network(
@@ -150,8 +119,6 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen> {
           ),
           // Volume slider overlay
           if (_showVolumeSlider) _buildVolumeOverlay(context),
-          // Queue overlay
-          if (_showQueue) _buildQueueOverlay(context),
         ],
         ),
       ),
@@ -401,128 +368,6 @@ class _WearNowPlayingScreenState extends State<WearNowPlayingScreen> {
       child: Padding(
         padding: const EdgeInsets.all(6),
         child: Icon(icon, size: 24, color: Colors.white70),
-      ),
-    );
-  }
-
-  Widget _buildQueueOverlay(BuildContext context) {
-    return GestureDetector(
-      onVerticalDragEnd: (details) {
-        if (details.primaryVelocity != null &&
-            details.primaryVelocity! > 200) {
-          setState(() => _showQueue = false);
-        }
-      },
-      child: Container(
-        color: Colors.black.withOpacity(0.92),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 8, bottom: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.queue_music, size: 14,
-                        color: Color(0xFFE8A598)),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Queue',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Obx(() {
-                  final items = _comm.queue;
-                  final currentIndex = _comm.queueIndex.value;
-                  if (items.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'Queue is empty',
-                        style: TextStyle(
-                          color: Colors.white54,
-                          fontSize: 12,
-                        ),
-                      ),
-                    );
-                  }
-                  return ListView.builder(
-                    controller: _queueScrollController,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 4),
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      final isCurrent = index == currentIndex;
-                      final title =
-                          item['title']?.toString() ?? 'Unknown';
-                      final artist =
-                          item['artist']?.toString() ?? '';
-                      return GestureDetector(
-                        onTap: () => _comm.playQueueItem(index),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 6, horizontal: 4),
-                          child: Row(
-                            children: [
-                              if (isCurrent)
-                                const Padding(
-                                  padding: EdgeInsets.only(right: 6),
-                                  child: Icon(Icons.play_arrow,
-                                      size: 12,
-                                      color: Color(0xFFE8A598)),
-                                )
-                              else
-                                SizedBox(width: 18),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: isCurrent
-                                            ? const Color(0xFFE8A598)
-                                            : Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: isCurrent
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                      ),
-                                    ),
-                                    if (artist.isNotEmpty)
-                                      Text(
-                                        artist,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: Colors.white54,
-                                          fontSize: 9,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                }),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
