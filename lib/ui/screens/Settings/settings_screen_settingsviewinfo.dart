@@ -104,6 +104,7 @@ mixin _SettingsViewInfoMixin on __SettingsViewStateBase {
 
 class AppInfoHeader extends StatelessWidget {
   const AppInfoHeader({
+    super.key,
     required this.version,
     required this.isNightly,
     this.onLongPress,

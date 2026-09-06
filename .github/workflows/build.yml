@@ -313,15 +313,18 @@ jobs:
           BUILD_DATE: ${{ steps.version.outputs.build_date }}
           _SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS: 1
           SIGNING: ${{ steps.signing.outputs.signing }}
+          GH_REF: ${{ github.ref }}
+          GH_EVENT_NAME: ${{ github.event_name }}
+          GH_CREATE_RELEASE: ${{ inputs.create_release }}
         run: |
           set -euo pipefail
           mkdir -p artifacts
 
           NIGHTLY=false
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "schedule" ]; then
+          if [ "$GH_REF" = "refs/heads/main" ]; then
+            if [ "$GH_EVENT_NAME" = "push" ] || [ "$GH_EVENT_NAME" = "schedule" ]; then
               NIGHTLY=true
-            elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.create_release }}" != "true" ]; then
+            elif [ "$GH_EVENT_NAME" = "workflow_dispatch" ] && [ "$GH_CREATE_RELEASE" != "true" ]; then
               NIGHTLY=true
             fi
           fi
