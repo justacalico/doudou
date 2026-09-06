@@ -1,11 +1,15 @@
 import 'dart:convert';
 import '/utils/app_l10n.dart';
 import 'dart:io';
+import 'dart:typed_data';
+import '/l10n/app_localizations.dart';
 import 'package:audio_service/audio_service.dart' show MediaItem;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:doudou/models/thumbnail.dart';
+import 'package:doudou/services/export_service.dart';
 import 'package:doudou/services/permission_service.dart';
 import 'package:doudou/ui/widgets/snackbar.dart';
 import 'package:doudou/utils/helper.dart';
@@ -357,8 +361,6 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
         _showProgressDialog(context, l10n.exportingPlaylist);
       }
 
-      // Get appropriate directory based on platform
-      final Directory exportDir = await _getExportDirectory();
       exportProgress.value = 0.2;
 
       final info = await PackageInfo.fromPlatform();
@@ -373,6 +375,26 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
       // Generate filename with playlist name
       final sanitizedName =
           playlist.value.title.replaceAll(RegExp(r'[^\w\s]+'), '_');
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        // The system save dialog lets the user pick where the file goes.
+        final saved = await _saveMobileExport(l10n, "$sanitizedName.json",
+            const ['json'], jsonEncode(playlistData));
+        exportProgress.value = 1.0;
+        if (Get.isDialogOpen ?? false) {
+          Get.back();
+        }
+        if (saved != null && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(snackbar(
+              context,
+              "${l10n.playlistExportedMsg}: ${ExportService.locationLabel(saved)}",
+              size: SnackBarSize.MEDIUM));
+        }
+        return;
+      }
+
+      // Get appropriate directory based on platform
+      final Directory exportDir = await _getExportDirectory();
 
       // Find available filename with incremental suffix if needed
       String filename = "$sanitizedName.json";
@@ -454,8 +476,6 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
         _showProgressDialog(context, l10n.exportingPlaylist);
       }
 
-      // Get appropriate directory based on platform
-      final Directory exportDir = await _getExportDirectory();
       exportProgress.value = 0.2;
 
       // Build CSV content
@@ -465,6 +485,26 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
       // Generate filename with playlist name
       final sanitizedName =
           playlist.value.title.replaceAll(RegExp(r'[^\w\s]+'), '_');
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        // The system save dialog lets the user pick where the file goes.
+        final saved = await _saveMobileExport(
+            l10n, "$sanitizedName.csv", const ['csv'], csvContent);
+        exportProgress.value = 1.0;
+        if (Get.isDialogOpen ?? false) {
+          Get.back();
+        }
+        if (saved != null && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(snackbar(
+              context,
+              "${l10n.playlistExportedMsg}: ${ExportService.locationLabel(saved)}",
+              size: SnackBarSize.MEDIUM));
+        }
+        return;
+      }
+
+      // Get appropriate directory based on platform
+      final Directory exportDir = await _getExportDirectory();
 
       // Find available filename with incremental suffix if needed
       String filename = "$sanitizedName.csv";
@@ -593,6 +633,20 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
     } else {
       return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
     }
+  }
+
+  // Saves [content] through the system save dialog on Android/iOS so the user
+  // picks the destination. Returns the saved file path/URI, or null when the
+  // user cancels.
+  Future<String?> _saveMobileExport(AppLocalizations l10n, String filename,
+      List<String> allowedExtensions, String content) {
+    return FilePicker.platform.saveFile(
+      dialogTitle: l10n.exportPlaylist,
+      fileName: filename,
+      type: FileType.custom,
+      allowedExtensions: allowedExtensions,
+      bytes: Uint8List.fromList(utf8.encode(content)),
+    );
   }
 
   // Helper method to get the appropriate export directory for each platform

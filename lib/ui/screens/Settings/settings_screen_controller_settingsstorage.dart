@@ -3,10 +3,13 @@ part of 'settings_screen_controller.dart';
 mixin _SettingsStorageMixin on _SettingsScreenControllerBase {
   Future<void> setExportedLocation() async {
     if (PermissionService.isScopedStorage) {
-      final defaultExport = "$_supportDir/Exports";
-      await Directory(defaultExport).create(recursive: true);
-      setBox.put("exportLocationPath", defaultExport);
-      exportLocationPath.value = defaultExport;
+      final picked = await ExportService.pickExportFolder(
+          dialogTitle: "Select export file folder");
+      if (picked == null) {
+        return;
+      }
+      setBox.put("exportLocationPath", picked);
+      exportLocationPath.value = picked;
       return;
     }
 

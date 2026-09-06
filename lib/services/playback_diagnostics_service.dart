@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
@@ -145,6 +146,26 @@ class PlaybackDiagnosticsService extends GetxService {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final filename = 'doudou_playback_diag_$timestamp.jsonl';
 
+    final lines = <String>[];
+    final box = Hive.box(boxName);
+    for (final item in box.values) {
+      if (item is Map) {
+        lines.add(jsonEncode(sanitizeLogMap(item.cast<dynamic, dynamic>())));
+      }
+    }
+    final content = '${lines.join('\n')}\n';
+
+    if (GetPlatform.isAndroid || GetPlatform.isIOS) {
+      // On mobile the picker writes the bytes itself at the picked location.
+      return FilePicker.platform.saveFile(
+        dialogTitle: 'Save playback diagnostics',
+        fileName: filename,
+        type: FileType.custom,
+        allowedExtensions: const ['jsonl', 'txt'],
+        bytes: Uint8List.fromList(utf8.encode(content)),
+      );
+    }
+
     String? outputPath;
 
     try {
@@ -167,15 +188,7 @@ class PlaybackDiagnosticsService extends GetxService {
       outputPath = '$dir/$filename';
     }
 
-    final lines = <String>[];
-    final box = Hive.box(boxName);
-    for (final item in box.values) {
-      if (item is Map) {
-        lines.add(jsonEncode(sanitizeLogMap(item.cast<dynamic, dynamic>())));
-      }
-    }
-
-    await File(outputPath).writeAsString('${lines.join('\n')}\n');
+    await File(outputPath).writeAsString(content);
     return outputPath;
   }
 

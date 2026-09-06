@@ -14,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/widgets/loader.dart';
 import '/utils/helper.dart';
+import '../../services/export_service.dart';
 import '../../services/permission_service.dart';
 import 'common_dialog_widget.dart';
 import '/utils/server_storage.dart';
@@ -200,32 +201,56 @@ class BackupDialogController extends GetxController {
     scanning.value = false;
 
     backupRunning.value = true;
-    String exportDirPath;
-    if (PermissionService.isScopedStorage) {
-      final appDocDir = await getApplicationDocumentsDirectory();
-      exportDirPath = appDocDir.path;
-    } else {
-      if (!await PermissionService.getExtStoragePermission()) {
-        backupRunning.value = false;
-        return;
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch.toString()}.hmb';
+    try {
+      if (GetPlatform.isAndroid) {
+        final exportDirPath = await ExportService.pickExportFolder(
+            dialogTitle: "Select backup file folder");
+        if (exportDirPath == null) {
+          backupRunning.value = false;
+          return;
+        }
+        final tempDir = await getTemporaryDirectory();
+        final zipPath = '${tempDir.path}/$fileName';
+        await compressFilesInBackground(filesToExport, zipPath);
+        await ExportService.copyToExportLocation(
+            zipPath, fileName, exportDirPath);
+        await File(zipPath).delete();
+      } else if (GetPlatform.isIOS) {
+        final tempDir = await getTemporaryDirectory();
+        final zipPath = '${tempDir.path}/$fileName';
+        await compressFilesInBackground(filesToExport, zipPath);
+        final saved = await FilePicker.platform.saveFile(
+          dialogTitle: "Save backup file",
+          fileName: fileName,
+          bytes: await File(zipPath).readAsBytes(),
+        );
+        await File(zipPath).delete();
+        if (saved == null) {
+          backupRunning.value = false;
+          return;
+        }
+      } else {
+        if (!await PermissionService.getExtStoragePermission()) {
+          backupRunning.value = false;
+          return;
+        }
+        final exportDirPath = await ExportService.pickExportFolder(
+            dialogTitle: "Select backup file folder");
+        if (exportDirPath == null) {
+          backupRunning.value = false;
+          return;
+        }
+        await compressFilesInBackground(
+            filesToExport, '$exportDirPath/$fileName');
       }
-      final String? pickedFolderPath = await FilePicker.platform
-          .getDirectoryPath(dialogTitle: "Select backup file folder");
-      if (pickedFolderPath == '/' || pickedFolderPath == null) {
-        backupRunning.value = false;
-        return;
-      }
-      exportDirPath = pickedFolderPath;
-    }
-
-    compressFilesInBackground(filesToExport,
-            '$exportDirPath/${DateTime.now().millisecondsSinceEpoch.toString()}.hmb')
-        .then((_) {
       backupRunning.value = false;
       isbackupCompleted.value = true;
-    }).catchError((e) {
-      printERROR('Error during compression: $e');
-    });
+    } catch (e) {
+      printERROR('Error during backup: $e');
+      backupRunning.value = false;
+    }
   }
 }
 

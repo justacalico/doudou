@@ -117,16 +117,17 @@ mixin _SettingsStateMixin on _SettingsScreenControllerBase {
       downloadLocationPath.value = downloadPath;
     }
 
-    final exportPath =
-        setBox.get("exportLocationPath") ?? "/storage/emulated/0/Music";
-    if (PermissionService.isScopedStorage &&
-        exportPath.contains('/storage/emulated/')) {
-      final defaultExport = "$_supportDir/Exports";
-      await Directory(defaultExport).create(recursive: true);
-      setBox.put("exportLocationPath", defaultExport);
-      exportLocationPath.value = defaultExport;
+    final exportPath = setBox.get("exportLocationPath");
+    if (PermissionService.isScopedStorage) {
+      // Only SAF tree URIs are valid export targets on scoped storage. Legacy
+      // app dir paths are cleared so the next export asks for a folder.
+      final normalized = ExportService.normalizeStoredLocation(exportPath);
+      exportLocationPath.value = normalized;
+      if (exportPath != normalized) {
+        setBox.put("exportLocationPath", normalized);
+      }
     } else {
-      exportLocationPath.value = exportPath;
+      exportLocationPath.value = exportPath ?? "/storage/emulated/0/Music";
     }
     downloadingFormat.value = setBox.get('downloadingFormat') ?? "m4a";
     discoverContentType.value = setBox.get('discoverContentType') ?? "QP";
