@@ -10,6 +10,7 @@ import 'package:doudou/services/playback_diagnostics_service.dart';
 import 'package:doudou/ui/player/components/player_mobile_bottom_bar.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/shell_controller.dart';
+import 'package:doudou/ui/widgets/up_next_queue.dart';
 
 class _TestPlayerController extends PlayerController {
   @override
@@ -71,7 +72,7 @@ void main() {
 
   tearDown(Get.reset);
 
-  testWidgets('renders without the floating queue button', (tester) async {
+  testWidgets('renders the queue button', (tester) async {
     await tester.pumpWidget(
       GetMaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -84,8 +85,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PlayerMobileBottomBar), findsOneWidget);
-    expect(find.byIcon(Icons.queue_music_rounded), findsNothing);
-    expect(find.byTooltip('Queue'), findsNothing);
+    expect(find.byIcon(Icons.queue_music_rounded), findsOneWidget);
+    expect(find.byTooltip('Queue'), findsOneWidget);
   });
 
   testWidgets('keeps the other player controls', (tester) async {
@@ -100,10 +101,28 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(IconButton), findsNWidgets(4));
+    expect(find.byType(IconButton), findsNWidgets(5));
     expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
     expect(find.byIcon(Icons.mic_rounded), findsOneWidget);
     expect(find.byIcon(Icons.timer_outlined), findsOneWidget);
     expect(find.byIcon(Icons.more_horiz_rounded), findsOneWidget);
+  });
+
+  testWidgets('queue button opens the UpNextQueue sheet', (tester) async {
+    await tester.pumpWidget(
+      GetMaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const Scaffold(
+          body: PlayerMobileBottomBar(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.queue_music_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(UpNextQueue), findsOneWidget);
   });
 }

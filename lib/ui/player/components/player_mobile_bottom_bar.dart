@@ -6,8 +6,10 @@ import 'package:get/get.dart';
 import '/ui/player/components/lyrics_bottom_sheet.dart';
 import '/ui/widgets/sleep_timer_bottom_sheet.dart';
 import '/ui/shell_controller.dart';
+import '/ui/widgets/sliding_up_panel.dart';
 import '/ui/widgets/song_download_btn.dart';
 import '/ui/widgets/songinfo_bottom_sheet.dart';
+import '/ui/widgets/up_next_queue.dart';
 import '../player_controller.dart';
 
 class PlayerMobileBottomBar extends StatelessWidget {
@@ -46,6 +48,12 @@ class PlayerMobileBottomBar extends StatelessWidget {
             ? MainAxisAlignment.spaceBetween
             : MainAxisAlignment.spaceEvenly,
         children: [
+          IconButton(
+            onPressed: () => _openQueue(context, pc),
+            icon: Icon(Icons.queue_music_rounded, size: iconSize),
+            color: effectiveIconColor,
+            tooltip: "Queue",
+          ),
           Obx(() => IconButton(
                 onPressed: pc.toggleFavourite,
                 icon: Icon(
@@ -123,6 +131,30 @@ class PlayerMobileBottomBar extends StatelessWidget {
             tooltip: "More",
           ),
         ],
+      ),
+    );
+  }
+
+  void _openQueue(BuildContext context, PlayerController pc) {
+    if (context.findAncestorWidgetOfExactType<SlidingUpPanel>() != null) {
+      pc.queuePanelController.open();
+      return;
+    }
+
+    final ctx = Get.find<ShellController>().overlayContextOrFallback;
+    if (ctx == null) return;
+
+    showModalBottomSheet(
+      constraints: const BoxConstraints(maxWidth: 500),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+      ),
+      isScrollControlled: true,
+      context: ctx,
+      barrierColor: Colors.transparent.withAlpha(100),
+      builder: (sheetContext) => SizedBox(
+        height: MediaQuery.of(sheetContext).size.height * 0.8,
+        child: const UpNextQueue(isQueueInSlidePanel: false),
       ),
     );
   }

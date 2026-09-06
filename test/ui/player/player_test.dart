@@ -93,6 +93,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(UpNextQueue), findsOneWidget);
-    expect(find.byIcon(Icons.queue_music_rounded), findsNothing);
+    expect(find.byIcon(Icons.queue_music_rounded), findsOneWidget);
   });
 }

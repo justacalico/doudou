@@ -8,7 +8,9 @@ previously per-version files that lived under `changelog/`.
 - Consolidated to a single queue UI in the player. Removed the redundant
   floating queue bottom sheet, the desktop queue drawer, the expanded now
   playing "Up Next" tab, the TV queue screen, and the Wear OS queue overlay.
-  The queue is now available only through the `UpNextQueue` sliding panel.
+  The queue is now available only through `UpNextQueue`, opened by the
+  player bottom bar queue button (sliding panel on mobile, modal sheet on
+  desktop).
 - Added debug-only playback error logging via `logPlaybackDebugError` for
   YouTube Music stream failures and playback errors.
 - Exports on Android and iOS now ask the user where to save instead of writing
