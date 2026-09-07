@@ -65,6 +65,7 @@ mixin _PlayerControllerBase on GetSingleTickerProviderStateMixin {
 
   var _newSongFlag = true;
   final isCurrentSongBuffered = false.obs;
+  IosFavoriteCommandBridge? _iosFavoriteBridge;
 
   List<SyncedLyricLine> _syncedLyricLines = [];
   Color? _lastLyricsColor;
