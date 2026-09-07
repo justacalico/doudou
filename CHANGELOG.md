@@ -29,6 +29,12 @@ previously per-version files that lived under `changelog/`.
   before retrying, and rebuilds the underlying player instance on repeated
   failures instead of only refreshing the signed URL. When retries are
   exhausted or the device is offline a clear error is shown instead of looping.
+- Fixed iOS playback failing on cellular data with -1004 "Could not connect to
+  the server" until the app was restarted. The loopback proxy that serves
+  streams to the player can lose its socket while the app is suspended, after
+  which every track fails the same way. The player is now rebuilt on the first
+  -1004 instead of the third, and connection failures keep their retry streak
+  across song changes so the rebuild is actually reached.
 
 ## 21.0.0 - 2026-08-05
 

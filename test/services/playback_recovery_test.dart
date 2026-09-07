@@ -26,6 +26,38 @@ void main() {
       expect(shouldRecreatePlayerForAttempt(2), isTrue);
       expect(shouldRecreatePlayerForAttempt(3), isTrue);
     });
+
+    test('a dead stream proxy rebuilds on the first attempt', () {
+      expect(shouldRecreatePlayerForAttempt(1, deadStreamProxy: true), isTrue);
+      expect(shouldRecreatePlayerForAttempt(2, deadStreamProxy: true), isTrue);
+      expect(shouldRecreatePlayerForAttempt(1, deadStreamProxy: false),
+          isFalse);
+    });
+  });
+
+  group('isDeadStreamProxyError', () {
+    test('matches the iOS -1004 loopback refusal only on apple platforms', () {
+      final error = PlatformException(
+        code: '-1004',
+        message: 'Could not connect to the server.',
+        details: const {'index': 0},
+      );
+      expect(isDeadStreamProxyError(error, isApplePlatform: true), isTrue);
+      expect(isDeadStreamProxyError(error, isApplePlatform: false), isFalse);
+    });
+
+    test('rejects other codes and non platform errors', () {
+      expect(
+          isDeadStreamProxyError(PlatformException(code: '-1001'),
+              isApplePlatform: true),
+          isFalse);
+      expect(
+          isDeadStreamProxyError(const SocketException('Connection refused'),
+              isApplePlatform: true),
+          isFalse);
+      expect(isDeadStreamProxyError(Exception('x'), isApplePlatform: true),
+          isFalse);
+    });
   });
 
   group('isPlayerConnectionError', () {

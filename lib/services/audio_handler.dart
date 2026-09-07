@@ -64,6 +64,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   final MediaLibrary _mediaLibrary;
   final PlaybackDiagnosticsService _diag;
   final bool _testable;
+  final bool _isApplePlatform;
   MediaLibrary get mediaLibrary => _mediaLibrary;
   // ignore: prefer_typing_uninitialized_variables
   dynamic currentIndex;
@@ -146,7 +147,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     PlaybackDiagnosticsService? diagnostics,
     StreamReachabilityCheck? reachabilityCheck,
     Future<void> Function(Duration)? recoveryDelay,
+    bool? isApplePlatform,
   })  : _testable = player != null || playerFactory != null,
+        _isApplePlatform =
+            isApplePlatform ?? (GetPlatform.isIOS || GetPlatform.isMacOS),
         _playerFactory = playerFactory ?? _createDefaultPlayer,
         _reachabilityCheck = reachabilityCheck ?? canReachStreamHost,
         _recoveryDelay = recoveryDelay ?? Future.delayed,
@@ -424,10 +428,18 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   Future<void> _runPlayerRecoveryAttempt(
       _PendingPlayerRecovery pending) async {
     final isConnectionError = isPlayerConnectionError(pending.error);
+    final deadStreamProxy = isDeadStreamProxyError(pending.error,
+        isApplePlatform: _isApplePlatform);
     final songKey = pending.songId ?? '';
     final now = _nowMs();
-    if (_lastPlayerFailureSongId != songKey ||
-        now - _lastPlayerFailureAtMs > playerRecoveryWindowMs) {
+    // A connection failure lives in the player's own network session, not in
+    // the song: on iOS the loopback proxy just_audio runs for headered
+    // streams loses its listen socket while the app is suspended and every
+    // track then fails the same way until the player (and its proxy) is
+    // rebuilt. Keep the streak across song changes so that rebuild is still
+    // reached, while song-scoped errors keep the per-track budget.
+    if (now - _lastPlayerFailureAtMs > playerRecoveryWindowMs ||
+        (!isConnectionError && _lastPlayerFailureSongId != songKey)) {
       _consecutivePlayerFailures = 0;
     }
     _consecutivePlayerFailures++;
@@ -448,6 +460,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         'attempt': attempt,
         'maxAttempts': maxPlayerRecoveryAttempts,
         'isConnectionError': isConnectionError,
+        'deadStreamProxy': deadStreamProxy,
         'resumeSameSource': pending.resumeSameSource,
         'errorCode': platformErrorCode(pending.error),
         'error': pending.error.toString(),
@@ -511,7 +524,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     }
 
     var recreatedPlayer = false;
-    if (isConnectionError && shouldRecreatePlayerForAttempt(attempt)) {
+    if (isConnectionError &&
+        shouldRecreatePlayerForAttempt(attempt,
+            deadStreamProxy: deadStreamProxy)) {
       recreatedPlayer = true;
       await _recreatePlayer(reason: 'connection_error_attempt_$attempt');
     }
