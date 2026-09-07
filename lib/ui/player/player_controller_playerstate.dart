@@ -43,6 +43,16 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
     if (GetPlatform.isAndroid) {
       _listenForCustomEvents();
     }
+
+    // lock screen favourite button (iOS)
+    if (GetPlatform.isIOS) {
+      _iosFavoriteBridge = IosFavoriteCommandBridge(
+        isFavorite: isCurrentSongFav,
+        currentSong: currentSong,
+        playbackState: _audioHandler.playbackState,
+        onToggleFavorite: toggleFavourite,
+      )..start();
+    }
   }
 
   void initGesturePlayerStateAnimationController() {
@@ -323,6 +333,7 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
   @override
   void dispose() {
     _audioHandler.customAction('dispose');
+    _iosFavoriteBridge?.dispose();
     keyboardSubscription.cancel();
     scrollController.dispose();
     gesturePlayerStateAnimationController?.dispose();

@@ -31,6 +31,7 @@ import '../screens/Home/home_screen_controller.dart';
 import '../screens/Library/library_controller.dart';
 import '../widgets/sliding_up_panel.dart';
 import '/models/durationstate.dart';
+import '/services/ios_favorite_command_bridge.dart';
 import '/services/music_service.dart';
 
 part 'player_controller_playercontrollerbase.dart';
