@@ -5,6 +5,7 @@ import '/utils/app_l10n.dart';
 import '/ui/screens/Library/library_controller.dart';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 
 import 'package:hive/hive.dart';
@@ -29,6 +30,7 @@ import '/services/permission_service.dart';
 import '/services/playback_wakelock_service.dart';
 import '/services/backend/backend_factory.dart';
 import '/services/playback_diagnostics_service.dart';
+import '/services/playback_recovery.dart';
 import '/services/playback_transition_utils.dart';
 import '../utils/helper.dart';
 import '../utils/server_storage.dart';
@@ -54,7 +56,11 @@ Future<AudioHandler> initAudioService() async {
 class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   // ignore: prefer_typing_uninitialized_variables
   late final _cacheDir;
-  final AudioPlayer _player;
+  AudioPlayer _player;
+  final AudioPlayer Function() _playerFactory;
+  final StreamReachabilityCheck _reachabilityCheck;
+  final Future<void> Function(Duration) _recoveryDelay;
+  final List<StreamSubscription<dynamic>> _playerSubscriptions = [];
   final MediaLibrary _mediaLibrary;
   final PlaybackDiagnosticsService _diag;
   final bool _testable;
@@ -76,6 +82,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   int _playRequestSeq = 0;
   int _activePlayRequestId = 0;
   int _suppressAutoAdvanceUntilMs = 0;
+  // Recovery state for platform player errors. Native connection failures
+  // (e.g. iOS -1004) can leave the underlying AVPlayer/ExoPlayer session
+  // permanently broken, so retries are capped, spaced out and escalate to
+  // rebuilding the player instance instead of only refreshing the URL.
+  int _consecutivePlayerFailures = 0;
+  String _lastPlayerFailureSongId = '';
+  int _lastPlayerFailureAtMs = 0;
+  bool _playerRecoveryRunning = false;
+  _PendingPlayerRecovery? _pendingPlayerRecovery;
   // Real track duration per song id, resolved at play time. Used as a
   // baseline on iOS/macOS where AVPlayer can report ~2x the real duration and
   // the queue item's own duration may be missing or polluted by that bug.
@@ -100,7 +115,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   // keeps insertion/original order while shuffle is enabled
   List<MediaItem> originalQueue = [];
 
-  final _playList =
+  ConcatenatingAudioSource _playList =
       ConcatenatingAudioSource(children: [], useLazyPreparation: false);
   late Future<void> _audioSourceReady;
 
@@ -126,10 +141,16 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
   MyAudioHandler({
     AudioPlayer? player,
+    AudioPlayer Function()? playerFactory,
     MediaLibrary? mediaLibrary,
     PlaybackDiagnosticsService? diagnostics,
-  })  : _testable = player != null,
-        _player = player ?? _createDefaultPlayer(),
+    StreamReachabilityCheck? reachabilityCheck,
+    Future<void> Function(Duration)? recoveryDelay,
+  })  : _testable = player != null || playerFactory != null,
+        _playerFactory = playerFactory ?? _createDefaultPlayer,
+        _reachabilityCheck = reachabilityCheck ?? canReachStreamHost,
+        _recoveryDelay = recoveryDelay ?? Future.delayed,
+        _player = player ?? (playerFactory ?? _createDefaultPlayer)(),
         _mediaLibrary = mediaLibrary ?? MediaLibrary(),
         _diag = diagnostics ?? Get.find<PlaybackDiagnosticsService>() {
     if (_testable) {
@@ -138,13 +159,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     } else {
       _createCacheDir();
       _addEmptyList();
-      _notifyAudioHandlerAboutPlaybackEvents();
-      _listenToPlaybackForNextSong();
-      _listenForSequenceStateChanges();
-      _listenForDurationChanges();
-      if (GetPlatform.isAndroid) {
-        _listenSessionIdStream();
-      }
+      _attachPlayerListeners();
     }
     final appPrefsBox = Hive.box("AppPrefs");
     _player
@@ -171,8 +186,19 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     });
   }
 
+  void _attachPlayerListeners() {
+    _notifyAudioHandlerAboutPlaybackEvents();
+    _listenToPlaybackForNextSong();
+    _listenForSequenceStateChanges();
+    _listenForDurationChanges();
+    if (GetPlatform.isAndroid) {
+      _listenSessionIdStream();
+    }
+  }
+
   void _listenSessionIdStream() {
-    _player.androidAudioSessionIdStream.listen((int? id) {
+    _playerSubscriptions
+        .add(_player.androidAudioSessionIdStream.listen((int? id) {
       if (id != null) {
         try {
           EqualizerService.initAudioEffect(id);
@@ -180,7 +206,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           printERROR('Equalizer init failed: $e\n$st');
         }
       }
-    });
+    }));
   }
 
   void _syncPlaybackWakeLock(bool playing) {
@@ -201,65 +227,77 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
   void _notifyAudioHandlerAboutPlaybackEvents() {
-    _player.playbackEventStream.listen((PlaybackEvent event) {
-      final playing = _player.playing;
-      _syncPlaybackWakeLock(playing);
-      if (_lastLoggedProcessingState != _player.processingState) {
-        _lastLoggedProcessingState = _player.processingState;
-        _diag.logEvent(
-          category: 'player_event',
-          message: 'processing_state_changed',
-          songId: _safeCurrentSongId(),
-          backendType: _safeBackendType(),
-          activeServerType: _safeServerType(),
-          data: {
-            'processingState': _player.processingState.name,
-            'playing': playing,
-            'queueIndex': currentIndex,
-            'positionMs': _player.position.inMilliseconds,
-            'bufferedMs': _player.bufferedPosition.inMilliseconds,
-          },
-        );
-        if (_player.processingState == ProcessingState.completed) {
-          unawaited(_triggerNext(reason: 'processing_completed'));
-        }
-      }
-      playbackState.add(playbackState.value.copyWith(
-        controls: [
-          MediaControl.skipToPrevious,
-          if (playing) MediaControl.pause else MediaControl.play,
-          MediaControl.skipToNext,
-        ],
-        systemActions: const {
-          MediaAction.seek,
-        },
-        androidCompactActionIndices: const [0, 1, 2],
-        processingState: isSongLoading
-            ? AudioProcessingState.loading
-            : const {
-                ProcessingState.idle: AudioProcessingState.idle,
-                ProcessingState.loading: AudioProcessingState.loading,
-                ProcessingState.buffering: AudioProcessingState.buffering,
-                ProcessingState.ready: AudioProcessingState.ready,
-                ProcessingState.completed: AudioProcessingState.completed,
-              }[_player.processingState]!,
-        repeatMode: const {
-          LoopMode.off: AudioServiceRepeatMode.none,
-          LoopMode.one: AudioServiceRepeatMode.one,
-          LoopMode.all: AudioServiceRepeatMode.all,
-        }[_player.loopMode]!,
-        shuffleMode: (shuffleModeEnabled)
-            ? AudioServiceShuffleMode.all
-            : AudioServiceShuffleMode.none,
-        playing: playing,
-        updatePosition: _player.position,
-        bufferedPosition: _player.bufferedPosition,
-        speed: _player.speed,
-        queueIndex: currentIndex,
-      ));
+    _playerSubscriptions.add(_player.playbackEventStream.listen(
+      _onPlaybackEvent,
+      onError: _handlePlaybackStreamError,
+    ));
+  }
 
-      //print("set ${playbackState.value.queueIndex},${event.currentIndex}");
-    }, onError: (Object e, StackTrace st) async {
+  void _onPlaybackEvent(PlaybackEvent event) {
+    final playing = _player.playing;
+    _syncPlaybackWakeLock(playing);
+    if (_lastLoggedProcessingState != _player.processingState) {
+      _lastLoggedProcessingState = _player.processingState;
+      if (_player.processingState == ProcessingState.ready) {
+        _resetPlayerRecoveryBudget();
+      }
+      _diag.logEvent(
+        category: 'player_event',
+        message: 'processing_state_changed',
+        songId: _safeCurrentSongId(),
+        backendType: _safeBackendType(),
+        activeServerType: _safeServerType(),
+        data: {
+          'processingState': _player.processingState.name,
+          'playing': playing,
+          'queueIndex': currentIndex,
+          'positionMs': _player.position.inMilliseconds,
+          'bufferedMs': _player.bufferedPosition.inMilliseconds,
+        },
+      );
+      if (_player.processingState == ProcessingState.completed) {
+        unawaited(_triggerNext(reason: 'processing_completed'));
+      }
+    }
+    playbackState.add(playbackState.value.copyWith(
+      controls: [
+        MediaControl.skipToPrevious,
+        if (playing) MediaControl.pause else MediaControl.play,
+        MediaControl.skipToNext,
+      ],
+      systemActions: const {
+        MediaAction.seek,
+      },
+      androidCompactActionIndices: const [0, 1, 2],
+      processingState: isSongLoading
+          ? AudioProcessingState.loading
+          : const {
+              ProcessingState.idle: AudioProcessingState.idle,
+              ProcessingState.loading: AudioProcessingState.loading,
+              ProcessingState.buffering: AudioProcessingState.buffering,
+              ProcessingState.ready: AudioProcessingState.ready,
+              ProcessingState.completed: AudioProcessingState.completed,
+            }[_player.processingState]!,
+      repeatMode: const {
+        LoopMode.off: AudioServiceRepeatMode.none,
+        LoopMode.one: AudioServiceRepeatMode.one,
+        LoopMode.all: AudioServiceRepeatMode.all,
+      }[_player.loopMode]!,
+      shuffleMode: (shuffleModeEnabled)
+          ? AudioServiceShuffleMode.all
+          : AudioServiceShuffleMode.none,
+      playing: playing,
+      updatePosition: _player.position,
+      bufferedPosition: _player.bufferedPosition,
+      speed: _player.speed,
+      queueIndex: currentIndex,
+    ));
+
+    //print("set ${playbackState.value.queueIndex},${event.currentIndex}");
+  }
+
+  Future<void> _handlePlaybackStreamError(Object e, StackTrace st) async {
+    try {
       if (e is PlayerException) {
         _diag.logEvent(
           category: 'player_error',
@@ -288,22 +326,12 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           data: {'error': e.toString()},
         );
         printERROR('An error occurred: $e');
-        Duration curPos = _player.position;
-        await _player.stop();
-
-        if (isPlayingUsingLockCachingSource &&
-            e.toString().contains("Connection closed while receiving data")) {
-          _diag.logEvent(
-            category: 'recovery',
-            message: 'retry_current_from_cache_source',
-            songId: _safeCurrentSongId(),
-            backendType: _safeBackendType(),
-            activeServerType: _safeServerType(),
-            data: {'positionMs': curPos.inMilliseconds},
-          );
-          await _player.seek(curPos, index: 0);
-          await _player.play();
-          return;
+        final curPos = _safePosition();
+        try {
+          await _player.stop();
+        } catch (stopError, stopSt) {
+          printWarning(
+              '[RECOVERABLE][opId=audio.streamError.stop] Failed to stop player after stream error: $stopError\n$stopSt');
         }
 
         //Workaround when 403 error encountered
@@ -316,18 +344,318 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         //     _player.play();
         //   }
         // });
-        _diag.logEvent(
-          category: 'recovery',
-          message: 'force_new_url_for_current_song',
-          songId: _safeCurrentSongId(),
-          backendType: _safeBackendType(),
-          activeServerType: _safeServerType(),
-          data: {'positionMs': curPos.inMilliseconds},
+        await _recoverPlaybackError(
+          _PendingPlayerRecovery(
+            error: e,
+            resumePosition: curPos,
+            resumeSameSource: isPlayingUsingLockCachingSource &&
+                e.toString().contains("Connection closed while receiving data"),
+            songId: _safeCurrentSongId(),
+            requestId: _activePlayRequestId,
+          ),
         );
-        customAction("playByIndex", {'index': currentIndex, 'newUrl': true});
-        await _player.seek(curPos, index: 0);
       }
-    });
+    } catch (handlerError, handlerSt) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.streamError] Playback error handler failed: $handlerError\n$handlerSt');
+    }
+  }
+
+  @visibleForTesting
+  Future<void> debugHandlePlaybackStreamError(Object error) =>
+      _handlePlaybackStreamError(error, StackTrace.current);
+
+  @visibleForTesting
+  AudioPlayer get debugPlayer => _player;
+
+  @visibleForTesting
+  int get debugConsecutivePlayerFailures => _consecutivePlayerFailures;
+
+  void _resetPlayerRecoveryBudget() {
+    _consecutivePlayerFailures = 0;
+    _lastPlayerFailureSongId = '';
+    _lastPlayerFailureAtMs = 0;
+  }
+
+  Duration _safePosition() {
+    try {
+      return _player.position;
+    } catch (_) {
+      return Duration.zero;
+    }
+  }
+
+  String? _safeCurrentSongUrl() {
+    try {
+      return currentSongUrl;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Serializes recovery runs. Errors that arrive while a recovery is already
+  /// in flight are coalesced into [_pendingPlayerRecovery] and picked up by
+  /// the running loop, so each failure still consumes an attempt without two
+  /// recoveries fighting each other.
+  Future<void> _recoverPlaybackError(_PendingPlayerRecovery pending) async {
+    _pendingPlayerRecovery = pending;
+    if (_playerRecoveryRunning) {
+      _diag.logEvent(
+        category: 'recovery',
+        message: 'player_recovery_queued',
+        songId: pending.songId,
+        backendType: _safeBackendType(),
+        activeServerType: _safeServerType(),
+      );
+      return;
+    }
+    _playerRecoveryRunning = true;
+    try {
+      while (_pendingPlayerRecovery != null) {
+        final next = _pendingPlayerRecovery!;
+        _pendingPlayerRecovery = null;
+        await _runPlayerRecoveryAttempt(next);
+      }
+    } finally {
+      _playerRecoveryRunning = false;
+    }
+  }
+
+  Future<void> _runPlayerRecoveryAttempt(
+      _PendingPlayerRecovery pending) async {
+    final isConnectionError = isPlayerConnectionError(pending.error);
+    final songKey = pending.songId ?? '';
+    final now = _nowMs();
+    if (_lastPlayerFailureSongId != songKey ||
+        now - _lastPlayerFailureAtMs > playerRecoveryWindowMs) {
+      _consecutivePlayerFailures = 0;
+    }
+    _consecutivePlayerFailures++;
+    _lastPlayerFailureSongId = songKey;
+    _lastPlayerFailureAtMs = now;
+    final attempt = _consecutivePlayerFailures;
+
+    // The signed URL resolved fine (see stream_fetch events) before the
+    // platform player reported this failure. This event marks "player could
+    // not connect with a valid URL", distinct from "URL fetch failed".
+    _diag.logEvent(
+      category: 'player_error',
+      message: 'player_failed_with_valid_url',
+      songId: pending.songId,
+      backendType: _safeBackendType(),
+      activeServerType: _safeServerType(),
+      data: {
+        'attempt': attempt,
+        'maxAttempts': maxPlayerRecoveryAttempts,
+        'isConnectionError': isConnectionError,
+        'resumeSameSource': pending.resumeSameSource,
+        'errorCode': platformErrorCode(pending.error),
+        'error': pending.error.toString(),
+        'url': PlaybackDiagnosticsService.sanitizeUrl(_safeCurrentSongUrl()),
+        'resumePositionMs': pending.resumePosition.inMilliseconds,
+      },
+    );
+
+    if (attempt > maxPlayerRecoveryAttempts) {
+      _diag.logEvent(
+        category: 'recovery',
+        message: 'player_recovery_exhausted',
+        songId: pending.songId,
+        backendType: _safeBackendType(),
+        activeServerType: _safeServerType(),
+        data: {
+          'attempts': maxPlayerRecoveryAttempts,
+          'error': pending.error.toString(),
+        },
+      );
+      _surfacePlaybackRecoveryFailure(pending.error, isConnectionError);
+      return;
+    }
+
+    if (isConnectionError && !await _checkStreamReachable()) {
+      _diag.logEvent(
+        category: 'recovery',
+        message: 'player_recovery_aborted_offline',
+        songId: pending.songId,
+        backendType: _safeBackendType(),
+        activeServerType: _safeServerType(),
+        data: {'attempt': attempt},
+      );
+      _surfacePlaybackRecoveryFailure(pending.error, isConnectionError,
+          offline: true);
+      return;
+    }
+
+    final delayMs = playerRecoveryBackoffMs(attempt);
+    _diag.logEvent(
+      category: 'recovery',
+      message: 'player_recovery_backoff',
+      songId: pending.songId,
+      backendType: _safeBackendType(),
+      activeServerType: _safeServerType(),
+      data: {'attempt': attempt, 'delayMs': delayMs},
+    );
+    await _recoveryDelay(Duration(milliseconds: delayMs));
+
+    if (_isStalePlayRequest(pending.requestId) ||
+        pending.songId != _safeCurrentSongId()) {
+      _diag.logEvent(
+        category: 'recovery',
+        message: 'player_recovery_superseded',
+        songId: pending.songId,
+        backendType: _safeBackendType(),
+        activeServerType: _safeServerType(),
+        data: {'attempt': attempt, 'requestId': pending.requestId},
+      );
+      return;
+    }
+
+    var recreatedPlayer = false;
+    if (isConnectionError && shouldRecreatePlayerForAttempt(attempt)) {
+      recreatedPlayer = true;
+      await _recreatePlayer(reason: 'connection_error_attempt_$attempt');
+    }
+
+    if (pending.resumeSameSource && !recreatedPlayer) {
+      _diag.logEvent(
+        category: 'recovery',
+        message: 'retry_current_from_cache_source',
+        songId: pending.songId,
+        backendType: _safeBackendType(),
+        activeServerType: _safeServerType(),
+        data: {
+          'positionMs': pending.resumePosition.inMilliseconds,
+          'attempt': attempt,
+        },
+      );
+      try {
+        await _player.seek(pending.resumePosition, index: 0);
+        await _player.play();
+      } catch (retryError, retrySt) {
+        printWarning(
+            '[RECOVERABLE][opId=audio.recovery.cacheRetry] Failed to resume cache source: $retryError\n$retrySt');
+        _surfacePlaybackRecoveryFailure(pending.error, isConnectionError);
+      }
+      return;
+    }
+
+    final index = _safeCurrentIndex;
+    if (index == null) {
+      _diag.logEvent(
+        category: 'recovery',
+        message: 'player_recovery_no_index',
+        songId: pending.songId,
+        backendType: _safeBackendType(),
+        activeServerType: _safeServerType(),
+        data: {'attempt': attempt},
+      );
+      _surfacePlaybackRecoveryFailure(pending.error, isConnectionError);
+      return;
+    }
+
+    _diag.logEvent(
+      category: 'recovery',
+      message: 'force_new_url_for_current_song',
+      songId: pending.songId,
+      backendType: _safeBackendType(),
+      activeServerType: _safeServerType(),
+      data: {
+        'attempt': attempt,
+        'positionMs': pending.resumePosition.inMilliseconds,
+        'recreatedPlayer': recreatedPlayer,
+      },
+    );
+    try {
+      await customAction('playByIndex',
+          {'index': index, 'newUrl': true, 'recoveryRetry': true});
+      if (queue.value.isNotEmpty) {
+        await _player.seek(pending.resumePosition, index: 0);
+      }
+    } catch (retryError, retrySt) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.recovery.retry] Recovery playByIndex failed: $retryError\n$retrySt');
+      _surfacePlaybackRecoveryFailure(pending.error, isConnectionError);
+    }
+  }
+
+  Future<bool> _checkStreamReachable() async {
+    try {
+      return await _reachabilityCheck(_safeCurrentSongUrl());
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.reachability] Reachability check failed, allowing retry: $e\n$st');
+      return true;
+    }
+  }
+
+  /// Disposes the current player and builds a fresh one from [_playerFactory].
+  /// A connection error that keeps coming back with fresh signed URLs points
+  /// at a wedged native session (AVPlayer/NSURLSession on iOS, ExoPlayer's
+  /// connection pool on Android), not at the URL. Rebuilding the player
+  /// discards that session along with its sockets.
+  Future<void> _recreatePlayer({required String reason}) async {
+    final oldPlayer = _player;
+    for (final subscription in _playerSubscriptions) {
+      unawaited(subscription.cancel());
+    }
+    _playerSubscriptions.clear();
+    try {
+      await oldPlayer.dispose();
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.recreatePlayer.dispose] Failed to dispose wedged player: $e\n$st');
+    }
+    _player = _playerFactory();
+    _playList =
+        ConcatenatingAudioSource(children: [], useLazyPreparation: false);
+    if (!_testable) {
+      _addEmptyList();
+      _attachPlayerListeners();
+    }
+    try {
+      final appPrefsBox = Hive.box("AppPrefs");
+      await _player.setSkipSilenceEnabled(
+          appPrefsBox.get("skipSilenceEnabled") ?? false);
+      await _player.setVolume(_userVolume);
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.recreatePlayer.settings] Failed to reapply player settings: $e\n$st');
+    }
+    // Any play request still in flight was built on the dead player, force
+    // the next consumer to start a fresh request.
+    _startPlayRequest();
+    _diag.logEvent(
+      category: 'recovery',
+      message: 'player_instance_recreated',
+      songId: _safeCurrentSongId(),
+      backendType: _safeBackendType(),
+      activeServerType: _safeServerType(),
+      data: {'reason': reason},
+    );
+  }
+
+  void _surfacePlaybackRecoveryFailure(Object error, bool isConnectionError,
+      {bool offline = false}) {
+    isSongLoading = false;
+    currentSongUrl = null;
+    final message = offline
+        ? 'networkError: no internet connection'
+        : isConnectionError
+            ? 'networkError: player could not connect after retries'
+            : '${error.runtimeType}: $error';
+    playbackState.add(playbackState.value.copyWith(
+      processingState: AudioProcessingState.error,
+      errorCode: platformErrorCode(error) ?? (offline ? -1009 : -1),
+      errorMessage: message,
+    ));
+    try {
+      if (Get.isRegistered<PlayerController>()) {
+        Get.find<PlayerController>().notifyPlayError(message);
+      }
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.recovery.notifyError] Failed to surface playback error: $e\n$st');
+    }
   }
 
   void _listenToPlaybackForNextSong() {
@@ -336,7 +664,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       isLinux: GetPlatform.isLinux,
       isIOS: GetPlatform.isIOS,
     );
-    _player.positionStream.listen((value) async {
+    _playerSubscriptions.add(_player.positionStream.listen((value) async {
       if (shouldSuppressAutoAdvance(
         isSongLoading: isSongLoading,
         nowMs: _nowMs(),
@@ -354,7 +682,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       )) {
         await _triggerNext(reason: 'position_threshold');
       }
-    });
+    }));
   }
 
   // 'length' is the API-provided "m:ss" label. Unlike the duration field it
@@ -471,14 +799,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
   void _listenForSequenceStateChanges() {
-    _player.sequenceStateStream.listen((SequenceState? sequenceState) {
+    _playerSubscriptions.add(
+        _player.sequenceStateStream.listen((SequenceState? sequenceState) {
       final sequence = sequenceState?.effectiveSequence;
       if (sequence == null || sequence.isEmpty) return;
-    });
+    }));
   }
 
   void _listenForDurationChanges() {
-    _player.durationStream.listen((duration) async {
+    _playerSubscriptions.add(_player.durationStream.listen((duration) async {
       final currQueue = queue.value;
       final idx = _safeCurrentIndex;
       if (idx == null || currQueue.isEmpty || duration == null) return;
@@ -525,7 +854,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         );
         mediaItem.add(newMediaItem);
       }
-    });
+    }));
   }
 
   @override
@@ -816,6 +1145,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     switch (name) {
       case 'dispose':
         _syncPlaybackWakeLock(false);
+        for (final subscription in _playerSubscriptions) {
+          unawaited(subscription.cancel());
+        }
+        _playerSubscriptions.clear();
         await _player.dispose();
         super.stop();
         break;
@@ -824,6 +1157,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         final songIndex = extras!['index'] as int;
         final requestId = _startPlayRequest();
         _autoAdvanceGuard.reset();
+        if (extras['recoveryRetry'] != true) {
+          _resetPlayerRecoveryBudget();
+        }
         if (songIndex < 0 || songIndex >= queue.value.length) {
           _diag.logEvent(
             category: 'player_error',
@@ -1082,6 +1418,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         final currMed = (extras!['mediaItem'] as MediaItem);
         final requestId = _startPlayRequest();
         _autoAdvanceGuard.reset();
+        _resetPlayerRecoveryBudget();
         _diag.logEvent(
           category: 'player_event',
           message: 'set_source_n_play_start',
@@ -1849,6 +2186,25 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
 class UrlError extends Error {
   String message() => 'Unable to fetch url';
+}
+
+/// One queued recovery attempt for a platform player failure. Captures the
+/// context at the moment the error arrived so the serialized recovery loop
+/// can still abort when playback state moved on in the meantime.
+class _PendingPlayerRecovery {
+  _PendingPlayerRecovery({
+    required this.error,
+    required this.resumePosition,
+    required this.resumeSameSource,
+    required this.songId,
+    required this.requestId,
+  });
+
+  final Object error;
+  final Duration resumePosition;
+  final bool resumeSameSource;
+  final String? songId;
+  final int requestId;
 }
 
 // for Android Auto
