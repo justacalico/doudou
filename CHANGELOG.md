@@ -22,6 +22,13 @@ previously per-version files that lived under `changelog/`.
   folder/save pickers, and playlist exports (JSON/CSV) use the system save
   dialog. The "Exported file location" setting now opens the Android folder
   picker.
+- Fixed playback getting stuck in a retry loop after a native connection error
+  (e.g. iOS -1004 "Could not connect to the server"), which previously required
+  an app restart. Player error recovery now waits with exponential backoff, is
+  capped at 3 attempts, checks that the stream host is actually reachable
+  before retrying, and rebuilds the underlying player instance on repeated
+  failures instead of only refreshing the signed URL. When retries are
+  exhausted or the device is offline a clear error is shown instead of looping.
 
 ## 21.0.0 - 2026-08-05
 
