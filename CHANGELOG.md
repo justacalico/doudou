@@ -51,7 +51,9 @@ previously per-version files that lived under `changelog/`.
   auto-advance. The next URL is now resolved before the old source is
   removed, a failed fetch resets the loading state and surfaces an error
   instead of wedging, and a load stuck longer than 30 seconds is treated as
-  dead so auto-advance can recover on its own.
+  dead so auto-advance can recover on its own. Skip transitions also no
+  longer rewind the still-playing song, which briefly restarted the old
+  track from the beginning while the next stream URL was being fetched.
 
 ## 21.0.0 - 2026-08-05
 

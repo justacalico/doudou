@@ -1154,7 +1154,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   Future<void> skipToNext() async {
     final index = _getNextSongIndex();
     if (index != currentIndex) {
-      if (_player.position != Duration.zero) _player.seek(Duration.zero);
+      // No seek-to-zero here: the current source stays loaded while the next
+      // stream URL resolves, so rewinding it would audibly restart the old
+      // song for the duration of the fetch. playByIndex seeks to zero on the
+      // new source once it is loaded.
       await customAction("playByIndex", {'index': index});
     } else {
       _diag.logEvent(
@@ -1177,9 +1180,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       _player.seek(Duration.zero);
       return;
     }
-    _player.seek(Duration.zero);
     final index = _getPrevSongIndex();
     if (index != currentIndex) {
+      // Same as skipToNext: do not rewind the still-loaded source before
+      // playByIndex swaps it out.
       await customAction("playByIndex", {'index': index});
     }
   }
