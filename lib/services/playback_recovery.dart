@@ -59,7 +59,20 @@ int playerRecoveryBackoffMs(int attempt) {
 /// A single retry only proves the URL is fresh, not that the native session
 /// is healthy. From the second attempt on, the platform player itself is
 /// disposed and rebuilt so a stuck AVPlayer/ExoPlayer session is discarded.
-bool shouldRecreatePlayerForAttempt(int attempt) => attempt >= 2;
+/// When [deadStreamProxy] is set the same player can never recover (see
+/// [isDeadStreamProxyError]) so the rebuild happens on the first attempt.
+bool shouldRecreatePlayerForAttempt(int attempt,
+        {bool deadStreamProxy = false}) =>
+    attempt >= 2 || deadStreamProxy;
+
+/// Whether [error] is the signature of just_audio's loopback proxy being dead
+/// on iOS/macOS. Remote sources that send headers are played through a local
+/// HTTP proxy on 127.0.0.1, and when the system reaps that listen socket
+/// (app suspension, network interface changes) the player's connect is
+/// refused and reported as NSURLError -1004. The proxy cannot be restarted on
+/// the same player, so this error always justifies rebuilding the player.
+bool isDeadStreamProxyError(Object error, {required bool isApplePlatform}) =>
+    isApplePlatform && platformErrorCode(error) == -1004;
 
 /// Numeric platform error code when [error] is a [PlatformException] whose
 /// code is numeric (e.g. '-1004'), otherwise null.

@@ -39,6 +39,7 @@ class _RecoveryTestHandler extends MyAudioHandler {
     required Future<bool> Function(String?) reachability,
     required List<Duration> delays,
     required FakePlaybackDiagnosticsService diagnostics,
+    super.isApplePlatform,
   }) : super(
           player: player,
           playerFactory: playerFactory,
@@ -49,13 +50,14 @@ class _RecoveryTestHandler extends MyAudioHandler {
 
   final playByIndexCalls = <Map<String, dynamic>>[];
   bool simulatePlayerError = false;
+  bool _interceptPlayByIndex = true;
   Object nextError = PlatformException(
       code: '-1004', message: 'Could not connect to the server.');
 
   @override
   Future<dynamic> customAction(String name,
       [Map<String, dynamic>? extras]) async {
-    if (name == 'playByIndex') {
+    if (name == 'playByIndex' && _interceptPlayByIndex) {
       playByIndexCalls.add(Map.of(extras ?? {}));
       if (simulatePlayerError) {
         // Mimics the native player rejecting the freshly loaded source: the
@@ -69,6 +71,15 @@ class _RecoveryTestHandler extends MyAudioHandler {
 
   Future<dynamic> runRealPlayByIndex(Map<String, dynamic> extras) =>
       super.customAction('playByIndex', extras);
+
+  Future<void> runRealSkipToNext() async {
+    _interceptPlayByIndex = false;
+    try {
+      await super.skipToNext();
+    } finally {
+      _interceptPlayByIndex = true;
+    }
+  }
 }
 
 MediaItem _song(String id) => MediaItem(
@@ -129,6 +140,7 @@ void main() {
       },
       delays: delays,
       diagnostics: diag,
+      isApplePlatform: false,
     );
     await handler.updateQueue([_song('a'), _song('b')]);
     handler.currentIndex = 0;
@@ -234,8 +246,10 @@ void main() {
         hasLength(1));
   });
 
-  test('a failure on a different song starts a fresh retry budget', () async {
-    await handler.debugHandlePlaybackStreamError(_ios1004());
+  test('a song scoped failure on a different song starts a fresh retry budget',
+      () async {
+    final formatError = Exception('FormatException: unexpected byte');
+    await handler.debugHandlePlaybackStreamError(formatError);
     expect(handler.playByIndexCalls, hasLength(1));
     expect(handler.debugConsecutivePlayerFailures, 1);
 
@@ -243,17 +257,95 @@ void main() {
     await handler.updateQueue([_song('b'), _song('a')]);
     handler.currentIndex = 0;
     handler.currentSongUrl = 'https://example.com/b.mp3';
-    await handler.debugHandlePlaybackStreamError(_ios1004());
+    await handler.debugHandlePlaybackStreamError(formatError);
 
     expect(handler.debugConsecutivePlayerFailures, 1);
     expect(delays.map((d) => d.inMilliseconds), [1000, 1000]);
     expect(handler.playByIndexCalls.last['index'], 0);
   });
 
-  test('a user initiated playByIndex resets the retry budget', () async {
+  test(
+      'connection errors keep their streak across songs so the dead player gets rebuilt',
+      () async {
     await handler.debugHandlePlaybackStreamError(_ios1004());
+    expect(handler.playByIndexCalls, hasLength(1));
+    expect(handler.debugConsecutivePlayerFailures, 1);
+    expect(createdPlayers, hasLength(1));
+
+    // A dead loopback proxy on iOS fails every track the same way, so a
+    // normal skip-to-next must not reset the streak or the rebuild is never
+    // reached.
+    try {
+      await handler.runRealSkipToNext();
+    } catch (_) {
+      // the real playByIndex reaches the backend layer which is unavailable
+      // in tests; the budget decision happens before that work
+    }
+
+    expect(handler.debugConsecutivePlayerFailures, 1);
+    expect(handler.currentIndex, 1);
+
+    handler.currentSongUrl = 'https://example.com/b.mp3';
     await handler.debugHandlePlaybackStreamError(_ios1004());
+
     expect(handler.debugConsecutivePlayerFailures, 2);
+    expect(delays.map((d) => d.inMilliseconds), [1000, 2000]);
+    expect(handler.playByIndexCalls, hasLength(2));
+    expect(handler.playByIndexCalls.last['index'], 1);
+    expect(createdPlayers, hasLength(2));
+    verify(() => createdPlayers[0].dispose()).called(1);
+    expect(identical(handler.debugPlayer, createdPlayers.last), isTrue);
+    expect(
+        diag.calls.where((c) => c.message == 'player_instance_recreated'),
+        hasLength(1));
+  });
+
+  test('an apple platform -1004 rebuilds the player on the first attempt',
+      () async {
+    final appleHandler = _RecoveryTestHandler(
+      player: createdPlayers[0],
+      playerFactory: () {
+        final player = _stubbedPlayer();
+        createdPlayers.add(player);
+        return player;
+      },
+      reachability: (url) async {
+        reachabilityCalls++;
+        return reachable;
+      },
+      delays: delays,
+      diagnostics: diag,
+      isApplePlatform: true,
+    );
+    await appleHandler.updateQueue([_song('a'), _song('b')]);
+    appleHandler.currentIndex = 0;
+    appleHandler.isSongLoading = false;
+    appleHandler.currentSongUrl = 'https://example.com/a.mp3';
+
+    await appleHandler.debugHandlePlaybackStreamError(_ios1004());
+
+    // The loopback proxy behind headered sources is dead, so the rebuild
+    // happens right away instead of burning a retry on the same player.
+    expect(createdPlayers, hasLength(2));
+    verify(() => createdPlayers[0].dispose()).called(1);
+    expect(appleHandler.playByIndexCalls, hasLength(1));
+    expect(appleHandler.playByIndexCalls.first['newUrl'], isTrue);
+    expect(
+        diag.calls
+            .where((c) => c.message == 'player_failed_with_valid_url')
+            .first
+            .data?['deadStreamProxy'],
+        isTrue);
+    expect(
+        diag.calls.where((c) => c.message == 'player_instance_recreated'),
+        hasLength(1));
+  });
+
+  test('a user initiated playByIndex resets the retry budget after a song-scoped error',
+      () async {
+    final formatError = Exception('FormatException: unexpected byte');
+    await handler.debugHandlePlaybackStreamError(formatError);
+    expect(handler.debugConsecutivePlayerFailures, 1);
 
     try {
       await handler.runRealPlayByIndex({'index': 0});
