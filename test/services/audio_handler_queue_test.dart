@@ -266,7 +266,11 @@ void main() {
   });
 
   group('skip navigation', () {
-    test('skipToNext advances to the next song', () async {
+    test('skipToNext advances to the next song without rewinding the current source',
+        () async {
+      // The old source stays loaded while the next stream URL resolves, so
+      // seeking it to zero would audibly restart the old song mid-transition.
+      when(() => player.position).thenReturn(const Duration(seconds: 30));
       final songs = [_song('a', 'A'), _song('b', 'B'), _song('c', 'C')];
       await handler.updateQueue(songs);
       handler.currentIndex = 0;
@@ -275,6 +279,7 @@ void main() {
 
       expect(handler.currentIndex, 1);
       expect(handler.playByIndexCalls, [1]);
+      verifyNever(() => player.seek(Duration.zero));
     });
 
     test('skipToNext at end of queue pauses the player', () async {
@@ -314,7 +319,8 @@ void main() {
       expect(handler.playByIndexCalls, isEmpty);
     });
 
-    test('skipToPrevious goes to the previous song', () async {
+    test('skipToPrevious goes to the previous song without rewinding first',
+        () async {
       final songs = [_song('a', 'A'), _song('b', 'B'), _song('c', 'C')];
       await handler.updateQueue(songs);
       handler.currentIndex = 2;
@@ -323,6 +329,7 @@ void main() {
 
       expect(handler.currentIndex, 1);
       expect(handler.playByIndexCalls, [1]);
+      verifyNever(() => player.seek(Duration.zero));
     });
 
     test('skipToNext reshuffles the queue in shuffle+queue loop at end',

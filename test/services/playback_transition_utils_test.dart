@@ -387,4 +387,50 @@ void main() {
       );
     });
   });
+
+  group('isSongLoadWedge', () {
+    test('returns false when nothing is loading', () {
+      expect(
+        isSongLoadWedge(
+          isSongLoading: false,
+          loadingSinceMs: 1,
+          nowMs: songLoadingWedgeMs + 1000,
+        ),
+        isFalse,
+      );
+    });
+
+    test('returns false while a load is still inside the window', () {
+      expect(
+        isSongLoadWedge(
+          isSongLoading: true,
+          loadingSinceMs: 1000,
+          nowMs: 1000 + songLoadingWedgeMs,
+        ),
+        isFalse,
+      );
+    });
+
+    test('returns true once the load outlives the wedge window', () {
+      expect(
+        isSongLoadWedge(
+          isSongLoading: true,
+          loadingSinceMs: 1000,
+          nowMs: 1000 + songLoadingWedgeMs + 1,
+        ),
+        isTrue,
+      );
+    });
+
+    test('returns false when the load was never timestamped', () {
+      expect(
+        isSongLoadWedge(
+          isSongLoading: true,
+          loadingSinceMs: 0,
+          nowMs: 999999999,
+        ),
+        isFalse,
+      );
+    });
+  });
 }

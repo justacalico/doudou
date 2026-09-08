@@ -115,3 +115,20 @@ bool shouldSuppressAutoAdvance({
 }) {
   return isSongLoading || nowMs < suppressUntilMs;
 }
+
+/// A load flagged longer than this is treated as wedged rather than still in
+/// flight. On iOS the stream fetch can be suspended or killed underneath us
+/// when the screen is off and the request outlives the app's background time,
+/// which used to leave isSongLoading stuck forever and break auto-advance
+/// until the app was restarted.
+const int songLoadingWedgeMs = 30000;
+
+bool isSongLoadWedge({
+  required bool isSongLoading,
+  required int loadingSinceMs,
+  required int nowMs,
+  int thresholdMs = songLoadingWedgeMs,
+}) =>
+    isSongLoading &&
+    loadingSinceMs > 0 &&
+    nowMs - loadingSinceMs > thresholdMs;
