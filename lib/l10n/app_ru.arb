@@ -1081,5 +1081,7 @@
   "@playbackDiagnosticsMaxEventsLabel": {},
   "playbackDiagnosticsMaxEventsHint": "1000",
   "@playbackDiagnosticsMaxEventsHint": {},
+  "browseLibrary": "Открыть библиотеку",
+  "@browseLibrary": {},
   "@@locale": "ru"
 }

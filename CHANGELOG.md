@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 22.0.0
 
+- The empty home screen now shows an icon, a short hint and a call to action instead of a lone line of text. With a server configured the button opens the Library tab to start adding music; with no server it goes to Settings to add one.
 - The search field's clear button now only appears once there is text to clear instead of sitting in the field permanently.
 - Increased the default playback diagnostics log limit from 400 to 1000 events and added a "Log limit" setting so users can change the number of stored diagnostic events to any value they want.
 - Added a favourite button to the iOS lock screen and Control Center Now Playing controls, so the current song can be liked or unliked without unlocking the phone. The heart reflects the song's favourite state.

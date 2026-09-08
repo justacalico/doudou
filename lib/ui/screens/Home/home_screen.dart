@@ -18,6 +18,7 @@ import '/ui/player/player_controller.dart';
 import '/ui/shell_controller.dart';
 import '/services/tv_service.dart';
 import '/ui/widgets/create_playlist_dialog.dart';
+import '/ui/widgets/home_empty_state.dart';
 import '../../navigator.dart';
 import '../../widgets/library_section_builders.dart';
 import 'home_screen_controller.dart';
@@ -429,16 +430,23 @@ class _BodyState extends State<Body> {
                                 isYouTubeMusic: isYouTubeMusic,
                               ),
                               const SizedBox(height: 48),
-                              Center(
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 24),
-                                  child: Text(
-                                    context.l10n.addMusicToLibraryHint,
-                                    textAlign: TextAlign.center,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
-                                  ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 24),
+                                child: HomeEmptyState(
+                                  hasServer: server != null,
+                                  onAction: () {
+                                    final target = server != null
+                                        ? 2
+                                        : (useBottomNav ? 3 : 7);
+                                    if (useBottomNav) {
+                                      homeScreenController
+                                          .onBottonBarTabSelected(target);
+                                    } else {
+                                      homeScreenController
+                                          .onSideBarTabSelected(target);
+                                    }
+                                  },
                                 ),
                               ),
                             ],
