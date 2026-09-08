@@ -43,6 +43,15 @@ previously per-version files that lived under `changelog/`.
   before the dead loopback proxy could be rebuilt. The recovery budget now
   survives normal playByIndex calls for connection errors and only resets
   after a successful play or a song-scoped error.
+- Fixed autoplay stopping on iOS after the app had been playing with the
+  screen off for a while. The track transition used to tear down the current
+  audio source before the next stream URL was resolved, which ended the app's
+  background audio entitlement mid-transition and let iOS suspend the fetch,
+  leaving the song-loading flag stuck and suppressing every later
+  auto-advance. The next URL is now resolved before the old source is
+  removed, a failed fetch resets the loading state and surfaces an error
+  instead of wedging, and a load stuck longer than 30 seconds is treated as
+  dead so auto-advance can recover on its own.
 
 ## 21.0.0 - 2026-08-05
 

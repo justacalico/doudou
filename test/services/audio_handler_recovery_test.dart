@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:doudou/models/hm_streaming_data.dart';
 import 'package:doudou/services/audio_handler.dart';
 import 'package:doudou/services/playback_recovery.dart';
+import 'package:doudou/services/stream_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -53,6 +56,24 @@ class _RecoveryTestHandler extends MyAudioHandler {
   bool _interceptPlayByIndex = true;
   Object nextError = PlatformException(
       code: '-1004', message: 'Could not connect to the server.');
+
+  // Stubs for checkNGetUrl so playByIndex can run past the fetch in tests
+  // without touching the real backend or stream isolate.
+  Object? streamFetchError;
+  Completer<HMStreamingData>? streamFetchGate;
+  HMStreamingData? streamFetchResult;
+
+  @override
+  Future<HMStreamingData> checkNGetUrl(String songId,
+      {bool generateNewUrl = false,
+      bool offlineReplacementUrl = false,
+      Map<String, dynamic>? extras}) async {
+    if (streamFetchError != null) throw streamFetchError!;
+    final gate = streamFetchGate;
+    if (gate != null) return gate.future;
+    return streamFetchResult ??
+        HMStreamingData(playable: false, statusMSG: 'test stub');
+  }
 
   @override
   Future<dynamic> customAction(String name,
@@ -383,5 +404,95 @@ void main() {
     expect(delays.map((d) => d.inMilliseconds), [1000, 2000, 4000]);
     expect(handler.playbackState.value.processingState,
         AudioProcessingState.error);
+  });
+
+  group('auto-advance wedge recovery', () {
+    test(
+        'a load stuck past the wedge window no longer suppresses auto-advance',
+        () async {
+      // Simulates the iOS bug: the app was suspended mid-fetch with the
+      // screen off, leaving isSongLoading flagged long after the request died.
+      handler.debugBeginSongLoad(sinceMs: 1);
+
+      await handler.debugTriggerNext(reason: 'test');
+
+      expect(handler.isSongLoading, isFalse);
+      expect(handler.playByIndexCalls, hasLength(1));
+      expect(handler.playByIndexCalls.first['index'], 1);
+      expect(
+          diag.calls.where(
+              (c) => c.message == 'auto_advance_loading_wedge_cleared'),
+          hasLength(1));
+    });
+
+    test('a fresh in-flight load still suppresses auto-advance', () async {
+      handler.debugBeginSongLoad();
+
+      await handler.debugTriggerNext(reason: 'test');
+
+      expect(handler.isSongLoading, isTrue);
+      expect(handler.playByIndexCalls, isEmpty);
+      expect(
+          diag.calls
+              .where((c) => c.message == 'auto_advance_suppressed_loading'),
+          hasLength(1));
+    });
+
+    test(
+        'a failed stream fetch resets the loading flag and surfaces an error',
+        () async {
+      handler.streamFetchError =
+          Exception('SocketException: no route to host');
+
+      await handler.runRealPlayByIndex({'index': 0});
+
+      expect(handler.isSongLoading, isFalse);
+      expect(handler.currentSongUrl, isNull);
+      expect(handler.playbackState.value.processingState,
+          AudioProcessingState.error);
+      expect(
+          diag.calls.where(
+              (c) => c.message == 'play_by_index_stream_fetch_error'),
+          hasLength(1));
+    });
+
+    test(
+        'playByIndex keeps the current source alive until the next stream url resolves',
+        () async {
+      // On iOS, clearing the playlist before the fetch ends playback and
+      // drops the background-audio entitlement while the request is still in
+      // flight, which lets the system suspend the app mid-transition.
+      final gate = Completer<HMStreamingData>();
+      handler.streamFetchGate = gate;
+      when(() => createdPlayers[0].processingState)
+          .thenReturn(ProcessingState.completed);
+      when(() => createdPlayers[0].seek(any()))
+          .thenAnswer((_) async {});
+
+      final pending = handler.runRealPlayByIndex({'index': 0});
+      await Future<void>.delayed(Duration.zero);
+
+      verifyNever(() => createdPlayers[0].stop());
+
+      final audio = Audio(
+          itag: 140,
+          audioCodec: Codec.mp4a,
+          bitrate: 128000,
+          duration: 0,
+          loudnessDb: 0,
+          url: 'https://example.com/b.mp3',
+          size: 0);
+      gate.complete(HMStreamingData(
+        playable: true,
+        statusMSG: 'OK',
+        highQualityAudio: audio,
+        lowQualityAudio: audio,
+      ));
+      await pending;
+
+      verify(() => createdPlayers[0].stop()).called(1);
+      verify(() => createdPlayers[0].play()).called(1);
+      expect(handler.isSongLoading, isFalse);
+    });
   });
 }

@@ -83,6 +83,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   int _playRequestSeq = 0;
   int _activePlayRequestId = 0;
   int _suppressAutoAdvanceUntilMs = 0;
+  // Set when isSongLoading is flagged so a suspended or killed fetch can be
+  // detected as a wedge instead of suppressing auto-advance forever.
+  int _songLoadingSinceMs = 0;
   // Recovery state for platform player errors. Native connection failures
   // (e.g. iOS -1004) can leave the underlying AVPlayer/ExoPlayer session
   // permanently broken, so retries are capped, spaced out and escalate to
@@ -111,6 +114,45 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
   bool _isStalePlayRequest(int requestId) => requestId != _activePlayRequestId;
+
+  void _beginSongLoad() {
+    isSongLoading = true;
+    _songLoadingSinceMs = _nowMs();
+  }
+
+  /// Whether an auto-advance trigger should be suppressed right now. A load
+  /// that has been flagged longer than the wedge window is cleared instead of
+  /// reported, so a fetch that was suspended or killed (iOS backgrounding the
+  /// app mid-transition) cannot keep auto-advance suppressed forever.
+  bool _isAutoAdvanceSuppressed() {
+    if (!shouldSuppressAutoAdvance(
+      isSongLoading: isSongLoading,
+      nowMs: _nowMs(),
+      suppressUntilMs: _suppressAutoAdvanceUntilMs,
+    )) {
+      return false;
+    }
+    if (isSongLoadWedge(
+      isSongLoading: isSongLoading,
+      loadingSinceMs: _songLoadingSinceMs,
+      nowMs: _nowMs(),
+    )) {
+      _diag.logEvent(
+        category: 'auto_advance',
+        message: 'auto_advance_loading_wedge_cleared',
+        songId: _safeCurrentSongId(),
+        backendType: _safeBackendType(),
+        activeServerType: _safeServerType(),
+        data: {
+          'loadingSinceMs': _songLoadingSinceMs,
+          'nowMs': _nowMs(),
+        },
+      );
+      isSongLoading = false;
+      return false;
+    }
+    return true;
+  }
 
   // list of shuffled queue songs ids
   List<String> shuffledQueue = [];
@@ -369,6 +411,19 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   @visibleForTesting
   Future<void> debugHandlePlaybackStreamError(Object error) =>
       _handlePlaybackStreamError(error, StackTrace.current);
+
+  @visibleForTesting
+  Future<void> debugTriggerNext({String reason = 'debug'}) =>
+      _triggerNext(reason: reason);
+
+  @visibleForTesting
+  void debugBeginSongLoad({int? sinceMs}) {
+    isSongLoading = true;
+    _songLoadingSinceMs = sinceMs ?? _nowMs();
+  }
+
+  @visibleForTesting
+  bool debugIsAutoAdvanceSuppressed() => _isAutoAdvanceSuppressed();
 
   @visibleForTesting
   AudioPlayer get debugPlayer => _player;
@@ -683,11 +738,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       isIOS: GetPlatform.isIOS,
     );
     _playerSubscriptions.add(_player.positionStream.listen((value) async {
-      if (shouldSuppressAutoAdvance(
-        isSongLoading: isSongLoading,
-        nowMs: _nowMs(),
-        suppressUntilMs: _suppressAutoAdvanceUntilMs,
-      )) {
+      if (_isAutoAdvanceSuppressed()) {
         return;
       }
       if (!_player.playing) return;
@@ -747,11 +798,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
   Future<void> _triggerNext({required String reason}) async {
-    if (shouldSuppressAutoAdvance(
-      isSongLoading: isSongLoading,
-      nowMs: _nowMs(),
-      suppressUntilMs: _suppressAutoAdvanceUntilMs,
-    )) {
+    if (_isAutoAdvanceSuppressed()) {
       final message = isSongLoading
           ? 'auto_advance_suppressed_loading'
           : 'auto_advance_suppressed_transition_window';
@@ -1217,9 +1264,46 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         final futureStreamInfo = checkNGetUrl(currentSong.id,
             generateNewUrl: isNewUrlReq, extras: currentSong.extras);
         final bool restoreSession = extras['restoreSession'] ?? false;
-        isSongLoading = true;
+        _beginSongLoad();
         playbackState.add(playbackState.value
             .copyWith(processingState: AudioProcessingState.loading));
+        // Resolve the next stream URL before tearing down the current source.
+        // Clearing the playlist first stops playback immediately, which drops
+        // the app's iOS background-audio entitlement while the fetch is still
+        // in flight; the system can then suspend the process mid-request and
+        // leave the load wedged. Keeping the old source alive until the URL
+        // is ready keeps the entitlement through the transition.
+        final HMStreamingData streamInfo;
+        try {
+          streamInfo = await futureStreamInfo;
+        } catch (fetchError, fetchSt) {
+          _diag.logEvent(
+            category: 'stream_fetch',
+            message: 'play_by_index_stream_fetch_error',
+            songId: requestedSongId,
+            backendType: currentSong.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'error': fetchError.toString()},
+          );
+          printERROR(
+              'playByIndex stream fetch failed: $fetchError\n$fetchSt');
+          currentSongUrl = null;
+          isSongLoading = false;
+          _surfacePlaybackRecoveryFailure(fetchError,
+              isPlayerConnectionError(fetchError));
+          return;
+        }
+        if (_isStalePlayRequest(requestId)) {
+          _diag.logEvent(
+            category: 'recovery',
+            message: 'play_request_stale_ignored',
+            songId: requestedSongId,
+            backendType: currentSong.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'stage': 'after_stream_fetch', 'requestId': requestId},
+          );
+          return;
+        }
         _diag.logEvent(
           category: 'player_event',
           message: 'stop_before_playlist_clear',
@@ -1251,18 +1335,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             backendType: currentSong.extras?['backendType']?.toString(),
             activeServerType: _safeServerType(),
             data: {'stage': 'after_playlist_clear', 'requestId': requestId},
-          );
-          return;
-        }
-        final streamInfo = await futureStreamInfo;
-        if (_isStalePlayRequest(requestId)) {
-          _diag.logEvent(
-            category: 'recovery',
-            message: 'play_request_stale_ignored',
-            songId: requestedSongId,
-            backendType: currentSong.extras?['backendType']?.toString(),
-            activeServerType: _safeServerType(),
-            data: {'stage': 'after_stream_fetch', 'requestId': requestId},
           );
           return;
         }
@@ -1455,8 +1527,28 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         );
         final futureStreamInfo =
             checkNGetUrl(currMed.id, extras: currMed.extras);
-        isSongLoading = true;
+        _beginSongLoad();
         currentIndex = 0;
+        final HMStreamingData streamInfo;
+        try {
+          streamInfo = await futureStreamInfo;
+        } catch (fetchError, fetchSt) {
+          _diag.logEvent(
+            category: 'stream_fetch',
+            message: 'set_source_n_play_stream_fetch_error',
+            songId: currMed.id,
+            backendType: currMed.extras?['backendType']?.toString(),
+            activeServerType: _safeServerType(),
+            data: {'error': fetchError.toString()},
+          );
+          printERROR(
+              'setSourceNPlay stream fetch failed: $fetchError\n$fetchSt');
+          currentSongUrl = null;
+          isSongLoading = false;
+          _surfacePlaybackRecoveryFailure(fetchError,
+              isPlayerConnectionError(fetchError));
+          return;
+        }
         if (_player.processingState == ProcessingState.completed) {
           await _player.stop();
         }
@@ -1472,7 +1564,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           );
           return;
         }
-        final streamInfo = (await futureStreamInfo);
         if (_isStalePlayRequest(requestId)) {
           _diag.logEvent(
             category: 'recovery',
