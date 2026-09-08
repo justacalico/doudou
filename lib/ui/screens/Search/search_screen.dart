@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
+import 'components/search_clear_button.dart';
 import 'components/search_item.dart';
 import '/services/tv_service.dart';
 import '/ui/constants/doudou_design.dart';
@@ -149,16 +150,9 @@ class SearchScreen extends StatelessWidget {
                             fontSize: 14,
                             height: 1.2,
                           ),
-                          suffix: IconButton(
+                          suffix: SearchClearButton(
+                            controller: searchScreenController.textInputController,
                             onPressed: searchScreenController.reset,
-                            icon: Icon(Icons.close,
-                                size: 20,
-                                color:
-                                    theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-                            splashRadius: 16,
-                            style: IconButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                            ),
                           ),
                         ),
                       ),
@@ -194,16 +188,9 @@ class SearchScreen extends StatelessWidget {
                     fontSize: 14,
                     height: 1.2,
                   ),
-                  suffix: IconButton(
+                  suffix: SearchClearButton(
+                    controller: searchScreenController.textInputController,
                     onPressed: searchScreenController.reset,
-                    icon: Icon(Icons.close,
-                        size: 20,
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-                    splashRadius: 16,
-                    style: IconButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
-                    ),
                   ),
                 ),
               ),
