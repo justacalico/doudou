@@ -1627,6 +1627,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playbackDiagnosticsMaxEventsHint => '1000';
+
+  @override
+  String get browseLibrary => 'Browse library';
 }
 
 /// The translations for English, as used in Australia (`en_AU`).
@@ -3252,4 +3255,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get playbackDiagnosticsMaxEventsHint => '1000';
+
+  @override
+  String get browseLibrary => 'Browse library';
 }

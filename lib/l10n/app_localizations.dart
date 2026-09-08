@@ -3160,6 +3160,12 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'1000'**
   String get playbackDiagnosticsMaxEventsHint;
+
+  /// No description provided for @browseLibrary.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Browse library'**
+  String get browseLibrary;
 }
 
 class _AppLocalizationsDelegate

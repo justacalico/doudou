@@ -693,5 +693,7 @@
   "@playbackDiagnosticsMaxEventsLabel": {},
   "playbackDiagnosticsMaxEventsHint": "1000",
   "@playbackDiagnosticsMaxEventsHint": {},
+  "browseLibrary": "浏览音乐库",
+  "@browseLibrary": {},
   "@@locale": "zh"
 }

@@ -1565,4 +1565,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playbackDiagnosticsMaxEventsHint => '1000';
+
+  @override
+  String get browseLibrary => '浏览音乐库';
 }
