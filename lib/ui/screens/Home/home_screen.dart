@@ -324,6 +324,7 @@ class _BodyState extends State<Body> {
                                     playLabel:
                                         context.l10n.homeBecauseYouLikeArtists,
                                     playerController: playerController,
+                                    startAsRadio: true,
                                   ),
                                 );
                                 content.add(const SizedBox(height: 32));
@@ -509,6 +510,7 @@ class _BodyState extends State<Body> {
                               playLabel:
                                   context.l10n.homeBecauseYouLikeArtists,
                               playerController: playerController,
+                              startAsRadio: true,
                             ),
                           );
                           content.add(const SizedBox(height: 32));

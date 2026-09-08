@@ -141,6 +141,7 @@ Widget buildTrackRowSection({
   required PlayerController playerController,
   bool showViewAll = false,
   VoidCallback? onViewAll,
+  bool startAsRadio = false,
 }) {
   final theme = Theme.of(context);
   return Column(
@@ -234,14 +235,18 @@ Widget buildTrackRowSection({
                   child: InkWell(
                   borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
                   onTap: () {
-                    playerController.playPlayListSong(
-                      items,
-                      index,
-                      playfrom: PlaylingFrom(
-                        name: playLabel,
-                        type: PlaylingFromType.SELECTION,
-                      ),
-                    );
+                    if (startAsRadio) {
+                      playerController.startRadio(track);
+                    } else {
+                      playerController.playPlayListSong(
+                        items,
+                        index,
+                        playfrom: PlaylingFrom(
+                          name: playLabel,
+                          type: PlaylingFromType.SELECTION,
+                        ),
+                      );
+                    }
                   },
                   onLongPress: () => _showSongOptions(context, track),
                   child: Container(
@@ -667,17 +672,7 @@ Widget buildFreshPicksSection({
                   child: InkWell(
                   borderRadius: BorderRadius.circular(12),
                   onTap: () {
-                    final index = items.indexOf(track);
-                    if (index >= 0) {
-                      playerController.playPlayListSong(
-                        items,
-                        index,
-                        playfrom: PlaylingFrom(
-                          name: context.l10n.homeFreshPicks,
-                          type: PlaylingFromType.SELECTION,
-                        ),
-                      );
-                    }
+                    playerController.startRadio(track);
                   },
                   onLongPress: () => _showSongOptions(context, track),
                   child: Row(
