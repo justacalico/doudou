@@ -1073,5 +1073,13 @@
   },
   "noDiagnosticsHint": "No diagnostics yet.\nEnable diagnostics and reproduce the issue.",
   "@noDiagnosticsHint": {},
+  "playbackDiagnosticsMaxEvents": "Лимит журнала",
+  "@playbackDiagnosticsMaxEvents": {},
+  "playbackDiagnosticsMaxEventsDes": "Максимальное количество сохраняемых событий воспроизведения и сети",
+  "@playbackDiagnosticsMaxEventsDes": {},
+  "playbackDiagnosticsMaxEventsLabel": "Количество событий",
+  "@playbackDiagnosticsMaxEventsLabel": {},
+  "playbackDiagnosticsMaxEventsHint": "1000",
+  "@playbackDiagnosticsMaxEventsHint": {},
   "@@locale": "ru"
 }

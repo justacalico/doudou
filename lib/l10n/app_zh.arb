@@ -685,5 +685,13 @@
   },
   "noDiagnosticsHint": "No diagnostics yet.\nEnable diagnostics and reproduce the issue.",
   "@noDiagnosticsHint": {},
+  "playbackDiagnosticsMaxEvents": "日志上限",
+  "@playbackDiagnosticsMaxEvents": {},
+  "playbackDiagnosticsMaxEventsDes": "保留的播放和网络事件最大数量",
+  "@playbackDiagnosticsMaxEventsDes": {},
+  "playbackDiagnosticsMaxEventsLabel": "事件数量",
+  "@playbackDiagnosticsMaxEventsLabel": {},
+  "playbackDiagnosticsMaxEventsHint": "1000",
+  "@playbackDiagnosticsMaxEventsHint": {},
   "@@locale": "zh"
 }

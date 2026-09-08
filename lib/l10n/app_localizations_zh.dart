@@ -1553,4 +1553,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get noDiagnosticsHint =>
       'No diagnostics yet.\nEnable diagnostics and reproduce the issue.';
+
+  @override
+  String get playbackDiagnosticsMaxEvents => '日志上限';
+
+  @override
+  String get playbackDiagnosticsMaxEventsDes => '保留的播放和网络事件最大数量';
+
+  @override
+  String get playbackDiagnosticsMaxEventsLabel => '事件数量';
+
+  @override
+  String get playbackDiagnosticsMaxEventsHint => '1000';
 }

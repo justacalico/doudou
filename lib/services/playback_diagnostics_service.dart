@@ -13,7 +13,8 @@ class PlaybackDiagnosticsService extends GetxService {
   static const String boxName = 'PlaybackDiagnostics';
   static const String appPrefsBoxName = 'AppPrefs';
   static const String enabledKey = 'playbackDiagnosticsEnabled';
-  static const int _maxEvents = 400;
+  static const String maxEventsKey = 'playbackDiagnosticsMaxEvents';
+  static const int defaultMaxEvents = 1000;
 
   String? _sessionId;
 
@@ -31,6 +32,41 @@ class PlaybackDiagnosticsService extends GetxService {
       printWarning(
           '[RECOVERABLE][opId=diag.enabled.readPrefs] Failed to read diagnostics enabled flag: $e\n$st');
       return false;
+    }
+  }
+
+  int get maxEvents {
+    try {
+      final stored = Hive.box(appPrefsBoxName).get(maxEventsKey);
+      if (stored is int && stored > 0) return stored;
+      return defaultMaxEvents;
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=diag.maxEvents.readPrefs] Failed to read diagnostics max events: $e\n$st');
+      return defaultMaxEvents;
+    }
+  }
+
+  Future<void> setMaxEvents(int value) async {
+    final clamped = value < 1 ? 1 : value;
+    try {
+      await Hive.box(appPrefsBoxName).put(maxEventsKey, clamped);
+      await _trimEventsToMax();
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=diag.setMaxEvents.write] Failed to persist diagnostics max events: $e\n$st');
+    }
+  }
+
+  Future<void> _trimEventsToMax() async {
+    try {
+      final box = Hive.box(boxName);
+      while (box.length > maxEvents) {
+        await box.deleteAt(0);
+      }
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=diag.trimEvents] Failed to trim diagnostics events: $e\n$st');
     }
   }
 
@@ -125,7 +161,7 @@ class PlaybackDiagnosticsService extends GetxService {
         event['data'] = sanitizeLogMap(data);
       }
       box.add(event);
-      while (box.length > _maxEvents) {
+      while (box.length > maxEvents) {
         box.deleteAt(0);
       }
     } catch (e, st) {

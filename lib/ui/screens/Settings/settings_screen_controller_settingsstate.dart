@@ -97,6 +97,9 @@ mixin _SettingsStateMixin on _SettingsScreenControllerBase {
         setBox.get("checkForUpdatesOnStartup") ?? true;
     playbackDiagnosticsEnabled.value =
         setBox.get(PlaybackDiagnosticsService.enabledKey) ?? false;
+    playbackDiagnosticsMaxEvents.value =
+        setBox.get(PlaybackDiagnosticsService.maxEventsKey) ??
+            PlaybackDiagnosticsService.defaultMaxEvents;
     discordRpcEnabled.value = setBox.get('discordRpcEnabled') ?? false;
     discordAppId.value = setBox.get('discordAppId') ?? '';
     streamingQuality.value =

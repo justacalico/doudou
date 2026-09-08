@@ -3136,6 +3136,30 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'No diagnostics yet.\nEnable diagnostics and reproduce the issue.'**
   String get noDiagnosticsHint;
+
+  /// No description provided for @playbackDiagnosticsMaxEvents.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Log limit'**
+  String get playbackDiagnosticsMaxEvents;
+
+  /// No description provided for @playbackDiagnosticsMaxEventsDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Maximum playback and network events to keep for diagnostics'**
+  String get playbackDiagnosticsMaxEventsDes;
+
+  /// No description provided for @playbackDiagnosticsMaxEventsLabel.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Number of events'**
+  String get playbackDiagnosticsMaxEventsLabel;
+
+  /// No description provided for @playbackDiagnosticsMaxEventsHint.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'1000'**
+  String get playbackDiagnosticsMaxEventsHint;
 }
 
 class _AppLocalizationsDelegate
