@@ -1081,5 +1081,7 @@
   "@playbackDiagnosticsMaxEventsLabel": {},
   "playbackDiagnosticsMaxEventsHint": "1000",
   "@playbackDiagnosticsMaxEventsHint": {},
+  "pressBackAgainToExit": "Нажмите «Назад» ещё раз, чтобы выйти",
+  "@pressBackAgainToExit": {},
   "@@locale": "ru"
 }

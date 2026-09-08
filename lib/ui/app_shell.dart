@@ -8,6 +8,8 @@ import 'package:doudou/models/artist.dart';
 import 'package:doudou/services/constant.dart';
 import 'package:doudou/ui/constants/doudou_design.dart';
 import 'package:doudou/ui/design/doudou_layout.dart';
+import '/utils/app_l10n.dart';
+import '/utils/back_exit_guard.dart';
 
 import 'navigator.dart';
 import 'player/player.dart';
@@ -37,6 +39,7 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  final _exitGuard = BackExitGuard();
   bool _sidebarMinimized = false;
   bool? _lastUseBottomNav;
   double? _lastMinPanelHeight;
@@ -89,6 +92,10 @@ class _AppShellState extends State<AppShell> {
                 PlayButtonState.playing) {
               SystemNavigator.pop();
             } else {
+              if (!_exitGuard.confirmExit(DateTime.now())) {
+                Get.snackbar('', l10nFromPrefs().pressBackAgainToExit);
+                return;
+              }
               await Get.find<AudioHandler>().customAction("saveSession");
               exit(0);
             }

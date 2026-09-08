@@ -1636,4 +1636,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get playbackDiagnosticsMaxEventsHint => '1000';
+
+  @override
+  String get pressBackAgainToExit => 'Нажмите «Назад» ещё раз, чтобы выйти';
 }

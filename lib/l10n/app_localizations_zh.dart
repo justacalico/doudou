@@ -1565,4 +1565,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playbackDiagnosticsMaxEventsHint => '1000';
+
+  @override
+  String get pressBackAgainToExit => '再按一次返回键退出';
 }

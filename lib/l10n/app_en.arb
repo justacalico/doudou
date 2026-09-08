@@ -1085,5 +1085,7 @@
   "playbackDiagnosticsMaxEventsLabel": "Number of events",
   "@playbackDiagnosticsMaxEventsLabel": {},
   "playbackDiagnosticsMaxEventsHint": "1000",
-  "@playbackDiagnosticsMaxEventsHint": {}
+  "@playbackDiagnosticsMaxEventsHint": {},
+  "pressBackAgainToExit": "Press back again to exit",
+  "@pressBackAgainToExit": {}
 }
