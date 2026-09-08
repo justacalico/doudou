@@ -90,6 +90,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   int _consecutivePlayerFailures = 0;
   String _lastPlayerFailureSongId = '';
   int _lastPlayerFailureAtMs = 0;
+  bool _lastPlayerFailureWasConnectionError = false;
   bool _playerRecoveryRunning = false;
   _PendingPlayerRecovery? _pendingPlayerRecovery;
   // Real track duration per song id, resolved at play time. Used as a
@@ -379,6 +380,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     _consecutivePlayerFailures = 0;
     _lastPlayerFailureSongId = '';
     _lastPlayerFailureAtMs = 0;
+    _lastPlayerFailureWasConnectionError = false;
   }
 
   Duration _safePosition() {
@@ -445,6 +447,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     _consecutivePlayerFailures++;
     _lastPlayerFailureSongId = songKey;
     _lastPlayerFailureAtMs = now;
+    _lastPlayerFailureWasConnectionError = isConnectionError;
     final attempt = _consecutivePlayerFailures;
 
     // The signed URL resolved fine (see stream_fetch events) before the
@@ -1173,7 +1176,16 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         final requestId = _startPlayRequest();
         _autoAdvanceGuard.reset();
         if (extras['recoveryRetry'] != true) {
-          _resetPlayerRecoveryBudget();
+          // Connection failures live in the native player session, not the
+          // song, so the streak must survive normal navigation. Reset only
+          // for song-scoped failures or when the streak is stale.
+          final now = _nowMs();
+          final preserveConnectionStreak = _consecutivePlayerFailures > 0 &&
+              _lastPlayerFailureWasConnectionError &&
+              now - _lastPlayerFailureAtMs <= playerRecoveryWindowMs;
+          if (!preserveConnectionStreak) {
+            _resetPlayerRecoveryBudget();
+          }
         }
         if (songIndex < 0 || songIndex >= queue.value.length) {
           _diag.logEvent(

@@ -35,6 +35,10 @@ previously per-version files that lived under `changelog/`.
   which every track fails the same way. The player is now rebuilt on the first
   -1004 instead of the third, and connection failures keep their retry streak
   across song changes so the rebuild is actually reached.
+- Fixed user-initiated navigation resetting the connection failure streak
+  before the dead loopback proxy could be rebuilt. The recovery budget now
+  survives normal playByIndex calls for connection errors and only resets
+  after a successful play or a song-scoped error.
 
 ## 21.0.0 - 2026-08-05
 
