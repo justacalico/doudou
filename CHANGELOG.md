@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 22.0.0
 
+- Increased the default playback diagnostics log limit from 400 to 1000 events and added a "Log limit" setting so users can change the number of stored diagnostic events to any value they want.
 - Added a favourite button to the iOS lock screen and Control Center Now Playing controls, so the current song can be liked or unliked without unlocking the phone. The heart reflects the song's favourite state.
 - Moved remaining hardcoded user-facing text into the localization files and added English, Chinese and Russian translations. This covers the demo server dialog, Discord settings, playback error messages, queue and sidebar labels, file picker titles, TV and Wear OS screens, the system tray menu, Android Auto templates and Discord Rich Presence. Local playlist descriptions ("Piped Playlist", "Library Playlist") are now translated at display time.
 - Added a nightly build indicator in Settings > App Info, controlled by the `NIGHTLY` compile-time flag.

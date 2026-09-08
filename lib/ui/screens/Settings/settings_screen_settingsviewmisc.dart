@@ -29,6 +29,15 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
         ),
       ),
       _SettingsListTile(
+        title: context.l10n.playbackDiagnosticsMaxEvents,
+        subtitle: context.l10n.playbackDiagnosticsMaxEventsDes,
+        trailing: Obx(() => Text(
+              settings.playbackDiagnosticsMaxEvents.value.toString(),
+              style: TextStyle(color: context.doudouColors.textSecondary),
+            )),
+        onTap: () => _showPlaybackDiagnosticsMaxEventsDialog(context, settings),
+      ),
+      _SettingsListTile(
         title: context.l10n.clearPlaybackDiagnostics,
         subtitle: context.l10n.clearPlaybackDiagnosticsSubtitle,
         onTap: () async {
@@ -158,6 +167,58 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
             TextButton(
               onPressed: () {
                 settings.setDiscordAppId(controller.text);
+                Navigator.of(ctx).pop();
+              },
+              child: Text(context.l10n.save),
+            ),
+          ],
+        );
+      },
+    ).whenComplete(() => controller.dispose());
+  }
+
+  void _showPlaybackDiagnosticsMaxEventsDialog(
+    BuildContext context,
+    SettingsScreenController settings,
+  ) {
+    final controller = TextEditingController(
+      text: settings.playbackDiagnosticsMaxEvents.value.toString(),
+    );
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(ctx.l10n.playbackDiagnosticsMaxEvents),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                ctx.l10n.playbackDiagnosticsMaxEventsDes,
+                style: const TextStyle(fontSize: 13),
+              ),
+              const SizedBox(height: DoudouSpace.s12),
+              TextField(
+                controller: controller,
+                decoration: InputDecoration(
+                  labelText: ctx.l10n.playbackDiagnosticsMaxEventsLabel,
+                  hintText: ctx.l10n.playbackDiagnosticsMaxEventsHint,
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(context.l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () {
+                final parsed = int.tryParse(controller.text);
+                if (parsed != null) {
+                  settings.setPlaybackDiagnosticsMaxEvents(parsed);
+                }
                 Navigator.of(ctx).pop();
               },
               child: Text(context.l10n.save),

@@ -1614,6 +1614,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noDiagnosticsHint =>
       'No diagnostics yet.\nEnable diagnostics and reproduce the issue.';
+
+  @override
+  String get playbackDiagnosticsMaxEvents => 'Log limit';
+
+  @override
+  String get playbackDiagnosticsMaxEventsDes =>
+      'Maximum playback and network events to keep for diagnostics';
+
+  @override
+  String get playbackDiagnosticsMaxEventsLabel => 'Number of events';
+
+  @override
+  String get playbackDiagnosticsMaxEventsHint => '1000';
 }
 
 /// The translations for English, as used in Australia (`en_AU`).
@@ -3226,4 +3239,17 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   @override
   String get noDiagnosticsHint =>
       'No diagnostics yet.\nEnable diagnostics and reproduce the issue.';
+
+  @override
+  String get playbackDiagnosticsMaxEvents => 'Log limit';
+
+  @override
+  String get playbackDiagnosticsMaxEventsDes =>
+      'Maximum playback and network events to keep for diagnostics';
+
+  @override
+  String get playbackDiagnosticsMaxEventsLabel => 'Number of events';
+
+  @override
+  String get playbackDiagnosticsMaxEventsHint => '1000';
 }

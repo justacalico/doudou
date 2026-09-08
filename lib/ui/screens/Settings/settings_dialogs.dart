@@ -5,6 +5,7 @@ import '/utils/app_l10n.dart';
 import '/models/server.dart';
 import '/services/tv_service.dart';
 import '/ui/design/doudou_tokens.dart';
+import '/services/playback_diagnostics_service.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/utils/theme_controller.dart';
 import '/ui/widgets/common_dialog_widget.dart';
@@ -176,16 +177,17 @@ class PlaybackDiagnosticsPage extends StatefulWidget {
 }
 
 class _PlaybackDiagnosticsPageState extends State<PlaybackDiagnosticsPage> {
-  static const int _maxShownEvents = 400;
   bool _prettyFormat = false;
 
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsScreenController>();
     final theme = Theme.of(context);
+    final maxShownEvents =
+        Get.find<PlaybackDiagnosticsService>().maxEvents;
 
     final text = settings.getPlaybackDiagnosticsText(
-      limit: _maxShownEvents,
+      limit: maxShownEvents,
       pretty: _prettyFormat,
     );
     final count = settings.playbackDiagnosticsCount;
@@ -205,7 +207,7 @@ class _PlaybackDiagnosticsPageState extends State<PlaybackDiagnosticsPage> {
             tooltip: context.l10n.copyDiagnostics,
             onPressed: () async {
               final copied = await settings.copyPlaybackDiagnosticsToClipboard(
-                limit: _maxShownEvents,
+                limit: maxShownEvents,
                 pretty: _prettyFormat,
               );
               if (!context.mounted) return;
@@ -232,7 +234,7 @@ class _PlaybackDiagnosticsPageState extends State<PlaybackDiagnosticsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              context.l10n.eventsCount(count, _maxShownEvents),
+              context.l10n.eventsCount(count, maxShownEvents),
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: DoudouSpace.s12),

@@ -82,6 +82,55 @@ void main() {
     });
   });
 
+  group('PlaybackDiagnosticsService.maxEvents', () {
+    test('defaults to 1000 when key is missing', () {
+      final service = PlaybackDiagnosticsService();
+      expect(service.maxEvents, 1000);
+    });
+
+    test('returns the stored value when set', () async {
+      await appPrefs.put(PlaybackDiagnosticsService.maxEventsKey, 2500);
+      final service = PlaybackDiagnosticsService();
+      expect(service.maxEvents, 2500);
+    });
+
+    test('falls back to default for non-positive values', () async {
+      await appPrefs.put(PlaybackDiagnosticsService.maxEventsKey, 0);
+      final service = PlaybackDiagnosticsService();
+      expect(service.maxEvents, PlaybackDiagnosticsService.defaultMaxEvents);
+    });
+
+    test('setMaxEvents persists and clamps to at least 1', () async {
+      await appPrefs.put(PlaybackDiagnosticsService.enabledKey, true);
+      final service = PlaybackDiagnosticsService();
+
+      await service.setMaxEvents(-5);
+
+      final stored = appPrefs.get(PlaybackDiagnosticsService.maxEventsKey);
+      expect(stored, 1);
+      expect(service.maxEvents, 1);
+    });
+
+    test('setMaxEvents trims existing events to the new limit', () async {
+      await appPrefs.put(PlaybackDiagnosticsService.enabledKey, true);
+      final service = PlaybackDiagnosticsService();
+
+      for (var i = 0; i < 10; i++) {
+        service.logEvent(category: 'test', message: 'event-$i');
+      }
+      expect(service.eventCount, 10);
+
+      await service.setMaxEvents(5);
+
+      expect(service.eventCount, 5);
+      final events = service.getEvents();
+      final messages =
+          events.map((e) => e['message'] as String? ?? '').toList();
+      expect(messages, contains('event-9'));
+      expect(messages, isNot(contains('event-4')));
+    });
+  });
+
   group('PlaybackDiagnosticsService.logEvent', () {
     test('does nothing when disabled', () async {
       await appPrefs.put(PlaybackDiagnosticsService.enabledKey, false);
@@ -115,19 +164,36 @@ void main() {
       expect(events.first['data'], isA<Map>());
     });
 
-    test('trims old events once max is exceeded', () async {
+    test('trims old events once the default max is exceeded', () async {
       await appPrefs.put(PlaybackDiagnosticsService.enabledKey, true);
       final service = PlaybackDiagnosticsService();
 
-      for (var i = 0; i < 405; i++) {
+      for (var i = 0; i < 1005; i++) {
         service.logEvent(category: 'test', message: 'event-$i');
       }
 
-      expect(service.eventCount, lessThanOrEqualTo(400));
+      expect(service.eventCount, lessThanOrEqualTo(1000));
       final events = service.getEvents();
       final messages =
           events.map((e) => e['message'] as String? ?? '').toList();
-      expect(messages, contains('event-404'));
+      expect(messages, contains('event-1004'));
+      expect(messages, isNot(contains('event-0')));
+    });
+
+    test('respects a custom max events limit', () async {
+      await appPrefs.put(PlaybackDiagnosticsService.enabledKey, true);
+      await appPrefs.put(PlaybackDiagnosticsService.maxEventsKey, 250);
+      final service = PlaybackDiagnosticsService();
+
+      for (var i = 0; i < 255; i++) {
+        service.logEvent(category: 'test', message: 'event-$i');
+      }
+
+      expect(service.eventCount, lessThanOrEqualTo(250));
+      final events = service.getEvents();
+      final messages =
+          events.map((e) => e['message'] as String? ?? '').toList();
+      expect(messages, contains('event-254'));
       expect(messages, isNot(contains('event-0')));
     });
   });

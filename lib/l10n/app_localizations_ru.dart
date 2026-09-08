@@ -1623,4 +1623,17 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get noDiagnosticsHint =>
       'No diagnostics yet.\nEnable diagnostics and reproduce the issue.';
+
+  @override
+  String get playbackDiagnosticsMaxEvents => 'Лимит журнала';
+
+  @override
+  String get playbackDiagnosticsMaxEventsDes =>
+      'Максимальное количество сохраняемых событий воспроизведения и сети';
+
+  @override
+  String get playbackDiagnosticsMaxEventsLabel => 'Количество событий';
+
+  @override
+  String get playbackDiagnosticsMaxEventsHint => '1000';
 }

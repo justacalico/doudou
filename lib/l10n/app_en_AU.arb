@@ -1077,5 +1077,13 @@
     }
   },
   "noDiagnosticsHint": "No diagnostics yet.\nEnable diagnostics and reproduce the issue.",
-  "@noDiagnosticsHint": {}
+  "@noDiagnosticsHint": {},
+  "playbackDiagnosticsMaxEvents": "Log limit",
+  "@playbackDiagnosticsMaxEvents": {},
+  "playbackDiagnosticsMaxEventsDes": "Maximum playback and network events to keep for diagnostics",
+  "@playbackDiagnosticsMaxEventsDes": {},
+  "playbackDiagnosticsMaxEventsLabel": "Number of events",
+  "@playbackDiagnosticsMaxEventsLabel": {},
+  "playbackDiagnosticsMaxEventsHint": "1000",
+  "@playbackDiagnosticsMaxEventsHint": {}
 }
