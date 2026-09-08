@@ -10,11 +10,14 @@ class StreamProvider {
   StreamProvider(
       {required this.playable, this.audioFormats, this.statusMSG = ""});
 
-  static Future<StreamProvider> fetch(String videoId) async {
-    final yt = YoutubeExplode();
+  static Future<StreamProvider> fetch(String videoId,
+      {YoutubeExplode? youtubeExplode, bool requireWatchPage = true}) async {
+    final shouldClose = youtubeExplode == null;
+    final yt = youtubeExplode ?? YoutubeExplode();
 
     try {
-      final res = await yt.videos.streamsClient.getManifest(videoId);
+      final res = await yt.videos.streamsClient
+          .getManifest(videoId, requireWatchPage: requireWatchPage);
       final audio = res.audioOnly;
       return StreamProvider(
           playable: true,
@@ -64,6 +67,8 @@ class StreamProvider {
           statusMSG: "${e.runtimeType}: $e",
         );
       }
+    } finally {
+      if (shouldClose) yt.close();
     }
   }
 

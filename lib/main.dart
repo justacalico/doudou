@@ -15,6 +15,7 @@ import '/services/playback_diagnostics_service.dart';
 import 'utils/app_link_controller.dart';
 import '/services/android_auto_service.dart';
 import '/services/audio_handler.dart';
+import '/services/stream_resolver.dart';
 import '/services/playback_wakelock_service.dart';
 import '/services/discord_rpc_service.dart';
 import '/services/music_service.dart';
@@ -40,6 +41,7 @@ Future<void> main() async {
   await initHive();
   _setAppInitPrefs();
   Get.lazyPut(() => PlaybackDiagnosticsService(), fenix: true);
+  Get.put(StreamResolver(), permanent: true);
   Get.put<AudioHandler>(await initAudioService(), permanent: true);
   if (GetPlatform.isAndroid) {
     Get.put(PlaybackWakeLockService(), permanent: true);

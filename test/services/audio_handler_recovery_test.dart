@@ -5,6 +5,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:doudou/models/hm_streaming_data.dart';
 import 'package:doudou/services/audio_handler.dart';
 import 'package:doudou/services/playback_recovery.dart';
+import 'package:doudou/services/stream_resolver.dart';
 import 'package:doudou/services/stream_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -141,6 +142,10 @@ void main() {
     await appPrefs.clear();
     Get.reset();
     Get.put<SettingsScreenController>(FakeSettingsScreenController());
+    Get.put<StreamResolver>(StreamResolver(
+      fetcher: (songId, {requireWatchPage = true}) async =>
+          throw Exception('test-no-network'),
+    ));
     diag = FakePlaybackDiagnosticsService();
     delays = [];
     createdPlayers = [];

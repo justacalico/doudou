@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import '/utils/app_l10n.dart';
 import '/ui/screens/Library/library_controller.dart';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:flutter/services.dart';
 
 import 'package:hive/hive.dart';
 import 'package:get/get.dart';
@@ -22,10 +20,10 @@ import '/models/server.dart';
 import '../models/playlist.dart';
 import '/services/equalizer.dart';
 import '/services/stream_service.dart';
+import '/services/stream_resolver.dart';
 import '/models/hm_streaming_data.dart';
 import '/ui/player/player_controller.dart';
 import '../ui/screens/Home/home_screen_controller.dart';
-import '/services/background_task.dart';
 import '/services/permission_service.dart';
 import '/services/playback_wakelock_service.dart';
 import '/services/backend/backend_factory.dart';
@@ -35,7 +33,6 @@ import '/services/playback_transition_utils.dart';
 import '../utils/helper.dart';
 import '../utils/server_storage.dart';
 import '/models/media_Item_builder.dart';
-import '/services/utils.dart';
 import '../ui/screens/Settings/settings_screen_controller.dart';
 
 part 'audio_handler_media_library.dart';
@@ -63,6 +60,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   final List<StreamSubscription<dynamic>> _playerSubscriptions = [];
   final MediaLibrary _mediaLibrary;
   final PlaybackDiagnosticsService _diag;
+  final StreamResolver _streamResolver;
   final bool _testable;
   final bool _isApplePlatform;
   MediaLibrary get mediaLibrary => _mediaLibrary;
@@ -183,6 +181,13 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     );
   }
 
+  static StreamResolver _defaultStreamResolver() {
+    if (Get.isRegistered<StreamResolver>()) {
+      return Get.find<StreamResolver>();
+    }
+    return StreamResolver();
+  }
+
   MyAudioHandler({
     AudioPlayer? player,
     AudioPlayer Function()? playerFactory,
@@ -191,6 +196,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     StreamReachabilityCheck? reachabilityCheck,
     Future<void> Function(Duration)? recoveryDelay,
     bool? isApplePlatform,
+    StreamResolver? streamResolver,
   })  : _testable = player != null || playerFactory != null,
         _isApplePlatform =
             isApplePlatform ?? (GetPlatform.isIOS || GetPlatform.isMacOS),
@@ -199,7 +205,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         _recoveryDelay = recoveryDelay ?? Future.delayed,
         _player = player ?? (playerFactory ?? _createDefaultPlayer)(),
         _mediaLibrary = mediaLibrary ?? MediaLibrary(),
-        _diag = diagnostics ?? Get.find<PlaybackDiagnosticsService>() {
+        _diag = diagnostics ?? Get.find<PlaybackDiagnosticsService>(),
+        _streamResolver = streamResolver ?? _defaultStreamResolver() {
     if (_testable) {
       _cacheDir = '';
       _audioSourceReady = Future.value();
@@ -940,6 +947,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     } else {
       originalQueue = newQueue.toList();
     }
+    _streamResolver.prefetchQueue(newQueue, currentIndex);
   }
 
   @override
@@ -948,6 +956,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       ..replaceRange(0, this.queue.value.length, queue);
     this.queue.add(newQueue);
     originalQueue = queue.toList();
+    _streamResolver.prefetchQueue(newQueue, currentIndex);
   }
 
   @override
@@ -967,6 +976,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     } else {
       originalQueue = newQueue.toList();
     }
+    _streamResolver.prefetchQueue(newQueue, currentIndex);
   }
 
   // On iOS/macOS, AVPlayer misreads the container of some streams and reports
@@ -1150,6 +1160,17 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     }
   }
 
+  void _prefetchUpcoming() {
+    final idx = _safeCurrentIndex;
+    if (idx == null || queue.value.isEmpty) return;
+    final nextIndex = _getNextSongIndex();
+    if (nextIndex == idx) return;
+    final nextSong = queue.value[nextIndex];
+    if (nextSong.extras?['backendType'] == null) {
+      _streamResolver.prefetch(nextSong.id);
+    }
+  }
+
   @override
   Future<void> skipToNext() async {
     final index = _getNextSongIndex();
@@ -1219,6 +1240,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         }
         _playerSubscriptions.clear();
         await _player.dispose();
+        _streamResolver.dispose();
         super.stop();
         break;
 
@@ -1470,6 +1492,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           await _player.play();
           _ensurePlaybackStarted();
         }
+        _prefetchUpcoming();
         _diag.logEvent(
           category: 'player_event',
           message: 'play_by_index_complete',
@@ -2175,53 +2198,32 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       //in case file doesnot found in storage, song will be played online
       return checkNGetUrl(songId, offlineReplacementUrl: true);
     } else {
-      //check if song stream url is cached and allocate url accordingly
-      final songsUrlCacheBox = await Hive.openBox(songsUrlCacheBoxName(currentServerId()));
       final qualityIndex = Hive.box('AppPrefs').get('streamingQuality') ?? 1;
-      HMStreamingData? streamInfo;
-      if (songsUrlCacheBox.containsKey(songId) && !generateNewUrl) {
-        final streamInfoJson = songsUrlCacheBox.get(songId);
-        if (streamInfoJson.runtimeType.toString().contains("Map") &&
-            !isExpired(url: (streamInfoJson['lowQualityAudio']['url']))) {
-          _diag.logEvent(
-            category: 'stream_fetch',
-            message: 'hit_url_cache',
-            songId: songId,
-            backendType: backendType,
-            activeServerType: _safeServerType(),
-          );
-          printINFO("Got cached Url ($songId)");
-          streamInfo = HMStreamingData.fromJson(streamInfoJson);
-        }
-      }
 
-      if (streamInfo == null) {
-        _diag.logEvent(
-          category: 'stream_fetch',
-          message: 'fetching_stream_info',
-          songId: songId,
-          backendType: backendType,
-          activeServerType: _safeServerType(),
-        );
-        final startedAt = DateTime.now();
-        final token = RootIsolateToken.instance;
-        final streamInfoJson =
-            await Isolate.run(() => getStreamInfo(songId, token));
-        streamInfo = HMStreamingData.fromJson(streamInfoJson);
-        _diag.logEvent(
-          category: 'stream_fetch',
-          message: 'fetched_stream_info',
-          songId: songId,
-          backendType: backendType,
-          activeServerType: _safeServerType(),
-          data: {
-            'playable': streamInfo.playable,
-            'status': streamInfo.statusMSG,
-            'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
-          },
-        );
-        if (streamInfo.playable) songsUrlCacheBox.put(songId, streamInfoJson);
-      }
+      _diag.logEvent(
+        category: 'stream_fetch',
+        message: 'fetching_stream_info',
+        songId: songId,
+        backendType: backendType,
+        activeServerType: _safeServerType(),
+      );
+
+      final startedAt = DateTime.now();
+      final streamInfo =
+          await _streamResolver.resolve(songId, forceRefresh: generateNewUrl);
+
+      _diag.logEvent(
+        category: 'stream_fetch',
+        message: 'fetched_stream_info',
+        songId: songId,
+        backendType: backendType,
+        activeServerType: _safeServerType(),
+        data: {
+          'playable': streamInfo.playable,
+          'status': streamInfo.statusMSG,
+          'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
+        },
+      );
 
       streamInfo.setQualityIndex(qualityIndex as int);
       return streamInfo;

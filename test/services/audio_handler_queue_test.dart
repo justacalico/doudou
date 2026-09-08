@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:doudou/services/audio_handler.dart';
+import 'package:doudou/services/stream_resolver.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -67,6 +68,10 @@ void main() {
     await appPrefs.clear();
     Get.reset();
     Get.put<SettingsScreenController>(FakeSettingsScreenController());
+    Get.put<StreamResolver>(StreamResolver(
+      fetcher: (songId, {requireWatchPage = true}) async =>
+          throw Exception('test-no-network'),
+    ));
     player = MockAudioPlayer();
     when(() => player.position).thenReturn(Duration.zero);
     when(() => player.seek(Duration.zero)).thenAnswer((_) => Future.value());
