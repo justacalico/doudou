@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 22.0.0
 
+- Songs now start much faster on YouTube Music. Stream urls are resolved with a single InnerTube player request over a reused HTTP connection instead of downloading the watch page, extra manifests and per-stream checks, cutting several seconds off the time between tapping a song and hearing it. The previous pipeline still runs as a fallback for songs that need it.
 - The empty home screen now shows an icon, a short hint and a call to action instead of a lone line of text. With a server configured the button opens the Library tab to start adding music; with no server it goes to Settings to add one.
 - The search field's clear button now only appears once there is text to clear instead of sitting in the field permanently.
 - Increased the default playback diagnostics log limit from 400 to 1000 events and added a "Log limit" setting so users can change the number of stored diagnostic events to any value they want.
