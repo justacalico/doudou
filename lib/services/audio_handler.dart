@@ -2204,9 +2204,18 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           activeServerType: _safeServerType(),
         );
         final startedAt = DateTime.now();
-        final token = RootIsolateToken.instance;
-        final streamInfoJson =
-            await Isolate.run(() => getStreamInfo(songId, token));
+        // Fast path: a single InnerTube player call on this isolate reuses
+        // the shared HTTP connection, skipping the watch page download, the
+        // extra manifest fetches and the per-stream HEAD checks the full
+        // pipeline performs. The manifest pipeline runs in a new isolate
+        // only when the fast path can't produce a playable url.
+        var streamInfoJson =
+            (await StreamProvider.fetchViaInnertube(songId))?.hmStreamingData;
+        if (streamInfoJson == null) {
+          final token = RootIsolateToken.instance;
+          streamInfoJson = await Isolate.run(
+              () => getStreamInfo(songId, token, useInnertube: false));
+        }
         streamInfo = HMStreamingData.fromJson(streamInfoJson);
         _diag.logEvent(
           category: 'stream_fetch',
