@@ -169,6 +169,17 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (GetPlatform.isWindows || GetPlatform.isLinux) {
       JustAudioMediaKit.title = 'Doudou';
       JustAudioMediaKit.protocolWhitelist = const ['http', 'https', 'file'];
+      final diag = Get.find<PlaybackDiagnosticsService>();
+      if (diag.enabled) {
+        JustAudioMediaKit.mpvLogLevel = MPVLogLevel.v;
+        JustAudioMediaKit.onLog = (level, prefix, text) {
+          diag.logEvent(
+            category: 'mpv_log',
+            message: 'mpv_$prefix',
+            data: {'level': level, 'text': text},
+          );
+        };
+      }
       JustAudioMediaKit.ensureInitialized();
     }
     return AudioPlayer(
