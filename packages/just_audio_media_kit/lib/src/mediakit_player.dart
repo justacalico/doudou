@@ -62,6 +62,16 @@ class MediaKitPlayer extends AudioPlayerPlatform {
     if (JustAudioMediaKit.prefetchPlaylist) {
       setProperty(_player, 'prefetch-playlist', 'yes');
     }
+    setProperty(_player, 'cache-on-disk',
+        JustAudioMediaKit.cacheOnDisk ? 'yes' : 'no');
+    if (JustAudioMediaKit.cacheSeconds > 0) {
+      setProperty(_player, 'cache-secs',
+          JustAudioMediaKit.cacheSeconds.toString());
+    }
+    if (JustAudioMediaKit.demuxerReadaheadSeconds > 0) {
+      setProperty(_player, 'demuxer-readahead-secs',
+          JustAudioMediaKit.demuxerReadaheadSeconds.toString());
+    }
     if (JustAudioMediaKit.tlsCertFile != null) {
       setProperty(_player, 'tls-cert-file', JustAudioMediaKit.tlsCertFile!);
     }

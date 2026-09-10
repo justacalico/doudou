@@ -21,6 +21,20 @@ class JustAudioMediaKit extends JustAudioPlatform {
   /// Sets the demuxer's cache size (in bytes)
   static int bufferSize = 32 * 1024 * 1024;
 
+  /// How many seconds of audio mpv should buffer before starting playback.
+  /// Lower values make songs start faster at the cost of more rebuffering on
+  /// slow connections. Set to 0 to let mpv use its default.
+  static double cacheSeconds = 1;
+
+  /// Whether mpv writes the demuxer cache to disk. Disk caching adds I/O
+  /// overhead on every stream open, which slows down song starts. Disabled by
+  /// default for audio playback where in-memory caching is enough.
+  static bool cacheOnDisk = false;
+
+  /// How far ahead the demuxer reads beyond the playback position, in seconds.
+  /// Lower values reduce the initial data mpv pulls before playback starts.
+  static double demuxerReadaheadSeconds = 0.5;
+
   /// Sets the name of the underlying window & process for native backend. This is visible inside the Windows' volume mixer.
   static String title = 'JustAudioMediaKit';
 

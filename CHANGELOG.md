@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 22.0.0
 
+- Songs start playing faster. The next track's stream URL is now resolved in the background while the current song is still playing, so skipping ahead no longer waits on a network request. Duplicate requests for the same song are coalesced into a single fetch. On Linux and Windows, the underlying mpv player no longer writes its demuxer cache to disk and targets a smaller initial buffer, cutting several seconds off the delay between tapping a song and hearing audio.
 - Songs now start much faster on YouTube Music. Stream urls are resolved with a single InnerTube player request over a reused HTTP connection instead of downloading the watch page, extra manifests and per-stream checks, cutting several seconds off the time between tapping a song and hearing it. The previous pipeline still runs as a fallback for songs that need it.
 - The empty home screen now shows an icon, a short hint and a call to action instead of a lone line of text. With a server configured the button opens the Library tab to start adding music; with no server it goes to Settings to add one.
 - The search field's clear button now only appears once there is text to clear instead of sitting in the field permanently.

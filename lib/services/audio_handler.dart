@@ -22,6 +22,7 @@ import '/models/server.dart';
 import '../models/playlist.dart';
 import '/services/equalizer.dart';
 import '/services/stream_service.dart';
+import '/services/stream_prefetcher.dart';
 import '/models/hm_streaming_data.dart';
 import '/ui/player/player_controller.dart';
 import '../ui/screens/Home/home_screen_controller.dart';
@@ -63,6 +64,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   final List<StreamSubscription<dynamic>> _playerSubscriptions = [];
   final MediaLibrary _mediaLibrary;
   final PlaybackDiagnosticsService _diag;
+  late final StreamPrefetcher _prefetcher;
   final bool _testable;
   final bool _isApplePlatform;
   MediaLibrary get mediaLibrary => _mediaLibrary;
@@ -200,6 +202,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         _player = player ?? (playerFactory ?? _createDefaultPlayer)(),
         _mediaLibrary = mediaLibrary ?? MediaLibrary(),
         _diag = diagnostics ?? Get.find<PlaybackDiagnosticsService>() {
+    _prefetcher = StreamPrefetcher((String songId,
+            {bool generateNewUrl = false,
+            bool offlineReplacementUrl = false,
+            Map<String, dynamic>? extras}) =>
+        checkNGetUrl(songId,
+            generateNewUrl: generateNewUrl,
+            offlineReplacementUrl: offlineReplacementUrl,
+            extras: extras));
     if (_testable) {
       _cacheDir = '';
       _audioSourceReady = Future.value();
@@ -940,6 +950,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     } else {
       originalQueue = newQueue.toList();
     }
+    if (!_testable) {
+      _prefetcher.prefetchCurrentAndNext(queue.value, _safeCurrentIndex);
+    }
   }
 
   @override
@@ -948,6 +961,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       ..replaceRange(0, this.queue.value.length, queue);
     this.queue.add(newQueue);
     originalQueue = queue.toList();
+    if (!_testable) {
+      _prefetcher.prefetchCurrentAndNext(this.queue.value, _safeCurrentIndex);
+    }
   }
 
   @override
@@ -1265,7 +1281,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             'restoreSession': extras['restoreSession'] ?? false,
           },
         );
-        final futureStreamInfo = checkNGetUrl(currentSong.id,
+        final futureStreamInfo = _prefetcher.resolve(currentSong.id,
             generateNewUrl: isNewUrlReq, extras: currentSong.extras);
         final bool restoreSession = extras['restoreSession'] ?? false;
         _beginSongLoad();
@@ -1478,6 +1494,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           activeServerType: _safeServerType(),
           data: {'playing': _player.playing},
         );
+        _prefetcher.prefetchNext(queue.value, _safeCurrentIndex);
         break;
 
       case 'checkWithCacheDb':
@@ -1530,7 +1547,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           activeServerType: _safeServerType(),
         );
         final futureStreamInfo =
-            checkNGetUrl(currMed.id, extras: currMed.extras);
+            _prefetcher.resolve(currMed.id, extras: currMed.extras);
         _beginSongLoad();
         currentIndex = 0;
         final HMStreamingData streamInfo;
@@ -1655,6 +1672,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         await _player.seek(Duration.zero);
         await _player.play();
         _ensurePlaybackStarted();
+        _prefetcher.prefetchNext(queue.value, _safeCurrentIndex);
         break;
 
       case 'toggleSkipSilence':
