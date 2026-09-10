@@ -62,6 +62,30 @@ class MediaKitPlayer extends AudioPlayerPlatform {
     if (JustAudioMediaKit.prefetchPlaylist) {
       setProperty(_player, 'prefetch-playlist', 'yes');
     }
+    setProperty(_player, 'cache-on-disk',
+        JustAudioMediaKit.cacheOnDisk ? 'yes' : 'no');
+    if (JustAudioMediaKit.cacheSeconds > 0) {
+      setProperty(_player, 'cache-secs',
+          JustAudioMediaKit.cacheSeconds.toString());
+    }
+    if (JustAudioMediaKit.demuxerReadaheadSeconds > 0) {
+      setProperty(_player, 'demuxer-readahead-secs',
+          JustAudioMediaKit.demuxerReadaheadSeconds.toString());
+    }
+    setProperty(_player, 'cache-pause',
+        JustAudioMediaKit.cachePause ? 'yes' : 'no');
+    if (JustAudioMediaKit.cachePause) {
+      setProperty(_player, 'cache-pause-wait',
+          JustAudioMediaKit.cachePauseWaitSeconds.toString());
+    }
+    if (JustAudioMediaKit.demuxerLavfAnalyzeSeconds >= 0) {
+      setProperty(_player, 'demuxer-lavf-analyzeduration',
+          JustAudioMediaKit.demuxerLavfAnalyzeSeconds.toString());
+    }
+    setProperty(_player, 'demuxer-lavf-probe-info',
+        JustAudioMediaKit.demuxerLavfProbeInfo ? 'yes' : 'no');
+    setProperty(_player, 'demuxer-lavf-probesize',
+        JustAudioMediaKit.demuxerLavfProbeSize.toString());
     if (JustAudioMediaKit.tlsCertFile != null) {
       setProperty(_player, 'tls-cert-file', JustAudioMediaKit.tlsCertFile!);
     }
@@ -179,6 +203,7 @@ class MediaKitPlayer extends AudioPlayerPlatform {
       _player.stream.log.listen((event) {
         // ignore: avoid_print
         print("MPV: [${event.level}] ${event.prefix}: ${event.text}");
+        JustAudioMediaKit.onLog?.call(event.level, event.prefix, event.text);
       }),
     ];
   }
@@ -366,8 +391,15 @@ class MediaKitPlayer extends AudioPlayerPlatform {
         request.children.map(_convertAudioSourceIntoMediaKit).toList();
 
     if (_player.state.playlist.medias.isEmpty) {
+      // For a single item, use the media directly so media_kit can issue a
+      // plain loadfile instead of writing a playlist to disk and calling
+      // loadlist. This removes the temp file round-trip for the common case
+      // of starting playback on one song.
+      final playable = medias.length == 1
+          ? medias.first
+          : Playlist(medias, index: request.index);
       await _player.open(
-        Playlist(medias, index: request.index),
+        playable,
         play: _playing,
       );
       return ConcatenatingInsertAllResponse();

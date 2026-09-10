@@ -10,6 +10,8 @@ import 'package:logging/logging.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+export 'package:media_kit/media_kit.dart' show MPVLogLevel;
+
 class JustAudioMediaKit extends JustAudioPlatform {
   JustAudioMediaKit._();
 
@@ -18,8 +20,53 @@ class JustAudioMediaKit extends JustAudioPlatform {
   /// The internal MPV player's logLevel
   static MPVLogLevel mpvLogLevel = MPVLogLevel.error;
 
+  /// Called for every line mpv emits. Wired up by the host app to feed mpv's
+  /// internal logs into playback diagnostics.
+  static void Function(String level, String prefix, String text)? onLog;
+
   /// Sets the demuxer's cache size (in bytes)
   static int bufferSize = 32 * 1024 * 1024;
+
+  /// How many seconds of audio mpv should buffer before starting playback.
+  /// Lower values make songs start faster at the cost of more rebuffering on
+  /// slow connections. Set to 0 to let mpv use its default.
+  static double cacheSeconds = 1;
+
+  /// Whether mpv writes the demuxer cache to disk. Disk caching adds I/O
+  /// overhead on every stream open, which slows down song starts. Disabled by
+  /// default for audio playback where in-memory caching is enough.
+  static bool cacheOnDisk = false;
+
+  /// How far ahead the demuxer reads beyond the playback position, in seconds.
+  /// Lower values reduce the initial data mpv pulls before playback starts.
+  static double demuxerReadaheadSeconds = 0.5;
+
+  /// Whether mpv pauses to wait for the demuxer cache to fill. When disabled,
+  /// playback resumes as soon as the demuxer is ready instead of blocking on a
+  /// cache target. Combined with the small readahead above this makes songs
+  /// start noticeably sooner on slow first connections.
+  static bool cachePause = false;
+
+  /// Seconds to wait when pausing for cache before resuming anyway. Only used
+  /// when [cachePause] is true.
+  static double cachePauseWaitSeconds = 0.5;
+
+  /// Seconds FFmpeg spends analyzing a stream to detect its format. mpv's
+  /// default is 5, which is a large part of the "buffering" delay before the
+  /// first note plays. Audio streams from YouTube are standard containers and
+  /// don't need much probing.
+  static double demuxerLavfAnalyzeSeconds = 0.5;
+
+  /// Whether FFmpeg probes the stream for extra info (duration, bitrate,
+  /// metadata) beyond what the container header already provides. Disabling
+  /// skips that probe entirely. Set to true if durations come back wrong.
+  static bool demuxerLavfProbeInfo = false;
+
+  /// The maximum number of bytes FFmpeg reads to detect the container format.
+  /// mpv's default is 5 MB. For standard audio streams the header is at the
+  /// start, so 64 KB is enough and avoids reading large parts of a file just
+  /// for probing.
+  static int demuxerLavfProbeSize = 64 * 1024;
 
   /// Sets the name of the underlying window & process for native backend. This is visible inside the Windows' volume mixer.
   static String title = 'JustAudioMediaKit';
