@@ -21,6 +21,7 @@ import '/ui/player/player_controller.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
 import '../../../utils/app_l10n.dart';
 import '../../../utils/helper.dart';
+import '../../../utils/queue_shuffler.dart';
 import '../../../utils/server_storage.dart';
 import '../../../utils/update_check_flag_file.dart';
 import '../Library/library_controller.dart';
@@ -866,7 +867,7 @@ class HomeScreenController extends GetxController {
       Get.snackbar('', emptyMessage);
       return;
     }
-    list.shuffle();
+    list = shuffledSongs(list);
     await Get.find<PlayerController>().playPlayListSong(
       list,
       0,
@@ -906,7 +907,7 @@ class HomeScreenController extends GetxController {
       Get.snackbar('', emptyMessage);
       return;
     }
-    list.shuffle();
+    list = shuffledSongs(list);
     await Get.find<PlayerController>().playPlayListSong(
       list,
       0,
@@ -919,12 +920,12 @@ class HomeScreenController extends GetxController {
     required String emptyMessage,
     required String playFromName,
   }) async {
-    final list = _safeMediaItemsFromIterable(Hive.box(songDownloadsBoxName(currentServerId())).values);
+    var list = _safeMediaItemsFromIterable(Hive.box(songDownloadsBoxName(currentServerId())).values);
     if (list.isEmpty) {
       Get.snackbar('', emptyMessage);
       return;
     }
-    list.shuffle();
+    list = shuffledSongs(list);
     await Get.find<PlayerController>().playPlayListSong(
       list,
       0,
