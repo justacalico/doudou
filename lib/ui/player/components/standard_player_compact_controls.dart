@@ -44,29 +44,17 @@ class _CompactControls extends StatelessWidget {
             ),
           ),
           SizedBox(width: gapMedium),
-          Obx(() {
-            final playing = pc.buttonState.value == PlayButtonState.playing;
-            return GestureDetector(
-              onTap: () => pc.playPause(),
-              child: Container(
-                width: playButtonSize,
-                height: playButtonSize,
-                decoration: BoxDecoration(
-                  color: white.withValues(alpha: 0.14),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: white.withValues(alpha: 0.24),
-                    width: 0.6,
-                  ),
-                ),
-                child: Icon(
-                  playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  color: white,
-                  size: playIconSize,
-                ),
-              ),
-            );
-          }),
+          NowPlayingPlayButton(
+            controller: pc,
+            size: playButtonSize,
+            iconSize: playIconSize,
+            backgroundColor: white.withValues(alpha: 0.14),
+            iconColor: white,
+            border: Border.all(
+              color: white.withValues(alpha: 0.24),
+              width: 0.6,
+            ),
+          ),
           SizedBox(width: gapMedium),
           GestureDetector(
             onTap: pc.next,

@@ -11,6 +11,7 @@ import '../../widgets/songinfo_bottom_sheet.dart';
 import '../player_controller.dart';
 import 'background_image.dart';
 import 'lyrics_widget.dart';
+import 'now_playing_play_button.dart';
 import 'player_mobile_bottom_bar.dart';
 import '../../widgets/sliding_up_panel.dart';
 
@@ -354,29 +355,14 @@ class _WideShortNowPlayingStrip extends StatelessWidget {
                             icon: Icon(Icons.skip_previous_rounded,
                                 size: 28, color: textColor),
                           ),
-                          Obx(() {
-                            final playing =
-                                pc.buttonState.value == PlayButtonState.playing;
-                            return GestureDetector(
-                              onTap: () => pc.playPause(),
-                              child: Container(
-                                width: ultraCompact ? 48 : 52,
-                                height: ultraCompact ? 48 : 52,
-                                decoration: BoxDecoration(
-                                  color: textColor,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  playing
-                                      ? Icons.pause_rounded
-                                      : Icons.play_arrow_rounded,
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  size: 30,
-                                ),
-                              ),
-                            );
-                          }),
+                          NowPlayingPlayButton(
+                            controller: pc,
+                            size: ultraCompact ? 48 : 52,
+                            iconSize: 30,
+                            backgroundColor: textColor,
+                            iconColor:
+                                Theme.of(context).scaffoldBackgroundColor,
+                          ),
                           IconButton(
                             onPressed: pc.next,
                             icon: Icon(Icons.skip_next_rounded,

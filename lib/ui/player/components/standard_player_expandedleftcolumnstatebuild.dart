@@ -246,28 +246,13 @@ mixin _ExpandedLeftColumnStateBuildMixin on _ExpandedLeftColumnStateBase {
                             size: 32, color: textColor),
                       ),
                       SizedBox(width: metrics.controlGapSmall),
-                      Obx(() {
-                        final playing =
-                            pc.buttonState.value == PlayButtonState.playing;
-                        return GestureDetector(
-                          onTap: () => pc.playPause(),
-                          child: Container(
-                            width: metrics.playButtonSize,
-                            height: metrics.playButtonSize,
-                            decoration: BoxDecoration(
-                              color: textColor,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              playing
-                                  ? Icons.pause_rounded
-                                  : Icons.play_arrow_rounded,
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              size: 36,
-                            ),
-                          ),
-                        );
-                      }),
+                      NowPlayingPlayButton(
+                        controller: pc,
+                        size: metrics.playButtonSize,
+                        iconSize: 36,
+                        backgroundColor: textColor,
+                        iconColor: Theme.of(context).scaffoldBackgroundColor,
+                      ),
                       const SizedBox(width: 16),
                       IconButton(
                         onPressed: pc.next,
