@@ -33,6 +33,7 @@ import '/services/backend/backend_factory.dart';
 import '/services/playback_diagnostics_service.dart';
 import '/services/playback_recovery.dart';
 import '/services/playback_transition_utils.dart';
+import '/services/background_task_guard.dart';
 import '../utils/helper.dart';
 import '../utils/server_storage.dart';
 import '/models/media_Item_builder.dart';
@@ -64,6 +65,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   final List<StreamSubscription<dynamic>> _playerSubscriptions = [];
   final MediaLibrary _mediaLibrary;
   final PlaybackDiagnosticsService _diag;
+  late final BackgroundTaskGuard _backgroundGuard;
   late final StreamPrefetcher _prefetcher;
   final bool _testable;
   final bool _isApplePlatform;
@@ -85,6 +87,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   int _playRequestSeq = 0;
   int _activePlayRequestId = 0;
   int _suppressAutoAdvanceUntilMs = 0;
+  // Token of the background task held for the in-flight transition, so a
+  // superseding request can release the old hold instead of letting it
+  // expire and log a false wedge.
+  int? _transitionTaskToken;
   // Set when isSongLoading is flagged so a suspended or killed fetch can be
   // detected as a wedge instead of suppressing auto-advance forever.
   int _songLoadingSinceMs = 0;
@@ -203,6 +209,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     PlaybackDiagnosticsService? diagnostics,
     StreamReachabilityCheck? reachabilityCheck,
     Future<void> Function(Duration)? recoveryDelay,
+    BackgroundTaskGuard? backgroundTaskGuard,
     bool? isApplePlatform,
   })  : _testable = player != null || playerFactory != null,
         _isApplePlatform =
@@ -213,6 +220,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         _player = player ?? (playerFactory ?? _createDefaultPlayer)(),
         _mediaLibrary = mediaLibrary ?? MediaLibrary(),
         _diag = diagnostics ?? Get.find<PlaybackDiagnosticsService>() {
+    _backgroundGuard = backgroundTaskGuard ?? BackgroundTaskGuard();
+    _backgroundGuard.onExpired = _onBackgroundTaskExpired;
     _prefetcher = StreamPrefetcher((String songId,
             {bool generateNewUrl = false,
             bool offlineReplacementUrl = false,
@@ -280,8 +289,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   void _syncPlaybackWakeLock(bool playing) {
     if (!GetPlatform.isAndroid) return;
     final state = _player.processingState;
-    final shouldHold =
-        playing && state != ProcessingState.completed && state != ProcessingState.idle;
+    final shouldHold = playing &&
+        state != ProcessingState.completed &&
+        state != ProcessingState.idle;
     try {
       final svc = Get.find<PlaybackWakeLockService>();
       if (shouldHold) {
@@ -301,8 +311,41 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     ));
   }
 
+  /// Once real playback resumes the app holds the background-audio
+  /// entitlement again and any task acquired for a transition or recovery is
+  /// redundant. isSongLoading keeps stale pre-swap events from releasing a
+  /// hold the in-flight transition still needs; a live ready+playing state
+  /// can only come from the new source by the time loading clears.
+  void _releaseBackgroundTasksIfPlaying(bool playing) {
+    if (!_backgroundGuard.isHeld) return;
+    if (isSongLoading) return;
+    if (!playing || _player.processingState != ProcessingState.ready) return;
+    unawaited(_releaseAllBackgroundTasks());
+  }
+
+  Future<void> _releaseAllBackgroundTasks() {
+    _transitionTaskToken = null;
+    return _backgroundGuard.releaseAll();
+  }
+
+  void _onBackgroundTaskExpired() {
+    _diag.logEvent(
+      category: 'recovery',
+      message: 'background_task_hold_expired',
+      songId: _safeCurrentSongId(),
+      backendType: _safeBackendType(),
+      activeServerType: _safeServerType(),
+      data: {
+        'isSongLoading': isSongLoading,
+        'processingState': _player.processingState.name,
+        'playing': _player.playing,
+      },
+    );
+  }
+
   void _onPlaybackEvent(PlaybackEvent event) {
     final playing = _player.playing;
+    _releaseBackgroundTasksIfPlaying(playing);
     _syncPlaybackWakeLock(playing);
     if (_lastLoggedProcessingState != _player.processingState) {
       _lastLoggedProcessingState = _player.processingState;
@@ -452,6 +495,13 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   @visibleForTesting
   int get debugConsecutivePlayerFailures => _consecutivePlayerFailures;
 
+  @visibleForTesting
+  BackgroundTaskGuard get debugBackgroundTaskGuard => _backgroundGuard;
+
+  @visibleForTesting
+  void debugReleaseBackgroundTasksIfPlaying() =>
+      _releaseBackgroundTasksIfPlaying(_player.playing);
+
   void _resetPlayerRecoveryBudget() {
     _consecutivePlayerFailures = 0;
     _lastPlayerFailureSongId = '';
@@ -492,6 +542,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       return;
     }
     _playerRecoveryRunning = true;
+    // Retries sit out their backoff with nothing playing; without a held
+    // task a locked iOS app can be suspended during the delay and the
+    // recovery never gets to run.
+    unawaited(_backgroundGuard.acquire(name: 'playback-recovery'));
     try {
       while (_pendingPlayerRecovery != null) {
         final next = _pendingPlayerRecovery!;
@@ -503,8 +557,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     }
   }
 
-  Future<void> _runPlayerRecoveryAttempt(
-      _PendingPlayerRecovery pending) async {
+  Future<void> _runPlayerRecoveryAttempt(_PendingPlayerRecovery pending) async {
     final isConnectionError = isPlayerConnectionError(pending.error);
     final deadStreamProxy = isDeadStreamProxyError(pending.error,
         isApplePlatform: _isApplePlatform);
@@ -732,6 +785,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       {bool offline = false}) {
     isSongLoading = false;
     currentSongUrl = null;
+    // Terminal failure: nothing is going to play, so drop the hold and let
+    // the app suspend again.
+    unawaited(_releaseAllBackgroundTasks());
     final message = offline
         ? 'networkError: no internet connection'
         : isConnectionError
@@ -885,8 +941,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
   void _listenForSequenceStateChanges() {
-    _playerSubscriptions.add(
-        _player.sequenceStateStream.listen((SequenceState? sequenceState) {
+    _playerSubscriptions
+        .add(_player.sequenceStateStream.listen((SequenceState? sequenceState) {
       final sequence = sequenceState?.effectiveSequence;
       if (sequence == null || sequence.isEmpty) return;
     }));
@@ -1075,8 +1131,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           'com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip',
       'ANDROID_MUSIC':
           'com.google.android.youtube/19.29.1 (Linux; U; Android 11) gzip',
-      'TVHTML5':
-          'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version,gzip(gfe)',
+      'TVHTML5': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version,gzip(gfe)',
       'MWEB':
           'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36',
       'MEDIA_CONNECT_FRONTEND':
@@ -1241,6 +1296,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     switch (name) {
       case 'dispose':
         _syncPlaybackWakeLock(false);
+        unawaited(_releaseAllBackgroundTasks());
         for (final subscription in _playerSubscriptions) {
           unawaited(subscription.cancel());
         }
@@ -1292,12 +1348,26 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             'restoreSession': extras['restoreSession'] ?? false,
           },
         );
-        final futureStreamInfo = _prefetcher.resolve(currentSong.id,
-            generateNewUrl: isNewUrlReq, extras: currentSong.extras);
-        final bool restoreSession = extras['restoreSession'] ?? false;
         _beginSongLoad();
         playbackState.add(playbackState.value
             .copyWith(processingState: AudioProcessingState.loading));
+        // Keep the process alive until the new source is playing: between
+        // clearing the current source and the next one outputting audio the
+        // app has no background-audio entitlement, and iOS suspending a
+        // locked app inside that gap leaves the platform calls and the
+        // loopback stream proxy dead. Released on ready+playing, on terminal
+        // failure, or by the guard's own time cap. This must run before
+        // resolve(): an await in between lets an erroring fetch complete with
+        // no listener attached, which the zone reports as unhandled even
+        // though the try below still catches it.
+        final previousTaskToken = _transitionTaskToken;
+        _transitionTaskToken = await _backgroundGuard.acquire();
+        if (previousTaskToken != null) {
+          unawaited(_backgroundGuard.release(previousTaskToken));
+        }
+        final futureStreamInfo = _prefetcher.resolve(currentSong.id,
+            generateNewUrl: isNewUrlReq, extras: currentSong.extras);
+        final bool restoreSession = extras['restoreSession'] ?? false;
         // Resolve the next stream URL before tearing down the current source.
         // Clearing the playlist first stops playback immediately, which drops
         // the app's iOS background-audio entitlement while the fetch is still
@@ -1316,12 +1386,11 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             activeServerType: _safeServerType(),
             data: {'error': fetchError.toString()},
           );
-          printERROR(
-              'playByIndex stream fetch failed: $fetchError\n$fetchSt');
+          printERROR('playByIndex stream fetch failed: $fetchError\n$fetchSt');
           currentSongUrl = null;
           isSongLoading = false;
-          _surfacePlaybackRecoveryFailure(fetchError,
-              isPlayerConnectionError(fetchError));
+          _surfacePlaybackRecoveryFailure(
+              fetchError, isPlayerConnectionError(fetchError));
           return;
         }
         if (_isStalePlayRequest(requestId)) {
@@ -1516,14 +1585,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
               await File("$_cacheDir/cachedSongs/${song.id}.mp3").exists()) {
             song.extras!['url'] = currentSongUrl;
             song.extras!['date'] = DateTime.now().millisecondsSinceEpoch;
-            final dbStreamData = Hive.box(songsUrlCacheBoxName(currentServerId())).get(song.id);
+            final dbStreamData =
+                Hive.box(songsUrlCacheBoxName(currentServerId())).get(song.id);
             final jsonData = MediaItemBuilder.toJson(song);
             // Never persist the raw player duration: on iOS/macOS AVPlayer can
             // report ~2x the real length, which would corrupt the stored
             // duration and later defeat the doubled-duration correction.
             jsonData['duration'] =
-                (_effectiveCurrentTrackDuration() ?? song.duration)
-                    ?.inSeconds;
+                (_effectiveCurrentTrackDuration() ?? song.duration)?.inSeconds;
             // playbility status and info
             jsonData['streamInfo'] = dbStreamData != null
                 ? [
@@ -1557,10 +1626,18 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           backendType: currMed.extras?['backendType']?.toString(),
           activeServerType: _safeServerType(),
         );
-        final futureStreamInfo =
-            _prefetcher.resolve(currMed.id, extras: currMed.extras);
         _beginSongLoad();
         currentIndex = 0;
+        // Same suspension gap as playByIndex: hold the process until the new
+        // source is actually outputting audio. Must precede resolve() so the
+        // fetch future never completes unlistened while this await suspends.
+        final previousTaskToken = _transitionTaskToken;
+        _transitionTaskToken = await _backgroundGuard.acquire();
+        if (previousTaskToken != null) {
+          unawaited(_backgroundGuard.release(previousTaskToken));
+        }
+        final futureStreamInfo =
+            _prefetcher.resolve(currMed.id, extras: currMed.extras);
         final HMStreamingData streamInfo;
         try {
           streamInfo = await futureStreamInfo;
@@ -1577,8 +1654,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
               'setSourceNPlay stream fetch failed: $fetchError\n$fetchSt');
           currentSongUrl = null;
           isSongLoading = false;
-          _surfacePlaybackRecoveryFailure(fetchError,
-              isPlayerConnectionError(fetchError));
+          _surfacePlaybackRecoveryFailure(
+              fetchError, isPlayerConnectionError(fetchError));
           return;
         }
         if (_player.processingState == ProcessingState.completed) {
@@ -1701,15 +1778,19 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         if (loudnessNormalizationEnabled) {
           try {
             final currentSongId = (queue.value[currentIndex]).id;
-            if (Hive.box(songsUrlCacheBoxName(currentServerId())).containsKey(currentSongId)) {
-              final songJson = Hive.box(songsUrlCacheBoxName(currentServerId())).get(currentSongId);
+            if (Hive.box(songsUrlCacheBoxName(currentServerId()))
+                .containsKey(currentSongId)) {
+              final songJson = Hive.box(songsUrlCacheBoxName(currentServerId()))
+                  .get(currentSongId);
               _normalizeVolume((songJson)["highQualityAudio"]["loudnessDb"]);
               return;
             }
 
-            if (Hive.box(songDownloadsBoxName(currentServerId())).containsKey(currentSongId)) {
+            if (Hive.box(songDownloadsBoxName(currentServerId()))
+                .containsKey(currentSongId)) {
               final streamInfo =
-                  (Hive.box(songDownloadsBoxName(currentServerId())).get(currentSongId))["streamInfo"];
+                  (Hive.box(songDownloadsBoxName(currentServerId()))
+                      .get(currentSongId))["streamInfo"];
 
               _normalizeVolume(
                   streamInfo == null ? 0 : streamInfo[1]["loudnessDb"]);
@@ -2000,8 +2081,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
     // extras from native Android Auto are usually null, so fall back
     // to the last browsed album/playlist ID tracked by MediaLibrary
-    final libraryId = extras?['libraryId']?.toString() ??
-        _mediaLibrary._lastBrowseId;
+    final libraryId =
+        extras?['libraryId']?.toString() ?? _mediaLibrary._lastBrowseId;
     printINFO('playFromMediaId: mediaId=$mediaId, libraryId=$libraryId');
     customEvent.add({
       'eventType': 'playFromMediaId',
@@ -2023,6 +2104,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
   @override
   Future<void> stop() async {
+    unawaited(_releaseAllBackgroundTasks());
     await _player.stop();
     return super.stop();
   }
@@ -2110,7 +2192,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     }
     final songDownloadsBox = Hive.box(songDownloadsBoxName(currentServerId()));
     if (!offlineReplacementUrl &&
-        (await Hive.openBox(songsCacheBoxName(currentServerId()))).containsKey(songId)) {
+        (await Hive.openBox(songsCacheBoxName(currentServerId())))
+            .containsKey(songId)) {
       _diag.logEvent(
         category: 'stream_fetch',
         message: 'hit_songs_cache',
@@ -2120,7 +2203,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       );
       printINFO("Got Song from cachedbox ($songId)");
       // if contains stream Info
-      final streamInfo = Hive.box(songsCacheBoxName(currentServerId())).get(songId)["streamInfo"];
+      final streamInfo = Hive.box(songsCacheBoxName(currentServerId()))
+          .get(songId)["streamInfo"];
       Audio? cacheAudioPlaceholder;
       if (streamInfo != null && streamInfo.isNotEmpty) {
         streamInfo[1]['url'] = "file://$_cacheDir/cachedSongs/$songId.mp3";
@@ -2205,7 +2289,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       return checkNGetUrl(songId, offlineReplacementUrl: true);
     } else {
       //check if song stream url is cached and allocate url accordingly
-      final songsUrlCacheBox = await Hive.openBox(songsUrlCacheBoxName(currentServerId()));
+      final songsUrlCacheBox =
+          await Hive.openBox(songsUrlCacheBoxName(currentServerId()));
       final qualityIndex = Hive.box('AppPrefs').get('streamingQuality') ?? 1;
       HMStreamingData? streamInfo;
       if (songsUrlCacheBox.containsKey(songId) && !generateNewUrl) {

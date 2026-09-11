@@ -56,6 +56,13 @@ previously per-version files that lived under `changelog/`.
   dead so auto-advance can recover on its own. Skip transitions also no
   longer rewind the still-playing song, which briefly restarted the old
   track from the beginning while the next stream URL was being fetched.
+- Fixed songs stopping or the next queued track never starting on iOS while
+  the phone was locked. Even with the next URL resolved up front, iOS could
+  suspend the app in the gap between the old source stopping and the new one
+  playing, stalling the platform calls and the local stream proxy until the
+  app happened to wake again. Track changes and error retries now hold an
+  iOS background task across that gap, released once playback is confirmed,
+  on a terminal error, or safely before the system's grant expires.
 
 ## 21.0.0 - 2026-08-05
 
