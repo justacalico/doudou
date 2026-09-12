@@ -35,6 +35,7 @@ import '/services/playback_recovery.dart';
 import '/services/playback_transition_utils.dart';
 import '/services/background_task_guard.dart';
 import '../utils/helper.dart';
+import '../utils/queue_shuffler.dart';
 import '../utils/server_storage.dart';
 import '/models/media_Item_builder.dart';
 import '/services/utils.dart';
@@ -1006,7 +1007,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (shuffleModeEnabled) {
       originalQueue.addAll(mediaItems);
       final effectiveQueue = newQueue.toList();
-      final insertItems = mediaItems.toList()..shuffle();
+      final insertItems = shuffledSongs(mediaItems);
       final insertAt =
           ((currentIndex ?? 0) + 1).clamp(0, effectiveQueue.length);
       effectiveQueue
@@ -1802,16 +1803,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         break;
 
       case 'shuffleQueue':
-        final currentQueue = queue.value;
-        final currentItem = currentQueue[currentIndex];
-        currentQueue.remove(currentItem);
-        currentQueue.shuffle();
-        currentQueue.insert(0, currentItem);
-        queue.add(currentQueue);
+        final currentItem = queue.value[currentIndex];
+        final rest = queue.value.toList()..remove(currentItem);
+        final shuffled = [currentItem, ...shuffledSongs(rest)];
+        queue.add(shuffled);
         mediaItem.add(currentItem);
         currentIndex = 0;
-        originalQueue = currentQueue.toList();
-        shuffledQueue = currentQueue.map((item) => item.id).toList();
+        originalQueue = shuffled.toList();
+        shuffledQueue = shuffled.map((item) => item.id).toList();
         break;
 
       case 'reorderQueue':
@@ -1922,8 +1921,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (currentQueue.isEmpty) return;
     final safeIndex = index.clamp(0, currentQueue.length - 1);
     final currentSong = currentQueue.removeAt(safeIndex);
-    currentQueue.shuffle();
-    final shuffled = [currentSong, ...currentQueue];
+    final shuffled = [currentSong, ...shuffledSongs(currentQueue)];
     queue.add(shuffled);
     currentIndex = 0;
     mediaItem.add(currentSong);
@@ -1936,8 +1934,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (currentQueue.isEmpty) return;
     final activeIndex = (currentIndex ?? 0).clamp(0, currentQueue.length - 1);
     final currentSong = currentQueue.removeAt(activeIndex);
-    currentQueue.shuffle();
-    final reshuffled = [currentSong, ...currentQueue];
+    final reshuffled = [currentSong, ...shuffledSongs(currentQueue)];
     queue.add(reshuffled);
     currentIndex = 0;
     mediaItem.add(currentSong);
