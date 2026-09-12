@@ -65,6 +65,10 @@ previously per-version files that lived under `changelog/`.
   app happened to wake again. Track changes and error retries now hold an
   iOS background task across that gap, released once playback is confirmed,
   on a terminal error, or safely before the system's grant expires.
+- The now playing song and queue update the moment a track is tapped instead
+  of waiting for the stream URL to resolve. On slow networks the player
+  shows the new song with the loading spinner while the URL is fetched,
+  rather than appearing to still play the previous song until then.
 
 ## 21.0.0 - 2026-08-05
 
