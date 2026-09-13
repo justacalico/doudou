@@ -1350,8 +1350,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           },
         );
         _beginSongLoad();
-        playbackState.add(playbackState.value
-            .copyWith(processingState: AudioProcessingState.loading));
+        // Publish the requested song and loading state before the url fetch:
+        // on a slow network the fetch can take seconds and the UI should show
+        // the new track with the spinner, not the previous song.
+        playbackState.add(playbackState.value.copyWith(
+          processingState: AudioProcessingState.loading,
+          queueIndex: currentIndex,
+        ));
+        mediaItem.add(currentSong);
         // Keep the process alive until the new source is playing: between
         // clearing the current source and the next one outputting audio the
         // app has no background-audio entitlement, and iOS suspending a
@@ -1629,6 +1635,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         );
         _beginSongLoad();
         currentIndex = 0;
+        // Same early publish as playByIndex: swap the queue and now playing
+        // item to the new song with a loading state while the url resolves.
+        queue.add([currMed]);
+        playbackState.add(playbackState.value.copyWith(
+          processingState: AudioProcessingState.loading,
+          queueIndex: 0,
+        ));
+        mediaItem.add(currMed);
         // Same suspension gap as playByIndex: hold the process until the new
         // source is actually outputting audio. Must precede resolve() so the
         // fetch future never completes unlistened while this await suspends.
@@ -1712,7 +1726,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         if (singleBaselineMs != null) {
           _knownBaselineMs[currMed.id] = singleBaselineMs;
         }
-        queue.add([currMed]);
         mediaItem.add(singleBaselineMs != null
             ? currMed.copyWith(
                 duration: Duration(milliseconds: singleBaselineMs),
