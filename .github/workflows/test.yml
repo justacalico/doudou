@@ -29,6 +29,10 @@ jobs:
           channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
 
+      - name: Stamp version with CI build number
+        shell: bash
+        run: bash scripts/stamp-ci-version.sh pubspec.yaml "${{ github.run_number }}"
+
       - name: Flutter doctor
         run: flutter doctor -v
 

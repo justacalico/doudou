@@ -91,16 +91,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read version from pubspec
+      - name: Stamp version with CI build number
         id: version
         shell: bash
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //g' | cut -d'+' -f1)
-          BUILD_NUMBER=$(date +%s | cut -c4-10)
-          BUILD_DATE=$(date +%Y-%m-%d)
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
-          echo "build_date=$BUILD_DATE" >> "$GITHUB_OUTPUT"
+          bash scripts/stamp-ci-version.sh pubspec.yaml "${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "build_date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
 
       - name: Set up Java 17
         if: startsWith(matrix.target, 'android')
