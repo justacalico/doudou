@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 22.0.0
 
+- CI builds now stamp the pubspec version with the workflow run number (for example 22.0.0+42), so every build is uniquely identifiable instead of sharing the same version.
 - The play button in the full screen player now shows a loading spinner while a song is loading or buffering, matching the bottom bar. Taps on it are ignored until the song is ready.
 - Shuffle now spreads songs by the same artist through the queue instead of leaving them in random clumps. Shuffle All, Shuffle Favorites, Shuffle Downloads and reshuffling the queue all use the new ordering, so shuffled playback no longer feels like it keeps landing on the same few songs.
 - Songs start playing faster. The next track's stream URL is now resolved in the background while the current song is still playing, so skipping ahead no longer waits on a network request. Duplicate requests for the same song are coalesced into a single fetch. On Linux and Windows, the underlying mpv player no longer writes its demuxer cache to disk, no longer waits for a cache target before starting, and FFmpeg's stream probing is limited to a short window instead of its multi-second default, cutting several seconds off the delay between tapping a song and hearing audio. Playback diagnostics now also capture mpv's internal logs when enabled, which helps track down the remaining startup cost.
