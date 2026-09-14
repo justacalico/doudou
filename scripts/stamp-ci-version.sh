@@ -18,7 +18,7 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
-sed -i "s/^version:.*/version: ${VERSION}+${BUILD_NUMBER}/" "$PUBSPEC"
+sed -i.bak "s/^version:.*/version: ${VERSION}+${BUILD_NUMBER}/" "$PUBSPEC" && rm -f "$PUBSPEC.bak"
 
 echo "version=$VERSION"
 echo "build_number=$BUILD_NUMBER"

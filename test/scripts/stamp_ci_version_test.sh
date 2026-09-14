@@ -18,6 +18,7 @@ write_pubspec() {
 write_pubspec "22.0.0"
 out="$(bash "$SCRIPT" "$TMP/pubspec.yaml" 42)"
 grep -q '^version: 22.0.0+42$' "$TMP/pubspec.yaml" || fail "version not stamped"
+[ ! -f "$TMP/pubspec.yaml.bak" ] || fail "backup file left behind"
 echo "$out" | grep -q '^version=22.0.0$' || fail "version output wrong"
 echo "$out" | grep -q '^build_number=42$' || fail "build_number output wrong"
 echo "$out" | grep -q '^full_version=22.0.0+42$' || fail "full_version output wrong"
