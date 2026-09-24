@@ -3,6 +3,8 @@
 All notable changes to Doudou are recorded here. This file consolidates the
 previously per-version files that lived under `changelog/`.
 
+## 23.0.0
+
 ## 22.0.0
 
 - CI builds now stamp the pubspec version with the workflow run number (for example 22.0.0+42), so every build is uniquely identifiable instead of sharing the same version.
