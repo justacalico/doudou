@@ -122,6 +122,15 @@ mixin _SettingsViewPlaybackMixin on __SettingsViewStateBase {
             }
           },
         ),
+      if (GetPlatform.isAndroid || GetPlatform.isIOS)
+        _SettingsListTile(
+          title: context.l10n.audioOutput,
+          subtitle: context.l10n.audioOutputDes,
+          onTap: () => showDialog(
+            context: context,
+            builder: (_) => const AudioOutputDialog(),
+          ),
+        ),
       if (!isDesktop)
         _SettingsListTile(
           title: context.l10n.stopMusicOnTaskClear,

@@ -1065,6 +1065,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equalizerDes => 'Open system equalizer';
 
   @override
+  String get audioOutput => 'Audio output';
+
+  @override
+  String get audioOutputDes => 'Choose where audio plays';
+
+  @override
+  String get audioOutputPickDevice => 'Choose device';
+
+  @override
+  String get audioOutputNoDevices => 'No output devices found';
+
+  @override
   String get clearImgCache => 'Clear images cache';
 
   @override
@@ -2691,6 +2703,18 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get equalizerDes => 'Open system equalizer';
+
+  @override
+  String get audioOutput => 'Audio output';
+
+  @override
+  String get audioOutputDes => 'Choose where audio plays';
+
+  @override
+  String get audioOutputPickDevice => 'Choose device';
+
+  @override
+  String get audioOutputNoDevices => 'No output devices found';
 
   @override
   String get clearImgCache => 'Clear images cache';

@@ -18,5 +18,8 @@ import UIKit
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "BackgroundTaskPlugin") {
       BackgroundTaskPlugin.register(with: registrar)
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AudioOutputPlugin") {
+      AudioOutputPlugin.register(with: registrar)
+    }
   }
 }

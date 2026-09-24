@@ -1025,6 +1025,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equalizerDes => '打开系统均衡器';
 
   @override
+  String get audioOutput => '音频输出';
+
+  @override
+  String get audioOutputDes => '选择音频播放设备';
+
+  @override
+  String get audioOutputPickDevice => '选择设备';
+
+  @override
+  String get audioOutputNoDevices => '未找到输出设备';
+
+  @override
   String get clearImgCache => '清理图像缓存';
 
   @override

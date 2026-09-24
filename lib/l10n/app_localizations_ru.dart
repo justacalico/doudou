@@ -1070,6 +1070,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get equalizerDes => 'Открыть системный эквалайзер';
 
   @override
+  String get audioOutput => 'Аудиовыход';
+
+  @override
+  String get audioOutputDes => 'Выбор устройства вывода звука';
+
+  @override
+  String get audioOutputPickDevice => 'Выбрать устройство';
+
+  @override
+  String get audioOutputNoDevices => 'Устройства вывода не найдены';
+
+  @override
   String get clearImgCache => 'Очистить кэш изображений';
 
   @override

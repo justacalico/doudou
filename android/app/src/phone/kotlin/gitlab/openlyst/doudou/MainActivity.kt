@@ -13,6 +13,7 @@ class MainActivity : AudioServiceActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         FlutterEngineCache.getInstance().put(FAAConstants.flutterEngineId, flutterEngine)
         super.configureFlutterEngine(flutterEngine)
+        AudioRouter.register(flutterEngine.dartExecutor.binaryMessenger, applicationContext)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, wakeLockChannel)
             .setMethodCallHandler { call, result ->
                 when (call.method) {

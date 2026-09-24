@@ -5,6 +5,8 @@ previously per-version files that lived under `changelog/`.
 
 ## 23.0.0
 
+- Added an "Audio output" picker under Settings > Playback on Android and iOS. On Android it lists the live audio routes (phone speaker, Bluetooth and cast targets) and switches between them. On iOS it can toggle the built-in speaker/receiver and opens the system route picker for AirPlay and Bluetooth devices.
+
 ## 22.0.0
 
 - CI builds now stamp the pubspec version with the workflow run number (for example 22.0.0+42), so every build is uniquely identifiable instead of sharing the same version.
