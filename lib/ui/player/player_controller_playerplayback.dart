@@ -111,9 +111,11 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
           if (currentSong.value?.id == mediaItem?.id) {
             // Radio was started on the song that is already playing: rebuild
             // the queue around it so the radio tracks play next instead of
-            // sitting behind everything that was queued before.
-            await _audioHandler
-                .updateQueue([currentSong.value!, ...filteredTracks]);
+            // sitting behind everything that was queued before. The queue
+            // swap and the now playing broadcast happen in one action so the
+            // old queue's first song can never leak into the media item.
+            await _audioHandler.customAction("upadateMediaItemInAudioService",
+                {"index": 0, "queue": [currentSong.value!, ...filteredTracks]});
           } else {
             await enqueueSongList(filteredTracks);
           }
@@ -124,13 +126,6 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
           if (isShuffleModeEnabled.isTrue) {
             await _audioHandler.customAction("shuffleCmd", {"index": 0});
           }
-        }
-
-        // added here to broadcast current mediaitem via Audio Service as list is updated
-        // if radio is started on current playing song
-        if (radio && (currentSong.value?.id == mediaItem?.id)) {
-          _audioHandler
-              .customAction("upadateMediaItemInAudioService", {"index": 0});
         }
       },
     ).then((value) async {

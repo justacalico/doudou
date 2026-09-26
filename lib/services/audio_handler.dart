@@ -1894,7 +1894,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       case 'upadateMediaItemInAudioService':
         //added to update media item from player controller
         final songIndex = extras!['index'];
+        final newQueue = extras['queue'];
         currentIndex = songIndex;
+        if (newQueue is List) {
+          // updateQueue has no awaits so this runs synchronously: queue,
+          // index and media item change in one block and nothing can slip a
+          // stale song into the now playing slot in between.
+          unawaited(updateQueue(newQueue.cast<MediaItem>()));
+        }
         playbackState
             .add(playbackState.value.copyWith(queueIndex: currentIndex));
         mediaItem.add(queue.value[currentIndex]);

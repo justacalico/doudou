@@ -347,6 +347,29 @@ void main() {
       expect(handler.playbackState.value.queueIndex, 0);
     });
 
+    test(
+        'upadateMediaItemInAudioService swaps queue, index and media item in one call',
+        () async {
+      final songs = [_song('a', 'A'), _song('b', 'B'), _song('c', 'C')];
+      await handler.updateQueue(songs);
+      handler.currentIndex = 2;
+      final newQueue = [
+        _song('c', 'C'),
+        _song('d', 'D'),
+        _song('e', 'E'),
+      ];
+
+      await handler.customAction('upadateMediaItemInAudioService', {
+        'index': 0,
+        'queue': newQueue,
+      });
+
+      expect(handler.queue.value.map((s) => s.id), ['c', 'd', 'e']);
+      expect(handler.currentIndex, 0);
+      expect(handler.mediaItem.value?.id, 'c');
+      expect(handler.playbackState.value.queueIndex, 0);
+    });
+
     test('skipToNext reshuffles the queue in shuffle+queue loop at end',
         () async {
       final songs = [_song('a', 'A'), _song('b', 'B'), _song('c', 'C')];

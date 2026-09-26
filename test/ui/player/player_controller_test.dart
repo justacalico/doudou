@@ -193,22 +193,16 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 10));
 
       final names = fakeAudio.calls.map((c) => c.name).toList();
-      expect(names, contains('updateQueue'));
       expect(names, isNot(contains('addQueueItems')));
-      final updateCall =
-          fakeAudio.calls.firstWhere((c) => c.name == 'updateQueue');
+      expect(names, isNot(contains('updateQueue')));
+      expect(names, isNot(contains('setSourceNPlay')));
+      final updateCall = fakeAudio.calls
+          .singleWhere((c) => c.name == 'upadateMediaItemInAudioService');
+      expect(updateCall.extras?['index'], 0);
       expect(
-        updateCall.extra<List<MediaItem>>('queue')?.map((s) => s.id),
+        (updateCall.extras?['queue'] as List<MediaItem>).map((s) => s.id),
         ['b', 'c', 'd'],
       );
-      expect(
-        fakeAudio.calls
-            .any((c) =>
-                c.name == 'upadateMediaItemInAudioService' &&
-                c.extras?['index'] == 0),
-        isTrue,
-      );
-      expect(fakeAudio.calls.any((c) => c.name == 'setSourceNPlay'), isFalse);
       expect(player.isRadioModeOn, isTrue);
     });
 
