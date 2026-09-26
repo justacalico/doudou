@@ -1895,6 +1895,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         //added to update media item from player controller
         final songIndex = extras!['index'];
         currentIndex = songIndex;
+        playbackState
+            .add(playbackState.value.copyWith(queueIndex: currentIndex));
         mediaItem.add(queue.value[currentIndex]);
         break;
 

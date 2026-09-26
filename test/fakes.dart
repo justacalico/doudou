@@ -75,9 +75,27 @@ class FakeAudioHandler extends BaseAudioHandler {
 }
 
 class FakeMusicServices extends MusicServices {
+  List<MediaItem> watchPlaylistTracks = const [];
+  String? watchPlaylistContinuation;
+
   @override
   // ignore: must_call_super
   void onInit() {}
+
+  @override
+  Future<Map<String, dynamic>> getWatchPlaylist({
+    String videoId = "",
+    String? playlistId,
+    int limit = 25,
+    bool radio = false,
+    bool shuffle = false,
+    String? additionalParamsNext,
+    bool onlyRelated = false,
+  }) async =>
+      {
+        'tracks': watchPlaylistTracks,
+        'additionalParamsForNext': watchPlaylistContinuation,
+      };
 }
 
 class DiagCall {

@@ -332,6 +332,21 @@ void main() {
       verifyNever(() => player.seek(Duration.zero));
     });
 
+    test('upadateMediaItemInAudioService publishes the new queue index',
+        () async {
+      final songs = [_song('a', 'A'), _song('b', 'B'), _song('c', 'C')];
+      await handler.updateQueue(songs);
+      handler.currentIndex = 2;
+
+      await handler.customAction('upadateMediaItemInAudioService', {
+        'index': 0,
+      });
+
+      expect(handler.currentIndex, 0);
+      expect(handler.mediaItem.value?.id, 'a');
+      expect(handler.playbackState.value.queueIndex, 0);
+    });
+
     test('skipToNext reshuffles the queue in shuffle+queue loop at end',
         () async {
       final songs = [_song('a', 'A'), _song('b', 'B'), _song('c', 'C')];

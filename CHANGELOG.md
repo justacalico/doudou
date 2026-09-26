@@ -5,6 +5,8 @@ previously per-version files that lived under `changelog/`.
 
 ## 23.0.0
 
+- Fixed Start radio doing nothing when picked on the song that is already playing in an active queue. The queue is now rebuilt around the current song so the radio tracks play next, and the now playing queue index stays in sync.
+
 ## 22.0.0
 
 - CI builds now stamp the pubspec version with the workflow run number (for example 22.0.0+42), so every build is uniquely identifiable instead of sharing the same version.

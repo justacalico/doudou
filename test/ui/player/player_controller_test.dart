@@ -33,6 +33,7 @@ void main() {
   late Directory tempDir;
   late Box appPrefs;
   late FakeAudioHandler fakeAudio;
+  late FakeMusicServices fakeMusic;
   late FakePlaybackDiagnosticsService fakeDiag;
   late PlayerController player;
 
@@ -51,10 +52,11 @@ void main() {
   setUp(() async {
     await appPrefs.clear();
     fakeAudio = FakeAudioHandler();
+    fakeMusic = FakeMusicServices();
     fakeDiag = FakePlaybackDiagnosticsService();
 
     Get.put<AudioHandler>(fakeAudio);
-    Get.put<MusicServices>(FakeMusicServices());
+    Get.put<MusicServices>(fakeMusic);
     Get.put<PlaybackDiagnosticsService>(fakeDiag);
     Get.put<SettingsScreenController>(FakeSettingsScreenController());
 
@@ -171,6 +173,68 @@ void main() {
       expect(fakeAudio.calls.single.name, 'reorderQueue');
       expect(fakeAudio.calls.single.extras?['oldIndex'], 2);
       expect(fakeAudio.calls.single.extras?['newIndex'], 1);
+    });
+  });
+
+  group('radio', () {
+    test(
+        'pushSongToQueue with radio on the current song rebuilds the queue around it',
+        () async {
+      player.currentSong.value = player.currentQueue[1];
+      player.currentSongIndex.value = 1;
+      fakeMusic.watchPlaylistTracks = [
+        _song('b', 'B'),
+        _song('c', 'C'),
+        _song('d', 'D'),
+      ];
+
+      await player.pushSongToQueue(player.currentQueue[1], radio: true);
+      // The watch playlist fetch runs on a zero-duration timer
+      await Future.delayed(const Duration(milliseconds: 10));
+
+      final names = fakeAudio.calls.map((c) => c.name).toList();
+      expect(names, contains('updateQueue'));
+      expect(names, isNot(contains('addQueueItems')));
+      final updateCall =
+          fakeAudio.calls.firstWhere((c) => c.name == 'updateQueue');
+      expect(
+        updateCall.extra<List<MediaItem>>('queue')?.map((s) => s.id),
+        ['b', 'c', 'd'],
+      );
+      expect(
+        fakeAudio.calls
+            .any((c) =>
+                c.name == 'upadateMediaItemInAudioService' &&
+                c.extras?['index'] == 0),
+        isTrue,
+      );
+      expect(fakeAudio.calls.any((c) => c.name == 'setSourceNPlay'), isFalse);
+      expect(player.isRadioModeOn, isTrue);
+    });
+
+    test(
+        'pushSongToQueue with radio on a different song appends tracks to the queue',
+        () async {
+      player.currentSong.value = player.currentQueue[0];
+      fakeMusic.watchPlaylistTracks = [
+        _song('a', 'A'),
+        _song('c', 'C'),
+        _song('d', 'D'),
+      ];
+      final other = _song('e', 'E');
+
+      await player.pushSongToQueue(other, radio: true);
+      await Future.delayed(const Duration(milliseconds: 10));
+
+      final names = fakeAudio.calls.map((c) => c.name).toList();
+      expect(names, contains('setSourceNPlay'));
+      expect(names, isNot(contains('updateQueue')));
+      final addCall =
+          fakeAudio.calls.firstWhere((c) => c.name == 'addQueueItems');
+      expect(
+        addCall.extra<List<MediaItem>>('mediaItems')?.map((s) => s.id),
+        ['c', 'd'],
+      );
     });
   });
 

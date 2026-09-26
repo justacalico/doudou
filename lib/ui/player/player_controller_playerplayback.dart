@@ -81,8 +81,8 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
     playinfrom.value = PlaylingFrom(
         type: PlaylingFromType.SELECTION,
         name: radio
-            ? AppLocalizations.of(Get.context!)!.startRadio
-            : AppLocalizations.of(Get.context!)!.randomSelection);
+            ? l10nFromPrefs().startRadio
+            : l10nFromPrefs().randomSelection);
 
     /// set global radio mode flag
     isRadioModeOn = radio;
@@ -107,8 +107,16 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
           // For radio mode, add tracks to existing queue instead of replacing
           // Remove current song from radio tracks to avoid duplicate
           final filteredTracks = tracks.where((t) => t.id != mediaItem?.id).toList();
-          printINFO('Radio: adding ${filteredTracks.length} tracks to queue without replacing');
-          await enqueueSongList(filteredTracks);
+          printINFO('Radio: adding ${filteredTracks.length} tracks to queue');
+          if (currentSong.value?.id == mediaItem?.id) {
+            // Radio was started on the song that is already playing: rebuild
+            // the queue around it so the radio tracks play next instead of
+            // sitting behind everything that was queued before.
+            await _audioHandler
+                .updateQueue([currentSong.value!, ...filteredTracks]);
+          } else {
+            await enqueueSongList(filteredTracks);
+          }
         } else {
           // For non-radio, replace the queue
           await _audioHandler.updateQueue(tracks);
@@ -137,6 +145,13 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
       }
     });
 
+    // disable queue loop mode when radio is started
+    if (radio &&
+        isQueueLoopModeEnabled.isTrue &&
+        isShuffleModeEnabled.isFalse) {
+      toggleQueueLoopMode();
+    }
+
     if (playlistid != null ||
         (radio && (currentSong.value?.id == mediaItem?.id))) {
       return;
@@ -146,13 +161,6 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
     _playerPanelCheck();
     await _audioHandler
         .customAction("setSourceNPlay", {'mediaItem': mediaItem});
-
-    // disable queue loop mode when radio is started
-    if (radio &&
-        isQueueLoopModeEnabled.isTrue &&
-        isShuffleModeEnabled.isFalse) {
-      toggleQueueLoopMode();
-    }
   }
 
   Future<void> playPlayListSong(List<MediaItem> mediaItems, int index,
