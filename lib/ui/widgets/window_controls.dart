@@ -165,10 +165,12 @@ class _WindowControlButtonState extends State<_WindowControlButton> {
         child: Container(
           width: 40,
           height: 40,
+          margin: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: _isHovered
                 ? (widget.isCloseButton ? const Color(0xFFe81123) : const Color(0x1AFFFFFF))
                 : Colors.transparent,
+            shape: BoxShape.circle,
           ),
           child: Icon(
             widget.icon,

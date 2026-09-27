@@ -5,6 +5,8 @@ previously per-version files that lived under `changelog/`.
 
 ## 23.0.0
 
+- The hover background on the close, minimize and maximize window controls is now a small circle instead of a square, matching the rounded macOS style.
+
 ## 22.0.0
 
 - CI builds now stamp the pubspec version with the workflow run number (for example 22.0.0+42), so every build is uniquely identifiable instead of sharing the same version.
