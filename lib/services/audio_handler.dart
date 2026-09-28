@@ -1963,8 +1963,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       case 'upadateMediaItemInAudioService':
         //added to update media item from player controller
         final songIndex = extras!['index'];
+        if (queue.value.isEmpty ||
+            songIndex < 0 ||
+            songIndex >= queue.value.length) {
+          break;
+        }
         currentIndex = songIndex;
         mediaItem.add(queue.value[currentIndex]);
+        playbackState.add(
+            playbackState.value.copyWith(queueIndex: songIndex));
         break;
 
       case 'toggleQueueLoopMode':

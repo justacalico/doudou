@@ -241,10 +241,28 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
                 toggleQueueLoopMode(showMessage: false);
               }
               printINFO('Radio mode enabled for continuation');
+              _diag.logEvent(
+                category: 'radio',
+                message: 'radio_mode_enabled',
+                songId: mediaItem.id,
+                backendType: mediaItem.extras?['backendType']?.toString(),
+                activeServerType: _activeServerTypeName,
+              );
             }
             // Skip if already adding continuation to prevent race condition
             if (!_isAddingRadioContinuation) {
               printINFO('Radio continuation triggered: currentIndex=$currentIndex, queueLength=${currentQueue.length}');
+              _diag.logEvent(
+                category: 'radio',
+                message: 'radio_continuation_triggered',
+                songId: mediaItem.id,
+                backendType: mediaItem.extras?['backendType']?.toString(),
+                activeServerType: _activeServerTypeName,
+                data: {
+                  'currentIndex': currentIndex,
+                  'queueLength': currentQueue.length,
+                },
+              );
               await _addRadioContinuation(radioInitiatorItem!);
             }
           }

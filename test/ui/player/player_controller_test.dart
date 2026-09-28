@@ -34,6 +34,7 @@ void main() {
   late Box appPrefs;
   late FakeAudioHandler fakeAudio;
   late FakePlaybackDiagnosticsService fakeDiag;
+  late FakeMusicServices fakeMusic;
   late PlayerController player;
 
   setUpAll(() async {
@@ -54,7 +55,8 @@ void main() {
     fakeDiag = FakePlaybackDiagnosticsService();
 
     Get.put<AudioHandler>(fakeAudio);
-    Get.put<MusicServices>(FakeMusicServices());
+    fakeMusic = FakeMusicServices();
+    Get.put<MusicServices>(fakeMusic);
     Get.put<PlaybackDiagnosticsService>(fakeDiag);
     Get.put<SettingsScreenController>(FakeSettingsScreenController());
 
@@ -313,6 +315,175 @@ void main() {
       expect(appPrefs.get('queueLoopModeEnabled'), isFalse);
       expect(fakeAudio.calls.single.name, 'toggleQueueLoopMode');
       expect(fakeAudio.calls.single.extras?['enable'], isFalse);
+    });
+  });
+
+  group('radio', () {
+    test('startRadio replaces the queue and starts the seed song', () async {
+      final seed = _song('seed', 'Seed');
+      fakeMusic.watchPlaylistResult = {
+        'tracks': [seed, _song('r1', 'R1'), _song('r2', 'R2')],
+        'additionalParamsForNext': 'nextParam',
+      };
+
+      await player.startRadio(seed);
+      await pumpEventQueue();
+
+      expect(player.isRadioModeOn, isTrue);
+      expect(player.radioContinuationParam, 'nextParam');
+      expect(
+        fakeMusic.lastWatchPlaylistCall?['videoId'],
+        'seed',
+      );
+      expect(fakeMusic.lastWatchPlaylistCall?['radio'], isTrue);
+
+      final setSource =
+          fakeAudio.calls.firstWhere((c) => c.name == 'setSourceNPlay');
+      expect(setSource.extra<MediaItem>('mediaItem')?.id, 'seed');
+
+      final update =
+          fakeAudio.calls.firstWhere((c) => c.name == 'updateQueue');
+      expect(
+        update.extra<List<MediaItem>>('queue')?.map((s) => s.id),
+        ['seed', 'r1', 'r2'],
+      );
+      // Seed playback comes from setSourceNPlay, no extra playByIndex.
+      expect(
+        fakeAudio.calls.any((c) => c.name == 'playByIndex'),
+        isFalse,
+      );
+      expect(
+        fakeDiag.calls.any((c) => c.message == 'radio_start_requested'),
+        isTrue,
+      );
+      expect(
+        fakeDiag.calls.any((c) => c.message == 'radio_seed_tracks_fetched'),
+        isTrue,
+      );
+    });
+
+    test(
+        'startRadio on the playing song swaps the queue without restarting it',
+        () async {
+      final seed = _song('a', 'A');
+      player.currentSong.value = seed;
+      fakeMusic.watchPlaylistResult = {
+        'tracks': [seed, _song('r1', 'R1'), _song('r2', 'R2')],
+        'additionalParamsForNext': null,
+      };
+
+      await player.startRadio(seed);
+      await pumpEventQueue();
+
+      expect(
+        fakeAudio.calls.any((c) => c.name == 'setSourceNPlay'),
+        isFalse,
+      );
+      final update =
+          fakeAudio.calls.firstWhere((c) => c.name == 'updateQueue');
+      expect(
+        update.extra<List<MediaItem>>('queue')?.map((s) => s.id),
+        ['a', 'r1', 'r2'],
+      );
+      final repoint = fakeAudio.calls
+          .firstWhere((c) => c.name == 'upadateMediaItemInAudioService');
+      expect(repoint.extras?['index'], 0);
+    });
+
+    test(
+        'startRadio with a playlist id replaces the queue and plays the first track',
+        () async {
+      fakeMusic.watchPlaylistResult = {
+        'tracks': [_song('r1', 'R1'), _song('r2', 'R2')],
+        'additionalParamsForNext': 'cont',
+      };
+
+      await player.startRadio(null, playlistid: 'RDAMVMx');
+      await pumpEventQueue();
+
+      expect(fakeMusic.lastWatchPlaylistCall?['playlistId'], 'RDAMVMx');
+      expect(fakeMusic.lastWatchPlaylistCall?['radio'], isTrue);
+      expect(
+        fakeAudio.calls.any((c) => c.name == 'setSourceNPlay'),
+        isFalse,
+      );
+      final update =
+          fakeAudio.calls.firstWhere((c) => c.name == 'updateQueue');
+      expect(
+        update.extra<List<MediaItem>>('queue')?.map((s) => s.id),
+        ['r1', 'r2'],
+      );
+      final play =
+          fakeAudio.calls.firstWhere((c) => c.name == 'playByIndex');
+      expect(play.extras?['index'], 0);
+      expect(player.isRadioModeOn, isTrue);
+    });
+
+    test('radio seed fetch failure resets radio state', () async {
+      fakeMusic.watchPlaylistError = Exception('no network');
+      final seed = _song('seed', 'Seed');
+
+      await player.startRadio(seed);
+      await pumpEventQueue();
+
+      expect(player.isRadioModeOn, isFalse);
+      expect(player.radioInitiatorItem, isNull);
+      expect(player.radioContinuationParam, isNull);
+      expect(
+        fakeAudio.calls.any((c) => c.name == 'updateQueue'),
+        isFalse,
+      );
+      expect(
+        fakeDiag.calls.any((c) => c.message == 'radio_seed_fetch_failed'),
+        isTrue,
+      );
+    });
+
+    test(
+        'pushSongToQueue auto-promotes a single song play to radio on YouTube Music',
+        () async {
+      final seed = _song('seed', 'Seed');
+      fakeMusic.watchPlaylistResult = {
+        'tracks': [seed, _song('r1', 'R1')],
+        'additionalParamsForNext': null,
+      };
+
+      await player.pushSongToQueue(seed);
+      await pumpEventQueue();
+
+      expect(player.isRadioModeOn, isTrue);
+      expect(
+        fakeDiag.calls.any((c) => c.message == 'radio_auto_enabled'),
+        isTrue,
+      );
+      final update =
+          fakeAudio.calls.firstWhere((c) => c.name == 'updateQueue');
+      expect(
+        update.extra<List<MediaItem>>('queue')?.map((s) => s.id),
+        ['seed', 'r1'],
+      );
+    });
+
+    test('radio does not start when the watch playlist returns no tracks',
+        () async {
+      fakeMusic.watchPlaylistResult = {
+        'tracks': <MediaItem>[],
+        'additionalParamsForNext': null,
+      };
+
+      await player.startRadio(null, playlistid: 'RDempty');
+      await pumpEventQueue();
+
+      expect(player.isRadioModeOn, isFalse);
+      expect(player.radioInitiatorItem, isNull);
+      expect(
+        fakeAudio.calls.any((c) => c.name == 'updateQueue'),
+        isFalse,
+      );
+      expect(
+        fakeAudio.calls.any((c) => c.name == 'playByIndex'),
+        isFalse,
+      );
     });
   });
 

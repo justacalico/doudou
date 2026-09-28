@@ -5,6 +5,8 @@ mixin _PlayerControllerBase on GetSingleTickerProviderStateMixin {
   final _audioHandler = Get.find<AudioHandler>();
   final _musicServices = Get.find<MusicServices>();
   final _diag = Get.find<PlaybackDiagnosticsService>();
+  String? get _activeServerTypeName =>
+      Get.find<SettingsScreenController>().activeServer?.type.name;
   final currentQueue = <MediaItem>[].obs;
 
   final playerPaneOpacity = (1.0).obs;
