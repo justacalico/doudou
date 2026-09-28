@@ -55,8 +55,7 @@ Playlist _playlist(String id, String title) =>
 void main() {
   group('findSupermixPlaylist', () {
     test('finds the RDTMAK mix playlist inside home sections', () {
-      final supermix =
-          _playlist('VLRDTMAK5uy_kGQ8MIQ', 'My Supermix');
+      final supermix = _playlist('VLRDTMAK5uy_kGQ8MIQ', 'My Supermix');
       final sections = [
         {
           'title': 'Quick picks',
@@ -111,8 +110,11 @@ void main() {
 
     test('ignores malformed sections', () {
       expect(
-          SupermixService.findSupermixPlaylist(
-              ['junk', {'contents': 'nope'}, {}]),
+          SupermixService.findSupermixPlaylist([
+            'junk',
+            {'contents': 'nope'},
+            {}
+          ]),
           isNull);
     });
   });
@@ -156,8 +158,7 @@ void main() {
         ];
       }
 
-      final result =
-          await service.fetchSupermix(favouriteSeeds: favourites);
+      final result = await service.fetchSupermix(favouriteSeeds: favourites);
 
       expect(result.playlistId, isNull);
       expect(result.tracks, isNotEmpty);
@@ -172,8 +173,7 @@ void main() {
       expect(music.seedRadioCalls.toSet().length, greaterThan(1));
     });
 
-    test('returns nothing when there are no seeds and no native mix',
-        () async {
+    test('returns nothing when there are no seeds and no native mix', () async {
       final result = await service.fetchSupermix();
       expect(result.tracks, isEmpty);
     });
@@ -182,8 +182,7 @@ void main() {
         () async {
       final favourites = List.generate(4, (i) => _song('fav$i'));
 
-      final result =
-          await service.fetchSupermix(favouriteSeeds: favourites);
+      final result = await service.fetchSupermix(favouriteSeeds: favourites);
 
       expect(result.tracks.map((t) => t.id).toSet(),
           favourites.map((f) => f.id).toSet());
@@ -233,8 +232,7 @@ void main() {
       expect(more.map((t) => t.id), isNot(contains('dup')));
     });
 
-    test('re-reads the native playlist and only serves fresh tracks',
-        () async {
+    test('re-reads the native playlist and only serves fresh tracks', () async {
       final mixTracks = List.generate(3, (i) => _song('m$i'));
       music.homeSections = [
         {

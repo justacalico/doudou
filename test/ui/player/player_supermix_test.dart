@@ -126,11 +126,10 @@ void main() {
 
       final update = fakeAudio.calls.firstWhere((c) => c.name == 'updateQueue');
       final queue = update.extra<List<MediaItem>>('queue')!;
-      expect(queue.map((t) => t.id),
-          containsAll(mixTracks.map((t) => t.id)));
+      expect(queue.map((t) => t.id), containsAll(mixTracks.map((t) => t.id)));
       expect(
-          fakeAudio.calls.any((c) =>
-              c.name == 'playByIndex' && c.extra<int>('index') == 0),
+          fakeAudio.calls.any(
+              (c) => c.name == 'playByIndex' && c.extra<int>('index') == 0),
           isTrue);
     });
 

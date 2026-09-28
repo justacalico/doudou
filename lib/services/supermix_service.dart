@@ -117,9 +117,7 @@ class SupermixService {
       }
     }
 
-    for (var attempt = 0;
-        attempt < 4 && _seedPool.isNotEmpty;
-        attempt++) {
+    for (var attempt = 0; attempt < 4 && _seedPool.isNotEmpty; attempt++) {
       final seedId = _seedPool[_seedCursor % _seedPool.length];
       _seedCursor++;
       final tracks = await _fetchSeedRadio(seedId, limit);
@@ -151,17 +149,16 @@ class SupermixService {
 
       List<MediaItem> tracks;
       try {
-        final playlist = await _musicServices
-            .getPlaylistOrAlbumSongs(playlistId: playlistId, limit: 150);
+        final playlist = await _musicServices.getPlaylistOrAlbumSongs(
+            playlistId: playlistId, limit: 150);
         tracks = List<MediaItem>.from(playlist['tracks'] ?? []);
       } catch (e, st) {
         printWarning(
             '[RECOVERABLE][opId=supermix.browse] Playlist browse failed, trying watch playlist: $e\n$st');
-        final bareId = playlistId.startsWith('VL')
-            ? playlistId.substring(2)
-            : playlistId;
-        final content = await _musicServices
-            .getWatchPlaylist(playlistId: bareId, limit: 100);
+        final bareId =
+            playlistId.startsWith('VL') ? playlistId.substring(2) : playlistId;
+        final content = await _musicServices.getWatchPlaylist(
+            playlistId: bareId, limit: 100);
         tracks = List<MediaItem>.from(content['tracks'] ?? []);
       }
       return tracks.where((t) => t.id.isNotEmpty).toList();
@@ -219,8 +216,9 @@ class SupermixService {
     if (_seedPool.isEmpty) return [];
 
     final discovery = <MediaItem>[];
-    final seedCount =
-        _seedPool.length < _seedRadioSeedCount ? _seedPool.length : _seedRadioSeedCount;
+    final seedCount = _seedPool.length < _seedRadioSeedCount
+        ? _seedPool.length
+        : _seedRadioSeedCount;
     for (var i = 0; i < seedCount; i++) {
       final seedId = _seedPool[(_seedCursor + i) % _seedPool.length];
       discovery.addAll(await _fetchSeedRadio(seedId, _seedRadioLimit));
