@@ -24,9 +24,11 @@ mixin _PlayerSupermixMixin on _PlayerControllerBase {
         PlaylingFrom(type: PlaylingFromType.PLAYLIST, name: l10n.supermix);
 
     final favouriteSeeds = await _loadSupermixFavouriteSeeds();
-    final recentSeeds = await _loadSupermixRecentSeeds();
     final playing = currentSong.value;
-    if (playing != null) recentSeeds.insert(0, playing);
+    final recentSeeds = [
+      if (playing != null) playing,
+      ...await _loadSupermixRecentSeeds(),
+    ];
 
     final result = await _supermix.fetchSupermix(
         favouriteSeeds: favouriteSeeds, recentSeeds: recentSeeds);
