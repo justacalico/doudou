@@ -14,11 +14,14 @@ typedef StreamUrlFetch = Future<HMStreamingData> Function(
 /// Coalesces in-flight stream URL requests so tapping the same song twice (or
 /// prefetching a song the user then plays) never fires two network calls.
 /// Also exposes [prefetchNext] to warm the URL cache for the upcoming track
-/// while the current one is still playing.
+/// while the current one is still playing. [onResolved] runs after each
+/// prefetched song resolves, letting callers kick off follow-up work like
+/// downloading the audio bytes for offline playback.
 class StreamPrefetcher {
-  StreamPrefetcher(this._fetch);
+  StreamPrefetcher(this._fetch, {this.onResolved});
 
   final StreamUrlFetch _fetch;
+  final void Function(String songId, HMStreamingData data)? onResolved;
 
   final Map<String, Future<HMStreamingData>> _inFlight = {};
 
@@ -45,17 +48,19 @@ class StreamPrefetcher {
 
   void prefetch(String songId, {Map<String, dynamic>? extras}) {
     unawaited(resolve(songId, extras: extras).then(
-      (_) {},
+      (data) => onResolved?.call(songId, data),
       onError: (e) => printWarning('Prefetch failed for $songId: $e'),
     ));
   }
 
-  void prefetchNext(List<MediaItem> queue, int? currentIndex) {
+  void prefetchNext(List<MediaItem> queue, int? currentIndex,
+      {int lookahead = 1}) {
     if (queue.isEmpty) return;
     final idx = currentIndex ?? 0;
     if (idx < 0 || idx >= queue.length) return;
-    final next = idx + 1;
-    if (next < queue.length) {
+    for (var step = 1; step <= lookahead; step++) {
+      final next = idx + step;
+      if (next >= queue.length) return;
       final item = queue[next];
       if (_isPrefetchable(item)) {
         prefetch(item.id, extras: item.extras);
@@ -63,7 +68,8 @@ class StreamPrefetcher {
     }
   }
 
-  void prefetchCurrentAndNext(List<MediaItem> queue, int? currentIndex) {
+  void prefetchCurrentAndNext(List<MediaItem> queue, int? currentIndex,
+      {int lookahead = 1}) {
     if (queue.isEmpty) return;
     final idx = currentIndex ?? 0;
     if (idx < 0 || idx >= queue.length) return;
@@ -71,7 +77,7 @@ class StreamPrefetcher {
     if (_isPrefetchable(current)) {
       prefetch(current.id, extras: current.extras);
     }
-    prefetchNext(queue, idx);
+    prefetchNext(queue, idx, lookahead: lookahead);
   }
 
   bool _isPrefetchable(MediaItem item) {
