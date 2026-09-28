@@ -271,6 +271,104 @@ void main() {
     });
   });
 
+  group('StreamPrefetcher.onResolved', () {
+    test('fires with the resolved data after a prefetch', () async {
+      final resolved = <String, HMStreamingData>{};
+      final prefetcher = StreamPrefetcher((songId,
+          {bool generateNewUrl = false, Map<String, dynamic>? extras}) async {
+        return _fakeData(songId);
+      }, onResolved: (songId, data) {
+        resolved[songId] = data;
+      });
+
+      prefetcher.prefetch('s1');
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(resolved.keys, ['s1']);
+      expect(resolved['s1']!.playable, isTrue);
+    });
+
+    test('does not fire when the fetch fails', () async {
+      var resolvedCalls = 0;
+      final prefetcher = StreamPrefetcher((songId,
+          {bool generateNewUrl = false, Map<String, dynamic>? extras}) async {
+        throw Exception('offline');
+      }, onResolved: (songId, data) {
+        resolvedCalls++;
+      });
+
+      prefetcher.prefetch('s1');
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(resolvedCalls, 0);
+    });
+  });
+
+  group('StreamPrefetcher lookahead', () {
+    test('prefetches as many upcoming songs as the window allows', () async {
+      final fetched = <String>[];
+      final prefetcher = StreamPrefetcher((songId,
+          {bool generateNewUrl = false, Map<String, dynamic>? extras}) async {
+        fetched.add(songId);
+        return _fakeData(songId);
+      });
+
+      final queue = [
+        const MediaItem(id: 'a', title: 'A'),
+        const MediaItem(id: 'b', title: 'B'),
+        const MediaItem(id: 'c', title: 'C'),
+        const MediaItem(id: 'd', title: 'D'),
+      ];
+      prefetcher.prefetchNext(queue, 0, lookahead: 2);
+
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(fetched, containsAll(['b', 'c']));
+      expect(fetched, isNot(contains('d')));
+    });
+
+    test('stops at the end of the queue', () async {
+      final fetched = <String>[];
+      final prefetcher = StreamPrefetcher((songId,
+          {bool generateNewUrl = false, Map<String, dynamic>? extras}) async {
+        fetched.add(songId);
+        return _fakeData(songId);
+      });
+
+      final queue = [
+        const MediaItem(id: 'a', title: 'A'),
+        const MediaItem(id: 'b', title: 'B'),
+      ];
+      prefetcher.prefetchNext(queue, 0, lookahead: 3);
+
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(fetched, ['b']);
+    });
+
+    test('prefetchCurrentAndNext passes the window through', () async {
+      final fetched = <String>[];
+      final prefetcher = StreamPrefetcher((songId,
+          {bool generateNewUrl = false, Map<String, dynamic>? extras}) async {
+        fetched.add(songId);
+        return _fakeData(songId);
+      });
+
+      final queue = [
+        const MediaItem(id: 'a', title: 'A'),
+        const MediaItem(id: 'b', title: 'B'),
+        const MediaItem(id: 'c', title: 'C'),
+        const MediaItem(id: 'd', title: 'D'),
+      ];
+      prefetcher.prefetchCurrentAndNext(queue, 0, lookahead: 2);
+
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(fetched, containsAll(['a', 'b', 'c']));
+      expect(fetched, isNot(contains('d')));
+    });
+  });
+
   group('StreamPrefetcher.clear', () {
     test('removes in-flight requests', () {
       final prefetcher = StreamPrefetcher((songId,

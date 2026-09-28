@@ -23,6 +23,7 @@ import '../models/playlist.dart';
 import '/services/equalizer.dart';
 import '/services/stream_service.dart';
 import '/services/stream_prefetcher.dart';
+import '/services/song_preloader.dart';
 import '/models/hm_streaming_data.dart';
 import '/ui/player/player_controller.dart';
 import '../ui/screens/Home/home_screen_controller.dart';
@@ -68,6 +69,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   final PlaybackDiagnosticsService _diag;
   late final BackgroundTaskGuard _backgroundGuard;
   late final StreamPrefetcher _prefetcher;
+  SongPreloader? _preloader;
+  // How many upcoming queue items get their audio bytes preloaded so they
+  // keep playing when connectivity drops mid-playback.
+  static const int _preloadAheadCount = 2;
   final bool _testable;
   final bool _isApplePlatform;
   MediaLibrary get mediaLibrary => _mediaLibrary;
@@ -211,8 +216,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     StreamReachabilityCheck? reachabilityCheck,
     Future<void> Function(Duration)? recoveryDelay,
     BackgroundTaskGuard? backgroundTaskGuard,
+    SongPreloader? preloader,
     bool? isApplePlatform,
-  })  : _testable = player != null || playerFactory != null,
+  })  : _preloader = preloader,
+        _testable = player != null || playerFactory != null,
         _isApplePlatform =
             isApplePlatform ?? (GetPlatform.isIOS || GetPlatform.isMacOS),
         _playerFactory = playerFactory ?? _createDefaultPlayer,
@@ -230,7 +237,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         checkNGetUrl(songId,
             generateNewUrl: generateNewUrl,
             offlineReplacementUrl: offlineReplacementUrl,
-            extras: extras));
+            extras: extras),
+        onResolved: _onStreamResolved);
     if (_testable) {
       _cacheDir = '';
       _audioSourceReady = Future.value();
@@ -255,6 +263,46 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (!Directory("$_cacheDir/cachedSongs/").existsSync()) {
       Directory("$_cacheDir/cachedSongs/").createSync(recursive: true);
     }
+    _preloader ??= SongPreloader(
+        directory: Directory("$_cacheDir/preloadedSongs"));
+  }
+
+  /// Once a prefetched stream url resolves, start downloading the audio
+  /// bytes so the upcoming tracks play even with no connectivity. The song
+  /// currently playing is skipped: the player is already streaming it, so a
+  /// second download would just burn bandwidth.
+  void _onStreamResolved(String songId, HMStreamingData data) {
+    final preloader = _preloader;
+    final url = data.audio?.url;
+    if (preloader == null || !data.playable || url == null) return;
+    if (songId == _safeCurrentSongId()) return;
+    preloader.preload(songId, url, headers: _youtubeStreamHeaders(url));
+  }
+
+  void _prefetchUpcoming() {
+    _prefetcher.prefetchNext(queue.value, _safeCurrentIndex,
+        lookahead: _preloadAheadCount);
+    _evictStalePreloads();
+  }
+
+  void _prefetchCurrentAndUpcoming() {
+    _prefetcher.prefetchCurrentAndNext(queue.value, _safeCurrentIndex,
+        lookahead: _preloadAheadCount);
+    _evictStalePreloads();
+  }
+
+  /// Keeps the preloaded directory bounded to the previous track, the
+  /// current one and the upcoming window, so stale files don't pile up.
+  void _evictStalePreloads() {
+    final preloader = _preloader;
+    final queueSnapshot = queue.value;
+    final idx = _safeCurrentIndex;
+    if (preloader == null || queueSnapshot.isEmpty || idx == null) return;
+    final keep = <String>{};
+    for (var i = idx - 1; i <= idx + _preloadAheadCount; i++) {
+      if (i >= 0 && i < queueSnapshot.length) keep.add(queueSnapshot[i].id);
+    }
+    preloader.retainOnly(keep);
   }
 
   void _addEmptyList() {
@@ -1019,7 +1067,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       originalQueue = newQueue.toList();
     }
     if (!_testable) {
-      _prefetcher.prefetchCurrentAndNext(queue.value, _safeCurrentIndex);
+      _prefetchCurrentAndUpcoming();
     }
   }
 
@@ -1030,7 +1078,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     this.queue.add(newQueue);
     originalQueue = queue.toList();
     if (!_testable) {
-      _prefetcher.prefetchCurrentAndNext(this.queue.value, _safeCurrentIndex);
+      _prefetchCurrentAndUpcoming();
     }
   }
 
@@ -1075,6 +1123,27 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
   AudioSource _createAudioSource(MediaItem mediaItem) {
     final url = mediaItem.extras!['url'] as String;
+    // Fully local files (downloaded or preloaded songs) play directly. They
+    // must not go through LockCachingAudioSource: its stream proxy would try
+    // an HTTP request on the file url and fail.
+    if (url.startsWith('file')) {
+      _diag.logEvent(
+        category: 'audio_source',
+        message: 'using_file_audio_source',
+        songId: mediaItem.id,
+        backendType: mediaItem.extras?['backendType']?.toString(),
+        activeServerType: _safeServerType(),
+        data: {
+          'url': PlaybackDiagnosticsService.sanitizeUrl(url),
+        },
+      );
+      printINFO("Playing Using File AudioSource");
+      isPlayingUsingLockCachingSource = false;
+      return AudioSource.uri(
+        Uri.tryParse(url)!,
+        tag: mediaItem,
+      );
+    }
     if (url.contains('/cache') ||
         (Get.find<SettingsScreenController>().cacheSongs.isTrue &&
             url.contains("http"))) {
@@ -1581,7 +1650,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           activeServerType: _safeServerType(),
           data: {'playing': _player.playing},
         );
-        _prefetcher.prefetchNext(queue.value, _safeCurrentIndex);
+        _prefetchUpcoming();
         break;
 
       case 'checkWithCacheDb':
@@ -1774,7 +1843,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         await _player.seek(Duration.zero);
         await _player.play();
         _ensurePlaybackStarted();
-        _prefetcher.prefetchNext(queue.value, _safeCurrentIndex);
+        _prefetchUpcoming();
         break;
 
       case 'toggleSkipSilence':
@@ -2298,6 +2367,32 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       //in case file doesnot found in storage, song will be played online
       return checkNGetUrl(songId, offlineReplacementUrl: true);
     } else {
+      // A fully preloaded file beats any url resolution: the bytes are
+      // already on disk, so the track plays with no connectivity at all.
+      final preloadedFile = _preloader?.completeFileFor(songId);
+      if (preloadedFile != null) {
+        _diag.logEvent(
+          category: 'stream_fetch',
+          message: 'hit_preloaded_file',
+          songId: songId,
+          backendType: backendType,
+          activeServerType: _safeServerType(),
+        );
+        printINFO("Got preloaded file ($songId)");
+        final fileAudio = Audio(
+            audioCodec: Codec.mp4a,
+            bitrate: 0,
+            loudnessDb: 0,
+            duration: 0,
+            size: 0,
+            url: "file://${preloadedFile.path}",
+            itag: 0);
+        return HMStreamingData(
+            playable: true,
+            statusMSG: "OK",
+            lowQualityAudio: fileAudio,
+            highQualityAudio: fileAudio);
+      }
       //check if song stream url is cached and allocate url accordingly
       final songsUrlCacheBox =
           await Hive.openBox(songsUrlCacheBoxName(currentServerId()));
