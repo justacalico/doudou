@@ -93,6 +93,7 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
 
     /// set global radio mode flag
     isRadioModeOn = radio;
+    isSupermixModeOn = false;
 
     // Set radio initiator for continuation
     if (radio) {
@@ -234,6 +235,7 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
     final autoRadioEnabled = Hive.box("AppPrefs").get("autoRadioEnabled") ?? true;
 
     isRadioModeOn = false;
+    isSupermixModeOn = false;
     //open player pane,set current song and push first song into playing list,
 
     /// update playing from value

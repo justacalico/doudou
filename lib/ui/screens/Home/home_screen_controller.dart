@@ -1030,6 +1030,16 @@ class HomeScreenController extends GetxController {
     Get.snackbar('', l10nFromPrefs().addFavoritesToStartRadio);
   }
 
+  /// Starts the personalised Supermix for YouTube Music. Plays the "My
+  /// Supermix" playlist when YouTube exposes one, otherwise builds a mix
+  /// from favourites and recently played songs with discovery tracks
+  /// blended in.
+  Future<void> startSupermix() async {
+    final settings = Get.find<SettingsScreenController>();
+    if (settings.activeServer?.type != ServerType.youtubeMusic) return;
+    await Get.find<PlayerController>().startSupermix();
+  }
+
   void disposeDetachedScrollControllers({bool disposeAll = false}) {
     final scrollControllersCopy = contentScrollControllers.toList();
     for (final contoller in scrollControllersCopy) {

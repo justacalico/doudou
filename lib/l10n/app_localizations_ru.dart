@@ -601,6 +601,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get startRadio => 'Запустить радио';
 
   @override
+  String get supermix => 'Супермикс';
+
+  @override
+  String get supermixSubtitle => 'Создано для вас';
+
+  @override
+  String get supermixUnavailable => 'Не удалось загрузить Супермикс';
+
+  @override
   String get playNext => 'Включить следующим';
 
   @override

@@ -24,6 +24,8 @@ mixin _PlayerControllerBase on GetSingleTickerProviderStateMixin {
   dynamic radioInitiatorItem;
   bool _isAddingRadioContinuation = false;
   String? _lastContinuationParamUsed;
+  bool isSupermixModeOn = false;
+  bool _isAddingSupermixContinuation = false;
   Timer? sleepTimer;
   int timerDuration = 0;
   final timerDurationLeft = 0.obs;
@@ -138,6 +140,8 @@ onInit();
   Future<void> _fetchAndAddRadioSongs(MediaItem mediaItem);
   Future<void> startRadio(MediaItem? mediaItem, {String? playlistid});
   Future<void> _addRadioContinuation(dynamic item);
+  Future<void> startSupermix();
+  Future<void> _addSupermixContinuation();
   Future<void> setVolume(int value);
   Future<void> mute();
   void toggleSkipSilence(bool enable);
