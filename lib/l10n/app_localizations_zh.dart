@@ -583,6 +583,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startRadio => '启动电台';
 
   @override
+  String get supermix => '超级混音';
+
+  @override
+  String get supermixSubtitle => '为你打造';
+
+  @override
+  String get supermixUnavailable => '无法加载超级混音';
+
+  @override
   String get playNext => '播放下一曲';
 
   @override

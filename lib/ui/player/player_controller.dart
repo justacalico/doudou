@@ -33,6 +33,7 @@ import '../widgets/sliding_up_panel.dart';
 import '/models/durationstate.dart';
 import '/services/ios_favorite_command_bridge.dart';
 import '/services/music_service.dart';
+import '/services/supermix_service.dart';
 
 part 'player_controller_playercontrollerbase.dart';
 part 'player_controller_playerfav.dart';
@@ -41,6 +42,7 @@ part 'player_controller_playermisc.dart';
 part 'player_controller_playerplayback.dart';
 part 'player_controller_playerqueue.dart';
 part 'player_controller_playerradio.dart';
+part 'player_controller_playersupermix.dart';
 part 'player_controller_playersleep.dart';
 part 'player_controller_playerstate.dart';
 part 'player_controller_playervolume.dart';
@@ -52,7 +54,7 @@ class SyncedLyricLine {
 }
 
 class PlayerController extends GetxController
-    with GetSingleTickerProviderStateMixin, _PlayerControllerBase, _PlayerFavMixin, _PlayerLyricsMixin, _PlayerMiscMixin, _PlayerPlaybackMixin, _PlayerQueueMixin, _PlayerRadioMixin, _PlayerSleepMixin, _PlayerStateMixin, _PlayerVolumeMixin
+    with GetSingleTickerProviderStateMixin, _PlayerControllerBase, _PlayerFavMixin, _PlayerLyricsMixin, _PlayerMiscMixin, _PlayerPlaybackMixin, _PlayerQueueMixin, _PlayerRadioMixin, _PlayerSupermixMixin, _PlayerSleepMixin, _PlayerStateMixin, _PlayerVolumeMixin
     implements PlayerStateProvider {
 }
 

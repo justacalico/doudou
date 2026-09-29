@@ -699,6 +699,16 @@ class _BodyState extends State<Body> {
     if (isYouTubeMusic) {
       cards.add(
         _HomeQuickActionCard(
+          icon: Icons.auto_awesome,
+          label: context.l10n.supermix,
+          subtitle: context.l10n.supermixSubtitle,
+          onTap: () {
+            homeScreenController.startSupermix();
+          },
+        ),
+      );
+      cards.add(
+        _HomeQuickActionCard(
           icon: Icons.radio,
           label: context.l10n.startRadio,
           subtitle: '',

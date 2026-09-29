@@ -267,6 +267,29 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
             }
           }
         }
+        // Pre-fetch the next Supermix page when approaching the end of the
+        // queue so the mix never runs out of songs.
+        if (isSupermixModeOn && currentQueue.length >= 2) {
+          final currentIndex = currentQueue
+              .indexWhere((element) => element.id == mediaItem.id);
+          if (currentIndex >= 0 &&
+              currentIndex >= currentQueue.length - 3 &&
+              !_isAddingSupermixContinuation) {
+            printINFO('Supermix continuation triggered: currentIndex=$currentIndex, queueLength=${currentQueue.length}');
+            _diag.logEvent(
+              category: 'supermix',
+              message: 'supermix_continuation_triggered',
+              songId: mediaItem.id,
+              backendType: mediaItem.extras?['backendType']?.toString(),
+              activeServerType: _activeServerTypeName,
+              data: {
+                'currentIndex': currentIndex,
+                'queueLength': currentQueue.length,
+              },
+            );
+            await _addSupermixContinuation();
+          }
+        }
         _clearTemporaryLyricAccent();
         lyrics.value = {"synced": "", "plainLyrics": ""};
         showLyricsflag.value = false;

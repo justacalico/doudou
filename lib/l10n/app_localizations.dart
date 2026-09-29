@@ -1205,6 +1205,24 @@ abstract class AppLocalizations {
   /// **'Start radio'**
   String get startRadio;
 
+  /// No description provided for @supermix.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Supermix'**
+  String get supermix;
+
+  /// No description provided for @supermixSubtitle.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Made for you'**
+  String get supermixSubtitle;
+
+  /// No description provided for @supermixUnavailable.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Couldn\'t load your Supermix'**
+  String get supermixUnavailable;
+
   /// No description provided for @playNext.
   ///
   /// In en_AU, this message translates to:

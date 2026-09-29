@@ -598,6 +598,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startRadio => 'Start radio';
 
   @override
+  String get supermix => 'Supermix';
+
+  @override
+  String get supermixSubtitle => 'Made for you';
+
+  @override
+  String get supermixUnavailable => 'Couldn\'t load your Supermix';
+
+  @override
   String get playNext => 'Play next';
 
   @override
@@ -2224,6 +2233,15 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get startRadio => 'Start radio';
+
+  @override
+  String get supermix => 'Supermix';
+
+  @override
+  String get supermixSubtitle => 'Made for you';
+
+  @override
+  String get supermixUnavailable => 'Couldn\'t load your Supermix';
 
   @override
   String get playNext => 'Play next';
