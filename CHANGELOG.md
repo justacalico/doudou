@@ -12,6 +12,7 @@ previously per-version files that lived under `changelog/`.
 - The hover background on the close, minimize and maximize window controls is now a small circle instead of a square, matching the rounded macOS style.
 - Upcoming songs now play through network dropouts like on YouTube Music. While a track plays, the audio of the next two queue items downloads in the background to a small rolling cache, so the next song still plays when the connection is gone instead of never loading. Preloaded files are downloaded one at a time to avoid competing with the playing stream, are only treated as playable once fully written, and are cleared once they fall outside the upcoming window.
 - Removed the radio mode button from the desktop now playing bar.
+- The library page header subtitle no longer shows "/ Your music collection." after "Overview", in every language.
 
 ## 22.0.0
 

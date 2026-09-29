@@ -190,7 +190,7 @@
   "@settings": {},
   "library": "Library",
   "@library": {},
-  "libraryOverviewSubtitle": "Overview / Your music collection.",
+  "libraryOverviewSubtitle": "Overview",
   "@libraryOverviewSubtitle": {},
   "stepXofY": "Step {current} of {total}",
   "@stepXofY": {

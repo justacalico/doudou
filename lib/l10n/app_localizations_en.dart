@@ -286,7 +286,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get library => 'Library';
 
   @override
-  String get libraryOverviewSubtitle => 'Overview / Your music collection.';
+  String get libraryOverviewSubtitle => 'Overview';
 
   @override
   String stepXofY(int current, int total) {
@@ -1923,7 +1923,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get library => 'Library';
 
   @override
-  String get libraryOverviewSubtitle => 'Overview / Your music collection.';
+  String get libraryOverviewSubtitle => 'Overview';
 
   @override
   String stepXofY(int current, int total) {

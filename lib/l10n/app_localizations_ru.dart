@@ -290,7 +290,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get library => 'Библиотека';
 
   @override
-  String get libraryOverviewSubtitle => 'Обзор / Ваша музыкальная коллекция.';
+  String get libraryOverviewSubtitle => 'Обзор';
 
   @override
   String stepXofY(int current, int total) {
