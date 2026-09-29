@@ -276,6 +276,17 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
               currentIndex >= currentQueue.length - 3 &&
               !_isAddingSupermixContinuation) {
             printINFO('Supermix continuation triggered: currentIndex=$currentIndex, queueLength=${currentQueue.length}');
+            _diag.logEvent(
+              category: 'supermix',
+              message: 'supermix_continuation_triggered',
+              songId: mediaItem.id,
+              backendType: mediaItem.extras?['backendType']?.toString(),
+              activeServerType: _activeServerTypeName,
+              data: {
+                'currentIndex': currentIndex,
+                'queueLength': currentQueue.length,
+              },
+            );
             await _addSupermixContinuation();
           }
         }
