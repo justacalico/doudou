@@ -40,7 +40,7 @@ Android, Android TV, Wear OS, iOS, macOS, Windows and, Linux
 
 ## Download
 
-Get builds for every platform at **[openlyst.ink/apps/doudou](https://openlyst.ink/apps/doudou)**.
+Get builds for every platform at **[openlyst.ink/apps/doudou](https://openlyst.ink/apps/doudou)**, or visit the **[landing page](https://openlyst.gitlab.io/doudou)**.
 
 Nightly builds are also available on **[GitLab Releases](https://gitlab.com/Openlyst/doudou/-/releases)**. Android APKs are signed with a debug key — enable installs from unknown sources to install them. iOS and macOS builds are unsigned and must be signed locally before installing.
 
