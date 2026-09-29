@@ -1,0 +1,8 @@
+{
+  "date": "2026-09-29",
+  "fonts": "none for web; google_fonts is a dep of the app (pubspec.yaml)",
+  "palette": "brand violet #7C3AED (pubspec.yaml launcher icon background)",
+  "motion": "none",
+  "spacing": "none",
+  "framework": "flutter web sub-project at landing/"
+}

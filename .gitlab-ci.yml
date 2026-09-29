@@ -14,6 +14,8 @@ spec:
 stages:
   - sync
   - release
+  - test
+  - deploy
 
 github-sync:
   stage: sync
@@ -113,3 +115,34 @@ github-release-sync:
       fi
   script:
     - bash scripts/sync-from-github.sh
+
+landing-test:
+  stage: test
+  tags: [linux-truenas]
+  image: ghcr.io/cirruslabs/flutter:stable
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - cd landing
+    - flutter pub get
+    - flutter test
+
+pages:
+  stage: deploy
+  tags: [linux-truenas]
+  image: ghcr.io/cirruslabs/flutter:stable
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - cd landing
+    - flutter pub get
+    - flutter test
+    - flutter build web --release --wasm --base-href "/${CI_PROJECT_NAME}/"
+    - mv build/web ../public
+  artifacts:
+    paths:
+      - public
+  environment:
+    name: gitlab-pages
+    url: https://$CI_PROJECT_NAMESPACE.gitlab.io/$CI_PROJECT_NAME
