@@ -156,6 +156,8 @@ class FakeSettingsScreenController extends SettingsScreenController {
   @override
   bool isNightlyBuild = false;
 
+  ServerType serverType = ServerType.youtubeMusic;
+
   @override
   // ignore: must_call_super
   void onInit() {}
@@ -164,7 +166,7 @@ class FakeSettingsScreenController extends SettingsScreenController {
   SettingsServer? get activeServer => SettingsServer(
         id: 0,
         name: 'Test',
-        type: ServerType.youtubeMusic,
+        type: serverType,
       );
 }
 

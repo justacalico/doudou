@@ -234,7 +234,7 @@ Widget buildTrackRowSection({
                   child: InkWell(
                   borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
                   onTap: () {
-                    playerController.playPlayListSong(
+                    playerController.playHomeSectionSong(
                       items,
                       index,
                       playfrom: PlaylingFrom(
@@ -669,7 +669,7 @@ Widget buildFreshPicksSection({
                   onTap: () {
                     final index = items.indexOf(track);
                     if (index >= 0) {
-                      playerController.playPlayListSong(
+                      playerController.playHomeSectionSong(
                         items,
                         index,
                         playfrom: PlaylingFrom(
