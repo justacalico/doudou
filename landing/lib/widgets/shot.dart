@@ -23,9 +23,9 @@ class Shot extends StatelessWidget {
           border: Border.all(color: Tk.rule),
           boxShadow: [
             BoxShadow(
-              color: Tk.ink.withValues(alpha: 0.09),
-              blurRadius: 28,
-              offset: const Offset(0, 14),
+              color: Tk.ink.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
