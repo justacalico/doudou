@@ -555,6 +555,48 @@ void main() {
 
       expect(getTabBrowseId(renderer, 0), isNull);
     });
+
+    test('returns null when tab has no endpoint', () {
+      final renderer = {
+        'tabs': [
+          {
+            'tabRenderer': {'title': 'Lyrics'}
+          }
+        ],
+      };
+
+      expect(getTabBrowseId(renderer, 0), isNull);
+    });
+
+    test('returns null when tab index is out of range', () {
+      final renderer = {
+        'tabs': [
+          {'tabRenderer': {}}
+        ],
+      };
+
+      expect(getTabBrowseId(renderer, 2), isNull);
+    });
+
+    test('returns null when tabs are missing entirely', () {
+      expect(getTabBrowseId({}, 1), isNull);
+    });
+
+    test('returns null when endpoint is not a browse endpoint', () {
+      final renderer = {
+        'tabs': [
+          {
+            'tabRenderer': {
+              'endpoint': {
+                'watchEndpoint': {'videoId': 'vid1'}
+              }
+            }
+          }
+        ],
+      };
+
+      expect(getTabBrowseId(renderer, 0), isNull);
+    });
   });
 
   group('parseChartsItemBrowseId', () {
