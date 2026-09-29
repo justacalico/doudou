@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 23.0.0
 
+- The desktop now playing screen now has a queue button that opens the queue drawer. It shows up in the top bar of the expanded player and in the compact player header, so the queue is reachable while in the full screen viewer and in the side panel.
 - Tapping a song in the home rows (Favorites, Continue listening, Because you like these artists, Fresh picks and the YouTube Music feed rows) now starts a radio seeded by that song instead of queueing the whole row like a playlist. On non-YouTube Music servers, or when "Auto-start radio" is turned off in settings, tapping a song still plays the row as a queue.
 - Fixed Start Radio doing nothing in most cases. Starting a radio now always clears the queue first and fills it with the seed song plus the radio tracks, instead of appending them to the old queue where they could be dropped as duplicates or end up behind unrelated songs. Artist radios also play the radio tracks now rather than whatever happened to sit at the top of the previous queue, and starting a radio on the currently playing song keeps it playing without restarting. A crash in the watch playlist parser (missing tab endpoint on some songs) that silently killed the radio fetch is fixed too. Radio starts, continuations and failures are now logged in playback diagnostics.
 - The hover background on the close, minimize and maximize window controls is now a small circle instead of a square, matching the rounded macOS style.
