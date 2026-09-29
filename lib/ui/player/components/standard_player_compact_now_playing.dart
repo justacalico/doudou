@@ -335,31 +335,30 @@ class _CompactNowPlaying extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (!GetPlatform.isDesktop)
-                GestureDetector(
-                  onTap: () => pc.queuePanelController.open(),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(borderRadius),
-                    child: Container(
-                      width: buttonSize,
-                      height: buttonSize,
-                      margin: EdgeInsets.only(right: trailingGap),
-                      decoration: BoxDecoration(
-                        color: white.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(borderRadius),
-                        border: Border.all(
-                          color: white.withValues(alpha: 0.18),
-                          width: 0.5,
-                        ),
+              GestureDetector(
+                onTap: () => _openQueue(pc),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  child: Container(
+                    width: buttonSize,
+                    height: buttonSize,
+                    margin: EdgeInsets.only(right: trailingGap),
+                    decoration: BoxDecoration(
+                      color: white.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(borderRadius),
+                      border: Border.all(
+                        color: white.withValues(alpha: 0.18),
+                        width: 0.5,
                       ),
-                      child: Icon(
-                        Icons.queue_music_rounded,
-                        color: white,
-                        size: iconSize,
-                      ),
+                    ),
+                    child: Icon(
+                      Icons.queue_music_rounded,
+                      color: white,
+                      size: iconSize,
                     ),
                   ),
                 ),
+              ),
               Obx(() => GestureDetector(
                     onTap: pc.toggleFavourite,
                     child: ClipRRect(

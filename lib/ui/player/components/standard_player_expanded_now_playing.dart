@@ -76,6 +76,11 @@ class _ExpandedNowPlaying extends StatelessWidget {
                     ),
                     const Spacer(),
                     IconButton(
+                      icon: const Icon(Icons.queue_music_rounded),
+                      tooltip: context.l10n.queue,
+                      onPressed: () => _openQueue(pc),
+                    ),
+                    IconButton(
                       icon: const Icon(Icons.more_horiz_rounded),
                       onPressed: () {
                         if (pc.currentSong.value == null) return;

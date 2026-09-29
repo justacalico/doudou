@@ -77,6 +77,14 @@ bool _isInSlidingPanel(BuildContext context) {
   return context.findAncestorWidgetOfExactType<SlidingUpPanel>() != null;
 }
 
+void _openQueue(PlayerController pc) {
+  if (GetPlatform.isDesktop) {
+    pc.homeScaffoldkey.currentState?.openEndDrawer();
+  } else {
+    pc.queuePanelController.open();
+  }
+}
+
 class _NowPlayingLayoutMetrics {
   const _NowPlayingLayoutMetrics({
     required this.mode,

@@ -116,48 +116,51 @@ class _UpNextList extends StatelessWidget {
                             ),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Row(
-                            children: [
-                              if (isCurrent)
-                                Container(
-                                  width: 4,
-                                  height: 60,
-                                  color: primary,
-                                ),
-                              Expanded(
-                                child: ListTile(
-                                  dense: true,
-                                  leading: SizedBox(
-                                    width: 40,
-                                    height: 40,
-                                    child: ImageWidget(size: 40, song: item),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: Row(
+                              children: [
+                                if (isCurrent)
+                                  Container(
+                                    width: 4,
+                                    height: 60,
+                                    color: primary,
                                   ),
-                                  title: Text(
-                                    item.title,
-                                    style: TextStyle(
-                                      color: textColor,
-                                      fontWeight: isCurrent
-                                          ? FontWeight.w700
-                                          : FontWeight.w400,
+                                Expanded(
+                                  child: ListTile(
+                                    dense: true,
+                                    leading: SizedBox(
+                                      width: 40,
+                                      height: 40,
+                                      child: ImageWidget(size: 40, song: item),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: Text(
-                                    item.artist ?? '—',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isCurrent
-                                          ? mutedColor.withValues(alpha: 0.95)
-                                          : mutedColor,
+                                    title: Text(
+                                      item.title,
+                                      style: TextStyle(
+                                        color: textColor,
+                                        fontWeight: isCurrent
+                                            ? FontWeight.w700
+                                            : FontWeight.w400,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                    subtitle: Text(
+                                      item.artist ?? '—',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isCurrent
+                                            ? mutedColor.withValues(alpha: 0.95)
+                                            : mutedColor,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    onTap: () => pc.seekByIndex(i),
                                   ),
-                                  onTap: () => pc.seekByIndex(i),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
