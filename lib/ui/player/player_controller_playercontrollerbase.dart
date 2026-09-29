@@ -129,6 +129,7 @@ onInit();
   void seekByIndex(int index);
   Future<void> pushSongToQueue(MediaItem? mediaItem, {String? playlistid, bool radio = false});
   Future<void> playPlayListSong(List<MediaItem> mediaItems, int index, {PlaylingFrom? playfrom});
+  Future<void> playHomeSectionSong(List<MediaItem> mediaItems, int index, {PlaylingFrom? playfrom});
   Future<void> _playFromContext(String songId, String libraryId);
   Future<bool> _playFromLibraryBox(String songId, String libraryId);
   Future<void> _playFromAnyBox(String songId);

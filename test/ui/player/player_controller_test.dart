@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:doudou/models/server.dart';
 import 'package:doudou/services/music_service.dart';
 import 'package:doudou/services/playback_diagnostics_service.dart';
 import 'package:doudou/ui/player/player_controller.dart';
@@ -462,6 +463,89 @@ void main() {
         update.extra<List<MediaItem>>('queue')?.map((s) => s.id),
         ['seed', 'r1'],
       );
+    });
+
+    test(
+        'playHomeSectionSong starts radio for the tapped song on YouTube Music',
+        () async {
+      final seed = _song('b', 'B');
+      fakeMusic.watchPlaylistResult = {
+        'tracks': [seed, _song('r1', 'R1')],
+        'additionalParamsForNext': 'nextParam',
+      };
+
+      await player.playHomeSectionSong(
+        [_song('a', 'A'), seed, _song('c', 'C')],
+        1,
+      );
+      await pumpEventQueue();
+
+      expect(player.isRadioModeOn, isTrue);
+      expect(fakeMusic.lastWatchPlaylistCall?['videoId'], 'b');
+      expect(fakeMusic.lastWatchPlaylistCall?['radio'], isTrue);
+
+      final setSource =
+          fakeAudio.calls.firstWhere((c) => c.name == 'setSourceNPlay');
+      expect(setSource.extra<MediaItem>('mediaItem')?.id, 'b');
+
+      final update =
+          fakeAudio.calls.firstWhere((c) => c.name == 'updateQueue');
+      expect(
+        update.extra<List<MediaItem>>('queue')?.map((s) => s.id),
+        ['b', 'r1'],
+      );
+      expect(
+        fakeAudio.calls.any((c) => c.name == 'playByIndex'),
+        isFalse,
+      );
+    });
+
+    test(
+        'playHomeSectionSong plays the section as a queue when auto-radio is off',
+        () async {
+      await appPrefs.put('autoRadioEnabled', false);
+      final items = [_song('a', 'A'), _song('b', 'B'), _song('c', 'C')];
+
+      await player.playHomeSectionSong(items, 1);
+      await pumpEventQueue();
+
+      expect(player.isRadioModeOn, isFalse);
+      expect(fakeMusic.lastWatchPlaylistCall, isNull);
+
+      final update =
+          fakeAudio.calls.firstWhere((c) => c.name == 'updateQueue');
+      expect(
+        update.extra<List<MediaItem>>('queue')?.map((s) => s.id),
+        ['a', 'b', 'c'],
+      );
+      final play =
+          fakeAudio.calls.firstWhere((c) => c.name == 'playByIndex');
+      expect(play.extras?['index'], 1);
+    });
+
+    test(
+        'playHomeSectionSong plays the section as a queue on non-YouTube servers',
+        () async {
+      final settings =
+          Get.find<SettingsScreenController>() as FakeSettingsScreenController;
+      settings.serverType = ServerType.jellyfin;
+      final items = [_song('a', 'A'), _song('b', 'B'), _song('c', 'C')];
+
+      await player.playHomeSectionSong(items, 2);
+      await pumpEventQueue();
+
+      expect(player.isRadioModeOn, isFalse);
+      expect(fakeMusic.lastWatchPlaylistCall, isNull);
+
+      final update =
+          fakeAudio.calls.firstWhere((c) => c.name == 'updateQueue');
+      expect(
+        update.extra<List<MediaItem>>('queue')?.map((s) => s.id),
+        ['a', 'b', 'c'],
+      );
+      final play =
+          fakeAudio.calls.firstWhere((c) => c.name == 'playByIndex');
+      expect(play.extras?['index'], 2);
     });
 
     test('radio does not start when the watch playlist returns no tracks',

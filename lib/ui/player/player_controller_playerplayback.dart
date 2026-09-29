@@ -273,6 +273,23 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
     }
   }
 
+  /// Plays a track tapped in a home section row. On YouTube Music with
+  /// auto-radio enabled this seeds a radio from the tapped track instead of
+  /// queueing the whole section like a playlist. Other servers keep the
+  /// section-as-playlist behaviour.
+  Future<void> playHomeSectionSong(List<MediaItem> mediaItems, int index,
+      {PlaylingFrom? playfrom}) async {
+    final settings = Get.find<SettingsScreenController>();
+    final isYouTube = settings.activeServer?.type == ServerType.youtubeMusic;
+    final autoRadioEnabled =
+        Hive.box("AppPrefs").get("autoRadioEnabled") ?? true;
+    if (isYouTube && autoRadioEnabled) {
+      await startRadio(mediaItems[index]);
+      return;
+    }
+    await playPlayListSong(mediaItems, index, playfrom: playfrom);
+  }
+
   Future<void> _playFromContext(String songId, String libraryId) async {
     // 1. Try Hive box with this ID (works for SongDownloads, LIBRP, LIBFAV,
     //    and cached album/playlist boxes)
