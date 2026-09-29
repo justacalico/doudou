@@ -18,6 +18,14 @@ on:
         description: 'Publish a release from this build'
         type: boolean
         default: false
+      merge_request_id:
+        description: 'Merge request ID to embed in the build (development builds only)'
+        type: string
+        default: ''
+      merge_request_url:
+        description: 'Merge request URL to embed in the build (development builds only)'
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -79,6 +87,8 @@ jobs:
     continue-on-error: false
     env:
       APPIMAGE_EXTRACT_AND_RUN: "1"
+      MERGE_REQUEST_ID: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || inputs.merge_request_id || '' }}
+      MERGE_REQUEST_URL: ${{ github.event_name == 'pull_request' && github.event.pull_request.html_url || inputs.merge_request_url || '' }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
@@ -316,6 +326,12 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts
 
+          MR_DART_DEFINES=()
+          if [ -n "${MERGE_REQUEST_ID:-}" ]; then
+            MR_DART_DEFINES+=(--dart-define=MERGE_REQUEST_ID="$MERGE_REQUEST_ID")
+            MR_DART_DEFINES+=(--dart-define=MERGE_REQUEST_URL="$MERGE_REQUEST_URL")
+          fi
+
           NIGHTLY=false
           if [ "$GH_REF" = "refs/heads/main" ]; then
             if [ "$GH_EVENT_NAME" = "push" ] || [ "$GH_EVENT_NAME" = "schedule" ]; then
@@ -332,7 +348,7 @@ jobs:
               build_mode="debug"
               mode_dir="Debug"
             fi
-            flutter build apk --"$build_mode" --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER" --dart-define=NIGHTLY="$NIGHTLY"
+            flutter build apk --"$build_mode" --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER" --dart-define=NIGHTLY="$NIGHTLY" "${MR_DART_DEFINES[@]+"${MR_DART_DEFINES[@]}"}"
             cp "build/app/outputs/flutter-apk/app-${flavor}-${build_mode}.apk" \
                "artifacts/doudou-${name}-${VERSION}-${BUILD_DATE}.apk"
           }
@@ -344,7 +360,7 @@ jobs:
               build_mode="debug"
               mode_dir="Debug"
             fi
-            flutter build appbundle --"$build_mode" --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER" --dart-define=NIGHTLY="$NIGHTLY"
+            flutter build appbundle --"$build_mode" --flavor "$flavor" "$@" --build-name="$VERSION" --build-number="$BUILD_NUMBER" --dart-define=NIGHTLY="$NIGHTLY" "${MR_DART_DEFINES[@]+"${MR_DART_DEFINES[@]}"}"
             cp "build/app/outputs/bundle/${flavor}${mode_dir}/app-${flavor}-${build_mode}.aab" \
                "artifacts/doudou-${name}-${VERSION}-${BUILD_DATE}.aab"
           }
@@ -370,7 +386,7 @@ jobs:
               build_aab tv tv --dart-define=PLAYSTORE=false --dart-define=TV=true
               ;;
             linux-x64)
-              flutter build linux --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY"
+              flutter build linux --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY" "${MR_DART_DEFINES[@]+"${MR_DART_DEFINES[@]}"}"
               cd build/linux/x64/release && zip -r "$GITHUB_WORKSPACE/artifacts/doudou-linux-x64-${VERSION}-${BUILD_DATE}.zip" bundle/ && cd "$GITHUB_WORKSPACE"
               export PATH="$PATH:$HOME/.pub-cache/bin"
               dart pub global activate fastforge
@@ -382,7 +398,7 @@ jobs:
               find dist -name "*.AppImage" -exec cp {} "artifacts/doudou-linux-x86_64-${VERSION}-${BUILD_DATE}.AppImage" \; 2>/dev/null || true
               ;;
             linux-arm64)
-              flutter build linux --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY"
+              flutter build linux --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY" "${MR_DART_DEFINES[@]+"${MR_DART_DEFINES[@]}"}"
               cd build/linux/arm64/release && zip -r "$GITHUB_WORKSPACE/artifacts/doudou-linux-arm64-${VERSION}-${BUILD_DATE}.zip" bundle/ && cd "$GITHUB_WORKSPACE"
               export PATH="$PATH:$HOME/.pub-cache/bin"
               export PUB_CACHE="$HOME/.pub-cache"
@@ -395,15 +411,15 @@ jobs:
               find dist -name "*.AppImage" -exec cp {} "artifacts/doudou-linux-aarch64-${VERSION}-${BUILD_DATE}.AppImage" \; 2>/dev/null || true
               ;;
             windows)
-              flutter build windows --release --dart-define=NIGHTLY="$NIGHTLY"
+              flutter build windows --release --dart-define=NIGHTLY="$NIGHTLY" "${MR_DART_DEFINES[@]+"${MR_DART_DEFINES[@]}"}"
               7z a "artifacts/doudou-windows-x64-${VERSION}-${BUILD_DATE}.zip" "build/windows/x64/runner/Release"
               ;;
             macos)
               flutter config --enable-macos-desktop
-              flutter build macos --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY"
+              flutter build macos --release --build-name="$VERSION" --dart-define=NIGHTLY="$NIGHTLY" "${MR_DART_DEFINES[@]+"${MR_DART_DEFINES[@]}"}"
               ;;
             ios)
-              flutter build ios --release --no-codesign --dart-define=NIGHTLY="$NIGHTLY"
+              flutter build ios --release --no-codesign --dart-define=NIGHTLY="$NIGHTLY" "${MR_DART_DEFINES[@]+"${MR_DART_DEFINES[@]}"}"
               ;;
             *)
               echo "Unknown target: ${{ matrix.target }}" >&2
@@ -502,7 +518,7 @@ jobs:
     # Skip on tag pushes (handled by the release job), PR builds, and manual
     # dispatches with create_release checked (those go to the release job).
     # On manual dispatch without create_release, publish a nightly build.
-    if: ${{ !cancelled() && contains(needs.build.result, 'success') && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.create_release == false)) }}
+    if: ${{ !cancelled() && contains(needs.build.result, 'success') && github.ref == 'refs/heads/main' && inputs.merge_request_id == '' && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.create_release == false)) }}
     permissions:
       contents: write
     outputs:
@@ -587,7 +603,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: build
-    if: ${{ !cancelled() && contains(needs.build.result, 'success') && (startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.create_release == true)) }}
+    if: ${{ !cancelled() && contains(needs.build.result, 'success') && inputs.merge_request_id == '' && (startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.create_release == true)) }}
     permissions:
       contents: write
     outputs:

@@ -33,10 +33,18 @@ update_comment() {
 # Post the initial "in progress" MR comment.
 update_comment start
 
-echo "Triggering GitHub workflow: $WORKFLOW @ $REF (build_all=$BUILD_ALL, create_release=$CREATE_RELEASE)"
+MERGE_REQUEST_ID="${CI_MERGE_REQUEST_IID:-}"
+MERGE_REQUEST_URL="${CI_MERGE_REQUEST_URL:-}"
+if [ -n "$MERGE_REQUEST_ID" ] && [ -z "$MERGE_REQUEST_URL" ]; then
+  MERGE_REQUEST_URL="${CI_SERVER_URL:-https://gitlab.com}/${CI_PROJECT_PATH}/-/merge_requests/${MERGE_REQUEST_ID}"
+fi
+
+echo "Triggering GitHub workflow: $WORKFLOW @ $REF (build_all=$BUILD_ALL, create_release=$CREATE_RELEASE, merge_request_id=$MERGE_REQUEST_ID, merge_request_url=$MERGE_REQUEST_URL)"
 gh workflow run "$WORKFLOW" -R "$REPO" --ref "$REF" \
   -f build_all="$BUILD_ALL" \
-  -f create_release="$CREATE_RELEASE"
+  -f create_release="$CREATE_RELEASE" \
+  -f merge_request_id="$MERGE_REQUEST_ID" \
+  -f merge_request_url="$MERGE_REQUEST_URL"
 
 echo "Looking for run ID..."
 RUN_ID=""

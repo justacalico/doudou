@@ -23,6 +23,33 @@
   "@demoServerIntro": {},
   "demoServerReset": "This server is reset daily at 06:00 Eastern Time, so any changes are temporary.",
   "@demoServerReset": {},
+  "devMergeRequestTitle": "Development merge request",
+  "@devMergeRequestTitle": {},
+  "devMergeRequestBody": "You are on a development merge request (!{id}). Report issues here:\n\n{url}",
+  "@devMergeRequestBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "devMergeRequestBodyNoUrl": "You are on a development merge request (!{id}). The merge request URL is not available in this build.",
+  "@devMergeRequestBodyNoUrl": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "devMergeRequestOpen": "Open",
+  "@devMergeRequestOpen": {},
+  "devMergeRequestCopy": "Copy",
+  "@devMergeRequestCopy": {},
+  "devMergeRequestClose": "Close",
+  "@devMergeRequestClose": {},
   "discordAppId": "Discord Application ID",
   "@discordAppId": {},
   "discordAppIdDialogDes": "Create a Discord application at discord.com/developers/applications and paste the Application ID here.",

@@ -46,6 +46,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get demoServerReset => '该服务器每天于东部时间 06:00 重置，所有更改均为临时性的。';
 
   @override
+  String get devMergeRequestTitle => '开发合并请求';
+
+  @override
+  String devMergeRequestBody(String id, String url) {
+    return '你正在使用来自合并请求 (!$id) 的开发构建。请在此处反馈问题：\n\n$url';
+  }
+
+  @override
+  String devMergeRequestBodyNoUrl(String id) {
+    return '你正在使用来自合并请求 (!$id) 的开发构建。此构建中没有合并请求链接。';
+  }
+
+  @override
+  String get devMergeRequestOpen => '打开';
+
+  @override
+  String get devMergeRequestCopy => '复制';
+
+  @override
+  String get devMergeRequestClose => '关闭';
+
+  @override
   String get discordAppId => 'Discord 应用 ID';
 
   @override

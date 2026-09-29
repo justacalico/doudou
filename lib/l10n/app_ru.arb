@@ -23,6 +23,33 @@
   "@demoServerIntro": {},
   "demoServerReset": "Сервер сбрасывается ежедневно в 06:00 по восточному времени, поэтому все изменения временны.",
   "@demoServerReset": {},
+  "devMergeRequestTitle": "Сборка из merge request",
+  "@devMergeRequestTitle": {},
+  "devMergeRequestBody": "Это сборка из merge request (!{id}). Сообщайте о проблемах здесь:\n\n{url}",
+  "@devMergeRequestBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "devMergeRequestBodyNoUrl": "Это сборка из merge request (!{id}). Ссылка на merge request недоступна в этой сборке.",
+  "@devMergeRequestBodyNoUrl": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "devMergeRequestOpen": "Открыть",
+  "@devMergeRequestOpen": {},
+  "devMergeRequestCopy": "Копировать",
+  "@devMergeRequestCopy": {},
+  "devMergeRequestClose": "Закрыть",
+  "@devMergeRequestClose": {},
   "discordAppId": "ID приложения Discord",
   "@discordAppId": {},
   "discordAppIdDialogDes": "Создайте приложение на discord.com/developers/applications и вставьте сюда его ID.",
