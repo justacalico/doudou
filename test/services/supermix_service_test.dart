@@ -128,7 +128,8 @@ void main() {
       service = SupermixService(musicServices: music);
     });
 
-    test('serves the native Supermix playlist when present', () async {
+    test('serves the native Supermix playlist when there are no seeds',
+        () async {
       final mixTracks = List.generate(5, (i) => _song('m$i'));
       music.homeSections = [
         {
@@ -137,8 +138,7 @@ void main() {
       ];
       music.playlistTracks['VLRDTMAK5uy_abc'] = mixTracks;
 
-      final result = await service.fetchSupermix(
-          favouriteSeeds: [_song('f1')], recentSeeds: [_song('r1')]);
+      final result = await service.fetchSupermix();
 
       expect(result.playlistId, 'VLRDTMAK5uy_abc');
       expect(result.tracks.map((t) => t.id),
@@ -146,6 +146,30 @@ void main() {
       // No seed based radio calls needed when the native mix exists.
       expect(music.seedRadioCalls.where((c) => !c.startsWith('playlist:')),
           isEmpty);
+    });
+
+    test('ignores the native playlist when favourites exist', () async {
+      // The home feed Supermix is generic for anonymous sessions, so the
+      // favourites driven mix always wins when there is something to seed
+      // from.
+      music.homeSections = [
+        {
+          'contents': [_playlist('VLRDTMAK5uy_abc', 'My Supermix')]
+        }
+      ];
+      music.playlistTracks['VLRDTMAK5uy_abc'] =
+          List.generate(5, (i) => _song('m$i'));
+      final favourites = List.generate(4, (i) => _song('fav$i'));
+      for (final f in favourites) {
+        music.radioTracks[f.id] = [_song('d_${f.id}')];
+      }
+
+      final result = await service.fetchSupermix(favouriteSeeds: favourites);
+
+      expect(result.playlistId, isNull);
+      final ids = result.tracks.map((t) => t.id).toSet();
+      expect(ids, containsAll(favourites.map((f) => f.id)));
+      expect(ids.any((id) => id.startsWith('m')), isFalse);
     });
 
     test('builds a seed mix when the feed has no supermix', () async {
@@ -171,6 +195,18 @@ void main() {
       expect(result.tracks.length, ids.length);
       // a few different seeds powered the mix
       expect(music.seedRadioCalls.toSet().length, greaterThan(1));
+    });
+
+    test('a full discovery page can never push favourites out', () async {
+      final favourites = List.generate(30, (i) => _song('fav$i'));
+      music.radioTrackGenerator =
+          (seed) => List.generate(25, (i) => _song('d_${seed}_$i'));
+
+      final result = await service.fetchSupermix(favouriteSeeds: favourites);
+
+      final favCount =
+          result.tracks.where((t) => t.id.startsWith('fav')).length;
+      expect(favCount, 25);
     });
 
     test('returns nothing when there are no seeds and no native mix', () async {
@@ -232,6 +268,28 @@ void main() {
       expect(more.map((t) => t.id), isNot(contains('dup')));
     });
 
+    test('continuation pages keep sprinkling unserved favourites', () async {
+      // 30 favourites: only 25 fit in the first mix, so a handful are left
+      // to show up in continuation pages.
+      final favourites = List.generate(30, (i) => _song('fav$i'));
+      var counter = 0;
+      music.radioTrackGenerator =
+          (seed) => List.generate(4, (_) => _song('g${counter++}'));
+      final firstMix = await service.fetchSupermix(favouriteSeeds: favourites);
+      final servedFavs = firstMix.tracks
+          .map((t) => t.id)
+          .where((id) => id.startsWith('fav'))
+          .toSet();
+
+      final more = await service.fetchMoreTracks();
+
+      final sprinkled =
+          more.map((t) => t.id).where((id) => id.startsWith('fav')).toList();
+      expect(sprinkled, isNotEmpty);
+      // only favourites that were not in the first page get sprinkled
+      expect(sprinkled.every((id) => !servedFavs.contains(id)), isTrue);
+    });
+
     test('re-reads the native playlist and only serves fresh tracks', () async {
       final mixTracks = List.generate(3, (i) => _song('m$i'));
       music.homeSections = [
@@ -240,7 +298,7 @@ void main() {
         }
       ];
       music.playlistTracks['VLRDTMAK5uy_abc'] = mixTracks;
-      await service.fetchSupermix(favouriteSeeds: [_song('fav0')]);
+      await service.fetchSupermix();
 
       // YouTube refreshed the mix: one old song, two new ones.
       music.playlistTracks['VLRDTMAK5uy_abc'] = [
@@ -251,23 +309,6 @@ void main() {
       final more = await service.fetchMoreTracks();
 
       expect(more.map((t) => t.id).toSet(), {'new1', 'new2'});
-    });
-
-    test('drops to seed radio when the native mix serves no fresh tracks',
-        () async {
-      final mixTracks = List.generate(3, (i) => _song('m$i'));
-      music.homeSections = [
-        {
-          'contents': [_playlist('VLRDTMAK5uy_abc', 'My Supermix')]
-        }
-      ];
-      music.playlistTracks['VLRDTMAK5uy_abc'] = mixTracks;
-      music.radioTracks['fav0'] = [_song('extra')];
-      await service.fetchSupermix(favouriteSeeds: [_song('fav0')]);
-
-      final more = await service.fetchMoreTracks();
-
-      expect(more.map((t) => t.id), contains('extra'));
     });
   });
 }

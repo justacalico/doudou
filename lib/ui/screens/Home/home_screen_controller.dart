@@ -56,7 +56,7 @@ class HomeScreenController extends GetxController {
   final homeLibrarySectionsVersion = 0.obs;
   static const Duration _homeSectionsCacheTtl = Duration(hours: 8);
   Worker? _librarySyncWorker;
-  
+
   // YouTube Music home content for empty library state
   final youtubeMusicHomeContent = [].obs;
   final isLoadingYoutubeMusicHome = false.obs;
@@ -373,7 +373,8 @@ class HomeScreenController extends GetxController {
 
   void onSideBarTabSelected(int index) {
     final wasHomeTab = tabIndex.value == 0;
-    final isOnHome = ScreenNavigationSetup.currentContentRouteName == ScreenNavigationSetup.homeScreen;
+    final isOnHome = ScreenNavigationSetup.currentContentRouteName ==
+        ScreenNavigationSetup.homeScreen;
     if (index == tabIndex.value) {
       if (isOnHome || ScreenNavigationSetup.canPopContent) {
         ScreenNavigationSetup.offContentRoute(ScreenNavigationSetup.homeScreen);
@@ -394,7 +395,8 @@ class HomeScreenController extends GetxController {
   }
 
   void onBottonBarTabSelected(int index) {
-    final isOnHome = ScreenNavigationSetup.currentContentRouteName == ScreenNavigationSetup.homeScreen;
+    final isOnHome = ScreenNavigationSetup.currentContentRouteName ==
+        ScreenNavigationSetup.homeScreen;
     final wasHomeTab = tabIndex.value == 0;
     reverseAnimationtransiton = index > tabIndex.value;
     tabIndex.value = index;
@@ -515,9 +517,10 @@ class HomeScreenController extends GetxController {
 
   void refreshDownloadedSongsCount() {
     try {
-      downloadedSongsCount.value = Hive.isBoxOpen(songDownloadsBoxName(currentServerId()))
-          ? Hive.box(songDownloadsBoxName(currentServerId())).length
-          : 0;
+      downloadedSongsCount.value =
+          Hive.isBoxOpen(songDownloadsBoxName(currentServerId()))
+              ? Hive.box(songDownloadsBoxName(currentServerId())).length
+              : 0;
     } catch (e, st) {
       printWarning(
           '[RECOVERABLE][opId=home.refreshDownloadedSongsCount] Failed to read SongDownloads count: $e\n$st');
@@ -920,7 +923,8 @@ class HomeScreenController extends GetxController {
     required String emptyMessage,
     required String playFromName,
   }) async {
-    var list = _safeMediaItemsFromIterable(Hive.box(songDownloadsBoxName(currentServerId())).values);
+    var list = _safeMediaItemsFromIterable(
+        Hive.box(songDownloadsBoxName(currentServerId())).values);
     if (list.isEmpty) {
       Get.snackbar('', emptyMessage);
       return;
@@ -993,8 +997,7 @@ class HomeScreenController extends GetxController {
 
     // 2. Fall back to a random recently played song
     try {
-      final box =
-          await Hive.openBox(recentlyPlayedBoxName(currentServerId()));
+      final box = await Hive.openBox(recentlyPlayedBoxName(currentServerId()));
       final recentSongs = _safeMediaItemsFromIterable(box.values);
       if (recentSongs.isNotEmpty) {
         recentSongs.shuffle(Random());
@@ -1030,10 +1033,10 @@ class HomeScreenController extends GetxController {
     Get.snackbar('', l10nFromPrefs().addFavoritesToStartRadio);
   }
 
-  /// Starts the personalised Supermix for YouTube Music. Plays the "My
-  /// Supermix" playlist when YouTube exposes one, otherwise builds a mix
-  /// from favourites and recently played songs with discovery tracks
-  /// blended in.
+  /// Starts the personalised Supermix for YouTube Music. Builds a mix from
+  /// favourites and recently played songs with discovery tracks blended in,
+  /// falling back to the home feed "My Supermix" playlist only when the user
+  /// has no favourites yet.
   Future<void> startSupermix() async {
     final settings = Get.find<SettingsScreenController>();
     if (settings.activeServer?.type != ServerType.youtubeMusic) return;

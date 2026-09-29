@@ -5,10 +5,10 @@ mixin _PlayerSupermixMixin on _PlayerControllerBase {
   SupermixService get _supermix =>
       _supermixService ??= SupermixService(musicServices: _musicServices);
 
-  /// Starts an endless personalised mix: the "My Supermix" playlist YouTube
-  /// Music generates when it is available, otherwise a mix built from the
-  /// user's favourites and recently played songs with discovery tracks
-  /// thrown in.
+  /// Starts an endless personalised mix built from the user's favourites and
+  /// recently played songs, with discovery tracks seeded by them thrown in.
+  /// The "My Supermix" playlist YouTube Music generates is only used when
+  /// there are no favourites to seed from.
   Future<void> startSupermix() async {
     final settings = Get.find<SettingsScreenController>();
     if (settings.activeServer?.type != ServerType.youtubeMusic) return;

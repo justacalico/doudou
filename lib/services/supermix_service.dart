@@ -19,13 +19,15 @@ class SupermixResult {
 
 /// Builds YouTube Music style Supermix queues.
 ///
-/// Prefers the "My Supermix" playlist YouTube Music generates on the home
-/// feed (id prefix `RDTMAK`). When that playlist is unavailable a mix is
-/// built locally instead: radio pages fetched for a few of the user's
-/// favourite and recently played songs are blended with the favourites
-/// themselves, so the queue is mostly familiar music with new discoveries
-/// thrown in. [fetchMoreTracks] keeps the mix going by rotating through the
-/// seed pool so every page comes from a different song the user likes.
+/// The mix is driven by the user's own favourites and recently played songs:
+/// a sample of familiar tracks is blended with radio pages fetched for a few
+/// of them, so the queue is mostly songs the user loves with related
+/// discoveries thrown in. The "My Supermix" playlist YouTube Music exposes
+/// on the home feed (id prefix `RDTMAK`) is only used when there are no
+/// favourites to build from, since anonymous InnerTube requests make it a
+/// generic chart mix rather than a personal one. [fetchMoreTracks] keeps the
+/// mix going by rotating through the seed pool so every page comes from a
+/// different song the user likes.
 class SupermixService {
   SupermixService({MusicServices? musicServices})
       : _musicServices = musicServices ?? Get.find<MusicServices>();
@@ -39,14 +41,16 @@ class SupermixService {
 
   static const _seedRadioLimit = 25;
   static const _seedRadioSeedCount = 3;
-  static const _favouriteSampleSize = 25;
-  static const _mixMaxSize = 80;
+  static const _familiarMixShare = 30;
+  static const _discoveryMixShare = 50;
+  static const _continuationFavouriteShare = 5;
 
   static const _seedPoolMaxSize = 300;
 
   String? _nativePlaylistId;
   List<String> _seedPool = [];
   int _seedCursor = 0;
+  List<MediaItem> _favouriteTracks = [];
   final Set<String> _servedIds = {};
   final Map<String, dynamic> _seedContinuations = {};
 
@@ -72,27 +76,35 @@ class SupermixService {
   }
 
   /// Returns the first page of the mix. [favouriteSeeds] and [recentSeeds]
-  /// seed the fallback mix and drive all future continuations.
+  /// seed the mix and drive all future continuations.
   Future<SupermixResult> fetchSupermix({
     List<MediaItem> favouriteSeeds = const [],
     List<MediaItem> recentSeeds = const [],
   }) async {
     _servedIds.clear();
     _seedContinuations.clear();
+    _favouriteTracks = favouriteSeeds.where((t) => t.id.isNotEmpty).toList();
     _seedPool = _buildSeedPool(favouriteSeeds, recentSeeds);
     _seedCursor = _seedPool.isEmpty ? 0 : _random.nextInt(_seedPool.length);
     _nativePlaylistId = null;
 
+    if (_seedPool.isNotEmpty) {
+      final mix = await _buildSeedMix(
+          favouriteSeeds: favouriteSeeds, recentSeeds: recentSeeds);
+      if (mix.isNotEmpty) {
+        _servedIds.addAll(mix.map((t) => t.id));
+        return SupermixResult(tracks: mix);
+      }
+    }
+
+    // Nothing personal to build from; fall back to whatever Supermix
+    // playlist YouTube exposes on the home feed.
     final native = await _fetchNativeSupermixTracks();
     if (native.isNotEmpty) {
       _servedIds.addAll(native.map((t) => t.id));
       return SupermixResult(tracks: native, playlistId: _nativePlaylistId);
     }
-
-    final mix = await _buildSeedMix(
-        favouriteSeeds: favouriteSeeds, recentSeeds: recentSeeds);
-    _servedIds.addAll(mix.map((t) => t.id));
-    return SupermixResult(tracks: mix);
+    return SupermixResult(tracks: const []);
   }
 
   /// Fetches the next page of the mix for endless playback. Songs already
@@ -125,15 +137,29 @@ class SupermixService {
           .where((t) => t.id != seedId && !excluded.contains(t.id))
           .toList();
       if (fresh.isNotEmpty) {
-        final ordered = shuffledSongs(fresh, random: _random);
+        // Keep a few unserved favourites in every page so the mix stays
+        // anchored to the user's taste instead of drifting into pure
+        // recommendations.
+        final favourites =
+            _unservedFavourites(excluded, _continuationFavouriteShare);
+        final ordered =
+            shuffledSongs([...fresh, ...favourites], random: _random);
         _servedIds.addAll(ordered.map((t) => t.id));
         // Discoveries become seeds themselves so the mix keeps branching
         // into different territory the longer it runs.
-        _addSeeds(ordered.map((t) => t.id));
+        _addSeeds(fresh.map((t) => t.id));
         return ordered;
       }
     }
     return [];
+  }
+
+  List<MediaItem> _unservedFavourites(Set<String> excluded, int count) {
+    final candidates = _favouriteTracks
+        .where((t) => !excluded.contains(t.id))
+        .toList()
+      ..shuffle(_random);
+    return candidates.take(count).toList();
   }
 
   Future<String?> _findNativePlaylistId() async {
@@ -225,24 +251,32 @@ class SupermixService {
     }
     _seedCursor += seedCount;
 
+    // Familiar songs are the backbone of the mix. They get their own share
+    // of the queue so a big discovery page can never push them out.
+    final familiar = <MediaItem>[];
+    final familiarSeen = <String>{};
     final favouritesSample = [...favouriteSeeds]..shuffle(_random);
-    final pool = <MediaItem>[
-      ...discovery,
-      ...favouritesSample.take(_favouriteSampleSize),
-    ];
-
-    final seen = <String>{};
-    final deduped = pool
-        .where((t) => t.id.isNotEmpty && seen.add(t.id))
-        .take(_mixMaxSize)
-        .toList();
-    _addSeeds(discovery.map((t) => t.id));
-    if (deduped.isEmpty) {
-      // No discovery tracks at all; at least play the songs the user likes.
-      deduped.addAll(favouritesSample
-          .where((t) => t.id.isNotEmpty)
-          .take(_favouriteSampleSize));
+    final recentSample = [...recentSeeds]..shuffle(_random);
+    for (final track in [
+      ...favouritesSample.take(25),
+      ...recentSample.take(10)
+    ]) {
+      if (track.id.isNotEmpty && familiarSeen.add(track.id)) {
+        familiar.add(track);
+      }
     }
-    return shuffledSongs(deduped, random: _random);
+
+    final seen = {...familiarSeen};
+    final discoveries = discovery
+        .where((t) => t.id.isNotEmpty && seen.add(t.id))
+        .take(_discoveryMixShare)
+        .toList();
+    _addSeeds(discoveries.map((t) => t.id));
+
+    final mix = <MediaItem>[
+      ...familiar.take(_familiarMixShare),
+      ...discoveries,
+    ];
+    return shuffledSongs(mix, random: _random);
   }
 }
