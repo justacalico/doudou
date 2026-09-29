@@ -74,6 +74,13 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
       if (autoRadioEnabled) {
         radio = true;
         printINFO('Auto-radio enabled for pushSongToQueue: ${mediaItem?.title}');
+        _diag.logEvent(
+          category: 'radio',
+          message: 'radio_auto_enabled',
+          songId: mediaItem?.id,
+          backendType: mediaItem?.extras?['backendType']?.toString(),
+          activeServerType: server?.type.name,
+        );
       }
     }
 
@@ -81,8 +88,8 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
     playinfrom.value = PlaylingFrom(
         type: PlaylingFromType.SELECTION,
         name: radio
-            ? AppLocalizations.of(Get.context!)!.startRadio
-            : AppLocalizations.of(Get.context!)!.randomSelection);
+            ? l10nFromPrefs().startRadio
+            : l10nFromPrefs().randomSelection);
 
     /// set global radio mode flag
     isRadioModeOn = radio;
@@ -91,24 +98,87 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
     if (radio) {
       radioInitiatorItem = mediaItem ?? playlistid;
       _lastContinuationParamUsed = null;
+      radioContinuationParam = null;
       printINFO('Radio initiator set: ${mediaItem?.title ?? playlistid}');
     }
+
+    final seedAlreadyPlaying =
+        radio && mediaItem != null && currentSong.value?.id == mediaItem.id;
 
     Future.delayed(
       Duration.zero,
       () async {
-        final content = await _musicServices.getWatchPlaylist(
-            videoId: mediaItem?.id ?? "", radio: radio, playlistId: playlistid);
+        final Map<String, dynamic> content;
+        try {
+          content = await _musicServices.getWatchPlaylist(
+              videoId: mediaItem?.id ?? "",
+              radio: radio,
+              playlistId: playlistid);
+        } catch (e) {
+          printERROR('Watch playlist fetch failed: $e');
+          _diag.logEvent(
+            category: 'radio',
+            message: 'radio_seed_fetch_failed',
+            songId: mediaItem?.id,
+            backendType: mediaItem?.extras?['backendType']?.toString(),
+            activeServerType: server?.type.name,
+            data: {'playlistId': playlistid, 'error': e.toString()},
+          );
+          if (radio) {
+            isRadioModeOn = false;
+            radioInitiatorItem = null;
+            radioContinuationParam = null;
+          }
+          return;
+        }
         radioContinuationParam = content['additionalParamsForNext'];
         printINFO('Radio continuation param set: $radioContinuationParam');
         final tracks = List<MediaItem>.from(content['tracks']);
-        
+
         if (radio) {
-          // For radio mode, add tracks to existing queue instead of replacing
-          // Remove current song from radio tracks to avoid duplicate
-          final filteredTracks = tracks.where((t) => t.id != mediaItem?.id).toList();
-          printINFO('Radio: adding ${filteredTracks.length} tracks to queue without replacing');
-          await enqueueSongList(filteredTracks);
+          // Radio always starts from a fresh queue: the seed song first,
+          // then the fetched radio tracks.
+          final radioQueue = mediaItem != null
+              ? [mediaItem, ...tracks.where((t) => t.id != mediaItem.id)]
+              : tracks;
+          _diag.logEvent(
+            category: 'radio',
+            message: 'radio_seed_tracks_fetched',
+            songId: mediaItem?.id,
+            backendType: mediaItem?.extras?['backendType']?.toString(),
+            activeServerType: server?.type.name,
+            data: {
+              'trackCount': tracks.length,
+              'queueLength': radioQueue.length,
+              'playlistId': playlistid,
+              'hasContinuation': radioContinuationParam != null,
+              'seedAlreadyPlaying': seedAlreadyPlaying,
+            },
+          );
+          if (radioQueue.isEmpty) {
+            printERROR('Radio: watch playlist returned no tracks');
+            isRadioModeOn = false;
+            radioInitiatorItem = null;
+            radioContinuationParam = null;
+            return;
+          }
+          await _audioHandler.updateQueue(radioQueue);
+          printINFO(
+              'Radio: queue replaced with ${radioQueue.length} tracks');
+          if (isShuffleModeEnabled.isTrue) {
+            await _audioHandler.customAction("shuffleCmd", {"index": 0});
+          }
+          _playerPanelCheck();
+          if (seedAlreadyPlaying) {
+            // Seed keeps playing uninterrupted; repoint the handler index at
+            // the front of the new queue.
+            await _audioHandler
+                .customAction("upadateMediaItemInAudioService", {"index": 0});
+          } else if (mediaItem == null) {
+            await _audioHandler.customAction("playByIndex", {"index": 0});
+          }
+          // When the seed is a different song, setSourceNPlay below already
+          // started it at index 0 while the radio tracks were loading.
         } else {
           // For non-radio, replace the queue
           await _audioHandler.updateQueue(tracks);
@@ -116,29 +186,37 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
           if (isShuffleModeEnabled.isTrue) {
             await _audioHandler.customAction("shuffleCmd", {"index": 0});
           }
+          if (playlistid != null) {
+            _playerPanelCheck();
+            await _audioHandler.customAction("playByIndex", {"index": 0});
+          }
         }
 
-        // added here to broadcast current mediaitem via Audio Service as list is updated
-        // if radio is started on current playing song
-        if (radio && (currentSong.value?.id == mediaItem?.id)) {
-          _audioHandler
-              .customAction("upadateMediaItemInAudioService", {"index": 0});
-        }
-      },
-    ).then((value) async {
-      if (playlistid != null) {
-        _playerPanelCheck();
-        await _audioHandler.customAction("playByIndex", {"index": 0});
-      } else {
-        if (Hive.box("AppPrefs").get("discoverContentType") == "BOLI") {
+        if (playlistid == null &&
+            Hive.box("AppPrefs").get("discoverContentType") == "BOLI") {
           Get.find<HomeScreenController>()
               .changeDiscoverContent("BOLI", songId: mediaItem!.id);
         }
-      }
-    });
+      },
+    );
 
-    if (playlistid != null ||
-        (radio && (currentSong.value?.id == mediaItem?.id))) {
+    if (radio) {
+      if (mediaItem != null && !seedAlreadyPlaying) {
+        // Start the seed right away; the delayed block swaps in the full
+        // radio queue once the tracks arrive.
+        _playerPanelCheck();
+        await _audioHandler
+            .customAction("setSourceNPlay", {'mediaItem': mediaItem});
+      }
+
+      // disable queue loop mode when radio is started
+      if (isQueueLoopModeEnabled.isTrue && isShuffleModeEnabled.isFalse) {
+        toggleQueueLoopMode();
+      }
+      return;
+    }
+
+    if (playlistid != null) {
       return;
     }
 
@@ -146,13 +224,6 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
     _playerPanelCheck();
     await _audioHandler
         .customAction("setSourceNPlay", {'mediaItem': mediaItem});
-
-    // disable queue loop mode when radio is started
-    if (radio &&
-        isQueueLoopModeEnabled.isTrue &&
-        isShuffleModeEnabled.isFalse) {
-      toggleQueueLoopMode();
-    }
   }
 
   Future<void> playPlayListSong(List<MediaItem> mediaItems, int index,
