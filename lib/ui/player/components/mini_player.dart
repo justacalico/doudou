@@ -9,8 +9,6 @@ import '/services/tv_service.dart';
 import '/ui/widgets/lyrics_dialog.dart';
 import '/ui/widgets/song_info_dialog.dart';
 import '/ui/player/player_controller.dart';
-import '/ui/screens/Settings/settings_screen_controller.dart';
-import '/models/server.dart';
 import '../../widgets/add_to_playlist.dart';
 import '../../widgets/sleep_timer_bottom_sheet.dart';
 import '../../widgets/song_download_btn.dart';
@@ -440,41 +438,20 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                               );
                             }),
                             const SizedBox(width: 8),
-                            Row(
-                              children: [
-                                if (!compactDesktop)
-                                  Obx(() {
-                                    final settings =
-                                        Get.find<SettingsScreenController>();
-                                    final isYouTube =
-                                        settings.activeServer?.type ==
-                                            ServerType.youtubeMusic;
-                                    if (!isYouTube)
-                                      return const SizedBox.shrink();
-                                    return _ControlIconButton(
-                                      icon: Icons.all_inclusive,
-                                      onPressed: controller.toggleLoopMode,
-                                      isActive:
-                                          controller.isLoopModeEnabled.isTrue,
-                                    );
-                                  }),
-                                _ControlIconButton(
-                                  icon: Icons.lyrics_outlined,
-                                  onPressed: () {
-                                    controller.showLyrics();
-                                    showDialog(
-                                            builder: (context) =>
-                                                const LyricsDialog(),
-                                            context: context)
-                                        .whenComplete(() {
-                                      controller.isDesktopLyricsDialogOpen =
-                                          false;
-                                      controller.showLyricsflag.value = false;
-                                    });
-                                    controller.isDesktopLyricsDialogOpen = true;
-                                  },
-                                ),
-                              ],
+                            _ControlIconButton(
+                              icon: Icons.lyrics_outlined,
+                              onPressed: () {
+                                controller.showLyrics();
+                                showDialog(
+                                        builder: (context) =>
+                                            const LyricsDialog(),
+                                        context: context)
+                                    .whenComplete(() {
+                                  controller.isDesktopLyricsDialogOpen = false;
+                                  controller.showLyricsflag.value = false;
+                                });
+                                controller.isDesktopLyricsDialogOpen = true;
+                              },
                             ),
                           ],
                         ),
