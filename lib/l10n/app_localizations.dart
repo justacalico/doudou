@@ -620,7 +620,7 @@ abstract class AppLocalizations {
   /// No description provided for @libraryOverviewSubtitle.
   ///
   /// In en_AU, this message translates to:
-  /// **'Overview / Your music collection.'**
+  /// **'Overview'**
   String get libraryOverviewSubtitle;
 
   /// No description provided for @stepXofY.

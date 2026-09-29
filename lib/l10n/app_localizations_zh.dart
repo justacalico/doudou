@@ -276,7 +276,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get library => '音乐库';
 
   @override
-  String get libraryOverviewSubtitle => '概览 / 你的音乐库。';
+  String get libraryOverviewSubtitle => '概览';
 
   @override
   String stepXofY(int current, int total) {
