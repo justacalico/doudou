@@ -23,6 +23,33 @@
   "@demoServerIntro": {},
   "demoServerReset": "该服务器每天于东部时间 06:00 重置，所有更改均为临时性的。",
   "@demoServerReset": {},
+  "devMergeRequestTitle": "开发合并请求",
+  "@devMergeRequestTitle": {},
+  "devMergeRequestBody": "你正在使用来自合并请求 (!{id}) 的开发构建。请在此处反馈问题：\n\n{url}",
+  "@devMergeRequestBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "devMergeRequestBodyNoUrl": "你正在使用来自合并请求 (!{id}) 的开发构建。此构建中没有合并请求链接。",
+  "@devMergeRequestBodyNoUrl": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "devMergeRequestOpen": "打开",
+  "@devMergeRequestOpen": {},
+  "devMergeRequestCopy": "复制",
+  "@devMergeRequestCopy": {},
+  "devMergeRequestClose": "关闭",
+  "@devMergeRequestClose": {},
   "discordAppId": "Discord 应用 ID",
   "@discordAppId": {},
   "discordAppIdDialogDes": "在 discord.com/developers/applications 创建 Discord 应用，并将应用 ID 粘贴到这里。",

@@ -22,6 +22,7 @@ import '/services/tv_service.dart';
 import '/services/watch_sync_service.dart';
 import '/ui/navigator.dart';
 import '/ui/player/player_controller.dart';
+import '/ui/widgets/dev_merge_request_dialog.dart';
 import 'ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/utils/theme_controller.dart';
 import '/ui/design/doudou_motion.dart';
@@ -78,7 +79,7 @@ class MyApp extends StatelessWidget {
       return GetMaterialApp(
         title: 'Doudou',
         scrollBehavior: PlaylistAlbumScrollBehaviour(),
-        home: const ScreenNavigation(),
+        home: const DevMergeRequestWrapper(child: ScreenNavigation()),
         debugShowCheckedModeBanner: false,
         locale: settingsController.settings.value.locale,
         fallbackLocale: const Locale("en", "AU"),

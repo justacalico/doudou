@@ -52,6 +52,28 @@ class AppLocalizationsRu extends AppLocalizations {
       'Сервер сбрасывается ежедневно в 06:00 по восточному времени, поэтому все изменения временны.';
 
   @override
+  String get devMergeRequestTitle => 'Сборка из merge request';
+
+  @override
+  String devMergeRequestBody(String id, String url) {
+    return 'Это сборка из merge request (!$id). Сообщайте о проблемах здесь:\n\n$url';
+  }
+
+  @override
+  String devMergeRequestBodyNoUrl(String id) {
+    return 'Это сборка из merge request (!$id). Ссылка на merge request недоступна в этой сборке.';
+  }
+
+  @override
+  String get devMergeRequestOpen => 'Открыть';
+
+  @override
+  String get devMergeRequestCopy => 'Копировать';
+
+  @override
+  String get devMergeRequestClose => 'Закрыть';
+
+  @override
   String get discordAppId => 'ID приложения Discord';
 
   @override

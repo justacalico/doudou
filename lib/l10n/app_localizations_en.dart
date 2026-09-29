@@ -50,6 +50,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'This server is reset daily at 06:00 Eastern Time, so any changes are temporary.';
 
   @override
+  String get devMergeRequestTitle => 'Development merge request';
+
+  @override
+  String devMergeRequestBody(String id, String url) {
+    return 'You are on a development merge request (!$id). Report issues here:\n\n$url';
+  }
+
+  @override
+  String devMergeRequestBodyNoUrl(String id) {
+    return 'You are on a development merge request (!$id). The merge request URL is not available in this build.';
+  }
+
+  @override
+  String get devMergeRequestOpen => 'Open';
+
+  @override
+  String get devMergeRequestCopy => 'Copy';
+
+  @override
+  String get devMergeRequestClose => 'Close';
+
+  @override
   String get discordAppId => 'Discord Application ID';
 
   @override
@@ -1685,6 +1707,28 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   @override
   String get demoServerReset =>
       'This server is reset daily at 06:00 Eastern Time, so any changes are temporary.';
+
+  @override
+  String get devMergeRequestTitle => 'Development merge request';
+
+  @override
+  String devMergeRequestBody(String id, String url) {
+    return 'You are on a development merge request (!$id). Report issues here:\n\n$url';
+  }
+
+  @override
+  String devMergeRequestBodyNoUrl(String id) {
+    return 'You are on a development merge request (!$id). The merge request URL is not available in this build.';
+  }
+
+  @override
+  String get devMergeRequestOpen => 'Open';
+
+  @override
+  String get devMergeRequestCopy => 'Copy';
+
+  @override
+  String get devMergeRequestClose => 'Close';
 
   @override
   String get discordAppId => 'Discord Application ID';
