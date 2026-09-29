@@ -138,7 +138,23 @@ pages:
     - cd landing
     - flutter pub get
     - flutter test
-    - flutter build web --release --wasm --base-href "/${CI_PROJECT_NAME}/"
+    - |
+      # Pages serves at root when the project uses a unique domain,
+      # otherwise under /<project>/. Derive the base href from CI_PAGES_URL.
+      HOST_AND_PATH="${CI_PAGES_URL#*://}"
+      PAGES_PATH="${HOST_AND_PATH#*/}"
+      if [ "$PAGES_PATH" = "$HOST_AND_PATH" ]; then
+        PAGES_PATH=""
+      fi
+      PAGES_PATH="${PAGES_PATH%/}"
+      if [ -n "$PAGES_PATH" ]; then
+        BASE_HREF="/${PAGES_PATH}/"
+      elif [ -n "$CI_PAGES_URL" ]; then
+        BASE_HREF="/"
+      else
+        BASE_HREF="/${CI_PROJECT_NAME}/"
+      fi
+      flutter build web --release --wasm --base-href "$BASE_HREF"
     - mv build/web ../public
   artifacts:
     paths:
