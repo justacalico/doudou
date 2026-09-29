@@ -154,7 +154,7 @@ pages:
       else
         BASE_HREF="/${CI_PROJECT_NAME}/"
       fi
-      flutter build web --release --wasm --base-href "$BASE_HREF"
+      flutter build web --release --base-href "$BASE_HREF"
     - mv build/web ../public
   artifacts:
     paths:
