@@ -16,6 +16,7 @@ previously per-version files that lived under `changelog/`.
 - Removed the radio mode button from the desktop now playing bar.
 - The library page header subtitle no longer shows "/ Your music collection." after "Overview", in every language.
 - Fixed preloaded and cached songs showing as playing with an advancing timeline but producing no audio on iOS. Preloaded audio was always saved with an `.mp3` name even when the stream was an mp4 container, so the platform player decoded it as silence. Preloaded files are now saved with the extension matching the real codec, cached files that were saved under the wrong extension are renamed from their recorded mime type before playback, and songs playing from a cache file without a downloaded thumbnail now fall back to their remote artwork instead of the placeholder.
+- Replaced the leftover Harmony Music artwork in the Android splash screen and adaptive icon resources with the Doudou icon. The mipmap foreground used by the launch splash still shipped the old waveform logo, and the monochrome variants did too. The adaptive icon now also declares a monochrome layer so themed icons work on Android 13 and up.
 
 ## 22.0.0
 
