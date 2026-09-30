@@ -32,7 +32,6 @@ mixin _PlayerRadioMixin on _PlayerControllerBase {
   }
 
   Future<void> _fetchAndAddRadioSongs(MediaItem mediaItem) async {
-    _lastContinuationParamUsed = null;
     _diag.logEvent(
       category: 'radio',
       message: 'radio_fetch_start',
@@ -41,15 +40,9 @@ mixin _PlayerRadioMixin on _PlayerControllerBase {
       activeServerType: _activeServerTypeName,
     );
     try {
-      final content = await _musicServices.getWatchPlaylist(
-          videoId: mediaItem.id,
-          radio: true,
-          limit: 24);
-      radioContinuationParam = content['additionalParamsForNext'];
-      final tracks = List<MediaItem>.from(content['tracks']);
-      // Remove current song from tracks to avoid duplicate
-      final filteredTracks = tracks.where((t) => t.id != mediaItem.id).toList();
-      printINFO('Radio: fetched ${filteredTracks.length} tracks to add to queue');
+      _radio.initFromSeed(mediaItem.id, excludeIds: {mediaItem.id});
+      final tracks = await _radio.fetchInitial();
+      printINFO('Radio: fetched ${tracks.length} tracks to add to queue');
       _diag.logEvent(
         category: 'radio',
         message: 'radio_tracks_appended',
@@ -57,11 +50,11 @@ mixin _PlayerRadioMixin on _PlayerControllerBase {
         backendType: mediaItem.extras?['backendType']?.toString(),
         activeServerType: _activeServerTypeName,
         data: {
-          'trackCount': filteredTracks.length,
-          'hasContinuation': radioContinuationParam != null,
+          'trackCount': tracks.length,
+          'hasContinuation': _radio.lastContinuationToken != null,
         },
       );
-      await enqueueSongList(filteredTracks);
+      await enqueueSongList(tracks);
     } catch (e) {
       printERROR('Radio fetch failed: $e');
       _diag.logEvent(
@@ -93,7 +86,7 @@ mixin _PlayerRadioMixin on _PlayerControllerBase {
   }
 
   Future<void> _addRadioContinuation(dynamic item) async {
-    printINFO('Radio continuation: called, isAdding=$_isAddingRadioContinuation, currentParam=$radioContinuationParam, lastParam=$_lastContinuationParamUsed');
+    printINFO('Radio continuation: called, isAdding=$_isAddingRadioContinuation, lastParam=${_radio.lastContinuationToken}');
     if (_isAddingRadioContinuation) {
       printINFO('Radio continuation: already in progress, skipping');
       _diag.logEvent(
@@ -104,57 +97,32 @@ mixin _PlayerRadioMixin on _PlayerControllerBase {
       );
       return;
     }
-    // Skip only when both are set and match; null == null must not block a fetch.
-    if (radioContinuationParam != null &&
-        _lastContinuationParamUsed != null &&
-        radioContinuationParam == _lastContinuationParamUsed) {
-      printINFO('Radio continuation: same continuation param as last, skipping');
-      _diag.logEvent(
-        category: 'radio',
-        message: 'radio_continuation_skipped',
-        activeServerType: _activeServerTypeName,
-        data: {'reason': 'same_param'},
-      );
-      return;
-    }
     _isAddingRadioContinuation = true;
-    _lastContinuationParamUsed = radioContinuationParam;
-    printINFO('Radio continuation: starting fetch with param=$radioContinuationParam');
+    printINFO('Radio continuation: starting fetch');
     _diag.logEvent(
       category: 'radio',
       message: 'radio_continuation_start',
       songId: item is MediaItem ? item.id : null,
       activeServerType: _activeServerTypeName,
-      data: {'hasParam': radioContinuationParam != null},
+      data: {'hasParam': _radio.lastContinuationToken != null},
     );
     try {
-      final isSong = item.runtimeType.toString() == "MediaItem";
-      final content = await _musicServices.getWatchPlaylist(
-          videoId: isSong ? item.id : "",
-          radio: true,
-          limit: 24,
-          playlistId: isSong ? null : item,
-          additionalParamsNext: radioContinuationParam);
-      radioContinuationParam = content['additionalParamsForNext'];
-      final tracks = List<MediaItem>.from(content['tracks']);
+      final tracks = await _radio.fetchMore();
+      radioContinuationParam = _radio.lastContinuationToken;
       printINFO('Radio continuation: fetched ${tracks.length} tracks, newParam=$radioContinuationParam');
       if (tracks.isNotEmpty) {
-        // Remove the current song from tracks if it's the first call to avoid duplicate
-        final filteredTracks = isSong && radioContinuationParam == null
-            ? tracks.where((t) => t.id != item.id).toList()
-            : tracks;
-        printINFO('Radio continuation: adding ${filteredTracks.length} tracks to queue');
+        printINFO('Radio continuation: adding ${tracks.length} tracks to queue');
         _diag.logEvent(
           category: 'radio',
           message: 'radio_continuation_fetched',
-          songId: isSong ? item.id : null,
+          songId: item is MediaItem ? item.id : null,
           activeServerType: _activeServerTypeName,
           data: {
-            'trackCount': filteredTracks.length,
+            'trackCount': tracks.length,
             'hasContinuation': radioContinuationParam != null,
           },
         );
-        await enqueueSongList(filteredTracks);
+        await enqueueSongList(tracks);
       } else {
         // No more tracks available, stop radio mode
         printINFO('Radio continuation: no more tracks, stopping radio mode');

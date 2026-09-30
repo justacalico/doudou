@@ -5,6 +5,8 @@ mixin _PlayerControllerBase on GetSingleTickerProviderStateMixin {
   final _audioHandler = Get.find<AudioHandler>();
   final _musicServices = Get.find<MusicServices>();
   final _diag = Get.find<PlaybackDiagnosticsService>();
+  RadioService? _radioService;
+  RadioService get _radio => _radioService ??= RadioService(musicServices: _musicServices);
   String? get _activeServerTypeName =>
       Get.find<SettingsScreenController>().activeServer?.type.name;
   final currentQueue = <MediaItem>[].obs;
@@ -23,7 +25,6 @@ mixin _PlayerControllerBase on GetSingleTickerProviderStateMixin {
   String? radioContinuationParam;
   dynamic radioInitiatorItem;
   bool _isAddingRadioContinuation = false;
-  String? _lastContinuationParamUsed;
   bool isSupermixModeOn = false;
   bool _isAddingSupermixContinuation = false;
   Timer? sleepTimer;

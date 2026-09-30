@@ -98,7 +98,6 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
     // Set radio initiator for continuation
     if (radio) {
       radioInitiatorItem = mediaItem ?? playlistid;
-      _lastContinuationParamUsed = null;
       radioContinuationParam = null;
       printINFO('Radio initiator set: ${mediaItem?.title ?? playlistid}');
     }
@@ -162,6 +161,13 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
             radioInitiatorItem = null;
             radioContinuationParam = null;
             return;
+          }
+          if (mediaItem != null) {
+            _radio.initFromSeed(mediaItem.id,
+                excludeIds: radioQueue.map((t) => t.id).toSet());
+          } else if (playlistid != null) {
+            _radio.initFromPlaylist(playlistid,
+                excludeIds: radioQueue.map((t) => t.id).toSet());
           }
           await _audioHandler.updateQueue(radioQueue);
           printINFO(
