@@ -59,7 +59,7 @@ Future<AudioHandler> initAudioService() async {
 
 class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   // ignore: prefer_typing_uninitialized_variables
-  late final _cacheDir;
+  late var _cacheDir;
   AudioPlayer _player;
   final AudioPlayer Function() _playerFactory;
   final StreamReachabilityCheck _reachabilityCheck;
@@ -263,8 +263,40 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (!Directory("$_cacheDir/cachedSongs/").existsSync()) {
       Directory("$_cacheDir/cachedSongs/").createSync(recursive: true);
     }
-    _preloader ??= SongPreloader(
-        directory: Directory("$_cacheDir/preloadedSongs"));
+    _preloader ??=
+        SongPreloader(directory: Directory("$_cacheDir/preloadedSongs"));
+  }
+
+  @visibleForTesting
+  set debugCacheDir(String path) => _cacheDir = path;
+
+  /// The lock-cached audio file for [songId]. LockCachingAudioSource saved
+  /// every stream as `<id>.mp3` even when the bytes were an mp4 container,
+  /// which iOS then decodes as silence while the position keeps advancing.
+  /// When the `.mime` sidecar disagrees with `.mp3`, the file and sidecar
+  /// are renamed to the real container extension before use.
+  File? _cachedSongFile(String songId) {
+    final dir = Directory('$_cacheDir/cachedSongs');
+    final file = cachedAudioFile(dir, songId);
+    if (file == null || !file.path.endsWith('.mp3')) return file;
+    final mimeFile = File('${file.path}.mime');
+    if (!mimeFile.existsSync()) return file;
+    String? mime;
+    try {
+      mime = mimeFile.readAsStringSync().trim();
+    } catch (_) {
+      return file;
+    }
+    final ext = audioExtensionForMime(mime);
+    if (ext == null || ext == 'mp3') return file;
+    final renamed = File('${dir.path}/$songId.$ext');
+    try {
+      file.renameSync(renamed.path);
+      mimeFile.renameSync('${renamed.path}.mime');
+      return renamed;
+    } catch (_) {
+      return file;
+    }
   }
 
   /// Once a prefetched stream url resolves, start downloading the audio
@@ -276,7 +308,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     final url = data.audio?.url;
     if (preloader == null || !data.playable || url == null) return;
     if (songId == _safeCurrentSongId()) return;
-    preloader.preload(songId, url, headers: _youtubeStreamHeaders(url));
+    preloader.preload(songId, url,
+        headers: _youtubeStreamHeaders(url),
+        codec: data.audio?.audioCodec.name);
   }
 
   void _prefetchUpcoming() {
@@ -1162,7 +1196,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       // ignore: experimental_member_use
       return LockCachingAudioSource(
         Uri.parse(url),
-        cacheFile: File("$_cacheDir/cachedSongs/${mediaItem.id}.mp3"),
+        cacheFile: _cachedSongFile(mediaItem.id) ??
+            File("$_cacheDir/cachedSongs/${mediaItem.id}.mp3"),
         headers: _youtubeStreamHeaders(url),
         tag: mediaItem,
       );
@@ -1658,7 +1693,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           final song = extras!['mediaItem'] as MediaItem;
           final songsCacheBox = Hive.box(songsCacheBoxName(currentServerId()));
           if (!songsCacheBox.containsKey(song.id) &&
-              await File("$_cacheDir/cachedSongs/${song.id}.mp3").exists()) {
+              _cachedSongFile(song.id) != null) {
             song.extras!['url'] = currentSongUrl;
             song.extras!['date'] = DateTime.now().millisecondsSinceEpoch;
             final dbStreamData =
@@ -2291,9 +2326,11 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       // if contains stream Info
       final streamInfo = Hive.box(songsCacheBoxName(currentServerId()))
           .get(songId)["streamInfo"];
+      final cachedUrl =
+          "file://${(_cachedSongFile(songId) ?? File('$_cacheDir/cachedSongs/$songId.mp3')).path}";
       Audio? cacheAudioPlaceholder;
       if (streamInfo != null && streamInfo.isNotEmpty) {
-        streamInfo[1]['url'] = "file://$_cacheDir/cachedSongs/$songId.mp3";
+        streamInfo[1]['url'] = cachedUrl;
         cacheAudioPlaceholder = Audio.fromJson(streamInfo[1]);
       } else {
         cacheAudioPlaceholder = Audio(
@@ -2302,7 +2339,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             loudnessDb: 0,
             duration: 0,
             size: 0,
-            url: "file://$_cacheDir/cachedSongs/$songId.mp3",
+            url: cachedUrl,
             itag: 0);
       }
 

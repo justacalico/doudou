@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:doudou/services/audio_handler.dart';
 import 'package:doudou/services/music_service.dart';
 import 'package:doudou/services/song_preloader.dart';
+import 'package:doudou/ui/screens/Library/library_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -43,7 +44,9 @@ void main() {
 
   late Directory tempDir;
   late Directory preloadDir;
+  late Directory cachedDir;
   late Box appPrefs;
+  late Box songsCache;
   late MockAudioPlayer player;
   late SongPreloader preloader;
   late FakePlaybackDiagnosticsService diag;
@@ -56,6 +59,7 @@ void main() {
     await Hive.openBox('PlaybackDiagnostics');
     await Hive.openBox('SongDownloads');
     await Hive.openBox('SongsUrlCache');
+    songsCache = await Hive.openBox('SongsCache');
     Get.testMode = true;
   });
 
@@ -66,14 +70,27 @@ void main() {
 
   setUp(() async {
     await appPrefs.clear();
+    await songsCache.clear();
     Get.reset();
     Get.put<SettingsScreenController>(FakeSettingsScreenController());
     Get.put<MusicServices>(FakeMusicServices());
-    preloadDir =
-        await Directory('${tempDir.path}/preloadedSongs').create(recursive: true);
+    Get.put<LibrarySongsController>(FakeLibrarySongsController());
+    preloadDir = await Directory('${tempDir.path}/preloadedSongs')
+        .create(recursive: true);
+    cachedDir =
+        await Directory('${tempDir.path}/cachedSongs').create(recursive: true);
+    for (final entity in cachedDir.listSync()) {
+      entity.deleteSync();
+    }
+    for (final entity in preloadDir.listSync()) {
+      entity.deleteSync();
+    }
     preloader = SongPreloader(
       directory: preloadDir,
-      downloader: (uri, target, headers) => target.writeAsBytes(const [1, 2, 3]),
+      downloader: (uri, target, headers) async {
+        await target.writeAsBytes(const [1, 2, 3]);
+        return null;
+      },
     );
     diag = FakePlaybackDiagnosticsService();
     player = _stubbedPlayer();
@@ -83,18 +100,18 @@ void main() {
       preloader: preloader,
       isApplePlatform: false,
     );
+    handler.debugCacheDir = tempDir.path;
   });
 
   test('checkNGetUrl serves the preloaded file before any url resolution',
       () async {
-    await preloader.preload('b', 'https://example.com/b.mp3');
+    await preloader.preload('b', 'https://example.com/b', codec: 'mp4a');
 
     final data = await handler.checkNGetUrl('b', extras: const {});
 
     expect(data.playable, isTrue);
-    expect(data.audio!.url, 'file://${preloadDir.path}/b.mp3');
-    expect(
-        diag.calls.where((c) => c.message == 'hit_preloaded_file'),
+    expect(data.audio!.url, 'file://${preloadDir.path}/b.m4a');
+    expect(diag.calls.where((c) => c.message == 'hit_preloaded_file'),
         hasLength(1));
   });
 
@@ -123,24 +140,63 @@ void main() {
 
     expect(data.playable, isTrue);
     expect(data.audio!.url, audioJson['url']);
-    expect(
-        diag.calls.where((c) => c.message == 'hit_preloaded_file'), isEmpty);
+    expect(diag.calls.where((c) => c.message == 'hit_preloaded_file'), isEmpty);
   });
 
   test('playByIndex plays a preloaded song from the local file source',
       () async {
-    await preloader.preload('b', 'https://example.com/b.mp3');
+    await preloader.preload('b', 'https://example.com/b', codec: 'mp4a');
     await handler.updateQueue([_song('a'), _song('b')]);
 
     await handler.customAction('playByIndex', {'index': 1});
 
-    expect(handler.currentSongUrl, 'file://${preloadDir.path}/b.mp3');
+    expect(handler.currentSongUrl, 'file://${preloadDir.path}/b.m4a');
     expect(handler.isPlayingUsingLockCachingSource, isFalse);
     expect(handler.isSongLoading, isFalse);
     verify(() => player.seek(Duration.zero)).called(1);
     verify(() => player.play()).called(1);
-    expect(
-        diag.calls.where((c) => c.message == 'using_file_audio_source'),
+    expect(diag.calls.where((c) => c.message == 'using_file_audio_source'),
         hasLength(1));
+  });
+
+  test('checkNGetUrl renames a lock-cached mp3 to its real container extension',
+      () async {
+    await File('${cachedDir.path}/c.mp3').writeAsBytes(const [1, 2, 3]);
+    await File('${cachedDir.path}/c.mp3.mime').writeAsString('audio/mp4');
+    await songsCache.put('c', {'streamInfo': null});
+
+    final data = await handler.checkNGetUrl('c', extras: const {});
+
+    expect(data.playable, isTrue);
+    expect(data.audio!.url, 'file://${cachedDir.path}/c.m4a');
+    expect(File('${cachedDir.path}/c.m4a').existsSync(), isTrue);
+    expect(File('${cachedDir.path}/c.m4a.mime').existsSync(), isTrue);
+    expect(File('${cachedDir.path}/c.mp3').existsSync(), isFalse);
+  });
+
+  test('checkNGetUrl keeps a real mp3 cache file untouched', () async {
+    await File('${cachedDir.path}/d.mp3').writeAsBytes(const [1, 2, 3]);
+    await File('${cachedDir.path}/d.mp3.mime').writeAsString('audio/mpeg');
+    await songsCache.put('d', {'streamInfo': null});
+
+    final data = await handler.checkNGetUrl('d', extras: const {});
+
+    expect(data.playable, isTrue);
+    expect(data.audio!.url, 'file://${cachedDir.path}/d.mp3');
+    expect(File('${cachedDir.path}/d.mp3').existsSync(), isTrue);
+    expect(File('${cachedDir.path}/d.m4a').existsSync(), isFalse);
+  });
+
+  test('checkWithCacheDb indexes a cached song whatever the extension',
+      () async {
+    await File('${cachedDir.path}/e.mp3').writeAsBytes(const [1, 2, 3]);
+    await File('${cachedDir.path}/e.mp3.mime').writeAsString('audio/mp4');
+    handler.isPlayingUsingLockCachingSource = true;
+    handler.currentSongUrl = 'file://${cachedDir.path}/e.mp3';
+
+    await handler.customAction('checkWithCacheDb', {'mediaItem': _song('e')});
+
+    expect(songsCache.containsKey('e'), isTrue);
+    expect(File('${cachedDir.path}/e.m4a').existsSync(), isTrue);
   });
 }

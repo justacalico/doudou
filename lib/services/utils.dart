@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'nav_parser.dart';
 
 int getDatestamp() {
@@ -215,4 +217,47 @@ String? _getParam2(String filter) {
 dynamic getDotSeparatorIndex(List<dynamic> runs) {
   return runs.indexWhere(
       ((element) => ({'text': " • "}).toString() == element.toString()));
+}
+
+/// Maps a codec name (`mp4a`, `Codec.mp4a`, `opus`, ...) to the container
+/// extension the file should be saved with. iOS picks the decoder from the
+/// file extension, so mp4a bytes stored as `.mp3` report ready and keep
+/// advancing while producing silence.
+String audioExtensionForCodec(String? codec) {
+  final c = (codec ?? '').toLowerCase();
+  if (c.contains('mp3') || c.contains('mpeg')) return 'mp3';
+  if (c.contains('webm') || c.contains('opus') || c.contains('ogg')) {
+    return 'webm';
+  }
+  return 'm4a';
+}
+
+/// Maps a mime type to the matching audio extension, or null when the
+/// mime type is missing or unrecognized. Used to detect cached files that
+/// were saved with the wrong extension.
+String? audioExtensionForMime(String? mime) {
+  final m = (mime ?? '').toLowerCase();
+  if (m.isEmpty) return null;
+  if (m.contains('mp4') || m.contains('m4a') || m.contains('aac')) {
+    return 'm4a';
+  }
+  if (m.contains('mpeg') || m.contains('mp3')) return 'mp3';
+  if (m.contains('webm') || m.contains('opus') || m.contains('ogg')) {
+    return 'webm';
+  }
+  return null;
+}
+
+/// The audio file stored for [songId] inside [dir], whatever container
+/// extension it was saved with. `.mime` sidecars and `.part` leftovers are
+/// ignored.
+File? cachedAudioFile(Directory dir, String songId) {
+  if (!dir.existsSync()) return null;
+  for (final entity in dir.listSync()) {
+    if (entity is! File) continue;
+    final name = entity.uri.pathSegments.last;
+    if (name.endsWith('.mime') || name.endsWith('.part')) continue;
+    if (name.startsWith('$songId.')) return entity;
+  }
+  return null;
 }

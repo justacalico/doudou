@@ -4,8 +4,9 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 
 import '../utils/helper.dart';
+import 'utils.dart';
 
-typedef SongBytesDownloader = Future<void> Function(
+typedef SongBytesDownloader = FutureOr<String?> Function(
   Uri uri,
   File target,
   Map<String, String>? headers,
@@ -28,24 +29,25 @@ class SongPreloader {
   final Map<String, Future<void>> _inFlight = {};
   Future<void> _tail = Future<void>.value();
 
-  File _fileFor(String songId) => File('${_dir.path}/$songId.mp3');
-
-  File _partFileFor(String songId) => File('${_dir.path}/$songId.mp3.part');
+  File _partFileFor(String songId) => File('${_dir.path}/$songId.part');
 
   /// The fully downloaded file for [songId], or null when it was never
   /// preloaded or the download is still in flight.
   File? completeFileFor(String songId) {
-    final file = _fileFor(songId);
-    return file.existsSync() && file.lengthSync() > 0 ? file : null;
+    final file = cachedAudioFile(_dir, songId);
+    return file != null && file.lengthSync() > 0 ? file : null;
   }
 
   /// Queues [url] for download. Local urls and songs that are already
-  /// fully downloaded are skipped. Returns the download future so tests
-  /// can await it; failures are logged, not thrown.
+  /// fully downloaded are skipped. [codec] is the resolved stream codec;
+  /// it decides the saved file extension, which iOS relies on to pick a
+  /// decoder. Returns the download future so tests can await it; failures
+  /// are logged, not thrown.
   Future<void> preload(
     String songId,
     String url, {
     Map<String, String>? headers,
+    String? codec,
   }) {
     if (!url.startsWith('http') || completeFileFor(songId) != null) {
       return Future<void>.value();
@@ -53,22 +55,24 @@ class SongPreloader {
     if (_inFlight.containsKey(songId)) {
       return _inFlight[songId]!;
     }
-    final task = _tail.then((_) => _download(songId, url, headers));
+    final task = _tail.then((_) => _download(songId, url, headers, codec));
     _inFlight[songId] = task;
     _tail = task;
     return task;
   }
 
-  Future<void> _download(
-      String songId, String url, Map<String, String>? headers) async {
+  Future<void> _download(String songId, String url,
+      Map<String, String>? headers, String? codec) async {
     final partFile = _partFileFor(songId);
     try {
       await _dir.create(recursive: true);
-      await _downloader(Uri.parse(url), partFile, headers);
+      final contentType = await _downloader(Uri.parse(url), partFile, headers);
       if (completeFileFor(songId) != null) {
         return;
       }
-      await partFile.rename(_fileFor(songId).path);
+      final ext =
+          audioExtensionForMime(contentType) ?? audioExtensionForCodec(codec);
+      await partFile.rename('${_dir.path}/$songId.$ext');
     } catch (e) {
       if (partFile.existsSync()) {
         unawaited(partFile.delete().catchError((_) => partFile));
@@ -96,18 +100,16 @@ class SongPreloader {
   }
 
   String? _songIdForFileName(String name) {
-    if (name.endsWith('.mp3.part')) {
-      return name.substring(0, name.length - '.mp3.part'.length);
+    if (name.endsWith('.part')) {
+      return name.substring(0, name.length - '.part'.length);
     }
-    if (name.endsWith('.mp3')) {
-      return name.substring(0, name.length - '.mp3'.length);
-    }
-    return null;
+    final dot = name.lastIndexOf('.');
+    return dot > 0 ? name.substring(0, dot) : null;
   }
 
   bool get hasPendingDownloads => _inFlight.isNotEmpty;
 
-  static Future<void> _downloadWithDio(
+  static Future<String?> _downloadWithDio(
       Uri uri, File target, Map<String, String>? headers) async {
     final dio = Dio(BaseOptions(
       connectTimeout: const Duration(seconds: 15),
@@ -127,6 +129,7 @@ class SongPreloader {
       } finally {
         await sink.close();
       }
+      return response.headers.value('content-type');
     } finally {
       dio.close();
     }

@@ -3,6 +3,7 @@ import 'package:doudou/models/server.dart';
 import 'package:doudou/services/library_sync_service.dart';
 import 'package:doudou/services/music_service.dart';
 import 'package:doudou/services/playback_diagnostics_service.dart';
+import 'package:doudou/ui/screens/Library/library_controller.dart';
 import 'package:doudou/ui/screens/Settings/settings_screen_controller.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:mocktail/mocktail.dart';
@@ -171,6 +172,12 @@ class FakeSettingsScreenController extends SettingsScreenController {
 }
 
 class FakeLibrarySyncService extends LibrarySyncService {
+  @override
+  // ignore: must_call_super
+  void onInit() {}
+}
+
+class FakeLibrarySongsController extends LibrarySongsController {
   @override
   // ignore: must_call_super
   void onInit() {}
