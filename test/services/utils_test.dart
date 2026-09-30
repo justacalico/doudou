@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:doudou/services/utils.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -92,7 +94,9 @@ void main() {
       expect(getItemText(item, 0), 'Hello');
     });
 
-    test('throws when column missing (known quirk: getFlexColumnItem returns {})', () {
+    test(
+        'throws when column missing (known quirk: getFlexColumnItem returns {})',
+        () {
       // getFlexColumnItem returns an empty map (not null) for missing columns,
       // so getItemText's null check doesn't catch it and accessing
       // column['text']['runs'] throws NoSuchMethodError.
@@ -171,7 +175,8 @@ void main() {
     });
 
     test('returns false when epoch is far in the future', () {
-      final futureEpoch = DateTime.now().millisecondsSinceEpoch ~/ 1000 + 999999;
+      final futureEpoch =
+          DateTime.now().millisecondsSinceEpoch ~/ 1000 + 999999;
       expect(isExpired(epoch: futureEpoch), isFalse);
     });
 
@@ -180,7 +185,8 @@ void main() {
     });
 
     test('parses expire param from url', () {
-      final futureEpoch = DateTime.now().millisecondsSinceEpoch ~/ 1000 + 999999;
+      final futureEpoch =
+          DateTime.now().millisecondsSinceEpoch ~/ 1000 + 999999;
       final url = 'https://example.com/stream?expire=$futureEpoch&other=x';
 
       expect(isExpired(url: url), isFalse);
@@ -204,7 +210,11 @@ void main() {
     });
 
     test('returns null when no item has the key', () {
-      expect(findObjectByKey([{'a': 1}], 'z'), isNull);
+      expect(
+          findObjectByKey([
+            {'a': 1}
+          ], 'z'),
+          isNull);
     });
 
     test('returns the key value when isKey is true', () {
@@ -217,8 +227,12 @@ void main() {
 
     test('supports nested lookup', () {
       final list = [
-        {'wrapper': {'target': 'found'}},
-        {'wrapper': {'other': 'x'}},
+        {
+          'wrapper': {'target': 'found'}
+        },
+        {
+          'wrapper': {'other': 'x'}
+        },
       ];
 
       final result = findObjectByKey(list, 'target', nested: 'wrapper');
@@ -241,14 +255,24 @@ void main() {
     });
 
     test('returns empty list when nothing matches', () {
-      expect(findObjectsByKey([{'a': 1}], 'z'), isEmpty);
+      expect(
+          findObjectsByKey([
+            {'a': 1}
+          ], 'z'),
+          isEmpty);
     });
 
     test('supports nested lookup', () {
       final list = [
-        {'wrapper': {'target': 1}},
-        {'wrapper': {'other': 2}},
-        {'wrapper': {'target': 3}},
+        {
+          'wrapper': {'target': 1}
+        },
+        {
+          'wrapper': {'other': 2}
+        },
+        {
+          'wrapper': {'target': 3}
+        },
       ];
 
       final results = findObjectsByKey(list, 'target', nested: 'wrapper');
@@ -271,7 +295,8 @@ void main() {
     });
 
     test('returns ignoreSpelling params when only ignoreSpelling is true', () {
-      expect(getSearchParams(null, null, true), 'EhGKAQ4IARABGAEgASgAOAFAAUICCAE%3D');
+      expect(getSearchParams(null, null, true),
+          'EhGKAQ4IARABGAEgASgAOAFAAUICCAE%3D');
     });
 
     test('returns playlists filter params with spelling', () {
@@ -328,6 +353,72 @@ void main() {
       ];
 
       expect(getDotSeparatorIndex(runs), -1);
+    });
+  });
+
+  group('audioExtensionForCodec', () {
+    test('maps youtube stream codecs to container extensions', () {
+      expect(audioExtensionForCodec('mp4a'), 'm4a');
+      expect(audioExtensionForCodec('Codec.mp4a'), 'm4a');
+      expect(audioExtensionForCodec('opus'), 'webm');
+      expect(audioExtensionForCodec('Codec.opus'), 'webm');
+    });
+
+    test('maps mp3 codecs to mp3 and defaults to m4a', () {
+      expect(audioExtensionForCodec('mp3'), 'mp3');
+      expect(audioExtensionForCodec('mpeg'), 'mp3');
+      expect(audioExtensionForCodec(null), 'm4a');
+      expect(audioExtensionForCodec('unknown'), 'm4a');
+    });
+  });
+
+  group('audioExtensionForMime', () {
+    test('maps audio mime types to extensions', () {
+      expect(audioExtensionForMime('audio/mp4'), 'm4a');
+      expect(audioExtensionForMime('video/mp4'), 'm4a');
+      expect(audioExtensionForMime('audio/mpeg'), 'mp3');
+      expect(audioExtensionForMime('audio/webm'), 'webm');
+      expect(audioExtensionForMime('audio/ogg'), 'webm');
+    });
+
+    test('returns null for missing or unknown mime types', () {
+      expect(audioExtensionForMime(null), isNull);
+      expect(audioExtensionForMime(''), isNull);
+      expect(audioExtensionForMime('application/octet-stream'), isNull);
+    });
+  });
+
+  group('cachedAudioFile', () {
+    late Directory dir;
+
+    setUp(() async {
+      dir = await Directory.systemTemp.createTemp('cached_audio_file_test_');
+    });
+
+    tearDown(() async {
+      if (dir.existsSync()) await dir.delete(recursive: true);
+    });
+
+    test('finds the song file regardless of extension', () async {
+      await File('${dir.path}/a.m4a').writeAsBytes(const [1]);
+      await File('${dir.path}/b.mp3').writeAsBytes(const [1]);
+
+      expect(cachedAudioFile(dir, 'a')!.path, '${dir.path}/a.m4a');
+      expect(cachedAudioFile(dir, 'b')!.path, '${dir.path}/b.mp3');
+      expect(cachedAudioFile(dir, 'missing'), isNull);
+    });
+
+    test('ignores mime sidecars and part files', () async {
+      await File('${dir.path}/a.mp3.mime').writeAsString('audio/mp4');
+      await File('${dir.path}/b.part').writeAsBytes(const [1]);
+
+      expect(cachedAudioFile(dir, 'a'), isNull);
+      expect(cachedAudioFile(dir, 'b'), isNull);
+    });
+
+    test('does not match a different song id prefix', () async {
+      await File('${dir.path}/ab.mp3').writeAsBytes(const [1]);
+      expect(cachedAudioFile(dir, 'a'), isNull);
     });
   });
 }

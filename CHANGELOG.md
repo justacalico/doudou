@@ -15,6 +15,7 @@ previously per-version files that lived under `changelog/`.
 - Upcoming songs now play through network dropouts like on YouTube Music. While a track plays, the audio of the next two queue items downloads in the background to a small rolling cache, so the next song still plays when the connection is gone instead of never loading. Preloaded files are downloaded one at a time to avoid competing with the playing stream, are only treated as playable once fully written, and are cleared once they fall outside the upcoming window.
 - Removed the radio mode button from the desktop now playing bar.
 - The library page header subtitle no longer shows "/ Your music collection." after "Overview", in every language.
+- Fixed preloaded and cached songs showing as playing with an advancing timeline but producing no audio on iOS. Preloaded audio was always saved with an `.mp3` name even when the stream was an mp4 container, so the platform player decoded it as silence. Preloaded files are now saved with the extension matching the real codec, cached files that were saved under the wrong extension are renamed from their recorded mime type before playback, and songs playing from a cache file without a downloaded thumbnail now fall back to their remote artwork instead of the placeholder.
 
 ## 22.0.0
 

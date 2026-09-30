@@ -15,6 +15,7 @@ import '../../../utils/house_keeping.dart';
 import '../../widgets/add_to_playlist.dart';
 import '/ui/widgets/sort_widget.dart';
 import '../../../utils/server_storage.dart';
+import '/services/utils.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/services/piped_service.dart';
 import '/services/library_sync_service.dart';
@@ -97,7 +98,8 @@ class LibrarySongsController extends GetxController {
       await for (final f in cachedDir.list()) {
         final ext = f.path.replaceAll(RegExp(r'^.*\.'), '');
         if (ext == 'mime' || ext == 'part') continue;
-        final match = RegExp(".cachedSongs/([^#]*)?.mp3").firstMatch(f.path);
+        final match = RegExp(r"cachedSongs/([^#/]+)\.(mp3|m4a|webm|opus|ogg)$")
+            .firstMatch(f.path);
         if (match != null) {
           songsList.add(match[1]!);
         }
@@ -251,11 +253,17 @@ class LibrarySongsController extends GetxController {
       filePath = item.extras!['url'] ?? url;
     } else {
       final cacheDir = (await getTemporaryDirectory()).path;
-      filePath = "$cacheDir/cachedSongs/${item.id}.mp3";
+      filePath =
+          cachedAudioFile(Directory("$cacheDir/cachedSongs/"), item.id)?.path ??
+              "$cacheDir/cachedSongs/${item.id}.mp3";
     }
 
     if (await (File(filePath)).exists()) {
       await (File(filePath)).delete();
+      final mimeFile = File("$filePath.mime");
+      if (await mimeFile.exists()) {
+        await mimeFile.delete();
+      }
     }
 
     final thumbFile = File(

@@ -48,12 +48,16 @@ class ImageWidget extends StatelessWidget {
     //                 ? "${artist!.browseId}_artist"
     //                 : "";
 
-    final bool offlineAvailable =
-        song != null && (song?.extras?["url"] ?? "").contains("file");
     final offlineThumbFile = song == null
         ? null
         : File(
             "${Get.find<SettingsScreenController>().supportDirPath}/thumbnails/${song!.id}.png");
+    // Preloaded and lock-cached songs also carry a file url, but only user
+    // downloads come with a saved thumbnail. Without this check a cached
+    // track would show the placeholder forever instead of its remote art.
+    final bool offlineThumbExists = song != null &&
+        (song?.extras?["url"] ?? "").contains("file") &&
+        (offlineThumbFile?.existsSync() ?? false);
 
     Widget placeholderIcon() {
       return Container(
@@ -96,24 +100,17 @@ class ImageWidget extends StatelessWidget {
         shape: artist != null ? BoxShape.circle : BoxShape.rectangle,
         borderRadius: artist != null ? null : BorderRadius.circular(5),
       ),
-      child: offlineAvailable
-          ? (offlineThumbFile != null &&
-                  offlineThumbFile.existsSync()
-              ? DecoratedBox(
-                  decoration: BoxDecoration(
-                    shape: artist != null
-                        ? BoxShape.circle
-                        : BoxShape.rectangle,
-                    borderRadius: artist != null
-                        ? null
-                        : BorderRadius.circular(5),
-                    image: DecorationImage(
-                      image: FileImage(offlineThumbFile),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                )
-              : placeholderIcon())
+      child: offlineThumbExists
+          ? DecoratedBox(
+              decoration: BoxDecoration(
+                shape: artist != null ? BoxShape.circle : BoxShape.rectangle,
+                borderRadius: artist != null ? null : BorderRadius.circular(5),
+                image: DecorationImage(
+                  image: FileImage(offlineThumbFile!),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            )
           : imageUrl.trim().isEmpty
               ? placeholder()
               : CachedNetworkImage(
