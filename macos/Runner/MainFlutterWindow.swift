@@ -3,6 +3,12 @@ import FlutterMacOS
 
 class MainFlutterWindow: NSWindow {
   override func awakeFromNib() {
+    if AppDelegate.isServerMode {
+      // Server mode never shows a window; the headless engine lives in the
+      // app delegate instead.
+      self.orderOut(nil)
+      return
+    }
     let flutterViewController = FlutterViewController()
     let windowFrame = self.frame
     self.contentViewController = flutterViewController

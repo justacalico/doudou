@@ -1120,5 +1120,23 @@
   "playbackDiagnosticsMaxEventsHint": "1000",
   "@playbackDiagnosticsMaxEventsHint": {},
   "browseLibrary": "Browse library",
-  "@browseLibrary": {}
+  "@browseLibrary": {},
+  "deviceSync": "Device sync",
+  "@deviceSync": {},
+  "deviceSyncDes": "Share your library between devices through a doudou sync server.",
+  "@deviceSyncDes": {},
+  "connect": "Connect",
+  "@connect": {},
+  "disconnect": "Disconnect",
+  "@disconnect": {},
+  "notDoudouSyncServer": "This server is not a doudou sync server",
+  "@notDoudouSyncServer": {},
+  "lastSyncTime": "Last sync: {time}",
+  "@lastSyncTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

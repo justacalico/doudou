@@ -10,6 +10,7 @@ import '/services/discord_rpc_service.dart';
 import '/services/export_service.dart';
 import '/services/library_sync_service.dart';
 import '/services/music_service.dart';
+import '/services/server_sync_service.dart';
 import '/services/tv_service.dart';
 import '/ui/constants/layout.dart';
 import '/ui/design/doudou_colors.dart';
@@ -29,6 +30,7 @@ import '/ui/widgets/link_piped.dart';
 import '/ui/widgets/new_version_dialog.dart';
 import '/ui/widgets/restore_dialog.dart';
 import '/ui/widgets/snackbar.dart';
+import '/ui/widgets/sync_server_dialog.dart';
 import '/ui/widgets/tv_focus_highlight.dart';
 
 part 'settings_screen_settingsviewstatebase.dart';

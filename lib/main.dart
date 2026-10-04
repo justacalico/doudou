@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,8 +10,10 @@ import 'package:terminate_restart/terminate_restart.dart';
 
 import '/l10n/app_localizations.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
+import '/server/runner.dart';
 import '/services/downloader.dart';
 import '/services/library_sync_service.dart';
+import '/services/server_sync_service.dart';
 import '/services/piped_service.dart';
 import '/services/playback_diagnostics_service.dart';
 import 'utils/app_link_controller.dart';
@@ -36,7 +40,14 @@ import '/app/settings/app_settings_controller.dart';
 
 final _perfMonitor = PerfMonitorController.devDefault();
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
+  // Not every platform forwards arguments to the entrypoint (macOS does
+  // not), so fall back to the raw process arguments.
+  final launchArgs = args.isNotEmpty ? args : Platform.executableArguments;
+  if (isServerInvocation(launchArgs)) {
+    await runDoudouServer(launchArgs);
+    return;
+  }
   WidgetsFlutterBinding.ensureInitialized();
   await initHive();
   _setAppInitPrefs();
@@ -159,6 +170,7 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => SettingsScreenController(), fenix: true);
   Get.lazyPut(() => Downloader(), fenix: true);
   Get.lazyPut(() => LibrarySyncService(), fenix: true);
+  Get.put(ServerSyncService(), permanent: true);
   Get.lazyPut(() => SearchScreenController(), fenix: true);
   if (GetPlatform.isAndroid) {
     // Register TvService first so it's available even if other services fail
@@ -256,6 +268,9 @@ class LifecycleHandler extends WidgetsBindingObserver {
       ));
       if (Get.isRegistered<LibrarySyncService>()) {
         Get.find<LibrarySyncService>().onAppResumed();
+      }
+      if (Get.isRegistered<ServerSyncService>()) {
+        Get.find<ServerSyncService>().onAppResumed();
       }
     } else if (state == AppLifecycleState.detached) {
       await Get.find<AudioHandler>().customAction("saveSession");

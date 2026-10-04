@@ -2,6 +2,8 @@
 #include <flutter/flutter_view_controller.h>
 #include <windows.h>
 
+#include <algorithm>
+
 #include "flutter_window.h"
 #include "utils.h"
 
@@ -23,7 +25,17 @@ static BOOL CALLBACK FindDoudouWindow(HWND hwnd, LPARAM lParam) {
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
-  HANDLE mutex = CreateMutexW(nullptr, TRUE, L"doudou_single_instance_mutex");
+  std::vector<std::string> command_line_arguments =
+      GetCommandLineArguments();
+  const bool server_mode =
+      std::find(command_line_arguments.begin(), command_line_arguments.end(),
+                "-server") != command_line_arguments.end();
+
+  // The sync server gets its own mutex so a running server never blocks the
+  // app from opening, and vice versa.
+  HANDLE mutex = CreateMutexW(nullptr, TRUE,
+                              server_mode ? L"doudou_sync_server_mutex"
+                                          : L"doudou_single_instance_mutex");
   if (mutex == nullptr || GetLastError() == ERROR_ALREADY_EXISTS) {
     if (mutex) CloseHandle(mutex);
 
@@ -38,9 +50,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     return EXIT_SUCCESS;
   }
 
-  // Attach to console when present (e.g., 'flutter run') or create a
-  // new console when running with a debugger.
-  if (!::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent()) {
+  // Attach to console when present (e.g., 'flutter run'), always in server
+  // mode since the CLI output goes there, or create a new console when
+  // running with a debugger.
+  if (!::AttachConsole(ATTACH_PARENT_PROCESS) &&
+      (server_mode || ::IsDebuggerPresent())) {
     CreateAndAttachConsole();
   }
 
@@ -50,12 +64,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   flutter::DartProject project(L"data");
 
-  std::vector<std::string> command_line_arguments =
-      GetCommandLineArguments();
-
   project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
 
   FlutterWindow window(project);
+  window.SetStartHidden(server_mode);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
   if (!window.Create(L"doudou", origin, size)) {
