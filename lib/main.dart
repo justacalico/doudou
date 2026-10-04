@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -39,8 +41,11 @@ import '/app/settings/app_settings_controller.dart';
 final _perfMonitor = PerfMonitorController.devDefault();
 
 Future<void> main(List<String> args) async {
-  if (args.contains('-server')) {
-    await runDoudouServer(args);
+  // Not every platform forwards arguments to the entrypoint (macOS does
+  // not), so fall back to the raw process arguments.
+  final launchArgs = args.isNotEmpty ? args : Platform.executableArguments;
+  if (isServerInvocation(launchArgs)) {
+    await runDoudouServer(launchArgs);
     return;
   }
   WidgetsFlutterBinding.ensureInitialized();

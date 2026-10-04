@@ -18,15 +18,14 @@ import 'hmb_archive.dart';
 ///   --password <pw>    set or replace the login password
 ///   -h, --help         show this help
 Future<void> runDoudouServer(List<String> args) async {
-  final parsed = _parseArgs(args);
+  final parsed = parseServerArgs(args);
   if (parsed == null) {
     stdout.writeln(_usage);
-    exitCode = 1;
-    return;
+    exit(1);
   }
   if (parsed.help) {
     stdout.writeln(_usage);
-    return;
+    exit(0);
   }
 
   final server = DoudouSyncServer(dataDir: parsed.dataDir);
@@ -40,8 +39,7 @@ Future<void> runDoudouServer(List<String> args) async {
   } on SocketException catch (e) {
     stderr.writeln('Could not start server on port ${parsed.port}: '
         '${e.message}');
-    exitCode = 1;
-    return;
+    exit(1);
   }
 
   for (final hmbPath in parsed.imports) {
@@ -72,6 +70,9 @@ Future<void> runDoudouServer(List<String> args) async {
   }
   stdout.writeln('\nShutting down...');
   await server.stop();
+  // Under a desktop embedder the native host outlives main(), so the process
+  // must be ended explicitly for the CLI to actually terminate.
+  exit(0);
 }
 
 String? _promptForPassword(String dataDir) {
@@ -90,7 +91,7 @@ String? _promptForPassword(String dataDir) {
   return first;
 }
 
-void _printBanner(DoudouSyncServer server, _Args parsed) {
+void _printBanner(DoudouSyncServer server, ServerArgs parsed) {
   stdout.writeln('');
   stdout.writeln('Doudou sync server is running.');
   if (server.generatedPassword != null) {
@@ -123,8 +124,11 @@ InternetAddress _resolveHost(String bind) {
   return InternetAddress(bind);
 }
 
-class _Args {
-  _Args({
+/// Whether the process was asked to run in server mode.
+bool isServerInvocation(List<String> args) => args.contains('-server');
+
+class ServerArgs {
+  ServerArgs({
     required this.dataDir,
     required this.port,
     required this.bind,
@@ -141,7 +145,7 @@ class _Args {
   final bool help;
 }
 
-_Args? _parseArgs(List<String> args) {
+ServerArgs? parseServerArgs(List<String> args) {
   var dataDir =
       '${Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.'}'
       '/.doudou-server';
@@ -189,7 +193,7 @@ _Args? _parseArgs(List<String> args) {
         if (arg.startsWith('-')) return null;
     }
   }
-  return _Args(
+  return ServerArgs(
     dataDir: dataDir,
     port: port,
     bind: bind,

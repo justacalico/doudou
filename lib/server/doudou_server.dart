@@ -95,6 +95,15 @@ class DoudouSyncServer {
     if (password != null) {
       _passwordHash = _hashPassword(password, _salt!);
     }
+    if (generatedPassword != null) {
+      // Keep the generated password recoverable: headless launches have no
+      // terminal where the printed password could be read.
+      final passwordFile = File('$dataDir/initial-password.txt');
+      passwordFile.writeAsStringSync(generatedPassword!);
+      if (!Platform.isWindows) {
+        Process.runSync('chmod', ['600', passwordFile.path]);
+      }
+    }
 
     configFile.writeAsStringSync(jsonEncode({
       'token': _token,

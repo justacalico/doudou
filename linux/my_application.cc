@@ -14,6 +14,7 @@
 struct _MyApplication {
   GtkApplication parent_instance;
   char** dart_entrypoint_arguments;
+  gboolean server_mode;
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
@@ -92,6 +93,30 @@ static void my_application_activate(GApplication* application) {
   setup_window_control_channel(view);
 }
 
+// Starts the engine for -server inside a window that is realized but never
+// shown. The engine only starts once the view is realized, so a hidden
+// toplevel window is still required; the process exits when the Dart side
+// calls exit().
+static void my_application_start_headless(GApplication* application) {
+  MyApplication* self = MY_APPLICATION(application);
+
+  GtkWidget* window =
+      gtk_application_window_new(GTK_APPLICATION(application));
+
+  g_autoptr(FlDartProject) project = fl_dart_project_new();
+  fl_dart_project_set_dart_entrypoint_arguments(project, self->dart_entrypoint_arguments);
+
+  FlView* view = fl_view_new(project);
+  gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(view));
+
+  // Realizing the view is what starts the engine. Plugins stay unregistered
+  // on purpose: the server only needs dart:io, and plugins like the system
+  // tray would leak visible UI.
+  gtk_widget_realize(GTK_WIDGET(view));
+
+  g_application_hold(application);
+}
+
 // Implements GApplication::local_command_line.
 static gboolean my_application_local_command_line(GApplication* application, gchar*** arguments, int* exit_status) {
   MyApplication* self = MY_APPLICATION(application);
@@ -105,7 +130,11 @@ static gboolean my_application_local_command_line(GApplication* application, gch
      return TRUE;
   }
 
-  g_application_activate(application);
+  if (self->server_mode) {
+    my_application_start_headless(application);
+  } else {
+    g_application_activate(application);
+  }
   *exit_status = 0;
 
   return TRUE;
@@ -126,9 +155,15 @@ static void my_application_class_init(MyApplicationClass* klass) {
 
 static void my_application_init(MyApplication* self) {}
 
-MyApplication* my_application_new() {
-  return MY_APPLICATION(g_object_new(my_application_get_type(),
-                                     "application-id", APPLICATION_ID,
-                                     "flags", G_APPLICATION_FLAGS_NONE,
-                                     nullptr));
+MyApplication* my_application_new(gboolean server_mode) {
+  MyApplication* self = MY_APPLICATION(g_object_new(
+      my_application_get_type(),
+      "application-id", APPLICATION_ID,
+      // The sync server never claims the app id, so the regular app keeps
+      // opening normally while a server process is already running.
+      "flags", server_mode ? G_APPLICATION_NON_UNIQUE
+                           : G_APPLICATION_DEFAULT_FLAGS,
+      nullptr));
+  self->server_mode = server_mode;
+  return self;
 }
