@@ -1599,4 +1599,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get browseLibrary => '浏览音乐库';
+
+  @override
+  String get deviceSync => '设备同步';
+
+  @override
+  String get deviceSyncDes => '通过 doudou 同步服务器在多台设备之间共享你的音乐库。';
+
+  @override
+  String get connect => '连接';
+
+  @override
+  String get disconnect => '断开连接';
+
+  @override
+  String get notDoudouSyncServer => '该服务器不是 doudou 同步服务器';
+
+  @override
+  String lastSyncTime(String time) {
+    return '上次同步：$time';
+  }
 }

@@ -1661,6 +1661,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get browseLibrary => 'Browse library';
+
+  @override
+  String get deviceSync => 'Device sync';
+
+  @override
+  String get deviceSyncDes =>
+      'Share your library between devices through a doudou sync server.';
+
+  @override
+  String get connect => 'Connect';
+
+  @override
+  String get disconnect => 'Disconnect';
+
+  @override
+  String get notDoudouSyncServer => 'This server is not a doudou sync server';
+
+  @override
+  String lastSyncTime(String time) {
+    return 'Last sync: $time';
+  }
 }
 
 /// The translations for English, as used in Australia (`en_AU`).
@@ -3320,4 +3341,25 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get browseLibrary => 'Browse library';
+
+  @override
+  String get deviceSync => 'Device sync';
+
+  @override
+  String get deviceSyncDes =>
+      'Share your library between devices through a doudou sync server.';
+
+  @override
+  String get connect => 'Connect';
+
+  @override
+  String get disconnect => 'Disconnect';
+
+  @override
+  String get notDoudouSyncServer => 'This server is not a doudou sync server';
+
+  @override
+  String lastSyncTime(String time) {
+    return 'Last sync: $time';
+  }
 }

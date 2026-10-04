@@ -1116,5 +1116,23 @@
   "@playbackDiagnosticsMaxEventsHint": {},
   "browseLibrary": "Открыть библиотеку",
   "@browseLibrary": {},
-  "@@locale": "ru"
+  "@@locale": "ru",
+  "deviceSync": "Синхронизация устройств",
+  "@deviceSync": {},
+  "deviceSyncDes": "Синхронизируйте библиотеку между устройствами через сервер doudou.",
+  "@deviceSyncDes": {},
+  "connect": "Подключиться",
+  "@connect": {},
+  "disconnect": "Отключиться",
+  "@disconnect": {},
+  "notDoudouSyncServer": "Этот сервер не является сервером синхронизации doudou",
+  "@notDoudouSyncServer": {},
+  "lastSyncTime": "Последняя синхронизация: {time}",
+  "@lastSyncTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

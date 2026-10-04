@@ -725,5 +725,23 @@
   "@playbackDiagnosticsMaxEventsHint": {},
   "browseLibrary": "浏览音乐库",
   "@browseLibrary": {},
-  "@@locale": "zh"
+  "@@locale": "zh",
+  "deviceSync": "设备同步",
+  "@deviceSync": {},
+  "deviceSyncDes": "通过 doudou 同步服务器在多台设备之间共享你的音乐库。",
+  "@deviceSyncDes": {},
+  "connect": "连接",
+  "@connect": {},
+  "disconnect": "断开连接",
+  "@disconnect": {},
+  "notDoudouSyncServer": "该服务器不是 doudou 同步服务器",
+  "@notDoudouSyncServer": {},
+  "lastSyncTime": "上次同步：{time}",
+  "@lastSyncTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

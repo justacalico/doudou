@@ -3220,6 +3220,42 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'Browse library'**
   String get browseLibrary;
+
+  /// No description provided for @deviceSync.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Device sync'**
+  String get deviceSync;
+
+  /// No description provided for @deviceSyncDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Share your library between devices through a doudou sync server.'**
+  String get deviceSyncDes;
+
+  /// No description provided for @connect.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Connect'**
+  String get connect;
+
+  /// No description provided for @disconnect.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Disconnect'**
+  String get disconnect;
+
+  /// No description provided for @notDoudouSyncServer.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'This server is not a doudou sync server'**
+  String get notDoudouSyncServer;
+
+  /// No description provided for @lastSyncTime.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Last sync: {time}'**
+  String lastSyncTime(String time);
 }
 
 class _AppLocalizationsDelegate

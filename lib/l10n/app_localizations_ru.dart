@@ -1670,4 +1670,26 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get browseLibrary => 'Открыть библиотеку';
+
+  @override
+  String get deviceSync => 'Синхронизация устройств';
+
+  @override
+  String get deviceSyncDes =>
+      'Синхронизируйте библиотеку между устройствами через сервер doudou.';
+
+  @override
+  String get connect => 'Подключиться';
+
+  @override
+  String get disconnect => 'Отключиться';
+
+  @override
+  String get notDoudouSyncServer =>
+      'Этот сервер не является сервером синхронизации doudou';
+
+  @override
+  String lastSyncTime(String time) {
+    return 'Последняя синхронизация: $time';
+  }
 }

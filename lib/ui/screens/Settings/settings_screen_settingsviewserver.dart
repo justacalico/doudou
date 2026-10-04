@@ -132,6 +132,24 @@ mixin _SettingsViewServerMixin on __SettingsViewStateBase {
           ),
         );
       }),
+      const SizedBox(height: DoudouSpace.s8),
+      Obx(() {
+        final deviceSync = Get.find<ServerSyncService>();
+        return _SettingsListTile(
+          leading:
+              Icon(Icons.sync_outlined, color: colors.textSecondary),
+          title: context.l10n.deviceSync,
+          subtitle: deviceSync.enabled.value
+              ? (deviceSync.connected.value
+                  ? deviceSync.serverUrl.value
+                  : context.l10n.connectionFailed)
+              : context.l10n.deviceSyncDes,
+          onTap: () => showDialog(
+            context: context,
+            builder: (_) => const SyncServerDialog(),
+          ),
+        );
+      }),
     ];
   }
 
