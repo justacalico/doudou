@@ -33,8 +33,11 @@ class AppDelegate: FlutterAppDelegate {
       for window in NSApp.windows {
         window.orderOut(nil)
       }
-      let engine = FlutterEngine(name: "doudou-server")
-      engine.run(withEntrypoint: nil)
+      let engine = FlutterEngine(
+        name: "doudou-server",
+        project: nil,
+        allowHeadlessExecution: true)
+      _ = engine.run(withEntrypoint: nil)
       headlessEngine = engine
       return
     }
