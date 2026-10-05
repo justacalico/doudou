@@ -187,6 +187,46 @@ void main() {
       expect(fetched, isEmpty);
     });
 
+    test('clamps an out-of-range index instead of skipping prefetch', () async {
+      final fetched = <String>[];
+      final prefetcher = StreamPrefetcher((songId,
+          {bool generateNewUrl = false, Map<String, dynamic>? extras}) async {
+        fetched.add(songId);
+        return _fakeData(songId);
+      });
+
+      final queue = [
+        const MediaItem(id: 'a', title: 'A'),
+        const MediaItem(id: 'b', title: 'B'),
+        const MediaItem(id: 'c', title: 'C'),
+      ];
+      prefetcher.prefetchNext(queue, -2);
+
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(fetched, contains('b'));
+    });
+
+    test('prefetches nothing upcoming when clamped index is the last song',
+        () async {
+      final fetched = <String>[];
+      final prefetcher = StreamPrefetcher((songId,
+          {bool generateNewUrl = false, Map<String, dynamic>? extras}) async {
+        fetched.add(songId);
+        return _fakeData(songId);
+      });
+
+      final queue = [
+        const MediaItem(id: 'a', title: 'A'),
+        const MediaItem(id: 'b', title: 'B'),
+      ];
+      prefetcher.prefetchNext(queue, 10);
+
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(fetched, isEmpty);
+    });
+
     test('handles null currentIndex as 0', () async {
       final fetched = <String>[];
       final prefetcher = StreamPrefetcher((songId,
@@ -248,7 +288,8 @@ void main() {
       expect(fetched, contains('b'));
     });
 
-    test('skips non-YouTube current item but still prefetches next YouTube item',
+    test(
+        'skips non-YouTube current item but still prefetches next YouTube item',
         () async {
       final fetched = <String>[];
       final prefetcher = StreamPrefetcher((songId,
@@ -267,6 +308,27 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(fetched, isNot(contains('a')));
+      expect(fetched, contains('b'));
+    });
+
+    test(
+        'clamps a stale index into the new queue instead of prefetching '
+        'nothing', () async {
+      final fetched = <String>[];
+      final prefetcher = StreamPrefetcher((songId,
+          {bool generateNewUrl = false, Map<String, dynamic>? extras}) async {
+        fetched.add(songId);
+        return _fakeData(songId);
+      });
+
+      final queue = [
+        const MediaItem(id: 'a', title: 'A'),
+        const MediaItem(id: 'b', title: 'B'),
+      ];
+      prefetcher.prefetchCurrentAndNext(queue, 7);
+
+      await Future.delayed(const Duration(milliseconds: 50));
+
       expect(fetched, contains('b'));
     });
   });

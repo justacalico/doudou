@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:doudou/services/stream_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 class _FakeAdapter implements HttpClientAdapter {
   _FakeAdapter(this.handler);
@@ -55,7 +56,8 @@ Map<String, dynamic> _playerResponse({
 Map<String, dynamic> _audioFormat({
   int itag = 140,
   String mimeType = 'audio/mp4; codecs="mp4a.40.2"',
-  String? url = 'https://rr1---sn.example.googlevideo.com/videoplayback?c=VISIONOS&expire=2000000000',
+  String? url =
+      'https://rr1---sn.example.googlevideo.com/videoplayback?c=VISIONOS&expire=2000000000',
   int bitrate = 131072,
   String contentLength = '3456789',
   String approxDurationMs = '213000',
@@ -238,7 +240,8 @@ void main() {
           _audioFormat(
             itag: 251,
             mimeType: 'audio/webm; codecs="opus"',
-            url: 'https://rr2---sn.example.googlevideo.com/videoplayback?c=VISIONOS&expire=2000000000',
+            url:
+                'https://rr2---sn.example.googlevideo.com/videoplayback?c=VISIONOS&expire=2000000000',
             bitrate: 150000,
           ),
         ],
@@ -301,8 +304,8 @@ void main() {
     test('returns null when playability status is not OK', () {
       for (final status in ['ERROR', 'UNPLAYABLE', 'LOGIN_REQUIRED']) {
         expect(
-          StreamProvider.parseInnertubeResponse(
-              _playerResponse(status: status, adaptiveFormats: [_audioFormat()])),
+          StreamProvider.parseInnertubeResponse(_playerResponse(
+              status: status, adaptiveFormats: [_audioFormat()])),
           isNull,
           reason: 'status $status should not produce a provider',
         );
@@ -311,8 +314,9 @@ void main() {
 
     test('returns null when streamingData is missing', () {
       expect(
-        StreamProvider.parseInnertubeResponse(
-            {'playabilityStatus': {'status': 'OK'}}),
+        StreamProvider.parseInnertubeResponse({
+          'playabilityStatus': {'status': 'OK'}
+        }),
         isNull,
       );
     });
@@ -368,8 +372,8 @@ void main() {
 
     test('returns null when response is not playable so caller can fall back',
         () async {
-      final dio = _dioReturning(
-          _playerResponse(status: 'UNPLAYABLE', adaptiveFormats: [_audioFormat()]));
+      final dio = _dioReturning(_playerResponse(
+          status: 'UNPLAYABLE', adaptiveFormats: [_audioFormat()]));
 
       final provider =
           await StreamProvider.fetchViaInnertube('dQw4w9WgXcQ', dio: dio);
@@ -407,6 +411,107 @@ void main() {
           await StreamProvider.fetchViaInnertube('dQw4w9WgXcQ', dio: dio);
 
       expect(provider, isNull);
+    });
+
+    test('tries the next client when the first yields no usable formats',
+        () async {
+      final requestedClients = <String>[];
+      final dio = Dio();
+      dio.httpClientAdapter = _FakeAdapter((options, body) async {
+        final sent = jsonDecode(utf8.decode(body!)) as Map<String, dynamic>;
+        final clientName = sent['context']['client']['clientName'] as String;
+        requestedClients.add(clientName);
+        final payload = clientName == 'VISIONOS'
+            ? _playerResponse(adaptiveFormats: [
+                {
+                  'itag': 140,
+                  'mimeType': 'audio/mp4; codecs="mp4a.40.2"',
+                  'signatureCipher': 's=abc&url=https%3A%2F%2Fciphered',
+                },
+              ])
+            : _playerResponse(adaptiveFormats: [_audioFormat()]);
+        return ResponseBody.fromString(jsonEncode(payload), 200, headers: {
+          Headers.contentTypeHeader: [Headers.jsonContentType]
+        });
+      });
+
+      final provider =
+          await StreamProvider.fetchViaInnertube('dQw4w9WgXcQ', dio: dio);
+
+      expect(provider, isNotNull);
+      expect(provider!.playable, isTrue);
+      expect(requestedClients, ['VISIONOS', 'ANDROID_VR']);
+    });
+
+    test('stops after the first playable response', () async {
+      var requests = 0;
+      final dio = _dioReturning(
+        _playerResponse(adaptiveFormats: [_audioFormat()]),
+        onRequest: (_, __) => requests++,
+      );
+
+      final provider =
+          await StreamProvider.fetchViaInnertube('dQw4w9WgXcQ', dio: dio);
+
+      expect(provider, isNotNull);
+      expect(requests, 1);
+    });
+
+    test('stops retrying clients on a network failure', () async {
+      var requests = 0;
+      final dio = Dio();
+      dio.httpClientAdapter = _FakeAdapter((options, body) async {
+        requests++;
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+          error: const SocketException('no route to host'),
+        );
+      });
+
+      final provider =
+          await StreamProvider.fetchViaInnertube('dQw4w9WgXcQ', dio: dio);
+
+      expect(provider, isNotNull);
+      expect(provider!.playable, isFalse);
+      expect(provider.statusMSG, startsWith('networkError'));
+      expect(requests, 1);
+    });
+
+    test('returns null when every client yields nothing usable', () async {
+      var requests = 0;
+      final dio = _dioReturning(
+        _playerResponse(
+            status: 'UNPLAYABLE', adaptiveFormats: [_audioFormat()]),
+        onRequest: (_, __) => requests++,
+      );
+
+      final provider =
+          await StreamProvider.fetchViaInnertube('dQw4w9WgXcQ', dio: dio);
+
+      expect(provider, isNull);
+      expect(requests, StreamProvider.innertubePlayerClients.length);
+    });
+
+    test('honours a custom client list', () async {
+      final requestedClients = <String>[];
+      final dio = _dioReturning(
+        _playerResponse(adaptiveFormats: [_audioFormat()]),
+        onRequest: (options, body) {
+          final sent = jsonDecode(utf8.decode(body!)) as Map<String, dynamic>;
+          requestedClients.add(sent['context']['client']['clientName']);
+        },
+      );
+
+      final provider = await StreamProvider.fetchViaInnertube(
+        'dQw4w9WgXcQ',
+        dio: dio,
+        clients: [YoutubeApiClient.androidVr],
+      );
+
+      expect(provider, isNotNull);
+      expect(provider!.playable, isTrue);
+      expect(requestedClients, ['ANDROID_VR']);
     });
   });
 }

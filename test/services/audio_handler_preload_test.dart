@@ -187,6 +187,21 @@ void main() {
     expect(File('${cachedDir.path}/d.m4a').existsSync(), isFalse);
   });
 
+  test('prewarm opens the playback cache boxes for the active server',
+      () async {
+    await Hive.box('SongsUrlCache').close();
+    expect(Hive.isBoxOpen('SongsUrlCache'), isFalse);
+
+    handler.debugPrewarmPlaybackCacheBoxes();
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    expect(Hive.isBoxOpen('SongsUrlCache'), isTrue);
+    expect(Hive.isBoxOpen('SongsCache'), isTrue);
+
+    // Keep the box open for the tests that follow.
+    await Hive.openBox('SongsUrlCache');
+  });
+
   test('checkWithCacheDb indexes a cached song whatever the extension',
       () async {
     await File('${cachedDir.path}/e.mp3').writeAsBytes(const [1, 2, 3]);

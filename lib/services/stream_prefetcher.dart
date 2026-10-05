@@ -56,8 +56,10 @@ class StreamPrefetcher {
   void prefetchNext(List<MediaItem> queue, int? currentIndex,
       {int lookahead = 1}) {
     if (queue.isEmpty) return;
-    final idx = currentIndex ?? 0;
-    if (idx < 0 || idx >= queue.length) return;
+    // The index can be stale when the queue was just replaced (updateQueue
+    // runs before playByIndex commits the new index). Clamping keeps the
+    // prefetch pointed at a real track instead of skipping it entirely.
+    final idx = (currentIndex ?? 0).clamp(0, queue.length - 1);
     for (var step = 1; step <= lookahead; step++) {
       final next = idx + step;
       if (next >= queue.length) return;
@@ -71,8 +73,8 @@ class StreamPrefetcher {
   void prefetchCurrentAndNext(List<MediaItem> queue, int? currentIndex,
       {int lookahead = 1}) {
     if (queue.isEmpty) return;
-    final idx = currentIndex ?? 0;
-    if (idx < 0 || idx >= queue.length) return;
+    // Same stale-index handling as prefetchNext.
+    final idx = (currentIndex ?? 0).clamp(0, queue.length - 1);
     final current = queue[idx];
     if (_isPrefetchable(current)) {
       prefetch(current.id, extras: current.extras);

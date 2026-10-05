@@ -45,6 +45,7 @@ import '../ui/screens/Settings/settings_screen_controller.dart';
 part 'audio_handler_media_library.dart';
 
 Future<AudioHandler> initAudioService() async {
+  StreamProvider.warmConnections();
   return await AudioService.init(
     builder: () => MyAudioHandler(),
     config: const AudioServiceConfig(
@@ -230,14 +231,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         _diag = diagnostics ?? Get.find<PlaybackDiagnosticsService>() {
     _backgroundGuard = backgroundTaskGuard ?? BackgroundTaskGuard();
     _backgroundGuard.onExpired = _onBackgroundTaskExpired;
-    _prefetcher = StreamPrefetcher((String songId,
-            {bool generateNewUrl = false,
-            bool offlineReplacementUrl = false,
-            Map<String, dynamic>? extras}) =>
-        checkNGetUrl(songId,
-            generateNewUrl: generateNewUrl,
-            offlineReplacementUrl: offlineReplacementUrl,
-            extras: extras),
+    _prefetcher = StreamPrefetcher(
+        (String songId,
+                {bool generateNewUrl = false,
+                bool offlineReplacementUrl = false,
+                Map<String, dynamic>? extras}) =>
+            checkNGetUrl(songId,
+                generateNewUrl: generateNewUrl,
+                offlineReplacementUrl: offlineReplacementUrl,
+                extras: extras),
         onResolved: _onStreamResolved);
     if (_testable) {
       _cacheDir = '';
@@ -265,10 +267,27 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     }
     _preloader ??=
         SongPreloader(directory: Directory("$_cacheDir/preloadedSongs"));
+    _prewarmPlaybackCacheBoxes();
+  }
+
+  /// Opens the playback cache boxes ahead of the first tap. checkNGetUrl
+  /// reads these on every play, so a cold box open inside a play transition
+  /// adds avoidable latency; opening them at init keeps that path fast.
+  void _prewarmPlaybackCacheBoxes() {
+    final sid =
+        Get.isRegistered<SettingsScreenController>() ? currentServerId() : 0;
+    for (final name in [songsCacheBoxName(sid), songsUrlCacheBoxName(sid)]) {
+      if (!Hive.isBoxOpen(name)) {
+        unawaited(Hive.openBox(name).then((_) {}, onError: (_) {}));
+      }
+    }
   }
 
   @visibleForTesting
   set debugCacheDir(String path) => _cacheDir = path;
+
+  @visibleForTesting
+  void debugPrewarmPlaybackCacheBoxes() => _prewarmPlaybackCacheBoxes();
 
   /// The lock-cached audio file for [songId]. LockCachingAudioSource saved
   /// every stream as `<id>.mp3` even when the bytes were an mp4 container,
@@ -330,8 +349,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   void _evictStalePreloads() {
     final preloader = _preloader;
     final queueSnapshot = queue.value;
-    final idx = _safeCurrentIndex;
-    if (preloader == null || queueSnapshot.isEmpty || idx == null) return;
+    final rawIdx = _safeCurrentIndex;
+    if (preloader == null || queueSnapshot.isEmpty || rawIdx == null) return;
+    final idx = rawIdx.clamp(0, queueSnapshot.length - 1);
     final keep = <String>{};
     for (var i = idx - 1; i <= idx + _preloadAheadCount; i++) {
       if (i >= 0 && i < queueSnapshot.length) keep.add(queueSnapshot[i].id);
@@ -2005,8 +2025,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         }
         currentIndex = songIndex;
         mediaItem.add(queue.value[currentIndex]);
-        playbackState.add(
-            playbackState.value.copyWith(queueIndex: songIndex));
+        playbackState.add(playbackState.value.copyWith(queueIndex: songIndex));
         break;
 
       case 'toggleQueueLoopMode':
@@ -2312,6 +2331,17 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       }
     }
     final songDownloadsBox = Hive.box(songDownloadsBoxName(currentServerId()));
+    // Opening the url cache box overlaps with the cache/download lookups
+    // below so a cold open doesn't serialize into the fetch wait.
+    final urlCacheBoxFuture =
+        Hive.openBox(songsUrlCacheBoxName(currentServerId()));
+    // The early returns below can skip awaiting the open, so observe errors
+    // here too; otherwise a failed cold open would surface as an unhandled
+    // async error. Awaiting the original future still rethrows to the caller.
+    unawaited(urlCacheBoxFuture.then((_) {}, onError: (Object e) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.urlCacheBoxOpen] Failed to open songs url cache box: $e');
+    }));
     if (!offlineReplacementUrl &&
         (await Hive.openBox(songsCacheBoxName(currentServerId())))
             .containsKey(songId)) {
@@ -2438,14 +2468,13 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             highQualityAudio: fileAudio);
       }
       //check if song stream url is cached and allocate url accordingly
-      final songsUrlCacheBox =
-          await Hive.openBox(songsUrlCacheBoxName(currentServerId()));
+      final songsUrlCacheBox = await urlCacheBoxFuture;
       final qualityIndex = Hive.box('AppPrefs').get('streamingQuality') ?? 1;
       HMStreamingData? streamInfo;
       if (songsUrlCacheBox.containsKey(songId) && !generateNewUrl) {
         final streamInfoJson = songsUrlCacheBox.get(songId);
         if (streamInfoJson.runtimeType.toString().contains("Map") &&
-            !isExpired(url: (streamInfoJson['lowQualityAudio']['url']))) {
+            !isExpired(url: (streamInfoJson['lowQualityAudio']?['url']))) {
           _diag.logEvent(
             category: 'stream_fetch',
             message: 'hit_url_cache',

@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 import '../utils/helper.dart';
@@ -12,27 +14,70 @@ class StreamProvider {
   StreamProvider(
       {required this.playable, this.audioFormats, this.statusMSG = ""});
 
+  // The default adapter drops pooled connections after 3s of idleness, so
+  // every play more than a few seconds apart paid a fresh TCP+TLS handshake
+  // to the InnerTube host inside the tap-to-play path. Keeping connections
+  // alive for minutes lets back-to-back song changes reuse the session.
   static final Dio _innertubeDio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
-  ));
+  ))
+    ..httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () =>
+          HttpClient()..idleTimeout = const Duration(minutes: 5),
+    );
+
+  /// InnerTube clients tried in order when resolving a stream, matching how
+  /// Metrolist rotates clients. All of them return ready-to-use stream urls
+  /// without signature deciphering, so a client that produces nothing usable
+  /// only costs one extra player request before the manifest pipeline
+  /// fallback kicks in.
+  static final List<YoutubeApiClient> innertubePlayerClients = [
+    YoutubeApiClient.visionos,
+    YoutubeApiClient.androidVr,
+    YoutubeApiClient.ios,
+  ];
 
   static String _normalizeId(String videoId) =>
       videoId.startsWith("MPED") ? videoId.substring(4) : videoId;
 
-  /// Resolves stream urls with a single InnerTube `player` request.
+  /// Opens a connection to the InnerTube host ahead of playback so the first
+  /// player request after launch doesn't pay the handshake inside a play
+  /// action. Fire-and-forget: failures are irrelevant, the next real request
+  /// retries anyway.
+  static void warmConnections() {
+    unawaited(_innertubeDio
+        .get<void>('https://www.youtube.com/generate_204')
+        .then((_) {}, onError: (_) {}));
+  }
+
+  /// Resolves stream urls with a single InnerTube `player` request per
+  /// client, trying [clients] in order until one produces usable audio
+  /// formats.
   ///
-  /// Returns null when the response doesn't yield directly usable audio
+  /// Returns null when every client's response lacks directly usable audio
   /// formats (ciphered signatures, live streams, non-OK playability), in
   /// which case the caller should fall back to the full manifest pipeline.
   /// A non-playable result is only returned when the manifest pipeline would
   /// hit the same wall, e.g. when there is no connectivity.
   static Future<StreamProvider?> fetchViaInnertube(String videoId,
-      {Dio? dio}) async {
-    const client = YoutubeApiClient.visionos;
+      {Dio? dio, List<YoutubeApiClient>? clients}) async {
+    final resolvedDio = dio ?? _innertubeDio;
+    for (final client in clients ?? innertubePlayerClients) {
+      final provider = await _fetchViaClient(videoId, client, resolvedDio);
+      // A playable response is used right away and a network failure hits
+      // every client identically, so only null (nothing usable from this
+      // client) advances to the next one.
+      if (provider != null) return provider;
+    }
+    return null;
+  }
+
+  static Future<StreamProvider?> _fetchViaClient(
+      String videoId, YoutubeApiClient client, Dio dio) async {
     final clientContext = client.payload['context']['client'] as Map;
     try {
-      final response = await (dio ?? _innertubeDio).post(
+      final response = await dio.post(
         client.apiUrl,
         data: {...client.payload, 'videoId': _normalizeId(videoId)},
         options: Options(headers: {
@@ -47,8 +92,7 @@ class StreamProvider {
         }),
       );
       final body = response.data;
-      return parseInnertubeResponse(
-          body is String ? json.decode(body) : body);
+      return parseInnertubeResponse(body is String ? json.decode(body) : body);
     } on DioException catch (e) {
       if (e.error is SocketException ||
           e.type == DioExceptionType.connectionError ||
@@ -56,10 +100,16 @@ class StreamProvider {
         return StreamProvider(
             playable: false, statusMSG: "networkError: ${e.message}");
       }
-      logPlaybackDebugError('StreamProvider.fetchViaInnertube($videoId)', e);
+      logPlaybackDebugError(
+          'StreamProvider.fetchViaInnertube($videoId, '
+          '${clientContext['clientName']})',
+          e);
       return null;
     } catch (e) {
-      logPlaybackDebugError('StreamProvider.fetchViaInnertube($videoId)', e);
+      logPlaybackDebugError(
+          'StreamProvider.fetchViaInnertube($videoId, '
+          '${clientContext['clientName']})',
+          e);
       return null;
     }
   }
@@ -114,7 +164,8 @@ class StreamProvider {
     final yt = YoutubeExplode();
 
     try {
-      final res = await yt.videos.streamsClient.getManifest(_normalizeId(videoId));
+      final res =
+          await yt.videos.streamsClient.getManifest(_normalizeId(videoId));
       final audio = res.audioOnly;
       return StreamProvider(
           playable: true,
@@ -140,8 +191,7 @@ class StreamProvider {
       } else if (e is VideoUnplayableException) {
         return StreamProvider(
           playable: false,
-          statusMSG:
-              "VideoUnplayableException: ${e.message}",
+          statusMSG: "VideoUnplayableException: ${e.message}",
         );
       } else if (e is VideoRequiresPurchaseException) {
         return StreamProvider(
