@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 import '../utils/helper.dart';
@@ -12,32 +14,148 @@ class StreamProvider {
   StreamProvider(
       {required this.playable, this.audioFormats, this.statusMSG = ""});
 
+  // The default adapter drops pooled connections after 3s of idleness, so
+  // every play more than a few seconds apart paid a fresh TCP+TLS handshake
+  // to the InnerTube host inside the tap-to-play path. Keeping connections
+  // alive for minutes lets back-to-back song changes reuse the session.
   static final Dio _innertubeDio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
-  ));
+  ))
+    ..httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () =>
+          HttpClient()..idleTimeout = const Duration(minutes: 5),
+    );
+
+  /// InnerTube clients tried in order when resolving a stream, matching how
+  /// Metrolist rotates clients. All of them return ready-to-use stream urls
+  /// without signature deciphering, so a client that produces nothing usable
+  /// only costs one extra player request before the manifest pipeline
+  /// fallback kicks in.
+  static final List<YoutubeApiClient> innertubePlayerClients = [
+    YoutubeApiClient.visionos,
+    YoutubeApiClient.androidVr,
+    YoutubeApiClient.ios,
+  ];
+
+  static final RegExp _visitorDataPattern =
+      RegExp(r'"(?:visitorData|VISITOR_DATA)"\s*:\s*"([^"]+)"');
+
+  // Anonymous player calls increasingly get LOGIN_REQUIRED or urls that only
+  // serve a bounded window before the media host rejects the rest of the
+  // file. A session visitorData token marks requests as real sessions and
+  // restores full-range urls; it's learned once per process from youtube.com
+  // at warmup or from responseContext in any player response.
+  static String? _visitorData;
+
+  /// Overrides the learned session token in tests; null restores the
+  /// anonymous state.
+  static set debugVisitorData(String? value) => _visitorData = value;
+
+  static String? _extractVisitorData(dynamic data) {
+    if (data is! Map) return null;
+    final context = data['responseContext'];
+    if (context is! Map) return null;
+    final visitorData = context['visitorData'];
+    return visitorData is String && visitorData.isNotEmpty ? visitorData : null;
+  }
+
+  static String? _visitorDataFromHtml(String html) =>
+      _visitorDataPattern.firstMatch(html)?.group(1);
 
   static String _normalizeId(String videoId) =>
       videoId.startsWith("MPED") ? videoId.substring(4) : videoId;
 
-  /// Resolves stream urls with a single InnerTube `player` request.
+  /// Opens a connection to the InnerTube host ahead of playback so the first
+  /// player request after launch doesn't pay the handshake inside a play
+  /// action, and harvests a session visitorData from the page config so
+  /// player calls aren't treated as anonymous. Fire-and-forget: failures are
+  /// irrelevant, the next real request retries anyway.
+  static void warmConnections({Dio? dio}) {
+    unawaited((dio ?? _innertubeDio)
+        .get<String>('https://www.youtube.com/')
+        .then((response) {
+      final html = response.data;
+      if (html != null) _visitorData ??= _visitorDataFromHtml(html);
+    }, onError: (_) {}));
+  }
+
+  /// Probes the tail of a googlevideo stream url. Tokenless sessions get urls
+  /// that only serve a bounded window near the start before the host answers
+  /// 403/416, so checking the last byte proves the whole file is reachable,
+  /// not just the beginning.
+  static Future<bool> verifyStreamUrl(String url,
+      {Dio? dio, int sizeBytes = 0}) async {
+    if (url.isEmpty) return false;
+    final start = sizeBytes > 1 ? sizeBytes - 1 : 0;
+    try {
+      final response = await (dio ?? _innertubeDio).get<List<int>>(
+        url,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {'Range': 'bytes=$start-$start'},
+          receiveTimeout: const Duration(seconds: 5),
+          validateStatus: (_) => true,
+        ),
+      );
+      final status = response.statusCode ?? 0;
+      return status >= 200 && status < 300;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Resolves stream urls with a single InnerTube `player` request per
+  /// client, trying [clients] in order until one produces usable audio
+  /// formats.
   ///
-  /// Returns null when the response doesn't yield directly usable audio
+  /// Returns null when every client's response lacks directly usable audio
   /// formats (ciphered signatures, live streams, non-OK playability), in
   /// which case the caller should fall back to the full manifest pipeline.
   /// A non-playable result is only returned when the manifest pipeline would
   /// hit the same wall, e.g. when there is no connectivity.
   static Future<StreamProvider?> fetchViaInnertube(String videoId,
-      {Dio? dio}) async {
-    const client = YoutubeApiClient.visionos;
+      {Dio? dio, List<YoutubeApiClient>? clients}) async {
+    final resolvedDio = dio ?? _innertubeDio;
+    final triedClients = clients ?? innertubePlayerClients;
+    final hadVisitorData = _visitorData != null;
+    for (var pass = 0; pass < 2; pass++) {
+      for (final client in triedClients) {
+        final provider = await _fetchViaClient(videoId, client, resolvedDio);
+        // A playable response is used right away and a network failure hits
+        // every client identically, so only null (nothing usable from this
+        // client) advances to the next one.
+        if (provider != null) return provider;
+      }
+      // A failed pass can still teach us the session visitorData through
+      // responseContext; with it the same clients may succeed, so retry once.
+      if (hadVisitorData || _visitorData == null) break;
+    }
+    return null;
+  }
+
+  static Future<StreamProvider?> _fetchViaClient(
+      String videoId, YoutubeApiClient client, Dio dio) async {
     final clientContext = client.payload['context']['client'] as Map;
+    final visitorData = _visitorData;
     try {
-      final response = await (dio ?? _innertubeDio).post(
+      final response = await dio.post(
         client.apiUrl,
-        data: {...client.payload, 'videoId': _normalizeId(videoId)},
+        data: {
+          ...client.payload,
+          'context': {
+            ...(client.payload['context'] as Map),
+            'client': {
+              ...clientContext,
+              if (visitorData != null) 'visitorData': visitorData,
+            },
+          },
+          'videoId': _normalizeId(videoId),
+        },
         options: Options(headers: {
           if (clientContext['userAgent'] != null)
             'User-Agent': clientContext['userAgent'],
+          if (visitorData != null) 'X-Goog-Visitor-Id': visitorData,
           'X-Youtube-Client-Name': clientContext['clientName'],
           'X-Youtube-Client-Version': clientContext['clientVersion'],
           'Origin': 'https://www.youtube.com',
@@ -46,9 +164,21 @@ class StreamProvider {
           ...client.headers,
         }),
       );
-      final body = response.data;
-      return parseInnertubeResponse(
-          body is String ? json.decode(body) : body);
+      final body =
+          response.data is String ? json.decode(response.data) : response.data;
+      _visitorData ??= _extractVisitorData(body);
+      final provider = parseInnertubeResponse(body);
+      if (provider == null || !provider.playable) return provider;
+      // A client can report OK yet still issue a url the media host gates to
+      // a bounded window (or flat 403s). Probing the last byte before
+      // accepting it keeps the player from stalling on a dead stream.
+      final probe =
+          provider.highestQualityAudio ?? provider.audioFormats?.first;
+      if (probe != null &&
+          !await verifyStreamUrl(probe.url, dio: dio, sizeBytes: probe.size)) {
+        return null;
+      }
+      return provider;
     } on DioException catch (e) {
       if (e.error is SocketException ||
           e.type == DioExceptionType.connectionError ||
@@ -56,10 +186,16 @@ class StreamProvider {
         return StreamProvider(
             playable: false, statusMSG: "networkError: ${e.message}");
       }
-      logPlaybackDebugError('StreamProvider.fetchViaInnertube($videoId)', e);
+      logPlaybackDebugError(
+          'StreamProvider.fetchViaInnertube($videoId, '
+          '${clientContext['clientName']})',
+          e);
       return null;
     } catch (e) {
-      logPlaybackDebugError('StreamProvider.fetchViaInnertube($videoId)', e);
+      logPlaybackDebugError(
+          'StreamProvider.fetchViaInnertube($videoId, '
+          '${clientContext['clientName']})',
+          e);
       return null;
     }
   }
@@ -114,7 +250,8 @@ class StreamProvider {
     final yt = YoutubeExplode();
 
     try {
-      final res = await yt.videos.streamsClient.getManifest(_normalizeId(videoId));
+      final res =
+          await yt.videos.streamsClient.getManifest(_normalizeId(videoId));
       final audio = res.audioOnly;
       return StreamProvider(
           playable: true,
@@ -140,8 +277,7 @@ class StreamProvider {
       } else if (e is VideoUnplayableException) {
         return StreamProvider(
           playable: false,
-          statusMSG:
-              "VideoUnplayableException: ${e.message}",
+          statusMSG: "VideoUnplayableException: ${e.message}",
         );
       } else if (e is VideoRequiresPurchaseException) {
         return StreamProvider(

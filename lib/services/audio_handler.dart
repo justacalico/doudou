@@ -45,6 +45,7 @@ import '../ui/screens/Settings/settings_screen_controller.dart';
 part 'audio_handler_media_library.dart';
 
 Future<AudioHandler> initAudioService() async {
+  StreamProvider.warmConnections();
   return await AudioService.init(
     builder: () => MyAudioHandler(),
     config: const AudioServiceConfig(
@@ -63,6 +64,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   AudioPlayer _player;
   final AudioPlayer Function() _playerFactory;
   final StreamReachabilityCheck _reachabilityCheck;
+  final StreamUrlVerifier _streamUrlVerifier;
+  final StreamInfoFetcher? _streamInfoFetcher;
   final Future<void> Function(Duration) _recoveryDelay;
   final List<StreamSubscription<dynamic>> _playerSubscriptions = [];
   final MediaLibrary _mediaLibrary;
@@ -218,6 +221,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     BackgroundTaskGuard? backgroundTaskGuard,
     SongPreloader? preloader,
     bool? isApplePlatform,
+    StreamUrlVerifier? streamUrlVerifier,
+    StreamInfoFetcher? streamInfoFetcher,
   })  : _preloader = preloader,
         _testable = player != null || playerFactory != null,
         _isApplePlatform =
@@ -225,19 +230,23 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         _playerFactory = playerFactory ?? _createDefaultPlayer,
         _reachabilityCheck = reachabilityCheck ?? canReachStreamHost,
         _recoveryDelay = recoveryDelay ?? Future.delayed,
+        _streamUrlVerifier =
+            streamUrlVerifier ?? StreamProvider.verifyStreamUrl,
+        _streamInfoFetcher = streamInfoFetcher,
         _player = player ?? (playerFactory ?? _createDefaultPlayer)(),
         _mediaLibrary = mediaLibrary ?? MediaLibrary(),
         _diag = diagnostics ?? Get.find<PlaybackDiagnosticsService>() {
     _backgroundGuard = backgroundTaskGuard ?? BackgroundTaskGuard();
     _backgroundGuard.onExpired = _onBackgroundTaskExpired;
-    _prefetcher = StreamPrefetcher((String songId,
-            {bool generateNewUrl = false,
-            bool offlineReplacementUrl = false,
-            Map<String, dynamic>? extras}) =>
-        checkNGetUrl(songId,
-            generateNewUrl: generateNewUrl,
-            offlineReplacementUrl: offlineReplacementUrl,
-            extras: extras),
+    _prefetcher = StreamPrefetcher(
+        (String songId,
+                {bool generateNewUrl = false,
+                bool offlineReplacementUrl = false,
+                Map<String, dynamic>? extras}) =>
+            checkNGetUrl(songId,
+                generateNewUrl: generateNewUrl,
+                offlineReplacementUrl: offlineReplacementUrl,
+                extras: extras),
         onResolved: _onStreamResolved);
     if (_testable) {
       _cacheDir = '';
@@ -265,10 +274,27 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     }
     _preloader ??=
         SongPreloader(directory: Directory("$_cacheDir/preloadedSongs"));
+    _prewarmPlaybackCacheBoxes();
+  }
+
+  /// Opens the playback cache boxes ahead of the first tap. checkNGetUrl
+  /// reads these on every play, so a cold box open inside a play transition
+  /// adds avoidable latency; opening them at init keeps that path fast.
+  void _prewarmPlaybackCacheBoxes() {
+    final sid =
+        Get.isRegistered<SettingsScreenController>() ? currentServerId() : 0;
+    for (final name in [songsCacheBoxName(sid), songsUrlCacheBoxName(sid)]) {
+      if (!Hive.isBoxOpen(name)) {
+        unawaited(Hive.openBox(name).then((_) {}, onError: (_) {}));
+      }
+    }
   }
 
   @visibleForTesting
   set debugCacheDir(String path) => _cacheDir = path;
+
+  @visibleForTesting
+  void debugPrewarmPlaybackCacheBoxes() => _prewarmPlaybackCacheBoxes();
 
   /// The lock-cached audio file for [songId]. LockCachingAudioSource saved
   /// every stream as `<id>.mp3` even when the bytes were an mp4 container,
@@ -330,8 +356,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   void _evictStalePreloads() {
     final preloader = _preloader;
     final queueSnapshot = queue.value;
-    final idx = _safeCurrentIndex;
-    if (preloader == null || queueSnapshot.isEmpty || idx == null) return;
+    final rawIdx = _safeCurrentIndex;
+    if (preloader == null || queueSnapshot.isEmpty || rawIdx == null) return;
+    final idx = rawIdx.clamp(0, queueSnapshot.length - 1);
     final keep = <String>{};
     for (var i = idx - 1; i <= idx + _preloadAheadCount; i++) {
       if (i >= 0 && i < queueSnapshot.length) keep.add(queueSnapshot[i].id);
@@ -2005,8 +2032,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         }
         currentIndex = songIndex;
         mediaItem.add(queue.value[currentIndex]);
-        playbackState.add(
-            playbackState.value.copyWith(queueIndex: songIndex));
+        playbackState.add(playbackState.value.copyWith(queueIndex: songIndex));
         break;
 
       case 'toggleQueueLoopMode':
@@ -2231,6 +2257,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
 // Work around used [useNewInstanceOfExplode = false] to Fix Connection closed before full header was received issue
+  /// Verifies the url the player would actually stream. Missing or non-http
+  /// urls can't be probed, so they pass through untouched rather than being
+  /// discarded by a check that can't answer for them.
+  Future<bool> _isStreamUrlUsable(Audio? audio) {
+    final url = audio?.url;
+    if (url == null || !url.startsWith('http')) return Future.value(true);
+    return _streamUrlVerifier(url, sizeBytes: audio?.size ?? 0);
+  }
+
   Future<HMStreamingData> checkNGetUrl(String songId,
       {bool generateNewUrl = false,
       bool offlineReplacementUrl = false,
@@ -2312,6 +2347,17 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       }
     }
     final songDownloadsBox = Hive.box(songDownloadsBoxName(currentServerId()));
+    // Opening the url cache box overlaps with the cache/download lookups
+    // below so a cold open doesn't serialize into the fetch wait.
+    final urlCacheBoxFuture =
+        Hive.openBox(songsUrlCacheBoxName(currentServerId()));
+    // The early returns below can skip awaiting the open, so observe errors
+    // here too; otherwise a failed cold open would surface as an unhandled
+    // async error. Awaiting the original future still rethrows to the caller.
+    unawaited(urlCacheBoxFuture.then((_) {}, onError: (Object e) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.urlCacheBoxOpen] Failed to open songs url cache box: $e');
+    }));
     if (!offlineReplacementUrl &&
         (await Hive.openBox(songsCacheBoxName(currentServerId())))
             .containsKey(songId)) {
@@ -2438,23 +2484,43 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             highQualityAudio: fileAudio);
       }
       //check if song stream url is cached and allocate url accordingly
-      final songsUrlCacheBox =
-          await Hive.openBox(songsUrlCacheBoxName(currentServerId()));
+      final songsUrlCacheBox = await urlCacheBoxFuture;
       final qualityIndex = Hive.box('AppPrefs').get('streamingQuality') ?? 1;
       HMStreamingData? streamInfo;
       if (songsUrlCacheBox.containsKey(songId) && !generateNewUrl) {
         final streamInfoJson = songsUrlCacheBox.get(songId);
         if (streamInfoJson.runtimeType.toString().contains("Map") &&
-            !isExpired(url: (streamInfoJson['lowQualityAudio']['url']))) {
-          _diag.logEvent(
-            category: 'stream_fetch',
-            message: 'hit_url_cache',
-            songId: songId,
-            backendType: backendType,
-            activeServerType: _safeServerType(),
-          );
-          printINFO("Got cached Url ($songId)");
-          streamInfo = HMStreamingData.fromJson(streamInfoJson);
+            !isExpired(url: (streamInfoJson['lowQualityAudio']?['url']))) {
+          final cached = HMStreamingData.fromJson(streamInfoJson)
+            ..setQualityIndex(qualityIndex as int);
+          // Entries written before url verification existed can hold urls the
+          // media host has since gated to a bounded window. Probe unmarked
+          // entries once; a pass marks the entry so later hits skip the check.
+          final verified = streamInfoJson['streamUrlVerified'] == true;
+          if (verified || await _isStreamUrlUsable(cached.audio)) {
+            if (!verified) {
+              streamInfoJson['streamUrlVerified'] = true;
+              unawaited(songsUrlCacheBox.put(songId, streamInfoJson));
+            }
+            _diag.logEvent(
+              category: 'stream_fetch',
+              message: 'hit_url_cache',
+              songId: songId,
+              backendType: backendType,
+              activeServerType: _safeServerType(),
+            );
+            printINFO("Got cached Url ($songId)");
+            streamInfo = cached;
+          } else {
+            _diag.logEvent(
+              category: 'stream_fetch',
+              message: 'cached_url_unplayable',
+              songId: songId,
+              backendType: backendType,
+              activeServerType: _safeServerType(),
+            );
+            printWarning("Cached stream url rejected by media host ($songId)");
+          }
         }
       }
 
@@ -2472,12 +2538,18 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         // extra manifest fetches and the per-stream HEAD checks the full
         // pipeline performs. The manifest pipeline runs in a new isolate
         // only when the fast path can't produce a playable url.
-        var streamInfoJson =
-            (await StreamProvider.fetchViaInnertube(songId))?.hmStreamingData;
+        final streamInfoFetcher = _streamInfoFetcher;
+        var streamInfoJson = streamInfoFetcher != null
+            ? await streamInfoFetcher(songId)
+            : (await StreamProvider.fetchViaInnertube(songId))?.hmStreamingData;
         if (streamInfoJson == null) {
           final token = RootIsolateToken.instance;
           streamInfoJson = await Isolate.run(
               () => getStreamInfo(songId, token, useInnertube: false));
+        } else {
+          // The InnerTube path already probes the url it returns, so entries
+          // it produces skip re-verification on later cache reads.
+          streamInfoJson['streamUrlVerified'] = true;
         }
         streamInfo = HMStreamingData.fromJson(streamInfoJson);
         _diag.logEvent(

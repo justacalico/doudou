@@ -99,6 +99,15 @@ bool isPlayerConnectionError(Object error) {
 
 typedef StreamReachabilityCheck = Future<bool> Function(String? streamUrl);
 
+/// Returns whether the media host actually serves [url], with [sizeBytes]
+/// letting the probe target the last byte so bounded-window urls are caught.
+typedef StreamUrlVerifier = Future<bool> Function(String url, {int sizeBytes});
+
+/// Resolves a song's stream info json without touching the network; the
+/// production path leaves this null and uses StreamProvider.
+typedef StreamInfoFetcher = Future<Map<String, dynamic>?> Function(
+    String songId);
+
 /// Probes a TCP connection to the host of [streamUrl]. This answers the only
 /// question that matters for playback recovery: can the device's network path
 /// actually reach the stream server right now. Our own API calls succeeding is

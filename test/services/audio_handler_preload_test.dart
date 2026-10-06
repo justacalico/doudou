@@ -51,6 +51,8 @@ void main() {
   late SongPreloader preloader;
   late FakePlaybackDiagnosticsService diag;
   late MyAudioHandler handler;
+  var streamUrlProbeResult = true;
+  final probedUrls = <String>[];
 
   setUpAll(() async {
     tempDir = await Directory.systemTemp.createTemp('doudou_preload_test_');
@@ -94,11 +96,17 @@ void main() {
     );
     diag = FakePlaybackDiagnosticsService();
     player = _stubbedPlayer();
+    streamUrlProbeResult = true;
+    probedUrls.clear();
     handler = MyAudioHandler(
       player: player,
       diagnostics: diag,
       preloader: preloader,
       isApplePlatform: false,
+      streamUrlVerifier: (url, {sizeBytes = 0}) async {
+        probedUrls.add(url);
+        return streamUrlProbeResult;
+      },
     );
     handler.debugCacheDir = tempDir.path;
   });
@@ -141,6 +149,89 @@ void main() {
     expect(data.playable, isTrue);
     expect(data.audio!.url, audioJson['url']);
     expect(diag.calls.where((c) => c.message == 'hit_preloaded_file'), isEmpty);
+    // The unmarked entry was probed once and re-written with the verified
+    // marker so later reads skip the network check.
+    expect(probedUrls, [audioJson['url']]);
+    expect(Hive.box('SongsUrlCache').get('cached')['streamUrlVerified'], true);
+
+    probedUrls.clear();
+    final again = await handler.checkNGetUrl('cached', extras: const {});
+    expect(again.playable, isTrue);
+    expect(probedUrls, isEmpty);
+  });
+
+  test('checkNGetUrl skips probing entries already marked verified', () async {
+    final expire = DateTime.now().millisecondsSinceEpoch ~/ 1000 + 7200;
+    final audioJson = {
+      'itag': 140,
+      'audioCodec': 'Codec.mp4a',
+      'bitrate': 128000,
+      'loudnessDb': 0.0,
+      'url': 'https://example.com/marked?expire=$expire&x=1',
+      'approxDurationMs': 0,
+      'size': 0,
+    };
+    await Hive.box('SongsUrlCache').put('marked', {
+      'playable': true,
+      'statusMSG': 'OK',
+      'lowQualityAudio': audioJson,
+      'highQualityAudio': audioJson,
+      'streamUrlVerified': true,
+    });
+
+    final data = await handler.checkNGetUrl('marked', extras: const {});
+
+    expect(data.playable, isTrue);
+    expect(data.audio!.url, audioJson['url']);
+    expect(probedUrls, isEmpty);
+  });
+
+  test('checkNGetUrl refetches when the cached url is rejected', () async {
+    final expire = DateTime.now().millisecondsSinceEpoch ~/ 1000 + 7200;
+    final deadJson = {
+      'itag': 140,
+      'audioCodec': 'Codec.mp4a',
+      'bitrate': 128000,
+      'loudnessDb': 0.0,
+      'url': 'https://gated.example.com/dead?expire=$expire&x=1',
+      'approxDurationMs': 0,
+      'size': 0,
+    };
+    await Hive.box('SongsUrlCache').put('dead', {
+      'playable': true,
+      'statusMSG': 'OK',
+      'lowQualityAudio': deadJson,
+      'highQualityAudio': deadJson,
+    });
+    final freshUrl = 'https://open.example.com/fresh?expire=$expire';
+    final freshAudio = Map<String, dynamic>.from(deadJson)..['url'] = freshUrl;
+    handler = MyAudioHandler(
+      player: player,
+      diagnostics: diag,
+      preloader: preloader,
+      isApplePlatform: false,
+      streamUrlVerifier: (url, {sizeBytes = 0}) async {
+        probedUrls.add(url);
+        return false;
+      },
+      streamInfoFetcher: (id) async => {
+        'playable': true,
+        'statusMSG': 'OK',
+        'lowQualityAudio': freshAudio,
+        'highQualityAudio': freshAudio,
+      },
+    );
+
+    final data = await handler.checkNGetUrl('dead', extras: const {});
+
+    expect(data.playable, isTrue);
+    expect(data.audio!.url, freshUrl);
+    expect(probedUrls, [deadJson['url']]);
+    expect(diag.calls.where((c) => c.message == 'cached_url_unplayable'),
+        hasLength(1));
+    final stored = Hive.box('SongsUrlCache').get('dead');
+    expect(stored['streamUrlVerified'], true);
+    expect(stored['highQualityAudio']['url'], freshUrl);
   });
 
   test('playByIndex plays a preloaded song from the local file source',
@@ -185,6 +276,21 @@ void main() {
     expect(data.audio!.url, 'file://${cachedDir.path}/d.mp3');
     expect(File('${cachedDir.path}/d.mp3').existsSync(), isTrue);
     expect(File('${cachedDir.path}/d.m4a').existsSync(), isFalse);
+  });
+
+  test('prewarm opens the playback cache boxes for the active server',
+      () async {
+    await Hive.box('SongsUrlCache').close();
+    expect(Hive.isBoxOpen('SongsUrlCache'), isFalse);
+
+    handler.debugPrewarmPlaybackCacheBoxes();
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    expect(Hive.isBoxOpen('SongsUrlCache'), isTrue);
+    expect(Hive.isBoxOpen('SongsCache'), isTrue);
+
+    // Keep the box open for the tests that follow.
+    await Hive.openBox('SongsUrlCache');
   });
 
   test('checkWithCacheDb indexes a cached song whatever the extension',
