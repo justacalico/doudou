@@ -64,6 +64,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   AudioPlayer _player;
   final AudioPlayer Function() _playerFactory;
   final StreamReachabilityCheck _reachabilityCheck;
+  final StreamUrlVerifier _streamUrlVerifier;
+  final StreamInfoFetcher? _streamInfoFetcher;
   final Future<void> Function(Duration) _recoveryDelay;
   final List<StreamSubscription<dynamic>> _playerSubscriptions = [];
   final MediaLibrary _mediaLibrary;
@@ -219,6 +221,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     BackgroundTaskGuard? backgroundTaskGuard,
     SongPreloader? preloader,
     bool? isApplePlatform,
+    StreamUrlVerifier? streamUrlVerifier,
+    StreamInfoFetcher? streamInfoFetcher,
   })  : _preloader = preloader,
         _testable = player != null || playerFactory != null,
         _isApplePlatform =
@@ -226,6 +230,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         _playerFactory = playerFactory ?? _createDefaultPlayer,
         _reachabilityCheck = reachabilityCheck ?? canReachStreamHost,
         _recoveryDelay = recoveryDelay ?? Future.delayed,
+        _streamUrlVerifier =
+            streamUrlVerifier ?? StreamProvider.verifyStreamUrl,
+        _streamInfoFetcher = streamInfoFetcher,
         _player = player ?? (playerFactory ?? _createDefaultPlayer)(),
         _mediaLibrary = mediaLibrary ?? MediaLibrary(),
         _diag = diagnostics ?? Get.find<PlaybackDiagnosticsService>() {
@@ -2250,6 +2257,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
 // Work around used [useNewInstanceOfExplode = false] to Fix Connection closed before full header was received issue
+  /// Verifies the url the player would actually stream. Missing or non-http
+  /// urls can't be probed, so they pass through untouched rather than being
+  /// discarded by a check that can't answer for them.
+  Future<bool> _isStreamUrlUsable(Audio? audio) {
+    final url = audio?.url;
+    if (url == null || !url.startsWith('http')) return Future.value(true);
+    return _streamUrlVerifier(url, sizeBytes: audio?.size ?? 0);
+  }
+
   Future<HMStreamingData> checkNGetUrl(String songId,
       {bool generateNewUrl = false,
       bool offlineReplacementUrl = false,
@@ -2475,15 +2491,36 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         final streamInfoJson = songsUrlCacheBox.get(songId);
         if (streamInfoJson.runtimeType.toString().contains("Map") &&
             !isExpired(url: (streamInfoJson['lowQualityAudio']?['url']))) {
-          _diag.logEvent(
-            category: 'stream_fetch',
-            message: 'hit_url_cache',
-            songId: songId,
-            backendType: backendType,
-            activeServerType: _safeServerType(),
-          );
-          printINFO("Got cached Url ($songId)");
-          streamInfo = HMStreamingData.fromJson(streamInfoJson);
+          final cached = HMStreamingData.fromJson(streamInfoJson)
+            ..setQualityIndex(qualityIndex as int);
+          // Entries written before url verification existed can hold urls the
+          // media host has since gated to a bounded window. Probe unmarked
+          // entries once; a pass marks the entry so later hits skip the check.
+          final verified = streamInfoJson['streamUrlVerified'] == true;
+          if (verified || await _isStreamUrlUsable(cached.audio)) {
+            if (!verified) {
+              streamInfoJson['streamUrlVerified'] = true;
+              unawaited(songsUrlCacheBox.put(songId, streamInfoJson));
+            }
+            _diag.logEvent(
+              category: 'stream_fetch',
+              message: 'hit_url_cache',
+              songId: songId,
+              backendType: backendType,
+              activeServerType: _safeServerType(),
+            );
+            printINFO("Got cached Url ($songId)");
+            streamInfo = cached;
+          } else {
+            _diag.logEvent(
+              category: 'stream_fetch',
+              message: 'cached_url_unplayable',
+              songId: songId,
+              backendType: backendType,
+              activeServerType: _safeServerType(),
+            );
+            printWarning("Cached stream url rejected by media host ($songId)");
+          }
         }
       }
 
@@ -2501,12 +2538,18 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         // extra manifest fetches and the per-stream HEAD checks the full
         // pipeline performs. The manifest pipeline runs in a new isolate
         // only when the fast path can't produce a playable url.
-        var streamInfoJson =
-            (await StreamProvider.fetchViaInnertube(songId))?.hmStreamingData;
+        final streamInfoFetcher = _streamInfoFetcher;
+        var streamInfoJson = streamInfoFetcher != null
+            ? await streamInfoFetcher(songId)
+            : (await StreamProvider.fetchViaInnertube(songId))?.hmStreamingData;
         if (streamInfoJson == null) {
           final token = RootIsolateToken.instance;
           streamInfoJson = await Isolate.run(
               () => getStreamInfo(songId, token, useInnertube: false));
+        } else {
+          // The InnerTube path already probes the url it returns, so entries
+          // it produces skip re-verification on later cache reads.
+          streamInfoJson['streamUrlVerified'] = true;
         }
         streamInfo = HMStreamingData.fromJson(streamInfoJson);
         _diag.logEvent(

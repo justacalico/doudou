@@ -29,9 +29,15 @@ class _FakeAdapter implements HttpClientAdapter {
 }
 
 Dio _dioReturning(Map<String, dynamic> payload,
-    {void Function(RequestOptions, Uint8List?)? onRequest}) {
+    {void Function(RequestOptions, Uint8List?)? onRequest,
+    int probeStatus = 200}) {
   final dio = Dio();
   dio.httpClientAdapter = _FakeAdapter((options, body) async {
+    if (options.method != 'POST') {
+      // Stream url probe: googlevideo rejects HEAD/whole-file GETs for gated
+      // urls, so the probe is a ranged GET that expects 2xx.
+      return ResponseBody.fromBytes(const [0], probeStatus);
+    }
     onRequest?.call(options, body);
     return ResponseBody.fromString(jsonEncode(payload), 200, headers: {
       Headers.contentTypeHeader: [Headers.jsonContentType]
@@ -329,6 +335,9 @@ void main() {
   });
 
   group('StreamProvider.fetchViaInnertube', () {
+    setUp(() => StreamProvider.debugVisitorData = null);
+    tearDown(() => StreamProvider.debugVisitorData = null);
+
     test('posts videoId once and returns playable provider', () async {
       RequestOptions? captured;
       Uint8List? capturedBody;
@@ -418,6 +427,9 @@ void main() {
       final requestedClients = <String>[];
       final dio = Dio();
       dio.httpClientAdapter = _FakeAdapter((options, body) async {
+        if (options.method != 'POST') {
+          return ResponseBody.fromBytes(const [0], 200);
+        }
         final sent = jsonDecode(utf8.decode(body!)) as Map<String, dynamic>;
         final clientName = sent['context']['client']['clientName'] as String;
         requestedClients.add(clientName);
@@ -447,7 +459,9 @@ void main() {
       var requests = 0;
       final dio = _dioReturning(
         _playerResponse(adaptiveFormats: [_audioFormat()]),
-        onRequest: (_, __) => requests++,
+        onRequest: (options, _) {
+          if (options.method == 'POST') requests++;
+        },
       );
 
       final provider =
@@ -512,6 +526,211 @@ void main() {
       expect(provider, isNotNull);
       expect(provider!.playable, isTrue);
       expect(requestedClients, ['ANDROID_VR']);
+    });
+
+    test('moves to the next client when the selected url is gated', () async {
+      // A client can answer OK yet hand out a url the media host refuses to
+      // serve. The tail probe must fail the client over instead of returning
+      // a stream that stalls in the player.
+      final requestedClients = <String>[];
+      final dio = Dio();
+      dio.httpClientAdapter = _FakeAdapter((options, body) async {
+        if (options.method != 'POST') {
+          final gated = options.uri.host.contains('gated');
+          return ResponseBody.fromBytes(const [0], gated ? 403 : 200);
+        }
+        final sent = jsonDecode(utf8.decode(body!)) as Map<String, dynamic>;
+        final clientName = sent['context']['client']['clientName'] as String;
+        requestedClients.add(clientName);
+        final url = clientName == 'VISIONOS'
+            ? 'https://rr1---sn.gated.googlevideo.com/videoplayback?c=VISIONOS&expire=2000000000'
+            : 'https://rr1---sn.open.googlevideo.com/videoplayback?c=ANDROID_VR&expire=2000000000';
+        return ResponseBody.fromString(
+            jsonEncode(
+                _playerResponse(adaptiveFormats: [_audioFormat(url: url)])),
+            200,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType]
+            });
+      });
+
+      final provider =
+          await StreamProvider.fetchViaInnertube('dQw4w9WgXcQ', dio: dio);
+
+      expect(provider, isNotNull);
+      expect(provider!.playable, isTrue);
+      expect(provider.audioFormats!.first.url, contains('open.googlevideo'));
+      expect(requestedClients, ['VISIONOS', 'ANDROID_VR']);
+    });
+
+    test('probes the last byte of the selected url', () async {
+      String? ranged;
+      final dio = Dio();
+      dio.httpClientAdapter = _FakeAdapter((options, body) async {
+        if (options.method != 'POST') {
+          ranged = options.headers['Range']?.toString();
+          return ResponseBody.fromBytes(const [0], 206);
+        }
+        return ResponseBody.fromString(
+            jsonEncode(_playerResponse(adaptiveFormats: [
+              _audioFormat(itag: 251, contentLength: '5000000'),
+            ])),
+            200,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType]
+            });
+      });
+
+      await StreamProvider.fetchViaInnertube('dQw4w9WgXcQ', dio: dio);
+
+      expect(ranged, 'bytes=4999999-4999999');
+    });
+
+    test('learns visitorData from responseContext and resends it', () async {
+      final bodies = <Map<String, dynamic>>[];
+      final visitorHeaders = <String?>[];
+      final dio = Dio();
+      dio.httpClientAdapter = _FakeAdapter((options, body) async {
+        if (options.method != 'POST') {
+          return ResponseBody.fromBytes(const [0], 200);
+        }
+        final sent = jsonDecode(utf8.decode(body!)) as Map<String, dynamic>;
+        bodies.add(sent);
+        visitorHeaders.add(options.headers['X-Goog-Visitor-Id']?.toString());
+        final clientName = sent['context']['client']['clientName'] as String;
+        // First client: unplayable but still carries a visitor token.
+        if (clientName == 'VISIONOS') {
+          return ResponseBody.fromString(
+              jsonEncode({
+                'playabilityStatus': {'status': 'LOGIN_REQUIRED'},
+                'responseContext': {'visitorData': 'VD_TEST'},
+              }),
+              200);
+        }
+        return ResponseBody.fromString(
+            jsonEncode(_playerResponse(adaptiveFormats: [_audioFormat()])),
+            200);
+      });
+
+      final provider =
+          await StreamProvider.fetchViaInnertube('dQw4w9WgXcQ', dio: dio);
+
+      expect(provider, isNotNull);
+      expect(provider!.playable, isTrue);
+      expect(bodies, hasLength(2));
+      expect(bodies.first['context']['client'].containsKey('visitorData'),
+          isFalse);
+      expect(bodies.last['context']['client']['visitorData'], 'VD_TEST');
+      expect(visitorHeaders.last, 'VD_TEST');
+    });
+
+    test('retries clients once visitorData becomes available', () async {
+      // If the token is only learned on the last client, a second pass over
+      // the earlier clients with it attached may still succeed.
+      final bodies = <Map<String, dynamic>>[];
+      final dio = Dio();
+      dio.httpClientAdapter = _FakeAdapter((options, body) async {
+        if (options.method != 'POST') {
+          return ResponseBody.fromBytes(const [0], 200);
+        }
+        final sent = jsonDecode(utf8.decode(body!)) as Map<String, dynamic>;
+        bodies.add(sent);
+        final clientName = sent['context']['client']['clientName'] as String;
+        final hasToken = sent['context']['client'].containsKey('visitorData');
+        return ResponseBody.fromString(
+            jsonEncode({
+              'playabilityStatus': {
+                'status': hasToken ? 'OK' : 'LOGIN_REQUIRED'
+              },
+              // Only the last anonymous client reports a session token.
+              if (clientName == 'IOS')
+                'responseContext': {'visitorData': 'VD_LATE'},
+              if (hasToken)
+                'streamingData': {
+                  'adaptiveFormats': [_audioFormat()],
+                },
+            }),
+            200);
+      });
+
+      final provider =
+          await StreamProvider.fetchViaInnertube('dQw4w9WgXcQ', dio: dio);
+
+      expect(provider, isNotNull);
+      expect(provider!.playable, isTrue);
+      // Three anonymous attempts, then a second pass that succeeds.
+      expect(bodies, hasLength(4));
+      expect(
+          bodies
+              .take(3)
+              .every((b) => !b['context']['client'].containsKey('visitorData')),
+          isTrue);
+      expect(bodies.last['context']['client']['visitorData'], 'VD_LATE');
+      expect(bodies.last['context']['client']['clientName'], 'VISIONOS');
+    });
+  });
+
+  group('StreamProvider.verifyStreamUrl', () {
+    test('accepts a successful ranged response', () async {
+      final dio = _dioReturning({});
+      expect(await StreamProvider.verifyStreamUrl('https://x.y/z', dio: dio),
+          isTrue);
+    });
+
+    test('rejects a forbidden ranged response', () async {
+      final dio = _dioReturning({}, probeStatus: 403);
+      expect(await StreamProvider.verifyStreamUrl('https://x.y/z', dio: dio),
+          isFalse);
+    });
+
+    test('rejects unreachable urls and empty strings', () async {
+      final dio = Dio();
+      dio.httpClientAdapter = _FakeAdapter((options, body) async {
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+          error: const SocketException('down'),
+        );
+      });
+      expect(await StreamProvider.verifyStreamUrl('https://x.y/z', dio: dio),
+          isFalse);
+      expect(await StreamProvider.verifyStreamUrl('', dio: dio), isFalse);
+    });
+  });
+
+  group('StreamProvider.warmConnections', () {
+    setUp(() => StreamProvider.debugVisitorData = null);
+    tearDown(() => StreamProvider.debugVisitorData = null);
+
+    test('harvests visitorData from the youtube homepage', () async {
+      final dio = Dio();
+      dio.httpClientAdapter = _FakeAdapter((options, body) async {
+        if (options.method == 'GET' && options.uri.host == 'www.youtube.com') {
+          return ResponseBody.fromString(
+              '<html>ytcfg.set({"VISITOR_DATA":"VD_HOME"})</html>', 200);
+        }
+        return ResponseBody.fromBytes(const [0], 200);
+      });
+
+      StreamProvider.warmConnections(dio: dio);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // The next player request must carry the learned session token.
+      Map<String, dynamic>? sent;
+      final playerDio = Dio();
+      playerDio.httpClientAdapter = _FakeAdapter((options, body) async {
+        if (options.method != 'POST') {
+          return ResponseBody.fromBytes(const [0], 200);
+        }
+        sent = jsonDecode(utf8.decode(body!)) as Map<String, dynamic>;
+        return ResponseBody.fromString(
+            jsonEncode(_playerResponse(adaptiveFormats: [_audioFormat()])),
+            200);
+      });
+
+      await StreamProvider.fetchViaInnertube('dQw4w9WgXcQ', dio: playerDio);
+
+      expect(sent?['context']?['client']?['visitorData'], 'VD_HOME');
     });
   });
 }
