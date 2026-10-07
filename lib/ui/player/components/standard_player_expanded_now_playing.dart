@@ -111,92 +111,36 @@ class _ExpandedNowPlaying extends StatelessWidget {
                         mutedColor: mutedColor,
                         metrics: metrics,
                       )
-                    : metrics.useStackedLayout
-                        ? LayoutBuilder(
-                            builder: (context, constraints) {
-                              final availableHeight = constraints.maxHeight;
-                              const minRightPanelHeight = 120.0;
-                              const maxRightPanelHeight = 360.0;
-                              final reservedForLeft =
-                                  metrics.isDense ? 260.0 : 300.0;
-                              final maxRightByReserve = availableHeight -
-                                  reservedForLeft -
-                                  metrics.panelGap;
-                              final cappedMaxRight = maxRightByReserve.clamp(
-                                minRightPanelHeight,
-                                maxRightPanelHeight,
-                              );
-                              final targetRight =
-                                  (availableHeight * 0.40).clamp(
-                                minRightPanelHeight,
-                                maxRightPanelHeight,
-                              );
-                              final rightPanelHeight =
-                                  targetRight < cappedMaxRight
-                                      ? targetRight
-                                      : cappedMaxRight;
-                              return Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: metrics.sidePanelMargin,
-                                  vertical: metrics.verticalPadding,
-                                ),
-                                child: Column(
-                                  children: [
-                                    Expanded(
-                                      child: _ExpandedLeftColumn(
-                                        pc: pc,
-                                        textColor: textColor,
-                                        mutedColor: mutedColor,
-                                        surfaceColor: surfaceColor,
-                                        metrics: metrics,
-                                      ),
-                                    ),
-                                    SizedBox(height: metrics.panelGap),
-                                    SizedBox(
-                                      height: rightPanelHeight,
-                                      child: _buildRightPanelCard(
-                                        theme: theme,
-                                        surfaceColor: surfaceColor,
-                                        pc: pc,
-                                        textColor: textColor,
-                                        mutedColor: mutedColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          )
-                        : Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: _ExpandedLeftColumn(
-                                  pc: pc,
-                                  textColor: textColor,
-                                  mutedColor: mutedColor,
-                                  surfaceColor: surfaceColor,
-                                  metrics: metrics,
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Container(
-                                  margin: EdgeInsets.only(
-                                    right: metrics.sidePanelMargin,
-                                    bottom: metrics.sidePanelMargin,
-                                  ),
-                                  child: _buildRightPanelCard(
-                                    theme: theme,
-                                    surfaceColor: surfaceColor,
-                                    pc: pc,
-                                    textColor: textColor,
-                                    mutedColor: mutedColor,
-                                  ),
-                                ),
-                              ),
-                            ],
+                    : Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: _ExpandedLeftColumn(
+                              pc: pc,
+                              textColor: textColor,
+                              mutedColor: mutedColor,
+                              surfaceColor: surfaceColor,
+                              metrics: metrics,
+                            ),
                           ),
+                          Expanded(
+                            flex: 2,
+                            child: Container(
+                              margin: EdgeInsets.only(
+                                right: metrics.sidePanelMargin,
+                                bottom: metrics.sidePanelMargin,
+                              ),
+                              child: _buildRightPanelCard(
+                                theme: theme,
+                                surfaceColor: surfaceColor,
+                                pc: pc,
+                                textColor: textColor,
+                                mutedColor: mutedColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ],
           ),
