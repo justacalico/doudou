@@ -39,7 +39,6 @@ part 'standard_player_standardplayerstatebuild.dart';
 
 enum _NowPlayingMode {
   compact,
-  expandedStacked,
   expandedSplit,
   expandedWideShort,
 }
@@ -53,14 +52,10 @@ _NowPlayingMode _resolveNowPlayingMode(BoxConstraints constraints) {
     return _NowPlayingMode.expandedWideShort;
   }
 
-  // Medium-width and short-height windows look closer to mobile and clip in
-  // stacked desktop. Prefer compact mode in this in-between zone.
-  if (width < 980 || (height < 720 && aspect < 1.95)) {
+  // Windows too small or too portrait for the split layout use the compact
+  // player instead.
+  if (width < 980 || aspect < 1.55 || height < 760) {
     return _NowPlayingMode.compact;
-  }
-
-  if (aspect < 1.55 || height < 760) {
-    return _NowPlayingMode.expandedStacked;
   }
 
   return _NowPlayingMode.expandedSplit;
@@ -109,7 +104,6 @@ class _NowPlayingLayoutMetrics {
   final double controlGapSmall;
   final double controlGapLarge;
   final double playButtonSize;
-  bool get useStackedLayout => mode == _NowPlayingMode.expandedStacked;
   bool get useWideShortLayout => mode == _NowPlayingMode.expandedWideShort;
 
   factory _NowPlayingLayoutMetrics.from(BoxConstraints constraints) {
@@ -117,15 +111,14 @@ class _NowPlayingLayoutMetrics {
     final height = constraints.maxHeight;
     final mode = _resolveNowPlayingMode(constraints);
     final isDense = width < 1160 || height < 730;
-    final useStackedLayout = mode == _NowPlayingMode.expandedStacked;
 
     final horizontalPadding = isDense ? 18.0 : 32.0;
     final verticalPadding = isDense ? 10.0 : 16.0;
     final panelGap = isDense ? 12.0 : 20.0;
     final sidePanelMargin = isDense ? 14.0 : 24.0;
 
-    final artFromWidth = width * (useStackedLayout ? 0.32 : 0.25);
-    final artFromHeight = height * (useStackedLayout ? 0.24 : 0.40);
+    final artFromWidth = width * 0.25;
+    final artFromHeight = height * 0.40;
     final artSize = artFromWidth < artFromHeight ? artFromWidth : artFromHeight;
 
     return _NowPlayingLayoutMetrics(
