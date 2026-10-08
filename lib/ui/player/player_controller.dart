@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
-import '../../models/playling_from.dart';
+import '../../models/playing_from.dart';
 import '../../services/downloader.dart';
 import '../screens/Playlist/playlist_screen_controller.dart';
 import '../widgets/snackbar.dart';
@@ -26,13 +26,14 @@ import '/services/discord_rpc_service.dart';
 import '/services/playback_diagnostics_service.dart';
 import '../../utils/helper.dart';
 import '../../utils/server_storage.dart';
-import '/models/media_Item_builder.dart';
+import '/models/media_item_builder.dart';
 import '../screens/Home/home_screen_controller.dart';
 import '../screens/Library/library_controller.dart';
 import '../widgets/sliding_up_panel.dart';
 import '/models/durationstate.dart';
 import '/services/ios_favorite_command_bridge.dart';
 import '/services/music_service.dart';
+import '/services/stream_service.dart';
 import '/services/supermix_service.dart';
 
 part 'player_controller_playercontrollerbase.dart';

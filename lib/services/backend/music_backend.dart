@@ -36,6 +36,19 @@ abstract class MusicBackend {
 
   Future<String?> getStreamUrl(String mediaItemId);
 
+  /// Headers required to fetch media bytes or artwork from this backend's
+  /// server. Stream urls deliberately carry no credentials, so playback,
+  /// downloads and image loading must attach these. Returns empty when no
+  /// auth is needed, when the url does not belong to this server, or when the
+  /// backend is not authenticated yet (best effort; for a guaranteed attempt
+  /// use [mediaRequestHeadersFor]).
+  Map<String, String> mediaRequestHeaders(String url) => const {};
+
+  /// Like [mediaRequestHeaders] but may authenticate first, so callers that
+  /// can await always get headers when the server requires them.
+  Future<Map<String, String>> mediaRequestHeadersFor(String url) async =>
+      mediaRequestHeaders(url);
+
   Future<List<Playlist>> getLibraryPlaylists();
 
   Future<Map<String, dynamic>> getSearchContinuation(

@@ -5,6 +5,17 @@ previously per-version files that lived under `changelog/`.
 
 ## 23.0.0
 
+- Fixed a YouTube Music request retry loop that could hammer the InnerTube endpoint forever. A non-200 response used to retry the same request recursively with no delay or limit; requests now retry a bounded number of times with exponential backoff and surface a network error when they still fail.
+- The home screen now shows a retry card when the YouTube Music feed fails to load instead of staying silently empty, and a malformed cached home entry falls back to a network load instead of crashing the whole home screen.
+- Subsonic servers no longer receive the account password inside request urls. Authentication now uses the standard salt plus token scheme, so passwords never appear in urls, image requests, caches or logs.
+- Jellyfin and Plex stream urls no longer carry the session token in the query string. Playback, downloads, preloading and artwork load use the X-Emby-Token and X-Plex-Token headers instead, and credentials are stripped from any url before it is written to disk or synced to another device.
+- The sync server hashes its password with PBKDF2-HMAC-SHA256 instead of a single SHA-256 round, compares credentials in constant time, and rate limits repeated failed logins. The app no longer stores the sync server password on disk; when the saved token is rejected the sync dialog asks for the password again instead of silently retrying with a stored one.
+- Selecting or typing an HTTP address in the add-server or device sync dialogs now warns that the connection is not encrypted.
+- Playlists and albums are only marked as downloaded when every track actually made it, the download queue runs as a loop instead of unbounded recursion, and background download errors no longer risk a crash when there is no UI context.
+- The status bar now picks light icons on the dark theme and dark icons on the light theme instead of always using light icons, and system font scaling is honoured up to 1.6x instead of being capped at 1.1x.
+- The mini player's icon buttons now announce their purpose to screen readers and show hover tooltips.
+- Scrolling song lists no longer runs a synchronous file check on the UI thread for every visible tile; the offline thumbnail check happens once per tile and off the critical path.
+
 - Removed the Start radio quick action card from the top of the home page. Supermix already covers the personalised endless-mix case there, and starting a radio is still available from a song's menu and the artist page.
 - Removed the dead three-dot menu from the playlist detail screen top bar. The button was always visible but only did something for non-cloud, non-default local playlists, so on the common YouTube Music cloud playlists tapping it did nothing. The functional SortWidget additional-operations menu lower down the screen is untouched.
 - Fixed YouTube Music songs silently never starting. Anonymous InnerTube calls increasingly get rejected or handed stream urls that only serve the first part of the file, which the player then stalls on. The resolver now carries the session visitorData harvested at startup (and re-learned from player responses) so requests are treated as real sessions, and it probes the tail of the selected url before trusting it, moving to another InnerTube client when the media host refuses to serve it. Stream urls already sitting in the url cache are verified once on first read and marked, so stale gated entries self-heal instead of breaking playback until they expire.

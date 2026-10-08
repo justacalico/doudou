@@ -7,7 +7,7 @@ import 'package:widget_marquee/widget_marquee.dart';
 
 import '../../services/piped_service.dart';
 import '../../utils/server_storage.dart';
-import '/models/media_Item_builder.dart';
+import '/models/media_item_builder.dart';
 import '/models/server.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/screens/Library/library_controller.dart';

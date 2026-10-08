@@ -1,5 +1,5 @@
 import 'dart:async';
-import '/l10n/app_localizations.dart';
+import '/utils/app_l10n.dart';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
@@ -17,7 +17,7 @@ import '../ui/widgets/snackbar.dart';
 import '/services/permission_service.dart';
 import '../ui/screens/Settings/settings_screen_controller.dart';
 import '/utils/helper.dart';
-import '/models/media_Item_builder.dart';
+import '/models/media_item_builder.dart';
 import '../ui/screens/Library/library_controller.dart';
 import '/services/backend/backend_factory.dart';
 import 'music_service.dart';
@@ -90,64 +90,76 @@ class Downloader extends GetxService {
   }
 
   Future<void> triggerDownloadingJob() async {
-    //check if playlist download in queue => download playlistsongs else download from general songs queue
-    if (playlistQueue.isNotEmpty) {
-      isJobRunning.value = true;
-      for (String playlistId in playlistQueue.keys.toList()) {
-        //checked in case download cancel request
-        if (playlistQueue.containsKey(playlistId)) {
-          currentPlaylistId.value = playlistId;
-          await downloadSongList((playlistQueue[playlistId]!).toList(),
-              isPlaylist: true);
-          if (Get.isRegistered<PlaylistScreenController>(
-                  tag: Key(playlistId).hashCode.toString()) &&
-              playlistQueue.containsKey(playlistId)) {
-            Get.find<PlaylistScreenController>(
-                    tag: Key(playlistId).hashCode.toString())
-                .isDownloaded
-                .value = true;
+    isJobRunning.value = true;
+    // Loop instead of recursing: a queue that keeps growing used to build an
+    // unbounded chain of unawaited calls.
+    while (playlistQueue.isNotEmpty || songQueue.isNotEmpty) {
+      //check if playlist download in queue => download playlistsongs else download from general songs queue
+      if (playlistQueue.isNotEmpty) {
+        for (String playlistId in playlistQueue.keys.toList()) {
+          //checked in case download cancel request
+          if (playlistQueue.containsKey(playlistId)) {
+            currentPlaylistId.value = playlistId;
+            final failures = await downloadSongList(
+                (playlistQueue[playlistId]!).toList(),
+                isPlaylist: true);
+            // Only mark the playlist downloaded when every song made it;
+            // marking partial downloads as complete hid silent gaps.
+            if (failures == 0 &&
+                Get.isRegistered<PlaylistScreenController>(
+                    tag: Key(playlistId).hashCode.toString()) &&
+                playlistQueue.containsKey(playlistId)) {
+              Get.find<PlaylistScreenController>(
+                      tag: Key(playlistId).hashCode.toString())
+                  .isDownloaded
+                  .value = true;
+            }
+            // in case of album
+            else if (failures == 0 &&
+                Get.isRegistered<AlbumScreenController>(
+                    tag: Key(playlistId).hashCode.toString()) &&
+                playlistQueue.containsKey(playlistId)) {
+              Get.find<AlbumScreenController>(
+                      tag: Key(playlistId).hashCode.toString())
+                  .isDownloaded
+                  .value = true;
+            }
+            playlistQueue.remove(playlistId);
           }
-          // in case of album
-          else if (Get.isRegistered<AlbumScreenController>(
-                  tag: Key(playlistId).hashCode.toString()) &&
-              playlistQueue.containsKey(playlistId)) {
-            Get.find<AlbumScreenController>(
-                    tag: Key(playlistId).hashCode.toString())
-                .isDownloaded
-                .value = true;
-          }
-          playlistQueue.remove(playlistId);
+          currentPlaylistId.value = "";
+          playlistDownloadingProgress.value = 0;
         }
-        currentPlaylistId.value = "";
-        playlistDownloadingProgress.value = 0;
+      } else {
+        await downloadSongList(songQueue.toList());
       }
-    } else {
-      isJobRunning.value = true;
-      await downloadSongList(songQueue.toList());
     }
-
-    if (songQueue.isNotEmpty) {
-      triggerDownloadingJob();
-    } else {
-      isJobRunning.value = false;
-      currentSong = null;
-    }
+    isJobRunning.value = false;
+    currentSong = null;
   }
 
-  Future<void> downloadSongList(List<MediaItem> jobSongList,
+  /// Lets tests substitute the actual file write so queue behaviour can be
+  /// verified without touching the network or disk.
+  @visibleForTesting
+  Future<bool> Function(MediaItem song)? debugWriteFileStream;
+
+  /// Downloads each song in [jobSongList]; returns how many songs failed so
+  /// callers can tell a clean playlist download from a partial one.
+  Future<int> downloadSongList(List<MediaItem> jobSongList,
       {bool isPlaylist = false}) async {
+    var failures = 0;
     for (MediaItem song in jobSongList) {
       // intrrupt downloading task in case of playlist download cancel request
       if (isPlaylist && !playlistQueue.containsKey(currentPlaylistId.value)) {
         currentPlaylistId.value = "";
         playlistDownloadingProgress.value = 0;
-        return;
+        return failures;
       }
 
       if (!Hive.box(songDownloadsBoxName(currentServerId())).containsKey(song.id)) {
         currentSong = song;
         songDownloadingProgress.value = 0;
-        await writeFileStream(song);
+        final write = debugWriteFileStream ?? writeFileStream;
+        if (!await write(song)) failures++;
       }
       songQueue.remove(song);
       //for playlist downloading counter update
@@ -155,9 +167,10 @@ class Downloader extends GetxService {
         playlistDownloadingProgress.value = jobSongList.indexOf(song) + 1;
       }
     }
+    return failures;
   }
 
-  Future<void> writeFileStream(MediaItem song) async {
+  Future<bool> writeFileStream(MediaItem song) async {
     final settingsScreenController = Get.find<SettingsScreenController>();
     final downloadingFormat = settingsScreenController.downloadingFormat.string;
     final backendType = song.extras?['backendType']?.toString();
@@ -168,16 +181,12 @@ class Downloader extends GetxService {
     if (!isNonYouTube) {
       final playerResponse = await StreamProvider.fetch(song.id);
       if (!playerResponse.playable) {
-        ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-            Get.context!,
-            playerResponse.statusMSG == "networkError"
-                ? AppLocalizations.of(Get.context!)!.networkError
-                : playerResponse.statusMSG,
-            size: SnackBarSize.BIG,
-            duration: const Duration(seconds: 2),
-            top: !GetPlatform.isDesktop));
+        _showDownloadSnack(
+            playerResponse.errorKind == StreamErrorKind.network
+                ? l10nFromPrefs().networkError
+                : playerResponse.statusMSG);
         printINFO("Requested song is not downloadable. You may try again");
-        return;
+        return false;
       }
 
       requiredAudioStream = downloadingFormat == "opus"
@@ -208,13 +217,9 @@ class Downloader extends GetxService {
       }
 
       if (streamUrl == null || streamUrl.isEmpty) {
-        ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-            Get.context!, AppLocalizations.of(Get.context!)!.downloadError2,
-            size: SnackBarSize.BIG,
-            duration: const Duration(seconds: 2),
-            top: !GetPlatform.isDesktop));
+        _showDownloadSnack(l10nFromPrefs().downloadError2);
         printINFO("No backend stream URL available for download");
-        return;
+        return false;
       }
       final ext = _suggestedExtensionForBackend(backendType, streamUrl);
       final codec = (ext == 'opus' || ext == 'ogg' || ext == 'webm')
@@ -232,12 +237,8 @@ class Downloader extends GetxService {
     }
 
     if (requiredAudioStream == null) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, AppLocalizations.of(Get.context!)!.downloadError2,
-          size: SnackBarSize.BIG,
-          duration: const Duration(seconds: 2),
-          top: !GetPlatform.isDesktop));
-      return;
+      _showDownloadSnack(l10nFromPrefs().downloadError2);
+      return false;
     }
 
     final dirPath = settingsScreenController.downloadLocationPath.string;
@@ -255,42 +256,39 @@ class Downloader extends GetxService {
 
     dynamic response;
     try {
+      final downloadHeaders = <String, String>{
+        // Self-hosted servers authenticate media requests by header now
+        // instead of credentials in the url.
+        if (isNonYouTube)
+          ...await settingsScreenController
+              .mediaRequestHeadersFor(requiredAudioStream.url),
+        if (!isNonYouTube && totalBytes > 0) "Range": 'bytes=0-$totalBytes',
+      };
       response = await _dio.download(requiredAudioStream.url, filePath,
-          options: (!isNonYouTube && totalBytes > 0)
-              ? Options(headers: {"Range": 'bytes=0-$totalBytes'})
-              : null, onReceiveProgress: (count, total) {
+          options: downloadHeaders.isEmpty
+              ? null
+              : Options(headers: downloadHeaders), onReceiveProgress:
+          (count, total) {
         if (total <= 0) return;
         songDownloadingProgress.value = ((count / total) * 100).toInt();
       });
     } catch (e, st) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, AppLocalizations.of(Get.context!)!.downloadError3,
-          size: SnackBarSize.BIG,
-          duration: const Duration(seconds: 2),
-          top: !GetPlatform.isDesktop));
+      _showDownloadSnack(l10nFromPrefs().downloadError3);
       printWarning(
           '[RECOVERABLE][opId=download.fetchStreamBytes] Network/stream download failed for songId=${song.id}: $e\n$st');
-      return;
+      return false;
     }
     final statusCode = response?.statusCode;
     if (statusCode != null && (statusCode < 200 || statusCode >= 300)) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, AppLocalizations.of(Get.context!)!.downloadError3,
-          size: SnackBarSize.BIG,
-          duration: const Duration(seconds: 2),
-          top: !GetPlatform.isDesktop));
+      _showDownloadSnack(l10nFromPrefs().downloadError3);
       printINFO("Downloading failed with status code: $statusCode");
-      return;
+      return false;
     }
     final downloadedFile = File(filePath);
     if (!await downloadedFile.exists() || await downloadedFile.length() == 0) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-          Get.context!, AppLocalizations.of(Get.context!)!.downloadError3,
-          size: SnackBarSize.BIG,
-          duration: const Duration(seconds: 2),
-          top: !GetPlatform.isDesktop));
+      _showDownloadSnack(l10nFromPrefs().downloadError3);
       printINFO("Downloading failed due to empty file output");
-      return;
+      return false;
     }
 
     String? year;
@@ -335,7 +333,7 @@ class Downloader extends GetxService {
 
     try {
       if (isNonYouTube || !_isTaggableExtension(normalizedExt)) {
-        return;
+        return true;
       }
 
       final imageUrl = song.artUri!.toString();
@@ -374,6 +372,18 @@ class Downloader extends GetxService {
     } catch (e) {
       printERROR("$e");
     }
+    return true;
+  }
+
+  /// Shows a download error snackbar when a UI context exists. Download jobs
+  /// run in the background, so Get.context can legitimately be null.
+  void _showDownloadSnack(String message) {
+    final ctx = Get.context;
+    if (ctx == null) return;
+    ScaffoldMessenger.of(ctx).showSnackBar(snackbar(ctx, message,
+        size: SnackBarSize.BIG,
+        duration: const Duration(seconds: 2),
+        top: !GetPlatform.isDesktop));
   }
 
   String _fileExtensionFromUrl(String url) {

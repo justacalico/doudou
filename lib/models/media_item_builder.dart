@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '/models/server.dart';
 import '../models/thumbnail.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
+import '../utils/url_sanitizer.dart';
 
 class MediaItemBuilder {
   static MediaItem fromJson(dynamic json, {String? url}) {
@@ -152,10 +153,16 @@ class MediaItemBuilder {
         'length': mediaItem.extras!['length'],
         'duration': mediaItem.duration?.inSeconds,
         'date': mediaItem.extras!['date'],
+        // Credentials in artwork/stream urls (Jellyfin api_key, Plex token)
+        // are stripped before anything lands on disk or crosses the sync
+        // wire. Header auth resolves them again on fetch.
         'thumbnails': [
-          {'url': mediaItem.artUri.toString()}
+          {'url': scrubUrlAuthParams(mediaItem.artUri.toString())}
         ],
-        'url': mediaItem.extras!['url'],
+        'url': switch (mediaItem.extras!['url']) {
+          String u => scrubUrlAuthParams(u),
+          _ => mediaItem.extras!['url'],
+        },
         'trackDetails': mediaItem.extras?['trackDetails'],
         'year': mediaItem.extras?['year'],
         if (mediaItem.extras?['backendType'] != null)

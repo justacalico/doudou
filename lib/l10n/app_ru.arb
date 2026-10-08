@@ -479,6 +479,8 @@
   "@username": {},
   "password": "Пароль",
   "@password": {},
+  "httpInsecureWarning": "HTTP-соединение не зашифровано. Ваш пароль и данные прослушивания могут быть перехвачены в сети. По возможности используйте HTTPS.",
+  "@httpInsecureWarning": {},
   "playlistBlacklistAlert": "Плейлист занесен в черный список!",
   "@playlistBlacklistAlert": {},
   "blacklistPlstResetAlert": "Сброс выполнен успешно!",

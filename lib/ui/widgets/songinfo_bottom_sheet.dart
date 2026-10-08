@@ -21,7 +21,7 @@ import '/ui/player/player_controller.dart';
 import '../screens/Library/library_controller.dart';
 import '/ui/widgets/add_to_playlist.dart';
 import '/ui/widgets/snackbar.dart';
-import '../../models/media_Item_builder.dart';
+import '../../models/media_item_builder.dart';
 import '../../models/playlist.dart';
 import '../navigator.dart';
 import '../shell_controller.dart';

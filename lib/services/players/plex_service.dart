@@ -547,16 +547,28 @@ class PlexService {
     return {'X-Plex-Token': token, 'Accept': 'application/json'};
   }
 
+  /// Auth headers for media requests to this server. Stream urls omit the
+  /// token parameter so urls persisted in caches or synced to other devices
+  /// never carry credentials; every fetcher must send these headers instead.
+  Map<String, String> mediaRequestHeaders(String url) {
+    final token = _token;
+    final serverUrl = _serverUrl;
+    if (token == null || serverUrl == null || !url.startsWith(serverUrl)) {
+      return const {};
+    }
+    return {'X-Plex-Token': token};
+  }
+
   String getDownloadUrl(String trackId) {
-    return '$_serverUrl/library/metadata/$trackId/download?X-Plex-Token=$_token';
+    return '$_serverUrl/library/metadata/$trackId/download';
   }
 
   String getDirectPartUrl(String partId) {
-    return '$_serverUrl/library/parts/$partId/file.mp3?X-Plex-Token=$_token';
+    return '$_serverUrl/library/parts/$partId/file.mp3';
   }
 
   String getDirectStreamWithPartKey(String partKey) {
-    return '$_serverUrl$partKey?X-Plex-Token=$_token';
+    return '$_serverUrl$partKey';
   }
 
   String getUniversalStreamUrl(String trackId, {int? bitrate}) {
@@ -568,8 +580,7 @@ class PlexService {
         '&protocol=http'
         '&directPlay=0'
         '&directStream=0'
-        '&audioBitrate=$audioBitrate'
-        '&X-Plex-Token=$_token';
+        '&audioBitrate=$audioBitrate';
   }
 
   Future<SearchResults> search(

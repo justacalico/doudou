@@ -24,7 +24,7 @@ mixin _PlayerMiscMixin on _PlayerControllerBase {
 
   String _formatPlayErrorMessage(String raw) {
     final l10n = l10nFromPrefs();
-    if (raw.startsWith('networkError')) {
+    if (raw.startsWith(kStreamNetworkErrorPrefix)) {
       return l10n.networkError;
     }
 

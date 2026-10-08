@@ -21,7 +21,7 @@ mixin _PlayerSupermixMixin on _PlayerControllerBase {
     radioContinuationParam = null;
 
     playinfrom.value =
-        PlaylingFrom(type: PlaylingFromType.PLAYLIST, name: l10n.supermix);
+        PlayingFrom(type: PlayingFromType.playlist, name: l10n.supermix);
 
     final favouriteSeeds = await _loadSupermixFavouriteSeeds();
     final playing = currentSong.value;

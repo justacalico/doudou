@@ -421,4 +421,78 @@ void main() {
       expect(cachedAudioFile(dir, 'a'), isNull);
     });
   });
+
+  group('withRetry', () {
+    Future<void> noSleep(Duration _) async {}
+
+    test('returns the action result on first success', () async {
+      var calls = 0;
+      final result = await withRetry(() async {
+        calls++;
+        return 42;
+      }, sleeper: noSleep);
+
+      expect(result, 42);
+      expect(calls, 1);
+    });
+
+    test('retries until the action succeeds', () async {
+      var calls = 0;
+      final result = await withRetry(() async {
+        calls++;
+        if (calls < 3) throw StateError('fail $calls');
+        return 'ok';
+      }, sleeper: noSleep);
+
+      expect(result, 'ok');
+      expect(calls, 3);
+    });
+
+    test('rethrows the last error after maxAttempts', () async {
+      var calls = 0;
+      await expectLater(
+        withRetry(() async {
+          calls++;
+          throw StateError('always');
+        }, maxAttempts: 3, sleeper: noSleep),
+        throwsStateError,
+      );
+      expect(calls, 3);
+    });
+
+    test('does not retry when isRetryable vetoes the error', () async {
+      var calls = 0;
+      await expectLater(
+        withRetry(() async {
+          calls++;
+          throw ArgumentError('fatal');
+        }, isRetryable: (_) => false, sleeper: noSleep),
+        throwsArgumentError,
+      );
+      expect(calls, 1);
+    });
+
+    test('waits an exponentially growing delay between attempts', () async {
+      final delays = <Duration>[];
+      var calls = 0;
+      await expectLater(
+        withRetry(
+          () async {
+            calls++;
+            throw StateError('x');
+          },
+          maxAttempts: 3,
+          baseDelay: const Duration(milliseconds: 100),
+          sleeper: (d) async => delays.add(d),
+        ),
+        throwsStateError,
+      );
+
+      expect(calls, 3);
+      expect(delays, [
+        const Duration(milliseconds: 100),
+        const Duration(milliseconds: 200),
+      ]);
+    });
+  });
 }

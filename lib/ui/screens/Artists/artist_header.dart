@@ -3,7 +3,7 @@ import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '/models/playling_from.dart';
+import '/models/playing_from.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/widgets/image_widget.dart';
 import '/ui/widgets/library_bookmark_icon.dart';
@@ -255,7 +255,7 @@ class ArtistHeader extends StatelessWidget {
     Get.find<PlayerController>().playPlayListSong(
       list,
       0,
-      playfrom: PlaylingFrom(type: PlaylingFromType.ARTIST, name: controller.artist_.name),
+      playfrom: PlayingFrom(type: PlayingFromType.artist, name: controller.artist_.name),
     );
   }
 
@@ -267,7 +267,7 @@ class ArtistHeader extends StatelessWidget {
     Get.find<PlayerController>().playPlayListSong(
       list,
       0,
-      playfrom: PlaylingFrom(type: PlaylingFromType.ARTIST, name: controller.artist_.name),
+      playfrom: PlayingFrom(type: PlayingFromType.artist, name: controller.artist_.name),
     );
   }
 

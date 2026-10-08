@@ -147,6 +147,25 @@ class _AddServerDialogState extends State<AddServerDialog> {
                   ),
                 ],
               ),
+              if (_protocol == 'http')
+                Padding(
+                  padding: const EdgeInsets.only(top: DoudouSpace.s8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.warning_amber_rounded,
+                          size: 18, color: theme.colorScheme.error),
+                      const SizedBox(width: DoudouSpace.s8),
+                      Expanded(
+                        child: Text(
+                          l10n.httpInsecureWarning,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.error),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               if (widget.serverType != ServerType.plex) ...[
                 const SizedBox(height: DoudouSpace.s12),
                 TextFormField(

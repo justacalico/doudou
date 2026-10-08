@@ -209,12 +209,16 @@ void main() {
       expect(tracks.first.duration, 125); // 125000 ms
     });
 
-    test('getBestStreamUrl prefers part key', () async {
+    test('getBestStreamUrl prefers part key and carries no token', () async {
       final service = PlexService(dio: _fakeDio());
       service.configure(serverUrl: 'https://plex.example', token: 'tok123');
       final url = await service.getBestStreamUrl('20');
       expect(url, contains('/library/parts/99/file.mp3'));
-      expect(url, contains('X-Plex-Token=tok123'));
+      // The token travels in the X-Plex-Token header instead of the url so
+      // it is not persisted in caches or synced to other devices.
+      expect(url, isNot(contains('X-Plex-Token')));
+      expect(service.mediaRequestHeaders(url!),
+          containsPair('X-Plex-Token', 'tok123'));
     });
 
     test('getDownloadUrl and helpers build correct URLs', () {
@@ -223,11 +227,11 @@ void main() {
 
       expect(
         service.getDownloadUrl('20'),
-        'https://plex.example/library/metadata/20/download?X-Plex-Token=tok',
+        'https://plex.example/library/metadata/20/download',
       );
       expect(
         service.getDirectPartUrl('99'),
-        'https://plex.example/library/parts/99/file.mp3?X-Plex-Token=tok',
+        'https://plex.example/library/parts/99/file.mp3',
       );
       expect(
         service.getUniversalStreamUrl('20'),

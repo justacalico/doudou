@@ -11,7 +11,7 @@ import '/ui/design/doudou_layout.dart';
 import '/ui/widgets/snackbar.dart';
 import '/ui/widgets/modification_list.dart';
 import '../../../models/playlist.dart';
-import '../../../models/media_Item_builder.dart';
+import '../../../models/media_item_builder.dart';
 import '../../widgets/piped_sync_widget.dart';
 import 'library_controller.dart';
 import '../../widgets/content_list_widget_item.dart';

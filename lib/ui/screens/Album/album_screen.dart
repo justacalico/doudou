@@ -6,7 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:widget_marquee/widget_marquee.dart';
-import 'package:doudou/models/playling_from.dart';
+import 'package:doudou/models/playing_from.dart';
 import 'package:doudou/models/thumbnail.dart';
 import 'package:doudou/ui/widgets/playlist_album_scroll_behaviour.dart';
 
@@ -153,10 +153,10 @@ class AlbumScreen extends StatelessWidget {
                                   songsToplay.shuffle();
                                   playerController.playPlayListSong(
                                       songsToplay, 0,
-                                      playfrom: PlaylingFrom(
+                                      playfrom: PlayingFrom(
                                           name:
                                               albumController.album.value.title,
-                                          type: PlaylingFromType.ALBUM));
+                                          type: PlayingFromType.album));
                                 },
                                 icon: const Icon(Icons.shuffle,
                                     size: 20, color: Colors.white38),
@@ -168,10 +168,10 @@ class AlbumScreen extends StatelessWidget {
                                       List<MediaItem>.from(
                                           albumController.songList),
                                       0,
-                                      playfrom: PlaylingFrom(
+                                      playfrom: PlayingFrom(
                                           name:
                                               albumController.album.value.title,
-                                          type: PlaylingFromType.ALBUM));
+                                          type: PlayingFromType.album));
                                 },
                                 child: Container(
                                   width: 56,
@@ -232,9 +232,9 @@ class AlbumScreen extends StatelessWidget {
                                   List<MediaItem>.from(
                                       albumController.songList),
                                   songIndex,
-                                  playfrom: PlaylingFrom(
+                                  playfrom: PlayingFrom(
                                       name: albumController.album.value.title,
-                                      type: PlaylingFromType.ALBUM));
+                                      type: PlayingFromType.album));
                             },
                             song: song,
                             isPlaylistOrAlbum: true,

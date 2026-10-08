@@ -261,3 +261,30 @@ File? cachedAudioFile(Directory dir, String songId) {
   }
   return null;
 }
+
+/// Runs [action] up to [maxAttempts] times, waiting an exponentially growing
+/// delay ([baseDelay] * 2^attempt) between attempts. Rethrows the last error
+/// once attempts run out. [isRetryable] can veto a retry for a given error;
+/// [sleeper] is injectable so tests do not wait on real delays.
+Future<T> withRetry<T>(
+  Future<T> Function() action, {
+  int maxAttempts = 3,
+  Duration baseDelay = const Duration(milliseconds: 300),
+  bool Function(Object error)? isRetryable,
+  Future<void> Function(Duration delay)? sleeper,
+}) {
+  assert(maxAttempts > 0);
+  final sleep = sleeper ?? Future<void>.delayed;
+  Future<T> run(int attempt) async {
+    try {
+      return await action();
+    } catch (e) {
+      final isLast = attempt >= maxAttempts - 1;
+      if (isLast || (isRetryable != null && !isRetryable(e))) rethrow;
+      await sleep(baseDelay * (1 << attempt));
+      return run(attempt + 1);
+    }
+  }
+
+  return run(0);
+}

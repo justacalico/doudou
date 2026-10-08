@@ -19,7 +19,7 @@ import 'package:path_provider/path_provider.dart' as path_provider;
 import '../../../base_class/playlist_album_screen_con_base.dart';
 import '../../../mixins/additional_operation_mixin.dart';
 import '../../../models/album.dart' show Album;
-import '../../../models/media_Item_builder.dart';
+import '../../../models/media_item_builder.dart';
 import '../../../models/playlist.dart';
 import '../../../services/music_service.dart';
 import '../../../services/piped_service.dart';

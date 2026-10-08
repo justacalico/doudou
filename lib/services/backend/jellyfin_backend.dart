@@ -26,6 +26,27 @@ class JellyfinBackend extends MusicBackend {
     return url;
   }
 
+  /// True when [url] is served by this Jellyfin instance.
+  bool _ownsUrl(String url) => _baseUrl.isNotEmpty && url.startsWith(_baseUrl);
+
+  @override
+  Map<String, String> mediaRequestHeaders(String url) {
+    final token = _token;
+    if (token == null || !_ownsUrl(url)) return const {};
+    return {'X-Emby-Token': token};
+  }
+
+  @override
+  Future<Map<String, String>> mediaRequestHeadersFor(String url) async {
+    if (_ownsUrl(url)) await _ensureAuth();
+    return mediaRequestHeaders(url);
+  }
+
+  /// Stream urls omit the api_key query parameter; the token travels in the
+  /// X-Emby-Token header (see [mediaRequestHeaders]) so persisted and synced
+  /// urls never carry credentials.
+  String _streamUrl(String id) => '$_baseUrl/Audio/$id/stream?Static=true';
+
   Future<void> _ensureAuth() async {
     if (_token != null && _userId != null) return;
     if (_authCompleter != null) {
@@ -92,9 +113,8 @@ class JellyfinBackend extends MusicBackend {
       }
     }
     if (artists.isEmpty) artists.add({'name': item.albumArtist ?? 'Unknown'});
-    final streamUrl = _token != null && id.isNotEmpty
-        ? '$_baseUrl/Audio/$id/stream?Static=true&api_key=$_token'
-        : null;
+    final streamUrl =
+        _token != null && id.isNotEmpty ? _streamUrl(id) : null;
     return {
       'videoId': id,
       'title': item.name ?? 'Unknown',
@@ -293,7 +313,7 @@ class JellyfinBackend extends MusicBackend {
   Future<String?> getStreamUrl(String mediaItemId) async {
     await _ensureAuth();
     if (_token == null || mediaItemId.isEmpty) return null;
-    return '$_baseUrl/Audio/$mediaItemId/stream?Static=true&api_key=$_token';
+    return _streamUrl(mediaItemId);
   }
 
   @override

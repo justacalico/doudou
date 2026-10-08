@@ -1,34 +1,33 @@
-// ignore_for_file: constant_identifier_names
 
 import 'package:get/get.dart';
 import '/l10n/app_localizations.dart';
 
-class PlaylingFrom {
-  PlaylingFromType type;
+class PlayingFrom {
+  PlayingFromType type;
   String name;
 
-  PlaylingFrom({required this.type, this.name = ""});
+  PlayingFrom({required this.type, this.name = ""});
 
   get typeString {
     final l10n = AppLocalizations.of(Get.context!)!;
     switch (type) {
-      case PlaylingFromType.ALBUM:
+      case PlayingFromType.album:
         return l10n.playingfromAlbum;
-      case PlaylingFromType.PLAYLIST:
+      case PlayingFromType.playlist:
         return l10n.playingfromPlaylist;
-      case PlaylingFromType.SELECTION:
+      case PlayingFromType.selection:
         return l10n.playingfromSelection;
-      case PlaylingFromType.ARTIST:
+      case PlayingFromType.artist:
         return l10n.playingfromArtist;
     }
   }
 
   get nameString {
-    if (type == PlaylingFromType.SELECTION) {
+    if (type == PlayingFromType.selection) {
       return AppLocalizations.of(Get.context!)!.randomSelection;
     }
     return name;
   }
 }
 
-enum PlaylingFromType { ALBUM, PLAYLIST, SELECTION, ARTIST }
+enum PlayingFromType { album, playlist, selection, artist }

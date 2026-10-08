@@ -930,6 +930,8 @@
   "@username": {},
   "password": "Password",
   "@password": {},
+  "httpInsecureWarning": "HTTP is not encrypted. Your password and listening data can be intercepted on the network. Use HTTPS when possible.",
+  "@httpInsecureWarning": {},
   "linkAlert": "Linked successfully!",
   "@linkAlert": {},
   "unlinkAlert": "Unlinked successfully!",

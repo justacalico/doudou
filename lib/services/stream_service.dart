@@ -7,12 +7,32 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 import '../utils/helper.dart';
 
+/// Marker prefix inside statusMSG identifying a connectivity failure. The
+/// message string survives serialization into playback state, so the error
+/// display reads this shared constant instead of duplicating the literal.
+const String kStreamNetworkErrorPrefix = 'networkError';
+
+/// Why a stream lookup failed, so callers can pick a localized message
+/// instead of parsing prefixes out of [StreamProvider.statusMSG].
+enum StreamErrorKind {
+  none,
+  network,
+  unplayable,
+  requiresPurchase,
+  unavailable,
+  other,
+}
+
 class StreamProvider {
   final bool playable;
   final List<Audio>? audioFormats;
   final String statusMSG;
+  final StreamErrorKind errorKind;
   StreamProvider(
-      {required this.playable, this.audioFormats, this.statusMSG = ""});
+      {required this.playable,
+      this.audioFormats,
+      this.statusMSG = "",
+      this.errorKind = StreamErrorKind.none});
 
   // The default adapter drops pooled connections after 3s of idleness, so
   // every play more than a few seconds apart paid a fresh TCP+TLS handshake
@@ -184,7 +204,9 @@ class StreamProvider {
           e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout) {
         return StreamProvider(
-            playable: false, statusMSG: "networkError: ${e.message}");
+            playable: false,
+            statusMSG: "$kStreamNetworkErrorPrefix: ${e.message}",
+            errorKind: StreamErrorKind.network);
       }
       logPlaybackDebugError(
           'StreamProvider.fetchViaInnertube($videoId, '
@@ -272,32 +294,38 @@ class StreamProvider {
       if (e is SocketException) {
         return StreamProvider(
           playable: false,
-          statusMSG: "networkError: ${e.message}",
+          statusMSG: "$kStreamNetworkErrorPrefix: ${e.message}",
+          errorKind: StreamErrorKind.network,
         );
       } else if (e is VideoUnplayableException) {
         return StreamProvider(
           playable: false,
           statusMSG: "VideoUnplayableException: ${e.message}",
+          errorKind: StreamErrorKind.unplayable,
         );
       } else if (e is VideoRequiresPurchaseException) {
         return StreamProvider(
           playable: false,
           statusMSG: "VideoRequiresPurchaseException: Song requires purchase",
+          errorKind: StreamErrorKind.requiresPurchase,
         );
       } else if (e is VideoUnavailableException) {
         return StreamProvider(
           playable: false,
           statusMSG: "VideoUnavailableException: Song is unavailable",
+          errorKind: StreamErrorKind.unavailable,
         );
       } else if (e is YoutubeExplodeException) {
         return StreamProvider(
           playable: false,
           statusMSG: "YoutubeExplodeException: ${e.message}",
+          errorKind: StreamErrorKind.other,
         );
       } else {
         return StreamProvider(
           playable: false,
           statusMSG: "${e.runtimeType}: $e",
+          errorKind: StreamErrorKind.other,
         );
       }
     }

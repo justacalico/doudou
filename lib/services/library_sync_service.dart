@@ -6,7 +6,7 @@ import 'package:hive/hive.dart';
 
 import '/models/album.dart';
 import '/models/artist.dart';
-import '/models/media_Item_builder.dart';
+import '/models/media_item_builder.dart';
 import '/models/playlist.dart';
 import '/models/server.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';

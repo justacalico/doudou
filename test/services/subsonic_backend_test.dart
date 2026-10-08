@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:doudou/models/server.dart';
 import 'package:doudou/services/backend/subsonic_backend.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,16 +55,49 @@ void main() {
         username: 'alice',
         password: 'pw',
       );
+      backend.saltGenerator = () => 'fixedsalt';
 
       final url = await backend.getStreamUrl('song1');
 
       expect(url, isNotNull);
       expect(url, contains('https://sub.example/rest/stream.view'));
       expect(url, contains('u=alice'));
-      expect(url, contains('p=pw'));
+      // Token auth: t = md5(password + salt), never the raw password.
+      expect(url, contains('t=${md5.convert(utf8.encode('pwfixedsalt'))}'));
+      expect(url, contains('s=fixedsalt'));
+      expect(url, isNot(contains('p=pw')));
+      expect(url, isNot(contains('pw')));
       expect(url, contains('id=song1'));
       expect(url, contains('v=1.16.0'));
       expect(url, contains('c=Doudou'));
+    });
+
+    test('never puts the plaintext password in stream urls', () async {
+      final backend = makeBackend(
+        url: 'https://sub.example',
+        username: 'alice',
+        password: 'sup3r-secret!',
+      );
+
+      final url = await backend.getStreamUrl('song1');
+
+      expect(url, isNotNull);
+      expect(url, isNot(contains('sup3r-secret')));
+      expect(url, contains('s='));
+      expect(url, contains('t='));
+    });
+
+    test('generates a fresh salt per url', () async {
+      final backend = makeBackend(
+        url: 'https://sub.example',
+        username: 'alice',
+        password: 'pw',
+      );
+
+      final url1 = await backend.getStreamUrl('song1');
+      final url2 = await backend.getStreamUrl('song1');
+
+      expect(url1, isNot(url2));
     });
 
     test('strips trailing slash from base url', () async {

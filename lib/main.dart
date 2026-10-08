@@ -28,6 +28,7 @@ import '/ui/navigator.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/widgets/dev_merge_request_dialog.dart';
 import 'ui/screens/Settings/settings_screen_controller.dart';
+import '/ui/utils/text_scale.dart';
 import '/ui/utils/theme_controller.dart';
 import '/ui/design/doudou_motion.dart';
 import 'ui/screens/Home/home_screen_controller.dart';
@@ -102,10 +103,11 @@ class MyApp extends StatelessWidget {
         ],
         builder: (context, child) {
           final mQuery = MediaQuery.of(context);
-          final scale =
-              mQuery.textScaler.clamp(minScaleFactor: 1.0, maxScaleFactor: 1.1);
+          final scale = appTextScaler(mQuery.textScaler);
           return Obx(() {
             final theme = Get.find<ThemeController>().themedata.value;
+            final isDark =
+                (theme?.brightness ?? Brightness.dark) == Brightness.dark;
             return PerfMonitor(
               controller: _perfMonitor,
               child: Stack(
@@ -113,9 +115,11 @@ class MyApp extends StatelessWidget {
                   MediaQuery(
                     data: mQuery.copyWith(textScaler: scale),
                     child: AnnotatedRegion<SystemUiOverlayStyle>(
-                      value: const SystemUiOverlayStyle(
-                        statusBarIconBrightness: Brightness.light,
-                        statusBarBrightness: Brightness.dark,
+                      value: SystemUiOverlayStyle(
+                        statusBarIconBrightness:
+                            isDark ? Brightness.light : Brightness.dark,
+                        statusBarBrightness:
+                            isDark ? Brightness.dark : Brightness.light,
                         statusBarColor: Colors.transparent,
                       ),
                       child: AnimatedTheme(

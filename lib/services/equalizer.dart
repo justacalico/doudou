@@ -1,4 +1,4 @@
-import 'package:doudou/native_bindings/andrid_utils.dart';
+import 'package:doudou/native_bindings/android_utils.dart';
 import 'package:jni/jni.dart';
 
 import '/utils/helper.dart';

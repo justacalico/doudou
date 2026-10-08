@@ -385,6 +385,13 @@ class _BodyState extends State<Body> {
                                   final ytContent = homeScreenController
                                       .youtubeMusicHomeContent;
                                   if (ytContent.isEmpty) {
+                                    if (homeScreenController
+                                        .networkError.value) {
+                                      return _buildHomeFeedErrorCard(
+                                        context,
+                                        homeScreenController,
+                                      );
+                                    }
                                     return const SizedBox.shrink();
                                   }
                                   return Column(
@@ -681,6 +688,41 @@ class _BodyState extends State<Body> {
             child: Text(dialogContext.l10n.ok),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHomeFeedErrorCard(
+    BuildContext context,
+    HomeScreenController homeScreenController,
+  ) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Column(
+          children: [
+            Icon(
+              Icons.cloud_off_outlined,
+              size: 36,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              context.l10n.networkError,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: homeScreenController.loadYoutubeMusicHomeFeed,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: Text(context.l10n.retry),
+            ),
+          ],
+        ),
       ),
     );
   }

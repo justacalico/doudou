@@ -19,6 +19,10 @@ class PlexBackend extends MusicBackend {
   final PlexService _service;
 
   @override
+  Map<String, String> mediaRequestHeaders(String url) =>
+      _service.mediaRequestHeaders(url);
+
+  @override
   BackendCapabilities get capabilities => BackendCapabilities.plex;
 
   @override

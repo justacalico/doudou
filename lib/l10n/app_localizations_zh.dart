@@ -1323,6 +1323,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get password => '密码';
 
   @override
+  String get httpInsecureWarning =>
+      'HTTP 连接未加密，您的密码和收听数据可能被网络中的其他人截获，请尽可能使用 HTTPS。';
+
+  @override
   String get linkAlert => '已成功链接！';
 
   @override

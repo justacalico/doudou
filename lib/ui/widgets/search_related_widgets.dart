@@ -7,7 +7,7 @@ import '../models/content_category.dart';
 import '../screens/Search/search_result_screen_controller.dart';
 import '/models/album.dart';
 import '/models/artist.dart';
-import '/models/media_Item_builder.dart';
+import '/models/media_item_builder.dart';
 import '/ui/widgets/content_list_widget.dart';
 import 'separate_tab_item_widget.dart';
 
@@ -30,7 +30,7 @@ class ResultWidget extends StatelessWidget {
           child: SingleChildScrollView(
             padding:
                 EdgeInsets.only(bottom: 200, top: isv2Used ? 0 : topPadding),
-            child: searchResScrController.isResultContentFetced.value
+            child: searchResScrController.isResultContentFetched.value
                 ? Column(children: [
                     if (!isv2Used)
                       Align(

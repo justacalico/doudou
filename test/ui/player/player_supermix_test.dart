@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:doudou/models/media_Item_builder.dart';
+import 'package:doudou/models/media_item_builder.dart';
 import 'package:doudou/models/playlist.dart';
 import 'package:doudou/services/music_service.dart';
 import 'package:doudou/services/playback_diagnostics_service.dart';

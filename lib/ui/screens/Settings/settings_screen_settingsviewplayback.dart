@@ -14,8 +14,8 @@ mixin _SettingsViewPlaybackMixin on __SettingsViewStateBase {
         trailing: Obx(() => _SettingsDropdown<AudioQuality>(
               value: settings.streamingQuality.value,
               items: [
-                (AudioQuality.Low, context.l10n.low),
-                (AudioQuality.High, context.l10n.high),
+                (AudioQuality.low, context.l10n.low),
+                (AudioQuality.high, context.l10n.high),
               ],
               onChanged: settings.setStreamingQuality,
             )),

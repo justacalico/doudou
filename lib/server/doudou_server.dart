@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:crypto/crypto.dart';
 import 'package:hive/hive.dart';
 
 import 'hmb_archive.dart';
+import 'sync_auth.dart';
 import 'sync_codec.dart';
 import 'sync_model.dart';
 
@@ -22,9 +22,11 @@ const int _maxBodyBytes = 64 * 1024 * 1024;
 /// same format the in-app backup writes, so `-importdb backup.hmb` seeds it
 /// directly and `/api/export.hmb` produces a file the app can restore.
 class DoudouSyncServer {
-  DoudouSyncServer({required this.dataDir});
+  DoudouSyncServer({required this.dataDir, LoginRateLimiter? rateLimiter})
+      : _loginLimiter = rateLimiter ?? LoginRateLimiter();
 
   final String dataDir;
+  final LoginRateLimiter _loginLimiter;
 
   HttpServer? _http;
   late final Box _meta;
@@ -83,17 +85,15 @@ class DoudouSyncServer {
     _passwordHash = config['passwordHash'] as String?;
 
     final random = Random.secure();
-    _token ??= List.generate(
-        32, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
-    _salt ??= List.generate(
-        16, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
+    _token ??= randomHex(random, 32);
+    _salt ??= randomHex(random, 16);
 
     if (password == null && _passwordHash == null) {
       generatedPassword = _generatePassword(random);
       password = generatedPassword;
     }
     if (password != null) {
-      _passwordHash = _hashPassword(password, _salt!);
+      _passwordHash = hashSyncPassword(password, _salt!);
     }
     if (generatedPassword != null) {
       // Keep the generated password recoverable: headless launches have no
@@ -118,11 +118,8 @@ class DoudouSyncServer {
         .join();
   }
 
-  static String _hashPassword(String password, String salt) =>
-      sha256.convert(utf8.encode('$salt:$password')).toString();
-
-  bool checkPassword(String password) =>
-      _passwordHash != null && _hashPassword(password, _salt!) == _passwordHash;
+  bool checkPassword(String password) => _passwordHash != null &&
+      verifySyncPassword(password, _salt!, _passwordHash!);
 
   // -- request handling ----------------------------------------------------
 
@@ -148,6 +145,11 @@ class DoudouSyncServer {
     }
 
     if (method == 'POST' && path == '/api/login') {
+      final clientAddress = request.connectionInfo?.remoteAddress.address ?? '';
+      if (_loginLimiter.isLimited(clientAddress)) {
+        _respond(request, 429, {'error': 'too many attempts'});
+        return;
+      }
       final body = await _readJsonBody(request);
       if (body == null) {
         _respond(request, 400, {'error': 'invalid json body'});
@@ -155,8 +157,10 @@ class DoudouSyncServer {
       }
       final password = body['password'];
       if (password is String && checkPassword(password)) {
+        _loginLimiter.recordSuccess(clientAddress);
         _respond(request, 200, {'token': _token});
       } else {
+        _loginLimiter.recordFailure(clientAddress);
         _respond(request, 401, {'error': 'invalid password'});
       }
       return;
@@ -202,7 +206,9 @@ class DoudouSyncServer {
 
   bool _authorized(HttpRequest request) {
     final header = request.headers.value(HttpHeaders.authorizationHeader);
-    return header == 'Bearer $_token';
+    if (header == null || _token == null) return false;
+    return constantTimeEquals(
+        utf8.encode(header), utf8.encode('Bearer $_token'));
   }
 
   Future<Map<String, Object?>?> _readJsonBody(HttpRequest request) async {

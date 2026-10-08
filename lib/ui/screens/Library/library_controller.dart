@@ -22,7 +22,7 @@ import '/services/library_sync_service.dart';
 import '../../../utils/helper.dart';
 import '/models/album.dart';
 import '/models/artist.dart';
-import '/models/media_Item_builder.dart';
+import '/models/media_item_builder.dart';
 import '/models/playlist.dart';
 import '/models/server.dart';
 
