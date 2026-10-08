@@ -179,23 +179,19 @@ class _CompactNowPlaying extends StatelessWidget {
                                           height: artSize,
                                           decoration: BoxDecoration(
                                             borderRadius:
-                                                BorderRadius.circular(24),
-                                            border: Border.all(
-                                              color: white,
-                                              width: 3,
-                                            ),
+                                                BorderRadius.circular(20),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.black
-                                                    .withValues(alpha: 0.32),
-                                                blurRadius: 24,
-                                                offset: const Offset(0, 12),
+                                                    .withValues(alpha: 0.4),
+                                                blurRadius: 30,
+                                                offset: const Offset(0, 16),
                                               ),
                                             ],
                                           ),
                                           child: ClipRRect(
                                             borderRadius:
-                                                BorderRadius.circular(21),
+                                                BorderRadius.circular(20),
                                             child: ImageWidget(
                                               size: artSize,
                                               song: pc.currentSong.value!,
@@ -213,7 +209,7 @@ class _CompactNowPlaying extends StatelessWidget {
                               flex: 1,
                               child: Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(horizontal: 30),
+                                    const EdgeInsets.symmetric(horizontal: 32),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -222,26 +218,26 @@ class _CompactNowPlaying extends StatelessWidget {
                                       return Text(
                                         song?.title ?? '—',
                                         style: const TextStyle(
-                                          fontSize: 26,
+                                          fontSize: 24,
                                           fontWeight: FontWeight.w700,
                                           color: CupertinoColors.white,
-                                          letterSpacing: -0.5,
-                                          height: 1.0,
+                                          letterSpacing: -0.4,
+                                          height: 1.1,
                                         ),
                                         textAlign: TextAlign.center,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       );
                                     }),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 6),
                                     Obx(() {
                                       final song = pc.currentSong.value;
                                       return Text(
                                         song?.artist ?? '—',
                                         style: const TextStyle(
-                                          fontSize: 16,
+                                          fontSize: 15,
                                           color: CupertinoColors.systemGrey,
-                                          height: 1.0,
+                                          height: 1.1,
                                         ),
                                         textAlign: TextAlign.center,
                                         maxLines: 1,
@@ -256,16 +252,16 @@ class _CompactNowPlaying extends StatelessWidget {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 30),
+                        padding: const EdgeInsets.symmetric(horizontal: 28),
                         child: _CompactProgressBar(pc: pc),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 18),
                       _CompactControls(pc: pc),
                       PlayerMobileBottomBar(
                         volumeAction: volumeAction,
                         iconColor: white,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
@@ -281,7 +277,6 @@ class _CompactNowPlaying extends StatelessWidget {
     final borderRadius = dense ? 10.0 : 12.0;
     final horizontalPadding = dense ? 12.0 : 20.0;
     final verticalPadding = dense ? 4.0 : 10.0;
-    final trailingGap = dense ? 6.0 : 8.0;
 
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -332,61 +327,28 @@ class _CompactNowPlaying extends StatelessWidget {
               ),
             ),
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GestureDetector(
-                onTap: () => _openQueue(pc),
-                child: ClipRRect(
+          GestureDetector(
+            onTap: () => _openQueue(pc),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(borderRadius),
+              child: Container(
+                width: buttonSize,
+                height: buttonSize,
+                decoration: BoxDecoration(
+                  color: white.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(borderRadius),
-                  child: Container(
-                    width: buttonSize,
-                    height: buttonSize,
-                    margin: EdgeInsets.only(right: trailingGap),
-                    decoration: BoxDecoration(
-                      color: white.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(borderRadius),
-                      border: Border.all(
-                        color: white.withValues(alpha: 0.18),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.queue_music_rounded,
-                      color: white,
-                      size: iconSize,
-                    ),
+                  border: Border.all(
+                    color: white.withValues(alpha: 0.18),
+                    width: 0.5,
                   ),
                 ),
+                child: Icon(
+                  Icons.queue_music_rounded,
+                  color: white,
+                  size: iconSize,
+                ),
               ),
-              Obx(() => GestureDetector(
-                    onTap: pc.toggleFavourite,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(borderRadius),
-                      child: Container(
-                        width: buttonSize,
-                        height: buttonSize,
-                        decoration: BoxDecoration(
-                          color: white.withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(borderRadius),
-                          border: Border.all(
-                            color: white.withValues(alpha: 0.18),
-                            width: 0.5,
-                          ),
-                        ),
-                        child: Icon(
-                          pc.isCurrentSongFav.isTrue
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                          color: pc.isCurrentSongFav.isTrue
-                              ? const Color(0xFFEC4899)
-                              : white,
-                          size: iconSize,
-                        ),
-                      ),
-                    ),
-                  )),
-            ],
+            ),
           ),
         ],
       ),

@@ -92,105 +92,10 @@ class AlbumScreen extends StatelessWidget {
 
                       if (index == 1) {
                         // Action Buttons Row
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24.0, vertical: 16),
-                          child: Row(
-                            children: [
-                              if (showBookmarkControls)
-                                Obx(
-                                  () => IconButton(
-                                    onPressed: () {
-                                      final add = albumController
-                                          .isAddedToLibrary.isFalse;
-                                      albumController
-                                          .addNremoveFromLibrary(
-                                              albumController.album.value,
-                                              add: add)
-                                          .then((value) {
-                                        if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(snackbar(
-                                          context,
-                                          value
-                                              ? (add
-                                                  ? context.l10n
-                                                      .albumBookmarkAddAlert
-                                                  : context.l10n
-                                                      .albumBookmarkRemoveAlert)
-                                              : context.l10n.operationFailed,
-                                          size: SnackBarSize.MEDIUM,
-                                        ));
-                                      });
-                                    },
-                                    icon: LibraryBookmarkIcon(
-                                      isBookmarked: albumController
-                                          .isAddedToLibrary.isTrue,
-                                    ),
-                                  ),
-                                ),
-                              GetX<Downloader>(builder: (controller) {
-                                final id = albumController.album.value.browseId;
-                                return IconButton(
-                                  onPressed: () {
-                                    if (albumController.isDownloaded.isTrue) {
-                                      return;
-                                    }
-                                    controller.downloadPlaylist(
-                                        id, albumController.songList.toList());
-                                  },
-                                  icon: albumController.isDownloaded.isTrue
-                                      ? const Icon(Icons.download_done)
-                                      : const Icon(
-                                          Icons.file_download_outlined),
-                                );
-                              }),
-                              const Spacer(),
-                              IconButton(
-                                onPressed: () {
-                                  final songsToplay = List<MediaItem>.from(
-                                      albumController.songList);
-                                  songsToplay.shuffle();
-                                  playerController.playPlayListSong(
-                                      songsToplay, 0,
-                                      playfrom: PlaylingFrom(
-                                          name:
-                                              albumController.album.value.title,
-                                          type: PlaylingFromType.ALBUM));
-                                },
-                                icon: const Icon(Icons.shuffle,
-                                    size: 20, color: Colors.white38),
-                              ),
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: () {
-                                  playerController.playPlayListSong(
-                                      List<MediaItem>.from(
-                                          albumController.songList),
-                                      0,
-                                      playfrom: PlaylingFrom(
-                                          name:
-                                              albumController.album.value.title,
-                                          type: PlaylingFromType.ALBUM));
-                                },
-                                child: Container(
-                                  width: 56,
-                                  height: 56,
-                                  decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: Colors.black26,
-                                            blurRadius: 10,
-                                            offset: Offset(0, 4))
-                                      ]),
-                                  child: const Icon(Icons.play_arrow_rounded,
-                                      color: Colors.black, size: 32),
-                                ),
-                              ),
-                            ],
-                          ),
+                        return _AlbumActionRow(
+                          albumController: albumController,
+                          playerController: playerController,
+                          showBookmarkControls: showBookmarkControls,
                         );
                       }
 
@@ -598,4 +503,163 @@ Future openBottomSheet(BuildContext context, MediaItem song) {
     barrierColor: Colors.transparent.withAlpha(100),
     builder: (context) => SongInfoBottomSheet(song),
   ).whenComplete(() => Get.delete<SongInfoController>());
+}
+
+/// Responsive action row for the album screen.
+///
+/// On wide windows the bookmark, download, shuffle and play buttons share a
+/// single row. On narrow windows the secondary actions (bookmark, download)
+/// sit on their own row and the primary play/shuffle buttons fill the width
+/// below, so the row never overflows.
+class _AlbumActionRow extends StatelessWidget {
+  const _AlbumActionRow({
+    required this.albumController,
+    required this.playerController,
+    required this.showBookmarkControls,
+  });
+
+  final AlbumScreenController albumController;
+  final PlayerController playerController;
+  final bool showBookmarkControls;
+
+  static const double _narrowBreakpoint = 520.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < _narrowBreakpoint;
+        if (isNarrow) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _secondaryActions(context),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _shuffleButton(context, expand: true),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 2,
+                      child: _playButton(context, expand: true),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Row(
+            children: [
+              _secondaryActions(context),
+              const Spacer(),
+              _shuffleButton(context),
+              const SizedBox(width: 10),
+              _playButton(context),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _secondaryActions(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (showBookmarkControls)
+          Obx(
+            () => IconButton(
+              onPressed: () {
+                final add = albumController.isAddedToLibrary.isFalse;
+                albumController
+                    .addNremoveFromLibrary(albumController.album.value,
+                        add: add)
+                    .then((value) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(snackbar(
+                    context,
+                    value
+                        ? (add
+                            ? context.l10n.albumBookmarkAddAlert
+                            : context.l10n.albumBookmarkRemoveAlert)
+                        : context.l10n.operationFailed,
+                    size: SnackBarSize.MEDIUM,
+                  ));
+                });
+              },
+              icon: LibraryBookmarkIcon(
+                isBookmarked: albumController.isAddedToLibrary.isTrue,
+              ),
+            ),
+          ),
+        GetX<Downloader>(builder: (controller) {
+          final id = albumController.album.value.browseId;
+          return IconButton(
+            onPressed: () {
+              if (albumController.isDownloaded.isTrue) {
+                return;
+              }
+              controller.downloadPlaylist(id, albumController.songList.toList());
+            },
+            icon: albumController.isDownloaded.isTrue
+                ? const Icon(Icons.download_done)
+                : const Icon(Icons.file_download_outlined),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _shuffleButton(BuildContext context, {bool expand = false}) {
+    final button = OutlinedButton.icon(
+      onPressed: () {
+        final songsToplay = List<MediaItem>.from(albumController.songList);
+        songsToplay.shuffle();
+        playerController.playPlayListSong(
+            songsToplay, 0,
+            playfrom: PlaylingFrom(
+                name: albumController.album.value.title,
+                type: PlaylingFromType.ALBUM));
+      },
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+      ),
+      icon: const Icon(Icons.shuffle_rounded, size: 20),
+      label: Text(context.l10n.shuffle),
+    );
+    if (expand) return button;
+    return button;
+  }
+
+  Widget _playButton(BuildContext context, {bool expand = false}) {
+    final button = FilledButton.icon(
+      onPressed: () {
+        playerController.playPlayListSong(
+            List<MediaItem>.from(albumController.songList), 0,
+            playfrom: PlaylingFrom(
+                name: albumController.album.value.title,
+                type: PlaylingFromType.ALBUM));
+      },
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+      ),
+      icon: const Icon(Icons.play_arrow_rounded, size: 22),
+      label: Text(context.l10n.playAll),
+    );
+    if (expand) return button;
+    return button;
+  }
 }
