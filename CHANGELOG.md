@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 23.0.0
 
+- The search result page now lets you edit your query in place. The "for ..." line under the results header is an editable field on both the tabbed and rail layouts, and the no-match screen shows the same editable field, so fixing a typo no longer requires going back to the search page. Resubmitting stores the new query in search history and pasting a link still opens it directly.
 - Fixed search getting stuck on an endless loading spinner for some queries. A single malformed result item (missing flex columns, a renderer the app does not know, an artist subtitle with an unexpected shape) crashed the whole response parse, so the results screen never finished loading. Malformed items are now skipped one by one, artist results without a subscriber count no longer crash the parser, and a failed search falls back to the no-results view instead of spinning forever. Switching to a result tab and loading more results also recover from backend errors instead of stalling.
 - Fixed the settings page title floating far below the top of the window. The settings header now uses the same top spacing as the library and search pages, so "Settings" lines up with the page titles on every other page instead of sitting under a large empty gap.
 - Fixed the search page showing a second rounded box inside the search bar. The themed input border and fill leaked through the search field's decoration, so an extra outlined box was drawn around the placeholder text.

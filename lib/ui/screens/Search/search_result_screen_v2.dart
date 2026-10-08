@@ -8,6 +8,7 @@ import '/ui/models/content_category.dart';
 
 import '../../navigator.dart';
 import '../../widgets/separate_tab_item_widget.dart';
+import 'components/search_query_edit_field.dart';
 import 'search_result_screen_controller.dart';
 
 class SearchResultScreenBN extends StatelessWidget {
@@ -50,14 +51,19 @@ class SearchResultScreenBN extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Obx(
-                        () => Text(
-                          "${context.l10n.for1} \"${searchResScrController.queryString.value}\"",
+                    Row(
+                      children: [
+                        Text(
+                          "${context.l10n.for1} ",
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
-                      ),
+                        Expanded(
+                          child: SearchQueryEditField(
+                            controller: searchResScrController,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                      ],
                     ),
                   ]))
                 ],

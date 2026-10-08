@@ -11,6 +11,8 @@ Widget buildSubject({
   void Function(String)? onChanged,
   void Function(String)? onSubmitted,
   VoidCallback? onClear,
+  TextStyle? style,
+  TextAlign textAlign = TextAlign.start,
 }) {
   final textController = controller ?? TextEditingController();
   return MaterialApp(
@@ -29,6 +31,8 @@ Widget buildSubject({
         onChanged: onChanged ?? (_) {},
         onSubmitted: onSubmitted ?? (_) {},
         onClear: onClear ?? () {},
+        style: style,
+        textAlign: textAlign,
       ),
     ),
   );
@@ -88,6 +92,23 @@ void main() {
       await tester.pumpWidget(buildSubject(controller: controller));
 
       expect(find.text('Songs, Playlist, Album or Artist'), findsOneWidget);
+    });
+
+    testWidgets('forwards text style and alignment to the field',
+        (tester) async {
+      final controller = TextEditingController(text: 'abc');
+      addTearDown(controller.dispose);
+      const style = TextStyle(fontSize: 22);
+
+      await tester.pumpWidget(buildSubject(
+        controller: controller,
+        style: style,
+        textAlign: TextAlign.center,
+      ));
+
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.style?.fontSize, 22);
+      expect(field.textAlign, TextAlign.center);
     });
 
     testWidgets('wires onChanged and onSubmitted through', (tester) async {

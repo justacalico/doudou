@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../models/content_category.dart';
+import '../screens/Search/components/search_query_edit_field.dart';
 import '../screens/Search/search_result_screen_controller.dart';
 import '/models/album.dart';
 import '/models/artist.dart';
@@ -41,12 +42,20 @@ class ResultWidget extends StatelessWidget {
                         ),
                       ),
                     if (!isv2Used)
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "${context.l10n.for1} \"${searchResScrController.queryString.value}\"",
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            "${context.l10n.for1} ",
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          Expanded(
+                            child: SearchQueryEditField(
+                              controller: searchResScrController,
+                              style:
+                                  Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                        ],
                       ),
                     const SizedBox(
                       height: 10,

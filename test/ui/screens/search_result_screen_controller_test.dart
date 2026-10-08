@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:doudou/models/album.dart';
@@ -38,6 +39,8 @@ class _FakeBackend extends MusicBackend {
   Map<String, dynamic> searchResult = {};
   Object? searchError;
   int searchCalls = 0;
+  String? lastQuery;
+  Completer<void>? searchGate;
 
   Object? continuationError;
   Map<String, dynamic> continuationResult = {};
@@ -53,6 +56,9 @@ class _FakeBackend extends MusicBackend {
       bool ignoreSpelling = false,
       dynamic filterParams}) async {
     searchCalls++;
+    lastQuery = query;
+    final gate = searchGate;
+    if (gate != null) await gate.future;
     final error = searchError;
     if (error != null) throw error;
     return searchResult;
@@ -224,5 +230,92 @@ void main() {
     await controller.getContinuationContents();
 
     expect(controller.continuationInProgress, isFalse);
+  });
+
+  group('submitSearch', () {
+    testWidgets('re-runs the search with the edited query', (tester) async {
+      backend.searchResult = {
+        'Songs': <dynamic>[],
+        'searchEndpoint': {'Songs': 'params'},
+      };
+
+      final controller = createController('white rabbit');
+      controller.onReady();
+      await pumpUntil(tester, () => controller.isResultContentFetched.value);
+      expect(backend.searchCalls, 1);
+
+      await controller.submitSearch('  green rabbit  ');
+      await pumpUntil(tester, () => controller.isResultContentFetched.value);
+
+      expect(backend.searchCalls, 2);
+      expect(backend.lastQuery, 'green rabbit');
+      expect(controller.queryString.value, 'green rabbit');
+      expect(controller.queryEditingController.text, 'green rabbit');
+    });
+
+    testWidgets('ignores unchanged, blank and cleared submissions',
+        (tester) async {
+      backend.searchResult = {
+        'Songs': <dynamic>[],
+        'searchEndpoint': {'Songs': 'params'},
+      };
+
+      final controller = createController('white rabbit');
+      controller.onReady();
+      await pumpUntil(tester, () => controller.isResultContentFetched.value);
+
+      await controller.submitSearch('white rabbit');
+      await controller.submitSearch('   ');
+
+      controller.clearQueryEditText();
+      await controller.submitSearch('');
+
+      expect(backend.searchCalls, 1);
+      expect(controller.queryString.value, 'white rabbit');
+      expect(controller.queryEditingController.text, 'white rabbit');
+    });
+
+    testWidgets('drops a second submission while a search is running',
+        (tester) async {
+      backend.searchResult = {'Songs': <dynamic>[]};
+
+      final controller = createController('white rabbit');
+      controller.onReady();
+      await pumpUntil(tester, () => controller.isResultContentFetched.value);
+
+      backend.searchGate = Completer<void>();
+      final pending = controller.submitSearch('green rabbit');
+      await pumpUntil(tester, () => backend.searchCalls == 2);
+
+      await controller.submitSearch('blue rabbit');
+
+      expect(backend.searchCalls, 2);
+
+      backend.searchGate!.complete();
+      await pending;
+      await pumpUntil(tester, () => controller.isResultContentFetched.value);
+      expect(controller.queryString.value, 'green rabbit');
+    });
+
+    testWidgets('a failed re-search resolves loading instead of spinning',
+        (tester) async {
+      backend.searchResult = {
+        'Songs': <dynamic>[],
+        'searchEndpoint': {'Songs': 'params'},
+      };
+
+      final controller = createController('white rabbit');
+      controller.onReady();
+      await pumpUntil(tester, () => controller.isResultContentFetched.value);
+      expect(controller.railItems, isNotEmpty);
+
+      backend.searchError = Exception('re-search boom');
+      await controller.submitSearch('broken query');
+
+      expect(controller.isResultContentFetched.value, isTrue);
+      expect(controller.queryString.value, 'broken query');
+      expect(controller.railItems, isEmpty);
+      expect(controller.queryEditingController.text, 'broken query');
+    });
   });
 }

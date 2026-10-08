@@ -12,6 +12,8 @@ class SearchTextField extends StatelessWidget {
     required this.onSubmitted,
     required this.onClear,
     this.autofocus = false,
+    this.style,
+    this.textAlign = TextAlign.start,
   });
 
   final TextEditingController controller;
@@ -19,6 +21,8 @@ class SearchTextField extends StatelessWidget {
   final void Function(String)? onSubmitted;
   final VoidCallback onClear;
   final bool autofocus;
+  final TextStyle? style;
+  final TextAlign textAlign;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +34,8 @@ class SearchTextField extends StatelessWidget {
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       autofocus: autofocus,
+      style: style,
+      textAlign: textAlign,
       cursorColor: theme.textTheme.bodySmall!.color,
       decoration: InputDecoration(
         border: InputBorder.none,
