@@ -255,10 +255,19 @@ class Downloader extends GetxService {
 
     dynamic response;
     try {
+      final downloadHeaders = <String, String>{
+        // Self-hosted servers authenticate media requests by header now
+        // instead of credentials in the url.
+        if (isNonYouTube)
+          ...await settingsScreenController
+              .mediaRequestHeadersFor(requiredAudioStream.url),
+        if (!isNonYouTube && totalBytes > 0) "Range": 'bytes=0-$totalBytes',
+      };
       response = await _dio.download(requiredAudioStream.url, filePath,
-          options: (!isNonYouTube && totalBytes > 0)
-              ? Options(headers: {"Range": 'bytes=0-$totalBytes'})
-              : null, onReceiveProgress: (count, total) {
+          options: downloadHeaders.isEmpty
+              ? null
+              : Options(headers: downloadHeaders), onReceiveProgress:
+          (count, total) {
         if (total <= 0) return;
         songDownloadingProgress.value = ((count / total) * 100).toInt();
       });

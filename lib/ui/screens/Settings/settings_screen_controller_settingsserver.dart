@@ -92,6 +92,7 @@ mixin _SettingsServerMixin on _SettingsScreenControllerBase {
   void invalidateBackendCache() {
     _cachedBackend = null;
     _cachedBackendServerId = null;
+    _serverBackendCache.clear();
   }
 
 }

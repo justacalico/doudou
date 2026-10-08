@@ -73,6 +73,19 @@ class _ImageWidgetState extends State<ImageWidget> {
     });
   }
 
+  /// Auth headers for artwork served by a configured media server. The
+  /// persisted art url carries no credentials, so the token goes in headers.
+  Map<String, String>? _imageHeaders(String imageUrl) {
+    try {
+      if (!Get.isRegistered<SettingsScreenController>()) return null;
+      final headers = Get.find<SettingsScreenController>()
+          .mediaRequestHeaders(imageUrl);
+      return headers.isEmpty ? null : headers;
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final song = widget.song;
@@ -151,6 +164,7 @@ class _ImageWidgetState extends State<ImageWidget> {
                   memCacheWidth: cacheWidth,
                   cacheKey: cacheKey,
                   imageUrl: imageUrl,
+                  httpHeaders: _imageHeaders(imageUrl),
                   imageBuilder: (context, imageProvider) => DecoratedBox(
                     decoration: BoxDecoration(
                       shape: artist != null

@@ -82,11 +82,15 @@ mixin _SettingsScreenControllerBase on GetxController {
   MusicBackend? _cachedBackend;
   int? _cachedBackendServerId;
 
+  // Per-server backend instances so auth state (e.g. a Jellyfin session
+  // token) survives between lookups on different code paths.
+  final _serverBackendCache = <int, MusicBackend>{};
+
   MusicBackend get currentBackend {
     final active = activeServer;
     if (active != null) {
       if (_cachedBackendServerId != active.id) {
-        _cachedBackend = createBackend(active);
+        _cachedBackend = backendForServer(active);
         _cachedBackendServerId = active.id;
       }
       return _cachedBackend!;
@@ -94,6 +98,36 @@ mixin _SettingsScreenControllerBase on GetxController {
     if (kIsPlayStore && servers.isEmpty) return NoOpBackend();
     return createBackend(_defaultServer);
   }
+
+  /// The (cached) backend for [server]. Reused instances keep their session
+  /// auth, so media fetches do not pay a fresh login per request.
+  MusicBackend backendForServer(SettingsServer server) =>
+      _serverBackendCache.putIfAbsent(server.id, () => createBackend(server));
+
+  /// The backend that serves [url], matched by each configured server's
+  /// base url. Returns null for urls no configured server owns (for example
+  /// YouTube's media hosts).
+  MusicBackend? backendForUrl(String url) {
+    for (final server in servers) {
+      final base = server.serverUrl;
+      if (base != null && base.isNotEmpty && url.startsWith(base)) {
+        return backendForServer(server);
+      }
+    }
+    return null;
+  }
+
+  /// Auth headers needed to fetch media from a configured server, resolved
+  /// from [url]. Empty when no configured server owns the url or none are
+  /// required. Best effort: a backend that has not authenticated yet may
+  /// report no headers; use [mediaRequestHeadersFor] when a fetch can await.
+  Map<String, String> mediaRequestHeaders(String url) =>
+      backendForUrl(url)?.mediaRequestHeaders(url) ?? const {};
+
+  /// Awaitable variant of [mediaRequestHeaders] that lets the owning backend
+  /// authenticate before answering.
+  Future<Map<String, String>> mediaRequestHeadersFor(String url) async =>
+      await backendForUrl(url)?.mediaRequestHeadersFor(url) ?? const {};
 
   double get animationSpeedFactor {
     switch (animationSpeed.value) {

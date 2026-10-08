@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../models/album.dart';
 import '../../models/artist.dart';
@@ -15,6 +20,14 @@ class SubsonicBackend extends MusicBackend {
 
   static const _clientName = 'Doudou';
   static const _version = '1.16.0';
+  static final _random = Random.secure();
+
+  /// Injectable so tests can pin the salt and verify the auth token.
+  @visibleForTesting
+  String Function() saltGenerator = _defaultSalt;
+
+  static String _defaultSalt() => List.generate(
+      8, (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
 
   String get _baseUrl {
     String url = server.serverUrl ?? '';
@@ -24,8 +37,21 @@ class SubsonicBackend extends MusicBackend {
 
   Dio? _dio;
 
+  /// Subsonic token authentication: `t` is md5(password + salt), so the raw
+  /// password never appears in urls, image requests, caches or logs.
+  String _authParams() {
+    final salt = saltGenerator();
+    final token =
+        md5.convert(utf8.encode((server.password ?? '') + salt)).toString();
+    return 'u=${Uri.encodeComponent(server.username ?? '')}'
+        '&t=$token&s=$salt';
+  }
+
   String _restUrl(String method) =>
-      '$_baseUrl/rest/$method.view?u=${Uri.encodeComponent(server.username ?? '')}&p=${Uri.encodeComponent(server.password ?? '')}&v=$_version&c=$_clientName&f=json';
+      '$_baseUrl/rest/$method.view?${_authParams()}&v=$_version&c=$_clientName&f=json';
+
+  String _streamUrl(String id) =>
+      '$_baseUrl/rest/stream.view?${_authParams()}&v=$_version&c=$_clientName&id=$id';
 
   Future<Map<String, dynamic>?> _get(String method,
       [Map<String, String> params = const {},
@@ -61,9 +87,7 @@ class SubsonicBackend extends MusicBackend {
     if (_baseUrl.isNotEmpty && coverArt != null && coverArt.isNotEmpty) {
       imageUrl = '${_restUrl('getCoverArt')}&id=$coverArt';
     }
-    final streamUrl = id.isNotEmpty
-        ? '$_baseUrl/rest/stream.view?u=${Uri.encodeComponent(server.username ?? '')}&p=${Uri.encodeComponent(server.password ?? '')}&v=$_version&c=$_clientName&id=$id'
-        : null;
+    final streamUrl = id.isNotEmpty ? _streamUrl(id) : null;
     return {
       'videoId': id,
       'title': song['title'] ?? 'Unknown',
@@ -200,7 +224,7 @@ class SubsonicBackend extends MusicBackend {
     if (mediaItemId.isEmpty || _baseUrl.isEmpty || server.username == null) {
       return null;
     }
-    return '$_baseUrl/rest/stream.view?u=${Uri.encodeComponent(server.username ?? '')}&p=${Uri.encodeComponent(server.password ?? '')}&v=$_version&c=$_clientName&id=$mediaItemId';
+    return _streamUrl(mediaItemId);
   }
 
   @override

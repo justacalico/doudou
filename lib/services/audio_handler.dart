@@ -30,7 +30,6 @@ import '../ui/screens/Home/home_screen_controller.dart';
 import '/services/background_task.dart';
 import '/services/permission_service.dart';
 import '/services/playback_wakelock_service.dart';
-import '/services/backend/backend_factory.dart';
 import '/services/playback_diagnostics_service.dart';
 import '/services/playback_recovery.dart';
 import '/services/playback_transition_utils.dart';
@@ -335,7 +334,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (preloader == null || !data.playable || url == null) return;
     if (songId == _safeCurrentSongId()) return;
     preloader.preload(songId, url,
-        headers: _youtubeStreamHeaders(url),
+        headers: _streamHeadersFor(url),
         codec: data.audio?.audioCodec.name);
   }
 
@@ -1225,7 +1224,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         Uri.parse(url),
         cacheFile: _cachedSongFile(mediaItem.id) ??
             File("$_cacheDir/cachedSongs/${mediaItem.id}.mp3"),
-        headers: _youtubeStreamHeaders(url),
+        headers: _streamHeadersFor(url),
         tag: mediaItem,
       );
     }
@@ -1244,9 +1243,29 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     isPlayingUsingLockCachingSource = false;
     return AudioSource.uri(
       Uri.tryParse(url)!,
-      headers: _youtubeStreamHeaders(url),
+      headers: _streamHeadersFor(url),
       tag: mediaItem,
     );
+  }
+
+  /// Headers the media host requires for [url]. YouTube streams get a
+  /// client-matching user agent; urls served by a configured media server
+  /// (Jellyfin, Plex) get the server's auth token since those urls carry no
+  /// credentials of their own. Works synchronously because checkNGetUrl
+  /// warms the owning backend's auth before playback reaches here.
+  Map<String, String>? _streamHeadersFor(String url) {
+    final ytHeaders = _youtubeStreamHeaders(url);
+    if (ytHeaders != null) return ytHeaders;
+    try {
+      if (!Get.isRegistered<SettingsScreenController>()) return null;
+      final headers = Get.find<SettingsScreenController>()
+          .mediaRequestHeaders(url);
+      return headers.isEmpty ? null : headers;
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=audio.streamHeaders] Failed to resolve headers: $e\n$st');
+      return null;
+    }
   }
 
   Map<String, String>? _youtubeStreamHeaders(String url) {
@@ -2319,6 +2338,11 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           }
         }
         if (url != null && url.isNotEmpty) {
+          // Stream urls carry no credentials; make sure the owning backend is
+          // authenticated so _streamHeadersFor can hand the token to the
+          // player. Persisted urls skip getStreamUrl, so auth must be warmed
+          // here too.
+          await resolvedBackend.mediaRequestHeadersFor(url);
           final audio = Audio(
               itag: 0,
               audioCodec: Codec.opus,
@@ -2584,7 +2608,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     if (serverId != null) {
       for (final server in settings.servers) {
         if (server.id == serverId) {
-          return createBackend(server);
+          return settings.backendForServer(server);
         }
       }
     }
