@@ -1,5 +1,6 @@
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '/models/album.dart';
@@ -15,6 +16,7 @@ import '/services/backend/backend_capabilities.dart';
 import '/services/backend/music_backend.dart';
 import '/services/music_service.dart';
 import '/ui/widgets/sort_widget.dart';
+import 'search_screen_controller.dart';
 
 class SearchResultScreenController extends GetxController
     with GetTickerProviderStateMixin {
@@ -27,8 +29,10 @@ class SearchResultScreenController extends GetxController
   MusicBackend get _backend =>
       Get.find<SettingsScreenController>().currentBackend;
   final queryString = ''.obs;
+  final queryEditingController = TextEditingController();
   final railItems = <String>[].obs;
   final railitemHeight = 0.0.obs;
+  bool _searchInFlight = false;
 
   double _screenHeight() {
     try {
@@ -228,7 +232,7 @@ class SearchResultScreenController extends GetxController
     }
   }
 
-  Future<void> _getInitSearchResult() async {
+  void _resetResultState() {
     isResultContentFetched.value = false;
     resultContent.clear();
     separatedResultContent.clear();
@@ -242,29 +246,74 @@ class SearchResultScreenController extends GetxController
       controller.dispose();
     }
     scrollControllers.clear();
+  }
 
-    final args = Get.arguments;
-    if (kDebugMode) {
+  void _syncQueryEditText() {
+    queryEditingController.value = TextEditingValue(
+      text: queryString.value,
+      selection: TextSelection.collapsed(offset: queryString.value.length),
+    );
+  }
+
+  void clearQueryEditText() {
+    queryEditingController.clear();
+  }
+
+  /// Runs a new search with the query typed into the result screen's search
+  /// bar, staying on the result page. Empty, unchanged and url submissions are
+  /// handled the same way the search screen treats them.
+  Future<void> submitSearch(String value) async {
+    final query = value.trim();
+    if (query.isEmpty || query == queryString.value) {
+      _syncQueryEditText();
+      return;
     }
-    if (args is String && args.trim().isNotEmpty) {
-      queryString.value = args.trim();
-      if (kDebugMode) {
+    if (_searchInFlight) return;
+    if (query.contains("https://")) {
+      _syncQueryEditText();
+      if (Get.isRegistered<SearchScreenController>()) {
+        unawaited(
+            Get.find<SearchScreenController>().filterLinks(Uri.parse(query)));
       }
+      return;
+    }
+    if (Get.isRegistered<SearchScreenController>()) {
+      unawaited(
+          Get.find<SearchScreenController>().addToHistryQueryList(query));
+    }
+    await _runSearch(query);
+  }
+
+  Future<void> _getInitSearchResult() async {
+    final args = Get.arguments;
+    if (args is String && args.trim().isNotEmpty) {
+      await _runSearch(args.trim());
+      return;
+    }
+    _resetResultState();
+    queryString.value = '';
+    isResultContentFetched.value = true;
+  }
+
+  Future<void> _runSearch(String query) async {
+    if (_searchInFlight) return;
+    _searchInFlight = true;
+    try {
+      _resetResultState();
+      queryString.value = query;
+      _syncQueryEditText();
+
       final backend = _backend;
       Map<String, dynamic> rawResult;
       try {
-        rawResult = await backend.search(queryString.value);
+        rawResult = await backend.search(query);
       } catch (e, st) {
         printWarning(
-            '[RECOVERABLE][opId=search.init] Search failed for "${queryString.value}": $e\n$st');
+            '[RECOVERABLE][opId=search.init] Search failed for "$query": $e\n$st');
         isResultContentFetched.value = true;
         return;
       }
-      if (kDebugMode) {
-      }
       resultContent.value = _normalizeSearchResults(rawResult);
-      if (kDebugMode) {
-      }
       final caps = backend.capabilities;
       const allowedCategories = <ContentCategory>{
         ContentCategory.songs,
@@ -279,11 +328,7 @@ class SearchResultScreenController extends GetxController
         return allowedCategories.contains(category) &&
             _showSearchTab(element, caps);
       }).toList();
-      if (kDebugMode) {
-      }
       railItems.value = List<String>.from(allKeys);
-      if (kDebugMode) {
-      }
       final len = railItems
           .where((element) =>
               ContentCategoryMapper.fromKey(element).isPlaylistLike)
@@ -319,10 +364,9 @@ class SearchResultScreenController extends GetxController
         });
       }
       isResultContentFetched.value = true;
-      return;
+    } finally {
+      _searchInFlight = false;
     }
-    queryString.value = '';
-    isResultContentFetched.value = true;
   }
 
   void onSort(SortType sortType, bool isAscending, String title) {
@@ -353,6 +397,7 @@ class SearchResultScreenController extends GetxController
     }
     Get.find<HomeScreenController>().whenHomeScreenOnTop();
     tabController?.dispose();
+    queryEditingController.dispose();
     super.onClose();
   }
 }
