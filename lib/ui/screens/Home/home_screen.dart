@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import '/models/server.dart';
 import '/models/album.dart';
 import '/models/playlist.dart';
-import '/ui/constants/doudou_design.dart';
 import '../Library/library_browse_screen.dart';
 import '../Library/library_controller.dart';
 import '../Library/library.dart';
@@ -19,6 +18,7 @@ import '/ui/shell_controller.dart';
 import '/services/tv_service.dart';
 import '/ui/widgets/create_playlist_dialog.dart';
 import '/ui/widgets/home_empty_state.dart';
+import '/ui/widgets/home_quick_action_cards.dart';
 import '../../navigator.dart';
 import '../../widgets/library_section_builders.dart';
 import 'home_screen_controller.dart';
@@ -691,105 +691,24 @@ class _BodyState extends State<Body> {
     required HomeScreenController homeScreenController,
     required bool isYouTubeMusic,
   }) {
-    final shuffleCount = libSongs.librarySongsList.length;
-    final downloadCount = homeScreenController.downloadedSongsCount.value;
-    
-    final cards = <Widget>[];
-    
-    if (isYouTubeMusic) {
-      cards.add(
-        _HomeQuickActionCard(
-          icon: Icons.auto_awesome,
-          label: context.l10n.supermix,
-          subtitle: context.l10n.supermixSubtitle,
-          onTap: () {
-            homeScreenController.startSupermix();
-          },
-        ),
-      );
-      cards.add(
-        _HomeQuickActionCard(
-          icon: Icons.radio,
-          label: context.l10n.startRadio,
-          subtitle: '',
-          onTap: () {
-            homeScreenController.startRadio();
-          },
-        ),
-      );
-    } else if (shuffleCount > 0) {
-      cards.add(
-        _HomeQuickActionCard(
-          icon: Icons.shuffle,
-          label: context.l10n.shuffleAll,
-          subtitle: '$shuffleCount ${context.l10n.songsCount}',
-          onTap: () {
-            homeScreenController.shuffleAll(
-              emptyMessage: context.l10n.noSongsInLibrary,
-              playFromName: context.l10n.shuffleAll,
-            );
-          },
-        ),
-      );
-    }
-    
-    if (homeScreenController.favoriteCount.value > 0) {
-      cards.add(
-        _HomeQuickActionCard(
-          icon: Icons.favorite,
-          label: context.l10n.favorites,
-          subtitle: context.l10n.shuffleFavorites,
-          onTap: () {
-            homeScreenController.shuffleFavorites(
-              emptyMessage: context.l10n.favoritesEmpty,
-              playFromName: context.l10n.favorites,
-            );
-          },
-        ),
-      );
-    }
-    
-    if (downloadCount > 0) {
-      cards.add(
-        _HomeQuickActionCard(
-          icon: Icons.download,
-          label: context.l10n.downloads,
-          subtitle: '$downloadCount ${context.l10n.songsCount}',
-          onTap: () {
-            homeScreenController.shuffleDownloads(
-              emptyMessage: context.l10n.noOfflineSong,
-              playFromName: context.l10n.downloads,
-            );
-          },
-        ),
-      );
-    }
-    
-    if (cards.isEmpty) return const SizedBox.shrink();
-    
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cardWidth = (constraints.maxWidth - 24) / cards.length;
-        final compact = cardWidth < 180;
-        return Row(
-          children: List.generate(cards.length * 2 - 1, (index) {
-            if (index.isEven) {
-              final card = cards[index ~/ 2] as _HomeQuickActionCard;
-              return Expanded(
-                child: _HomeQuickActionCard(
-                  icon: card.icon,
-                  label: card.label,
-                  subtitle: card.subtitle,
-                  compact: compact,
-                  onTap: card.onTap,
-                ),
-              );
-            } else {
-              return const SizedBox(width: 12);
-            }
-          }),
-        );
-      },
+    return HomeQuickActionCards(
+      isYouTubeMusic: isYouTubeMusic,
+      shuffleCount: libSongs.librarySongsList.length,
+      favoriteCount: homeScreenController.favoriteCount.value,
+      downloadCount: homeScreenController.downloadedSongsCount.value,
+      onStartSupermix: homeScreenController.startSupermix,
+      onShuffleAll: () => homeScreenController.shuffleAll(
+        emptyMessage: context.l10n.noSongsInLibrary,
+        playFromName: context.l10n.shuffleAll,
+      ),
+      onShuffleFavorites: () => homeScreenController.shuffleFavorites(
+        emptyMessage: context.l10n.favoritesEmpty,
+        playFromName: context.l10n.favorites,
+      ),
+      onShuffleDownloads: () => homeScreenController.shuffleDownloads(
+        emptyMessage: context.l10n.noOfflineSong,
+        playFromName: context.l10n.downloads,
+      ),
     );
   }
 
@@ -850,100 +769,4 @@ class _BodyState extends State<Body> {
     return content;
   }
 
-}
-
-class _HomeQuickActionCard extends StatelessWidget {
-  const _HomeQuickActionCard({
-    required this.icon,
-    required this.label,
-    required this.subtitle,
-    this.compact = false,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final String subtitle;
-  final bool compact;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final onSurface = theme.colorScheme.onSurface;
-    final onSurfaceVariant = onSurface.withValues(alpha: 0.7);
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(kDoudouRadiusCard),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(kDoudouRadiusCard),
-        onTap: onTap,
-        child: Container(
-          padding: compact
-              ? const EdgeInsets.symmetric(horizontal: 10, vertical: 12)
-              : const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          decoration: BoxDecoration(
-            color: kDoudouSurface,
-            borderRadius: BorderRadius.circular(kDoudouRadiusCard),
-            border: Border.all(color: theme.dividerColor, width: 1),
-          ),
-          child: compact
-              ? Center(
-                  child: Tooltip(
-                    message: label,
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: kDoudouSurfaceHover,
-                        borderRadius:
-                            BorderRadius.circular(kDoudouRadiusIconBox),
-                      ),
-                      child: Icon(icon, color: onSurface, size: 24),
-                    ),
-                  ),
-                )
-              : Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: kDoudouSurfaceHover,
-                        borderRadius:
-                            BorderRadius.circular(kDoudouRadiusIconBox),
-                      ),
-                      child: Icon(icon, color: onSurface, size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            label,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: onSurface,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            subtitle,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: onSurfaceVariant,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-        ),
-      ),
-    );
-  }
 }
