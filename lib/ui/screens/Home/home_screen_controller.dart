@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +18,6 @@ import '/services/library_sync_service.dart';
 import '/services/music_service.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
-import '../../../utils/app_l10n.dart';
 import '../../../utils/helper.dart';
 import '../../../utils/queue_shuffler.dart';
 import '../../../utils/server_storage.dart';
@@ -983,64 +981,6 @@ class HomeScreenController extends GetxController {
     } finally {
       isLoadingYoutubeMusicHome.value = false;
     }
-  }
-
-  /// Start a personalized radio station for YouTube Music.
-  /// Prioritizes the user's favorited songs as the radio seed,
-  /// then falls back to recently played and library songs.
-  Future<void> startRadio() async {
-    final playerController = Get.find<PlayerController>();
-
-    // 1. Prefer a random favorited song
-    try {
-      final box = await Hive.openBox(libFavBoxName(currentServerId()));
-      final favSongs = _safeMediaItemsFromIterable(box.values);
-      if (favSongs.isNotEmpty) {
-        favSongs.shuffle(Random());
-        await playerController.pushSongToQueue(favSongs.first, radio: true);
-        return;
-      }
-    } catch (e, st) {
-      printWarning(
-          '[RECOVERABLE][opId=home.startRadio.favorites] Failed to get favorite song: $e\n$st');
-    }
-
-    // 2. Fall back to a random recently played song
-    try {
-      final box = await Hive.openBox(recentlyPlayedBoxName(currentServerId()));
-      final recentSongs = _safeMediaItemsFromIterable(box.values);
-      if (recentSongs.isNotEmpty) {
-        recentSongs.shuffle(Random());
-        await playerController.pushSongToQueue(recentSongs.first, radio: true);
-        return;
-      }
-    } catch (e, st) {
-      printWarning(
-          '[RECOVERABLE][opId=home.startRadio.recent] Failed to get recent song: $e\n$st');
-    }
-
-    // 3. Fall back to the currently playing song
-    final currentlyPlaying = playerController.currentSong.value;
-    if (currentlyPlaying != null) {
-      await playerController.pushSongToQueue(currentlyPlaying, radio: true);
-      return;
-    }
-
-    // 4. Last resort: any library song
-    try {
-      final songsController = Get.find<LibrarySongsController>();
-      final allSongs = await songsController.loadAllSongsForShuffle();
-      if (allSongs.isNotEmpty) {
-        allSongs.shuffle(Random());
-        await playerController.pushSongToQueue(allSongs.first, radio: true);
-        return;
-      }
-    } catch (e, st) {
-      printWarning(
-          '[RECOVERABLE][opId=home.startRadio.library] Failed to get library song: $e\n$st');
-    }
-
-    Get.snackbar('', l10nFromPrefs().addFavoritesToStartRadio);
   }
 
   /// Starts the personalised Supermix for YouTube Music. Builds a mix from
