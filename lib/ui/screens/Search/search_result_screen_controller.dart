@@ -7,7 +7,7 @@ import '/models/artist.dart';
 import '/models/playlist.dart';
 import '/ui/models/content_category.dart';
 import '../../../utils/helper.dart';
-import '/models/media_Item_builder.dart';
+import '/models/media_item_builder.dart';
 import '/ui/shell_controller.dart';
 import '../Home/home_screen_controller.dart';
 import '../Settings/settings_screen_controller.dart';
@@ -19,7 +19,7 @@ import '/ui/widgets/sort_widget.dart';
 class SearchResultScreenController extends GetxController
     with GetTickerProviderStateMixin {
   final navigationRailCurrentIndex = 0.obs;
-  final isResultContentFetced = false.obs;
+  final isResultContentFetched = false.obs;
   final isSeparatedResultContentFetced = false.obs;
   final resultContent = <String, dynamic>{}.obs;
   final separatedResultContent = <String, dynamic>{}.obs;
@@ -210,7 +210,7 @@ class SearchResultScreenController extends GetxController
   }
 
   Future<void> _getInitSearchResult() async {
-    isResultContentFetced.value = false;
+    isResultContentFetched.value = false;
     resultContent.clear();
     separatedResultContent.clear();
     railItems.clear();
@@ -226,21 +226,17 @@ class SearchResultScreenController extends GetxController
 
     final args = Get.arguments;
     if (kDebugMode) {
-      print('_getInitSearchResult - args: $args');
     }
     if (args is String && args.trim().isNotEmpty) {
       queryString.value = args.trim();
       if (kDebugMode) {
-        print('_getInitSearchResult - queryString: ${queryString.value}');
       }
       final backend = _backend;
       final rawResult = await backend.search(queryString.value);
       if (kDebugMode) {
-        print('_getInitSearchResult - rawResult: $rawResult');
       }
       resultContent.value = _normalizeSearchResults(rawResult);
       if (kDebugMode) {
-        print('_getInitSearchResult - resultContent after normalize: $resultContent');
       }
       final caps = backend.capabilities;
       const allowedCategories = <ContentCategory>{
@@ -257,11 +253,9 @@ class SearchResultScreenController extends GetxController
             _showSearchTab(element, caps);
       }).toList();
       if (kDebugMode) {
-        print('_getInitSearchResult - allKeys: $allKeys');
       }
       railItems.value = List<String>.from(allKeys);
       if (kDebugMode) {
-        print('_getInitSearchResult - railItems: $railItems');
       }
       final len = railItems
           .where((element) =>
@@ -297,11 +291,11 @@ class SearchResultScreenController extends GetxController
           }
         });
       }
-      isResultContentFetced.value = true;
+      isResultContentFetched.value = true;
       return;
     }
     queryString.value = '';
-    isResultContentFetced.value = true;
+    isResultContentFetched.value = true;
   }
 
   void onSort(SortType sortType, bool isAscending, String title) {

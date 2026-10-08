@@ -7,10 +7,10 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '/models/media_Item_builder.dart';
+import '/models/media_item_builder.dart';
 import '/models/album.dart';
 import '/models/artist.dart';
-import '/models/playling_from.dart';
+import '/models/playing_from.dart';
 import '/models/playlist.dart';
 import '/models/quick_picks.dart';
 import '/models/server.dart';
@@ -883,7 +883,7 @@ class HomeScreenController extends GetxController {
       list,
       0,
       playfrom:
-          PlaylingFrom(name: playFromName, type: PlaylingFromType.SELECTION),
+          PlayingFrom(name: playFromName, type: PlayingFromType.selection),
     );
   }
 
@@ -923,7 +923,7 @@ class HomeScreenController extends GetxController {
       list,
       0,
       playfrom:
-          PlaylingFrom(name: playFromName, type: PlaylingFromType.PLAYLIST),
+          PlayingFrom(name: playFromName, type: PlayingFromType.playlist),
     );
   }
 
@@ -942,7 +942,7 @@ class HomeScreenController extends GetxController {
       list,
       0,
       playfrom:
-          PlaylingFrom(name: playFromName, type: PlaylingFromType.PLAYLIST),
+          PlayingFrom(name: playFromName, type: PlayingFromType.playlist),
     );
   }
 

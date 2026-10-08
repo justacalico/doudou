@@ -8,7 +8,7 @@ import 'package:doudou/utils/helper.dart';
 import 'package:hive/hive.dart';
 
 import '../../../mixins/additional_operation_mixin.dart';
-import '../../../models/media_Item_builder.dart';
+import '../../../models/media_item_builder.dart';
 import '../Home/home_screen_controller.dart';
 import '../Library/library_controller.dart';
 import '../Settings/settings_screen_controller.dart';

@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 
 import '/models/album.dart';
 import '/models/artist.dart';
-import '/models/playling_from.dart';
+import '/models/playing_from.dart';
 import '/models/playlist.dart';
 import '/ui/constants/doudou_design.dart';
 import '/utils/app_l10n.dart';
@@ -237,9 +237,9 @@ Widget buildTrackRowSection({
                     playerController.playHomeSectionSong(
                       items,
                       index,
-                      playfrom: PlaylingFrom(
+                      playfrom: PlayingFrom(
                         name: playLabel,
-                        type: PlaylingFromType.SELECTION,
+                        type: PlayingFromType.selection,
                       ),
                     );
                   },
@@ -672,9 +672,9 @@ Widget buildFreshPicksSection({
                       playerController.playHomeSectionSong(
                         items,
                         index,
-                        playfrom: PlaylingFrom(
+                        playfrom: PlayingFrom(
                           name: context.l10n.homeFreshPicks,
-                          type: PlaylingFromType.SELECTION,
+                          type: PlayingFromType.selection,
                         ),
                       );
                     }

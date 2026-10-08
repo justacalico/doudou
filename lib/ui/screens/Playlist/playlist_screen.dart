@@ -6,7 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '/models/playling_from.dart';
+import '/models/playing_from.dart';
 import '/models/thumbnail.dart';
 import '/ui/constants/layout.dart';
 import '/ui/widgets/playlist_album_scroll_behaviour.dart';
@@ -165,10 +165,10 @@ class PlaylistScreen extends StatelessWidget {
                                   songsToplay.shuffle();
                                   playerController.playPlayListSong(
                                       songsToplay, 0,
-                                      playfrom: PlaylingFrom(
+                                      playfrom: PlayingFrom(
                                           name: playlistController
                                               .playlist.value.title,
-                                          type: PlaylingFromType.PLAYLIST));
+                                          type: PlayingFromType.playlist));
                                 },
                                 icon: const Icon(Icons.shuffle,
                                     size: 20, color: Colors.white38),
@@ -180,10 +180,10 @@ class PlaylistScreen extends StatelessWidget {
                                       List<MediaItem>.from(
                                           playlistController.songList),
                                       0,
-                                      playfrom: PlaylingFrom(
+                                      playfrom: PlayingFrom(
                                           name: playlistController
                                               .playlist.value.title,
-                                          type: PlaylingFromType.PLAYLIST));
+                                          type: PlayingFromType.playlist));
                                 },
                                 child: Container(
                                   width: 56,
@@ -250,10 +250,10 @@ class PlaylistScreen extends StatelessWidget {
                                   List<MediaItem>.from(
                                       playlistController.songList),
                                   songIndex,
-                                  playfrom: PlaylingFrom(
+                                  playfrom: PlayingFrom(
                                       name: playlistController
                                           .playlist.value.title,
-                                      type: PlaylingFromType.PLAYLIST));
+                                      type: PlayingFromType.playlist));
                             },
                             song: song,
                             playlist: playlistController.playlist.value,

@@ -17,7 +17,7 @@ import '../ui/widgets/snackbar.dart';
 import '/services/permission_service.dart';
 import '../ui/screens/Settings/settings_screen_controller.dart';
 import '/utils/helper.dart';
-import '/models/media_Item_builder.dart';
+import '/models/media_item_builder.dart';
 import '../ui/screens/Library/library_controller.dart';
 import '/services/backend/backend_factory.dart';
 import 'music_service.dart';

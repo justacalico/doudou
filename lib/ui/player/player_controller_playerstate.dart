@@ -233,8 +233,8 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
             // Enable radio mode if not already enabled
             if (!isRadioModeOn) {
               isRadioModeOn = true;
-              playinfrom.value = PlaylingFrom(
-                  type: PlaylingFromType.SELECTION,
+              playinfrom.value = PlayingFrom(
+                  type: PlayingFromType.selection,
                   name: AppLocalizations.of(Get.context!)!.startRadio);
               // Disable queue loop mode if it's enabled
               if (isQueueLoopModeEnabled.isTrue) {

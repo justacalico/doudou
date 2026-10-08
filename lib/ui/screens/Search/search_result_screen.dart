@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
@@ -42,7 +41,7 @@ class SearchResultScreen extends StatelessWidget {
                               searchResScrController.onDestinationSelected,
                           minWidth: 60,
                           destinations: (searchResScrController
-                                      .isResultContentFetced.value &&
+                                      .isResultContentFetched.value &&
                                   searchResScrController.railItems.isNotEmpty)
                               ? [
                                   railDestination(context, context.l10n.results),
@@ -137,23 +136,9 @@ class Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (kDebugMode) {
-      print('Body build - navigationRailCurrentIndex: ${searchResScrController.navigationRailCurrentIndex.value}');
-      print('Body build - isResultContentFetced: ${searchResScrController.isResultContentFetced.value}');
-      print('Body build - railItems: ${searchResScrController.railItems}');
-      print('Body build - resultContent keys: ${searchResScrController.resultContent.keys}');
-      print('Body build - resultContent: ${searchResScrController.resultContent}');
-    }
-
     if (searchResScrController.navigationRailCurrentIndex.value == 0) {
       return Obx(() {
-        if (kDebugMode) {
-          print('Results tab - isResultContentFetced: ${searchResScrController.isResultContentFetced.value}');
-          print('Results tab - railItems.isEmpty: ${searchResScrController.railItems.isEmpty}');
-          print('Results tab - railItems: ${searchResScrController.railItems}');
-        }
-
-        if (searchResScrController.isResultContentFetced.isTrue &&
+        if (searchResScrController.isResultContentFetched.isTrue &&
             searchResScrController.railItems.isEmpty) {
           return Center(
             child: Column(
@@ -167,7 +152,7 @@ class Body extends StatelessWidget {
               ],
             ),
           );
-        } else if (searchResScrController.isResultContentFetced.isTrue) {
+        } else if (searchResScrController.isResultContentFetched.isTrue) {
           return ResultWidget(searchResScrController: searchResScrController);
         } else {
           return const Center(
@@ -176,14 +161,10 @@ class Body extends StatelessWidget {
         }
       });
     } else {
-      if (searchResScrController.isResultContentFetced.isTrue) {
+      if (searchResScrController.isResultContentFetched.isTrue) {
         final topPadding = context.isLandscape ? kTopPaddingLandscape : kTopPaddingSearch;
         final name = searchResScrController.railItems[
             searchResScrController.navigationRailCurrentIndex.value - 1];
-        if (kDebugMode) {
-          print('Tab $name - topPadding: $topPadding');
-          print('Tab $name - scrollController: ${searchResScrController.scrollControllers[name]}');
-        }
         return SeparateTabItemWidget(
           items: const [],
           title: name,

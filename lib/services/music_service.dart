@@ -14,10 +14,7 @@ import 'constant.dart';
 import 'continuations.dart';
 import 'nav_parser.dart';
 
-enum AudioQuality {
-  Low,
-  High,
-}
+enum AudioQuality { low, high }
 
 bool _isSongLikeCategory(String category) {
   final normalized = category.toLowerCase().replaceAll(RegExp(r'[\s_\-]+'), '');
@@ -172,7 +169,7 @@ class MusicServices extends getx.GetxService {
     return home;
   }
 
-  Future<List<Map<String, dynamic>>> getCharts(String catogory,
+  Future<List<Map<String, dynamic>>> getCharts(String category,
       {String? countryCode}) async {
     final List<Map<String, dynamic>> charts = [];
     final data = Map.from(_context);
@@ -197,7 +194,7 @@ class MusicServices extends getx.GetxService {
           "Video charts") {
         for (dynamic item in result['musicCarouselShelfRenderer']['contents']) {
           final chartItem =
-              await getChartItems(parseChartsItemBrowseId(item), catogory);
+              await getChartItems(parseChartsItemBrowseId(item), category);
           charts.add(chartItem);
         }
       } else {
@@ -209,8 +206,8 @@ class MusicServices extends getx.GetxService {
   }
 
   Future<Map<String, dynamic>> getChartItems(
-      Map<String, dynamic> item, String catogory) async {
-    final catString = catogory == "TMV" ? "Top Music Videos" : "Trending";
+      Map<String, dynamic> item, String category) async {
+    final catString = category == "TMV" ? "Top Music Videos" : "Trending";
     if ((item['title'])!.contains(catString)) {
       final songs = (await getPlaylistOrAlbumSongs(
           playlistId: item['browseId']))['tracks'];
@@ -619,7 +616,6 @@ class MusicServices extends getx.GetxService {
     final response = (await _sendRequest("search", data)).data;
 
     if (kDebugMode) {
-      print('Search raw response: $response');
     }
 
     if (response['contents'] == null) {
@@ -684,8 +680,6 @@ class MusicServices extends getx.GetxService {
     results = nav(results, ['sectionListRenderer', 'contents']);
 
     if (kDebugMode) {
-      print('Search results after nav: $results');
-      print('Search results length: ${results.length}');
     }
 
     if (results.length == 1 && results[0]['itemSectionRenderer'] != null) {

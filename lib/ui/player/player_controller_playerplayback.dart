@@ -85,8 +85,8 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
     }
 
     /// update playing from value
-    playinfrom.value = PlaylingFrom(
-        type: PlaylingFromType.SELECTION,
+    playinfrom.value = PlayingFrom(
+        type: PlayingFromType.selection,
         name: radio
             ? l10nFromPrefs().startRadio
             : l10nFromPrefs().randomSelection);
@@ -228,7 +228,7 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
   }
 
   Future<void> playPlayListSong(List<MediaItem> mediaItems, int index,
-      {PlaylingFrom? playfrom}) async {
+      {PlayingFrom? playfrom}) async {
     final settings = Get.find<SettingsScreenController>();
     final server = settings.activeServer;
     final isYouTube = server?.type == ServerType.youtubeMusic;
@@ -240,7 +240,7 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
 
     /// update playing from value
     playinfrom.value =
-        playfrom ?? PlaylingFrom(type: PlaylingFromType.SELECTION);
+        playfrom ?? PlayingFrom(type: PlayingFromType.selection);
 
     //for changing home content based on last interation
     Future.delayed(const Duration(seconds: 3), () {
@@ -280,7 +280,7 @@ mixin _PlayerPlaybackMixin on _PlayerControllerBase {
   /// queueing the whole section like a playlist. Other servers keep the
   /// section-as-playlist behaviour.
   Future<void> playHomeSectionSong(List<MediaItem> mediaItems, int index,
-      {PlaylingFrom? playfrom}) async {
+      {PlayingFrom? playfrom}) async {
     final settings = Get.find<SettingsScreenController>();
     final isYouTube = settings.activeServer?.type == ServerType.youtubeMusic;
     final autoRadioEnabled =

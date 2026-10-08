@@ -82,7 +82,7 @@ class _SideBarAnimatedLocalState extends State<SideBarAnimatedLocal>
   void initState() {
     super.initState();
     if (widget.sidebarItems.isEmpty) {
-      throw "Side bar Items Can't be empty";
+      throw ArgumentError('Side bar items cannot be empty');
     }
     sideBarItemHeight = 48;
     _itemIndex = widget.initialIndex.toDouble();

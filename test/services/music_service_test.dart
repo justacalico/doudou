@@ -28,8 +28,8 @@ void main() {
 
   group('AudioQuality', () {
     test('has Low and High values', () {
-      expect(AudioQuality.values, contains(AudioQuality.Low));
-      expect(AudioQuality.values, contains(AudioQuality.High));
+      expect(AudioQuality.values, contains(AudioQuality.low));
+      expect(AudioQuality.values, contains(AudioQuality.high));
     });
   });
 

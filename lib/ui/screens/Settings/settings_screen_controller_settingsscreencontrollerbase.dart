@@ -10,7 +10,7 @@ mixin _SettingsScreenControllerBase on GetxController {
   final skipSilenceEnabled = false.obs;
   final loudnessNormalizationEnabled = false.obs;
   final noOfHomeScreenContent = 3.obs;
-  final streamingQuality = AudioQuality.High.obs;
+  final streamingQuality = AudioQuality.high.obs;
   final playerUi = 0.obs;
   final slidableActionEnabled = true.obs;
   final isIgnoringBatteryOptimizations = false.obs;

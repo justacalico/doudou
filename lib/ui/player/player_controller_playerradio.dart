@@ -18,8 +18,8 @@ mixin _PlayerRadioMixin on _PlayerControllerBase {
         );
         radioInitiatorItem = mediaItem;
         isRadioModeOn = true;
-        playinfrom.value = PlaylingFrom(
-          type: PlaylingFromType.SELECTION,
+        playinfrom.value = PlayingFrom(
+          type: PlayingFromType.selection,
           name: AppLocalizations.of(Get.context!)!.startRadio);
         // Disable queue loop mode if it's enabled
         if (isQueueLoopModeEnabled.isTrue) {

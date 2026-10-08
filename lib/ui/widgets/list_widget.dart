@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import '/models/album.dart';
 import '/ui/models/content_category.dart';
 import '../../models/artist.dart';
-import '../../models/playling_from.dart';
+import '../../models/playing_from.dart';
 import '../../models/playlist.dart';
 import '../../utils/app_l10n.dart';
 import '../navigator.dart';
@@ -118,16 +118,16 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
                 // if song is from artist then play from artist
                 ? playerController.playPlayListSong(
                     List<MediaItem>.from(items), index,
-                    playfrom: PlaylingFrom(
-                        type: PlaylingFromType.ARTIST,
+                    playfrom: PlayingFrom(
+                        type: PlayingFromType.artist,
                         name: artist?.name ?? "........."))
                 :
                 // if playlist is not null then play from playlist else play from album
                 playlist != null && album == null
                     ? playerController.playPlayListSong(
                         List<MediaItem>.from(items), index,
-                        playfrom: PlaylingFrom(
-                          type: PlaylingFromType.PLAYLIST,
+                        playfrom: PlayingFrom(
+                          type: PlayingFromType.playlist,
                           name: playlist.title,
                         ))
                     : playerController

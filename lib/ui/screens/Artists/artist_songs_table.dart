@@ -4,7 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '/models/playling_from.dart';
+import '/models/playing_from.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/shell_controller.dart';
 import '/ui/widgets/songinfo_bottom_sheet.dart';
@@ -76,7 +76,7 @@ class ArtistSongsTable extends StatelessWidget {
               playerController.playPlayListSong(
                 list,
                 entry.key,
-                playfrom: PlaylingFrom(type: PlaylingFromType.ARTIST, name: artistName),
+                playfrom: PlayingFrom(type: PlayingFromType.artist, name: artistName),
               );
             },
             onLongPress: () {
