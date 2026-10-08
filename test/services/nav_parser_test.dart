@@ -1080,4 +1080,133 @@ void main() {
       expect(parsed, [1, 2]);
     });
   });
+
+  group('parseSearchResults', () {
+    const resultTypes = ['artist', 'playlist', 'song', 'video', 'station'];
+
+    Map<String, dynamic> artistItem(List<dynamic> subtitleRuns) {
+      return {
+        'musicResponsiveListItemRenderer': {
+          'flexColumns': [
+            {
+              'musicResponsiveListItemFlexColumnRenderer': {
+                'text': {
+                  'runs': [
+                    {'text': 'DigBar'}
+                  ]
+                }
+              }
+            },
+            {
+              'musicResponsiveListItemFlexColumnRenderer': {
+                'text': {'runs': subtitleRuns}
+              }
+            },
+          ],
+          'navigationEndpoint': {
+            'browseEndpoint': {'browseId': 'UCdigbar'}
+          },
+          'thumbnailRenderer': {
+            'musicThumbnailRenderer': {
+              'thumbnail': {
+                'thumbnails': [
+                  {'url': 'https://example.com/digbar.jpg'}
+                ]
+              }
+            }
+          },
+        }
+      };
+    }
+
+    test('parses an artist whose subtitle has exactly two runs', () {
+      final items = parseSearchResults(
+        [
+          artistItem([
+            {'text': 'Artist'},
+            {'text': ' • '},
+          ])
+        ],
+        resultTypes,
+        null,
+        'Artists',
+      );
+
+      expect(items, hasLength(1));
+      expect(items.single, isA<Artist>());
+      expect((items.single as Artist).subscribers, '');
+    });
+
+    test('extracts subscriber text for an artist', () {
+      final items = parseSearchResults(
+        [
+          artistItem([
+            {'text': 'Artist'},
+            {'text': ' • '},
+            {'text': '12K subscribers'},
+          ])
+        ],
+        resultTypes,
+        null,
+        'Artists',
+      );
+
+      expect(items, hasLength(1));
+      final artist = items.single as Artist;
+      expect(artist.name, 'DigBar');
+      expect(artist.browseId, 'UCdigbar');
+      expect(artist.subscribers, '12K subscribers');
+    });
+
+    test('skips malformed items instead of failing the whole search', () {
+      final items = parseSearchResults(
+        [
+          {'unexpectedRenderer': {}},
+          {'musicResponsiveListItemRenderer': null},
+          {'musicResponsiveListItemRenderer': <String, dynamic>{}},
+          'not a map',
+          artistItem([
+            {'text': 'Artist'}
+          ]),
+        ],
+        resultTypes,
+        null,
+        'mixed',
+      );
+
+      expect(items, hasLength(1));
+      expect(items.single, isA<Artist>());
+    });
+
+    test('skips items whose flex columns are missing', () {
+      final items = parseSearchResults(
+        [
+          {
+            'musicResponsiveListItemRenderer': {
+              'flexColumns': [
+                {
+                  'musicResponsiveListItemFlexColumnRenderer': {
+                    'text': {
+                      'runs': [
+                        {'text': 'Only title'}
+                      ]
+                    }
+                  }
+                },
+              ],
+            }
+          },
+          artistItem([
+            {'text': 'Artist'}
+          ]),
+        ],
+        resultTypes,
+        null,
+        'mixed',
+      );
+
+      expect(items, hasLength(1));
+      expect(items.single, isA<Artist>());
+    });
+  });
 }

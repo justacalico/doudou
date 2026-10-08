@@ -28,7 +28,15 @@ class SearchResultScreenController extends GetxController
       Get.find<SettingsScreenController>().currentBackend;
   final queryString = ''.obs;
   final railItems = <String>[].obs;
-  final railitemHeight = Get.size.height.obs;
+  final railitemHeight = 0.0.obs;
+
+  double _screenHeight() {
+    try {
+      return Get.size.height;
+    } catch (_) {
+      return 0;
+    }
+  }
   final additionalParamNext = {};
   bool continuationInProgress = false;
   TabController? tabController;
@@ -64,22 +72,28 @@ class SearchResultScreenController extends GetxController
       final tabName = railItems[value - 1];
       final tabCategory = ContentCategoryMapper.fromKey(tabName);
       final itemCount = tabCategory.isSongLike ? 25 : 10;
-      final x = await _backend.search(queryString.value,
-          filter: tabName.replaceAll(" ", "_").toLowerCase(),
-          limit: itemCount,
-          filterParams: resultContent['searchEndpoint']?[tabName]);
-      separatedResultContent[tabName] = _normalizeContentForTab(
-        tabName,
-        x[tabName],
-      );
-      additionalParamNext[tabName] = x['params'];
+      try {
+        final x = await _backend.search(queryString.value,
+            filter: tabName.replaceAll(" ", "_").toLowerCase(),
+            limit: itemCount,
+            filterParams: resultContent['searchEndpoint']?[tabName]);
+        separatedResultContent[tabName] = _normalizeContentForTab(
+          tabName,
+          x[tabName],
+        );
+        additionalParamNext[tabName] = x['params'];
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=search.tabContent] Failed to fetch "$tabName" results: $e\n$st');
+        separatedResultContent[tabName] ??= [];
+      }
       isSeparatedResultContentFetced.value = true;
       final scrollController = scrollControllers[tabName];
-      (scrollController)!.addListener(() {
+      scrollController?.addListener(() {
         double maxScroll = scrollController.position.maxScrollExtent;
         double currentScroll = scrollController.position.pixels;
         if (currentScroll >= maxScroll / 2 &&
-            additionalParamNext[tabName]['additionalParams'] !=
+            additionalParamNext[tabName]?['additionalParams'] !=
                 '&ctoken=null&continuation=null') {
           if (!continuationInProgress) {
             printINFO("Acchhsk");
@@ -93,19 +107,24 @@ class SearchResultScreenController extends GetxController
   }
 
   Future<void> getContinuationContents() async {
-    final tabName = railItems[navigationRailCurrentIndex.value - 1];
+    try {
+      final tabName = railItems[navigationRailCurrentIndex.value - 1];
 
-    final x = await _backend.getSearchContinuation(
-        Map<String, dynamic>.from(additionalParamNext[tabName] ?? {}));
-    final list = x[tabName];
-    if (list != null) {
-      final toAdd = _normalizeContentForTab(tabName, list);
-      (separatedResultContent[tabName] as List).addAll(toAdd);
+      final x = await _backend.getSearchContinuation(
+          Map<String, dynamic>.from(additionalParamNext[tabName] ?? {}));
+      final list = x[tabName];
+      if (list != null) {
+        final toAdd = _normalizeContentForTab(tabName, list);
+        (separatedResultContent[tabName] as List).addAll(toAdd);
+      }
+      if (x['params'] != null) additionalParamNext[tabName] = x['params'];
+      separatedResultContent.refresh();
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=search.continuation] Failed to fetch more results: $e\n$st');
+    } finally {
+      continuationInProgress = false;
     }
-    if (x['params'] != null) additionalParamNext[tabName] = x['params'];
-    separatedResultContent.refresh();
-
-    continuationInProgress = false;
   }
 
   void viewAllCallback(String text) {
@@ -232,7 +251,15 @@ class SearchResultScreenController extends GetxController
       if (kDebugMode) {
       }
       final backend = _backend;
-      final rawResult = await backend.search(queryString.value);
+      Map<String, dynamic> rawResult;
+      try {
+        rawResult = await backend.search(queryString.value);
+      } catch (e, st) {
+        printWarning(
+            '[RECOVERABLE][opId=search.init] Search failed for "${queryString.value}": $e\n$st');
+        isResultContentFetched.value = true;
+        return;
+      }
       if (kDebugMode) {
       }
       resultContent.value = _normalizeSearchResults(rawResult);
@@ -262,8 +289,8 @@ class SearchResultScreenController extends GetxController
               ContentCategoryMapper.fromKey(element).isPlaylistLike)
           .length;
       final calH = 30 + (railItems.length + 1 - len) * 123 + len * 150.0;
-      railitemHeight.value =
-          calH >= railitemHeight.value ? calH : railitemHeight.value;
+      final screenHeight = _screenHeight();
+      railitemHeight.value = calH >= screenHeight ? calH : screenHeight;
 
       //ScrollControlers for list Continuation callback implementarion
       for (String item in railItems) {

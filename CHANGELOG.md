@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 23.0.0
 
+- Fixed search getting stuck on an endless loading spinner for some queries. A single malformed result item (missing flex columns, a renderer the app does not know, an artist subtitle with an unexpected shape) crashed the whole response parse, so the results screen never finished loading. Malformed items are now skipped one by one, artist results without a subscriber count no longer crash the parser, and a failed search falls back to the no-results view instead of spinning forever. Switching to a result tab and loading more results also recover from backend errors instead of stalling.
 - Fixed the settings page title floating far below the top of the window. The settings header now uses the same top spacing as the library and search pages, so "Settings" lines up with the page titles on every other page instead of sitting under a large empty gap.
 - Fixed the search page showing a second rounded box inside the search bar. The themed input border and fill leaked through the search field's decoration, so an extra outlined box was drawn around the placeholder text.
 - Fixed a YouTube Music request retry loop that could hammer the InnerTube endpoint forever. A non-200 response used to retry the same request recursively with no delay or limit; requests now retry a bounded number of times with exponential backoff and surface a network error when they still fail.
