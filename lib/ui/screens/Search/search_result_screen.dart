@@ -11,7 +11,7 @@ import '../../widgets/animated_screen_transition.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/search_related_widgets.dart';
 import '../../widgets/separate_tab_item_widget.dart';
-import 'components/search_query_edit_field.dart';
+import 'components/search_query_bar.dart';
 import 'search_result_screen_controller.dart';
 
 class SearchResultScreen extends StatelessWidget {
@@ -149,13 +149,11 @@ class Body extends StatelessWidget {
                   context.l10n.nomatch,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                const SizedBox(height: 16),
                 SizedBox(
-                  width: 320,
-                  child: SearchQueryEditField(
-                    controller: searchResScrController,
-                    style: Theme.of(context).textTheme.titleMedium,
-                    textAlign: TextAlign.center,
-                  ),
+                  width: 360,
+                  child:
+                      SearchQueryBar(controller: searchResScrController),
                 ),
               ],
             ),

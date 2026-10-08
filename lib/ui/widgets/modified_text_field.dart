@@ -8,7 +8,6 @@ class ModifiedTextField extends StatelessWidget {
   final InputDecoration? decoration;
   final bool obscureText;
   final TextAlign textAlign;
-  final TextStyle? style;
   final TextAlignVertical? textAlignVertical;
   final bool autofocus;
   final TextCapitalization textCapitalization;
@@ -24,7 +23,6 @@ class ModifiedTextField extends StatelessWidget {
       this.decoration,
       this.obscureText = false,
       this.textAlign = TextAlign.start,
-      this.style,
       this.textAlignVertical,
       this.autofocus = false,
       this.textCapitalization = TextCapitalization.none,
@@ -46,7 +44,6 @@ class ModifiedTextField extends StatelessWidget {
             decoration: decoration,
             obscureText: obscureText,
             textAlign: textAlign,
-            style: style,
             textAlignVertical: textAlignVertical,
             autofocus: autofocus,
             onChanged: onChanged,
