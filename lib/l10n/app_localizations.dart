@@ -3262,6 +3262,36 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'Last sync: {time}'**
   String lastSyncTime(String time);
+
+  /// No description provided for @mcpServer.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'MCP server'**
+  String get mcpServer;
+
+  /// No description provided for @mcpServerDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Let AI assistants control playback on this computer through the Model Context Protocol.'**
+  String get mcpServerDes;
+
+  /// No description provided for @mcpServerPort.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Port'**
+  String get mcpServerPort;
+
+  /// No description provided for @mcpServerInvalidPort.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Enter a port between 1024 and 65535'**
+  String get mcpServerInvalidPort;
+
+  /// No description provided for @mcpServerCopyAddress.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Copy address'**
+  String get mcpServerCopyAddress;
 }
 
 class _AppLocalizationsDelegate

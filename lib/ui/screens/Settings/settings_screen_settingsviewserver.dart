@@ -150,6 +150,26 @@ mixin _SettingsViewServerMixin on __SettingsViewStateBase {
           ),
         );
       }),
+      if (GetPlatform.isDesktop)
+        Obx(() {
+          final mcp = Get.find<McpServerService>();
+          return _SettingsListTile(
+            leading:
+                Icon(Icons.smart_toy_outlined, color: colors.textSecondary),
+            title: context.l10n.mcpServer,
+            subtitle: mcp.running.value
+                ? mcp.listenUrl
+                : context.l10n.mcpServerDes,
+            trailing: CustSwitch(
+              value: mcp.enabled.value,
+              onChanged: (v) => mcp.setEnabled(v),
+            ),
+            onTap: () => showDialog(
+              context: context,
+              builder: (_) => const McpServerDialog(),
+            ),
+          );
+        }),
     ];
   }
 

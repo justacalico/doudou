@@ -1623,4 +1623,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String lastSyncTime(String time) {
     return '上次同步：$time';
   }
+
+  @override
+  String get mcpServer => 'MCP 服务器';
+
+  @override
+  String get mcpServerDes => '允许 AI 助手通过 Model Context Protocol 控制此电脑上的播放。';
+
+  @override
+  String get mcpServerPort => '端口';
+
+  @override
+  String get mcpServerInvalidPort => '请输入 1024 到 65535 之间的端口号';
+
+  @override
+  String get mcpServerCopyAddress => '复制地址';
 }

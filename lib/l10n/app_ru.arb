@@ -1136,5 +1136,15 @@
         "type": "String"
       }
     }
-  }
+  },
+  "mcpServer": "MCP-сервер",
+  "@mcpServer": {},
+  "mcpServerDes": "Позволяет ИИ-ассистентам управлять воспроизведением на этом компьютере через Model Context Protocol.",
+  "@mcpServerDes": {},
+  "mcpServerPort": "Порт",
+  "@mcpServerPort": {},
+  "mcpServerInvalidPort": "Введите порт от 1024 до 65535",
+  "@mcpServerInvalidPort": {},
+  "mcpServerCopyAddress": "Скопировать адрес",
+  "@mcpServerCopyAddress": {}
 }
