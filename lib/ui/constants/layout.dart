@@ -1,6 +1,4 @@
-const double kTopPaddingDesktop = 85.0;
 const double kTopPaddingLandscape = 50.0;
-const double kTopPaddingNarrow = 80.0;
 const double kTopPaddingDefault = 90.0;
 const double kTopPaddingSearch = 80.0;
 const double kContentLeftPaddingWithBottomNav = 14.0;
