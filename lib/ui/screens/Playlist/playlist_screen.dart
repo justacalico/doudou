@@ -11,10 +11,8 @@ import '/models/thumbnail.dart';
 import '/ui/constants/layout.dart';
 import '/ui/widgets/playlist_album_scroll_behaviour.dart';
 import '../../../services/downloader.dart';
-import '../../navigator.dart';
 import '../../player/player_controller.dart';
 import '../../shell_controller.dart';
-import '../../widgets/create_playlist_dialog.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/library_bookmark_icon.dart';
 import '../../widgets/playlist_export_dialog.dart';
@@ -320,16 +318,6 @@ class PlaylistScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      _pillIconButton(
-                        icon: Icons.more_vert,
-                        onPressed: () {
-                          if (!playlistController.playlist.value.isCloudPlaylist &&
-                              playlistController.isDefaultPlaylist.isFalse) {
-                            _showMoreOptions(context, playlistController);
-                          }
-                        },
-                        visible: !playlistController.appBarTitleVisible.value,
-                      ),
                     ],
                   ),
                 ),
@@ -459,56 +447,6 @@ class PlaylistScreen extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  void _showMoreOptions(
-      BuildContext context, PlaylistScreenController playlistController) {
-    showModalBottomSheet(
-      constraints: const BoxConstraints(maxWidth: 500),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-      ),
-      context: Get.find<ShellController>().overlayContextOrFallback!,
-      barrierColor: Colors.transparent.withAlpha(100),
-      builder: (context) => SizedBox(
-        height: 140,
-        child: Column(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: Text(context.l10n.renamePlaylist),
-              onTap: () {
-                Navigator.of(context).pop();
-                showDialog(
-                  context: context,
-                  builder: (context) => CreateNRenamePlaylistPopup(
-                      renamePlaylist: true,
-                      playlist: playlistController.playlist.value),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete),
-              title: Text(context.l10n.removePlaylist),
-                onTap: () {
-                final l10n = context.l10n;
-                Navigator.of(context).pop();
-                playlistController
-                    .addNremoveFromLibrary(playlistController.playlist.value,
-                        add: false)
-                    .then((value) {
-                  Get.nestedKey(ScreenNavigationSetup.id)!.currentState!.pop();
-                  ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-                      Get.context!,
-                      value ? l10n.playlistRemovedAlert : l10n.operationFailed,
-                      size: SnackBarSize.MEDIUM));
-                });
-              },
-            ),
-          ],
-        ),
       ),
     );
   }
