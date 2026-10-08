@@ -10,7 +10,6 @@ import '/models/server.dart';
 
 class SearchScreenController extends GetxController with ProcessLink {
   final textInputController = TextEditingController();
-  final searchFieldFocusNode = FocusNode();
   final musicServices = Get.find<MusicServices>();
   final suggestionList = [].obs;
   final historyQuerylist = [].obs;
@@ -67,12 +66,6 @@ class SearchScreenController extends GetxController with ProcessLink {
     await onChanged(txt);
   }
 
-  void requestSearchFieldFocus() {
-    if (searchFieldFocusNode.canRequestFocus) {
-      searchFieldFocusNode.requestFocus();
-    }
-  }
-
   Future<void> addToHistryQueryList(String txt) async {
     if (_queryBoxServerId != currentServerId()) await _loadQueryBox();
     if (historyQuerylist.length > 9) {
@@ -118,7 +111,6 @@ class SearchScreenController extends GetxController with ProcessLink {
   @override
   void dispose() {
     textInputController.dispose();
-    searchFieldFocusNode.dispose();
     if (_queryBoxServerId != null) queryBox.close();
     super.dispose();
   }

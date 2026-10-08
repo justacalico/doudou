@@ -20,11 +20,11 @@ class _FakeHomeScreenController extends HomeScreenController {
 }
 
 class _StubResultController extends SearchResultScreenController {
-  int editTaps = 0;
+  final submitted = <String>[];
 
   @override
-  void editQuery() {
-    editTaps++;
+  Future<void> submitSearch(String value) async {
+    submitted.add(value);
   }
 }
 
@@ -58,35 +58,54 @@ void main() {
   });
 
   group('SearchQueryBar', () {
-    testWidgets('shows the current query with search and edit icons',
-        (tester) async {
-      controller.queryString.value = 'white rabbit';
+    testWidgets('shows the current query inside the bar', (tester) async {
+      controller.queryEditingController.text = 'white rabbit';
 
       await tester.pumpWidget(_buildSubject(controller));
 
       expect(find.text('white rabbit'), findsOneWidget);
       expect(find.byIcon(Icons.search), findsOneWidget);
-      expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('updates when the query changes', (tester) async {
-      controller.queryString.value = 'white rabbit';
+    testWidgets('typing and submitting resubmits the search in place',
+        (tester) async {
+      controller.queryEditingController.text = 'white rabbit';
 
       await tester.pumpWidget(_buildSubject(controller));
-      controller.queryString.value = 'green rabbit';
+      await tester.enterText(find.byType(TextField), 'green rabbit');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
       await tester.pump();
 
-      expect(find.text('green rabbit'), findsOneWidget);
-      expect(find.text('white rabbit'), findsNothing);
+      expect(controller.submitted, ['green rabbit']);
     });
 
-    testWidgets('tapping the bar asks to edit the query', (tester) async {
-      controller.queryString.value = 'white rabbit';
+    testWidgets('renders the query with the titleMedium text style',
+        (tester) async {
+      controller.queryEditingController.text = 'white rabbit';
 
       await tester.pumpWidget(_buildSubject(controller));
-      await tester.tap(find.byType(SearchQueryBar));
 
-      expect(controller.editTaps, 1);
+      final context = tester.element(find.byType(TextField));
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.style?.fontSize,
+          Theme.of(context).textTheme.titleMedium?.fontSize);
+    });
+
+    testWidgets('clear button empties the query field', (tester) async {
+      controller.queryEditingController.text = 'white rabbit';
+
+      await tester.pumpWidget(_buildSubject(controller));
+      await tester.pump();
+
+      expect(find.byIcon(Icons.close), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pump();
+
+      expect(controller.queryEditingController.text, isEmpty);
+      expect(find.byIcon(Icons.close), findsNothing);
+      expect(controller.submitted, isEmpty);
     });
   });
 }

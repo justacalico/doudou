@@ -12,7 +12,6 @@ class SearchTextField extends StatelessWidget {
     required this.onSubmitted,
     required this.onClear,
     this.autofocus = false,
-    this.focusNode,
   });
 
   final TextEditingController controller;
@@ -20,7 +19,6 @@ class SearchTextField extends StatelessWidget {
   final void Function(String)? onSubmitted;
   final VoidCallback onClear;
   final bool autofocus;
-  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +30,6 @@ class SearchTextField extends StatelessWidget {
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       autofocus: autofocus,
-      focusNode: focusNode,
       cursorColor: theme.textTheme.bodySmall!.color,
       decoration: InputDecoration(
         border: InputBorder.none,

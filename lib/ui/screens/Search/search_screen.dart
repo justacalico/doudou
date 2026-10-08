@@ -134,7 +134,6 @@ class SearchScreen extends StatelessWidget {
                       },
                       child: SearchTextField(
                         controller: searchScreenController.textInputController,
-                        focusNode: searchScreenController.searchFieldFocusNode,
                         onChanged: searchScreenController.onChanged,
                         onSubmitted: submitSearch,
                         onClear: searchScreenController.reset,
@@ -142,7 +141,6 @@ class SearchScreen extends StatelessWidget {
                     )
                   : SearchTextField(
                 controller: searchScreenController.textInputController,
-                focusNode: searchScreenController.searchFieldFocusNode,
                 onChanged: searchScreenController.onChanged,
                 onSubmitted: submitSearch,
                 onClear: searchScreenController.reset,

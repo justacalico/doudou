@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:doudou/models/album.dart';
-import 'package:doudou/models/server.dart';
 import 'package:doudou/models/artist.dart';
 import 'package:doudou/models/playlist.dart';
 import 'package:doudou/services/backend/backend_capabilities.dart';
@@ -9,7 +9,6 @@ import 'package:doudou/services/backend/music_backend.dart';
 import 'package:doudou/services/music_service.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
 import 'package:doudou/ui/screens/Search/search_result_screen_controller.dart';
-import 'package:doudou/ui/screens/Search/search_screen_controller.dart';
 import 'package:doudou/ui/screens/Settings/settings_screen_controller.dart';
 import 'package:doudou/ui/shell_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -41,6 +40,7 @@ class _FakeBackend extends MusicBackend {
   Object? searchError;
   int searchCalls = 0;
   String? lastQuery;
+  Completer<void>? searchGate;
 
   Object? continuationError;
   Map<String, dynamic> continuationResult = {};
@@ -57,6 +57,8 @@ class _FakeBackend extends MusicBackend {
       dynamic filterParams}) async {
     searchCalls++;
     lastQuery = query;
+    final gate = searchGate;
+    if (gate != null) await gate.future;
     final error = searchError;
     if (error != null) throw error;
     return searchResult;
@@ -145,7 +147,6 @@ void main() {
     }
     controllers.clear();
     Get.rootController.routing.args = null;
-    Get.delete<SearchScreenController>(force: true);
     Get.delete<HomeScreenController>(force: true);
     Get.delete<SettingsScreenController>(force: true);
     Get.delete<ShellController>(force: true);
@@ -231,42 +232,50 @@ void main() {
     expect(controller.continuationInProgress, isFalse);
   });
 
-  group('editQuery', () {
-    testWidgets('restores the query into the search screen field',
+  group('submitSearch', () {
+    testWidgets('re-runs the search with the edited query', (tester) async {
+      backend.searchResult = {
+        'Songs': <dynamic>[],
+        'searchEndpoint': {'Songs': 'params'},
+      };
+
+      final controller = createController('white rabbit');
+      controller.onReady();
+      await pumpUntil(tester, () => controller.isResultContentFetched.value);
+      expect(backend.searchCalls, 1);
+
+      await controller.submitSearch('  green rabbit  ');
+      await pumpUntil(tester, () => controller.isResultContentFetched.value);
+
+      expect(backend.searchCalls, 2);
+      expect(backend.lastQuery, 'green rabbit');
+      expect(controller.queryString.value, 'green rabbit');
+      expect(controller.queryEditingController.text, 'green rabbit');
+    });
+
+    testWidgets('ignores unchanged, blank and cleared submissions',
         (tester) async {
-      backend.searchResult = {'Songs': <dynamic>[]};
-      (Get.find<SettingsScreenController>() as FakeSettingsScreenController)
-          .serverType = ServerType.subsonic;
-      final searchController = SearchScreenController();
-      Get.put<SearchScreenController>(searchController);
+      backend.searchResult = {
+        'Songs': <dynamic>[],
+        'searchEndpoint': {'Songs': 'params'},
+      };
 
       final controller = createController('white rabbit');
       controller.onReady();
       await pumpUntil(tester, () => controller.isResultContentFetched.value);
 
-      controller.editQuery();
+      await controller.submitSearch('white rabbit');
+      await controller.submitSearch('   ');
 
-      expect(searchController.textInputController.text, 'white rabbit');
-      expect(searchController.textInputController.selection.baseOffset,
-          'white rabbit'.length);
+      controller.clearQueryEditText();
+      await controller.submitSearch('');
+
+      expect(backend.searchCalls, 1);
+      expect(controller.queryString.value, 'white rabbit');
+      expect(controller.queryEditingController.text, 'white rabbit');
     });
 
-    testWidgets('leaves the search field untouched for an empty query',
-        (tester) async {
-      backend.searchResult = {'Songs': <dynamic>[]};
-      final searchController = SearchScreenController();
-      Get.put<SearchScreenController>(searchController);
-
-      final controller = createController('   ');
-      controller.onReady();
-      await pumpUntil(tester, () => controller.isResultContentFetched.value);
-
-      controller.editQuery();
-
-      expect(searchController.textInputController.text, isEmpty);
-    });
-
-    testWidgets('does not throw without a registered search controller',
+    testWidgets('drops a second submission while a search is running',
         (tester) async {
       backend.searchResult = {'Songs': <dynamic>[]};
 
@@ -274,8 +283,39 @@ void main() {
       controller.onReady();
       await pumpUntil(tester, () => controller.isResultContentFetched.value);
 
-      expect(controller.editQuery, returnsNormally);
-      controller.editQuery();
+      backend.searchGate = Completer<void>();
+      final pending = controller.submitSearch('green rabbit');
+      await pumpUntil(tester, () => backend.searchCalls == 2);
+
+      await controller.submitSearch('blue rabbit');
+
+      expect(backend.searchCalls, 2);
+
+      backend.searchGate!.complete();
+      await pending;
+      await pumpUntil(tester, () => controller.isResultContentFetched.value);
+      expect(controller.queryString.value, 'green rabbit');
+    });
+
+    testWidgets('a failed re-search resolves loading instead of spinning',
+        (tester) async {
+      backend.searchResult = {
+        'Songs': <dynamic>[],
+        'searchEndpoint': {'Songs': 'params'},
+      };
+
+      final controller = createController('white rabbit');
+      controller.onReady();
+      await pumpUntil(tester, () => controller.isResultContentFetched.value);
+      expect(controller.railItems, isNotEmpty);
+
+      backend.searchError = Exception('re-search boom');
+      await controller.submitSearch('broken query');
+
+      expect(controller.isResultContentFetched.value, isTrue);
+      expect(controller.queryString.value, 'broken query');
+      expect(controller.railItems, isEmpty);
+      expect(controller.queryEditingController.text, 'broken query');
     });
   });
 }

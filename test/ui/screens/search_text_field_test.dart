@@ -11,7 +11,6 @@ Widget buildSubject({
   void Function(String)? onChanged,
   void Function(String)? onSubmitted,
   VoidCallback? onClear,
-  FocusNode? focusNode,
 }) {
   final textController = controller ?? TextEditingController();
   return MaterialApp(
@@ -30,7 +29,6 @@ Widget buildSubject({
         onChanged: onChanged ?? (_) {},
         onSubmitted: onSubmitted ?? (_) {},
         onClear: onClear ?? () {},
-        focusNode: focusNode,
       ),
     ),
   );
@@ -90,19 +88,6 @@ void main() {
       await tester.pumpWidget(buildSubject(controller: controller));
 
       expect(find.text('Songs, Playlist, Album or Artist'), findsOneWidget);
-    });
-
-    testWidgets('forwards the focus node to the field', (tester) async {
-      final controller = TextEditingController();
-      final node = FocusNode();
-      addTearDown(controller.dispose);
-      addTearDown(node.dispose);
-
-      await tester.pumpWidget(
-          buildSubject(controller: controller, focusNode: node));
-
-      expect(tester.widget<TextField>(find.byType(TextField)).focusNode,
-          same(node));
     });
 
     testWidgets('wires onChanged and onSubmitted through', (tester) async {
