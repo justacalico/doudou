@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
 import 'package:doudou/server/doudou_server.dart';
+import 'package:doudou/server/sync_auth.dart';
 import 'package:doudou/server/hmb_archive.dart';
 import 'package:doudou/server/sync_client.dart';
 import 'package:doudou/server/sync_model.dart';
@@ -57,6 +59,49 @@ void main() {
     await boot();
     expect(() => client!.listBoxes(),
         throwsA(isA<SyncServerException>()));
+  });
+
+  test('login is rate limited after repeated failures', () async {
+    server = DoudouSyncServer(
+        dataDir: dataDir.path,
+        rateLimiter: LoginRateLimiter(maxFailures: 2));
+    await server!.start(port: 0, password: password);
+    client = DoudouSyncClient(baseUrl: 'http://127.0.0.1:${server!.port}');
+
+    for (var i = 0; i < 2; i++) {
+      await expectLater(
+        () => client!.login('wrong'),
+        throwsA(isA<SyncServerException>()
+            .having((e) => e.statusCode, 'statusCode', 401)),
+      );
+    }
+
+    // Locked out now: even the right password gets a 429.
+    await expectLater(
+      () => client!.login(password),
+      throwsA(isA<SyncServerException>()
+          .having((e) => e.statusCode, 'statusCode', 429)),
+    );
+  });
+
+  test('a successful login still verifies against a legacy sha256 hash',
+      () async {
+    server = DoudouSyncServer(dataDir: dataDir.path);
+    await server!.start(port: 0, password: 'first');
+    await server!.stop();
+
+    // Rewrite the stored hash to the pre-PBKDF2 format to emulate an
+    // existing install upgrading.
+    final configFile = File('${dataDir.path}/server.json');
+    final config = jsonDecode(configFile.readAsStringSync());
+    config['passwordHash'] = legacyHashSyncPassword('first', config['salt']);
+    configFile.writeAsStringSync(jsonEncode(config));
+
+    server = DoudouSyncServer(dataDir: dataDir.path);
+    await server!.start(port: 0);
+    client = DoudouSyncClient(baseUrl: 'http://127.0.0.1:${server!.port}');
+    await client!.login('first');
+    expect(client!.token, isNotEmpty);
   });
 
   test('login returns a token that authorizes requests', () async {

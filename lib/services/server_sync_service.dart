@@ -30,6 +30,10 @@ class ServerSyncService extends GetxService {
 
   final enabled = false.obs;
   final connected = false.obs;
+
+  /// True when the stored token was rejected and no password is held, so the
+  /// user must re-enter the server password.
+  final authExpired = false.obs;
   final isSyncing = false.obs;
   final serverUrl = ''.obs;
   final lastSyncAt = Rxn<DateTime>();
@@ -93,9 +97,13 @@ class ServerSyncService extends GetxService {
     serverUrl.value = normalized;
     enabled.value = true;
     connected.value = true;
+    authExpired.value = false;
     lastError.value = '';
     await _prefs.put(urlPrefsKey, normalized);
-    await _prefs.put(passwordPrefsKey, password);
+    // The password is deliberately not persisted: the bearer token already
+    // authorizes every call, and a plaintext password on disk is only a gift
+    // for anyone who copies the profile or the synced AppPrefs box.
+    await _prefs.delete(passwordPrefsKey);
     await _prefs.put(tokenPrefsKey, client.token);
     await _prefs.put(enabledPrefsKey, true);
     _startTimer();
@@ -141,7 +149,9 @@ class ServerSyncService extends GetxService {
     } on SyncServerException catch (e) {
       if (e.isAuthError) {
         // The server token may have been rotated: try one fresh login with
-        // the stored password, then run the cycle again.
+        // the stored password, then run the cycle again. Installs that
+        // predate password-free storage may still hold it; the key is
+        // removed after this one use.
         final password = _prefs.get(passwordPrefsKey) as String?;
         if (password != null && await _relogin(client, password)) {
           try {
@@ -154,6 +164,9 @@ class ServerSyncService extends GetxService {
             lastError.value = '$e2';
           }
         } else {
+          // No usable credential left: surface a re-login form so the user
+          // can re-enter the server password instead of silently failing.
+          authExpired.value = true;
           lastError.value = 'Login failed';
         }
       } else {
@@ -174,6 +187,8 @@ class ServerSyncService extends GetxService {
     try {
       await client.login(password);
       await _prefs.put(tokenPrefsKey, client.token);
+      await _prefs.delete(passwordPrefsKey);
+      authExpired.value = false;
       return true;
     } catch (_) {
       return false;

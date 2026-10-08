@@ -106,7 +106,9 @@ class _SyncServerDialogState extends State<SyncServerDialog> {
               );
             }),
             Obx(() {
-              if (_sync.enabled.value) return const SizedBox.shrink();
+              if (_sync.enabled.value && !_sync.authExpired.value) {
+                return const SizedBox.shrink();
+              }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
