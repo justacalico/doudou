@@ -128,4 +128,35 @@ void main() {
     );
     expect(lyricsIcons, isNotEmpty);
   });
+
+  testWidgets('desktop mini player transport controls expose tooltips',
+      (tester) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(_wrap(const MiniPlayer()));
+    await tester.pumpAndSettle();
+
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    final messages = tester
+        .widgetList<Tooltip>(find.byType(Tooltip))
+        .map((t) => t.message)
+        .toSet();
+
+    // Screen readers and hover users get a label for each bare icon button.
+    expect(messages, containsAll([
+      l10n.favorite,
+      l10n.shuffle,
+      l10n.prev,
+      l10n.next,
+      l10n.playPause,
+      l10n.lyrics,
+      l10n.queue,
+      l10n.volume,
+      l10n.sleepTimer,
+      l10n.addToPlaylist,
+      l10n.songInfo,
+    ]));
+  });
 }

@@ -48,6 +48,12 @@ class _SyncServerDialogState extends State<SyncServerDialog> {
     _error.value = error;
   }
 
+  /// Bare addresses get an http:// prefix in DoudouSyncClient.normalizeUrl,
+  /// so anything that does not explicitly start with https ends up cleartext.
+  bool get _showsHttpWarning =>
+      _urlController.text.trim().isNotEmpty &&
+      !_urlController.text.trim().startsWith('https://');
+
   String _formatTime(DateTime time) =>
       '${time.hour.toString().padLeft(2, '0')}:'
       '${time.minute.toString().padLeft(2, '0')}:'
@@ -120,7 +126,27 @@ class _SyncServerDialogState extends State<SyncServerDialog> {
                     ),
                     keyboardType: TextInputType.url,
                     textInputAction: TextInputAction.next,
+                    onChanged: (_) => setState(() {}),
                   ),
+                  if (_showsHttpWarning)
+                    Padding(
+                      padding: const EdgeInsets.only(top: DoudouSpace.s8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.warning_amber_rounded,
+                              size: 18, color: theme.colorScheme.error),
+                          const SizedBox(width: DoudouSpace.s8),
+                          Expanded(
+                            child: Text(
+                              l10n.httpInsecureWarning,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.error),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   const SizedBox(height: DoudouSpace.s12),
                   TextFormField(
                     controller: _passwordController,

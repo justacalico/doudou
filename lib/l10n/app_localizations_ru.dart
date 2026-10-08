@@ -1379,6 +1379,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get password => 'Пароль';
 
   @override
+  String get httpInsecureWarning =>
+      'HTTP-соединение не зашифровано. Ваш пароль и данные прослушивания могут быть перехвачены в сети. По возможности используйте HTTPS.';
+
+  @override
   String get linkAlert => 'Успешно привязано!';
 
   @override

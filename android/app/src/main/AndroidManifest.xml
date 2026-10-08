@@ -3,6 +3,9 @@
    <uses-feature android:name="android.software.car.app.library" android:required="false" />
    <uses-feature android:name="android.software.leanback" android:required="false" />
    <uses-permission android:name="androidx.car.app.MEDIA_TEMPLATES"/>
+   <!-- Cleartext stays enabled because self-hosted media and sync
+        servers are commonly plain HTTP on LANs. The add-server and
+        sync dialogs warn the user whenever a connection is not HTTPS. -->
    <application
         android:label="Doudou"
         android:name="${applicationName}"

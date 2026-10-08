@@ -6,6 +6,7 @@ import 'package:doudou/ui/shell_controller.dart';
 import 'package:ionicons_plus/ionicons_plus.dart';
 
 import '/services/tv_service.dart';
+import '/utils/app_l10n.dart';
 import '/ui/widgets/lyrics_dialog.dart';
 import '/ui/widgets/song_info_dialog.dart';
 import '/ui/player/player_controller.dart';
@@ -127,6 +128,7 @@ class _MobileMiniPlayer extends StatelessWidget {
                   children: [
                     Obx(() => IconButton(
                           iconSize: 24,
+                          tooltip: context.l10n.favorite,
                           onPressed: controller.toggleFavourite,
                           icon: Icon(
                             controller.isCurrentSongFav.isTrue
@@ -144,6 +146,7 @@ class _MobileMiniPlayer extends StatelessWidget {
 
                       return IconButton(
                         iconSize: 28,
+                        tooltip: context.l10n.playPause,
                         onPressed: () {
                           if (isLoading) return;
                           isPlaying ? controller.pause() : controller.play();
@@ -169,6 +172,7 @@ class _MobileMiniPlayer extends StatelessWidget {
                     }),
                     IconButton(
                       iconSize: 28,
+                      tooltip: context.l10n.next,
                       onPressed: controller.next,
                       icon: Icon(Icons.skip_next_rounded, color: c.textPrimary),
                     ),
@@ -387,6 +391,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                             Row(
                               children: [
                                 Obx(() => _ControlIconButton(
+                                      tooltip: context.l10n.favorite,
                                       icon: controller.isCurrentSongFav.isFalse
                                           ? Icons.favorite_border
                                           : Icons.favorite,
@@ -398,6 +403,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                                 if (!compactDesktop) ...[
                                   const SizedBox(width: 4),
                                   Obx(() => _ControlIconButton(
+                                        tooltip: context.l10n.shuffle,
                                         icon: Ionicons.shuffle,
                                         onPressed: controller.toggleShuffleMode,
                                         isActive: controller
@@ -408,6 +414,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                             ),
                             const SizedBox(width: 8),
                             _ControlIconButton(
+                              tooltip: context.l10n.prev,
                               icon: Icons.skip_previous,
                               onPressed: (controller.currentQueue.isEmpty ||
                                       (controller.currentQueue.first.id ==
@@ -431,6 +438,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                                       (controller.currentQueue.last.id ==
                                           controller.currentSong.value?.id));
                               return _ControlIconButton(
+                                tooltip: context.l10n.next,
                                 icon: Icons.skip_next,
                                 onPressed: isLastSong ? null : controller.next,
                                 iconSize: 22,
@@ -439,6 +447,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                             }),
                             const SizedBox(width: 8),
                             _ControlIconButton(
+                              tooltip: context.l10n.lyrics,
                               icon: Icons.lyrics_outlined,
                               onPressed: () {
                                 controller.showLyrics();
@@ -473,6 +482,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                                   return Row(
                                     children: [
                                       _ControlIconButton(
+                                        tooltip: context.l10n.volume,
                                         icon: volume == 0
                                             ? Icons.volume_off
                                             : volume > 0 && volume < 50
@@ -518,6 +528,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   _ControlIconButton(
+                                    tooltip: context.l10n.queue,
                                     icon: Icons.queue_music,
                                     onPressed: () {
                                       controller.homeScaffoldkey.currentState!
@@ -527,6 +538,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                                   if (!compactDesktop) ...[
                                     const SizedBox(width: 4),
                                     _ControlIconButton(
+                                      tooltip: context.l10n.sleepTimer,
                                       icon: controller.isSleepTimerActive.isTrue
                                           ? Icons.timer
                                           : Icons.timer_outlined,
@@ -558,6 +570,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                                       child: Obx(() {
                                         final volume = controller.volume.value;
                                         return _ControlIconButton(
+                                          tooltip: context.l10n.volume,
                                           icon: volume == 0
                                               ? Icons.volume_off
                                               : volume < 50
@@ -574,6 +587,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                                   ),
                                   const SizedBox(width: 4),
                                   _ControlIconButton(
+                                    tooltip: context.l10n.addToPlaylist,
                                     icon: Icons.playlist_add,
                                     onPressed: () {
                                       final currentSong =
@@ -591,6 +605,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                                   if (size.width > 965) ...[
                                     const SizedBox(width: 4),
                                     _ControlIconButton(
+                                      tooltip: context.l10n.songInfo,
                                       icon: Icons.info,
                                       onPressed: () {
                                         final currentSong =
@@ -805,6 +820,7 @@ class _ControlIconButton extends StatefulWidget {
     required this.icon,
     required this.onPressed,
     this.onSecondaryTap,
+    this.tooltip,
     this.iconSize = 18,
     this.isActive = false,
     this.isDisabled = false,
@@ -814,6 +830,7 @@ class _ControlIconButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback? onPressed;
   final VoidCallback? onSecondaryTap;
+  final String? tooltip;
   final double iconSize;
   final bool isActive;
   final bool isDisabled;
@@ -841,16 +858,19 @@ class _ControlIconButtonState extends State<_ControlIconButton> {
           : SystemMouseCursors.basic,
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
-      child: InkWell(
-        onTap: widget.onPressed,
-        onSecondaryTap: widget.onSecondaryTap,
-        customBorder: const CircleBorder(),
-        child: Container(
-          padding: const EdgeInsets.all(6),
-          child: Icon(
-            widget.icon,
-            size: widget.iconSize,
-            color: iconColor,
+      child: Tooltip(
+        message: widget.tooltip ?? '',
+        child: InkWell(
+          onTap: widget.onPressed,
+          onSecondaryTap: widget.onSecondaryTap,
+          customBorder: const CircleBorder(),
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            child: Icon(
+              widget.icon,
+              size: widget.iconSize,
+              color: iconColor,
+            ),
           ),
         ),
       ),
@@ -882,45 +902,48 @@ class _PlayButtonState extends State<_PlayButton> {
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: () {
-          final state = widget.controller.buttonState.value;
-          if (state == PlayButtonState.loading) return;
-          state == PlayButtonState.playing
-              ? widget.controller.pause()
-              : widget.controller.play();
-        },
-        child: Container(
-          width: widget.size,
-          height: widget.size,
-          decoration: BoxDecoration(
-            color: _hover
-                ? c.accentPrimary
-                : c.surfaceOverlay.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Obx(() {
+      child: Tooltip(
+        message: context.l10n.playPause,
+        child: GestureDetector(
+          onTap: () {
             final state = widget.controller.buttonState.value;
-            final isPlaying = state == PlayButtonState.playing;
-            final isLoading = state == PlayButtonState.loading;
+            if (state == PlayButtonState.loading) return;
+            state == PlayButtonState.playing
+                ? widget.controller.pause()
+                : widget.controller.play();
+          },
+          child: Container(
+            width: widget.size,
+            height: widget.size,
+            decoration: BoxDecoration(
+              color: _hover
+                  ? c.accentPrimary
+                  : c.surfaceOverlay.withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Obx(() {
+              final state = widget.controller.buttonState.value;
+              final isPlaying = state == PlayButtonState.playing;
+              final isLoading = state == PlayButtonState.loading;
 
-            if (isLoading) {
-              return const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
+              if (isLoading) {
+                return const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                );
+              }
+
+              return Icon(
+                isPlaying ? Icons.pause : Icons.play_arrow,
+                size: widget.size * 0.45,
+                color: _hover ? Colors.white : c.textPrimary,
               );
-            }
-
-            return Icon(
-              isPlaying ? Icons.pause : Icons.play_arrow,
-              size: widget.size * 0.45,
-              color: _hover ? Colors.white : c.textPrimary,
-            );
-          }),
+            }),
+          ),
         ),
       ),
     );

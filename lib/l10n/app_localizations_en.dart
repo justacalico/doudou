@@ -1372,6 +1372,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get password => 'Password';
 
   @override
+  String get httpInsecureWarning =>
+      'HTTP is not encrypted. Your password and listening data can be intercepted on the network. Use HTTPS when possible.';
+
+  @override
   String get linkAlert => 'Linked successfully!';
 
   @override
@@ -3050,6 +3054,10 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get password => 'Password';
+
+  @override
+  String get httpInsecureWarning =>
+      'HTTP is not encrypted. Your password and listening data can be intercepted on the network. Use HTTPS when possible.';
 
   @override
   String get linkAlert => 'Linked successfully!';
