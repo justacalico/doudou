@@ -3,13 +3,12 @@ import 'package:flutter/services.dart';
 import '/utils/app_l10n.dart';
 import 'package:get/get.dart';
 
-import 'components/search_clear_button.dart';
 import 'components/search_item.dart';
+import 'components/search_text_field.dart';
 import '/services/tv_service.dart';
 import '/ui/constants/doudou_design.dart';
 import '/ui/constants/layout.dart';
 import '/ui/shell_controller.dart';
-import '../../widgets/modified_text_field.dart';
 import '/ui/navigator.dart';
 import 'search_screen_controller.dart';
 
@@ -31,6 +30,20 @@ class SearchScreen extends StatelessWidget {
     final listBottomPadding = useBottomNav
         ? kContentBottomPaddingWithBottomNav
         : kContentBottomPaddingWithPlayer;
+
+    void submitSearch(String val) {
+      final query = val.trim();
+      if (query.isEmpty) return;
+      if (query.contains("https://")) {
+        searchScreenController.filterLinks(Uri.parse(query));
+        searchScreenController.reset();
+        return;
+      }
+      ScreenNavigationSetup.openContentRouteSmart(
+          ScreenNavigationSetup.searchResultScreen,
+          arguments: query);
+      searchScreenController.addToHistryQueryList(query);
+    }
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -119,80 +132,19 @@ class SearchScreen extends StatelessWidget {
                         }
                         return KeyEventResult.ignored;
                       },
-                      child: ModifiedTextField(
-                        textCapitalization: TextCapitalization.sentences,
+                      child: SearchTextField(
                         controller: searchScreenController.textInputController,
-                        textInputAction: TextInputAction.search,
                         onChanged: searchScreenController.onChanged,
-                        onSubmitted: (val) {
-                          final query = val.trim();
-                          if (query.isEmpty) return;
-                          if (query.contains("https://")) {
-                            searchScreenController.filterLinks(Uri.parse(query));
-                            searchScreenController.reset();
-                            return;
-                          }
-                          ScreenNavigationSetup.openContentRouteSmart(
-                              ScreenNavigationSetup.searchResultScreen,
-                              arguments: query);
-                          searchScreenController.addToHistryQueryList(query);
-                        },
-                        autofocus: false,
-                        cursorColor: theme.textTheme.bodySmall!.color,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          filled: false,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                          hintText: context.l10n.searchDes,
-                          hintStyle: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
-                            fontSize: 14,
-                            height: 1.2,
-                          ),
-                          suffix: SearchClearButton(
-                            controller: searchScreenController.textInputController,
-                            onPressed: searchScreenController.reset,
-                          ),
-                        ),
+                        onSubmitted: submitSearch,
+                        onClear: searchScreenController.reset,
                       ),
                     )
-                  : ModifiedTextField(
-                textCapitalization: TextCapitalization.sentences,
+                  : SearchTextField(
                 controller: searchScreenController.textInputController,
-                textInputAction: TextInputAction.search,
                 onChanged: searchScreenController.onChanged,
-                onSubmitted: (val) {
-                  final query = val.trim();
-                  if (query.isEmpty) return;
-                  if (query.contains("https://")) {
-                    searchScreenController.filterLinks(Uri.parse(query));
-                    searchScreenController.reset();
-                    return;
-                  }
-                  ScreenNavigationSetup.openContentRouteSmart(
-                      ScreenNavigationSetup.searchResultScreen,
-                      arguments: query);
-                  searchScreenController.addToHistryQueryList(query);
-                },
-                autofocus: !useBottomNav && !isTv,
-                cursorColor: theme.textTheme.bodySmall!.color,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  filled: false,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  hintText: context.l10n.searchDes,
-                  hintStyle: TextStyle(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
-                    fontSize: 14,
-                    height: 1.2,
-                  ),
-                  suffix: SearchClearButton(
-                    controller: searchScreenController.textInputController,
-                    onPressed: searchScreenController.reset,
-                  ),
-                ),
+                onSubmitted: submitSearch,
+                onClear: searchScreenController.reset,
+                autofocus: !useBottomNav,
               ),
               ),
             ),

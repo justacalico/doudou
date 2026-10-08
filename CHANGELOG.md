@@ -6,6 +6,7 @@ previously per-version files that lived under `changelog/`.
 ## 23.0.0
 
 - Fixed the settings page title floating far below the top of the window. The settings header now uses the same top spacing as the library and search pages, so "Settings" lines up with the page titles on every other page instead of sitting under a large empty gap.
+- Fixed the search page showing a second rounded box inside the search bar. The themed input border and fill leaked through the search field's decoration, so an extra outlined box was drawn around the placeholder text.
 - Fixed a YouTube Music request retry loop that could hammer the InnerTube endpoint forever. A non-200 response used to retry the same request recursively with no delay or limit; requests now retry a bounded number of times with exponential backoff and surface a network error when they still fail.
 - The home screen now shows a retry card when the YouTube Music feed fails to load instead of staying silently empty, and a malformed cached home entry falls back to a network load instead of crashing the whole home screen.
 - Subsonic servers no longer receive the account password inside request urls. Authentication now uses the standard salt plus token scheme, so passwords never appear in urls, image requests, caches or logs.
