@@ -108,22 +108,29 @@ class HomeScreenController extends GetxController {
   }
 
   Future<bool> loadContentFromDb() async {
-    final homeScreenData =
-        await Hive.openBox(homeScreenDataBoxName(currentServerId()));
-    if (homeScreenData.keys.isNotEmpty) {
-      final String quickPicksType = homeScreenData.get("quickPicksType");
-      final List quickPicksData = homeScreenData.get("quickPicks");
-      final List middleContentData = homeScreenData.get("middleContent") ?? [];
-      final List fixedContentData = homeScreenData.get("fixedContent") ?? [];
+    try {
+      final homeScreenData =
+          await Hive.openBox(homeScreenDataBoxName(currentServerId()));
+      if (homeScreenData.keys.isEmpty) return false;
+      final quickPicksType = homeScreenData.get("quickPicksType");
+      final quickPicksData = homeScreenData.get("quickPicks");
+      final middleContentData = homeScreenData.get("middleContent");
+      final fixedContentData = homeScreenData.get("fixedContent");
+      // A box left in a partial or malformed state used to throw a cast error
+      // that killed the whole load; treat it as "no usable cache" instead.
+      if ((quickPicksType != null && quickPicksType is! String) ||
+          quickPicksData is! List) {
+        return false;
+      }
       quickPicks.value = QuickPicks(
           quickPicksData.map((e) => MediaItemBuilder.fromJson(e)).toList(),
           title: quickPicksType);
-      middleContent.value = middleContentData
+      middleContent.value = (middleContentData is List ? middleContentData : [])
           .map((e) => e["type"] == "Album Content"
               ? AlbumContent.fromJson(e)
               : PlaylistContent.fromJson(e))
           .toList();
-      fixedContent.value = fixedContentData
+      fixedContent.value = (fixedContentData is List ? fixedContentData : [])
           .map((e) => e["type"] == "Album Content"
               ? AlbumContent.fromJson(e)
               : PlaylistContent.fromJson(e))
@@ -132,7 +139,8 @@ class HomeScreenController extends GetxController {
       refreshDownloadedSongsCount();
       printINFO("Loaded from offline db");
       return true;
-    } else {
+    } catch (e, st) {
+      printERROR("Failed to load cached home content: $e\n$st");
       return false;
     }
   }
@@ -966,10 +974,12 @@ class HomeScreenController extends GetxController {
       isLoadingYoutubeMusicHome.value = true;
       final content = await _backend.getHome(limit: 15);
       youtubeMusicHomeContent.value = content as List;
+      networkError.value = false;
     } catch (e, st) {
       printWarning(
           '[RECOVERABLE][opId=home.loadYoutubeMusicHomeFeed] Failed to load YouTube Music home content: $e\n$st');
       youtubeMusicHomeContent.value = [];
+      networkError.value = true;
     } finally {
       isLoadingYoutubeMusicHome.value = false;
     }

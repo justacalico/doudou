@@ -175,6 +175,10 @@ class FakeLibrarySyncService extends LibrarySyncService {
   @override
   // ignore: must_call_super
   void onInit() {}
+
+  @override
+  // ignore: must_call_super
+  void onClose() {}
 }
 
 class FakeLibrarySongsController extends LibrarySongsController {

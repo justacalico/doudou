@@ -121,19 +121,23 @@ class MusicServices extends getx.GetxService {
       {additionalParams = ""}) async {
     //print("$baseUrl$action$fixedParms$additionalParams          data:$data");
     try {
-      final response =
-          await dio.post("$baseUrl$action$fixedParms$additionalParams",
-              options: Options(
-                headers: _headers,
-              ),
-              data: data);
+      return await withRetry<Response>(() async {
+        final response =
+            await dio.post("$baseUrl$action$fixedParms$additionalParams",
+                options: Options(
+                  headers: _headers,
+                ),
+                data: data);
 
-      if (response.statusCode == 200) {
-        return response;
-      } else {
-        return _sendRequest(action, data, additionalParams: additionalParams);
-      }
-    } on DioException catch (e) {
+        if (response.statusCode == 200) {
+          return response;
+        }
+        // A non-200 status used to retry forever with no delay, hammering the
+        // server until the app was killed. Treat it as a failed attempt so the
+        // bounded backoff above applies.
+        throw _UnexpectedStatusError(response.statusCode);
+      });
+    } catch (e) {
       printINFO("Error $e");
       throw NetworkError();
     }
@@ -983,4 +987,9 @@ class MusicServices extends getx.GetxService {
 
 class NetworkError extends Error {
   final message = "Network Error !";
+}
+
+class _UnexpectedStatusError implements Exception {
+  const _UnexpectedStatusError(this.statusCode);
+  final int? statusCode;
 }
