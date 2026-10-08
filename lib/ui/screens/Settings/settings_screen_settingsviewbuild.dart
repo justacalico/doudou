@@ -11,10 +11,9 @@ mixin _SettingsViewBuildMixin on __SettingsViewStateBase {
     final showHeader = !useTwoPane || !layout.isDesktop;
     final mq = MediaQuery.of(context);
 
-    final topPadding = mq.padding.top +
-        (layout.isPhone
-            ? kTopPaddingNarrow
-            : (showHeader ? kTopPaddingDesktop : 0.0));
+    final topPadding = showHeader
+        ? (context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault)
+        : mq.padding.top;
     final horizontalPadding = widget.isBottomNavActive
         ? kContentLeftPaddingWithBottomNav
         : (useTwoPane ? 0.0 : layout.contentPadding.left);
