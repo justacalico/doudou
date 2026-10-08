@@ -682,7 +682,9 @@ class MusicServices extends getx.GetxService {
     if (kDebugMode) {
     }
 
-    if (results.length == 1 && results[0]['itemSectionRenderer'] != null) {
+    if (results is! List ||
+        (results.length == 1 &&
+            nav(results[0], ['itemSectionRenderer']) != null)) {
       return searchResults;
     }
 
@@ -693,6 +695,8 @@ class MusicServices extends getx.GetxService {
       dynamic itemResults;
       String? typeFilter = filter;
 
+      if (res is! Map) continue;
+
       if (res['musicShelfRenderer'] != null) {
         itemResults = res['musicShelfRenderer']['contents'];
         category = nav(res, ['musicShelfRenderer', ...title_text]) ?? "mixed";
@@ -702,6 +706,8 @@ class MusicServices extends getx.GetxService {
       } else {
         continue;
       }
+
+      if (itemResults is! List) continue;
 
       final mixedItems = parseSearchResults(itemResults,
           ['artist', 'playlist', 'song', 'video', 'station'], type, category);

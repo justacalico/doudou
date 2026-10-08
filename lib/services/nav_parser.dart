@@ -699,13 +699,21 @@ String? getSearchResultType(
 
 List<dynamic> parseSearchResults(List<dynamic> results,
     List<String> searchResultTypes, String? resultType, String category) {
-  return results
-      .map((result) {
-        return parseSearchResult(result['musicResponsiveListItemRenderer'],
-            searchResultTypes, resultType, category);
-      })
-      .whereType<dynamic>()
-      .toList();
+  final parsed = <dynamic>[];
+  for (final result in results) {
+    try {
+      final item = parseSearchResult(
+          result['musicResponsiveListItemRenderer'],
+          searchResultTypes,
+          resultType,
+          category);
+      if (item != null) parsed.add(item);
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=nav.parseSearchResults.item] Skipping malformed search result item: $e\n$st');
+    }
+  }
+  return parsed;
 }
 
 String _normalizeCategoryKey(String? key) =>
@@ -743,10 +751,9 @@ dynamic parseSearchResult(Map<String, dynamic> data,
 
   if (resultType == 'artist') {
     searchResult['artist'] = getItemText(data, 0);
-    final list = data['flexColumns'][1]
-        ['musicResponsiveListItemFlexColumnRenderer']['text']['runs'];
-    searchResult['subscribers'] = list.length < 2 ? "" : list[2];
-    ['text'];
+    final runs = nav(getFlexColumnItem(data, 1), ['text', 'runs']);
+    searchResult['subscribers'] =
+        runs is List && runs.length > 2 ? nav(runs[2], ['text']) : '';
     //final x = parseMenuPlaylists(data, searchResult);
   } else if (resultType == 'album') {
     searchResult['type'] = getItemText(data, 1);
