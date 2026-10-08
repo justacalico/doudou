@@ -63,6 +63,51 @@ Long-press anything (song, album, playlist) and choose download. It lives in the
 
 Same app, same backend. The layout adapts to screen size. 
 
+## Sync server
+
+Doudou ships a headless sync server that hosts your library database so every device you log in with shares the same favorites, playlists, recently played, and search history. Only library data is synced: stream URLs, caches, downloads, and device settings stay local.
+
+### Running it
+
+From a source checkout:
+
+```bash
+dart run bin/doudou_server.dart
+```
+
+Or from an installed desktop build:
+
+```bash
+doudou -server
+```
+
+The app UI still opens normally while a server is running.
+
+### Options
+
+| Flag | Description |
+| --- | --- |
+| `--port <n>` | Port to listen on (default 8461) |
+| `--bind <address>` | Address to bind (default `0.0.0.0`) |
+| `--data-dir <path>` | Server data directory (default `~/.doudou-server`) |
+| `--password <pw>` | Set or replace the login password |
+| `-importdb <path>` | Import a `.hmb` backup into the server database at startup |
+| `-h`, `--help` | Show usage |
+
+On first run the server asks you to choose a password. On a headless launch with no terminal it generates a random one, prints it, and also writes it to `<data-dir>/initial-password.txt`. Server config lives in `<data-dir>/server.json` and the database in `<data-dir>/db`.
+
+### Connecting from the app
+
+In the app go to **Settings > Servers > Device sync**, enter the server address (for example `192.168.1.10:8461`) and the password, then hit connect.
+
+### Backups
+
+`-importdb backup.hmb` seeds the server from a backup exported by the app, and `GET /api/export.hmb` produces a `.hmb` file the app can restore.
+
+### A note on security
+
+The server speaks plain HTTP. On your LAN that is fine, but if you expose it to the internet put it behind a reverse proxy with TLS or reach it over a VPN.
+
 ## Compile
 
 You need the Flutter SDK (3.35.0 or newer).
