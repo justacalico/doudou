@@ -33,6 +33,7 @@ import '../widgets/sliding_up_panel.dart';
 import '/models/durationstate.dart';
 import '/services/ios_favorite_command_bridge.dart';
 import '/services/music_service.dart';
+import '/services/stream_service.dart';
 import '/services/supermix_service.dart';
 
 part 'player_controller_playercontrollerbase.dart';
