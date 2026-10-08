@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
@@ -25,6 +26,10 @@ class _TestSettingsController extends SettingsScreenController {
 // Loopback on a closed port so the image request fails fast instead of
 // hanging the test on a real network call.
 const _artUrl = 'http://127.0.0.1:9/art.png';
+
+// A valid 1x1 transparent PNG so the file image can actually decode.
+final _png1x1 = base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
 
 MediaItem _song(String id, {required String url, String? artUrl}) => MediaItem(
       id: id,
@@ -82,5 +87,33 @@ void main() {
     await tester.pump();
 
     expect(find.byType(CachedNetworkImage), findsOneWidget);
+  });
+
+  testWidgets('a downloaded song shows its saved thumbnail once checked',
+      (tester) async {
+    final thumbDir = Directory('${tempDir.path}/thumbnails')
+      ..createSync(recursive: true);
+    File('${thumbDir.path}/d.png').writeAsBytesSync(_png1x1);
+
+    await tester.pumpWidget(
+        wrap(_song('d', url: 'file:///downloads/d.m4a', artUrl: _artUrl)));
+    // First frame: existence check still pending, remote art path used.
+    expect(find.byType(CachedNetworkImage), findsOneWidget);
+    // Once the async stat resolves the file image takes over.
+    await tester.runAsync(
+        () => Future.delayed(const Duration(milliseconds: 100)));
+    await tester.pump();
+
+    expect(find.byType(CachedNetworkImage), findsNothing);
+    final decorated = tester
+        .widgetList<DecoratedBox>(find.descendant(
+          of: find.byType(ImageWidget),
+          matching: find.byType(DecoratedBox),
+        ))
+        .firstWhere((d) =>
+            d.decoration is BoxDecoration &&
+            (d.decoration as BoxDecoration).image != null);
+    final image = (decorated.decoration as BoxDecoration).image;
+    expect(image?.image, isA<FileImage>());
   });
 }

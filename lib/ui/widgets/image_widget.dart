@@ -10,7 +10,7 @@ import '/models/artist.dart';
 import '../../models/album.dart';
 import '../../models/playlist.dart';
 
-class ImageWidget extends StatelessWidget {
+class ImageWidget extends StatefulWidget {
   const ImageWidget({
     super.key,
     this.song,
@@ -28,36 +28,66 @@ class ImageWidget extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) {
-    String imageUrl = song != null
-        ? song!.artUri.toString()
-        : playlist != null
-            ? playlist!.thumbnailUrl
-            : album != null
-                ? album!.thumbnailUrl
-                : artist != null
-                    ? artist!.thumbnailUrl
-                    : "";
-    // String cacheKey = song != null
-    //     ? "${song!.id}_song"
-    //     : playlist != null
-    //         ? "${playlist!.playlistId}_playlist"
-    //         : album != null
-    //             ? "${album!.browseId}_album"
-    //             : artist != null
-    //                 ? "${artist!.browseId}_artist"
-    //                 : "";
+  State<ImageWidget> createState() => _ImageWidgetState();
+}
 
-    final offlineThumbFile = song == null
-        ? null
-        : File(
-            "${Get.find<SettingsScreenController>().supportDirPath}/thumbnails/${song!.id}.png");
+class _ImageWidgetState extends State<ImageWidget> {
+  File? _offlineThumbFile;
+  bool _offlineThumbExists = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveOfflineThumb();
+  }
+
+  @override
+  void didUpdateWidget(ImageWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.song?.id != widget.song?.id) {
+      _resolveOfflineThumb();
+    }
+  }
+
+  void _resolveOfflineThumb() {
+    final song = widget.song;
     // Preloaded and lock-cached songs also carry a file url, but only user
-    // downloads come with a saved thumbnail. Without this check a cached
-    // track would show the placeholder forever instead of its remote art.
-    final bool offlineThumbExists = song != null &&
-        (song?.extras?["url"] ?? "").contains("file") &&
-        (offlineThumbFile?.existsSync() ?? false);
+    // downloads come with a saved thumbnail. The existence check runs async:
+    // a synchronous stat inside build used to stall the UI thread once per
+    // visible tile on every rebuild while scrolling.
+    if (song == null ||
+        !(song.extras?["url"] ?? "").toString().contains("file")) {
+      _offlineThumbFile = null;
+      _offlineThumbExists = false;
+      return;
+    }
+    final file = File(
+        "${Get.find<SettingsScreenController>().supportDirPath}/thumbnails/${song.id}.png");
+    _offlineThumbFile = file;
+    _offlineThumbExists = false;
+    file.exists().then((exists) {
+      if (!mounted || _offlineThumbFile?.path != file.path) return;
+      if (exists != _offlineThumbExists) {
+        setState(() => _offlineThumbExists = exists);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final song = widget.song;
+    final playlist = widget.playlist;
+    final album = widget.album;
+    final artist = widget.artist;
+    String imageUrl = song != null
+        ? song.artUri.toString()
+        : playlist != null
+            ? playlist.thumbnailUrl
+            : album != null
+                ? album.thumbnailUrl
+                : artist != null
+                    ? artist.thumbnailUrl
+                    : "";
 
     Widget placeholderIcon() {
       return Container(
@@ -73,7 +103,7 @@ class ImageWidget extends StatelessWidget {
     }
 
     Widget placeholder() {
-      if (!isPlayerArtImage) return placeholderIcon();
+      if (!widget.isPlayerArtImage) return placeholderIcon();
       return ColoredBox(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.22),
         child: const SizedBox.expand(),
@@ -81,32 +111,36 @@ class ImageWidget extends StatelessWidget {
     }
 
     final dpr = MediaQuery.devicePixelRatioOf(context);
-    final cacheWidth = (size * dpr).round().clamp(64, isPlayerArtImage ? 800 : 220);
+    final cacheWidth = (widget.size * dpr)
+        .round()
+        .clamp(64, widget.isPlayerArtImage ? 800 : 220);
     final cacheKey = song != null
-        ? "${song!.id}_song"
+        ? "${song.id}_song"
         : playlist != null
-            ? "${playlist!.playlistId}_playlist"
+            ? "${playlist.playlistId}_playlist"
             : album != null
-                ? "${album!.browseId}_album"
+                ? "${album.browseId}_album"
                 : artist != null
-                    ? "${artist!.browseId}_artist"
+                    ? "${artist.browseId}_artist"
                     : null;
 
     return Container(
-      height: size,
-      width: size,
+      height: widget.size,
+      width: widget.size,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         shape: artist != null ? BoxShape.circle : BoxShape.rectangle,
         borderRadius: artist != null ? null : BorderRadius.circular(5),
       ),
-      child: offlineThumbExists
+      child: _offlineThumbExists
           ? DecoratedBox(
               decoration: BoxDecoration(
                 shape: artist != null ? BoxShape.circle : BoxShape.rectangle,
-                borderRadius: artist != null ? null : BorderRadius.circular(5),
+                borderRadius: artist != null
+                    ? null
+                    : BorderRadius.circular(5),
                 image: DecorationImage(
-                  image: FileImage(offlineThumbFile!),
+                  image: FileImage(_offlineThumbFile!),
                   fit: BoxFit.cover,
                 ),
               ),
