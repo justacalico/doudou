@@ -329,14 +329,18 @@ List<McpTool> buildDoudouMcpTools(McpAppBridge bridge) => [
       ),
       McpTool(
         name: 'list_playlists',
-        description: 'List the library playlists on the active music server.',
+        description: 'List the library playlists: the built-in local ones '
+            '(Recently Played, Favourites, Cached/Offline, Downloads) plus '
+            'the playlists on the active music server.',
         inputSchema: _noArgs,
         handler: (_) async => {'playlists': await bridge.listPlaylists()},
       ),
       McpTool(
         name: 'get_playlist_songs',
         description: 'Get the songs of a playlist or album by id, e.g. a '
-            'playlistId from list_playlists or search results.',
+            'playlistId from list_playlists or search results. Built-in '
+            'playlist ids LIBRP, LIBFAV, SongsCache and SongDownloads read '
+            'the local boxes.',
         inputSchema: const {
           'type': 'object',
           'properties': {
