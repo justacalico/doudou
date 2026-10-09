@@ -1686,6 +1686,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String lastSyncTime(String time) {
     return 'Last sync: $time';
   }
+
+  @override
+  String get mcpServer => 'MCP server';
+
+  @override
+  String get mcpServerDes =>
+      'Let AI assistants control playback on this computer through the Model Context Protocol.';
+
+  @override
+  String get mcpServerPort => 'Port';
+
+  @override
+  String get mcpServerInvalidPort => 'Enter a port between 1024 and 65535';
+
+  @override
+  String get mcpServerCopyAddress => 'Copy address';
 }
 
 /// The translations for English, as used in Australia (`en_AU`).
@@ -3370,4 +3386,20 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String lastSyncTime(String time) {
     return 'Last sync: $time';
   }
+
+  @override
+  String get mcpServer => 'MCP server';
+
+  @override
+  String get mcpServerDes =>
+      'Let AI assistants control playback on this computer through the Model Context Protocol.';
+
+  @override
+  String get mcpServerPort => 'Port';
+
+  @override
+  String get mcpServerInvalidPort => 'Enter a port between 1024 and 65535';
+
+  @override
+  String get mcpServerCopyAddress => 'Copy address';
 }

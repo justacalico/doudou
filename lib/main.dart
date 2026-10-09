@@ -13,6 +13,7 @@ import '/ui/screens/Search/search_screen_controller.dart';
 import '/server/runner.dart';
 import '/services/downloader.dart';
 import '/services/library_sync_service.dart';
+import '/services/mcp_server_service.dart';
 import '/services/server_sync_service.dart';
 import '/services/piped_service.dart';
 import '/services/playback_diagnostics_service.dart';
@@ -192,6 +193,9 @@ Future<void> startApplicationServices() async {
     Get.put(DesktopSystemTray());
     if (DiscordRpcService.isSupported) {
       Get.put(DiscordRpcService(), permanent: true);
+    }
+    if (McpServerService.isSupported) {
+      Get.put(McpServerService(), permanent: true);
     }
   }
 }

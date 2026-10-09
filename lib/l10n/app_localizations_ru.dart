@@ -1696,4 +1696,20 @@ class AppLocalizationsRu extends AppLocalizations {
   String lastSyncTime(String time) {
     return 'Последняя синхронизация: $time';
   }
+
+  @override
+  String get mcpServer => 'MCP-сервер';
+
+  @override
+  String get mcpServerDes =>
+      'Позволяет ИИ-ассистентам управлять воспроизведением на этом компьютере через Model Context Protocol.';
+
+  @override
+  String get mcpServerPort => 'Порт';
+
+  @override
+  String get mcpServerInvalidPort => 'Введите порт от 1024 до 65535';
+
+  @override
+  String get mcpServerCopyAddress => 'Скопировать адрес';
 }

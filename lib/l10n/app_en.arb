@@ -1140,5 +1140,15 @@
         "type": "String"
       }
     }
-  }
+  },
+  "mcpServer": "MCP server",
+  "@mcpServer": {},
+  "mcpServerDes": "Let AI assistants control playback on this computer through the Model Context Protocol.",
+  "@mcpServerDes": {},
+  "mcpServerPort": "Port",
+  "@mcpServerPort": {},
+  "mcpServerInvalidPort": "Enter a port between 1024 and 65535",
+  "@mcpServerInvalidPort": {},
+  "mcpServerCopyAddress": "Copy address",
+  "@mcpServerCopyAddress": {}
 }
