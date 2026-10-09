@@ -165,15 +165,6 @@ Widget buildTrackRowSection({
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 4,
-                      height: 4,
-                      decoration: const BoxDecoration(
-                        color: kDoudouPurple,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -337,15 +328,6 @@ Widget buildPlaylistRowSection({
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          Container(
-            width: 4,
-            height: 4,
-            decoration: const BoxDecoration(
-              color: kDoudouPurple,
-              shape: BoxShape.circle,
-            ),
-          ),
         ],
       ),
       if (subtitle.isNotEmpty) ...[
@@ -444,15 +426,6 @@ Widget buildAlbumRowSection({
                           fontWeight: FontWeight.bold,
                           fontSize: 24,
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 4,
-                      height: 4,
-                      decoration: const BoxDecoration(
-                        color: kDoudouPurple,
-                        shape: BoxShape.circle,
                       ),
                     ),
                   ],

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/services/library_sync_service.dart';
+import 'package:doudou/ui/constants/doudou_design.dart';
 import 'package:doudou/ui/screens/Library/library_browse_screen.dart';
 import 'package:doudou/ui/screens/Library/library_controller.dart';
 import 'package:doudou/ui/screens/Settings/settings_screen_controller.dart';
@@ -72,5 +73,21 @@ void main() {
   testWidgets('header subtitle has no collection suffix in ru', (tester) async {
     await pumpScreen(tester, const Locale('ru'));
     expect(find.text('Обзор'), findsOneWidget);
+  });
+
+  testWidgets('header title has no purple accent dot', (tester) async {
+    await pumpScreen(tester, const Locale('en', 'AU'));
+
+    expect(find.text('Library'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) {
+        if (widget is! Container) return false;
+        final decoration = widget.decoration;
+        return decoration is BoxDecoration &&
+            decoration.shape == BoxShape.circle &&
+            decoration.color == kDoudouPurple;
+      }),
+      findsNothing,
+    );
   });
 }
