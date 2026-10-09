@@ -115,6 +115,24 @@ mixin _SettingsViewMiscMixin on __SettingsViewStateBase {
                   : null,
             )),
       ],
+      if (isDesktop)
+        Obx(() {
+          final mcp = Get.find<McpServerService>();
+          return _SettingsListTile(
+            leading: const Icon(Icons.smart_toy_outlined, size: 20),
+            title: context.l10n.mcpServer,
+            subtitle:
+                mcp.running.value ? mcp.listenUrl : context.l10n.mcpServerDes,
+            trailing: CustSwitch(
+              value: mcp.enabled.value,
+              onChanged: (v) => mcp.setEnabled(v),
+            ),
+            onTap: () => showDialog(
+              context: context,
+              builder: (_) => const McpServerDialog(),
+            ),
+          );
+        }),
       _SettingsListTile(
         title: context.l10n.resetToDefault,
         subtitle: context.l10n.resetToDefaultDes,
