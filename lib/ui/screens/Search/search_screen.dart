@@ -55,25 +55,12 @@ class SearchScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(
-                  context.l10n.search,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  width: 4,
-                  height: 4,
-                  decoration: const BoxDecoration(
-                    color: kDoudouPurple,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
+            Text(
+              context.l10n.search,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
             ),
             const SizedBox(height: 16),
             Container(

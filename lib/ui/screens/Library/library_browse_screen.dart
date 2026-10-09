@@ -80,25 +80,12 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Text(
-                          context.l10n.library,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 4,
-                          height: 4,
-                          decoration: const BoxDecoration(
-                            color: kDoudouPurple,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      context.l10n.library,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
