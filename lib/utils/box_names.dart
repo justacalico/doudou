@@ -55,3 +55,14 @@ String songDownloadsBoxName(int serverId) =>
 
 String songsUrlCacheBoxName(int serverId) =>
     serverId == 0 ? 'SongsUrlCache' : 'SongsUrlCache_s_$serverId';
+
+/// Box holding the songs of a built-in library playlist (LIBRP, LIBFAV,
+/// SongsCache or SongDownloads), or null for any other playlist id.
+String? builtinPlaylistSongsBoxName(int serverId, String playlistId) =>
+    switch (playlistId) {
+      'LIBFAV' => libFavBoxName(serverId),
+      'LIBRP' => recentlyPlayedBoxName(serverId),
+      'SongsCache' => songsCacheBoxName(serverId),
+      'SongDownloads' => songDownloadsBoxName(serverId),
+      _ => null,
+    };

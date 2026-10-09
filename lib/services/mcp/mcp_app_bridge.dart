@@ -3,10 +3,12 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
 import '/models/media_item_builder.dart';
+import '/models/playlist.dart';
 import '/models/server.dart';
 import '/services/backend/music_backend.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
+import '/utils/server_storage.dart';
 
 /// Everything the MCP server can reach inside the running app.
 ///
@@ -81,6 +83,16 @@ Object? sanitizeMcpJson(Object? value, {int depth = 0}) {
   }
   return value.toString();
 }
+
+/// Built-in local playlists shown on the library screen, in display order.
+/// Their songs live in per-server Hive boxes rather than on the music
+/// server, so the bridge resolves them locally.
+const _builtinPlaylists = [
+  (id: 'LIBRP', title: 'Recently Played'),
+  (id: 'LIBFAV', title: 'Favourites'),
+  (id: 'SongsCache', title: 'Cached/Offline'),
+  (id: 'SongDownloads', title: 'Downloads'),
+];
 
 class GetxMcpAppBridge implements McpAppBridge {
   AudioHandler get _audio => Get.find<AudioHandler>();
@@ -260,20 +272,54 @@ class GetxMcpAppBridge implements McpAppBridge {
     return out;
   }
 
+  Future<Box> _openBox(String name) =>
+      Hive.isBoxOpen(name) ? Future.value(Hive.box(name)) : Hive.openBox(name);
+
   @override
   Future<List<Map<String, Object?>>> listPlaylists() async {
+    final serverId = currentServerId();
+    final builtin = <Map<String, Object?>>[
+      for (final p in _builtinPlaylists)
+        Playlist(
+          title: p.title,
+          playlistId: p.id,
+          thumbnailUrl: Playlist.thumbPlaceholderUrl,
+          isCloudPlaylist: false,
+          songCount:
+              (await _openBox(builtinPlaylistSongsBoxName(serverId, p.id)!))
+                  .length
+                  .toString(),
+        ).toJson(),
+    ];
     final playlists = await _backend.getLibraryPlaylists();
-    return playlists
-        .map((p) => Map<String, Object?>.from(
-            sanitizeMcpJson(p.toJson()) as Map))
-        .toList();
+    return [
+      ...builtin,
+      ...playlists.map((p) =>
+          Map<String, Object?>.from(sanitizeMcpJson(p.toJson()) as Map)),
+    ];
+  }
+
+  /// Songs of a built-in playlist read from its Hive box, or null when
+  /// [playlistId] is not a built-in id.
+  Future<Map<String, Object?>?> _builtinPlaylistSongs(
+      String playlistId) async {
+    final boxName = builtinPlaylistSongsBoxName(currentServerId(), playlistId);
+    if (boxName == null) return null;
+    final box = await _openBox(boxName);
+    var tracks = box.values.map(MediaItemBuilder.fromJson).toList();
+    // Recently played is stored oldest first; the app lists it newest first.
+    if (playlistId == 'LIBRP') tracks = tracks.reversed.toList();
+    return {'playlistId': playlistId, 'tracks': tracks};
   }
 
   @override
   Future<Map<String, Object?>> getPlaylistOrAlbumSongs(
       {String? playlistId, String? albumId, int limit = 100}) async {
-    final raw = await _backend.getPlaylistOrAlbumSongs(
-        playlistId: playlistId, albumId: albumId, limit: limit);
+    final raw = (playlistId == null
+            ? null
+            : await _builtinPlaylistSongs(playlistId)) ??
+        await _backend.getPlaylistOrAlbumSongs(
+            playlistId: playlistId, albumId: albumId, limit: limit);
     final sanitized = sanitizeMcpJson(raw);
     if (sanitized is! Map) return const {};
     final out = Map<String, Object?>.from(sanitized);

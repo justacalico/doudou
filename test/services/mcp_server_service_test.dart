@@ -4,12 +4,18 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:doudou/mcp/mcp_protocol.dart';
 import 'package:doudou/mcp/mcp_tools.dart';
+import 'package:doudou/models/playlist.dart';
+import 'package:doudou/services/backend/music_backend.dart';
+import 'package:doudou/services/backend/noop_backend.dart';
 import 'package:doudou/services/mcp/mcp_app_bridge.dart';
 import 'package:doudou/services/mcp/mcp_toolset.dart';
 import 'package:doudou/services/mcp_server_service.dart';
+import 'package:doudou/ui/screens/Settings/settings_screen_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+
+import '../fakes.dart';
 
 class FakeMcpAppBridge implements McpAppBridge {
   final calls = <String>[];
@@ -158,6 +164,36 @@ class FakeMcpAppBridge implements McpAppBridge {
       ]
     };
   }
+}
+
+class FakeBackend extends NoOpBackend {
+  List<Playlist> playlists = [];
+  Map<String, dynamic> playlistSongs = {};
+  String? lastPlaylistId;
+  String? lastAlbumId;
+
+  @override
+  Future<List<Playlist>> getLibraryPlaylists() async => playlists;
+
+  @override
+  Future<Map<String, dynamic>> getPlaylistOrAlbumSongs(
+      {String? playlistId,
+      String? albumId,
+      int limit = 3000,
+      bool related = false,
+      int suggestionsLimit = 0}) async {
+    lastPlaylistId = playlistId;
+    lastAlbumId = albumId;
+    return playlistSongs;
+  }
+}
+
+class BackendSettings extends FakeSettingsScreenController {
+  BackendSettings(this.backend);
+  final MusicBackend backend;
+
+  @override
+  MusicBackend get currentBackend => backend;
 }
 
 void main() {
@@ -504,6 +540,100 @@ void main() {
       final out = sanitizeMcpJson({'when': DateTime.utc(2020)}) as Map;
       expect(out['when'], isA<String>());
       expect(() => jsonEncode(out), returnsNormally);
+    });
+  });
+
+  group('GetxMcpAppBridge built-in playlists', () {
+    late FakeBackend backend;
+    late GetxMcpAppBridge realBridge;
+
+    const builtinBoxNames = [
+      'LIBRP',
+      'LIBFAV',
+      'SongsCache',
+      'SongDownloads',
+    ];
+
+    Map<String, Object?> storedSong(String id) =>
+        {'videoId': id, 'title': 'Song $id'};
+
+    setUp(() async {
+      // SettingsScreenController eagerly grabs the AppPrefs box.
+      await Hive.openBox('AppPrefs');
+      backend = FakeBackend();
+      Get.put<SettingsScreenController>(BackendSettings(backend));
+      realBridge = GetxMcpAppBridge();
+      for (final name in builtinBoxNames) {
+        await Hive.openBox(name);
+      }
+    });
+
+    test('listPlaylists returns built-ins first, then backend playlists',
+        () async {
+      await Hive.box('SongDownloads').put('a', storedSong('a'));
+      await Hive.box('SongDownloads').put('b', storedSong('b'));
+      backend.playlists = [
+        Playlist(title: 'Mix', playlistId: 'PL1', thumbnailUrl: ''),
+      ];
+
+      final list = await realBridge.listPlaylists();
+      expect(list.map((p) => p['playlistId']),
+          ['LIBRP', 'LIBFAV', 'SongsCache', 'SongDownloads', 'PL1']);
+      for (final p in list.sublist(0, 4)) {
+        expect(p['isCloudPlaylist'], isFalse);
+      }
+      final downloads =
+          list.firstWhere((p) => p['playlistId'] == 'SongDownloads');
+      expect(downloads['title'], 'Downloads');
+      expect(downloads['itemCount'], '2');
+    });
+
+    test('getPlaylistOrAlbumSongs reads a built-in box without the backend',
+        () async {
+      await Hive.box('LIBFAV').put('fav1', storedSong('fav1'));
+
+      final res =
+          await realBridge.getPlaylistOrAlbumSongs(playlistId: 'LIBFAV');
+      expect(backend.lastPlaylistId, isNull);
+      final tracks = res['tracks'] as List;
+      expect(tracks.single['videoId'], 'fav1');
+      expect(tracks.single['title'], 'Song fav1');
+    });
+
+    test('getPlaylistOrAlbumSongs lists LIBRP newest first', () async {
+      // Hive iterates values in key order; the box stores oldest first.
+      await Hive.box('LIBRP').put('k1', storedSong('old'));
+      await Hive.box('LIBRP').put('k2', storedSong('new'));
+
+      final res =
+          await realBridge.getPlaylistOrAlbumSongs(playlistId: 'LIBRP');
+      expect((res['tracks'] as List).map((t) => t['videoId']),
+          ['new', 'old']);
+    });
+
+    test('getPlaylistOrAlbumSongs honours the limit for built-ins',
+        () async {
+      for (final id in ['a', 'b', 'c']) {
+        await Hive.box('SongsCache').put(id, storedSong(id));
+      }
+
+      final res = await realBridge.getPlaylistOrAlbumSongs(
+          playlistId: 'SongsCache', limit: 2);
+      expect((res['tracks'] as List), hasLength(2));
+    });
+
+    test('getPlaylistOrAlbumSongs delegates other ids to the backend',
+        () async {
+      backend.playlistSongs = {
+        'tracks': [
+          {'videoId': 'srv1'}
+        ]
+      };
+
+      final res =
+          await realBridge.getPlaylistOrAlbumSongs(playlistId: 'PL9');
+      expect(backend.lastPlaylistId, 'PL9');
+      expect((res['tracks'] as List).single['videoId'], 'srv1');
     });
   });
 }
