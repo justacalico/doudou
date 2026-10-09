@@ -10,6 +10,7 @@ import '/ui/constants/doudou_design.dart';
 import '/ui/constants/layout.dart';
 import '/ui/shell_controller.dart';
 import '/ui/navigator.dart';
+import '/ui/widgets/page_title.dart';
 import 'search_screen_controller.dart';
 
 class SearchScreen extends StatelessWidget {
@@ -23,7 +24,7 @@ class SearchScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    final topPadding = statusBarHeight + 24.0;
+    final topPadding = statusBarHeight + kPageTitleTopSpacing;
     final horizontalPadding = useBottomNav
         ? kContentLeftPaddingWithBottomNav
         : kContentLeftPaddingWithoutBottomNav;
@@ -55,13 +56,7 @@ class SearchScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              context.l10n.search,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
-            ),
+            PageTitle(context.l10n.search),
             const SizedBox(height: 16),
             Container(
               height: 46,
