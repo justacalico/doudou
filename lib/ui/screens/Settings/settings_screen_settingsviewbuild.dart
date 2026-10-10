@@ -12,7 +12,7 @@ mixin _SettingsViewBuildMixin on __SettingsViewStateBase {
     final mq = MediaQuery.of(context);
 
     final topPadding = showHeader
-        ? (context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault)
+        ? mq.padding.top + kPageTitleTopSpacing
         : mq.padding.top;
     final horizontalPadding = widget.isBottomNavActive
         ? kContentLeftPaddingWithBottomNav

@@ -12,12 +12,11 @@ mixin _SettingsViewLayoutMixin on __SettingsViewStateBase {
   }
 
   Widget _buildHeader(BuildContext context, bool useTwoPane) {
-    final theme = Theme.of(context);
     final colors = context.doudouColors;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         DoudouSpace.s4,
-        10,
+        0,
         DoudouSpace.s8,
         DoudouSpace.s16,
       ),
@@ -32,16 +31,7 @@ mixin _SettingsViewLayoutMixin on __SettingsViewStateBase {
             const SizedBox(width: DoudouSpace.s8),
           ],
           Expanded(
-            child: Text(
-              context.l10n.settings,
-              style: (useTwoPane
-                      ? theme.textTheme.headlineSmall
-                      : theme.textTheme.titleLarge)
-                  ?.copyWith(
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
-              ),
-            ),
+            child: PageTitle(context.l10n.settings),
           ),
         ],
       ),

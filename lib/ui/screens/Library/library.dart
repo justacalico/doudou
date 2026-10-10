@@ -12,6 +12,7 @@ import '/ui/widgets/snackbar.dart';
 import '/ui/widgets/modification_list.dart';
 import '../../../models/playlist.dart';
 import '../../../models/media_item_builder.dart';
+import '../../widgets/page_title.dart';
 import '../../widgets/piped_sync_widget.dart';
 import 'library_controller.dart';
 import '../../widgets/content_list_widget_item.dart';
@@ -28,10 +29,10 @@ class SongsLibraryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final useBottomNav = isBottomNavActive || Get.find<ShellController>().useBottomNav.value;
-    final topPadding = context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault;
+    final topPadding = MediaQuery.of(context).padding.top + kPageTitleTopSpacing;
     return Padding(
       padding: useBottomNav
-          ? const EdgeInsets.only(left: kContentLeftPaddingLibraryWithBottomNav)
+          ? const EdgeInsets.only(left: kContentLeftPaddingWithBottomNav)
           : EdgeInsets.only(left: kContentLeftPaddingWithoutBottomNav, top: topPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,10 +43,7 @@ class SongsLibraryWidget extends StatelessWidget {
                 )
               : Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    context.l10n.libSongs,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                  child: PageTitle(context.l10n.libSongs),
                 ),
           Obx(() {
             final libSongsController = Get.find<LibrarySongsController>();
@@ -123,12 +121,12 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
 
     const double crossSpacing = 14;
     const double mainSpacing = 16;
-    final topPadding = context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault;
+    final topPadding = MediaQuery.of(context).padding.top + kPageTitleTopSpacing;
 
     final isBottomNav = isBottomNavActive || useBottomNav;
     return Padding(
       padding: isBottomNav
-          ? const EdgeInsets.only(left: kContentLeftPaddingLibraryWithBottomNav)
+          ? const EdgeInsets.only(left: kContentLeftPaddingWithBottomNav)
           : EdgeInsets.only(top: topPadding),
       child: Column(
         children: [
@@ -143,9 +141,8 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                       )
                     : Align(
                         alignment: Alignment.centerLeft,
-                        child: Text(
+                        child: PageTitle(
                           isAlbumContent ? context.l10n.libAlbums : context.l10n.libPlaylists,
-                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
                 (useBottomNav ||
@@ -243,10 +240,10 @@ class LibraryArtistWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final useBottomNav = isBottomNavActive || Get.find<ShellController>().useBottomNav.value;
     final cntrller = Get.find<LibraryArtistsController>();
-    final topPadding = context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault;
+    final topPadding = MediaQuery.of(context).padding.top + kPageTitleTopSpacing;
     return Padding(
       padding: useBottomNav
-          ? const EdgeInsets.only(left: kContentLeftPaddingLibraryWithBottomNav)
+          ? const EdgeInsets.only(left: kContentLeftPaddingWithBottomNav)
           : EdgeInsets.only(left: kContentLeftPaddingWithoutBottomNav, top: topPadding),
       child: Column(
         children: [
@@ -256,10 +253,7 @@ class LibraryArtistWidget extends StatelessWidget {
               )
               : Align(
                 alignment: Alignment.centerLeft,
-                child: Text(
-                    context.l10n.libArtists,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                child: PageTitle(context.l10n.libArtists),
                 ),
           Obx(
             () => SortWidget(
@@ -340,11 +334,11 @@ class _DownloadsLibraryWidgetState extends State<DownloadsLibraryWidget> {
   @override
   Widget build(BuildContext context) {
     final useBottomNav = widget.isBottomNavActive || Get.find<ShellController>().useBottomNav.value;
-    final topPadding = context.isLandscape ? kTopPaddingLandscape : kTopPaddingDefault;
+    final topPadding = MediaQuery.of(context).padding.top + kPageTitleTopSpacing;
 
     return Padding(
       padding: useBottomNav
-          ? const EdgeInsets.only(left: kContentLeftPaddingLibraryWithBottomNav)
+          ? const EdgeInsets.only(left: kContentLeftPaddingWithBottomNav)
           : EdgeInsets.only(left: kContentLeftPaddingWithoutBottomNav, top: topPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,10 +347,7 @@ class _DownloadsLibraryWidgetState extends State<DownloadsLibraryWidget> {
               ? const SizedBox(height: 10)
               : Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    context.l10n.downloads,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                  child: PageTitle(context.l10n.downloads),
                 ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),

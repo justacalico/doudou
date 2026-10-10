@@ -59,11 +59,11 @@ void main() {
     expect(header, findsOneWidget);
 
     final titleTop = tester.getTopLeft(header).dy;
-    // Other pages place their title at kTopPaddingLandscape (50) in
-    // landscape; the settings title used to start more than twice as low.
+    // Pages place their title at kPageTitleTopSpacing below the status bar;
+    // the settings title used to start more than twice as low.
     expect(
       titleTop,
-      lessThan(kTopPaddingLandscape + 30),
+      lessThan(kPageTitleTopSpacing + 30),
       reason: 'header should start near the top edge',
     );
     expect(find.text('Personalisation'), findsWidgets);
@@ -79,6 +79,6 @@ void main() {
     await tester.pumpAndSettle();
 
     final titleTop = tester.getTopLeft(find.text('Settings')).dy;
-    expect(titleTop, lessThan(kTopPaddingDefault + 30));
+    expect(titleTop, lessThan(kPageTitleTopSpacing + 30));
   });
 }

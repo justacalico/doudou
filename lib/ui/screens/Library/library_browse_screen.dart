@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '/ui/constants/doudou_design.dart';
 import '/ui/constants/layout.dart';
 import '/ui/shell_controller.dart';
+import '/ui/widgets/page_title.dart';
 import '/utils/app_l10n.dart';
 import 'library_controller.dart';
 import 'library.dart';
@@ -55,7 +56,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
   Widget build(BuildContext context) {
     final useBottomNav = Get.find<ShellController>().useBottomNav.value;
     final leftPadding = useBottomNav
-        ? kContentLeftPaddingLibraryWithBottomNav
+        ? kContentLeftPaddingWithBottomNav
         : kContentLeftPaddingWithoutBottomNav;
     final theme = Theme.of(context);
     final topPadding = MediaQuery.of(context).padding.top;
@@ -74,19 +75,13 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
             curve: Curves.easeOutCubic,
             child: ClipRect(
               child: Align(
-                alignment: Alignment.topCenter,
+                alignment: Alignment.topLeft,
                 heightFactor: _headerCollapsed ? 0 : 1,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 24),
-                    Text(
-                      context.l10n.library,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24,
-                      ),
-                    ),
+                    const SizedBox(height: kPageTitleTopSpacing),
+                    PageTitle(context.l10n.library),
                     const SizedBox(height: 4),
                     Text(
                       context.l10n.libraryOverviewSubtitle,
