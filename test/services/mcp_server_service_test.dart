@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:doudou/mcp/mcp_protocol.dart';
 import 'package:doudou/mcp/mcp_tools.dart';
@@ -291,6 +292,22 @@ void main() {
       } finally {
         client.close(force: true);
       }
+    });
+
+    test('buildBundle embeds the live listen url', () async {
+      makeService();
+      svc!.onInit();
+      svc!.port.value = 0;
+      await svc!.setEnabled(true);
+
+      final archive = ZipDecoder().decodeBytes(svc!.buildBundle());
+      final manifest = jsonDecode(utf8.decode(archive
+          .findFile('manifest.json')!
+          .content as List<int>)) as Map;
+      expect(
+          manifest['server']['mcp_config']['env']['DOUDOU_MCP_URL'],
+          svc!.listenUrl);
+      expect(manifest['name'], 'doudou');
     });
 
     test('setPort validates, persists and restarts a running server',

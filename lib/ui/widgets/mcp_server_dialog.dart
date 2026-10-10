@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -6,6 +9,7 @@ import '/services/mcp_server_service.dart';
 import '/ui/design/doudou_tokens.dart';
 import '/ui/widgets/common_dialog_widget.dart';
 import '/ui/widgets/custom_switch.dart';
+import '/ui/widgets/snackbar.dart';
 import '/utils/app_l10n.dart';
 
 /// Configures the embedded MCP server: enable switch, port and the loopback
@@ -41,6 +45,27 @@ class _McpServerDialogState extends State<McpServerDialog> {
     final invalidMessage = context.l10n.mcpServerInvalidPort;
     if (value != null && await _mcp.setPort(value)) return;
     _portError.value = invalidMessage;
+  }
+
+  Future<void> _exportBundle() async {
+    final l10n = context.l10n;
+    var path = await FilePicker.platform.saveFile(
+      dialogTitle: l10n.mcpServerExport,
+      fileName: 'doudou.mcpb',
+      type: FileType.custom,
+      allowedExtensions: const ['mcpb'],
+    );
+    if (path == null || path.isEmpty) return;
+    if (!path.endsWith('.mcpb')) path = '$path.mcpb';
+    var saved = true;
+    try {
+      await File(path).writeAsBytes(_mcp.buildBundle());
+    } on FileSystemException {
+      saved = false;
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(snackbar(
+        context, saved ? l10n.mcpServerExported : l10n.mcpServerExportFailed));
   }
 
   @override
@@ -124,6 +149,20 @@ class _McpServerDialogState extends State<McpServerDialog> {
                 ],
               );
             }),
+            const SizedBox(height: DoudouSpace.s12),
+            Text(
+              l10n.mcpServerExportDes,
+              style: theme.textTheme.bodySmall,
+            ),
+            const SizedBox(height: DoudouSpace.s4),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.file_download_outlined, size: 18),
+                label: Text(l10n.mcpServerExport),
+                onPressed: _exportBundle,
+              ),
+            ),
           ],
         ),
       ),

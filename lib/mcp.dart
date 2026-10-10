@@ -5,6 +5,7 @@
 /// playback, queue and library access in `services/mcp_server_service.dart`.
 library;
 
+export 'mcp/mcp_bundle.dart';
 export 'mcp/mcp_http_server.dart';
 export 'mcp/mcp_protocol.dart';
 export 'mcp/mcp_server.dart';

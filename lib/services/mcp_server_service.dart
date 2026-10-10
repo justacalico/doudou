@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '/mcp/mcp_bundle.dart';
 import '/mcp/mcp_http_server.dart';
 import '/mcp/mcp_server.dart';
 import 'mcp/mcp_app_bridge.dart';
@@ -95,6 +96,12 @@ class McpServerService extends GetxService {
             'Doudou music player. Tools control playback and the queue, '
             'search the active music server and read library playlists.',
       );
+
+  /// `.mcpb` bundle bytes for the current listen address. Installing the
+  /// bundle in an MCPB-capable client (e.g. Claude Desktop) launches a
+  /// stdio bridge that talks to the app's HTTP endpoint.
+  Uint8List buildBundle() =>
+      buildMcpBundle(url: listenUrl, version: _appVersion);
 
   Future<void> start() async {
     if (_http != null) return;

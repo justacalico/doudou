@@ -110,6 +110,14 @@ void main() {
     expect(find.textContaining('http://127.0.0.1:'), findsOneWidget);
   });
 
+  testWidgets('offers the .mcpb export', (tester) async {
+    await tester.pumpWidget(app(const McpServerDialog()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Export .mcpb bundle'), findsOneWidget);
+    expect(find.textContaining('Claude Desktop'), findsOneWidget);
+  });
+
   testWidgets('rejects an invalid port', (tester) async {
     service.enabled.value = true;
     await tester.pumpWidget(app(const McpServerDialog()));

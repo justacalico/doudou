@@ -1715,4 +1715,17 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get mcpServerCopyAddress => 'Скопировать адрес';
+
+  @override
+  String get mcpServerExport => 'Экспорт пакета .mcpb';
+
+  @override
+  String get mcpServerExportDes =>
+      'Упаковать сервер для установки в один клик в Claude Desktop и других клиентах с поддержкой MCPB.';
+
+  @override
+  String get mcpServerExported => 'Пакет MCP сохранён';
+
+  @override
+  String get mcpServerExportFailed => 'Не удалось сохранить пакет MCP';
 }

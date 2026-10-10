@@ -3298,6 +3298,30 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'Copy address'**
   String get mcpServerCopyAddress;
+
+  /// No description provided for @mcpServerExport.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Export .mcpb bundle'**
+  String get mcpServerExport;
+
+  /// No description provided for @mcpServerExportDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Bundle this server for one-click install in Claude Desktop and other MCPB-capable clients.'**
+  String get mcpServerExportDes;
+
+  /// No description provided for @mcpServerExported.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'MCP bundle saved'**
+  String get mcpServerExported;
+
+  /// No description provided for @mcpServerExportFailed.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Could not save the MCP bundle'**
+  String get mcpServerExportFailed;
 }
 
 class _AppLocalizationsDelegate

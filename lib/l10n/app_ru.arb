@@ -1148,5 +1148,13 @@
   "mcpServerInvalidPort": "Введите порт от 1024 до 65535",
   "@mcpServerInvalidPort": {},
   "mcpServerCopyAddress": "Скопировать адрес",
-  "@mcpServerCopyAddress": {}
+  "@mcpServerCopyAddress": {},
+  "mcpServerExport": "Экспорт пакета .mcpb",
+  "@mcpServerExport": {},
+  "mcpServerExportDes": "Упаковать сервер для установки в один клик в Claude Desktop и других клиентах с поддержкой MCPB.",
+  "@mcpServerExportDes": {},
+  "mcpServerExported": "Пакет MCP сохранён",
+  "@mcpServerExported": {},
+  "mcpServerExportFailed": "Не удалось сохранить пакет MCP",
+  "@mcpServerExportFailed": {}
 }

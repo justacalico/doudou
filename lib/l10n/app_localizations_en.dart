@@ -1705,6 +1705,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mcpServerCopyAddress => 'Copy address';
+
+  @override
+  String get mcpServerExport => 'Export .mcpb bundle';
+
+  @override
+  String get mcpServerExportDes =>
+      'Bundle this server for one-click install in Claude Desktop and other MCPB-capable clients.';
+
+  @override
+  String get mcpServerExported => 'MCP bundle saved';
+
+  @override
+  String get mcpServerExportFailed => 'Could not save the MCP bundle';
 }
 
 /// The translations for English, as used in Australia (`en_AU`).
@@ -3408,4 +3421,17 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get mcpServerCopyAddress => 'Copy address';
+
+  @override
+  String get mcpServerExport => 'Export .mcpb bundle';
+
+  @override
+  String get mcpServerExportDes =>
+      'Bundle this server for one-click install in Claude Desktop and other MCPB-capable clients.';
+
+  @override
+  String get mcpServerExported => 'MCP bundle saved';
+
+  @override
+  String get mcpServerExportFailed => 'Could not save the MCP bundle';
 }

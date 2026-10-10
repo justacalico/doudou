@@ -756,5 +756,13 @@
   "mcpServerInvalidPort": "请输入 1024 到 65535 之间的端口号",
   "@mcpServerInvalidPort": {},
   "mcpServerCopyAddress": "复制地址",
-  "@mcpServerCopyAddress": {}
+  "@mcpServerCopyAddress": {},
+  "mcpServerExport": "导出 .mcpb 包",
+  "@mcpServerExport": {},
+  "mcpServerExportDes": "将此服务器打包，供 Claude Desktop 等支持 MCPB 的客户端一键安装。",
+  "@mcpServerExportDes": {},
+  "mcpServerExported": "MCP 包已保存",
+  "@mcpServerExported": {},
+  "mcpServerExportFailed": "无法保存 MCP 包",
+  "@mcpServerExportFailed": {}
 }

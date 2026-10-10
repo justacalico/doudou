@@ -1641,4 +1641,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get mcpServerCopyAddress => '复制地址';
+
+  @override
+  String get mcpServerExport => '导出 .mcpb 包';
+
+  @override
+  String get mcpServerExportDes =>
+      '将此服务器打包，供 Claude Desktop 等支持 MCPB 的客户端一键安装。';
+
+  @override
+  String get mcpServerExported => 'MCP 包已保存';
+
+  @override
+  String get mcpServerExportFailed => '无法保存 MCP 包';
 }
