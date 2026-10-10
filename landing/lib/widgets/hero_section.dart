@@ -38,7 +38,7 @@ class HeroSection extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 540),
             child: Text(
               'Doudou streams your Subsonic, Jellyfin, Plex, or '
-              'YouTube Music library to your phone, watch, TV, and desktop. '
+              'YouTube Music library to your phone, TV, and desktop. '
               'Free and open source.',
               style: Theme.of(context).textTheme.bodyLarge,
             ),

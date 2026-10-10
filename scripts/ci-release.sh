@@ -79,7 +79,6 @@ else
 ### Artifacts
 - Android Phone: APK + AAB
 - Android Play Store: AAB
-- Android Wear OS: APK + AAB
 - Android TV: APK + AAB
 - Android TV Play Store: APK + AAB
 - Linux x64: zip + deb + rpm + AppImage

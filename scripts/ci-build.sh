@@ -48,10 +48,6 @@ case "$TARGET" in
   android-phone-playstore)
     build_aab phone phone-playstore --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart
     ;;
-  android-wear)
-    build_apk wear wear -t lib/main_wear.dart
-    build_aab wear wear -t lib/main_wear.dart
-    ;;
   android-tv-playstore)
     build_apk tv tv-playstore --dart-define=PLAYSTORE=true --dart-define=TV=true
     build_aab tv tv-playstore --dart-define=PLAYSTORE=true --dart-define=TV=true

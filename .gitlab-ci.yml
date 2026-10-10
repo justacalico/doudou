@@ -3,7 +3,7 @@ spec:
     build_all:
       type: boolean
       default: false
-      description: 'Build all Android variants (wear, tv, playstore) in addition to phone and linux'
+      description: 'Build all Android variants (tv, playstore) in addition to phone and linux'
     create_release:
       type: boolean
       default: false
