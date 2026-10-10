@@ -3,6 +3,8 @@
 All notable changes to Doudou are recorded here. This file consolidates the
 previously per-version files that lived under `changelog/`.
 
+## 24.0.0
+
 ## 23.0.0
 
 - Removed the Wear OS companion app. The watch app, the phone-side watch sync service, the `wear` Android flavor and the CI jobs that shipped Wear OS builds are gone, so new releases no longer include a watch APK. Phone, TV and desktop builds are unaffected.
