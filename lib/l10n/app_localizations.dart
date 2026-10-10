@@ -281,6 +281,12 @@ abstract class AppLocalizations {
   /// **'Favorite'**
   String get favorite;
 
+  /// No description provided for @unfavourite.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Unfavourite'**
+  String get unfavourite;
+
   /// No description provided for @inAppStorageDirectory.
   ///
   /// In en_AU, this message translates to:

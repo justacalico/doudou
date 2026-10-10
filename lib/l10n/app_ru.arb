@@ -74,6 +74,8 @@
   "@expandSidebar": {},
   "favorite": "В избранное",
   "@favorite": {},
+  "unfavourite": "Убрать из избранного",
+  "@unfavourite": {},
   "home": "Главная",
   "@home": {},
   "homeSubtitle": "Недавние прослушивания, новые добавления и подборка для вас",

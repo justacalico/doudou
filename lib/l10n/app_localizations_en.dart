@@ -113,6 +113,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get favorite => 'Favorite';
 
   @override
+  String get unfavourite => 'Unfavourite';
+
+  @override
   String get inAppStorageDirectory => 'In App storage directory';
 
   @override
@@ -1811,6 +1814,9 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get favorite => 'Favorite';
+
+  @override
+  String get unfavourite => 'Unfavourite';
 
   @override
   String get inAppStorageDirectory => 'In App storage directory';

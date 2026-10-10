@@ -74,6 +74,8 @@
   "@expandSidebar": {},
   "favorite": "Favorite",
   "@favorite": {},
+  "unfavourite": "Unfavourite",
+  "@unfavourite": {},
   "inAppStorageDirectory": "In App storage directory",
   "@inAppStorageDirectory": {},
   "libraryPlaylist": "Library playlist",

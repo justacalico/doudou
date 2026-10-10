@@ -74,6 +74,8 @@
   "@expandSidebar": {},
   "favorite": "收藏",
   "@favorite": {},
+  "unfavourite": "取消收藏",
+  "@unfavourite": {},
   "home": "首页",
   "homeSubtitle": "最近播放、新添加与为你推荐",
   "inAppStorageDirectory": "应用内存储目录",
