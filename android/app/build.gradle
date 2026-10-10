@@ -95,13 +95,9 @@ android {
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         phone.java.srcDirs += 'src/phone/kotlin'
-        wear.java.srcDirs += 'src/wear/kotlin'
         tv.java.srcDirs += 'src/tv/kotlin'
         if (isPlayStoreBuild) {
             phone.res.srcDirs += 'src/phone/res-playstore'
-            phone.manifest.srcFile 'src/phone/AndroidManifest-playstore.xml'
-        } else {
-            phone.java.srcDirs += 'src/phone/kotlin-wearable'
         }
     }
 
@@ -113,19 +109,9 @@ android {
             applicationId "gitlab.openlyst.doudou"
             minSdkVersion flutter.minSdkVersion
             targetSdkVersion flutter.targetSdkVersion
-            // Phone versionCode starts at 1, wear starts at 10000
+            // Phone versionCode starts at 1, tv starts at 20000
             // This ensures Play Store picks the right APK per device
             versionCode flutterVersionCode.toInteger()
-            versionName flutterVersionName
-        }
-        wear {
-            dimension "app"
-            applicationId "gitlab.openlyst.doudou"
-            // Wear OS 3+ is API 30
-            minSdkVersion 30
-            targetSdkVersion flutter.targetSdkVersion
-            // Offset by 10000 so Play Store can distinguish wear APKs from phone APKs
-            versionCode flutterVersionCode.toInteger() + 10000
             versionName flutterVersionName
         }
         tv {
@@ -133,7 +119,7 @@ android {
             applicationId "gitlab.openlyst.doudou"
             minSdkVersion flutter.minSdkVersion
             targetSdkVersion flutter.targetSdkVersion
-            // Offset by 20000 so Play Store can distinguish TV APKs from phone/wear
+            // Offset by 20000 so Play Store can distinguish TV APKs from phone
             versionCode flutterVersionCode.toInteger() + 20000
             versionName flutterVersionName
         }
@@ -181,7 +167,4 @@ flutter {
 dependencies {
     implementation 'com.android.support:multidex:2.0.1'
     implementation 'androidx.core:core-splashscreen:1.0.0-beta02'
-    if (!isPlayStoreBuild) {
-        phoneImplementation 'com.google.android.gms:play-services-wearable:19.0.0'
-    }
 }

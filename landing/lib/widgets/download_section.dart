@@ -13,7 +13,6 @@ class DownloadSection extends StatelessWidget {
   static const platforms = [
     'Android',
     'Android TV',
-    'Wear OS',
     'iOS',
     'macOS',
     'Windows',

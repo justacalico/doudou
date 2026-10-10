@@ -21,7 +21,7 @@ class SpecSheet extends StatelessWidget {
   static const _rows = [
     _Row(
       'Platforms',
-      'Android, Android TV, Wear OS, iOS, macOS, Windows, Linux',
+      'Android, Android TV, iOS, macOS, Windows, Linux',
     ),
     _Row(
       'Backends',

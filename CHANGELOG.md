@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 23.0.0
 
+- Removed the Wear OS companion app. The watch app, the phone-side watch sync service, the `wear` Android flavor and the CI jobs that shipped Wear OS builds are gone, so new releases no longer include a watch APK. Phone, TV and desktop builds are unaffected.
 - The desktop system tray menu now has a Favourite item while a song is playing, so the current track can be added to or removed from favourites straight from the tray icon without opening the window. The item reads Unfavourite once the song is favourited and stays in sync when the favourite state changes elsewhere in the app.
 - Page titles are now consistent across the app: Search, Library, Settings and the Songs/Playlists/Albums/Artists/Downloads pages all show their title as a large bold label in the top-left corner with the same spacing, instead of each page placing it differently (the Library title was centered and the Settings title sat noticeably lower). All of them share a single title widget now.
 - The search result page now shows the active query in an editable search bar, so fixing a typo or refining a search can be done right on the results page instead of going back and retyping it. Resubmitting reruns the search in place, stores the new query in search history, and pasting a link still opens it directly. The bar appears under the results header on both the tabbed and rail layouts and on the no-match screen.

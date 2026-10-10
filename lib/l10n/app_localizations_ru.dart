@@ -163,9 +163,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get none => 'Нет';
 
   @override
-  String get noPhoneConnected => 'Телефон не подключен';
-
-  @override
   String get noPlaylistsAvailable => 'Нет доступных плейлистов.';
 
   @override
@@ -363,12 +360,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get volume => 'Громкость';
-
-  @override
-  String get wearMoreSettings => 'Больше настроек доступно на телефоне';
-
-  @override
-  String get wearPhoneHint => 'Убедитесь, что Doudou запущен на телефоне';
 
   @override
   String get yourLibrary => 'Ваша библиотека';

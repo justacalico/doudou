@@ -371,12 +371,6 @@ abstract class AppLocalizations {
   /// **'None'**
   String get none;
 
-  /// No description provided for @noPhoneConnected.
-  ///
-  /// In en_AU, this message translates to:
-  /// **'No phone connected'**
-  String get noPhoneConnected;
-
   /// No description provided for @noPlaylistsAvailable.
   ///
   /// In en_AU, this message translates to:
@@ -742,18 +736,6 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'Volume'**
   String get volume;
-
-  /// No description provided for @wearMoreSettings.
-  ///
-  /// In en_AU, this message translates to:
-  /// **'More settings are available on your phone'**
-  String get wearMoreSettings;
-
-  /// No description provided for @wearPhoneHint.
-  ///
-  /// In en_AU, this message translates to:
-  /// **'Make sure Doudou is running on your phone'**
-  String get wearPhoneHint;
 
   /// No description provided for @yourLibrary.
   ///

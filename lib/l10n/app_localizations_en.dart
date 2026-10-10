@@ -161,9 +161,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get none => 'None';
 
   @override
-  String get noPhoneConnected => 'No phone connected';
-
-  @override
   String get noPlaylistsAvailable => 'No playlists available.';
 
   @override
@@ -360,12 +357,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get volume => 'Volume';
-
-  @override
-  String get wearMoreSettings => 'More settings are available on your phone';
-
-  @override
-  String get wearPhoneHint => 'Make sure Doudou is running on your phone';
 
   @override
   String get yourLibrary => 'Your Library';
@@ -1864,9 +1855,6 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get none => 'None';
 
   @override
-  String get noPhoneConnected => 'No phone connected';
-
-  @override
   String get noPlaylistsAvailable => 'No playlists available.';
 
   @override
@@ -2063,12 +2051,6 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get volume => 'Volume';
-
-  @override
-  String get wearMoreSettings => 'More settings are available on your phone';
-
-  @override
-  String get wearPhoneHint => 'Make sure Doudou is running on your phone';
 
   @override
   String get yourLibrary => 'Your Library';

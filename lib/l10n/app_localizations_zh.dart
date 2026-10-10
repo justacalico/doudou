@@ -153,9 +153,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get none => '无';
 
   @override
-  String get noPhoneConnected => '未连接手机';
-
-  @override
   String get noPlaylistsAvailable => '没有可用的播放列表。';
 
   @override
@@ -349,12 +346,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get volume => '音量';
-
-  @override
-  String get wearMoreSettings => '更多设置可在手机上进行';
-
-  @override
-  String get wearPhoneHint => '请确保 Doudou 正在手机上运行';
 
   @override
   String get yourLibrary => '你的曲库';

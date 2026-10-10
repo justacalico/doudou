@@ -43,8 +43,8 @@ class FeatureBento extends StatelessWidget {
     [
       _Tile(
         Icons.devices_other_outlined,
-        'Watch and TV',
-        'Wear OS on the wrist, a D-pad UI on the sofa.',
+        'Android TV',
+        'A D-pad UI on the sofa.',
         1,
       ),
       _Tile(

@@ -24,7 +24,6 @@ import '/services/playback_wakelock_service.dart';
 import '/services/discord_rpc_service.dart';
 import '/services/music_service.dart';
 import '/services/tv_service.dart';
-import '/services/watch_sync_service.dart';
 import '/ui/navigator.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/widgets/dev_merge_request_dialog.dart';
@@ -181,12 +180,11 @@ Future<void> startApplicationServices() async {
     // Register TvService first so it's available even if other services fail
     Get.put(TvService(), permanent: true);
     final isTv = Get.find<TvService>().isTV;
-    // Skip WatchSync and AndroidAuto on TV — not needed and may crash without AudioHandler
+    // Skip AndroidAuto on TV — not needed and may crash without AudioHandler
     // Check both the reactive value and the compile-time flag to be safe
     const kIsTV = bool.fromEnvironment('TV', defaultValue: false);
     if (!isTv.value && !kIsTV) {
       Get.put(AndroidAutoService(), permanent: true);
-      Get.put(WatchSyncService(), permanent: true);
     }
   }
   if (GetPlatform.isDesktop) {

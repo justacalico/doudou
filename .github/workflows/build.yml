@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       build_all:
-        description: 'Build all variants (wear, tv, playstore, arm, windows, macos, ios). If unchecked only phone and linux x64 are built.'
+        description: 'Build all variants (tv, playstore, arm, windows, macos, ios). If unchecked only phone and linux x64 are built.'
         type: boolean
         default: true
       create_release:
@@ -65,7 +65,6 @@ jobs:
           if [ "$BUILD_ALL" = "true" ]; then
             extra='[
               {"target":"android-phone-playstore","os":"ubuntu-latest","artifact":"doudou-phone-playstore"},
-              {"target":"android-wear","os":"ubuntu-latest","artifact":"doudou-wear"},
               {"target":"android-tv-playstore","os":"ubuntu-latest","artifact":"doudou-tv-playstore"},
               {"target":"android-tv","os":"ubuntu-latest","artifact":"doudou-tv"},
               {"target":"linux-arm64","os":"ubuntu-24.04-arm","artifact":"doudou-linux-arm64"},
@@ -373,10 +372,6 @@ jobs:
             android-phone-playstore)
               build_aab phone phone-playstore --dart-define=PLAYSTORE=true -Pplaystore=true -t lib/main.dart
               ;;
-            android-wear)
-              build_apk wear wear -t lib/main_wear.dart
-              build_aab wear wear -t lib/main_wear.dart
-              ;;
             android-tv-playstore)
               build_apk tv tv-playstore --dart-define=PLAYSTORE=true --dart-define=TV=true
               build_aab tv tv-playstore --dart-define=PLAYSTORE=true --dart-define=TV=true
@@ -682,7 +677,6 @@ jobs:
             ### Artifacts
             - Android Phone: APK + AAB (release signed)
             - Android Play Store: AAB (release signed)
-            - Android Wear OS: APK + AAB (release signed)
             - Android TV: APK + AAB (release signed)
             - Android TV Play Store: APK + AAB (release signed)
             - Linux x64: zip + deb + rpm + AppImage
