@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:doudou/ui/screens/Settings/settings_screen_controller.dart';
 import 'app_l10n.dart';
@@ -35,6 +37,9 @@ class DesktopSystemTray extends GetxService with TrayListener {
       updateContextMenu();
     });
 
+    // Keep the favourite checkbox state in sync
+    playerController.isCurrentSongFav.listen((_) => updateContextMenu());
+
     // create context menu
     await updateContextMenu();
 
@@ -45,66 +50,24 @@ class DesktopSystemTray extends GetxService with TrayListener {
 
   Future<void> updateContextMenu() async {
     final playerController = Get.find<PlayerController>();
-    final song = currentSong.value;
-    final l10n = l10nFromPrefs();
 
-    // create context menu
-    final Menu menu = Menu(items: [
-      MenuItem(
-        label: l10n.showHide,
-        onClick: (menuItem) async => await windowManager.isVisible()
-            ? await windowManager.hide()
-            : await windowManager.show(),
-      ),
-      MenuItem.separator(),
-      if (song != null) ...[
-        MenuItem(
-          label: l10n.traySong(song.title),
-          disabled: true,
-        ),
-        MenuItem(
-          label: l10n.trayAlbum(song.album ?? l10n.unknown),
-          disabled: true,
-        ),
-        MenuItem(
-          label: l10n.trayArtist(song.artist ?? l10n.unknown),
-          disabled: true,
-        ),
-        MenuItem.separator(),
-      ],
-      MenuItem(
-        label: l10n.prev,
-        onClick: (menuItem) {
-          if (playerController.currentQueue.isNotEmpty) {
-            playerController.prev();
-          }
-        },
-      ),
-      MenuItem(
-        label: l10n.playPause,
-        onClick: (menuItem) {
-          if (playerController.currentQueue.isNotEmpty) {
-            playerController.playPause();
-          }
-        },
-      ),
-      MenuItem(
-        label: l10n.next,
-        onClick: (menuItem) {
-          if (playerController.currentQueue.isNotEmpty) {
-            playerController.next();
-          }
-        },
-      ),
-      MenuItem.separator(),
-      MenuItem(
-        label: l10n.quit,
-        onClick: (menuItem) async {
-          await Get.find<AudioHandler>().customAction("saveSession");
-          exit(0);
-        },
-      ),
-    ]);
+    final Menu menu = buildTrayMenu(
+      l10n: l10nFromPrefs(),
+      song: currentSong.value,
+      isFavourite: playerController.isCurrentSongFav.value,
+      hasQueue: playerController.currentQueue.isNotEmpty,
+      onShowHide: () async => await windowManager.isVisible()
+          ? await windowManager.hide()
+          : await windowManager.show(),
+      onToggleFavourite: playerController.toggleFavourite,
+      onPrev: playerController.prev,
+      onPlayPause: playerController.playPause,
+      onNext: playerController.next,
+      onQuit: () async {
+        await Get.find<AudioHandler>().customAction("saveSession");
+        exit(0);
+      },
+    );
 
     // set context menu
     await trayManager.setContextMenu(menu);
@@ -138,6 +101,72 @@ class DesktopSystemTray extends GetxService with TrayListener {
 
     super.onTrayIconRightMouseDown();
   }
+}
+
+@visibleForTesting
+Menu buildTrayMenu({
+  required AppLocalizations l10n,
+  required MediaItem? song,
+  required bool isFavourite,
+  required bool hasQueue,
+  void Function()? onShowHide,
+  void Function()? onToggleFavourite,
+  void Function()? onPrev,
+  void Function()? onPlayPause,
+  void Function()? onNext,
+  void Function()? onQuit,
+}) {
+  return Menu(items: [
+    MenuItem(
+      label: l10n.showHide,
+      onClick: (menuItem) => onShowHide?.call(),
+    ),
+    MenuItem.separator(),
+    if (song != null) ...[
+      MenuItem(
+        label: l10n.traySong(song.title),
+        disabled: true,
+      ),
+      MenuItem(
+        label: l10n.trayAlbum(song.album ?? l10n.unknown),
+        disabled: true,
+      ),
+      MenuItem(
+        label: l10n.trayArtist(song.artist ?? l10n.unknown),
+        disabled: true,
+      ),
+      MenuItem.checkbox(
+        key: 'trayFavourite',
+        label: l10n.favorite,
+        checked: isFavourite,
+        onClick: (menuItem) => onToggleFavourite?.call(),
+      ),
+      MenuItem.separator(),
+    ],
+    MenuItem(
+      label: l10n.prev,
+      onClick: (menuItem) {
+        if (hasQueue) onPrev?.call();
+      },
+    ),
+    MenuItem(
+      label: l10n.playPause,
+      onClick: (menuItem) {
+        if (hasQueue) onPlayPause?.call();
+      },
+    ),
+    MenuItem(
+      label: l10n.next,
+      onClick: (menuItem) {
+        if (hasQueue) onNext?.call();
+      },
+    ),
+    MenuItem.separator(),
+    MenuItem(
+      label: l10n.quit,
+      onClick: (menuItem) => onQuit?.call(),
+    ),
+  ]);
 }
 
 class CloseWindowListener extends WindowListener {
