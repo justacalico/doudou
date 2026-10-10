@@ -37,7 +37,7 @@ class DesktopSystemTray extends GetxService with TrayListener {
       updateContextMenu();
     });
 
-    // Keep the favourite checkbox state in sync
+    // Keep the favourite menu item label in sync
     playerController.isCurrentSongFav.listen((_) => updateContextMenu());
 
     // create context menu
@@ -135,10 +135,9 @@ Menu buildTrayMenu({
         label: l10n.trayArtist(song.artist ?? l10n.unknown),
         disabled: true,
       ),
-      MenuItem.checkbox(
+      MenuItem(
         key: 'trayFavourite',
-        label: l10n.favorite,
-        checked: isFavourite,
+        label: isFavourite ? l10n.unfavourite : l10n.favorite,
         onClick: (menuItem) => onToggleFavourite?.call(),
       ),
       MenuItem.separator(),

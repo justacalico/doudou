@@ -115,6 +115,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get favorite => 'В избранное';
 
   @override
+  String get unfavourite => 'Убрать из избранного';
+
+  @override
   String get inAppStorageDirectory => 'Во внутреннем хранилище приложения';
 
   @override

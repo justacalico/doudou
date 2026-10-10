@@ -106,6 +106,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get favorite => '收藏';
 
   @override
+  String get unfavourite => '取消收藏';
+
+  @override
   String get inAppStorageDirectory => '应用内存储目录';
 
   @override

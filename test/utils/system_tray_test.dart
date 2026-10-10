@@ -24,7 +24,7 @@ void main() {
   }
 
   group('buildTrayMenu', () {
-    test('shows checked favourite item when the song is favourited', () {
+    test('labels the favourite item as unfavourite for a favourited song', () {
       final menu = buildTrayMenu(
         l10n: l10n,
         song: song,
@@ -34,13 +34,11 @@ void main() {
 
       final item = menu.getMenuItem('trayFavourite');
       expect(item, isNotNull);
-      expect(item!.type, 'checkbox');
-      expect(item.label, l10n.favorite);
-      expect(item.checked, isTrue);
+      expect(item!.label, l10n.unfavourite);
       expect(item.disabled, isFalse);
     });
 
-    test('shows unchecked favourite item when the song is not favourited', () {
+    test('labels the favourite item as favourite for a non-favourited song', () {
       final menu = buildTrayMenu(
         l10n: l10n,
         song: song,
@@ -50,7 +48,7 @@ void main() {
 
       final item = menu.getMenuItem('trayFavourite');
       expect(item, isNotNull);
-      expect(item!.checked, isFalse);
+      expect(item!.label, l10n.favorite);
     });
 
     test('clicking the favourite item toggles the favourite callback', () {
