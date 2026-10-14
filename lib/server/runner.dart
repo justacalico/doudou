@@ -98,8 +98,12 @@ void _printBanner(DoudouSyncServer server, ServerArgs parsed) {
     stdout.writeln('Generated server password: ${server.generatedPassword}');
     stdout.writeln('Store it somewhere safe, clients need it to log in.');
   }
+  if (!server.passwordIsChosen) {
+    stdout.writeln('No password has been chosen yet: open the web ui below '
+        'to set one.');
+  }
   stdout.writeln('Connect from the app under Settings > Servers > Device sync');
-  stdout.writeln('using one of these addresses:');
+  stdout.writeln('using one of these addresses (append /app/ for the web ui):');
   NetworkInterface.list(
     type: InternetAddressType.IPv4,
     includeLinkLocal: false,
