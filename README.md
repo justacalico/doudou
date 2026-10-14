@@ -103,7 +103,7 @@ The server hosts a web dashboard at `http://<host>:8461/app/`. Open it on first 
 docker compose -f docker-compose.server.yml up -d
 ```
 
-Then open `http://<host>:8461/app/` to set the password and get going. The compose file maps port 8461 and stores the database in the `doudou-server-data` volume. To build without compose: `docker build -f Dockerfile.server -t doudou-server .` then run it with `-p 8461:8461 -v doudou-data:/data`.
+This pulls the prebuilt image from `registry.gitlab.com/openlyst/doudou/doudou-server:latest` (or builds it locally with `docker compose build`). Then open `http://<host>:8461/app/` to set the password and get going. The compose file maps port 8461 and stores the database in the `doudou-server-data` volume. Without compose: `docker run -d -p 8461:8461 -v doudou-data:/data registry.gitlab.com/openlyst/doudou/doudou-server:latest`.
 
 Without Docker, on first run with no terminal the server generates a password, prints it, and writes it to `<data-dir>/initial-password.txt`; the web dashboard's setup screen replaces it. Server config lives in `<data-dir>/server.json` and the database in `<data-dir>/db`.
 
