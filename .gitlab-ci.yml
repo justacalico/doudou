@@ -143,16 +143,16 @@ webui-test:
 docker-server:
   stage: deploy
   tags: [linux-truenas]
-  image: docker:27
-  services:
-    - docker:27-dind
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual
   script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - docker build -f Dockerfile.server -t "$CI_REGISTRY_IMAGE/doudou-server:$CI_COMMIT_SHORT_SHA" -t "$CI_REGISTRY_IMAGE/doudou-server:latest" .
-    - docker push "$CI_REGISTRY_IMAGE/doudou-server" --all-tags
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context "$CI_PROJECT_DIR" --dockerfile Dockerfile.server --destination "$CI_REGISTRY_IMAGE/doudou-server:$CI_COMMIT_SHORT_SHA" --destination "$CI_REGISTRY_IMAGE/doudou-server:latest"
 
 pages:
   stage: deploy
