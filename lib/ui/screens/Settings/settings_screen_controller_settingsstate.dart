@@ -207,7 +207,7 @@ mixin _SettingsStateMixin on _SettingsScreenControllerBase {
     }
     final savedActive = setBox.get('activeServerId');
     if (savedActive is int &&
-        servers.any((server) => server.id == savedActive)) {
+        allServers.any((server) => server.id == savedActive)) {
       activeServerId.value = savedActive;
     } else if (servers.isNotEmpty && activeServerId.value == null) {
       final nonDefault =
@@ -377,6 +377,7 @@ mixin _SettingsStateMixin on _SettingsScreenControllerBase {
           '[RECOVERABLE][opId=settings.migrateGlobalToServerSpecific] Migration failed: $e\n$st');
     }
   }
+
   Future<String?> testServerConnection(SettingsServer server) async {
     if (server.type == ServerType.youtubeMusic) return null;
     try {
@@ -391,5 +392,4 @@ mixin _SettingsStateMixin on _SettingsScreenControllerBase {
       return e.toString();
     }
   }
-
 }

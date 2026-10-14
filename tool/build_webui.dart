@@ -18,8 +18,14 @@ Future<void> main(List<String> args) async {
   if (!args.contains('--pack-only')) {
     final build = await Process.run(
       'flutter',
-      ['build', 'web', '--release', '--base-href', '/app/',
-        '--no-web-resources-cdn'],
+      [
+        'build',
+        'web',
+        '--release',
+        '--base-href',
+        '/app/',
+        '--no-web-resources-cdn'
+      ],
       workingDirectory: webuiDir.path,
     );
     stdout.write(build.stdout);
@@ -80,8 +86,7 @@ Future<void> main(List<String> args) async {
 }
 
 bool _include(String rel) {
-  if (rel.startsWith('.') || rel.endsWith('.symbols') ||
-      rel.endsWith('.map')) {
+  if (rel.startsWith('.') || rel.endsWith('.symbols') || rel.endsWith('.map')) {
     return false;
   }
   if (rel == 'flutter_service_worker.js') return false;

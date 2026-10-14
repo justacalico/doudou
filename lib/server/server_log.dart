@@ -47,8 +47,7 @@ class ServerLog {
     while (_entries.length > capacity) {
       _entries.removeFirst();
     }
-    (level == 'error' ? stderr : stdout)
-        .writeln('[doudou-server] $message');
+    (level == 'error' ? stderr : stdout).writeln('[doudou-server] $message');
   }
 
   /// Entries with a sequence number greater than [after], and the current

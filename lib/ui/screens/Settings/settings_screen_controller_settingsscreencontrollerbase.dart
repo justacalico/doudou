@@ -1,7 +1,6 @@
 part of 'settings_screen_controller.dart';
 
 mixin _SettingsScreenControllerBase on GetxController {
-
   final settingsSectionKeys = List.generate(8, (_) => GlobalKey());
   late String _supportDir;
   final cacheSongs = false.obs;
@@ -52,11 +51,20 @@ mixin _SettingsScreenControllerBase on GetxController {
 
   bool get isNightlyBuild => kIsNightly;
 
+  /// Local servers plus the ones the connected sync server hands out.
+  /// Anything that picks or resolves a backend reads from here; only the
+  /// local half is ever written to AppPrefs.
+  List<SettingsServer> get allServers => [
+        ...servers,
+        if (Get.isRegistered<ServerSyncService>())
+          ...Get.find<ServerSyncService>().remoteServers,
+      ];
+
   SettingsServer? get activeServer {
     final id = activeServerId.value;
     if (id != null) {
       try {
-        return servers.firstWhere((s) => s.id == id);
+        return allServers.firstWhere((s) => s.id == id);
       } catch (e, st) {
         printWarning(
             '[RECOVERABLE][opId=settings.activeServer.resolveById] Active server id=$id not found, using fallback: $e\n$st');
@@ -108,7 +116,7 @@ mixin _SettingsScreenControllerBase on GetxController {
   /// base url. Returns null for urls no configured server owns (for example
   /// YouTube's media hosts).
   MusicBackend? backendForUrl(String url) {
-    for (final server in servers) {
+    for (final server in allServers) {
       final base = server.serverUrl;
       if (base != null && base.isNotEmpty && url.startsWith(base)) {
         return backendForServer(server);
@@ -158,7 +166,7 @@ mixin _SettingsScreenControllerBase on GetxController {
     }
   }
 
-void onInit();
+  void onInit();
   _checkNewVersion();
   Future<String> _createInAppSongDownDir();
   Future<void> _setInitValue();
@@ -166,10 +174,22 @@ void onInit();
   void _onActiveServerChanged();
   Future<void> _migrateGlobalToServerSpecific();
   Future<String?> testServerConnection(SettingsServer server);
-  void addServerWithCredentials( ServerType type, { String? serverUrl, String? username, String? password, });
-  void updateServer( int id, { String? serverUrl, String? username, String? password, });
+  void addServerWithCredentials(
+    ServerType type, {
+    String? serverUrl,
+    String? username,
+    String? password,
+  });
+  void updateServer(
+    int id, {
+    String? serverUrl,
+    String? username,
+    String? password,
+  });
   void removeServer(int id);
   void setActiveServer(int id);
+  void ensureActiveServerValid();
+  void onRemoteServersChanged();
   String _serverTypeLabel(ServerType type);
   void invalidateBackendCache();
   void setAppLanguage(String? val);
@@ -209,13 +229,12 @@ void onInit();
   Future<void> clearPlaybackDiagnostics();
   Future<String?> exportPlaybackDiagnostics();
   String getPlaybackDiagnosticsText({int? limit, bool pretty = false});
-  Future<bool> copyPlaybackDiagnosticsToClipboard({int? limit, bool pretty = false});
+  Future<bool> copyPlaybackDiagnosticsToClipboard(
+      {int? limit, bool pretty = false});
   Future<void> setPlaybackDiagnosticsMaxEvents(int value);
   Future<void> enableIgnoringBatteryOptimizations();
   Future<void> unlinkPiped();
   Future<void> resetAppSettingsToDefault();
   Future<void> closeAllDatabases();
   Future<void> resyncLibraryNow();
-
 }
-

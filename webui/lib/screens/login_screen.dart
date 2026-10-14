@@ -78,14 +78,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Doudou server',
-                      style: theme.textTheme.headlineSmall,
-                      textAlign: TextAlign.center),
+                  Text(
+                    'Doudou server',
+                    style: theme.textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     widget.isSetup
                         ? 'Choose the password for this server. Clients and '
-                            'the web dashboard both use it to log in.'
+                              'the web dashboard both use it to log in.'
                         : 'Log in with the server password.',
                     style: theme.textTheme.bodyMedium,
                     textAlign: TextAlign.center,
@@ -96,9 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     obscureText: true,
                     autofocus: true,
                     decoration: InputDecoration(
-                      labelText: widget.isSetup
-                          ? 'New password'
-                          : 'Password',
+                      labelText: widget.isSetup ? 'New password' : 'Password',
                     ),
                     onSubmitted: (_) => _submit(),
                   ),
@@ -115,16 +115,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                   if (_error != null) ...[
                     const SizedBox(height: 12),
-                    Text(_error!,
-                        style: TextStyle(color: theme.colorScheme.error),
-                        textAlign: TextAlign.center),
+                    Text(
+                      _error!,
+                      style: TextStyle(color: theme.colorScheme.error),
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: _busy ? null : _submit,
-                    child: Text(widget.isSetup
-                        ? 'Set password'
-                        : 'Log in'),
+                    child: Text(widget.isSetup ? 'Set password' : 'Log in'),
                   ),
                 ],
               ),

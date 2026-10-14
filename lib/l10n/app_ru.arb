@@ -1119,6 +1119,8 @@
   "@deviceSync": {},
   "deviceSyncDes": "Синхронизируйте библиотеку между устройствами через сервер doudou.",
   "@deviceSyncDes": {},
+  "fromSyncServer": "С сервера синхронизации",
+  "@fromSyncServer": {},
   "connect": "Подключиться",
   "@connect": {},
   "disconnect": "Отключиться",

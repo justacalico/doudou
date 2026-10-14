@@ -24,15 +24,18 @@ mixin _SettingsViewServerMixin on __SettingsViewStateBase {
       ),
       const SizedBox(height: DoudouSpace.s8),
       Obx(() {
-        final servers = settings.servers;
+        final all = settings.allServers;
         final activeId = settings.activeServerId.value;
 
-        if (servers.isEmpty) {
+        if (all.isEmpty) {
           return _SettingsListTile(
             title: context.l10n.noServersConfigured,
             enabled: false,
           );
         }
+
+        final remote = all.where((s) => s.isRemote).toList();
+        final local = all.where((s) => !s.isRemote).toList();
 
         return RadioGroup<int>(
           groupValue: activeId,
@@ -40,79 +43,110 @@ mixin _SettingsViewServerMixin on __SettingsViewStateBase {
             if (v != null) settings.setActiveServer(v);
           },
           child: Column(
-            children: servers.map((server) {
-              return _SettingsListTile(
-                leading:
-                    Icon(serverIcon(server.type), color: colors.textSecondary),
-                title: server.name,
-                subtitle: server.serverUrl?.isNotEmpty == true
-                    ? server.serverUrl!
-                    : serverTypeLabel(context, server.type),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(value: server.id),
-                    if (!server.isDefault) ...[
-                      if (server.type != ServerType.youtubeMusic)
+            children: [
+              ...local.map((server) {
+                return _SettingsListTile(
+                  leading: Icon(serverIcon(server.type),
+                      color: colors.textSecondary),
+                  title: server.name,
+                  subtitle: server.serverUrl?.isNotEmpty == true
+                      ? server.serverUrl!
+                      : serverTypeLabel(context, server.type),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Radio<int>(value: server.id),
+                      if (!server.isDefault) ...[
+                        if (server.type != ServerType.youtubeMusic)
+                          IconButton(
+                            icon: const Icon(Icons.wifi_find, size: 18),
+                            tooltip: context.l10n.testConnection,
+                            onPressed: () async {
+                              final err =
+                                  await settings.testServerConnection(server);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(err == null
+                                      ? context.l10n.connectionSuccess
+                                      : '${context.l10n.connectionFailed}: $err'),
+                                ),
+                              );
+                            },
+                          ),
                         IconButton(
-                          icon: const Icon(Icons.wifi_find, size: 18),
-                          tooltip: context.l10n.testConnection,
-                          onPressed: () async {
-                            final err =
-                                await settings.testServerConnection(server);
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(err == null
-                                    ? context.l10n.connectionSuccess
-                                    : '${context.l10n.connectionFailed}: $err'),
-                              ),
-                            );
-                          },
-                        ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        onPressed: () => showDialog(
-                          context: context,
-                          builder: (_) => AddServerDialog(
-                            serverType: server.type,
-                            existing: server,
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          onPressed: () => showDialog(
+                            context: context,
+                            builder: (_) => AddServerDialog(
+                              serverType: server.type,
+                              existing: server,
+                            ),
                           ),
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 18),
-                        onPressed: () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (dialogContext) => AlertDialog(
-                              title: Text(context.l10n.deleteServer),
-                              content: Text(context.l10n.deleteServerConfirm),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(dialogContext).pop(false),
-                                  child: Text(context.l10n.cancel),
-                                ),
-                                FilledButton(
-                                  onPressed: () =>
-                                      Navigator.of(dialogContext).pop(true),
-                                  child: Text(context.l10n.delete),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (confirmed == true && context.mounted) {
-                            settings.removeServer(server.id);
-                          }
-                        },
-                      ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 18),
+                          onPressed: () async {
+                            final confirmed = await showDialog<bool>(
+                              context: context,
+                              builder: (dialogContext) => AlertDialog(
+                                title: Text(context.l10n.deleteServer),
+                                content: Text(context.l10n.deleteServerConfirm),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(dialogContext).pop(false),
+                                    child: Text(context.l10n.cancel),
+                                  ),
+                                  FilledButton(
+                                    onPressed: () =>
+                                        Navigator.of(dialogContext).pop(true),
+                                    child: Text(context.l10n.delete),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirmed == true && context.mounted) {
+                              settings.removeServer(server.id);
+                            }
+                          },
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
+                  onTap: () => settings.setActiveServer(server.id),
+                );
+              }),
+              if (remote.isNotEmpty) ...[
+                const SizedBox(height: DoudouSpace.s8),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: DoudouSpace.s16),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      context.l10n.fromSyncServer,
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelMedium
+                          ?.copyWith(color: colors.textSecondary),
+                    ),
+                  ),
                 ),
-                onTap: () => settings.setActiveServer(server.id),
-              );
-            }).toList(),
+              ],
+              ...remote.map((server) {
+                return _SettingsListTile(
+                  leading: Icon(serverIcon(server.type),
+                      color: colors.textSecondary),
+                  title: server.name,
+                  subtitle: server.serverUrl?.isNotEmpty == true
+                      ? server.serverUrl!
+                      : serverTypeLabel(context, server.type),
+                  trailing: Radio<int>(value: server.id),
+                  onTap: () => settings.setActiveServer(server.id),
+                );
+              }),
+            ],
           ),
         );
       }),
@@ -136,8 +170,7 @@ mixin _SettingsViewServerMixin on __SettingsViewStateBase {
       Obx(() {
         final deviceSync = Get.find<ServerSyncService>();
         return _SettingsListTile(
-          leading:
-              Icon(Icons.sync_outlined, color: colors.textSecondary),
+          leading: Icon(Icons.sync_outlined, color: colors.textSecondary),
           title: context.l10n.deviceSync,
           subtitle: deviceSync.enabled.value
               ? (deviceSync.connected.value

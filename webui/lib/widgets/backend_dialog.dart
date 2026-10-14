@@ -9,12 +9,13 @@ class BackendDialog extends StatefulWidget {
 
   final HostedBackend? existing;
 
-  static Future<HostedBackend?> show(BuildContext context,
-          {HostedBackend? existing}) =>
-      showDialog<HostedBackend>(
-        context: context,
-        builder: (_) => BackendDialog(existing: existing),
-      );
+  static Future<HostedBackend?> show(
+    BuildContext context, {
+    HostedBackend? existing,
+  }) => showDialog<HostedBackend>(
+    context: context,
+    builder: (_) => BackendDialog(existing: existing),
+  );
 
   @override
   State<BackendDialog> createState() => _BackendDialogState();
@@ -60,14 +61,16 @@ class _BackendDialogState extends State<BackendDialog> {
     }
     String? clean(TextEditingController c) =>
         c.text.trim().isEmpty ? null : c.text.trim();
-    Navigator.of(context).pop(HostedBackend(
-      id: widget.existing?.id,
-      name: name,
-      type: _type,
-      serverUrl: clean(_url),
-      username: clean(_username),
-      password: _password.text.isEmpty ? null : _password.text,
-    ));
+    Navigator.of(context).pop(
+      HostedBackend(
+        id: widget.existing?.id,
+        name: name,
+        type: _type,
+        serverUrl: clean(_url),
+        username: clean(_username),
+        password: _password.text.isEmpty ? null : _password.text,
+      ),
+    );
   }
 
   @override
@@ -132,10 +135,7 @@ class _BackendDialogState extends State<BackendDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        FilledButton(
-          onPressed: _save,
-          child: Text(editing ? 'Save' : 'Add'),
-        ),
+        FilledButton(onPressed: _save, child: Text(editing ? 'Save' : 'Add')),
       ],
     );
   }

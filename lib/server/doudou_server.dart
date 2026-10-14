@@ -156,8 +156,7 @@ class DoudouSyncServer {
   }
 
   void _saveConfig([File? configFile]) {
-    (configFile ?? File('$dataDir/server.json'))
-        .writeAsStringSync(jsonEncode({
+    (configFile ?? File('$dataDir/server.json')).writeAsStringSync(jsonEncode({
       'token': _token,
       'salt': _salt,
       'passwordHash': _passwordHash,
@@ -167,11 +166,11 @@ class DoudouSyncServer {
 
   String _generatePassword(Random random) {
     const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789';
-    return List.generate(12, (_) => chars[random.nextInt(chars.length)])
-        .join();
+    return List.generate(12, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
-  bool checkPassword(String password) => _passwordHash != null &&
+  bool checkPassword(String password) =>
+      _passwordHash != null &&
       verifySyncPassword(password, _salt!, _passwordHash!);
 
   /// Replaces the server password. A fresh salt keeps old hashes useless;
@@ -259,8 +258,8 @@ class DoudouSyncServer {
     }
 
     if (method == 'GET' && path == '/api/backends') {
-      _respond(request, 200,
-          {'rev': _backendsRev(), 'backends': _listBackends()});
+      _respond(
+          request, 200, {'rev': _backendsRev(), 'backends': _listBackends()});
       return;
     }
 
@@ -312,8 +311,7 @@ class DoudouSyncServer {
 
   Future<void> _routeWebuiApi(HttpRequest request, String sub) async {
     final method = request.method;
-    final clientAddress =
-        request.connectionInfo?.remoteAddress.address ?? '';
+    final clientAddress = request.connectionInfo?.remoteAddress.address ?? '';
 
     if (method == 'GET' && sub == '/state') {
       _respond(request, 200, {
@@ -427,8 +425,8 @@ class DoudouSyncServer {
 
     if (sub == '/backends') {
       if (method == 'GET') {
-        _respond(request, 200,
-            {'rev': _backendsRev(), 'backends': _listBackends()});
+        _respond(
+            request, 200, {'rev': _backendsRev(), 'backends': _listBackends()});
         return;
       }
       if (method == 'POST') {
@@ -543,7 +541,9 @@ class DoudouSyncServer {
       _respond(request, 400, {'error': 'invalid json body'});
       return;
     }
-    final merged = existing.toMap()..addAll(body)..['id'] = id;
+    final merged = existing.toMap()
+      ..addAll(body)
+      ..['id'] = id;
     final error = validateHostedBackend(merged);
     if (error != null) {
       _respond(request, 400, {'error': error});
@@ -866,8 +866,7 @@ class DoudouSyncServer {
     for (final box in _openBoxes.values) {
       await box.compact();
     }
-    final temp =
-        await Directory.systemTemp.createTemp('doudou_export_');
+    final temp = await Directory.systemTemp.createTemp('doudou_export_');
     try {
       final outPath = '${temp.path}/doudou-backup.hmb';
       final names = await exportHmbFile(dbDir, outPath);
@@ -880,8 +879,8 @@ class DoudouSyncServer {
       request.response
         ..statusCode = 200
         ..headers.contentType = ContentType('application', 'zip')
-        ..headers.set('Content-Disposition',
-            'attachment; filename="doudou-backup.hmb"')
+        ..headers.set(
+            'Content-Disposition', 'attachment; filename="doudou-backup.hmb"')
         ..add(bytes);
       await request.response.close();
     } finally {

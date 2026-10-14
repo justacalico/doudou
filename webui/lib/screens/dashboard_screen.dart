@@ -48,8 +48,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _refresh() async {
     try {
-      final results =
-          await Future.wait([widget.api.backends(), widget.api.boxes()]);
+      final results = await Future.wait([
+        widget.api.backends(),
+        widget.api.boxes(),
+      ]);
       if (mounted) {
         setState(() {
           _backends = results[0] as List<HostedBackend>;
@@ -76,7 +78,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _lastLogSeq = page.latest;
         return;
       }
-      final atBottom = !_logScroll.hasClients ||
+      final atBottom =
+          !_logScroll.hasClients ||
           _logScroll.position.pixels >=
               _logScroll.position.maxScrollExtent - 40;
       setState(() {
@@ -144,8 +147,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Remove backend'),
-        content: Text('Remove ${backend.name}? Clients lose it on their '
-            'next sync.'),
+        content: Text(
+          'Remove ${backend.name}? Clients lose it on their '
+          'next sync.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -170,8 +175,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Import backup'),
-        content: const Text('Importing replaces the matching server '
-            'databases with the backup contents.'),
+        content: const Text(
+          'Importing replaces the matching server '
+          'databases with the backup contents.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -194,8 +201,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  Widget _section(Widget title, List<Widget> children,
-      [List<Widget> actions = const []]) {
+  Widget _section(
+    Widget title,
+    List<Widget> children, [
+    List<Widget> actions = const [],
+  ]) {
     final theme = Theme.of(context);
     return Card(
       child: Padding(
@@ -205,8 +215,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Row(
               children: [
-                Expanded(child: DefaultTextStyle(
-                    style: theme.textTheme.titleMedium!, child: title)),
+                Expanded(
+                  child: DefaultTextStyle(
+                    style: theme.textTheme.titleMedium!,
+                    child: title,
+                  ),
+                ),
                 ...actions,
               ],
             ),
@@ -219,114 +233,112 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   IconData _typeIcon(String type) => switch (type) {
-        'youtubeMusic' => Icons.play_circle_outline,
-        'jellyfin' => Icons.video_library_outlined,
-        'plex' => Icons.movie_outlined,
-        _ => Icons.dns_outlined,
-      };
+    'youtubeMusic' => Icons.play_circle_outline,
+    'jellyfin' => Icons.video_library_outlined,
+    'plex' => Icons.movie_outlined,
+    _ => Icons.dns_outlined,
+  };
 
   Widget _backendsCard() => _section(
-        const Text('Backends'),
-        [
-          if (_backends.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Text('No backends yet. Backends added here show up on '
-                  'every client connected to this server.'),
-            )
-          else
-            for (final backend in _backends)
-              ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(_typeIcon(backend.type)),
-                title: Text(backend.name),
-                subtitle: Text(
-                  '${HostedBackend.typeLabel(backend.type)}'
-                  '${backend.serverUrl != null ? ' · ${backend.serverUrl}' : ''}',
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 20),
-                      tooltip: 'Edit',
-                      onPressed: _busy ? null : () => _editBackend(backend),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      tooltip: 'Remove',
-                      onPressed: _busy ? null : () => _deleteBackend(backend),
-                    ),
-                  ],
-                ),
-              ),
-        ],
-        [
-          FilledButton.tonalIcon(
-            onPressed: _busy ? null : _addBackend,
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Add'),
+    const Text('Backends'),
+    [
+      if (_backends.isEmpty)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Text(
+            'No backends yet. Backends added here show up on '
+            'every client connected to this server.',
           ),
-        ],
-      );
-
-  Widget _boxesCard() => _section(
-        const Text('Database'),
-        [
-          if (_boxes.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Text('No synced boxes yet.'),
-            )
-          else
-            for (final box in _boxes)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Row(
-                  children: [
-                    Expanded(child: Text(box.name)),
-                    Text('${box.keys} keys · rev ${box.rev}',
-                        style: Theme.of(context).textTheme.bodySmall),
-                  ],
+        )
+      else
+        for (final backend in _backends)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(_typeIcon(backend.type)),
+            title: Text(backend.name),
+            subtitle: Text(
+              '${HostedBackend.typeLabel(backend.type)}'
+              '${backend.serverUrl != null ? ' · ${backend.serverUrl}' : ''}',
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, size: 20),
+                  tooltip: 'Edit',
+                  onPressed: _busy ? null : () => _editBackend(backend),
                 ),
-              ),
-        ],
-      );
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 20),
+                  tooltip: 'Remove',
+                  onPressed: _busy ? null : () => _deleteBackend(backend),
+                ),
+              ],
+            ),
+          ),
+    ],
+    [
+      FilledButton.tonalIcon(
+        onPressed: _busy ? null : _addBackend,
+        icon: const Icon(Icons.add, size: 18),
+        label: const Text('Add'),
+      ),
+    ],
+  );
 
-  Widget _backupCard() => _section(
-        const Text('Backup'),
-        [
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
+  Widget _boxesCard() => _section(const Text('Database'), [
+    if (_boxes.isEmpty)
+      const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Text('No synced boxes yet.'),
+      )
+    else
+      for (final box in _boxes)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(
             children: [
-              FilledButton.tonalIcon(
-                onPressed: _busy
-                    ? null
-                    : () => _mutate(() async {
-                          await widget.api.downloadBackup();
-                          return 'Backup downloaded';
-                        }),
-                icon: const Icon(Icons.download_outlined, size: 18),
-                label: const Text('Download .hmb'),
-              ),
-              OutlinedButton.icon(
-                onPressed: _busy ? null : _import,
-                icon: const Icon(Icons.upload_outlined, size: 18),
-                label: const Text('Import .hmb'),
+              Expanded(child: Text(box.name)),
+              Text(
+                '${box.keys} keys · rev ${box.rev}',
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),
-        ],
-      );
+        ),
+  ]);
+
+  Widget _backupCard() => _section(const Text('Backup'), [
+    Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      children: [
+        FilledButton.tonalIcon(
+          onPressed: _busy
+              ? null
+              : () => _mutate(() async {
+                  await widget.api.downloadBackup();
+                  return 'Backup downloaded';
+                }),
+          icon: const Icon(Icons.download_outlined, size: 18),
+          label: const Text('Download .hmb'),
+        ),
+        OutlinedButton.icon(
+          onPressed: _busy ? null : _import,
+          icon: const Icon(Icons.upload_outlined, size: 18),
+          label: const Text('Import .hmb'),
+        ),
+      ],
+    ),
+  ]);
 
   Color _levelColor(String level) => switch (level) {
-        'error' => Theme.of(context).colorScheme.error,
-        'warn' => Colors.orange,
-        _ => Theme.of(context).colorScheme.onSurfaceVariant,
-      };
+    'error' => Theme.of(context).colorScheme.error,
+    'warn' => Colors.orange,
+    _ => Theme.of(context).colorScheme.onSurfaceVariant,
+  };
 
   String _formatTs(int ts) {
     final t = DateTime.fromMillisecondsSinceEpoch(ts);
@@ -335,42 +347,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _logsCard() => _section(
-        const Text('Logs'),
-        [
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 320),
-            child: _logs.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text('Nothing logged yet.'),
-                  )
-                : ListView.builder(
-                    controller: _logScroll,
-                    shrinkWrap: true,
-                    itemCount: _logs.length,
-                    itemBuilder: (context, i) {
-                      final entry = _logs[i];
-                      return Text(
-                        '${_formatTs(entry.ts)}  ${entry.message}',
-                        style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 12,
-                          color: _levelColor(entry.level),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-        [
-          IconButton(
-            icon: Icon(_logsPaused ? Icons.play_arrow : Icons.pause,
-                size: 20),
-            tooltip: _logsPaused ? 'Resume' : 'Pause',
-            onPressed: () => setState(() => _logsPaused = !_logsPaused),
-          ),
-        ],
-      );
+    const Text('Logs'),
+    [
+      ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 320),
+        child: _logs.isEmpty
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Text('Nothing logged yet.'),
+              )
+            : ListView.builder(
+                controller: _logScroll,
+                shrinkWrap: true,
+                itemCount: _logs.length,
+                itemBuilder: (context, i) {
+                  final entry = _logs[i];
+                  return Text(
+                    '${_formatTs(entry.ts)}  ${entry.message}',
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                      color: _levelColor(entry.level),
+                    ),
+                  );
+                },
+              ),
+      ),
+    ],
+    [
+      IconButton(
+        icon: Icon(_logsPaused ? Icons.play_arrow : Icons.pause, size: 20),
+        tooltip: _logsPaused ? 'Resume' : 'Pause',
+        onPressed: () => setState(() => _logsPaused = !_logsPaused),
+      ),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -402,16 +413,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
               if (_notice != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(_notice!,
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary)),
+                  child: Text(
+                    _notice!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                 ),
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(_error!,
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.error)),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ),
               _backendsCard(),
               const SizedBox(height: 16),

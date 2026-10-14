@@ -49,10 +49,8 @@ void main() {
   test('validateHostedBackend checks name, type and url', () {
     expect(validateHostedBackend({'type': 'jellyfin'}), isNotNull);
     expect(validateHostedBackend({'name': '', 'type': 'jellyfin'}), isNotNull);
-    expect(
-        validateHostedBackend({'name': 'x', 'type': 'napster'}), isNotNull);
-    expect(validateHostedBackend({'name': 'x', 'type': 'jellyfin'}),
-        isNotNull);
+    expect(validateHostedBackend({'name': 'x', 'type': 'napster'}), isNotNull);
+    expect(validateHostedBackend({'name': 'x', 'type': 'jellyfin'}), isNotNull);
     expect(
         validateHostedBackend({
           'name': 'x',

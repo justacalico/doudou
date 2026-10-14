@@ -42,7 +42,7 @@ mixin _SettingsServerMixin on _SettingsScreenControllerBase {
     final idx = servers.indexWhere((s) => s.id == id);
     if (idx < 0) return;
     final s = servers[idx];
-    if (s.isDefault) return;
+    if (s.isDefault || s.isRemote) return;
     servers[idx] = s.copyWith(
       serverUrl: serverUrl ?? s.serverUrl,
       username: username ?? s.username,
@@ -54,6 +54,7 @@ mixin _SettingsServerMixin on _SettingsScreenControllerBase {
 
   void removeServer(int id) {
     if (id == SettingsServer.defaultServerId) return;
+    if (allServers.any((s) => s.id == id && s.isRemote)) return;
     servers.removeWhere((s) => s.id == id);
     if (activeServerId.value == id) {
       if (servers.isEmpty) {
@@ -69,10 +70,35 @@ mixin _SettingsServerMixin on _SettingsScreenControllerBase {
   }
 
   void setActiveServer(int id) {
-    if (!servers.any((s) => s.id == id)) return;
+    if (!allServers.any((s) => s.id == id)) return;
     if (activeServerId.value == id) return;
     activeServerId.value = id;
     setBox.put('activeServerId', id);
+    _onActiveServerChanged();
+  }
+
+  /// Called when the hosted backend list changes. Cached backends may hold
+  /// stale credentials, and the active server may have vanished.
+  void onRemoteServersChanged() {
+    invalidateBackendCache();
+    ensureActiveServerValid();
+  }
+
+  /// Picks a fallback when the active server no longer exists, for example
+  /// after the sync server removed the remote entry that was selected.
+  void ensureActiveServerValid() {
+    final id = activeServerId.value;
+    if (id != null && allServers.any((s) => s.id == id)) return;
+    final nonDefault = servers.firstWhereOrNull((server) => !server.isDefault);
+    final next = nonDefault ?? (servers.isEmpty ? null : servers.first);
+    if (next == null) {
+      if (id == null) return;
+      activeServerId.value = null;
+      setBox.delete('activeServerId');
+    } else {
+      activeServerId.value = next.id;
+      setBox.put('activeServerId', next.id);
+    }
     _onActiveServerChanged();
   }
 
@@ -94,5 +120,4 @@ mixin _SettingsServerMixin on _SettingsScreenControllerBase {
     _cachedBackendServerId = null;
     _serverBackendCache.clear();
   }
-
 }

@@ -727,6 +727,8 @@
   "@deviceSync": {},
   "deviceSyncDes": "通过 doudou 同步服务器在多台设备之间共享你的音乐库。",
   "@deviceSyncDes": {},
+  "fromSyncServer": "来自同步服务器",
+  "@fromSyncServer": {},
   "connect": "连接",
   "@connect": {},
   "disconnect": "断开连接",

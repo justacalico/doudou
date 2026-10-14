@@ -84,9 +84,9 @@ class _AuthGateState extends State<AuthGate> {
   void _onAuthed() => setState(() => _ready = true);
 
   void _onLoggedOut() => setState(() {
-        _ready = false;
-        _setupRequired = false;
-      });
+    _ready = false;
+    _setupRequired = false;
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -96,8 +96,10 @@ class _AuthGateState extends State<AuthGate> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Could not reach the server',
-                  style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'Could not reach the server',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               Text(_loadError!),
               const SizedBox(height: 16),
@@ -108,9 +110,7 @@ class _AuthGateState extends State<AuthGate> {
       );
     }
     if (_setupRequired == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (!_ready) {
       return LoginScreen(

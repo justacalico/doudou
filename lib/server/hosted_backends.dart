@@ -80,8 +80,7 @@ String? validateHostedBackend(Map<dynamic, dynamic> map) {
   final name = map['name'];
   if (name is! String || name.trim().isEmpty) return 'name is required';
   final type = map['type'];
-  if (type is! String ||
-      !ServerType.values.any((t) => t.name == type)) {
+  if (type is! String || !ServerType.values.any((t) => t.name == type)) {
     return 'unknown server type';
   }
   if (type != ServerType.youtubeMusic.name) {

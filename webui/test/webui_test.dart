@@ -6,8 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakeApi extends WebuiApi {
-  FakeApi({required this.stateResult})
-      : super(tokenStore: MemoryTokenStore());
+  FakeApi({required this.stateResult}) : super(tokenStore: MemoryTokenStore());
 
   ServerState stateResult;
   bool tokenCheck = true;
@@ -53,8 +52,9 @@ class FakeApi extends WebuiApi {
 }
 
 void main() {
-  testWidgets('setup asks for the password twice and claims the server',
-      (tester) async {
+  testWidgets('setup asks for the password twice and claims the server', (
+    tester,
+  ) async {
     final api = FakeApi(stateResult: ServerState(setupRequired: true));
     await tester.pumpWidget(DoudouServerApp(api: api));
     await tester.pumpAndSettle();
@@ -63,16 +63,22 @@ void main() {
     expect(find.text('Repeat password'), findsOneWidget);
 
     await tester.enterText(
-        find.widgetWithText(TextField, 'New password'), 'pw1');
+      find.widgetWithText(TextField, 'New password'),
+      'pw1',
+    );
     await tester.enterText(
-        find.widgetWithText(TextField, 'Repeat password'), 'pw2');
+      find.widgetWithText(TextField, 'Repeat password'),
+      'pw2',
+    );
     await tester.tap(find.text('Set password'));
     await tester.pumpAndSettle();
     expect(find.text('Passwords do not match'), findsOneWidget);
     expect(api.setupWith, isNull);
 
     await tester.enterText(
-        find.widgetWithText(TextField, 'Repeat password'), 'pw1');
+      find.widgetWithText(TextField, 'Repeat password'),
+      'pw1',
+    );
     await tester.tap(find.text('Set password'));
     await tester.pumpAndSettle();
 
@@ -80,15 +86,15 @@ void main() {
     expect(find.text('Backends'), findsOneWidget);
   });
 
-  testWidgets('login calls the api and lands on the dashboard',
-      (tester) async {
+  testWidgets('login calls the api and lands on the dashboard', (tester) async {
     final api = FakeApi(stateResult: ServerState(setupRequired: false))
       ..backendList = [
         HostedBackend(
-            id: 1,
-            name: 'Home Jellyfin',
-            type: 'jellyfin',
-            serverUrl: 'http://jf.local:8096'),
+          id: 1,
+          name: 'Home Jellyfin',
+          type: 'jellyfin',
+          serverUrl: 'http://jf.local:8096',
+        ),
         HostedBackend(id: 2, name: 'YTM', type: 'youtubeMusic'),
       ]
       ..boxList = [SyncBox(name: 'LIBFAV', rev: 3, keys: 42)];
@@ -111,8 +117,9 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('a stored token skips the login screen and logout returns',
-      (tester) async {
+  testWidgets('a stored token skips the login screen and logout returns', (
+    tester,
+  ) async {
     final api = FakeApi(stateResult: ServerState(setupRequired: false));
     api.tokenStore.write('session');
     await tester.pumpWidget(DoudouServerApp(api: api));

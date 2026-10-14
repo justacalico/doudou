@@ -57,14 +57,12 @@ void main() {
 
   test('unauthenticated requests are rejected', () async {
     await boot();
-    expect(() => client!.listBoxes(),
-        throwsA(isA<SyncServerException>()));
+    expect(() => client!.listBoxes(), throwsA(isA<SyncServerException>()));
   });
 
   test('login is rate limited after repeated failures', () async {
     server = DoudouSyncServer(
-        dataDir: dataDir.path,
-        rateLimiter: LoginRateLimiter(maxFailures: 2));
+        dataDir: dataDir.path, rateLimiter: LoginRateLimiter(maxFailures: 2));
     await server!.start(port: 0, password: password);
     client = DoudouSyncClient(baseUrl: 'http://127.0.0.1:${server!.port}');
 
@@ -224,8 +222,8 @@ void main() {
 
     final junkPath = '${scratchDir.path}/junk.hmb';
     await File(junkPath).writeAsString('not a zip');
-    expect(() => server!.importHmb(junkPath),
-        throwsA(isA<HmbImportException>()));
+    expect(
+        () => server!.importHmb(junkPath), throwsA(isA<HmbImportException>()));
   });
 
   test('export.hmb returns a zip the import can read back', () async {
@@ -310,14 +308,14 @@ void main() {
   test('web ui setup claims the server exactly once', () async {
     server = DoudouSyncServer(dataDir: dataDir.path);
     await server!.start(port: 0);
-    final setup = await webui('POST', '/app/api/setup',
-        json: {'password': 'chosen'});
+    final setup =
+        await webui('POST', '/app/api/setup', json: {'password': 'chosen'});
     expect(setup.status, 200);
     final token = setup.body['token'] as String;
     expect(token, isNotEmpty);
 
-    final second = await webui('POST', '/app/api/setup',
-        json: {'password': 'other'});
+    final second =
+        await webui('POST', '/app/api/setup', json: {'password': 'other'});
     expect(second.status, 409);
 
     // the chosen password works for sync clients too
@@ -335,12 +333,12 @@ void main() {
 
   test('web ui login issues a session that logout revokes', () async {
     await boot();
-    final bad = await webui('POST', '/app/api/login',
-        json: {'password': 'nope'});
+    final bad =
+        await webui('POST', '/app/api/login', json: {'password': 'nope'});
     expect(bad.status, 401);
 
-    final login = await webui('POST', '/app/api/login',
-        json: {'password': password});
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
     expect(login.status, 200);
     final token = login.body['token'] as String;
 
@@ -367,25 +365,23 @@ void main() {
 
   test('hosted backends round trip to sync clients', () async {
     await boot();
-    final login = await webui('POST', '/app/api/login',
-        json: {'password': password});
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
     final token = login.body['token'] as String;
 
-    final created = await webui('POST', '/app/api/backends',
-        token: token,
-        json: {
-          'name': 'Home Jellyfin',
-          'type': 'jellyfin',
-          'serverUrl': 'http://jf.local:8096',
-          'username': 'cal',
-          'password': 'pw',
-        });
+    final created =
+        await webui('POST', '/app/api/backends', token: token, json: {
+      'name': 'Home Jellyfin',
+      'type': 'jellyfin',
+      'serverUrl': 'http://jf.local:8096',
+      'username': 'cal',
+      'password': 'pw',
+    });
     expect(created.status, 200);
     expect(created.body['id'], 1);
 
     await webui('POST', '/app/api/backends',
-        token: token,
-        json: {'name': 'YTM', 'type': 'youtubeMusic'});
+        token: token, json: {'name': 'YTM', 'type': 'youtubeMusic'});
 
     await client!.login(password);
     final hosted = await client!.listBackends();
@@ -400,8 +396,7 @@ void main() {
     expect(updated.body['name'], 'Renamed');
     expect(updated.body['serverUrl'], 'http://jf.local:8096');
 
-    final deleted = await webui('DELETE', '/app/api/backends/2',
-        token: token);
+    final deleted = await webui('DELETE', '/app/api/backends/2', token: token);
     expect(deleted.status, 200);
 
     final after = await client!.listBackends();
@@ -411,8 +406,8 @@ void main() {
 
   test('backend validation rejects bad payloads', () async {
     await boot();
-    final login = await webui('POST', '/app/api/login',
-        json: {'password': password});
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
     final token = login.body['token'] as String;
 
     Future<int> attempt(Map<String, Object?> json) async =>
@@ -421,8 +416,7 @@ void main() {
 
     expect(await attempt({'type': 'jellyfin'}), 400);
     expect(await attempt({'name': 'x', 'type': 'napster'}), 400);
-    expect(
-        await attempt({'name': 'x', 'type': 'jellyfin'}), 400);
+    expect(await attempt({'name': 'x', 'type': 'jellyfin'}), 400);
     expect(
         await attempt({
           'name': 'x',
@@ -434,33 +428,29 @@ void main() {
 
   test('the backends box stays out of the generic box api', () async {
     await boot();
-    final login = await webui('POST', '/app/api/login',
-        json: {'password': password});
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
     final token = login.body['token'] as String;
     await webui('POST', '/app/api/backends',
-        token: token,
-        json: {'name': 'YTM', 'type': 'youtubeMusic'});
+        token: token, json: {'name': 'YTM', 'type': 'youtubeMusic'});
 
     await client!.login(password);
     final boxes = await client!.listBoxes();
-    expect(boxes.map((b) => b.name),
-        isNot(contains('DoudouBackends')));
+    expect(boxes.map((b) => b.name), isNot(contains('DoudouBackends')));
     expect(() => client!.getBox('DoudouBackends'),
         throwsA(isA<SyncServerException>()));
   });
 
   test('hosted backends survive an hmb export and import', () async {
     await boot();
-    final login = await webui('POST', '/app/api/login',
-        json: {'password': password});
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
     final token = login.body['token'] as String;
     await webui('POST', '/app/api/backends',
-        token: token,
-        json: {'name': 'YTM', 'type': 'youtubeMusic'});
+        token: token, json: {'name': 'YTM', 'type': 'youtubeMusic'});
     await client!.login(password);
     final bytes = await client!.exportHmb();
-    expect(
-        ZipDecoder().decodeBytes(bytes).map((f) => f.name),
+    expect(ZipDecoder().decodeBytes(bytes).map((f) => f.name),
         contains('doudoubackends.hive'));
 
     final hmbPath = '${scratchDir.path}/backup.hmb';
@@ -474,8 +464,8 @@ void main() {
       () async {
     await boot();
     await client!.login(password);
-    final login = await webui('POST', '/app/api/login',
-        json: {'password': password});
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
     final token = login.body['token'] as String;
 
     final wrong = await webui('POST', '/app/api/password',
@@ -483,16 +473,15 @@ void main() {
     expect(wrong.status, 401);
 
     final changed = await webui('POST', '/app/api/password',
-        token: token,
-        json: {'current': password, 'next': 'brand-new'});
+        token: token, json: {'current': password, 'next': 'brand-new'});
     expect(changed.status, 200);
 
     // old password no longer logs in, new one does
-    final oldLogin = await webui('POST', '/app/api/login',
-        json: {'password': password});
+    final oldLogin =
+        await webui('POST', '/app/api/login', json: {'password': password});
     expect(oldLogin.status, 401);
-    final newLogin = await webui('POST', '/app/api/login',
-        json: {'password': 'brand-new'});
+    final newLogin =
+        await webui('POST', '/app/api/login', json: {'password': 'brand-new'});
     expect(newLogin.status, 200);
 
     // the shared sync token is untouched so clients keep working
@@ -501,8 +490,8 @@ void main() {
 
   test('logs endpoint returns events with a since filter', () async {
     await boot();
-    final login = await webui('POST', '/app/api/login',
-        json: {'password': password});
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
     final token = login.body['token'] as String;
 
     final res = await webui('GET', '/app/api/logs', token: token);
@@ -530,12 +519,13 @@ void main() {
 
     final archive = Archive();
     final hiveBytes = await File('$hiveDir/remotesongs.hive').readAsBytes();
-    archive.addFile(ArchiveFile('RemoteSongs.hive', hiveBytes.length, hiveBytes));
+    archive
+        .addFile(ArchiveFile('RemoteSongs.hive', hiveBytes.length, hiveBytes));
     final hmbBytes = ZipEncoder().encode(archive)!;
 
     await boot();
-    final login = await webui('POST', '/app/api/login',
-        json: {'password': password});
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
     final token = login.body['token'] as String;
 
     final res = await webui('POST', '/app/api/import.hmb',
@@ -552,16 +542,16 @@ void main() {
     await boot();
     final http = HttpClient();
 
-    final root = await http.getUrl(
-        Uri.parse('http://127.0.0.1:${server!.port}/'));
+    final root =
+        await http.getUrl(Uri.parse('http://127.0.0.1:${server!.port}/'));
     root.followRedirects = false;
     final rootRes = await root.close();
     expect(rootRes.statusCode, 301);
     expect(rootRes.headers.value(HttpHeaders.locationHeader), '/app/');
     await utf8.decodeStream(rootRes);
 
-    final index = await http.getUrl(
-        Uri.parse('http://127.0.0.1:${server!.port}/app/'));
+    final index =
+        await http.getUrl(Uri.parse('http://127.0.0.1:${server!.port}/app/'));
     final indexRes = await index.close();
     expect(indexRes.statusCode, 200);
     expect(indexRes.headers.contentType?.mimeType, 'text/html');

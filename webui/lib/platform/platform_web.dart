@@ -39,7 +39,9 @@ Future<Uint8List?> pickHmbFile() {
 }
 
 Future<void> _read(
-    web.HTMLInputElement input, Completer<Uint8List?> completer) async {
+  web.HTMLInputElement input,
+  Completer<Uint8List?> completer,
+) async {
   final file = input.files?.item(0);
   if (file == null) {
     if (!completer.isCompleted) completer.complete(null);

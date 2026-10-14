@@ -68,8 +68,10 @@ class _PasswordDialogState extends State<PasswordDialog> {
       content: SizedBox(
         width: 360,
         child: _done
-            ? const Text('Password updated. Every login now uses the new '
-                'password; connected clients keep working.')
+            ? const Text(
+                'Password updated. Every login now uses the new '
+                'password; connected clients keep working.',
+              )
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -77,28 +79,33 @@ class _PasswordDialogState extends State<PasswordDialog> {
                     controller: _current,
                     obscureText: true,
                     autofocus: true,
-                    decoration:
-                        const InputDecoration(labelText: 'Current password'),
+                    decoration: const InputDecoration(
+                      labelText: 'Current password',
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _next,
                     obscureText: true,
-                    decoration:
-                        const InputDecoration(labelText: 'New password'),
+                    decoration: const InputDecoration(
+                      labelText: 'New password',
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _confirm,
                     obscureText: true,
-                    decoration:
-                        const InputDecoration(labelText: 'Repeat new password'),
+                    decoration: const InputDecoration(
+                      labelText: 'Repeat new password',
+                    ),
                     onSubmitted: (_) => _save(),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 12),
-                    Text(_error!,
-                        style: TextStyle(color: theme.colorScheme.error)),
+                    Text(
+                      _error!,
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
                   ],
                 ],
               ),

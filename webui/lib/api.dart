@@ -24,8 +24,8 @@ class ApiException implements Exception {
 /// from any host or port the server is reached through.
 class WebuiApi {
   WebuiApi({http.Client? client, TokenStore? tokenStore})
-      : _http = client ?? http.Client(),
-        tokenStore = tokenStore ?? createTokenStore();
+    : _http = client ?? http.Client(),
+      tokenStore = tokenStore ?? createTokenStore();
 
   final http.Client _http;
   final TokenStore tokenStore;
@@ -57,10 +57,9 @@ class WebuiApi {
       } catch (_) {}
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      final error =
-          decoded is Map && decoded['error'] is String
-              ? decoded['error'] as String
-              : 'HTTP ${response.statusCode}';
+      final error = decoded is Map && decoded['error'] is String
+          ? decoded['error'] as String
+          : 'HTTP ${response.statusCode}';
       throw ApiException(error, statusCode: response.statusCode);
     }
     if (decoded is Map) return Map<String, Object?>.from(decoded);
@@ -82,14 +81,22 @@ class WebuiApi {
   }
 
   Future<void> login(String password) async {
-    final res = await _call('POST', '/login',
-        body: {'password': password}, authorized: false);
+    final res = await _call(
+      'POST',
+      '/login',
+      body: {'password': password},
+      authorized: false,
+    );
     tokenStore.write(res['token'] as String);
   }
 
   Future<void> setup(String password) async {
-    final res = await _call('POST', '/setup',
-        body: {'password': password}, authorized: false);
+    final res = await _call(
+      'POST',
+      '/setup',
+      body: {'password': password},
+      authorized: false,
+    );
     tokenStore.write(res['token'] as String);
   }
 
@@ -122,8 +129,7 @@ class WebuiApi {
   Future<void> updateBackend(HostedBackend backend) =>
       _call('PUT', '/backends/${backend.id}', body: backend.toJson());
 
-  Future<void> deleteBackend(int id) =>
-      _call('DELETE', '/backends/$id');
+  Future<void> deleteBackend(int id) => _call('DELETE', '/backends/$id');
 
   Future<List<SyncBox>> boxes() async {
     final res = await _call('GET', '/boxes');
@@ -140,9 +146,9 @@ class WebuiApi {
     final raw = res['entries'];
     final entries = raw is List
         ? raw
-            .whereType<Map>()
-            .map((m) => LogEntry.fromJson(Map<String, Object?>.from(m)))
-            .toList()
+              .whereType<Map>()
+              .map((m) => LogEntry.fromJson(Map<String, Object?>.from(m)))
+              .toList()
         : <LogEntry>[];
     return LogPage(
       entries: entries,
@@ -163,10 +169,9 @@ class WebuiApi {
       decoded = jsonDecode(text);
     } catch (_) {}
     if (response.statusCode != 200 || decoded is! Map) {
-      final error =
-          decoded is Map && decoded['error'] is String
-              ? decoded['error'] as String
-              : 'HTTP ${response.statusCode}';
+      final error = decoded is Map && decoded['error'] is String
+          ? decoded['error'] as String
+          : 'HTTP ${response.statusCode}';
       throw ApiException(error, statusCode: response.statusCode);
     }
     final body = decoded;
