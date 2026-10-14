@@ -84,8 +84,7 @@ class DoudouSyncClient {
   }
 
   Future<BoxSnapshot> getBox(String name) async {
-    final res =
-        await _request('GET', '/api/box/${Uri.encodeComponent(name)}');
+    final res = await _request('GET', '/api/box/${Uri.encodeComponent(name)}');
     return BoxSnapshot.fromJson(res);
   }
 
@@ -97,6 +96,20 @@ class DoudouSyncClient {
       body: {'ops': ops.map((o) => o.toJson()).toList()},
     );
     return (res['rev'] as num?)?.toInt() ?? 0;
+  }
+
+  /// The backends hosted on the server, shared with every connected client
+  /// as remote entries in their server list.
+  Future<HostedBackends> listBackends() async {
+    final res = await _request('GET', '/api/backends');
+    final raw = res['backends'];
+    final backends = raw is List
+        ? raw.whereType<Map>().map((m) => Map<String, Object?>.from(m)).toList()
+        : const <Map<String, Object?>>[];
+    return HostedBackends(
+      revision: (res['rev'] as num?)?.toInt() ?? 0,
+      backends: backends,
+    );
   }
 
   /// Downloads the whole server database as `.hmb` bytes.
@@ -190,4 +203,13 @@ class SyncBoxInfo {
   final String name;
   final int revision;
   final int keys;
+}
+
+/// Result of `GET /api/backends`: the raw hosted backend wire maps plus the
+/// revision the server reported so callers can skip work when nothing moved.
+class HostedBackends {
+  const HostedBackends({required this.revision, required this.backends});
+
+  final int revision;
+  final List<Map<String, Object?>> backends;
 }

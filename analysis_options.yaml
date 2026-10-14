@@ -10,6 +10,7 @@
 analyzer:
   exclude:
     - build/**
+    - lib/server/webui_bundle.dart
     - android/**
     - ios/**
     - web/**

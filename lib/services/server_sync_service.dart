@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
+import '/models/server.dart';
 import '/server/doudou_server.dart' show kSyncProtocolName;
+import '/server/hosted_backends.dart';
 import '/server/sync_boxes.dart';
 import '/server/sync_client.dart';
 import '/server/sync_engine.dart';
 import '/server/sync_merge.dart' show KeyBase;
 import '/ui/screens/Library/library_controller.dart';
+import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/utils/app_l10n.dart';
 import '/utils/helper.dart';
 import '/utils/server_storage.dart';
@@ -26,6 +29,8 @@ class ServerSyncService extends GetxService {
   static const passwordPrefsKey = 'deviceSyncPassword';
   static const tokenPrefsKey = 'deviceSyncToken';
   static const enabledPrefsKey = 'deviceSyncEnabled';
+  static const remoteServersPrefsKey = 'syncedServers';
+  static const backendsRevPrefsKey = 'syncedBackendsRev';
   static const syncInterval = Duration(seconds: 30);
 
   final enabled = false.obs;
@@ -39,6 +44,11 @@ class ServerSyncService extends GetxService {
   final lastSyncAt = Rxn<DateTime>();
   final lastError = ''.obs;
 
+  /// The backends the connected server hands out. They show up in the
+  /// server list next to the local entries but are stored separately, so
+  /// turning device sync off removes them cleanly.
+  final remoteServers = <SettingsServer>[].obs;
+
   Box get _prefs => Hive.box('AppPrefs');
   DoudouSyncClient? _client;
   Timer? _timer;
@@ -50,6 +60,13 @@ class ServerSyncService extends GetxService {
     enabled.value = _prefs.get(enabledPrefsKey) == true;
     serverUrl.value = (_prefs.get(urlPrefsKey) as String?) ?? '';
     if (enabled.value && serverUrl.value.isNotEmpty) {
+      final storedRemote = _prefs.get(remoteServersPrefsKey);
+      if (storedRemote is List) {
+        remoteServers.assignAll(storedRemote
+            .whereType<Map>()
+            .map((e) => SettingsServer.fromMap(e.cast<String, dynamic>()))
+            .where((s) => s.isRemote));
+      }
       _client = DoudouSyncClient(
         baseUrl: DoudouSyncClient.normalizeUrl(serverUrl.value),
         token: _prefs.get(tokenPrefsKey) as String?,
@@ -122,7 +139,10 @@ class ServerSyncService extends GetxService {
     await _prefs.delete(urlPrefsKey);
     await _prefs.delete(passwordPrefsKey);
     await _prefs.delete(tokenPrefsKey);
+    await _prefs.delete(remoteServersPrefsKey);
+    await _prefs.delete(backendsRevPrefsKey);
     await _prefs.put(enabledPrefsKey, false);
+    await _applyRemoteServers(const []);
   }
 
   void onAppResumed() {
@@ -217,6 +237,35 @@ class ServerSyncService extends GetxService {
       }
     }
     if (remoteApplied) _refreshLibraryControllers();
+
+    try {
+      final hosted = await client.listBackends();
+      if (hosted.revision != _prefs.get(backendsRevPrefsKey)) {
+        await _applyRemoteServers(hosted.backends
+            .map(hostedBackendToSettingsServer)
+            .whereType<SettingsServer>()
+            .toList());
+        await _prefs.put(backendsRevPrefsKey, hosted.revision);
+      }
+    } catch (e, st) {
+      printWarning(
+          '[RECOVERABLE][opId=serverSync.backends] failed to fetch hosted backends: $e\n$st');
+    }
+  }
+
+  Future<void> _applyRemoteServers(List<SettingsServer> servers) async {
+    final serialized = servers.map((s) => s.toMap()).toList();
+    final current = remoteServers.map((s) => s.toMap()).toList();
+    if (serialized.toString() == current.toString()) return;
+    remoteServers.assignAll(servers);
+    if (servers.isEmpty) {
+      await _prefs.delete(remoteServersPrefsKey);
+    } else {
+      await _prefs.put(remoteServersPrefsKey, serialized);
+    }
+    if (Get.isRegistered<SettingsScreenController>()) {
+      Get.find<SettingsScreenController>().onRemoteServersChanged();
+    }
   }
 
   Future<Set<String>> _targetBoxNames(int serverId) async {

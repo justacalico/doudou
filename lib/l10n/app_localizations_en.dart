@@ -1668,6 +1668,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Share your library between devices through a doudou sync server.';
 
   @override
+  String get fromSyncServer => 'From sync server';
+
+  @override
   String get connect => 'Connect';
 
   @override
@@ -3360,6 +3363,9 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   @override
   String get deviceSyncDes =>
       'Share your library between devices through a doudou sync server.';
+
+  @override
+  String get fromSyncServer => 'From sync server';
 
   @override
   String get connect => 'Connect';

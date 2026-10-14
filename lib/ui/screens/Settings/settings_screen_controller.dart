@@ -17,6 +17,7 @@ import '../../../utils/server_storage.dart';
 import '../../../utils/update_check_flag_file.dart';
 import '/services/piped_service.dart';
 import '/services/library_sync_service.dart';
+import '/services/server_sync_service.dart';
 import '/services/playback_diagnostics_service.dart';
 import '/services/discord_rpc_service.dart';
 import '/services/export_service.dart';
@@ -49,8 +50,7 @@ part 'settings_screen_controller_settingsui.dart';
 const bool kIsPlayStore =
     bool.fromEnvironment('PLAYSTORE', defaultValue: false);
 
-const bool kIsNightly =
-    bool.fromEnvironment('NIGHTLY', defaultValue: false);
+const bool kIsNightly = bool.fromEnvironment('NIGHTLY', defaultValue: false);
 
 enum SidebarMode { auto, collapsed, expanded }
 
@@ -67,6 +67,13 @@ enum AnimationSpeed { off, fast, normal, slow }
 enum SyncedLyricsHighlightStyle { block, karaoke }
 
 class SettingsScreenController extends GetxController
-    with _SettingsScreenControllerBase, _SettingsDiagnosticsMixin, _SettingsDiscordMixin, _SettingsOtherMixin, _SettingsPlaybackMixin, _SettingsServerMixin, _SettingsStateMixin, _SettingsStorageMixin, _SettingsUiMixin {
-}
-
+    with
+        _SettingsScreenControllerBase,
+        _SettingsDiagnosticsMixin,
+        _SettingsDiscordMixin,
+        _SettingsOtherMixin,
+        _SettingsPlaybackMixin,
+        _SettingsServerMixin,
+        _SettingsStateMixin,
+        _SettingsStorageMixin,
+        _SettingsUiMixin {}

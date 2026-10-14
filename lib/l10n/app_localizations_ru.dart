@@ -1677,6 +1677,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Синхронизируйте библиотеку между устройствами через сервер doudou.';
 
   @override
+  String get fromSyncServer => 'С сервера синхронизации';
+
+  @override
   String get connect => 'Подключиться';
 
   @override

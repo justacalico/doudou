@@ -57,14 +57,12 @@ void main() {
 
   test('unauthenticated requests are rejected', () async {
     await boot();
-    expect(() => client!.listBoxes(),
-        throwsA(isA<SyncServerException>()));
+    expect(() => client!.listBoxes(), throwsA(isA<SyncServerException>()));
   });
 
   test('login is rate limited after repeated failures', () async {
     server = DoudouSyncServer(
-        dataDir: dataDir.path,
-        rateLimiter: LoginRateLimiter(maxFailures: 2));
+        dataDir: dataDir.path, rateLimiter: LoginRateLimiter(maxFailures: 2));
     await server!.start(port: 0, password: password);
     client = DoudouSyncClient(baseUrl: 'http://127.0.0.1:${server!.port}');
 
@@ -224,8 +222,8 @@ void main() {
 
     final junkPath = '${scratchDir.path}/junk.hmb';
     await File(junkPath).writeAsString('not a zip');
-    expect(() => server!.importHmb(junkPath),
-        throwsA(isA<HmbImportException>()));
+    expect(
+        () => server!.importHmb(junkPath), throwsA(isA<HmbImportException>()));
   });
 
   test('export.hmb returns a zip the import can read back', () async {
@@ -238,5 +236,328 @@ void main() {
     final archive = ZipDecoder().decodeBytes(bytes);
     // Hive stores box files lowercased
     expect(archive.map((f) => f.name), contains('x.hive'));
+  });
+
+  // -- web ui --------------------------------------------------------------
+
+  Future<({int status, Map<String, Object?> body})> webui(
+    String method,
+    String path, {
+    String? token,
+    Map<String, Object?>? json,
+    List<int>? bytes,
+  }) async {
+    final http = HttpClient();
+    try {
+      final uri = Uri.parse('http://127.0.0.1:${server!.port}$path');
+      HttpClientRequest request;
+      switch (method) {
+        case 'POST':
+          request = await http.postUrl(uri);
+        case 'PUT':
+          request = await http.putUrl(uri);
+        case 'DELETE':
+          request = await http.deleteUrl(uri);
+        default:
+          request = await http.getUrl(uri);
+      }
+      if (token != null) {
+        request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $token');
+      }
+      if (json != null) {
+        request.headers.contentType = ContentType.json;
+        request.write(jsonEncode(json));
+      }
+      if (bytes != null) {
+        request.add(bytes);
+      }
+      final response = await request.close();
+      final text = await utf8.decodeStream(response);
+      Object? decoded;
+      if (text.isNotEmpty) {
+        try {
+          decoded = jsonDecode(text);
+        } catch (_) {}
+      }
+      return (
+        status: response.statusCode,
+        body: decoded is Map
+            ? Map<String, Object?>.from(decoded)
+            : <String, Object?>{},
+      );
+    } finally {
+      http.close();
+    }
+  }
+
+  test('state reports setup required only for generated passwords', () async {
+    server = DoudouSyncServer(dataDir: dataDir.path);
+    await server!.start(port: 0);
+    var res = await webui('GET', '/app/api/state');
+    expect(res.status, 200);
+    expect(res.body['setupRequired'], isTrue);
+    await server!.stop();
+    await Hive.close();
+
+    server = DoudouSyncServer(dataDir: dataDir.path);
+    await server!.start(port: 0, password: password);
+    res = await webui('GET', '/app/api/state');
+    expect(res.body['setupRequired'], isFalse);
+  });
+
+  test('web ui setup claims the server exactly once', () async {
+    server = DoudouSyncServer(dataDir: dataDir.path);
+    await server!.start(port: 0);
+    final setup =
+        await webui('POST', '/app/api/setup', json: {'password': 'chosen'});
+    expect(setup.status, 200);
+    final token = setup.body['token'] as String;
+    expect(token, isNotEmpty);
+
+    final second =
+        await webui('POST', '/app/api/setup', json: {'password': 'other'});
+    expect(second.status, 409);
+
+    // the chosen password works for sync clients too
+    client = DoudouSyncClient(baseUrl: 'http://127.0.0.1:${server!.port}');
+    await client!.login('chosen');
+
+    // and the new password persists across restarts
+    await server!.stop();
+    await Hive.close();
+    server = DoudouSyncServer(dataDir: dataDir.path);
+    await server!.start(port: 0);
+    final res = await webui('GET', '/app/api/state');
+    expect(res.body['setupRequired'], isFalse);
+  });
+
+  test('web ui login issues a session that logout revokes', () async {
+    await boot();
+    final bad =
+        await webui('POST', '/app/api/login', json: {'password': 'nope'});
+    expect(bad.status, 401);
+
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
+    expect(login.status, 200);
+    final token = login.body['token'] as String;
+
+    final boxes = await webui('GET', '/app/api/boxes', token: token);
+    expect(boxes.status, 200);
+
+    await webui('POST', '/app/api/logout', token: token);
+    final after = await webui('GET', '/app/api/boxes', token: token);
+    expect(after.status, 401);
+  });
+
+  test('web ui session endpoints reject missing tokens', () async {
+    await boot();
+    for (final path in [
+      '/app/api/boxes',
+      '/app/api/logs',
+      '/app/api/backends',
+      '/app/api/export.hmb',
+    ]) {
+      final res = await webui('GET', path);
+      expect(res.status, 401, reason: path);
+    }
+  });
+
+  test('hosted backends round trip to sync clients', () async {
+    await boot();
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
+    final token = login.body['token'] as String;
+
+    final created =
+        await webui('POST', '/app/api/backends', token: token, json: {
+      'name': 'Home Jellyfin',
+      'type': 'jellyfin',
+      'serverUrl': 'http://jf.local:8096',
+      'username': 'cal',
+      'password': 'pw',
+    });
+    expect(created.status, 200);
+    expect(created.body['id'], 1);
+
+    await webui('POST', '/app/api/backends',
+        token: token, json: {'name': 'YTM', 'type': 'youtubeMusic'});
+
+    await client!.login(password);
+    final hosted = await client!.listBackends();
+    expect(hosted.revision, 2);
+    expect(hosted.backends, hasLength(2));
+    expect(hosted.backends[0]['name'], 'Home Jellyfin');
+    expect(hosted.backends[1]['type'], 'youtubeMusic');
+
+    final updated = await webui('PUT', '/app/api/backends/1',
+        token: token, json: {'name': 'Renamed'});
+    expect(updated.status, 200);
+    expect(updated.body['name'], 'Renamed');
+    expect(updated.body['serverUrl'], 'http://jf.local:8096');
+
+    final deleted = await webui('DELETE', '/app/api/backends/2', token: token);
+    expect(deleted.status, 200);
+
+    final after = await client!.listBackends();
+    expect(after.backends, hasLength(1));
+    expect(after.revision, greaterThan(hosted.revision));
+  });
+
+  test('backend validation rejects bad payloads', () async {
+    await boot();
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
+    final token = login.body['token'] as String;
+
+    Future<int> attempt(Map<String, Object?> json) async =>
+        (await webui('POST', '/app/api/backends', token: token, json: json))
+            .status;
+
+    expect(await attempt({'type': 'jellyfin'}), 400);
+    expect(await attempt({'name': 'x', 'type': 'napster'}), 400);
+    expect(await attempt({'name': 'x', 'type': 'jellyfin'}), 400);
+    expect(
+        await attempt({
+          'name': 'x',
+          'type': 'subsonic',
+          'serverUrl': 'http://n.local',
+        }),
+        200);
+  });
+
+  test('the backends box stays out of the generic box api', () async {
+    await boot();
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
+    final token = login.body['token'] as String;
+    await webui('POST', '/app/api/backends',
+        token: token, json: {'name': 'YTM', 'type': 'youtubeMusic'});
+
+    await client!.login(password);
+    final boxes = await client!.listBoxes();
+    expect(boxes.map((b) => b.name), isNot(contains('DoudouBackends')));
+    expect(() => client!.getBox('DoudouBackends'),
+        throwsA(isA<SyncServerException>()));
+  });
+
+  test('hosted backends survive an hmb export and import', () async {
+    await boot();
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
+    final token = login.body['token'] as String;
+    await webui('POST', '/app/api/backends',
+        token: token, json: {'name': 'YTM', 'type': 'youtubeMusic'});
+    await client!.login(password);
+    final bytes = await client!.exportHmb();
+    expect(ZipDecoder().decodeBytes(bytes).map((f) => f.name),
+        contains('doudoubackends.hive'));
+
+    final hmbPath = '${scratchDir.path}/backup.hmb';
+    await File(hmbPath).writeAsBytes(bytes);
+    await server!.importHmb(hmbPath);
+    final hosted = await client!.listBackends();
+    expect(hosted.backends.single['name'], 'YTM');
+  });
+
+  test('password change rotates credentials but keeps the sync token',
+      () async {
+    await boot();
+    await client!.login(password);
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
+    final token = login.body['token'] as String;
+
+    final wrong = await webui('POST', '/app/api/password',
+        token: token, json: {'current': 'nope', 'next': 'next'});
+    expect(wrong.status, 401);
+
+    final changed = await webui('POST', '/app/api/password',
+        token: token, json: {'current': password, 'next': 'brand-new'});
+    expect(changed.status, 200);
+
+    // old password no longer logs in, new one does
+    final oldLogin =
+        await webui('POST', '/app/api/login', json: {'password': password});
+    expect(oldLogin.status, 401);
+    final newLogin =
+        await webui('POST', '/app/api/login', json: {'password': 'brand-new'});
+    expect(newLogin.status, 200);
+
+    // the shared sync token is untouched so clients keep working
+    expect(await client!.listBoxes(), isA<List<SyncBoxInfo>>());
+  });
+
+  test('logs endpoint returns events with a since filter', () async {
+    await boot();
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
+    final token = login.body['token'] as String;
+
+    final res = await webui('GET', '/app/api/logs', token: token);
+    expect(res.status, 200);
+    final entries = res.body['entries'] as List;
+    expect(entries, isNotEmpty);
+    final latest = res.body['latest'] as int;
+    expect(latest, greaterThan(0));
+
+    final filtered =
+        await webui('GET', '/app/api/logs?after=$latest', token: token);
+    expect((filtered.body['entries'] as List), isEmpty);
+    expect(filtered.body['latest'], latest);
+  });
+
+  test('import over the web ui api seeds the database', () async {
+    // same hmb fixture as the direct import test
+    final hiveDir = '${scratchDir.path}/hivesrc';
+    Directory(hiveDir).createSync();
+    Hive.init(hiveDir);
+    final srcBox = await Hive.openBox('RemoteSongs');
+    await srcBox.put('s_0', {'title': 'Remote'});
+    await srcBox.close();
+    await Hive.close();
+
+    final archive = Archive();
+    final hiveBytes = await File('$hiveDir/remotesongs.hive').readAsBytes();
+    archive
+        .addFile(ArchiveFile('RemoteSongs.hive', hiveBytes.length, hiveBytes));
+    final hmbBytes = ZipEncoder().encode(archive)!;
+
+    await boot();
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
+    final token = login.body['token'] as String;
+
+    final res = await webui('POST', '/app/api/import.hmb',
+        token: token, bytes: hmbBytes);
+    expect(res.status, 200);
+    expect(res.body['imported'], contains('RemoteSongs'));
+
+    await client!.login(password);
+    final snap = await client!.getBox('RemoteSongs');
+    expect(snap.entries['s_0']!.value, isA<Map>());
+  });
+
+  test('web ui statics serve the bundle and root redirects', () async {
+    await boot();
+    final http = HttpClient();
+
+    final root =
+        await http.getUrl(Uri.parse('http://127.0.0.1:${server!.port}/'));
+    root.followRedirects = false;
+    final rootRes = await root.close();
+    expect(rootRes.statusCode, 301);
+    expect(rootRes.headers.value(HttpHeaders.locationHeader), '/app/');
+    await utf8.decodeStream(rootRes);
+
+    final index =
+        await http.getUrl(Uri.parse('http://127.0.0.1:${server!.port}/app/'));
+    final indexRes = await index.close();
+    expect(indexRes.statusCode, 200);
+    expect(indexRes.headers.contentType?.mimeType, 'text/html');
+    final body = await utf8.decodeStream(indexRes);
+    expect(body, contains('flutter_bootstrap'));
+
+    http.close();
   });
 }

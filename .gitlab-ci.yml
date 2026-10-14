@@ -128,6 +128,18 @@ landing-test:
     - flutter pub get
     - flutter test
 
+webui-test:
+  stage: test
+  tags: [linux-truenas]
+  image: ghcr.io/cirruslabs/flutter:stable
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - cd webui
+    - flutter pub get
+    - flutter test
+
 pages:
   stage: deploy
   tags: [linux-truenas]

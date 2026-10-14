@@ -6,7 +6,9 @@
 library;
 
 export 'server/doudou_server.dart';
+export 'server/hosted_backends.dart';
 export 'server/runner.dart';
+export 'server/server_log.dart';
 export 'server/sync_boxes.dart';
 export 'server/sync_client.dart';
 export 'server/sync_codec.dart';

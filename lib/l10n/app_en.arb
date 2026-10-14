@@ -1123,6 +1123,8 @@
   "@deviceSync": {},
   "deviceSyncDes": "Share your library between devices through a doudou sync server.",
   "@deviceSyncDes": {},
+  "fromSyncServer": "From sync server",
+  "@fromSyncServer": {},
   "connect": "Connect",
   "@connect": {},
   "disconnect": "Disconnect",

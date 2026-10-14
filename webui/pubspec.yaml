@@ -1,0 +1,22 @@
+name: doudou_server_webui
+description: "Web dashboard for the doudou sync server, served from /app."
+publish_to: "none"
+version: 1.0.0
+
+environment:
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.35.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  web: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

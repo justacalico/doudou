@@ -3227,6 +3227,12 @@ abstract class AppLocalizations {
   /// **'Share your library between devices through a doudou sync server.'**
   String get deviceSyncDes;
 
+  /// No description provided for @fromSyncServer.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'From sync server'**
+  String get fromSyncServer;
+
   /// No description provided for @connect.
   ///
   /// In en_AU, this message translates to:
