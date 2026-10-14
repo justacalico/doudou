@@ -1,0 +1,15 @@
+services:
+  doudou-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    image: doudou-server:latest
+    container_name: doudou-server
+    restart: unless-stopped
+    ports:
+      - "8461:8461"
+    volumes:
+      - doudou-server-data:/data
+
+volumes:
+  doudou-server-data:

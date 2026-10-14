@@ -93,7 +93,19 @@ The app UI still opens normally while a server is running.
 | `-importdb <path>` | Import a `.hmb` backup into the server database at startup |
 | `-h`, `--help` | Show usage |
 
-On first run the server asks you to choose a password. On a headless launch with no terminal it generates a random one, prints it, and also writes it to `<data-dir>/initial-password.txt`. Server config lives in `<data-dir>/server.json` and the database in `<data-dir>/db`.
+### Web dashboard
+
+The server hosts a web dashboard at `http://<host>:8461/app/`. Open it on first run to choose the login password, then use it to download and import `.hmb` backups, watch the server log, manage the backends the server shares to clients, and change the password later.
+
+### Docker
+
+```bash
+docker compose -f docker-compose.server.yml up -d
+```
+
+Then open `http://<host>:8461/app/` to set the password and get going. The compose file maps port 8461 and stores the database in the `doudou-server-data` volume. To build without compose: `docker build -f Dockerfile.server -t doudou-server .` then run it with `-p 8461:8461 -v doudou-data:/data`.
+
+Without Docker, on first run with no terminal the server generates a password, prints it, and writes it to `<data-dir>/initial-password.txt`; the web dashboard's setup screen replaces it. Server config lives in `<data-dir>/server.json` and the database in `<data-dir>/db`.
 
 ### Connecting from the app
 

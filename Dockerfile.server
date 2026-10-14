@@ -1,0 +1,20 @@
+FROM ghcr.io/cirruslabs/flutter:stable AS build
+WORKDIR /src
+COPY pubspec.yaml pubspec.lock ./
+COPY packages ./packages
+RUN flutter pub get
+COPY lib ./lib
+COPY bin ./bin
+COPY webui ./webui
+COPY tool ./tool
+RUN dart tool/build_webui.dart
+RUN dart build cli -t bin/doudou_server.dart -o /out
+
+FROM debian:bookworm-slim
+COPY --from=build /out/bundle/bin/doudou_server /usr/local/bin/doudou-server
+RUN useradd --system --uid 10001 --create-home doudou \
+    && mkdir -p /data && chown doudou:doudou /data
+USER doudou
+EXPOSE 8461
+VOLUME /data
+ENTRYPOINT ["doudou-server", "-server", "--data-dir", "/data"]
