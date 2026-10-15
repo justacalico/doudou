@@ -219,6 +219,21 @@ void main() {
     remote.close();
   });
 
+  test('pullForRead fetches boxes for a remote hosted server', () async {
+    await boot();
+    Get.find<SettingsScreenController>().activeServerId.value = -1;
+    final remote = await loggedInClient();
+    await remote.pushOps('LIBFAV_s_-1', [SyncOp.put('fav1', {'t': 'x'}, 1)]);
+
+    await service!.pullForRead({'LIBFAV_s_-1'});
+
+    expect(service!.lastError.value, isEmpty,
+        reason: 'pull failed: ${service!.lastError.value}');
+    final fav = await Hive.openBox('LIBFAV_s_-1');
+    expect(fav.containsKey('fav1'), isTrue);
+    remote.close();
+  });
+
   test('removing a hosted backend removes the remote server', () async {
     server = DoudouSyncServer(dataDir: serverDir.path);
     await server!.start(port: 0, password: password);
