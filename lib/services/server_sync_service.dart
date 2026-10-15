@@ -51,7 +51,7 @@ class ServerSyncService extends GetxService {
   Box get _prefs => Hive.box('AppPrefs');
   Box get _state => Hive.box(stateBoxName);
   DoudouSyncClient? _client;
-  bool _pullRunning = false;
+  Future<void> _pullTail = Future.value();
   bool _legacyStateCleared = false;
   final _watchSubs = <String, StreamSubscription<BoxEvent>>{};
   final _dirtyBoxes = <String>{};
@@ -89,6 +89,8 @@ class ServerSyncService extends GetxService {
     }
     _watchSubs.clear();
     _client?.close();
+    _client = null;
+    enabled.value = false;
     super.onClose();
   }
 
@@ -181,10 +183,17 @@ class ServerSyncService extends GetxService {
         await _pullBoxes(wanted);
       });
 
-  Future<void> _guarded(Future<void> Function() task) async {
+  /// Serializes pull tasks so a [pullForRead] issued while a sync is still
+  /// running waits for it instead of silently reading stale data.
+  Future<void> _guarded(Future<void> Function() task) {
+    final run = _pullTail.then((_) => _runPull(task));
+    _pullTail = run.then((_) {}, onError: (_) {});
+    return run;
+  }
+
+  Future<void> _runPull(Future<void> Function() task) async {
     final client = _client;
-    if (!enabled.value || client == null || _pullRunning) return;
-    _pullRunning = true;
+    if (!enabled.value || client == null) return;
     isSyncing.value = true;
     try {
       await task();
@@ -223,7 +232,6 @@ class ServerSyncService extends GetxService {
       lastError.value = '$e';
       connected.value = false;
     } finally {
-      _pullRunning = false;
       isSyncing.value = false;
     }
   }

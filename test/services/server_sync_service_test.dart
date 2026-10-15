@@ -93,7 +93,8 @@ void main() {
     Hive.init(clientDir.path);
     final prefs = await Hive.openBox('AppPrefs');
     Get.put<SettingsScreenController>(FakeSettingsScreenController());
-    service = Get.put(ServerSyncService(), permanent: true);
+    service = ServerSyncService()..onInit();
+    Get.put<ServerSyncService>(service!, permanent: true);
 
     final error = await service!
         .connect(url: 'http://127.0.0.1:${server!.port}', password: password);
@@ -137,7 +138,8 @@ void main() {
     Hive.init(clientDir.path);
     await Hive.openBox('AppPrefs');
     Get.put<SettingsScreenController>(FakeSettingsScreenController());
-    service = Get.put(ServerSyncService(), permanent: true);
+    service = ServerSyncService()..onInit();
+    Get.put<ServerSyncService>(service!, permanent: true);
     await service!
         .connect(url: 'http://127.0.0.1:${server!.port}', password: password);
     await waitForSync();
@@ -170,7 +172,12 @@ void main() {
     final fav = await Hive.openBox('LIBFAV');
     expect(fav.containsKey('doomed'), isTrue);
 
-    await remote.pushOps('LIBFAV', [SyncOp.delete('doomed', 2000)]);
+    // The delete has to beat real clock timestamps: the service's own
+    // write-through may have repushed the key with the current time.
+    await remote.pushOps('LIBFAV', [
+      SyncOp.delete(
+          'doomed', DateTime.now().millisecondsSinceEpoch + 60000),
+    ]);
     await service!.pullForRead({'LIBFAV'});
     expect(fav.containsKey('doomed'), isFalse);
     remote.close();
@@ -186,7 +193,8 @@ void main() {
     final fav = await Hive.openBox('LIBFAV');
     await fav.put('seed', {'title': 'Kept'});
 
-    service = Get.put(ServerSyncService(), permanent: true);
+    service = ServerSyncService()..onInit();
+    Get.put<ServerSyncService>(service!, permanent: true);
     await service!
         .connect(url: 'http://127.0.0.1:${server!.port}', password: password);
     await waitForSync();
@@ -219,7 +227,8 @@ void main() {
     Hive.init(clientDir.path);
     await Hive.openBox('AppPrefs');
     Get.put<SettingsScreenController>(FakeSettingsScreenController());
-    service = Get.put(ServerSyncService(), permanent: true);
+    service = ServerSyncService()..onInit();
+    Get.put<ServerSyncService>(service!, permanent: true);
 
     await service!
         .connect(url: 'http://127.0.0.1:${server!.port}', password: password);
