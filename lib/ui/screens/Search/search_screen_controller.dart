@@ -1,3 +1,4 @@
+import '/services/server_sync_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -39,6 +40,7 @@ class SearchScreenController extends GetxController with ProcessLink {
       await queryBox.close();
     }
     _queryBoxServerId = id;
+    await pullLibraryBoxes({searchQueryBoxName(id)});
     queryBox = await Hive.openBox(searchQueryBoxName(id));
     historyQuerylist.value = queryBox.values.toList().reversed.toList();
   }

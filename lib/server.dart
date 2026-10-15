@@ -12,6 +12,5 @@ export 'server/server_log.dart';
 export 'server/sync_boxes.dart';
 export 'server/sync_client.dart';
 export 'server/sync_codec.dart';
-export 'server/sync_merge.dart';
 export 'server/sync_model.dart';
 export 'server/hmb_archive.dart';

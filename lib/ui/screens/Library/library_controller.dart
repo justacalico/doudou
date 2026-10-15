@@ -19,6 +19,7 @@ import '/services/utils.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/services/piped_service.dart';
 import '/services/library_sync_service.dart';
+import '/services/server_sync_service.dart';
 import '../../../utils/helper.dart';
 import '/models/album.dart';
 import '/models/artist.dart';
@@ -142,6 +143,11 @@ class LibrarySongsController extends GetxController {
 
     if (isYouTube) {
       final serverId = currentServerId();
+      await pullLibraryBoxes({
+        libraryAlbumsBoxName(serverId),
+        libFavBoxName(serverId),
+        'LibraryPlaylists',
+      });
       final seenIds = songs.map((s) => s.id).toSet();
 
       // Songs from library albums (stored per-album by browseId).
@@ -452,6 +458,7 @@ class LibraryPlaylistsController extends GetxController
       return;
     }
 
+    await pullLibraryBoxes({'LibraryPlaylists'});
     final prefix = 's_${serverId}_';
     final box = await Hive.openBox("LibraryPlaylists");
     if (serverId == 0) {
@@ -918,6 +925,7 @@ class LibraryAlbumsController extends GetxController {
         Get.find<LibrarySyncService>().maybeSyncKindIfStale(LibraryKind.albums),
       );
     } else {
+      await pullLibraryBoxes({libraryAlbumsBoxName(currentServerId())});
       final box = await Hive.openBox(libraryAlbumsBoxName(currentServerId()));
       libraryAlbums.value = box.values
           .map<Album?>((item) => Album.fromJson(item))
@@ -996,6 +1004,7 @@ class LibraryArtistsController extends GetxController {
       unawaited(Get.find<LibrarySyncService>()
           .maybeSyncKindIfStale(LibraryKind.artists));
     } else {
+      await pullLibraryBoxes({libraryArtistsBoxName(currentServerId())});
       final box = await Hive.openBox(libraryArtistsBoxName(currentServerId()));
       libraryArtists.value = box.values
           .map<Artist?>((item) => Artist.fromJson(item))

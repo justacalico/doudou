@@ -1,3 +1,4 @@
+import '/services/server_sync_service.dart';
 import 'dart:convert';
 import '/utils/app_l10n.dart';
 import 'dart:io';
@@ -106,6 +107,8 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
 
     try {
       if (await checkIfAddedToLibrary(playlistId)) {
+        await pullLibraryBoxes(
+            {'LibraryPlaylists', playlistSongsBoxName(playlistId)});
         final songsBox = await Hive.openBox(playlistSongsBoxName(playlistId));
         if (songsBox.values.isEmpty) {
           await _fetchSongOnline(playlistId, isIdOnly, isPipedPlaylist);

@@ -1,3 +1,4 @@
+import '/services/server_sync_service.dart';
 import 'package:audio_service/audio_service.dart';
 import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
@@ -201,6 +202,7 @@ class AddToPlaylistController extends GetxController {
             .toList();
       }
     } else {
+      await pullLibraryBoxes({'LibraryPlaylists'});
       final plstsBox = await Hive.openBox("LibraryPlaylists");
       final prefix = 's_${currentServerId()}_';
       final serverKeys = plstsBox.keys

@@ -8,21 +8,19 @@ import '/server/doudou_server.dart' show kSyncProtocolName;
 import '/server/hosted_backends.dart';
 import '/server/sync_boxes.dart';
 import '/server/sync_client.dart';
-import '/server/sync_engine.dart';
-import '/server/sync_merge.dart' show KeyBase;
+import '/server/sync_codec.dart';
+import '/server/sync_model.dart';
 import '/ui/screens/Library/library_controller.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 import '/utils/app_l10n.dart';
 import '/utils/helper.dart';
 import '/utils/server_storage.dart';
 
-/// Keeps the local library Hive boxes in sync with a doudou sync server so
-/// every logged in device shares favorites, playlists, recently played and
-/// the rest of the library data.
-///
-/// Nothing playback related ever crosses the wire: only the boxes listed by
-/// [syncedBoxNames] are exchanged, which excludes caches, downloads, stream
-/// URLs and device settings.
+/// Talks to a doudou server like a plain remote store. There is no
+/// background sync loop and no three way merge: screens pull the library
+/// boxes they are about to read with [pullForRead], and every local write to
+/// a synced box is pushed back to the server moments after it happens. The
+/// server holds the data, the Hive boxes on device are only its read cache.
 class ServerSyncService extends GetxService {
   static const stateBoxName = '_doudouSyncState';
   static const urlPrefsKey = 'deviceSyncUrl';
@@ -31,7 +29,8 @@ class ServerSyncService extends GetxService {
   static const enabledPrefsKey = 'deviceSyncEnabled';
   static const remoteServersPrefsKey = 'syncedServers';
   static const backendsRevPrefsKey = 'syncedBackendsRev';
-  static const syncInterval = Duration(seconds: 30);
+  static const _flushDelay = Duration(milliseconds: 500);
+  static const _remoteRevsTtl = Duration(seconds: 3);
 
   final enabled = false.obs;
   final connected = false.obs;
@@ -46,13 +45,20 @@ class ServerSyncService extends GetxService {
 
   /// The backends the connected server hands out. They show up in the
   /// server list next to the local entries but are stored separately, so
-  /// turning device sync off removes them cleanly.
+  /// disconnecting removes them cleanly.
   final remoteServers = <SettingsServer>[].obs;
 
   Box get _prefs => Hive.box('AppPrefs');
+  Box get _state => Hive.box(stateBoxName);
   DoudouSyncClient? _client;
-  Timer? _timer;
-  bool _cycleRunning = false;
+  bool _pullRunning = false;
+  bool _legacyStateCleared = false;
+  final _watchSubs = <String, StreamSubscription<BoxEvent>>{};
+  final _dirtyBoxes = <String>{};
+  final _boxRevs = <String, int>{};
+  Map<String, int>? _remoteRevs;
+  DateTime? _remoteRevsAt;
+  Timer? _flushTimer;
 
   @override
   void onInit() {
@@ -71,20 +77,23 @@ class ServerSyncService extends GetxService {
         baseUrl: DoudouSyncClient.normalizeUrl(serverUrl.value),
         token: _prefs.get(tokenPrefsKey) as String?,
       );
-      _startTimer();
       unawaited(syncNow());
     }
   }
 
   @override
   void onClose() {
-    _timer?.cancel();
+    _flushTimer?.cancel();
+    for (final sub in _watchSubs.values) {
+      unawaited(sub.cancel());
+    }
+    _watchSubs.clear();
     _client?.close();
     super.onClose();
   }
 
-  /// Logs in against [url] with [password]. On success the sync config is
-  /// persisted and background sync starts. Returns an error message, or null
+  /// Logs in against [url] with [password]. On success the config is
+  /// persisted and the first pull starts. Returns an error message, or null
   /// when the connection worked.
   Future<String?> connect({
     required String url,
@@ -123,14 +132,18 @@ class ServerSyncService extends GetxService {
     await _prefs.delete(passwordPrefsKey);
     await _prefs.put(tokenPrefsKey, client.token);
     await _prefs.put(enabledPrefsKey, true);
-    _startTimer();
     unawaited(syncNow());
     return null;
   }
 
   Future<void> disconnect() async {
-    _timer?.cancel();
-    _timer = null;
+    _flushTimer?.cancel();
+    _flushTimer = null;
+    for (final sub in _watchSubs.values) {
+      await sub.cancel();
+    }
+    _watchSubs.clear();
+    _remoteRevs = null;
     _client?.close();
     _client = null;
     enabled.value = false;
@@ -149,33 +162,45 @@ class ServerSyncService extends GetxService {
     if (enabled.value) unawaited(syncNow());
   }
 
-  void _startTimer() {
-    _timer?.cancel();
-    _timer = Timer.periodic(syncInterval, (_) => unawaited(syncNow()));
-  }
+  /// Pulls the freshest state of every library box for the active server
+  /// plus the hosted backend list.
+  Future<void> syncNow() => _guarded(_pullAll);
 
-  /// Runs one full sync cycle. Safe to call any time; overlapping calls are
-  /// skipped and the whole cycle is a no-op while disconnected.
-  Future<void> syncNow() async {
+  /// Fetches [names] from the server when their revision moved since the
+  /// last pull. Called by screens before they read a library box so reads
+  /// always come back with the server's data. Anything outside
+  /// [syncedBoxNames] is ignored so a caller can never leak a local-only box.
+  Future<void> pullForRead(Set<String> names) => _guarded(() async {
+        await _pullBoxes(names.intersection({libraryPlaylistsBox}));
+        final allowed = await _targetBoxNames(currentServerId());
+        var wanted = names.intersection(allowed)
+          ..remove(libraryPlaylistsBox);
+        // Asking for the playlist index also refreshes the song boxes it
+        // lists, so screens that read both see a consistent view.
+        if (names.contains(libraryPlaylistsBox)) wanted = allowed;
+        await _pullBoxes(wanted);
+      });
+
+  Future<void> _guarded(Future<void> Function() task) async {
     final client = _client;
-    if (!enabled.value || client == null || _cycleRunning) return;
-    _cycleRunning = true;
+    if (!enabled.value || client == null || _pullRunning) return;
+    _pullRunning = true;
     isSyncing.value = true;
     try {
-      await _runCycle(client);
+      await task();
       connected.value = true;
       lastSyncAt.value = DateTime.now();
       lastError.value = '';
     } on SyncServerException catch (e) {
       if (e.isAuthError) {
         // The server token may have been rotated: try one fresh login with
-        // the stored password, then run the cycle again. Installs that
+        // the stored password, then run the task again. Installs that
         // predate password-free storage may still hold it; the key is
         // removed after this one use.
         final password = _prefs.get(passwordPrefsKey) as String?;
         if (password != null && await _relogin(client, password)) {
           try {
-            await _runCycle(client);
+            await task();
             connected.value = true;
             lastSyncAt.value = DateTime.now();
             lastError.value = '';
@@ -194,11 +219,11 @@ class ServerSyncService extends GetxService {
       }
       connected.value = false;
     } catch (e, st) {
-      printWarning('[RECOVERABLE][opId=serverSync.cycle] $e\n$st');
+      printWarning('[RECOVERABLE][opId=serverSync.pull] $e\n$st');
       lastError.value = '$e';
       connected.value = false;
     } finally {
-      _cycleRunning = false;
+      _pullRunning = false;
       isSyncing.value = false;
     }
   }
@@ -215,31 +240,19 @@ class ServerSyncService extends GetxService {
     }
   }
 
-  Future<void> _runCycle(DoudouSyncClient client) async {
-    final serverId = currentServerId();
-    await Hive.openBox(stateBoxName);
-    final remoteRevs = {for (final b in await client.listBoxes()) b.name: b};
-    final engine = BoxSyncEngine(
-      client: client,
-      state: _HiveSyncStateStore(),
-      local: _HiveLocalBoxStore(),
-    );
-    var remoteApplied = false;
-
-    for (final boxName in await _targetBoxNames(serverId)) {
-      try {
-        final applied = await engine.syncBox(boxName,
-            remoteRevision: remoteRevs[boxName]?.revision);
-        remoteApplied = remoteApplied || applied;
-      } catch (e, st) {
-        printWarning(
-            '[RECOVERABLE][opId=serverSync.box] failed to sync $boxName: $e\n$st');
-      }
+  Future<void> _pullAll() async {
+    await _openState();
+    // LibraryPlaylists first: its keys decide which song boxes exist.
+    await _pullBoxes({libraryPlaylistsBox});
+    final names = await _targetBoxNames(currentServerId());
+    await _pullBoxes(names);
+    for (final name in names) {
+      await _ensureWatch(name);
     }
-    if (remoteApplied) _refreshLibraryControllers();
+    _refreshLibraryControllers();
 
     try {
-      final hosted = await client.listBackends();
+      final hosted = await _client!.listBackends();
       if (hosted.revision != _prefs.get(backendsRevPrefsKey)) {
         await _applyRemoteServers(hosted.backends
             .map(hostedBackendToSettingsServer)
@@ -251,6 +264,177 @@ class ServerSyncService extends GetxService {
       printWarning(
           '[RECOVERABLE][opId=serverSync.backends] failed to fetch hosted backends: $e\n$st');
     }
+  }
+
+  /// Pulls each box whose server revision moved, or that carries unpushed
+  /// local writes, and applies the result locally.
+  Future<void> _pullBoxes(Set<String> names) async {
+    await _openState();
+    if (names.isEmpty) return;
+    final revs = await _fetchRemoteRevs();
+    for (final name in names) {
+      if (_dirtyBoxes.contains(name) ||
+          revs[name] != _boxRevs[name]) {
+        await _pullBox(name);
+      }
+    }
+  }
+
+  Future<Map<String, int>> _fetchRemoteRevs() async {
+    final now = DateTime.now();
+    if (_remoteRevs != null &&
+        _remoteRevsAt != null &&
+        now.difference(_remoteRevsAt!) < _remoteRevsTtl) {
+      return _remoteRevs!;
+    }
+    final boxes = await _client!.listBoxes();
+    _remoteRevs = {for (final b in boxes) b.name: b.revision};
+    _remoteRevsAt = now;
+    return _remoteRevs!;
+  }
+
+  /// Replaces the local contents of [name] with the server snapshot.
+  /// Pending local writes are pushed first, and keys the server does not
+  /// know and never tombstoned (fresh server, wiped volume) are pushed back
+  /// so a blank server gets repopulated instead of eating the library.
+  Future<void> _pullBox(String name) async {
+    final client = _client!;
+    final box = await Hive.openBox(name);
+    await _flushBox(name);
+    final snap = await client.getBox(name);
+    var rev = snap.revision;
+
+    final healOps = <SyncOp>[];
+    for (final key in box.keys) {
+      final k = key.toString();
+      if (!snap.entries.containsKey(k) && !snap.deleted.containsKey(k)) {
+        healOps.add(SyncOp.put(k, box.get(key), _now()));
+      }
+    }
+    if (healOps.isNotEmpty) {
+      rev = await client.pushOps(name, healOps);
+    }
+
+    for (final k in snap.deleted.keys) {
+      if (box.containsKey(k)) await box.delete(k);
+    }
+    for (final entry in snap.entries.entries) {
+      if (!box.containsKey(entry.key) ||
+          valueHash(box.get(entry.key)) != valueHash(entry.value.value)) {
+        await box.put(entry.key, entry.value.value);
+      }
+    }
+    final pushed = <String, String>{
+      for (final e in snap.entries.entries) e.key: valueHash(e.value.value),
+    };
+    for (final op in healOps) {
+      pushed[op.key] = valueHash(op.value);
+    }
+    _writePushed(name, pushed);
+    _boxRevs[name] = rev;
+    _remoteRevs?[name] = rev;
+    _dirtyBoxes.remove(name);
+  }
+
+  /// Pushes every local key the server has not seen in its current form.
+  /// Diffed against the hash map recorded by the last pull, so pulled data
+  /// never echoes back and a failed push simply retries next time.
+  Future<void> _flushBox(String name) async {
+    final client = _client;
+    if (client == null || !isSyncableBoxName(name)) return;
+    final box = await Hive.openBox(name);
+    final pushed = _readPushed(name);
+    final ops = <SyncOp>[];
+    final next = Map<String, String>.of(pushed);
+    for (final key in box.keys) {
+      final k = key.toString();
+      final h = valueHash(box.get(key));
+      if (pushed[k] != h) {
+        ops.add(SyncOp.put(k, box.get(key), _now()));
+        next[k] = h;
+      }
+    }
+    for (final k in pushed.keys) {
+      if (!box.containsKey(k)) {
+        ops.add(SyncOp.delete(k, _now()));
+        next.remove(k);
+      }
+    }
+    if (ops.isEmpty) {
+      _dirtyBoxes.remove(name);
+      return;
+    }
+    final rev = await client.pushOps(name, ops);
+    _boxRevs[name] = rev;
+    _remoteRevs?[name] = rev;
+    _writePushed(name, next);
+    _dirtyBoxes.remove(name);
+  }
+
+  // -- local write detection ----------------------------------------------
+
+  Future<void> _ensureWatch(String name) async {
+    if (_watchSubs.containsKey(name) || !isSyncableBoxName(name)) return;
+    final box = await Hive.openBox(name);
+    _watchSubs[name] = box.watch().listen((_) => _onBoxEvent(name));
+  }
+
+  void _onBoxEvent(String name) {
+    _dirtyBoxes.add(name);
+    _scheduleFlush();
+  }
+
+  void _scheduleFlush() {
+    _flushTimer ??= Timer(_flushDelay, () {
+      _flushTimer = null;
+      unawaited(_flushDirty());
+    });
+  }
+
+  Future<void> _flushDirty() async {
+    if (_client == null || !enabled.value) return;
+    for (final name in _dirtyBoxes.toList()) {
+      try {
+        await _flushBox(name);
+      } catch (_) {
+        // stays dirty: retried on the next write or pull
+      }
+    }
+  }
+
+  // -- pushed state --------------------------------------------------------
+
+  Map<String, String> _readPushed(String name) {
+    final raw = _state.get('pushed:$name');
+    if (raw is! Map) return {};
+    return raw.map((k, v) => MapEntry(k.toString(), v.toString()));
+  }
+
+  Future<void> _writePushed(String name, Map<String, String> pushed) =>
+      _state.put('pushed:$name', pushed);
+
+  Future<void> _openState() async {
+    await Hive.openBox(stateBoxName);
+    if (_legacyStateCleared) return;
+    _legacyStateCleared = true;
+    final stale = _state.keys
+        .map((k) => k.toString())
+        .where((k) =>
+            k.startsWith('base:') ||
+            k.startsWith('dirty:') ||
+            k.startsWith('rev:'))
+        .toList();
+    for (final k in stale) {
+      await _state.delete(k);
+    }
+  }
+
+  int _now() => DateTime.now().millisecondsSinceEpoch;
+
+  Future<Set<String>> _targetBoxNames(int serverId) async {
+    final playlistsBox = await Hive.openBox(libraryPlaylistsBox);
+    final playlistIds = playlistSongBoxNames(serverId, playlistsBox.toMap());
+    return syncedBoxNames(serverId, playlistIds);
   }
 
   Future<void> _applyRemoteServers(List<SettingsServer> servers) async {
@@ -266,12 +450,6 @@ class ServerSyncService extends GetxService {
     if (Get.isRegistered<SettingsScreenController>()) {
       Get.find<SettingsScreenController>().onRemoteServersChanged();
     }
-  }
-
-  Future<Set<String>> _targetBoxNames(int serverId) async {
-    final playlistsBox = await Hive.openBox(libraryPlaylistsBox);
-    final playlistIds = playlistSongBoxNames(serverId, playlistsBox.toMap());
-    return syncedBoxNames(serverId, playlistIds);
   }
 
   void _refreshLibraryControllers() {
@@ -294,74 +472,11 @@ class ServerSyncService extends GetxService {
   }
 }
 
-/// Keeps the merge bookkeeping inside a dedicated local box so nothing but
-/// the synced data itself ever reaches the server.
-class _HiveSyncStateStore implements SyncStateStore {
-  Box get _box => Hive.box(ServerSyncService.stateBoxName);
-
-  @override
-  Map<String, KeyBase> readBase(String boxName) {
-    final raw = _box.get('base:$boxName');
-    final out = <String, KeyBase>{};
-    if (raw is Map) {
-      raw.forEach((k, v) {
-        final parsed = KeyBase.fromJson(v);
-        if (parsed != null) out[k.toString()] = parsed;
-      });
-    }
-    return out;
-  }
-
-  @override
-  Map<String, int> readDirtyTs(String boxName) {
-    final raw = _box.get('dirty:$boxName');
-    if (raw is! Map) return {};
-    return raw.map((k, v) => MapEntry(k.toString(), (v as num).toInt()));
-  }
-
-  @override
-  int readRevision(String boxName) =>
-      (_box.get('rev:$boxName') as num?)?.toInt() ?? -1;
-
-  @override
-  Future<void> write(
-    String boxName, {
-    required int revision,
-    required Map<String, KeyBase> base,
-    required Map<String, int> dirtyTs,
-  }) async {
-    await _box.put('rev:$boxName', revision);
-    await _box.put(
-      'base:$boxName',
-      base.map((k, v) => MapEntry(k, v.toJson())),
-    );
-    await _box.put('dirty:$boxName', dirtyTs);
-  }
-}
-
-class _HiveLocalBoxStore implements LocalBoxStore {
-  @override
-  Future<Map<String, Object?>> readAll(String boxName) async {
-    final box = await Hive.openBox(boxName);
-    final out = <String, Object?>{};
-    for (final key in box.keys) {
-      out[key.toString()] = box.get(key);
-    }
-    return out;
-  }
-
-  @override
-  Future<void> applyRemote(
-    String boxName, {
-    required Map<String, Object?> puts,
-    required Set<String> deletes,
-  }) async {
-    final box = await Hive.openBox(boxName);
-    for (final key in deletes) {
-      await box.delete(key);
-    }
-    for (final entry in puts.entries) {
-      await box.put(entry.key, entry.value);
-    }
-  }
+/// Fetches [names] from the connected doudou server so a read that follows
+/// sees the server's data. No-op when nothing is connected.
+Future<void> pullLibraryBoxes(Set<String> names) async {
+  if (!Get.isRegistered<ServerSyncService>()) return;
+  final sync = Get.find<ServerSyncService>();
+  if (!sync.enabled.value) return;
+  await sync.pullForRead(names);
 }

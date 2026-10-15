@@ -1,3 +1,4 @@
+import '/services/server_sync_service.dart';
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
@@ -750,6 +751,7 @@ class HomeScreenController extends GetxController {
 
   Future<List<MediaItem>> _loadRecentlyPlayed() async {
     try {
+      await pullLibraryBoxes({recentlyPlayedBoxName(currentServerId())});
       final box = await Hive.openBox(recentlyPlayedBoxName(currentServerId()));
       final values = box.values.toList();
       return _safeMediaItemsFromIterable(values).reversed.toList();

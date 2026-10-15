@@ -1,3 +1,4 @@
+import '/services/server_sync_service.dart';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart' show MediaItem;
@@ -148,6 +149,7 @@ class AndroidAutoService extends GetxService {
     final allSongs = songsCtrl.librarySongsList.toList();
     printINFO('AndroidAuto: all songs for shuffle: ${allSongs.length}');
 
+    await pullLibraryBoxes({libFavBoxName(sid)});
     final favBox = await Hive.openBox(libFavBoxName(sid));
     final favSongs = <MediaItem>[];
     for (final raw in favBox.values.toList()) {

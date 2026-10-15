@@ -1,3 +1,4 @@
+import '/services/server_sync_service.dart';
 import 'package:audio_service/audio_service.dart';
 import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
@@ -440,6 +441,7 @@ class SongInfoController extends GetxController
     final isYouTube = settings.activeServer?.type == ServerType.youtubeMusic;
 
     if (isYouTube) {
+      await pullLibraryBoxes({libFavBoxName(currentServerId())});
       final favBox = await Hive.openBox(libFavBoxName(currentServerId()));
       isCurrentSongFav.value = favBox.containsKey(song.id);
     } else {

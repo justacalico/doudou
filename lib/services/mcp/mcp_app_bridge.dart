@@ -1,3 +1,4 @@
+import '/services/server_sync_service.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -272,8 +273,10 @@ class GetxMcpAppBridge implements McpAppBridge {
     return out;
   }
 
-  Future<Box> _openBox(String name) =>
-      Hive.isBoxOpen(name) ? Future.value(Hive.box(name)) : Hive.openBox(name);
+  Future<Box> _openBox(String name) async {
+    await pullLibraryBoxes({name});
+    return Hive.isBoxOpen(name) ? Hive.box(name) : await Hive.openBox(name);
+  }
 
   @override
   Future<List<Map<String, Object?>>> listPlaylists() async {

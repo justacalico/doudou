@@ -83,6 +83,7 @@ mixin _PlayerSupermixMixin on _PlayerControllerBase {
 
   Future<List<MediaItem>> _loadSupermixRecentSeeds() async {
     try {
+      await pullLibraryBoxes({recentlyPlayedBoxName(currentServerId())});
       final box = await Hive.openBox(recentlyPlayedBoxName(currentServerId()));
       return _safeSupermixSeeds(box.values).reversed.toList();
     } catch (e, st) {

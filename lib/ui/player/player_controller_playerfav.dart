@@ -13,6 +13,7 @@ mixin _PlayerFavMixin on _PlayerControllerBase {
     final isYouTube = server?.type == ServerType.youtubeMusic;
 
     if (isYouTube) {
+      await pullLibraryBoxes({libFavBoxName(currentServerId())});
       final favBox = await Hive.openBox(libFavBoxName(currentServerId()));
       isCurrentSongFav.value = favBox.containsKey(song.id);
       return;

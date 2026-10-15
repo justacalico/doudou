@@ -312,6 +312,7 @@ class MediaLibrary {
 
   Future<List<MediaItem>> getLibSongs(String libId) async {
     Box<dynamic> box;
+    await pullLibraryBoxes({libId});
     try {
       box = await Hive.openBox(libId);
     } catch (e) {

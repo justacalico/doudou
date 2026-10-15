@@ -240,6 +240,9 @@ mixin _SettingsStateMixin on _SettingsScreenControllerBase {
 
   void _onActiveServerChanged() {
     invalidateBackendCache();
+    if (Get.isRegistered<ServerSyncService>()) {
+      unawaited(Get.find<ServerSyncService>().syncNow());
+    }
     if (Get.isRegistered<PlayerController>()) {
       final player = Get.find<PlayerController>();
       player.clearQueue();

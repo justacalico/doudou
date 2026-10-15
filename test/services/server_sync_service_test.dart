@@ -10,6 +10,8 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
 import '../fakes.dart';
+import 'package:doudou/server/sync_client.dart';
+import 'package:doudou/server/sync_model.dart';
 
 void main() {
   late Directory serverDir;
@@ -118,6 +120,95 @@ void main() {
     expect(service!.remoteServers, isEmpty);
     expect(prefs.get('syncedServers'), isNull);
     expect(prefs.get('syncedBackendsRev'), isNull);
+  });
+
+  Future<DoudouSyncClient> loggedInClient() async {
+    final c = DoudouSyncClient(baseUrl: 'http://127.0.0.1:${server!.port}');
+    await c.login(password);
+    return c;
+  }
+
+  Future<void> boot() async {
+    // Drop boxes left open by earlier test files: Hive.openBox ignores the
+    // new home when a box with the same name is already open.
+    await Hive.close();
+    server = DoudouSyncServer(dataDir: serverDir.path);
+    await server!.start(port: 0, password: password);
+    Hive.init(clientDir.path);
+    await Hive.openBox('AppPrefs');
+    Get.put<SettingsScreenController>(FakeSettingsScreenController());
+    service = Get.put(ServerSyncService(), permanent: true);
+    await service!
+        .connect(url: 'http://127.0.0.1:${server!.port}', password: password);
+    await waitForSync();
+  }
+
+  test('local writes push straight to the server', () async {
+    await boot();
+    final fav = await Hive.openBox('LIBFAV');
+    await fav.put('song1', {'title': 'Pushed'});
+
+    final remote = await loggedInClient();
+    var revision = 0;
+    for (var i = 0; i < 100; i++) {
+      final snap = await remote.getBox('LIBFAV');
+      revision = snap.revision;
+      if (revision > 0) break;
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+    expect(revision, greaterThan(0),
+        reason: 'the write never reached the server');
+    remote.close();
+  });
+
+  test('remote deletes reach the client on the next pull', () async {
+    await boot();
+    final remote = await loggedInClient();
+    await remote.pushOps('LIBFAV', [SyncOp.put('doomed', {'t': 1}, 1000)]);
+
+    await service!.pullForRead({'LIBFAV'});
+    final fav = await Hive.openBox('LIBFAV');
+    expect(fav.containsKey('doomed'), isTrue);
+
+    await remote.pushOps('LIBFAV', [SyncOp.delete('doomed', 2000)]);
+    await service!.pullForRead({'LIBFAV'});
+    expect(fav.containsKey('doomed'), isFalse);
+    remote.close();
+  });
+
+  test('a fresh server gets repopulated from the client on connect', () async {
+    await Hive.close();
+    server = DoudouSyncServer(dataDir: serverDir.path);
+    await server!.start(port: 0, password: password);
+    Hive.init(clientDir.path);
+    await Hive.openBox('AppPrefs');
+    Get.put<SettingsScreenController>(FakeSettingsScreenController());
+    final fav = await Hive.openBox('LIBFAV');
+    await fav.put('seed', {'title': 'Kept'});
+
+    service = Get.put(ServerSyncService(), permanent: true);
+    await service!
+        .connect(url: 'http://127.0.0.1:${server!.port}', password: password);
+    await waitForSync();
+
+    final remote = await loggedInClient();
+    final snap = await remote.getBox('LIBFAV');
+    expect(snap.revision, greaterThan(0));
+    remote.close();
+  });
+
+  test('pullForRead ignores boxes that are not part of the library', () async {
+    await boot();
+    final cache = await Hive.openBox('SongsCache');
+    await cache.put('local', {'title': 'Never pushed'});
+
+    await service!.pullForRead({'SongsCache'});
+
+    final remote = await loggedInClient();
+    final names = (await remote.listBoxes()).map((b) => b.name).toList();
+    expect(names.map((n) => n.toLowerCase()),
+        isNot(contains('songscache')));
+    remote.close();
   });
 
   test('removing a hosted backend removes the remote server', () async {
