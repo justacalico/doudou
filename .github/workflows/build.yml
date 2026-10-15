@@ -114,17 +114,6 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Prefetch Gradle distribution
-        if: startsWith(matrix.target, 'android')
-        working-directory: android
-        run: |
-          for i in 1 2 3 4 5; do
-            ./gradlew --version && exit 0
-            echo "Gradle download attempt $i failed, retrying in 20s"
-            sleep 20
-          done
-          exit 1
-
       - uses: subosito/flutter-action@v2
         if: matrix.target != 'linux-arm64'
         with:
