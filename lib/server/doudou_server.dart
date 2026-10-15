@@ -425,6 +425,19 @@ class DoudouSyncServer {
       return;
     }
 
+    if (method == 'POST' && sub == '/reset') {
+      final body = await _readJsonBody(request);
+      final password = body?['password'];
+      if (password is! String || !checkPassword(password)) {
+        _respond(request, 401, {'error': 'invalid password'});
+        return;
+      }
+      await resetDatabase();
+      log.info('database reset from the web ui ($clientAddress)');
+      _respond(request, 200, {});
+      return;
+    }
+
     if (sub == '/backends') {
       if (method == 'GET') {
         _respond(
@@ -890,15 +903,54 @@ class DoudouSyncServer {
     }
   }
 
+  /// Empties every synced box and the hosted backend list. Keys are
+  /// tombstoned instead of just removed so connected clients apply the
+  /// reset on their next pull instead of pushing the data straight back.
+  Future<void> resetDatabase() async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final dir = Directory(dbDir);
+    if (dir.existsSync()) {
+      final names = dir
+          .listSync()
+          .whereType<File>()
+          .map((f) => f.path.split(Platform.pathSeparator).last)
+          .where((n) => n.endsWith('.hive'))
+          .map((n) => n.substring(0, n.length - '.hive'.length))
+          .where((n) =>
+              isValidBoxName(n) &&
+              !n.startsWith('_') &&
+              n.toLowerCase() != hostedBackendsBoxName.toLowerCase())
+          .toList();
+      for (final fileName in names) {
+        final name = (_meta.get('name:$fileName') as String?) ?? fileName;
+        final box = await _box(name);
+        if (box.isEmpty) continue;
+        final deleted = _delMap(name);
+        for (final key in box.keys) {
+          deleted[key.toString()] = now;
+        }
+        await box.deleteAll(box.keys.toList());
+        final lowered = name.toLowerCase();
+        await _meta.delete('ts:$lowered');
+        await _meta.put('del:$lowered', deleted);
+        await _meta.put('rev:$lowered', _rev(lowered) + 1);
+      }
+    }
+    await _backends.clear();
+    await _bumpBackendsRev();
+  }
+
   /// Imports a `.hmb` backup into the server database. Imported keys keep no
   /// per-key timestamps, so they are stamped with the import time and always
   /// lose against anything a client writes afterwards.
   ///
   /// When the backup came from the app its AppPrefs box lists the servers
   /// the device knew about. Each local entry is recreated as a hosted
-  /// backend and its `_s_<id>` boxes and `s_<id>_` playlist keys are
-  /// retargeted to the hosted remote namespace, so the library data stays
-  /// attached to the server it was saved under instead of going orphaned.
+  /// backend and its library data is retargeted to the hosted remote
+  /// namespace, so it stays attached to the server it was saved under
+  /// instead of going orphaned. The built-in default server (id 0) lives in
+  /// the shared unsuffixed namespace, so its synced boxes are renamed into
+  /// the hosted `_s_<id>` space as well.
   Future<HmbImportResult> importHmb(String hmbPath) async {
     // Close every hosted box before the .hive files get overwritten so a
     // stale file handle cannot rewrite the imported data on its next write.
@@ -933,10 +985,9 @@ class DoudouSyncServer {
   /// Recreates the app server list stored in an imported AppPrefs box as
   /// hosted backends. Returns the local server id to hosted remote id
   /// mapping used to retarget `_s_<id>` box files and `s_<id>_` playlist
-  /// keys. The built-in default server (id 0) keeps the shared unsuffixed
-  /// namespace, remote entries copied from another doudou server are
-  /// skipped, and an entry already hosted (same type, url and username)
-  /// reuses its backend id so a re-import does not duplicate it.
+  /// keys. Remote entries copied from another doudou server are skipped,
+  /// and an entry already hosted (same type, url and username) reuses its
+  /// backend id so a re-import does not duplicate it.
   Future<Map<int, int>> _importAppServers(HmbImportResult result) async {
     final idMap = <int, int>{};
     // An imported DoudouBackends box can hold ids beyond the stored counter;
@@ -963,7 +1014,7 @@ class DoudouSyncServer {
     }
     for (final entry in servers.whereType<Map>()) {
       final server = SettingsServer.fromMap(entry.cast<String, dynamic>());
-      if (server.id <= 0 || server.isRemote) continue;
+      if (server.isRemote) continue;
       if (validateHostedBackend({
             'name': server.name,
             'type': server.type.name,
@@ -1011,9 +1062,32 @@ class DoudouSyncServer {
       HmbImportResult result, Map<int, int> idMap) async {
     if (idMap.isEmpty) return;
     final pattern = RegExp(r'^(.*)_s_(\d+)$');
+    // Server id 0 syncs the shared unsuffixed boxes, so importing it means
+    // moving those files into the hosted backend namespace too.
+    final zeroRemote = idMap[0];
+    final zeroNames = zeroRemote == null
+        ? const <String>{}
+        : syncedBoxNames(0, const {})
+            .where((n) => n != libraryPlaylistsBox)
+            .map((n) => n.toLowerCase())
+            .toSet();
     for (var i = 0; i < result.boxes.length; i++) {
       final match = pattern.firstMatch(result.boxes[i]);
-      if (match == null) continue;
+      if (match == null) {
+        if (zeroRemote == null ||
+            !zeroNames.contains(result.boxes[i].toLowerCase())) {
+          continue;
+        }
+        final oldName = result.boxes[i];
+        final newName = '${oldName}_s_$zeroRemote';
+        File('$dbDir/${oldName.toLowerCase()}.hive')
+            .renameSync('$dbDir/${newName.toLowerCase()}.hive');
+        result.boxes[i] = newName;
+        for (final prefix in ['name', 'rev', 'baseTs', 'ts', 'del']) {
+          await _meta.delete('$prefix:${oldName.toLowerCase()}');
+        }
+        continue;
+      }
       final remote = idMap[int.tryParse(match.group(2)!) ?? -1];
       if (remote == null) continue;
       final oldName = result.boxes[i];
