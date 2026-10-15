@@ -91,6 +91,7 @@ class PlaylistScreenController extends PlaylistAlbumScreenControllerBase
     if (!isIdOnly && !playlist_.isCloudPlaylist) {
       playlist.value = playlist_;
       _animationController.forward();
+      await pullLibraryBoxes({playlistSongsBoxName(playlistId)});
       await fetchSongsfromDatabase(playlistSongsBoxName(playlistId));
       isContentFetched.value = true;
 
