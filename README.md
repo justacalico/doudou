@@ -105,6 +105,8 @@ docker compose -f docker-compose.server.yml up -d
 
 This pulls the prebuilt image from `registry.gitlab.com/openlyst/doudou/doudou-server:latest` (or builds it locally with `docker compose build`). Then open `http://<host>:8461/app/` to set the password and get going. The compose file maps port 8461 and stores the database in the `doudou-server-data` volume. Without compose: `docker run -d -p 8461:8461 -v doudou-data:/data registry.gitlab.com/openlyst/doudou/doudou-server:latest`.
 
+CI builds and pushes the image on every commit to `main`. `latest` tracks `main`, and each commit also pushes a `doudou-server:<short-sha>` tag if you want to pin a specific build instead of tracking `latest`.
+
 Without Docker, on first run with no terminal the server generates a password, prints it, and writes it to `<data-dir>/initial-password.txt`; the web dashboard's setup screen replaces it. Server config lives in `<data-dir>/server.json` and the database in `<data-dir>/db`.
 
 ### Connecting from the app
