@@ -250,6 +250,9 @@ void main() {
       },
     ]);
     await prefs.close();
+    final localFav = await Hive.openBox('LIBFAV');
+    await localFav.put('song0', {'title': 'Local fav'});
+    await localFav.close();
     final fav = await Hive.openBox('LIBFAV_s_555');
     await fav.put('song1', {'title': 'Remote fav'});
     await fav.close();
@@ -271,35 +274,47 @@ void main() {
     await boot();
     final result = await server!.importHmb(hmbPath);
     expect(result.boxes, contains('libfav_s_-1'));
+    expect(result.boxes, contains('libfav_s_-2'));
     expect(result.boxes, isNot(contains('libfav_s_555')));
+    expect(result.boxes, isNot(contains('libfav')));
 
     await client!.login(password);
-    // the subsonic entry became a hosted backend; the default and remote
-    // entries are skipped
+    // both local entries became hosted backends; the remote entry copied
+    // from another doudou server is skipped
     final hosted = await client!.listBackends();
-    expect(hosted.backends, hasLength(1));
-    expect(hosted.backends.single['name'], 'Home');
-    expect(hosted.backends.single['type'], 'subsonic');
-    expect(hosted.backends.single['serverUrl'], 'http://navidrome.local');
-    expect(hosted.backends.single['username'], 'cal');
-    expect(hosted.backends.single['password'], 'pw');
+    expect(hosted.backends, hasLength(2));
+    expect(hosted.backends[0]['name'], 'YouTube Music');
+    expect(hosted.backends[0]['type'], 'youtubeMusic');
+    expect(hosted.backends[1]['name'], 'Home');
+    expect(hosted.backends[1]['type'], 'subsonic');
+    expect(hosted.backends[1]['serverUrl'], 'http://navidrome.local');
+    expect(hosted.backends[1]['username'], 'cal');
+    expect(hosted.backends[1]['password'], 'pw');
 
-    // its library data moved to the remote namespace clients read
-    final favSnap = await client!.getBox('LIBFAV_s_-1');
+    // the default server's unsuffixed boxes moved into its namespace
+    final localSnap = await client!.getBox('LIBFAV_s_-1');
+    expect((localSnap.entries['song0']!.value as Map)['title'], 'Local fav');
+    expect(File('${server!.dbDir}/libfav.hive').existsSync(), isFalse);
+
+    // the subsonic library data moved to its remote namespace too
+    final favSnap = await client!.getBox('LIBFAV_s_-2');
     expect((favSnap.entries['song1']!.value as Map)['title'], 'Remote fav');
     expect(File('${server!.dbDir}/libfav_s_555.hive').existsSync(), isFalse);
 
-    // playlist keys moved with it while default server keys stay put
+    // playlist keys moved with their servers
     final plSnap = await client!.getBox('LibraryPlaylists');
-    expect(plSnap.entries.containsKey('s_-1_PL1'), isTrue);
-    expect(plSnap.entries.containsKey('s_0_PL9'), isTrue);
+    expect(plSnap.entries.containsKey('s_-1_PL9'), isTrue);
+    expect(plSnap.entries.containsKey('s_-2_PL1'), isTrue);
+    expect(plSnap.entries.containsKey('s_0_PL9'), isFalse);
     expect(plSnap.entries.containsKey('s_555_PL1'), isFalse);
 
-    // re-importing the same backup reuses the backend instead of duplicating
+    // re-importing the same backup reuses the backends instead of
+    // duplicating them
     await server!.importHmb(hmbPath);
     final again = await client!.listBackends();
-    expect(again.backends, hasLength(1));
-    expect(again.backends.single['id'], hosted.backends.single['id']);
+    expect(again.backends, hasLength(2));
+    expect(again.backends.map((b) => b['id']),
+        hosted.backends.map((b) => b['id']));
   });
 
   test('import rejects a missing file and a non-zip', () async {
@@ -663,6 +678,39 @@ void main() {
     await client!.login(password);
     final snap = await client!.getBox('RemoteSongs');
     expect(snap.entries['s_0']!.value, isA<Map>());
+  });
+
+  test('reset empties boxes and backends behind a password', () async {
+    await boot();
+    await client!.login(password);
+    await client!.pushOps('LIBFAV', [SyncOp.put('song1', {'t': 'x'}, 1000)]);
+
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
+    final token = login.body['token'] as String;
+
+    // without a valid session or password nothing is touched
+    final noAuth =
+        await webui('POST', '/app/api/reset', json: {'password': password});
+    expect(noAuth.status, 401);
+    final wrongPw = await webui('POST', '/app/api/reset',
+        token: token, json: {'password': 'nope'});
+    expect(wrongPw.status, 401);
+    var snap = await client!.getBox('LIBFAV');
+    expect(snap.entries.containsKey('song1'), isTrue);
+
+    final res = await webui('POST', '/app/api/reset',
+        token: token, json: {'password': password});
+    expect(res.status, 200);
+
+    // keys are tombstoned so clients delete them on the next pull instead
+    // of healing the box back
+    snap = await client!.getBox('LIBFAV');
+    expect(snap.entries, isEmpty);
+    expect(snap.deleted.containsKey('song1'), isTrue);
+
+    final hosted = await client!.listBackends();
+    expect(hosted.backends, isEmpty);
   });
 
   test('web ui statics serve the bundle and root redirects', () async {

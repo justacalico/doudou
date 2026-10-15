@@ -15,6 +15,7 @@ class FakeApi extends WebuiApi {
   bool loggedOut = false;
   List<HostedBackend> backendList = [];
   List<SyncBox> boxList = [];
+  String? resetWith;
 
   @override
   Future<ServerState> state() async => stateResult;
@@ -49,6 +50,13 @@ class FakeApi extends WebuiApi {
   @override
   Future<LogPage> logs(int after) async =>
       LogPage(entries: const [], latest: 0);
+
+  @override
+  Future<void> resetDatabase(String password) async {
+    resetWith = password;
+    backendList = [];
+    boxList = [];
+  }
 }
 
 void main() {
@@ -132,6 +140,57 @@ void main() {
 
     expect(api.loggedOut, isTrue);
     expect(find.text('Log in'), findsOneWidget);
+  });
+
+  testWidgets('reset asks for the password across two confirmations', (
+    tester,
+  ) async {
+    final api = FakeApi(stateResult: ServerState(setupRequired: false))
+      ..boxList = [SyncBox(name: 'LIBFAV', rev: 3, keys: 42)];
+    api.tokenStore.write('session');
+    await tester.pumpWidget(DoudouServerApp(api: api));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Reset'));
+    await tester.pumpAndSettle();
+    expect(find.text('Reset database'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Password'), findsOneWidget);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Password'),
+      'hunter2',
+    );
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(api.loggedInWith, 'hunter2');
+    expect(
+      find.widgetWithText(TextField, 'Enter your password again'),
+      findsOneWidget,
+    );
+
+    // a mismatched second entry never reaches the api
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Enter your password again'),
+      'typo',
+    );
+    await tester.tap(find.text('Reset database'));
+    await tester.pumpAndSettle();
+    expect(find.text('Passwords do not match'), findsOneWidget);
+    expect(api.resetWith, isNull);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Enter your password again'),
+      'hunter2',
+    );
+    await tester.tap(find.text('Reset database'));
+    await tester.pumpAndSettle();
+    expect(api.resetWith, 'hunter2');
+    expect(find.text('Database reset'), findsOneWidget);
+    expect(find.text('No synced boxes yet.'), findsOneWidget);
+
+    // the log poll timer has to go or the test ends with it pending
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
   });
 
   test('models parse the wire maps', () {

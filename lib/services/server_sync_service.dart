@@ -266,14 +266,17 @@ class ServerSyncService extends GetxService {
     }
   }
 
-  /// Pulls each box whose server revision moved, or that carries unpushed
-  /// local writes, and applies the result locally.
+  /// Pulls each box whose server revision moved, that carries unpushed
+  /// local writes, or that this session has never pulled at all. The last
+  /// case matters for a fresh or wiped server: without a pull the heal
+  /// check never runs and pre-existing local data stays device only.
   Future<void> _pullBoxes(Set<String> names) async {
     await _openState();
     if (names.isEmpty) return;
     final revs = await _fetchRemoteRevs();
     for (final name in names) {
       if (_dirtyBoxes.contains(name) ||
+          _boxRevs[name] == null ||
           revs[name] != _boxRevs[name]) {
         await _pullBox(name);
       }

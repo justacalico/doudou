@@ -111,6 +111,9 @@ class WebuiApi {
   Future<void> changePassword(String current, String next) =>
       _call('POST', '/password', body: {'current': current, 'next': next});
 
+  Future<void> resetDatabase(String password) =>
+      _call('POST', '/reset', body: {'password': password});
+
   Future<List<HostedBackend>> backends() async {
     final res = await _call('GET', '/backends');
     final raw = res['backends'];

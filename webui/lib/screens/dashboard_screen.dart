@@ -7,6 +7,7 @@ import '../platform/platform.dart';
 import '../models.dart';
 import '../widgets/backend_dialog.dart';
 import '../widgets/password_dialog.dart';
+import '../widgets/reset_dialog.dart';
 
 /// The server dashboard: hosted backends, backup/restore and a live log
 /// tail, plus account actions in the app bar.
@@ -288,27 +289,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ],
   );
 
-  Widget _boxesCard() => _section(const Text('Database'), [
-    if (_boxes.isEmpty)
-      const Padding(
-        padding: EdgeInsets.symmetric(vertical: 12),
-        child: Text('No synced boxes yet.'),
-      )
-    else
-      for (final box in _boxes)
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: Row(
-            children: [
-              Expanded(child: Text(box.name)),
-              Text(
-                '${box.keys} keys · rev ${box.rev}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+  Future<void> _resetDb() async {
+    final done = await ResetDialog.show(context, widget.api);
+    if (!done || !mounted) return;
+    setState(() => _notice = 'Database reset');
+    await _refresh();
+  }
+
+  Widget _boxesCard() => _section(
+    const Text('Database'),
+    [
+      if (_boxes.isEmpty)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Text('No synced boxes yet.'),
+        )
+      else
+        for (final box in _boxes)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: Row(
+              children: [
+                Expanded(child: Text(box.name)),
+                Text(
+                  '${box.keys} keys · rev ${box.rev}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
           ),
-        ),
-  ]);
+    ],
+    [
+      TextButton.icon(
+        onPressed: _busy ? null : _resetDb,
+        icon: Icon(Icons.delete_forever_outlined,
+            size: 18, color: Theme.of(context).colorScheme.error),
+        label: Text('Reset',
+            style: TextStyle(color: Theme.of(context).colorScheme.error)),
+      ),
+    ],
+  );
 
   Widget _backupCard() => _section(const Text('Backup'), [
     Wrap(
