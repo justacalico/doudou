@@ -215,6 +215,93 @@ void main() {
     expect(lower.entries.keys, snap.entries.keys);
   });
 
+  test('import .hmb recreates app servers as hosted backends', () async {
+    // a backup made by the app carries the server list inside AppPrefs and
+    // namespaces the library boxes with the local server id.
+    final hiveDir = '${scratchDir.path}/hivesrc';
+    Directory(hiveDir).createSync();
+    Hive.init(hiveDir);
+    final prefs = await Hive.openBox('AppPrefs');
+    await prefs.put('servers', [
+      {
+        'id': 0,
+        'name': 'YouTube Music',
+        'type': 'youtubeMusic',
+        'isDefault': true,
+        'isRemote': false,
+      },
+      {
+        'id': 555,
+        'name': 'Home',
+        'type': 'subsonic',
+        'isDefault': false,
+        'isRemote': false,
+        'serverUrl': 'http://navidrome.local',
+        'username': 'cal',
+        'password': 'pw',
+      },
+      {
+        'id': -3,
+        'name': 'Other doudou server',
+        'type': 'jellyfin',
+        'isDefault': false,
+        'isRemote': true,
+        'serverUrl': 'http://jf.local',
+      },
+    ]);
+    await prefs.close();
+    final fav = await Hive.openBox('LIBFAV_s_555');
+    await fav.put('song1', {'title': 'Remote fav'});
+    await fav.close();
+    final pl = await Hive.openBox('LibraryPlaylists');
+    await pl.put('s_555_PL1', {'playlistId': 'PL1', 'title': 'Remote mix'});
+    await pl.put('s_0_PL9', {'playlistId': 'PL9', 'title': 'Local mix'});
+    await pl.close();
+    await Hive.close();
+
+    final archive = Archive();
+    for (final f in Directory(hiveDir).listSync().whereType<File>()) {
+      final bytes = await f.readAsBytes();
+      final name = f.path.split(Platform.pathSeparator).last;
+      archive.addFile(ArchiveFile(name, bytes.length, bytes));
+    }
+    final hmbPath = '${scratchDir.path}/backup.hmb';
+    await File(hmbPath).writeAsBytes(ZipEncoder().encode(archive)!);
+
+    await boot();
+    final result = await server!.importHmb(hmbPath);
+    expect(result.boxes, contains('libfav_s_-1'));
+    expect(result.boxes, isNot(contains('libfav_s_555')));
+
+    await client!.login(password);
+    // the subsonic entry became a hosted backend; the default and remote
+    // entries are skipped
+    final hosted = await client!.listBackends();
+    expect(hosted.backends, hasLength(1));
+    expect(hosted.backends.single['name'], 'Home');
+    expect(hosted.backends.single['type'], 'subsonic');
+    expect(hosted.backends.single['serverUrl'], 'http://navidrome.local');
+    expect(hosted.backends.single['username'], 'cal');
+    expect(hosted.backends.single['password'], 'pw');
+
+    // its library data moved to the remote namespace clients read
+    final favSnap = await client!.getBox('LIBFAV_s_-1');
+    expect((favSnap.entries['song1']!.value as Map)['title'], 'Remote fav');
+    expect(File('${server!.dbDir}/libfav_s_555.hive').existsSync(), isFalse);
+
+    // playlist keys moved with it while default server keys stay put
+    final plSnap = await client!.getBox('LibraryPlaylists');
+    expect(plSnap.entries.containsKey('s_-1_PL1'), isTrue);
+    expect(plSnap.entries.containsKey('s_0_PL9'), isTrue);
+    expect(plSnap.entries.containsKey('s_555_PL1'), isFalse);
+
+    // re-importing the same backup reuses the backend instead of duplicating
+    await server!.importHmb(hmbPath);
+    final again = await client!.listBackends();
+    expect(again.backends, hasLength(1));
+    expect(again.backends.single['id'], hosted.backends.single['id']);
+  });
+
   test('import rejects a missing file and a non-zip', () async {
     await boot();
     expect(() => server!.importHmb('${scratchDir.path}/nope.hmb'),
@@ -458,6 +545,46 @@ void main() {
     await server!.importHmb(hmbPath);
     final hosted = await client!.listBackends();
     expect(hosted.backends.single['name'], 'YTM');
+  });
+
+  test('import raises the backend id counter past imported entries',
+      () async {
+    final hiveDir = '${scratchDir.path}/hivesrc';
+    Directory(hiveDir).createSync();
+    Hive.init(hiveDir);
+    final backends = await Hive.openBox('DoudouBackends');
+    await backends.put('b_7', {
+      'id': 7,
+      'name': 'Old',
+      'type': 'jellyfin',
+      'serverUrl': 'http://jf.local',
+    });
+    await backends.close();
+    await Hive.close();
+
+    final archive = Archive();
+    final hiveBytes =
+        await File('$hiveDir/doudoubackends.hive').readAsBytes();
+    archive.addFile(
+        ArchiveFile('DoudouBackends.hive', hiveBytes.length, hiveBytes));
+    final hmbPath = '${scratchDir.path}/backup.hmb';
+    await File(hmbPath).writeAsBytes(ZipEncoder().encode(archive)!);
+
+    await boot();
+    await server!.importHmb(hmbPath);
+
+    // a backend created after the import must not reuse the imported id
+    final login =
+        await webui('POST', '/app/api/login', json: {'password': password});
+    final token = login.body['token'] as String;
+    final created =
+        await webui('POST', '/app/api/backends', token: token, json: {
+      'name': 'New',
+      'type': 'jellyfin',
+      'serverUrl': 'http://jf2.local',
+    });
+    expect(created.status, 200);
+    expect(created.body['id'], 8);
   });
 
   test('password change rotates credentials but keeps the sync token',

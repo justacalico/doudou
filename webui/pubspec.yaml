@@ -1,5 +1,5 @@
 name: doudou_server_webui
-description: "Web dashboard for the doudou sync server, served from /app."
+description: "Web dashboard for the doudou server, served from /app."
 publish_to: "none"
 version: 1.0.0
 

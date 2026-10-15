@@ -1599,13 +1599,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get browseLibrary => '浏览音乐库';
 
   @override
-  String get deviceSync => '设备同步';
+  String get deviceSync => 'Doudou 服务器';
 
   @override
-  String get deviceSyncDes => '通过 doudou 同步服务器在多台设备之间共享你的音乐库。';
+  String get deviceSyncDes => '通过 doudou 服务器在多台设备之间共享你的音乐库。';
 
   @override
-  String get fromSyncServer => '来自同步服务器';
+  String get fromSyncServer => '来自 doudou 服务器';
 
   @override
   String get connect => '连接';
@@ -1614,7 +1614,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get disconnect => '断开连接';
 
   @override
-  String get notDoudouSyncServer => '该服务器不是 doudou 同步服务器';
+  String get notDoudouSyncServer => '该服务器不是 doudou 服务器';
 
   @override
   String lastSyncTime(String time) {

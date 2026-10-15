@@ -1670,14 +1670,14 @@ class AppLocalizationsRu extends AppLocalizations {
   String get browseLibrary => 'Открыть библиотеку';
 
   @override
-  String get deviceSync => 'Синхронизация устройств';
+  String get deviceSync => 'Сервер Doudou';
 
   @override
   String get deviceSyncDes =>
-      'Синхронизируйте библиотеку между устройствами через сервер doudou.';
+      'Общая библиотека на всех устройствах через сервер doudou.';
 
   @override
-  String get fromSyncServer => 'С сервера синхронизации';
+  String get fromSyncServer => 'С сервера doudou';
 
   @override
   String get connect => 'Подключиться';
@@ -1686,8 +1686,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get disconnect => 'Отключиться';
 
   @override
-  String get notDoudouSyncServer =>
-      'Этот сервер не является сервером синхронизации doudou';
+  String get notDoudouSyncServer => 'Этот сервер не является сервером doudou';
 
   @override
   String lastSyncTime(String time) {

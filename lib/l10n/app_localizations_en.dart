@@ -1661,14 +1661,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get browseLibrary => 'Browse library';
 
   @override
-  String get deviceSync => 'Device sync';
+  String get deviceSync => 'Doudou server';
 
   @override
   String get deviceSyncDes =>
-      'Share your library between devices through a doudou sync server.';
+      'Share your library between devices through a doudou server.';
 
   @override
-  String get fromSyncServer => 'From sync server';
+  String get fromSyncServer => 'From doudou server';
 
   @override
   String get connect => 'Connect';
@@ -1677,7 +1677,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get disconnect => 'Disconnect';
 
   @override
-  String get notDoudouSyncServer => 'This server is not a doudou sync server';
+  String get notDoudouSyncServer => 'This server is not a doudou server';
 
   @override
   String lastSyncTime(String time) {
@@ -3358,14 +3358,14 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get browseLibrary => 'Browse library';
 
   @override
-  String get deviceSync => 'Device sync';
+  String get deviceSync => 'Doudou server';
 
   @override
   String get deviceSyncDes =>
-      'Share your library between devices through a doudou sync server.';
+      'Share your library between devices through a doudou server.';
 
   @override
-  String get fromSyncServer => 'From sync server';
+  String get fromSyncServer => 'From doudou server';
 
   @override
   String get connect => 'Connect';
@@ -3374,7 +3374,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get disconnect => 'Disconnect';
 
   @override
-  String get notDoudouSyncServer => 'This server is not a doudou sync server';
+  String get notDoudouSyncServer => 'This server is not a doudou server';
 
   @override
   String lastSyncTime(String time) {

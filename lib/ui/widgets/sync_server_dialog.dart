@@ -6,7 +6,7 @@ import '/ui/design/doudou_tokens.dart';
 import '/ui/widgets/common_dialog_widget.dart';
 import '/utils/app_l10n.dart';
 
-/// Connects the app to a doudou sync server: enter the server address and
+/// Connects the app to a doudou server: enter the server address and
 /// password once and every device logged in shares the same library.
 class SyncServerDialog extends StatefulWidget {
   const SyncServerDialog({super.key});

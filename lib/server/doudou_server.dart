@@ -5,10 +5,12 @@ import 'dart:math';
 
 import 'package:hive/hive.dart';
 
+import '../models/server.dart';
 import 'hmb_archive.dart';
 import 'hosted_backends.dart';
 import 'server_log.dart';
 import 'sync_auth.dart';
+import 'sync_boxes.dart';
 import 'sync_codec.dart';
 import 'sync_model.dart';
 import 'webui_bundle.dart';
@@ -891,6 +893,12 @@ class DoudouSyncServer {
   /// Imports a `.hmb` backup into the server database. Imported keys keep no
   /// per-key timestamps, so they are stamped with the import time and always
   /// lose against anything a client writes afterwards.
+  ///
+  /// When the backup came from the app its AppPrefs box lists the servers
+  /// the device knew about. Each local entry is recreated as a hosted
+  /// backend and its `_s_<id>` boxes and `s_<id>_` playlist keys are
+  /// retargeted to the hosted remote namespace, so the library data stays
+  /// attached to the server it was saved under instead of going orphaned.
   Future<HmbImportResult> importHmb(String hmbPath) async {
     // Close every hosted box before the .hive files get overwritten so a
     // stale file handle cannot rewrite the imported data on its next write.
@@ -901,6 +909,9 @@ class DoudouSyncServer {
     await _backends.close();
     final result = importHmbFile(hmbPath, dbDir);
     _backends = await Hive.openBox(hostedBackendsBoxName);
+    final idMap = await _importAppServers(result);
+    await _retargetImportedBoxes(result, idMap);
+    await _retargetPlaylistKeys(result, idMap);
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final boxName in result.boxes) {
       // Imported files replace the box wholesale: reset meta so stale
@@ -912,7 +923,137 @@ class DoudouSyncServer {
       await _meta.put('rev:$key', _rev(key) + 1);
     }
     await _bumpBackendsRev();
+    if (idMap.isNotEmpty) {
+      log.info('imported ${idMap.length} servers from the backup');
+    }
     log.info('imported $hmbPath (${result.boxes.length} boxes)');
     return result;
+  }
+
+  /// Recreates the app server list stored in an imported AppPrefs box as
+  /// hosted backends. Returns the local server id to hosted remote id
+  /// mapping used to retarget `_s_<id>` box files and `s_<id>_` playlist
+  /// keys. The built-in default server (id 0) keeps the shared unsuffixed
+  /// namespace, remote entries copied from another doudou server are
+  /// skipped, and an entry already hosted (same type, url and username)
+  /// reuses its backend id so a re-import does not duplicate it.
+  Future<Map<int, int>> _importAppServers(HmbImportResult result) async {
+    final idMap = <int, int>{};
+    // An imported DoudouBackends box can hold ids beyond the stored counter;
+    // keep the next id above them so new entries never overwrite old ones.
+    final hosted = _listBackends()
+        .map(HostedBackend.fromMap)
+        .whereType<HostedBackend>()
+        .toList();
+    var nextId = (_meta.get('nextBackendId') as num?)?.toInt() ?? 1;
+    for (final b in hosted) {
+      if (b.id >= nextId) nextId = b.id + 1;
+    }
+    if (!result.boxes.any((b) => b.toLowerCase() == 'appprefs')) {
+      await _meta.put('nextBackendId', nextId);
+      return idMap;
+    }
+    final prefs = await Hive.openBox('AppPrefs');
+    List<dynamic> servers;
+    try {
+      final raw = prefs.get('servers');
+      servers = raw is List ? raw : const [];
+    } finally {
+      await prefs.close();
+    }
+    for (final entry in servers.whereType<Map>()) {
+      final server = SettingsServer.fromMap(entry.cast<String, dynamic>());
+      if (server.id <= 0 || server.isRemote) continue;
+      if (validateHostedBackend({
+            'name': server.name,
+            'type': server.type.name,
+            'serverUrl': server.serverUrl,
+            'username': server.username,
+            'password': server.password,
+          }) !=
+          null) {
+        continue;
+      }
+      final match = _matchBackend(hosted, server);
+      final id = match?.id ?? nextId++;
+      final backend = HostedBackend(
+        id: id,
+        name: server.name.trim(),
+        type: server.type.name,
+        serverUrl: _blankToNull(server.serverUrl),
+        username: _blankToNull(server.username),
+        password: _blankToNull(server.password),
+      );
+      await _backends.put('b_$id', backend.toMap());
+      if (match == null) hosted.add(backend);
+      idMap[server.id] = remoteServerId(id);
+    }
+    await _meta.put('nextBackendId', nextId);
+    return idMap;
+  }
+
+  HostedBackend? _matchBackend(
+      List<HostedBackend> hosted, SettingsServer server) {
+    for (final b in hosted) {
+      if (b.type == server.type.name &&
+          (b.serverUrl ?? '') == (server.serverUrl ?? '') &&
+          (b.username ?? '') == (server.username ?? '')) {
+        return b;
+      }
+    }
+    return null;
+  }
+
+  /// Renames imported `_s_<localId>` box files into the `_s_<remoteId>`
+  /// namespace of the backend that server became, and fixes the reported
+  /// box list so meta stamping targets the new names.
+  Future<void> _retargetImportedBoxes(
+      HmbImportResult result, Map<int, int> idMap) async {
+    if (idMap.isEmpty) return;
+    final pattern = RegExp(r'^(.*)_s_(\d+)$');
+    for (var i = 0; i < result.boxes.length; i++) {
+      final match = pattern.firstMatch(result.boxes[i]);
+      if (match == null) continue;
+      final remote = idMap[int.tryParse(match.group(2)!) ?? -1];
+      if (remote == null) continue;
+      final oldName = result.boxes[i];
+      final newName = '${match.group(1)}_s_$remote';
+      File('$dbDir/${oldName.toLowerCase()}.hive')
+          .renameSync('$dbDir/${newName.toLowerCase()}.hive');
+      result.boxes[i] = newName;
+      for (final prefix in ['name', 'rev', 'baseTs', 'ts', 'del']) {
+        await _meta.delete('$prefix:${oldName.toLowerCase()}');
+      }
+    }
+  }
+
+  /// Rewrites the per-server keys inside an imported LibraryPlaylists box so
+  /// playlists saved under a local server id land under the hosted remote id
+  /// their library boxes were retargeted to.
+  Future<void> _retargetPlaylistKeys(
+      HmbImportResult result, Map<int, int> idMap) async {
+    if (idMap.isEmpty ||
+        !result.boxes.any((b) => b.toLowerCase() == 'libraryplaylists')) {
+      return;
+    }
+    final box = await Hive.openBox(libraryPlaylistsBox);
+    try {
+      final pattern = RegExp(r'^s_(\d+)_(.+)$');
+      final moves = <String, String>{};
+      for (final key in box.keys) {
+        final k = key.toString();
+        final match = pattern.firstMatch(k);
+        if (match == null) continue;
+        final remote = idMap[int.tryParse(match.group(1)!) ?? -1];
+        if (remote != null) moves[k] = 's_${remote}_${match.group(2)}';
+      }
+      for (final entry in moves.entries) {
+        final value = box.get(entry.key);
+        await box.delete(entry.key);
+        await box.put(entry.value, value);
+      }
+    } finally {
+      await box.close();
+    }
   }
 }

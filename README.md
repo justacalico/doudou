@@ -62,9 +62,9 @@ Long-press anything (song, album, playlist) and choose download. It lives in the
 
 Same app, same backend. The layout adapts to screen size. 
 
-## Sync server
+## Doudou server
 
-Doudou ships a headless sync server that hosts your library database so every device you log in with shares the same favorites, playlists, recently played, and search history. Only library data is synced: stream URLs, caches, downloads, and device settings stay local.
+Doudou ships a headless server that hosts your library database so every device you log in with shares the same favorites, playlists, recently played, and search history. The data lives on the server, not on the device: nothing is copied locally, so every client sees the same library. Only library data is hosted: stream URLs, caches, downloads, and device settings stay local.
 
 ### Running it
 
@@ -111,7 +111,7 @@ Without Docker, on first run with no terminal the server generates a password, p
 
 ### Connecting from the app
 
-In the app go to **Settings > Servers > Device sync**, enter the server address (for example `192.168.1.10:8461`) and the password, then hit connect.
+In the app go to **Settings > Servers > Doudou server**, enter the server address (for example `192.168.1.10:8461`) and the password, then hit connect.
 
 ### Backups
 

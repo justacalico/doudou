@@ -3218,19 +3218,19 @@ abstract class AppLocalizations {
   /// No description provided for @deviceSync.
   ///
   /// In en_AU, this message translates to:
-  /// **'Device sync'**
+  /// **'Doudou server'**
   String get deviceSync;
 
   /// No description provided for @deviceSyncDes.
   ///
   /// In en_AU, this message translates to:
-  /// **'Share your library between devices through a doudou sync server.'**
+  /// **'Share your library between devices through a doudou server.'**
   String get deviceSyncDes;
 
   /// No description provided for @fromSyncServer.
   ///
   /// In en_AU, this message translates to:
-  /// **'From sync server'**
+  /// **'From doudou server'**
   String get fromSyncServer;
 
   /// No description provided for @connect.
@@ -3248,7 +3248,7 @@ abstract class AppLocalizations {
   /// No description provided for @notDoudouSyncServer.
   ///
   /// In en_AU, this message translates to:
-  /// **'This server is not a doudou sync server'**
+  /// **'This server is not a doudou server'**
   String get notDoudouSyncServer;
 
   /// No description provided for @lastSyncTime.

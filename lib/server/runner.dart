@@ -4,7 +4,7 @@ import 'dart:io';
 import 'doudou_server.dart';
 import 'hmb_archive.dart';
 
-/// Command line entry for the headless sync server. Works both when the app
+/// Command line entry for the headless doudou server. Works both when the app
 /// binary is started with `-server` and through `dart run bin/doudou_server.dart`.
 ///
 /// Usage:
@@ -79,7 +79,7 @@ String? _promptForPassword(String dataDir) {
   // Only prompt when this is a first run (no stored password) on a terminal.
   final configFile = File('$dataDir/server.json');
   if (configFile.existsSync() || !stdin.hasTerminal) return null;
-  stdout.write('Choose a password for the sync server: ');
+  stdout.write('Choose a password for the server: ');
   final first = stdin.readLineSync() ?? '';
   if (first.isEmpty) return null;
   stdout.write('Repeat the password: ');
@@ -93,7 +93,7 @@ String? _promptForPassword(String dataDir) {
 
 void _printBanner(DoudouSyncServer server, ServerArgs parsed) {
   stdout.writeln('');
-  stdout.writeln('Doudou sync server is running.');
+  stdout.writeln('Doudou server is running.');
   if (server.generatedPassword != null) {
     stdout.writeln('Generated server password: ${server.generatedPassword}');
     stdout.writeln('Store it somewhere safe, clients need it to log in.');
@@ -102,7 +102,7 @@ void _printBanner(DoudouSyncServer server, ServerArgs parsed) {
     stdout.writeln('No password has been chosen yet: open the web ui below '
         'to set one.');
   }
-  stdout.writeln('Connect from the app under Settings > Servers > Device sync');
+  stdout.writeln('Connect from the app under Settings > Servers > Doudou server');
   stdout.writeln('using one of these addresses (append /app/ for the web ui):');
   NetworkInterface.list(
     type: InternetAddressType.IPv4,
@@ -210,8 +210,8 @@ ServerArgs? parseServerArgs(List<String> args) {
 const String _usage = '''
 doudou -server [options]
 
-Runs a headless doudou sync server. Clients connect from the app under
-Settings > Servers > Device sync and share one library database.
+Runs a headless doudou server. Clients connect from the app under
+Settings > Servers > Doudou server and share one library database.
 
 Options:
   -importdb <path>   import a .hmb backup into the server database
