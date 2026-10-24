@@ -75,3 +75,4 @@ android/app/.cxx/Debug/*
 /android/app/.cxx
 
 flutter_*.png
+test/goldens/failures/
