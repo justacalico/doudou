@@ -1,3 +1,5 @@
+import 'dart:async' show Completer;
+
 import 'package:audio_service/audio_service.dart';
 import 'package:doudou/app/settings/app_settings_controller.dart';
 import 'package:doudou/models/playlist.dart';
@@ -11,9 +13,11 @@ import 'package:doudou/services/playback_diagnostics_service.dart';
 import 'package:doudou/services/server_sync_service.dart';
 import 'package:doudou/services/tv_service.dart';
 import 'package:doudou/ui/player/player_controller.dart';
+import 'package:doudou/ui/screens/Album/album_screen_controller.dart';
 import 'package:doudou/ui/screens/Artists/artist_screen_controller.dart';
 import 'package:doudou/ui/screens/Home/home_screen_controller.dart';
 import 'package:doudou/ui/screens/Library/library_controller.dart';
+import 'package:doudou/ui/screens/Playlist/playlist_screen_controller.dart';
 import 'package:doudou/ui/screens/Search/search_result_screen_controller.dart';
 import 'package:doudou/ui/screens/Search/search_screen_controller.dart';
 import 'package:doudou/ui/screens/Settings/settings_screen_controller.dart';
@@ -108,6 +112,52 @@ class FakeSearchScreenController extends SearchScreenController {
   void onInit() {}
 }
 
+class FakePlaylistScreenController extends PlaylistScreenController {
+  late final AnimationController _anim;
+  late final Animation<double> _scaleAnim;
+  late final Animation<double> _heightAnim;
+
+  @override
+  // ignore: must_call_super
+  void onInit() {
+    _anim = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 400))..forward();
+    _scaleAnim = Tween<double>(begin: 0, end: 1).animate(_anim);
+    _heightAnim = Tween<double>(begin: 10, end: 75).animate(
+        CurvedAnimation(parent: _anim, curve: Curves.easeOutBack));
+  }
+
+  @override
+  AnimationController get animationController => _anim;
+  @override
+  Animation<double> get scaleAnimation => _scaleAnim;
+  @override
+  Animation<double> get heightAnimation => _heightAnim;
+}
+
+class FakeAlbumScreenController extends AlbumScreenController {
+  late final AnimationController _anim;
+  late final Animation<double> _scaleAnim;
+  late final Animation<double> _heightAnim;
+
+  @override
+  // ignore: must_call_super
+  void onInit() {
+    _anim = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 400))..forward();
+    _scaleAnim = Tween<double>(begin: 0, end: 1).animate(_anim);
+    _heightAnim = Tween<double>(begin: 10, end: 75).animate(
+        CurvedAnimation(parent: _anim, curve: Curves.easeOutBack));
+  }
+
+  @override
+  AnimationController get animationController => _anim;
+  @override
+  Animation<double> get scaleAnimation => _scaleAnim;
+  @override
+  Animation<double> get heightAnimation => _heightAnim;
+}
+
 class FakeArtistScreenController extends ArtistScreenController {
   @override
   // ignore: must_call_super
@@ -122,8 +172,11 @@ class FakeSearchResultScreenController
 }
 
 class GoldenMusicServices extends FakeMusicServices {
+  bool hangHome = false;
+
   @override
-  Future<dynamic> getHome({int limit = 4}) async => <dynamic>[];
+  Future<dynamic> getHome({int limit = 4}) =>
+      hangHome ? Completer<dynamic>().future : Future.value(<dynamic>[]);
 }
 
 class GoldenSettingsScreenController extends FakeSettingsScreenController {
