@@ -29,6 +29,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
 import '../fakes.dart';
+import 'package:doudou/ui/widgets/song_list_tile.dart';
 import 'golden_fakes.dart';
 import 'golden_helpers.dart';
 
@@ -241,15 +242,6 @@ void main() {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(
-      GetMaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: goldenTheme(),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(body: SizedBox()),
-      ),
-    );
     final playlist = Playlist(
       title: 'Evening Mix',
       playlistId: 'p1',
@@ -262,10 +254,18 @@ void main() {
     playlistController.playlist.value = playlist;
     playlistController.songList.value = songs;
     playlistController.isContentFetched.value = true;
-    Get.to(() => const PlaylistScreen(), arguments: [playlist, 'p1']);
+    await tester.pumpWidget(
+      GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: goldenTheme(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RepaintBoundary(
+            key: goldenRootKey, child: const PlaylistScreen()),
+      ),
+    );
     await tester.pump(const Duration(milliseconds: 600));
-    await tester.pumpAndSettle();
-    await expectGoldenView(tester, 'screen_playlist');
+    await expectGolden(tester, 'screen_playlist');
     await tester.pump(const Duration(seconds: 1));
   });
 
@@ -273,25 +273,23 @@ void main() {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(
-      GetMaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: goldenTheme(),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(body: SizedBox()),
-      ),
-    );
     final albumController = FakeAlbumScreenController();
     Get.put<AlbumScreenController>(albumController,
         tag: null.hashCode.toString());
     albumController.album.value = albums[0];
     albumController.songList.value = songs;
     albumController.isContentFetched.value = true;
-    Get.to(() => const AlbumScreen(), arguments: (albums[0], 'a1'));
+    await tester.pumpWidget(
+      GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: goldenTheme(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RepaintBoundary(key: goldenRootKey, child: const AlbumScreen()),
+      ),
+    );
     await tester.pump(const Duration(milliseconds: 600));
-    await tester.pumpAndSettle();
-    await expectGoldenView(tester, 'screen_album');
+    await expectGolden(tester, 'screen_album');
     await tester.pump(const Duration(seconds: 1));
   });
 
@@ -299,23 +297,22 @@ void main() {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
+    final artistController = FakeArtistScreenController();
+    Get.put<ArtistScreenController>(artistController,
+        tag: null.hashCode.toString());
+    artistController.artist_ = artists[0];
+    artistController.isArtistContentFetced.value = true;
     await tester.pumpWidget(
       GetMaterialApp(
         debugShowCheckedModeBanner: false,
         theme: goldenTheme(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(body: SizedBox()),
+        home: RepaintBoundary(key: goldenRootKey, child: const ArtistScreen()),
       ),
     );
-    final artistController = FakeArtistScreenController();
-    Get.put<ArtistScreenController>(artistController,
-        tag: null.hashCode.toString());
-    artistController.artist_ = artists[0];
-    artistController.isArtistContentFetced.value = true;
-    Get.to(() => const ArtistScreen(), arguments: [false, artists[0]]);
     await tester.pump(const Duration(milliseconds: 600));
-    await expectGoldenView(tester, 'screen_artist');
+    await expectGolden(tester, 'screen_artist');
     await tester.pump(const Duration(seconds: 1));
   });
 
@@ -335,12 +332,11 @@ void main() {
         theme: goldenTheme(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(body: SizedBox()),
+        home: RepaintBoundary(key: goldenRootKey, child: const SearchResultScreen()),
       ),
     );
-    Get.to(() => const SearchResultScreen(), arguments: 'golden');
     await tester.pump(const Duration(milliseconds: 600));
-    await expectGoldenView(tester, 'screen_search_result');
+    await expectGolden(tester, 'screen_search_result');
     await tester.pump(const Duration(seconds: 1));
   });
 

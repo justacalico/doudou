@@ -121,7 +121,8 @@ class FakePlaylistScreenController extends PlaylistScreenController {
   // ignore: must_call_super
   void onInit() {
     _anim = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 400))..forward();
+        vsync: this, duration: const Duration(milliseconds: 400))
+      ..value = 1.0;
     _scaleAnim = Tween<double>(begin: 0, end: 1).animate(_anim);
     _heightAnim = Tween<double>(begin: 10, end: 75).animate(
         CurvedAnimation(parent: _anim, curve: Curves.easeOutBack));
@@ -144,7 +145,8 @@ class FakeAlbumScreenController extends AlbumScreenController {
   // ignore: must_call_super
   void onInit() {
     _anim = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 400))..forward();
+        vsync: this, duration: const Duration(milliseconds: 400))
+      ..value = 1.0;
     _scaleAnim = Tween<double>(begin: 0, end: 1).animate(_anim);
     _heightAnim = Tween<double>(begin: 10, end: 75).animate(
         CurvedAnimation(parent: _anim, curve: Curves.easeOutBack));
