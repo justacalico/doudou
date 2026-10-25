@@ -172,23 +172,25 @@ class ContentListItem extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 1),
-                  SizedBox(
-                    height: 20,
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: Text(
-                        _subtitle(context, isAlbum),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(
-                                color: context.doudouColors.textSecondary),
+                  if (_subtitle(context, isAlbum).isNotEmpty) ...[
+                    const SizedBox(height: 1),
+                    SizedBox(
+                      height: 20,
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text(
+                          _subtitle(context, isAlbum),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                  color: context.doudouColors.textSecondary),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),

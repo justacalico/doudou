@@ -231,65 +231,66 @@ Widget buildTrackRowSection({
                     }
                   },
                   child: InkWell(
-                  borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
-                  onTap: () {
-                    playerController.playHomeSectionSong(
-                      items,
-                      index,
-                      playfrom: PlayingFrom(
-                        name: playLabel,
-                        type: PlayingFromType.selection,
+                    borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
+                    onTap: () {
+                      playerController.playHomeSectionSong(
+                        items,
+                        index,
+                        playfrom: PlayingFrom(
+                          name: playLabel,
+                          type: PlayingFromType.selection,
+                        ),
+                      );
+                    },
+                    onLongPress: () => _showSongOptions(context, track),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.transparent),
+                        borderRadius:
+                            BorderRadius.circular(kDoudouRadiusIconBox),
                       ),
-                    );
-                  },
-                  onLongPress: () => _showSongOptions(context, track),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.transparent),
-                      borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
-                    ),
-                    child: SizedBox(
-                      width: 280,
-                      child: Row(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: ImageWidget(
-                              song: track,
-                              size: 56,
+                      child: SizedBox(
+                        width: 280,
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: ImageWidget(
+                                song: track,
+                                size: 56,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  track.title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "${track.artist ?? context.l10n.unknownArtist} • ${track.album ?? context.l10n.unknownAlbum}",
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.bodySmall
-                                      ?.copyWith(color: colors.textTertiary),
-                                ),
-                              ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    track.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "${track.artist ?? context.l10n.unknownArtist} • ${track.album ?? context.l10n.unknownAlbum}",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodySmall
+                                        ?.copyWith(color: colors.textTertiary),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
                 ),
               ),
             );
@@ -657,64 +658,69 @@ Widget buildFreshPicksSection({
                     }
                   },
                   child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    final index = items.indexOf(track);
-                    if (index >= 0) {
-                      playerController.playHomeSectionSong(
-                        items,
-                        index,
-                        playfrom: PlayingFrom(
-                          name: context.l10n.homeFreshPicks,
-                          type: PlayingFromType.selection,
-                        ),
-                      );
-                    }
-                  },
-                  onLongPress: () => _showSongOptions(context, track),
-                  child: Row(
-                    children: [
-                      ImageWidget(
-                        song: track,
-                        size: 56,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              track.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleSmall
-                                  ?.copyWith(fontWeight: FontWeight.w600),
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      final index = items.indexOf(track);
+                      if (index >= 0) {
+                        playerController.playHomeSectionSong(
+                          items,
+                          index,
+                          playfrom: PlayingFrom(
+                            name: context.l10n.homeFreshPicks,
+                            type: PlayingFromType.selection,
+                          ),
+                        );
+                      }
+                    },
+                    onLongPress: () => _showSongOptions(context, track),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Row(
+                        children: [
+                          ImageWidget(
+                            song: track,
+                            size: 56,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  track.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "${track.artist ?? context.l10n.unknownArtist} • ${track.album ?? context.l10n.unknownAlbum}",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colors.textSecondary,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 4),
+                          ),
+                          if (track.duration != null) ...[
+                            const SizedBox(width: 8),
                             Text(
-                              "${track.artist ?? context.l10n.unknownArtist} • ${track.album ?? context.l10n.unknownAlbum}",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              _formatDuration(track.duration!),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: colors.textSecondary,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures()
+                                ],
                               ),
                             ),
                           ],
-                        ),
+                        ],
                       ),
-                      if (track.duration != null) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          _formatDuration(track.duration!),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colors.textSecondary,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
-                ),
                 ),
               ),
             )
