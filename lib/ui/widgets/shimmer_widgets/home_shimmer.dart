@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../design/doudou_colors.dart';
 
 import 'basic_container.dart';
 
@@ -8,9 +9,10 @@ class HomeShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.doudouColors;
     return Shimmer.fromColors(
-        baseColor: Colors.grey[500]!,
-        highlightColor: Colors.grey[300]!,
+        baseColor: c.surfaceElevated,
+        highlightColor: c.stateHover,
         enabled: true,
         direction: ShimmerDirection.ltr,
         child: Column(

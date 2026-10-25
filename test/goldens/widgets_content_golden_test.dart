@@ -154,7 +154,7 @@ void main() {
       tester,
       Column(
         children: [
-          ListWidget(songs, 'Top songs', true),
+          ListWidget(songs, 'Songs', true),
         ],
       ),
       size: const Size(700, 500),

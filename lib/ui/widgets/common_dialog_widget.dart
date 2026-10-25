@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:doudou/ui/constants/doudou_design.dart';
+
+import '../design/doudou_colors.dart';
 
 class CommonDialog extends StatelessWidget {
   const CommonDialog({super.key, this.child, this.maxWidth = 500});
@@ -14,6 +15,8 @@ class CommonDialog extends StatelessWidget {
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: Dialog(
           backgroundColor: Colors.transparent,
+          elevation: 0,
+          shadowColor: Colors.transparent,
           insetPadding: const EdgeInsets.all(20),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(24),
@@ -21,10 +24,11 @@ class CommonDialog extends StatelessWidget {
               filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
               child: Container(
                 decoration: BoxDecoration(
-                  color: kDoudouSurface,
+                  color: context.doudouColors.surfaceModal
+                      .withValues(alpha: 0.92),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: kDoudouBorder,
+                    color: context.doudouColors.borderSubtle,
                     width: 1,
                   ),
                   boxShadow: [
@@ -35,7 +39,10 @@ class CommonDialog extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: child,
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             ),
           ),

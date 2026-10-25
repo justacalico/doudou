@@ -13,15 +13,10 @@ class _ExpandedNowPlaying extends StatelessWidget {
     final isInSlidingPanel = _isInSlidingPanel(context);
     final pc = Get.find<PlayerController>();
     final theme = Theme.of(context);
-    final textColor = theme.brightness == Brightness.dark
-        ? Colors.white
-        : (Colors.grey[900] ?? const Color(0xFF212121));
-    final mutedColor = theme.brightness == Brightness.dark
-        ? Colors.white.withValues(alpha: 0.6)
-        : (Colors.grey[600] ?? const Color(0xFF757575));
-    final surfaceColor = theme.brightness == Brightness.dark
-        ? Colors.white.withValues(alpha: 0.08)
-        : Colors.black.withValues(alpha: 0.06);
+    final doudou = context.doudouColors;
+    final textColor = doudou.textPrimary;
+    final mutedColor = doudou.textSecondary;
+    final surfaceColor = doudou.surfaceElevated;
 
     return Stack(
       children: [
@@ -131,6 +126,7 @@ class _ExpandedNowPlaying extends StatelessWidget {
                                 bottom: metrics.sidePanelMargin,
                               ),
                               child: _buildRightPanelCard(
+                                  borderColor: doudou.borderSubtle,
                                 theme: theme,
                                 surfaceColor: surfaceColor,
                                 pc: pc,
@@ -155,16 +151,13 @@ class _ExpandedNowPlaying extends StatelessWidget {
     required PlayerController pc,
     required Color textColor,
     required Color mutedColor,
+    required Color borderColor,
   }) {
     return Container(
       decoration: BoxDecoration(
         color: surfaceColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.brightness == Brightness.dark
-              ? Colors.white.withValues(alpha: 0.12)
-              : Colors.black.withValues(alpha: 0.08),
-        ),
+        border: Border.all(color: borderColor),
       ),
       child: _RightPanel(pc: pc, textColor: textColor, mutedColor: mutedColor),
     );

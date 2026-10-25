@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../design/doudou_colors.dart';
 import '/l10n/app_localizations.dart';
 import 'package:get/get.dart';
 
@@ -94,10 +96,13 @@ class LinkPiped extends StatelessWidget {
                               child: Text(
                             pipedLinkedController.errorText.value,
                             textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.error),
                           )))),
                   Container(
                       decoration: BoxDecoration(
-                          color: Theme.of(context).textTheme.titleLarge!.color,
+                          color: context.doudouColors.accentPrimary,
                           borderRadius: BorderRadius.circular(10)),
                       child: InkWell(
                         onTap: pipedLinkedController.link,
@@ -107,7 +112,7 @@ class LinkPiped extends StatelessWidget {
                           child: Text(
                             AppLocalizations.of(Get.context!)!.link,
                             style:
-                                TextStyle(color: Theme.of(context).canvasColor),
+                                TextStyle(color: context.doudouColors.onAccent),
                           ),
                         ),
                       )),

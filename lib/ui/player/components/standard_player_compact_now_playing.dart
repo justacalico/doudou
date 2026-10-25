@@ -23,7 +23,7 @@ class _CompactNowPlaying extends StatelessWidget {
         !isWideScreen && size.width > size.height && size.height < 560;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF000000),
+      backgroundColor: context.doudouColors.playerBackdropLow,
       body: Stack(
         children: [
           Obx(() {
@@ -181,8 +181,9 @@ class _CompactNowPlaying extends StatelessWidget {
                                             borderRadius:
                                                 BorderRadius.circular(24),
                                             border: Border.all(
-                                              color: white,
-                                              width: 3,
+                                              color: white.withValues(
+                                                  alpha: 0.25),
+                                              width: 0.5,
                                             ),
                                             boxShadow: [
                                               BoxShadow(
@@ -332,61 +333,28 @@ class _CompactNowPlaying extends StatelessWidget {
               ),
             ),
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GestureDetector(
-                onTap: () => _openQueue(pc),
-                child: ClipRRect(
+          GestureDetector(
+            onTap: () => _openQueue(pc),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(borderRadius),
+              child: Container(
+                width: buttonSize,
+                height: buttonSize,
+                decoration: BoxDecoration(
+                  color: white.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(borderRadius),
-                  child: Container(
-                    width: buttonSize,
-                    height: buttonSize,
-                    margin: EdgeInsets.only(right: trailingGap),
-                    decoration: BoxDecoration(
-                      color: white.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(borderRadius),
-                      border: Border.all(
-                        color: white.withValues(alpha: 0.18),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.queue_music_rounded,
-                      color: white,
-                      size: iconSize,
-                    ),
+                  border: Border.all(
+                    color: white.withValues(alpha: 0.18),
+                    width: 0.5,
                   ),
                 ),
+                child: Icon(
+                  Icons.queue_music_rounded,
+                  color: white,
+                  size: iconSize,
+                ),
               ),
-              Obx(() => GestureDetector(
-                    onTap: pc.toggleFavourite,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(borderRadius),
-                      child: Container(
-                        width: buttonSize,
-                        height: buttonSize,
-                        decoration: BoxDecoration(
-                          color: white.withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(borderRadius),
-                          border: Border.all(
-                            color: white.withValues(alpha: 0.18),
-                            width: 0.5,
-                          ),
-                        ),
-                        child: Icon(
-                          pc.isCurrentSongFav.isTrue
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                          color: pc.isCurrentSongFav.isTrue
-                              ? const Color(0xFFEC4899)
-                              : white,
-                          size: iconSize,
-                        ),
-                      ),
-                    ),
-                  )),
-            ],
+            ),
           ),
         ],
       ),

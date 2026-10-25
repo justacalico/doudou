@@ -142,19 +142,7 @@ class _SidebarContent extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: minimized ? 20 : 28),
-                    if (!minimized)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          context.l10n.library,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: c.textSecondary,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ),
+                    if (!minimized) const SizedBox(height: 8),
                     SizedBox(height: minimized ? 8 : 12),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: minimized ? 8 : 12),
@@ -370,7 +358,6 @@ class _SidebarTileState extends State<_SidebarTile> {
       borderRadius: 8,
       autofocus: widget.autofocus,
       onSelect: () {
-        debugPrint('[SidebarTile:${widget.label}] onSelect called');
         widget.onTap();
       },
       debugLabel: widget.label,

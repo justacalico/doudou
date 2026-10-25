@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../design/doudou_colors.dart';
 import '../shell_controller.dart';
 
 enum SnackBarSize { BIG, MEDIUM, SMALL }
@@ -12,20 +13,18 @@ SnackBar snackbar(BuildContext context, String text,
     Duration duration = const Duration(seconds: 1),
     bool top = false}) {
   final scrWidth = MediaQuery.of(context).size.width;
-  final hrMargin = size == SnackBarSize.BIG
-      ? (scrWidth - 300) / 2
+  final barWidth = size == SnackBarSize.BIG
+      ? 300.0
       : size == SnackBarSize.MEDIUM
-          ? (scrWidth - 200) / 2
-          : (scrWidth - 100) / 2;
+          ? 220.0
+          : 120.0;
+  final hrMargin = ((scrWidth - barWidth) / 2).clamp(16.0, scrWidth);
   return SnackBar(
-    backgroundColor: Theme.of(context).colorScheme.secondary,
+    backgroundColor: context.doudouColors.surfaceModal,
     content: Center(
       child: Text(
         text,
-        style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black),
+        style: TextStyle(color: context.doudouColors.textPrimary),
       ),
     ),
     margin: EdgeInsets.only(
@@ -34,7 +33,7 @@ SnackBar snackbar(BuildContext context, String text,
         right: hrMargin),
     behavior: SnackBarBehavior.floating,
     duration: duration,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: context.doudouColors.borderSubtle)),
   );
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../design/doudou_colors.dart';
 
 class LibraryBookmarkIcon extends StatelessWidget {
   const LibraryBookmarkIcon({
@@ -22,7 +23,7 @@ class LibraryBookmarkIcon extends StatelessWidget {
           ? theme.colorScheme.primary
           : (unbookmarkedColor ??
               theme.iconTheme.color ??
-              theme.colorScheme.onSurfaceVariant),
+              context.doudouColors.textSecondary),
     );
   }
 }

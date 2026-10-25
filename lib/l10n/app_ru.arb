@@ -96,7 +96,7 @@
   "@loop": {},
   "next": "Далее",
   "@next": {},
-  "noAlbumsInLibrary": "В библиотеке нет альбомов",
+  "noAlbumsInLibrary": "В вашей библиотеке нет альбомов",
   "@noAlbumsInLibrary": {},
   "noCategoryItems": "Нет: {category}",
   "@noCategoryItems": {
@@ -217,6 +217,15 @@
   "libArtists": "Библиотека исполнителей",
   "@libArtists": {},
   "items": "объекты",
+  "itemsCount": "{count, plural, one{{count} объект} few{{count} объекта} many{{count} объектов} other{{count} объекта}}",
+  "@itemsCount": {
+    "description": "Item count label in library toolbars",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "@items": {},
   "networkError1": "Упс, ошибка сети!",
   "@networkError1": {},
@@ -921,7 +930,7 @@
   "@manage": {},
   "noServersConfigured": "Серверы ещё не настроены",
   "@noServersConfigured": {},
-  "noSongsInLibrary": "В библиотеке нет песен",
+  "noSongsInLibrary": "В вашей библиотеке нет треков",
   "@noSongsInLibrary": {},
   "oled": "OLED",
   "@oled": {},
@@ -1144,5 +1153,27 @@
   "mcpServerInvalidPort": "Введите порт от 1024 до 65535",
   "@mcpServerInvalidPort": {},
   "mcpServerCopyAddress": "Скопировать адрес",
-  "@mcpServerCopyAddress": {}
+  "@mcpServerCopyAddress": {},
+  "settingsServersDes": "Управление медиасерверами",
+  "@settingsServersDes": {},
+  "settingsContentDes": "Лента и рекомендации",
+  "@settingsContentDes": {},
+  "settingsPlaybackDes": "Воспроизведение, кэш и звук",
+  "@settingsPlaybackDes": {},
+  "settingsMiscDes": "Discord, диагностика и другое",
+  "@settingsMiscDes": {},
+  "settingsPersonalisationDes": "Тема, акцент и расположение",
+  "@settingsPersonalisationDes": {},
+  "settingsDownloadDes": "Папка и формат загрузок",
+  "@settingsDownloadDes": {},
+  "settingsAppInfoDes": "Версия и лицензии",
+  "@settingsAppInfoDes": {},
+  "searchHistoryEmpty": "Здесь появятся ваши запросы",
+  "@searchHistoryEmpty": {},
+  "connectServerHint": "Подключите музыкальный сервер, чтобы начать",
+  "@connectServerHint": {},
+  "noArtistsInLibrary": "В вашей библиотеке нет исполнителей",
+  "@noArtistsInLibrary": {},
+  "noPlaylistsInLibrary": "В вашей библиотеке нет плейлистов",
+  "@noPlaylistsInLibrary": {}
 }

@@ -22,7 +22,7 @@ class ModificationList extends StatelessWidget {
                   key: Key('$index'),
                   onTap: () {},
                   contentPadding:
-                      const EdgeInsets.only(top: 0, left: 5, right: 40),
+                      const EdgeInsets.only(top: 0, left: 16, right: 8),
                   leading: ImageWidget(
                     size: 55,
                     song: items[index],
@@ -32,9 +32,7 @@ class ModificationList extends StatelessWidget {
                     duration: const Duration(seconds: 5),
                     id: items[index].title.hashCode.toString(),
                     child: Text(
-                      items[index].title.length > 50
-                          ? items[index].title.substring(0, 50)
-                          : items[index].title,
+                      items[index].title,
                       maxLines: 1,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
@@ -42,7 +40,14 @@ class ModificationList extends StatelessWidget {
                   subtitle: Text(
                     "${items[index].artist}",
                     maxLines: 1,
-                    style: Theme.of(context).textTheme.titleSmall,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  trailing: ReorderableDragStartListener(
+                    index: index,
+                    child: Icon(
+                      Icons.drag_indicator,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
                   ),
                 ),
             itemCount: items.length,
@@ -67,7 +72,8 @@ class ModificationList extends StatelessWidget {
           itemBuilder: (context, index) => ListTile(
             onTap: () {
               screenController.additionalOperationTempMap[index] =
-                  !screenController.additionalOperationTempMap[index]!;
+                  !(screenController.additionalOperationTempMap[index] ??
+                      false);
               screenController.checkIfAllSelected();
             },
             contentPadding: const EdgeInsets.only(top: 0, left: 5, right: 30),
@@ -78,8 +84,9 @@ class ModificationList extends StatelessWidget {
                 children: [
                   Obx(
                     () => Checkbox(
-                      tristate: true,
-                      value: screenController.additionalOperationTempMap[index],
+                      value: screenController
+                              .additionalOperationTempMap[index] ??
+                          false,
                       onChanged: (val) {
                         screenController.additionalOperationTempMap[index] =
                             val!;

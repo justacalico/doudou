@@ -10,6 +10,7 @@ import '../screens/Search/search_result_screen_controller.dart';
 import 'list_widget.dart';
 import 'loader.dart';
 import 'sort_widget.dart';
+import '../design/doudou_colors.dart';
 
 class SeparateTabItemWidget extends StatelessWidget {
   const SeparateTabItemWidget(
@@ -47,7 +48,7 @@ class SeparateTabItemWidget extends StatelessWidget {
       builder: (context, constraints) {
         final hasUnboundedHeight = constraints.maxHeight == double.infinity;
         return Padding(
-          padding: EdgeInsets.only(top: topPadding, left: 5),
+          padding: EdgeInsets.only(top: topPadding, left: 16),
           child: Column(
             mainAxisSize:
                 hasUnboundedHeight ? MainAxisSize.min : MainAxisSize.max,
@@ -60,7 +61,7 @@ class SeparateTabItemWidget extends StatelessWidget {
                     children: [
                       Text(
                         category.localizedLabel(context),
-                        style: Theme.of(context).textTheme.titleLarge,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20),
                       ),
                       isCompleteList
                           ? const SizedBox.shrink()
@@ -68,10 +69,18 @@ class SeparateTabItemWidget extends StatelessWidget {
                               onPressed: () {
                                 searchResController!.viewAllCallback(title);
                               },
-                              child: Text(context.l10n.viewAll,
-                                  style: Theme.of(Get.context!)
-                                      .textTheme
-                                      .titleSmall))
+                              style: TextButton.styleFrom(
+                                foregroundColor:
+                                    context.doudouColors.accentPrimary,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8),
+                              ),
+                              child: Text(context.l10n.viewAll.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 1.2,
+                                  )))
                     ],
                   ),
                 ),
@@ -83,8 +92,8 @@ class SeparateTabItemWidget extends StatelessWidget {
                             artistController != null && category.isSongLike,
                         isSearchFeatureRequired: artistController != null,
                         titleLeftPadding: 9,
-                        itemCountTitle:
-                            "${isResultWidget ? (searchResController?.separatedResultContent[title] ?? []).length : (artistController?.sepataredContent[title] != null ? artistController?.sepataredContent[title]['results'] : []).length} ${context.l10n.items}",
+                        itemCountTitle: context.l10n.itemsCount(
+                            isResultWidget ? (searchResController?.separatedResultContent[title] ?? []).length : (artistController?.sepataredContent[title] != null ? artistController?.sepataredContent[title]['results'] : []).length),
                         requiredSortTypes: buildSortTypeSet(
                             category.isAlbumLike, category.isSongLike),
                         onSort: (type, ascending) {

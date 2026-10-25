@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '/utils/app_l10n.dart';
-import 'package:get/get.dart';
 
 import '../navigator.dart';
 import '/models/artist.dart';
 import '/ui/widgets/content_list_widget_item.dart';
 import '/ui/widgets/image_widget.dart';
+import '../design/doudou_colors.dart';
 
 class ContentListWidget extends StatelessWidget {
   const ContentListWidget(
@@ -40,19 +40,31 @@ class ContentListWidget extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                !isHomeContent && title.length > 12
-                    ? "${title.substring(0, 12)}..."
-                    : title,
-                style: Theme.of(context).textTheme.titleLarge,
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20),
+                ),
               ),
               (!isHomeContent && onViewAll != null)
                   ? TextButton(
                       onPressed: () {
                         onViewAll?.call(title);
                       },
-                      child: Text(context.l10n.viewAll,
-                          style: Theme.of(Get.context!).textTheme.titleSmall))
+                      style: TextButton.styleFrom(
+                        foregroundColor:
+                            context.doudouColors.accentPrimary,
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 8),
+                      ),
+                      child: Text(context.l10n.viewAll.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.2,
+                          )))
                   : const SizedBox.shrink()
             ],
           ),
@@ -61,7 +73,7 @@ class ContentListWidget extends StatelessWidget {
         SizedBox(
           height: 200,
           child: Scrollbar(
-            thickness: GetPlatform.isDesktop ? null : 0,
+            thickness: 3,
             controller: scrollController,
             child: ListView.separated(
                 key: PageStorageKey<String>('content-row-$title-$type'),
@@ -101,7 +113,7 @@ class ContentListWidget extends StatelessWidget {
                               artist.name,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.titleSmall,
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ],
                         ),

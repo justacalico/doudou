@@ -63,7 +63,7 @@ class DoudouTheme {
     final themedText = themedBase.copyWith(
       displayLarge: DoudouType.display.copyWith(color: colors.textPrimary),
       titleLarge: DoudouType.hero.copyWith(color: colors.textPrimary),
-      titleMedium: DoudouType.pageTitle.copyWith(color: colors.textPrimary),
+      titleMedium: DoudouType.title.copyWith(color: colors.textPrimary),
       titleSmall: DoudouType.bodyStrong.copyWith(color: colors.textPrimary),
       bodyLarge: DoudouType.body.copyWith(color: colors.textPrimary),
       bodyMedium: DoudouType.body.copyWith(color: colors.textPrimary),
@@ -81,8 +81,8 @@ class DoudouTheme {
       canvasColor: colors.appBackground,
       cardColor: colors.surfaceBase,
       dividerColor: colors.borderSubtle,
-      splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
+      splashColor: colors.stateHover,
+      highlightColor: colors.statePressed,
       hoverColor: colors.stateHover,
       textTheme: themedText,
       iconTheme: IconThemeData(color: colors.textSecondary),
@@ -128,15 +128,13 @@ class DoudouTheme {
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return Colors.white;
+            return colors.accentPrimary;
           }
           return colors.textDisabled;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return brightness == Brightness.dark
-                ? Colors.white.withValues(alpha: 0.25)
-                : Colors.black.withValues(alpha: 0.30);
+            return colors.accentMuted;
           }
           return colors.borderSubtle;
         }),
@@ -168,7 +166,7 @@ class DoudouTheme {
       textDisabled: const Color(0xFF5A5A64),
       accentPrimary: a,
       accentMuted: a.withValues(alpha: 0.45),
-      onAccent: const Color(0xFF0B0B0F),
+      onAccent: _onAccent(a),
       success: const Color(0xFF4ADE80),
       warning: const Color(0xFFFBBF24),
       error: const Color(0xFFFB7185),
@@ -199,7 +197,7 @@ class DoudouTheme {
       textDisabled: const Color(0xFF5A5A64),
       accentPrimary: a,
       accentMuted: a.withValues(alpha: 0.45),
-      onAccent: const Color(0xFF0B0B0F),
+      onAccent: _onAccent(a),
       success: const Color(0xFF4ADE80),
       warning: const Color(0xFFFBBF24),
       error: const Color(0xFFFB7185),
@@ -230,7 +228,7 @@ class DoudouTheme {
       textDisabled: const Color(0xFF9A9AA3),
       accentPrimary: a,
       accentMuted: a.withValues(alpha: 0.30),
-      onAccent: Colors.white,
+      onAccent: _onAccent(a),
       success: const Color(0xFF15803D),
       warning: const Color(0xFFB45309),
       error: const Color(0xFFBE123C),
@@ -246,6 +244,12 @@ class DoudouTheme {
     final sat = hsl.saturation.clamp(0.45, 0.85);
     final light = hsl.lightness.clamp(0.45, 0.70);
     return hsl.withSaturation(sat).withLightness(light).toColor();
+  }
+
+  static Color _onAccent(Color accent) {
+    return accent.computeLuminance() > 0.45
+        ? const Color(0xFF0B0B0F)
+        : Colors.white;
   }
 }
 

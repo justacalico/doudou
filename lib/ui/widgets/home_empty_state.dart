@@ -31,14 +31,18 @@ class HomeEmptyState extends StatelessWidget {
               borderRadius: BorderRadius.circular(kDoudouRadiusIconBox),
             ),
             child: Icon(
-              Icons.library_music_outlined,
+              hasServer
+                  ? Icons.library_music_outlined
+                  : Icons.dns_outlined,
               size: 36,
               color: onSurface.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 16),
           Text(
-            context.l10n.addMusicToLibraryHint,
+            hasServer
+                ? context.l10n.addMusicToLibraryHint
+                : context.l10n.connectServerHint,
             textAlign: TextAlign.center,
             style: theme.textTheme.titleMedium?.copyWith(color: onSurface),
           ),

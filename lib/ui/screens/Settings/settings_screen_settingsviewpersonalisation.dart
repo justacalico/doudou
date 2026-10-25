@@ -12,6 +12,8 @@ mixin _SettingsViewPersonalisationMixin on __SettingsViewStateBase {
         title: context.l10n.themeMode,
         subtitle:
             Obx(() => Text(_themeModeLabel(context, settings.themeModetype.value))),
+        trailing: Icon(Icons.chevron_right,
+            color: context.doudouColors.textTertiary),
         onTap: () => showDialog(
           context: context,
           builder: (_) => const ThemeSelectorDialog(),

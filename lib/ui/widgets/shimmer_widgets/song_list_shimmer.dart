@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../design/doudou_colors.dart';
 
 import 'basic_container.dart';
 
@@ -10,9 +11,10 @@ class SongListShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.doudouColors;
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: c.surfaceElevated,
+      highlightColor: c.stateHover,
       child: ListView.builder(
           itemCount: itemCount,
           padding: EdgeInsets.only(top: topPadding, left: 0),

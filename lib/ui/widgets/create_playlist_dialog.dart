@@ -1,6 +1,8 @@
 import 'package:audio_service/audio_service.dart';
 import '/utils/app_l10n.dart';
 import 'package:flutter/material.dart';
+
+import '../design/doudou_colors.dart';
 import 'package:get/get.dart';
 import 'package:widget_marquee/widget_marquee.dart';
 
@@ -105,7 +107,7 @@ class CreateNRenamePlaylistPopup extends StatelessWidget {
                     ),
                     Container(
                       decoration: BoxDecoration(
-                          color: Theme.of(context).textTheme.titleLarge!.color,
+                          color: context.doudouColors.accentPrimary,
                           borderRadius: BorderRadius.circular(10)),
                       child: InkWell(
                         child: Padding(
@@ -118,7 +120,7 @@ class CreateNRenamePlaylistPopup extends StatelessWidget {
                                     ? context.l10n.rename
                                     : context.l10n.create,
                             style:
-                                TextStyle(color: Theme.of(context).canvasColor),
+                                TextStyle(color: context.doudouColors.onAccent),
                           ),
                         ),
                         onTap: () async {

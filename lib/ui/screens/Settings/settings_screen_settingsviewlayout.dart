@@ -6,7 +6,9 @@ mixin _SettingsViewLayoutMixin on __SettingsViewStateBase {
     return switch (key) {
       'accounts' => l10n.accounts,
       'user' => l10n.user,
+      'library' => l10n.library.toUpperCase(),
       'appearance' => l10n.appearance,
+      'about' => l10n.about.toUpperCase(),
       _ => key,
     };
   }

@@ -45,7 +45,8 @@ void main() {
             // Controllers read AppLocalizations via Get.context on init, so
             // they can only be registered once the app is pumped.
             if (!Get.isRegistered<LibrarySongsController>()) {
-              Get.put(LibrarySongsController());
+              final songsController = Get.put(LibrarySongsController());
+              songsController.isSongFetched.value = true;
               Get.put(LibraryAlbumsController());
               Get.put(LibraryArtistsController());
               Get.put(LibraryPlaylistsController());

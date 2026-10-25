@@ -22,12 +22,12 @@ mixin __SettingsViewStateBase on State<_SettingsView> {
   static const _mobileClusters = <(_SettingsSectionId, String, String)>[
     (_SettingsSectionId.servers, 'ACCOUNTS', 'accounts'),
     (_SettingsSectionId.backup, 'ACCOUNTS', 'accounts'),
-    (_SettingsSectionId.content, 'USER', 'user'),
+    (_SettingsSectionId.content, 'LIBRARY', 'library'),
+    (_SettingsSectionId.download, 'LIBRARY', 'library'),
     (_SettingsSectionId.playback, 'USER', 'user'),
     (_SettingsSectionId.misc, 'USER', 'user'),
     (_SettingsSectionId.personalisation, 'APPEARANCE', 'appearance'),
-    (_SettingsSectionId.download, 'APPEARANCE', 'appearance'),
-    (_SettingsSectionId.info, 'APPEARANCE', 'appearance'),
+    (_SettingsSectionId.info, 'ABOUT', 'about'),
   ];
 
   late final _groupedClusters = _buildGroupedClusters();

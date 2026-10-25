@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '/ui/design/doudou_colors.dart';
+
 import '/ui/widgets/modified_text_field.dart';
 import '../search_result_screen_controller.dart';
 import 'search_clear_button.dart';
@@ -20,12 +22,12 @@ class SearchQueryBar extends StatelessWidget {
       height: 42,
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.black.withValues(alpha: 0.35)
+            ? context.doudouColors.surfaceElevated
             : theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
+              ? context.doudouColors.borderStrong
               : theme.dividerColor,
         ),
       ),
@@ -35,7 +37,7 @@ class SearchQueryBar extends StatelessWidget {
           Icon(
             Icons.search,
             size: 20,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -44,8 +46,8 @@ class SearchQueryBar extends StatelessWidget {
               textCapitalization: TextCapitalization.sentences,
               textInputAction: TextInputAction.search,
               onSubmitted: _onSubmitted,
-              style: theme.textTheme.titleMedium,
-              cursorColor: theme.textTheme.bodySmall!.color,
+              style: theme.textTheme.bodyLarge,
+              cursorColor: context.doudouColors.accentPrimary,
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,

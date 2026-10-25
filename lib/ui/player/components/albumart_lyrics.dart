@@ -70,6 +70,7 @@ class AlbumArtNLyrics extends StatelessWidget {
                         child: Stack(
                           children: [
                             LyricsWidget(
+                                onDarkSurface: true,
                                 padding: EdgeInsets.symmetric(
                                     horizontal: 0,
                                     vertical: playerArtImageSize / 3.5)),

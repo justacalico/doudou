@@ -73,6 +73,12 @@ class DoudouType {
     height: 1.15,
   );
 
+  static final TextStyle title = _base(
+    size: 16,
+    weight: FontWeight.w600,
+    height: 1.25,
+  );
+
   static final TextStyle sectionTitle = _base(
     size: 15,
     weight: FontWeight.w600,

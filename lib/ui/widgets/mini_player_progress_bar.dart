@@ -12,7 +12,7 @@ class MiniPlayerProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: Size(MediaQuery.of(context).size.width, 2),
+      size: const Size(double.infinity, 4),
       painter: ProgressBarPainter(
           current: progressBarStatus.current,
           total: progressBarStatus.total,
@@ -22,7 +22,7 @@ class MiniPlayerProgressBar extends StatelessWidget {
 }
 
 class ProgressBarPainter extends CustomPainter {
-  ProgressBarPainter(
+  const ProgressBarPainter(
       {required this.current,
       required this.total,
       required this.progressBarColor});
@@ -31,21 +31,21 @@ class ProgressBarPainter extends CustomPainter {
   final Color progressBarColor;
   @override
   void paint(Canvas canvas, Size size) {
-    const p1 = Offset(0, 1.5);
-    final p2 = Offset(
-        total.inSeconds == 0
-            ? 0
-            : size.width * (current.inSeconds / total.inSeconds),
-        1.5);
     final paint = Paint()
       ..color = progressBarColor
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(p1, p2, paint);
+    final y = size.height / 2;
+    final end = total.inSeconds == 0
+        ? 0.0
+        : size.width * (current.inSeconds / total.inSeconds).clamp(0.0, 1.0);
+    canvas.drawLine(Offset(0, y), Offset(end, y), paint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
+  bool shouldRepaint(covariant ProgressBarPainter oldDelegate) {
+    return oldDelegate.current != current ||
+        oldDelegate.total != total ||
+        oldDelegate.progressBarColor != progressBarColor;
   }
 }

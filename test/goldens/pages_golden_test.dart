@@ -283,6 +283,7 @@ void main() {
         resultController.isResultContentFetched.value = true;
         resultController.queryString.value = 'golden';
         resultController.resultContent.value = {'Songs': songs};
+        resultController.railItems.value = ['Songs'];
         await pumpPage(tester, form, const SearchResultScreen());
         drainExceptions(tester);
         await expectGolden(tester, '$f/search_result_content');

@@ -46,7 +46,7 @@ class AddToPlaylist extends StatelessWidget {
                           id: "createNewPlaylistx",
                           delay: const Duration(milliseconds: 300),
                           child: Text(
-                            context.l10n.createNewPlaylist,
+                            context.l10n.addToPlaylist,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
@@ -54,6 +54,14 @@ class AddToPlaylist extends StatelessWidget {
                     ),
                     const SizedBox(
                       width: 10,
+                    ),
+                    InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Icon(Icons.close,
+                            color: context.doudouColors.textSecondary),
+                      ),
                     ),
                     InkWell(
                       child: Icon(Icons.playlist_add, color: context.doudouColors.textSecondary),

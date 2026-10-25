@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../design/doudou_colors.dart';
 
 class BasicShimmerContainer extends StatelessWidget {
   const BasicShimmerContainer(this.size, {super.key, this.radius = 10});
@@ -9,7 +10,7 @@ class BasicShimmerContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(radius), color: Colors.white54),
+          borderRadius: BorderRadius.circular(radius), color: context.doudouColors.surfaceElevated),
       height: size.height,
       width: size.width,
     );

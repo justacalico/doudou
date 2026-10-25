@@ -19,22 +19,30 @@ class NightlyBuildBadge extends StatelessWidget {
 
     final colors = context.doudouColors;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.nights_stay,
-          size: 14,
-          color: colors.warning,
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: DoudouType.meta.copyWith(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: colors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colors.warning.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.nights_stay,
+            size: 14,
             color: colors.warning,
           ),
-        ),
-      ],
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: DoudouType.meta.copyWith(
+              color: colors.warning,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

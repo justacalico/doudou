@@ -13,6 +13,7 @@ import 'package:doudou/ui/widgets/modified_text_field.dart';
 import 'package:doudou/ui/widgets/nightly_build_badge.dart';
 import 'package:doudou/ui/widgets/page_title.dart';
 import 'package:doudou/ui/widgets/scroll_to_hide.dart';
+import 'package:doudou/services/tv_service.dart';
 import 'package:doudou/ui/widgets/tv_focus_highlight.dart';
 import 'package:doudou/ui/widgets/window_controls.dart';
 import 'package:flutter/material.dart';
@@ -259,6 +260,7 @@ void main() {
   });
 
   testWidgets('tv focus highlight', (tester) async {
+    Get.find<TvService>().isTV.value = true;
     await pumpGolden(
       tester,
       Center(

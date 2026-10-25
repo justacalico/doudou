@@ -87,7 +87,8 @@ void main() {
 
       await tester.pumpWidget(buildSubject(controller: controller));
 
-      expect(find.text('Songs, Playlist, Album or Artist'), findsOneWidget);
+      expect(
+          find.text('Songs, playlists, albums or artists'), findsOneWidget);
     });
 
     testWidgets('wires onChanged and onSubmitted through', (tester) async {

@@ -75,13 +75,15 @@ class HomeQuickActionCards extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cardWidth = (constraints.maxWidth - 24) / cards.length;
+        final cardWidth =
+            ((constraints.maxWidth - 24) / cards.length).clamp(0.0, 420.0);
         final compact = cardWidth < 180;
         return Row(
           children: List.generate(cards.length * 2 - 1, (index) {
             if (index.isEven) {
               final card = cards[index ~/ 2];
-              return Expanded(
+              return SizedBox(
+                width: cardWidth,
                 child: _HomeQuickActionCard(
                   icon: card.icon,
                   label: card.label,
@@ -131,7 +133,7 @@ class _HomeQuickActionCard extends StatelessWidget {
               ? const EdgeInsets.symmetric(horizontal: 10, vertical: 12)
               : const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: kDoudouSurface,
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(kDoudouRadiusCard),
             border: Border.all(color: theme.dividerColor, width: 1),
           ),

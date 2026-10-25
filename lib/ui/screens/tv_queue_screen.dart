@@ -307,9 +307,18 @@ class TvQueueScreen extends StatelessWidget {
                     debugLabel: 'TVQueueBack',
                     autofocus: true,
                     onSelect: () => Navigator.of(context).pop(),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 12),
+                    child: Container(
+                                                        padding: const EdgeInsets.symmetric(
+                                      horizontal: 32, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.15),
+                                    ),
+                                  ),
                       child: Text(
                         context.l10n.back,
                         style: theme.textTheme.titleMedium,

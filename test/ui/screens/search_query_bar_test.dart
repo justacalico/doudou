@@ -80,7 +80,7 @@ void main() {
       expect(controller.submitted, ['green rabbit']);
     });
 
-    testWidgets('renders the query with the titleMedium text style',
+    testWidgets('renders the query with the bodyLarge text style',
         (tester) async {
       controller.queryEditingController.text = 'white rabbit';
 
@@ -89,7 +89,7 @@ void main() {
       final context = tester.element(find.byType(TextField));
       final field = tester.widget<TextField>(find.byType(TextField));
       expect(field.style?.fontSize,
-          Theme.of(context).textTheme.titleMedium?.fontSize);
+          Theme.of(context).textTheme.bodyLarge?.fontSize);
     });
 
     testWidgets('clear button empties the query field', (tester) async {

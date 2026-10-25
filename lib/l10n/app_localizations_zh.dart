@@ -139,7 +139,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get next => '下一步';
 
   @override
-  String get noAlbumsInLibrary => '媒体库中没有专辑';
+  String get noAlbumsInLibrary => '曲库中暂无专辑';
 
   @override
   String noCategoryItems(String category) {
@@ -388,6 +388,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get items => '项目';
 
   @override
+  String itemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个项目',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get networkError1 => '哎呀，发生了网络错误！';
 
   @override
@@ -458,6 +468,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get addMusicToLibraryHint => '添加音乐到曲库即可在此查看';
+
+  @override
+  String get connectServerHint => '连接音乐服务器即可开始使用';
 
   @override
   String get shuffleAll => '全部随机播放';
@@ -590,7 +603,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get addToLibrary => '添加到曲库';
 
   @override
-  String get noSongsInLibrary => '曲库中无歌曲';
+  String get noSongsInLibrary => '曲库中暂无歌曲';
 
   @override
   String get favoritesEmpty => '收藏夹为空';
@@ -1635,4 +1648,34 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get mcpServerCopyAddress => '复制地址';
+
+  @override
+  String get settingsServersDes => '管理媒体服务器';
+
+  @override
+  String get settingsContentDes => '主页内容与推荐';
+
+  @override
+  String get settingsPlaybackDes => '播放、缓存与音频';
+
+  @override
+  String get settingsMiscDes => 'Discord、诊断等';
+
+  @override
+  String get settingsPersonalisationDes => '主题、强调色与布局';
+
+  @override
+  String get settingsDownloadDes => '下载位置与格式';
+
+  @override
+  String get settingsAppInfoDes => '版本与许可';
+
+  @override
+  String get searchHistoryEmpty => '最近的搜索将显示在这里';
+
+  @override
+  String get noArtistsInLibrary => '曲库中暂无艺人';
+
+  @override
+  String get noPlaylistsInLibrary => '曲库中暂无歌单';
 }

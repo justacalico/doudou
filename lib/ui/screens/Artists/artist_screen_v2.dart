@@ -17,73 +17,73 @@ class ArtistScreenBN extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = artistScreenController.tabController;
-    if (c == null) {
-      return Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            onPressed: () {
-              ScreenNavigationSetup.popContent();
-            },
-            icon: const Icon(Icons.arrow_back_ios_new),
-          ),
-        ),
-        body: const Center(child: LoadingIndicator()),
-      );
-    }
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 56,
         backgroundColor: Theme.of(context).canvasColor,
         leading: IconButton(
           onPressed: () {
-            Get.nestedKey(ScreenNavigationSetup.contentId)!.currentState!.pop();
+            if (Get.nestedKey(ScreenNavigationSetup.contentId)?.currentState !=
+                null) {
+              Get.nestedKey(ScreenNavigationSetup.contentId)!
+                  .currentState!
+                  .pop();
+            } else {
+              ScreenNavigationSetup.popContent();
+            }
           },
           icon: const Icon(Icons.arrow_back_ios_new),
         ),
         elevation: 0,
       ),
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          SliverToBoxAdapter(
-            child: ArtistHeader(controller: artistScreenController),
-          ),
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _TabBarDelegate(
-              tabController: c,
-              tabs: ContentCategoryMapper.artistTabs
-                  .map((category) => Tab(text: category.localizedLabel(context)))
-                  .toList(),
-              onTap: artistScreenController.onDestinationSelected,
+      body: DefaultTabController(
+        length: ContentCategoryMapper.artistTabs.length,
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: ArtistHeader(controller: artistScreenController),
             ),
-          ),
-        ],
-        body: Obx(
-          () => TabBarView(
-            controller: c,
-            children: artistScreenController.isArtistContentFetced.isFalse
-                ? List.generate(
-                    4,
-                    (_) => const Center(child: LoadingIndicator()),
-                  )
-                : [
-                    _TabContent(
-                        controller: artistScreenController,
-                        tag: tag,
-                        tabIndex: 0),
-                    _TabContent(
-                        controller: artistScreenController,
-                        tag: tag,
-                        tabIndex: 1),
-                    _TabContent(
-                        controller: artistScreenController,
-                        tag: tag,
-                        tabIndex: 2),
-                    _TabContent(
-                        controller: artistScreenController,
-                        tag: tag,
-                        tabIndex: 3),
-                  ],
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _TabBarDelegate(
+                tabController: c,
+                tabs: ContentCategoryMapper.artistTabs
+                    .map((category) =>
+                        Tab(text: category.localizedLabel(context)))
+                    .toList(),
+                onTap: artistScreenController.onDestinationSelected,
+              ),
+            ),
+          ],
+          body: Builder(
+            builder: (context) => Obx(
+              () => TabBarView(
+                controller: c ?? DefaultTabController.of(context),
+                children: artistScreenController.isArtistContentFetced.isFalse
+                    ? List.generate(
+                        4,
+                        (_) => const Center(child: LoadingIndicator()),
+                      )
+                    : [
+                        _TabContent(
+                            controller: artistScreenController,
+                            tag: tag,
+                            tabIndex: 0),
+                        _TabContent(
+                            controller: artistScreenController,
+                            tag: tag,
+                            tabIndex: 1),
+                        _TabContent(
+                            controller: artistScreenController,
+                            tag: tag,
+                            tabIndex: 2),
+                        _TabContent(
+                            controller: artistScreenController,
+                            tag: tag,
+                            tabIndex: 3),
+                      ],
+              ),
+            ),
           ),
         ),
       ),
@@ -142,7 +142,7 @@ class _TabContent extends StatelessWidget {
 }
 
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabController tabController;
+  final TabController? tabController;
   final List<Tab> tabs;
   final ValueChanged<int> onTap;
 
@@ -158,7 +158,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
     return Container(
       color: Theme.of(context).canvasColor,
       child: TabBar(
-        controller: tabController,
+        controller: tabController ?? DefaultTabController.of(context),
         onTap: onTap,
         splashFactory: NoSplash.splashFactory,
         isScrollable: true,

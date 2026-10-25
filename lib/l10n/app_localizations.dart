@@ -104,7 +104,7 @@ abstract class AppLocalizations {
   /// No description provided for @addFavoritesToStartRadio.
   ///
   /// In en_AU, this message translates to:
-  /// **'Add some favorites to start radio'**
+  /// **'Add some favourites to start radio'**
   String get addFavoritesToStartRadio;
 
   /// No description provided for @additionalProvidersUnlocked.
@@ -350,7 +350,7 @@ abstract class AppLocalizations {
   /// No description provided for @noAlbumsInLibrary.
   ///
   /// In en_AU, this message translates to:
-  /// **'No albums in library'**
+  /// **'No albums in your library'**
   String get noAlbumsInLibrary;
 
   /// No description provided for @noCategoryItems.
@@ -809,6 +809,12 @@ abstract class AppLocalizations {
   /// **'items'**
   String get items;
 
+  /// Item count label in library toolbars
+  ///
+  /// In en_AU, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String itemsCount(int count);
+
   /// No description provided for @networkError1.
   ///
   /// In en_AU, this message translates to:
@@ -953,6 +959,12 @@ abstract class AppLocalizations {
   /// **'Add music to your library to see it here, mate'**
   String get addMusicToLibraryHint;
 
+  /// No description provided for @connectServerHint.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Connect a music server to get started'**
+  String get connectServerHint;
+
   /// No description provided for @shuffleAll.
   ///
   /// In en_AU, this message translates to:
@@ -962,7 +974,7 @@ abstract class AppLocalizations {
   /// No description provided for @shuffleFavorites.
   ///
   /// In en_AU, this message translates to:
-  /// **'Shuffle favorites'**
+  /// **'Shuffle favourites'**
   String get shuffleFavorites;
 
   /// No description provided for @shuffleDownloads.
@@ -1214,7 +1226,7 @@ abstract class AppLocalizations {
   /// No description provided for @noSongsInLibrary.
   ///
   /// In en_AU, this message translates to:
-  /// **'No songs in library'**
+  /// **'No songs in your library'**
   String get noSongsInLibrary;
 
   /// No description provided for @favoritesEmpty.
@@ -1484,13 +1496,13 @@ abstract class AppLocalizations {
   /// No description provided for @autoDownFavSong.
   ///
   /// In en_AU, this message translates to:
-  /// **'Auto download favorite songs'**
+  /// **'Auto download favourite songs'**
   String get autoDownFavSong;
 
   /// No description provided for @autoDownFavSongDes.
   ///
   /// In en_AU, this message translates to:
-  /// **'Automatically download favorite songs when added to favorites'**
+  /// **'Automatically download favorite songs when added to favourites'**
   String get autoDownFavSongDes;
 
   /// No description provided for @networkError.
@@ -2276,7 +2288,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchDes.
   ///
   /// In en_AU, this message translates to:
-  /// **'Songs, Playlist, Album or Artist'**
+  /// **'Songs, playlists, albums or artists'**
   String get searchDes;
 
   /// No description provided for @searchRes.
@@ -2312,7 +2324,7 @@ abstract class AppLocalizations {
   /// No description provided for @nomatch.
   ///
   /// In en_AU, this message translates to:
-  /// **'No Match found for'**
+  /// **'No match found for'**
   String get nomatch;
 
   /// No description provided for @subscribers.
@@ -2450,7 +2462,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorOccuredAlert.
   ///
   /// In en_AU, this message translates to:
-  /// **'Some error occured!'**
+  /// **'Some error occurred!'**
   String get errorOccuredAlert;
 
   /// No description provided for @pipedplstSyncAlert.
@@ -3062,7 +3074,7 @@ abstract class AppLocalizations {
   /// No description provided for @shrinkSidebar.
   ///
   /// In en_AU, this message translates to:
-  /// **'shtink sidebar'**
+  /// **'Shrink sidebar'**
   String get shrinkSidebar;
 
   /// No description provided for @playlistTypeLabel.
@@ -3286,6 +3298,66 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'Copy address'**
   String get mcpServerCopyAddress;
+
+  /// No description provided for @settingsServersDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Manage media servers'**
+  String get settingsServersDes;
+
+  /// No description provided for @settingsContentDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Home feed and discovery'**
+  String get settingsContentDes;
+
+  /// No description provided for @settingsPlaybackDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Playback, cache and audio'**
+  String get settingsPlaybackDes;
+
+  /// No description provided for @settingsMiscDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Discord, diagnostics and more'**
+  String get settingsMiscDes;
+
+  /// No description provided for @settingsPersonalisationDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Theme, accent and layout'**
+  String get settingsPersonalisationDes;
+
+  /// No description provided for @settingsDownloadDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Download location and format'**
+  String get settingsDownloadDes;
+
+  /// No description provided for @settingsAppInfoDes.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Version and licences'**
+  String get settingsAppInfoDes;
+
+  /// No description provided for @searchHistoryEmpty.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Recent searches will appear here'**
+  String get searchHistoryEmpty;
+
+  /// No description provided for @noArtistsInLibrary.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No artists in your library'**
+  String get noArtistsInLibrary;
+
+  /// No description provided for @noPlaylistsInLibrary.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No playlists in your library'**
+  String get noPlaylistsInLibrary;
 }
 
 class _AppLocalizationsDelegate

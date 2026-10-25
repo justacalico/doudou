@@ -39,7 +39,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
   Widget build(BuildContext context) {
     final playerController = Get.find<PlayerController>();
     final theme = Theme.of(context);
-    
+
     return Listener(
         onPointerDown: (PointerDownEvent event) {
           if (event.buttons == kSecondaryMouseButton) {
@@ -60,8 +60,11 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
           }
         },
         child: Slidable(
-          enabled: Get.find<SettingsScreenController>().slidableActionEnabled.isTrue &&
-              !(Get.isRegistered<TvService>() && Get.find<TvService>().isTV.value),
+          enabled: Get.find<SettingsScreenController>()
+                  .slidableActionEnabled
+                  .isTrue &&
+              !(Get.isRegistered<TvService>() &&
+                  Get.find<TvService>().isTV.value),
           startActionPane: ActionPane(motion: const DrawerMotion(), children: [
             SlidableAction(
               onPressed: (context) {
@@ -80,7 +83,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                 onPressed: (context) {
                   removeSongFromPlaylist(song, playlist!);
                 },
-                backgroundColor: theme.colorScheme.secondary,
+                backgroundColor: theme.colorScheme.error,
                 foregroundColor: theme.textTheme.titleMedium!.color,
                 icon: Icons.delete,
                 //label: 'delete',
@@ -116,103 +119,123 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
             decoration: BoxDecoration(
-              color: isActive ? theme.colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent,
+              color: isActive
+                  ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(16),
-              border: isActive 
-                  ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2), width: 1)
+              border: isActive
+                  ? Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                      width: 1)
                   : null,
             ),
-            child: ListTile(
-              onTap: onTap,
-              onLongPress: () async {
-                showModalBottomSheet(
-                  constraints: const BoxConstraints(maxWidth: 500),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(10.0)),
-                  ),
-                  isScrollControlled: true,
-                  context: Get.find<ShellController>().overlayContextOrFallback!,
-                  barrierColor: Colors.transparent.withAlpha(100),
-                  builder: (context) => SongInfoBottomSheet(
-                    song,
-                    playlist: playlist,
-                  ),
-                ).whenComplete(() => Get.delete<SongInfoController>());
-              },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              leading: thumbReplacementWithIndex
-                  ? SizedBox(
-                      width: 24,
-                      child: Center(
-                        child: Text(
-                          "$index",
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                            color: isActive ? theme.colorScheme.primary : theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+            child: Material(
+              color: Colors.transparent,
+              child: ListTile(
+                onTap: onTap,
+                onLongPress: () async {
+                  showModalBottomSheet(
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(10.0)),
+                    ),
+                    isScrollControlled: true,
+                    context:
+                        Get.find<ShellController>().overlayContextOrFallback!,
+                    barrierColor: Colors.transparent.withAlpha(100),
+                    builder: (context) => SongInfoBottomSheet(
+                      song,
+                      playlist: playlist,
+                    ),
+                  ).whenComplete(() => Get.delete<SongInfoController>());
+                },
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                leading: thumbReplacementWithIndex
+                    ? SizedBox(
+                        width: 48,
+                        child: Center(
+                          child: Text(
+                            "$index",
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: isActive
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isActive
+                                  ? theme.colorScheme.primary
+                                  : theme.textTheme.bodySmall?.color
+                                      ?.withValues(alpha: 0.7),
+                              fontFeatures: const [
+                                FontFeature.tabularFigures()
+                              ],
+                            ),
                           ),
                         ),
+                      )
+                    : ImageWidget(
+                        size: 48,
+                        song: song,
                       ),
-                    )
-                  : ImageWidget(
-                      size: 48,
-                      song: song,
-                    ),
-              title: Text(
-                song.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                  fontSize: 14,
-                  color: isActive ? theme.colorScheme.primary : null,
-                ),
-              ),
-              subtitle: Text(
-                "${song.artist}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isActive)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Icon(Icons.equalizer, size: 16, color: theme.colorScheme.primary),
-                    ),
-                  Text(
-                    song.extras!['length'] ?? "",
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
-                      fontSize: 12,
-                    ),
+                title: Text(
+                  song.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                    fontSize: 14,
+                    color: isActive ? theme.colorScheme.primary : null,
                   ),
-                  if (GetPlatform.isDesktop)
-                    IconButton(
-                        splashRadius: 20,
-                        onPressed: () {
-                          showModalBottomSheet(
-                            constraints: const BoxConstraints(maxWidth: 500),
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(10.0)),
-                            ),
-                            isScrollControlled: true,
-                            context: Get.find<ShellController>()
-                                .overlayContextOrFallback!,
-                            barrierColor: Colors.transparent.withAlpha(100),
-                            builder: (context) => SongInfoBottomSheet(
-                              song,
-                              playlist: playlist,
-                            ),
-                          ).whenComplete(
-                              () => Get.delete<SongInfoController>());
-                        },
-                        icon: const Icon(Icons.more_vert, size: 20))
-                ],
+                ),
+                subtitle: Text(
+                  song.artist ?? context.l10n.unknownArtist,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isActive)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Icon(Icons.equalizer,
+                            size: 16, color: theme.colorScheme.primary),
+                      ),
+                    Text(
+                      song.extras!['length'] ?? "",
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (GetPlatform.isDesktop)
+                      IconButton(
+                          splashRadius: 20,
+                          onPressed: () {
+                            showModalBottomSheet(
+                              constraints: const BoxConstraints(maxWidth: 500),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(10.0)),
+                              ),
+                              isScrollControlled: true,
+                              context: Get.find<ShellController>()
+                                  .overlayContextOrFallback!,
+                              barrierColor: Colors.transparent.withAlpha(100),
+                              builder: (context) => SongInfoBottomSheet(
+                                song,
+                                playlist: playlist,
+                              ),
+                            ).whenComplete(
+                                () => Get.delete<SongInfoController>());
+                          },
+                          icon: const Icon(Icons.more_vert, size: 20))
+                  ],
+                ),
               ),
             ),
           ),

@@ -2,6 +2,8 @@ import 'dart:io';
 import '/utils/app_l10n.dart';
 
 import 'package:flutter/material.dart';
+
+import '../design/doudou_colors.dart';
 import 'package:get/get.dart';
 import 'package:doudou/ui/screens/Settings/settings_screen_controller.dart';
 import 'package:doudou/ui/widgets/loader.dart';
@@ -75,12 +77,16 @@ class ExportFileDialog extends StatelessWidget {
                 child: Align(
                   child: Container(
                     decoration: BoxDecoration(
-                        color: Theme.of(context).textTheme.titleLarge!.color,
+                        color: context.doudouColors.accentPrimary,
                         borderRadius: BorderRadius.circular(10)),
                     child: InkWell(
                       onTap: () {
-                        if (exportFileDialogController.exportProgress.toInt() ==
-                            exportFileDialogController.filesToExport.length) {
+                        if (exportFileDialogController
+                                .filesToExport.isEmpty ||
+                            exportFileDialogController.exportProgress
+                                    .toInt() ==
+                                exportFileDialogController
+                                    .filesToExport.length) {
                           Navigator.of(context).pop();
                         } else {
                           exportFileDialogController.export();
@@ -97,7 +103,7 @@ class ExportFileDialog extends StatelessWidget {
                                 ? context.l10n.close
                                 : context.l10n.export,
                             style:
-                                TextStyle(color: Theme.of(context).canvasColor),
+                                TextStyle(color: context.doudouColors.onAccent),
                           ),
                         ),
                       ),

@@ -187,9 +187,7 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
               album: albums[index],
               title: albums[index].title,
               subtitle: subtitle,
-              subtitle2: albums[index].artists.isEmpty
-                  ? "${albums[index].year}"
-                  : "${(albums[index].artists[0]['name'])} • ${albums[index].year}");
+              subtitle2: "${albums[index].year}");
         });
   }
 
@@ -225,11 +223,13 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
           maxLines: 1,
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        subtitle: Text(
-          artists[index].subscribers,
-          maxLines: 2,
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
+        subtitle: artists[index].subscribers.isEmpty
+            ? null
+            : Text(
+                "${artists[index].subscribers} ${context.l10n.subscribers}",
+                maxLines: 1,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
       ),
     );
   }
@@ -238,12 +238,10 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
     try {
       final artists = album.artists as List<dynamic>? ?? const [];
       if (artists.length <= 1) return "";
-      final joined = artists
-          .skip(1)
+      return artists
           .map((item) => item['name']?.toString() ?? '')
           .where((name) => name.isNotEmpty)
-          .join(',');
-      return joined.length > 16 ? joined.substring(0, 16) : joined;
+          .join(', ');
     } catch (e, st) {
       printWarning(
           '[RECOVERABLE][opId=listWidget.albums.composeArtistName] Failed to compose artist names for album=${album.title}: $e\n$st');
@@ -298,15 +296,20 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    Text(
-                      subtitle2,
-                      maxLines: 1,
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
+                    if (subtitle.isNotEmpty)
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    if (subtitle2.isNotEmpty)
+                      Text(
+                        subtitle2,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
                   ],
                 ),
               ))

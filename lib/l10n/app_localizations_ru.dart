@@ -149,7 +149,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get next => 'Далее';
 
   @override
-  String get noAlbumsInLibrary => 'В библиотеке нет альбомов';
+  String get noAlbumsInLibrary => 'В вашей библиотеке нет альбомов';
 
   @override
   String noCategoryItems(String category) {
@@ -402,6 +402,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get items => 'объекты';
 
   @override
+  String itemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count объекта',
+      many: '$count объектов',
+      few: '$count объекта',
+      one: '$count объект',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get networkError1 => 'Упс, ошибка сети!';
 
   @override
@@ -473,6 +486,9 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get addMusicToLibraryHint =>
       'Добавьте музыку в библиотеку, чтобы увидеть её здесь';
+
+  @override
+  String get connectServerHint => 'Подключите музыкальный сервер, чтобы начать';
 
   @override
   String get shuffleAll => 'Перемешать всё';
@@ -608,7 +624,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addToLibrary => 'Добавить в библиотеку';
 
   @override
-  String get noSongsInLibrary => 'В библиотеке нет песен';
+  String get noSongsInLibrary => 'В вашей библиотеке нет треков';
 
   @override
   String get favoritesEmpty => 'Избранное пусто';
@@ -1708,4 +1724,34 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get mcpServerCopyAddress => 'Скопировать адрес';
+
+  @override
+  String get settingsServersDes => 'Управление медиасерверами';
+
+  @override
+  String get settingsContentDes => 'Лента и рекомендации';
+
+  @override
+  String get settingsPlaybackDes => 'Воспроизведение, кэш и звук';
+
+  @override
+  String get settingsMiscDes => 'Discord, диагностика и другое';
+
+  @override
+  String get settingsPersonalisationDes => 'Тема, акцент и расположение';
+
+  @override
+  String get settingsDownloadDes => 'Папка и формат загрузок';
+
+  @override
+  String get settingsAppInfoDes => 'Версия и лицензии';
+
+  @override
+  String get searchHistoryEmpty => 'Здесь появятся ваши запросы';
+
+  @override
+  String get noArtistsInLibrary => 'В вашей библиотеке нет исполнителей';
+
+  @override
+  String get noPlaylistsInLibrary => 'В вашей библиотеке нет плейлистов';
 }

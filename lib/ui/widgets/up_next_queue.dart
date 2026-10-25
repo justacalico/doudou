@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:widget_marquee/widget_marquee.dart';
 
+import '../design/doudou_colors.dart';
 import '../shell_controller.dart';
 import 'image_widget.dart';
 import 'snackbar.dart';
@@ -17,10 +18,12 @@ class UpNextQueue extends StatefulWidget {
       this.onReorderEnd,
       this.onReorderStart,
       this.isQueueInSlidePanel = true,
+      this.showHeader = true,
       this.scrollController});
   final void Function(int)? onReorderStart;
   final void Function(int)? onReorderEnd;
   final bool isQueueInSlidePanel;
+  final bool showHeader;
   final ScrollController? scrollController;
 
   @override
@@ -95,6 +98,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.showHeader)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 4),
               child: Row(
@@ -130,7 +134,12 @@ class _UpNextQueueState extends State<UpNextQueue> {
                             .queuePanelController
                             .close();
                       } else {
-                        Navigator.of(context).pop();
+                        final scaffold = Scaffold.maybeOf(context);
+                        if (scaffold?.hasEndDrawer ?? false) {
+                          scaffold!.closeEndDrawer();
+                        } else {
+                          Navigator.of(context).maybePop();
+                        }
                       }
                     },
                     icon: const Icon(Icons.close_rounded),
@@ -138,6 +147,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                 ],
               ),
             ),
+            if (widget.showHeader)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -161,7 +171,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                           const Icon(Icons.shuffle_rounded, size: 18),
                           const SizedBox(width: 8),
                           Text(
-                            "SHUFFLED",
+                            context.l10n.shuffle,
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall
@@ -223,8 +233,6 @@ class _UpNextQueueState extends State<UpNextQueue> {
                     top: 8, bottom: widget.isQueueInSlidePanel ? 80 : 0),
                 physics: const AlwaysScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
-                  final homeScaffoldContext =
-                      Get.find<ShellController>().overlayContextOrFallback!;
                   final item = queue[index];
                   final isCurrent = index == currentIndex;
                   return Material(
@@ -275,40 +283,24 @@ class _UpNextQueueState extends State<UpNextQueue> {
                         },
                         contentPadding: EdgeInsets.only(
                           top: 0,
-                          left: GetPlatform.isAndroid ? 30 : 0,
+                          left: GetPlatform.isAndroid ? 30 : 16,
                           right: 25,
                         ),
                         tileColor: isCurrent
-                            ? Theme.of(homeScaffoldContext)
-                                .colorScheme
-                                .secondary
-                            : Theme.of(homeScaffoldContext)
+                            ? context.doudouColors.accentPrimary
+                                .withValues(alpha: 0.15)
+                            : Theme.of(context)
                                 .bottomSheetTheme
                                 .backgroundColor,
-                        leading: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (GetPlatform.isDesktop)
-                              IconButton(
-                                onPressed: () {
-                                  if (isCurrent) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      snackbar(
-                                        context,
-                                        context
-                                            .l10n.songRemovedfromQueueCurrSong,
-                                        size: SnackBarSize.BIG,
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  playerController.removeFromQueue(item);
-                                },
-                                icon: const Icon(Icons.close),
-                              ),
-                            ImageWidget(size: 50, song: item),
-                          ],
-                        ),
+                        shape: isCurrent
+                            ? RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                  color: context.doudouColors.accentMuted,
+                                ),
+                              )
+                            : null,
+                        leading: ImageWidget(size: 50, song: item),
                         title: isCurrent
                             ? Marquee(
                                 delay: const Duration(milliseconds: 300),
@@ -317,7 +309,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                                 child: Text(
                                   item.title,
                                   maxLines: 1,
-                                  style: Theme.of(homeScaffoldContext)
+                                  style: Theme.of(context)
                                       .textTheme
                                       .titleMedium,
                                 ),
@@ -326,7 +318,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                                 item.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(homeScaffoldContext)
+                                style: Theme.of(context)
                                     .textTheme
                                     .titleMedium,
                               ),
@@ -334,20 +326,14 @@ class _UpNextQueueState extends State<UpNextQueue> {
                           "${item.artist}",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: isCurrent
-                              ? Theme.of(homeScaffoldContext)
-                                  .textTheme
-                                  .titleSmall!
-                                  .copyWith(
-                                    color: Theme.of(homeScaffoldContext)
-                                        .textTheme
-                                        .titleMedium!
-                                        .color!
-                                        .withValues(alpha: 0.35),
-                                  )
-                              : Theme.of(homeScaffoldContext)
-                                  .textTheme
-                                  .titleSmall,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall!
+                              .copyWith(
+                                color: isCurrent
+                                    ? context.doudouColors.textSecondary
+                                    : null,
+                              ),
                         ),
                         trailing: ReorderableDragStartListener(
                           enabled: !GetPlatform.isDesktop,
@@ -369,10 +355,37 @@ class _UpNextQueueState extends State<UpNextQueue> {
                                       )
                                     : Text(
                                         item.extras?['length'] ?? "",
-                                        style: Theme.of(homeScaffoldContext)
+                                        style: Theme.of(context)
                                             .textTheme
                                             .titleSmall,
                                       ),
+                                if (GetPlatform.isDesktop)
+                                  InkWell(
+                                    onTap: () {
+                                      if (isCurrent) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          snackbar(
+                                            context,
+                                            context.l10n
+                                                .songRemovedfromQueueCurrSong,
+                                            size: SnackBarSize.BIG,
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      playerController.removeFromQueue(item);
+                                    },
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.color
+                                          ?.withValues(alpha: 0.5),
+                                    ),
+                                  ),
                               ],
                             ),
                           ),

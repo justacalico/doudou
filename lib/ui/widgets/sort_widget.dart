@@ -156,31 +156,33 @@ class SortWidget extends StatelessWidget {
           () => Stack(
             children: [
               if (controller.isSearchingEnabled.isFalse)
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: titleLeftPadding),
-                        child: Row(
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: titleLeftPadding),
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(itemCountTitle),
-                          if (itemIcon != null)
+                          Text(
+                            itemCountTitle,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          if (itemIcon != null) ...[
+                            const SizedBox(width: 4),
                             Icon(
-                              Icons.music_note,
+                              itemIcon,
                               size: 15,
                               color: Theme.of(context).colorScheme.secondary,
-                            )
+                            ),
+                          ]
                         ],
                       ),
                     ),
                     Obx(
                       () => _customIconButton(
-                        isSelected:
-                            controller.sortType.value == SortType.Name,
+                        isSelected: controller.sortType.value == SortType.Name,
                         icon: Icons.sort_by_alpha,
                         tooltip: context.l10n.sortByName,
                         onPressed: () {
@@ -216,8 +218,8 @@ class SortWidget extends StatelessWidget {
                     Obx(
                       () => _customIconButton(
                         icon: controller.isAscending.value
-                            ? Icons.arrow_downward
-                            : Icons.arrow_upward,
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward,
                         tooltip: context.l10n.sortAscendNDescend,
                         onPressed: () {
                           controller.onAscendNDescend(onSort);
@@ -254,12 +256,11 @@ class SortWidget extends StatelessWidget {
                                     screenController: screenController,
                                     controller: controller,
                                   ));
-                
+
                           controller.setActiveMode(mode);
                           startAdditionalOperation!(controller, mode);
                         },
-                        itemBuilder: (BuildContext context) =>
-                            <PopupMenuEntry>[
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry>[
                           if (isPlaylistRearrageFeatureRequired)
                             PopupMenuItem(
                               value: OperationMode.arrange,
@@ -280,7 +281,6 @@ class SortWidget extends StatelessWidget {
                       width: 15,
                     )
                   ],
-                ),
                 ),
               if (controller.isSearchingEnabled.value)
                 Container(
@@ -338,9 +338,9 @@ class SortWidget extends StatelessWidget {
     return IconButton(
       icon: Icon(icon),
       padding: const EdgeInsets.all(0),
-      color: isSelected == null || isSelected == true
-          ? Theme.of(Get.context!).textTheme.bodySmall!.color
-          : Theme.of(Get.context!).colorScheme.secondary,
+      color: isSelected == true
+          ? Theme.of(Get.context!).colorScheme.secondary
+          : Theme.of(Get.context!).textTheme.bodySmall!.color,
       iconSize: 20,
       splashRadius: 20,
       visualDensity: const VisualDensity(horizontal: -3, vertical: -3),
