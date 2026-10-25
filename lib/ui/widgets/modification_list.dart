@@ -32,9 +32,7 @@ class ModificationList extends StatelessWidget {
                     duration: const Duration(seconds: 5),
                     id: items[index].title.hashCode.toString(),
                     child: Text(
-                      items[index].title.length > 50
-                          ? items[index].title.substring(0, 50)
-                          : items[index].title,
+                      items[index].title,
                       maxLines: 1,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
@@ -42,7 +40,7 @@ class ModificationList extends StatelessWidget {
                   subtitle: Text(
                     "${items[index].artist}",
                     maxLines: 1,
-                    style: Theme.of(context).textTheme.titleSmall,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                   trailing: ReorderableDragStartListener(
                     index: index,

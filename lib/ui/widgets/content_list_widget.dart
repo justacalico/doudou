@@ -45,7 +45,7 @@ class ContentListWidget extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20),
                 ),
               ),
               (!isHomeContent && onViewAll != null)
@@ -63,7 +63,7 @@ class ContentListWidget extends StatelessWidget {
         SizedBox(
           height: 200,
           child: Scrollbar(
-            thickness: GetPlatform.isDesktop ? null : 0,
+            thickness: 3,
             controller: scrollController,
             child: ListView.separated(
                 key: PageStorageKey<String>('content-row-$title-$type'),

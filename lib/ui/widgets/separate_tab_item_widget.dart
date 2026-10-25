@@ -60,7 +60,7 @@ class SeparateTabItemWidget extends StatelessWidget {
                     children: [
                       Text(
                         category.localizedLabel(context),
-                        style: Theme.of(context).textTheme.titleLarge,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20),
                       ),
                       isCompleteList
                           ? const SizedBox.shrink()

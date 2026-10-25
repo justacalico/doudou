@@ -124,7 +124,7 @@ class _ImageWidgetState extends State<ImageWidget> {
           child: Icon(
             placeholderGlyph(),
             color: colors.textTertiary,
-            size: widget.size * 0.45,
+            size: widget.size * 0.35,
           ),
         ),
       );
@@ -148,7 +148,7 @@ class _ImageWidgetState extends State<ImageWidget> {
     final dpr = MediaQuery.devicePixelRatioOf(context);
     final cacheWidth = (widget.size * dpr)
         .round()
-        .clamp(64, widget.isPlayerArtImage ? 800 : 220);
+        .clamp(64, widget.isPlayerArtImage ? 800 : 512);
     final cacheKey = song != null
         ? "${song.id}_song"
         : playlist != null

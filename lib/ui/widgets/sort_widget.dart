@@ -221,8 +221,8 @@ class SortWidget extends StatelessWidget {
                     Obx(
                       () => _customIconButton(
                         icon: controller.isAscending.value
-                            ? Icons.arrow_downward
-                            : Icons.arrow_upward,
+                            ? Icons.swap_vert
+                            : Icons.swap_vert,
                         tooltip: context.l10n.sortAscendNDescend,
                         onPressed: () {
                           controller.onAscendNDescend(onSort);
