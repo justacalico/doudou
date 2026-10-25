@@ -605,6 +605,10 @@ class _BodyState extends State<Body> {
                               child: Center(child: LoadingIndicator()),
                             ),
                           );
+                        } else if (homeScreenController
+                            .networkError.value) {
+                          content.add(_buildHomeFeedErrorCard(
+                              context, homeScreenController));
                         } else if (!hasAnySectionContent) {
                           content.add(
                             Padding(

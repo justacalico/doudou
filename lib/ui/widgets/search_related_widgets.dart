@@ -10,6 +10,7 @@ import '/models/album.dart';
 import '/models/artist.dart';
 import '/models/media_item_builder.dart';
 import '/ui/widgets/content_list_widget.dart';
+import 'loader.dart';
 import 'separate_tab_item_widget.dart';
 
 class ResultWidget extends StatelessWidget {
@@ -55,7 +56,10 @@ class ResultWidget extends StatelessWidget {
                     ),
                     ...generateWidgetList(searchResScrController),
                   ])
-                : const SizedBox.shrink(),
+                : const Center(child: Padding(
+                    padding: EdgeInsets.all(40),
+                    child: LoadingIndicator(),
+                  )),
           ),
         ),
       ),

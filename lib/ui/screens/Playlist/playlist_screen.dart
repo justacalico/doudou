@@ -352,6 +352,13 @@ class PlaylistScreen extends StatelessWidget {
                 ? CachedNetworkImage(
                     imageUrl: Thumbnail(effectiveUrl).extraHigh,
                     fit: BoxFit.cover,
+                    errorWidget: (context, url, error) => Container(
+                      color: theme.colorScheme.secondary,
+                      child: Center(
+                        child: Image.asset("assets/icons/album.png",
+                            width: 120, height: 120),
+                      ),
+                    ),
                   )
                 : Container(
                     color: theme.colorScheme.secondary,

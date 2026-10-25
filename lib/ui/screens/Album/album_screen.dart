@@ -24,6 +24,7 @@ import '../../widgets/sort_widget.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/models/server.dart';
 import 'album_screen_controller.dart';
+import '/ui/design/doudou_colors.dart';
 
 class AlbumScreen extends StatelessWidget {
   const AlbumScreen({super.key});
@@ -158,8 +159,11 @@ class AlbumScreen extends StatelessWidget {
                                               albumController.album.value.title,
                                           type: PlayingFromType.album));
                                 },
-                                icon: const Icon(Icons.shuffle,
-                                    size: 20, color: Colors.white38),
+                                icon: Icon(Icons.shuffle,
+                                    size: 20,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface),
                               ),
                               const SizedBox(width: 8),
                               GestureDetector(
@@ -176,17 +180,19 @@ class AlbumScreen extends StatelessWidget {
                                 child: Container(
                                   width: 56,
                                   height: 56,
-                                  decoration: const BoxDecoration(
-                                      color: Colors.white,
+                                  decoration: BoxDecoration(
+                                      color: context
+                                          .doudouColors.accentPrimary,
                                       shape: BoxShape.circle,
-                                      boxShadow: [
+                                      boxShadow: const [
                                         BoxShadow(
                                             color: Colors.black26,
                                             blurRadius: 10,
                                             offset: Offset(0, 4))
                                       ]),
-                                  child: const Icon(Icons.play_arrow_rounded,
-                                      color: Colors.black, size: 32),
+                                  child: Icon(Icons.play_arrow_rounded,
+                                      color: context.doudouColors.onAccent,
+                                      size: 32),
                                 ),
                               ),
                             ],

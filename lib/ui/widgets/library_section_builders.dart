@@ -565,7 +565,7 @@ Widget buildArtistRowSection({
       Text(
         subtitle,
         style: theme.textTheme.bodyMedium?.copyWith(
-          color: colors.textSecondary,
+          color: colors.textTertiary,
         ),
       ),
       const SizedBox(height: 12),
@@ -641,7 +641,7 @@ Widget buildFreshPicksSection({
       Text(
         context.l10n.yourMusicCollection,
         style: theme.textTheme.bodyMedium?.copyWith(
-          color: colors.textSecondary,
+          color: colors.textTertiary,
         ),
       ),
       const SizedBox(height: 12),

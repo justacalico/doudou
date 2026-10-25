@@ -140,7 +140,7 @@ class Body extends StatelessWidget {
     if (searchResScrController.navigationRailCurrentIndex.value == 0) {
       return Obx(() {
         if (searchResScrController.isResultContentFetched.isTrue &&
-            searchResScrController.railItems.isEmpty) {
+            searchResScrController.resultContent.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

@@ -69,7 +69,7 @@ class SearchResultScreenBN extends StatelessWidget {
                 child: Obx(
                   () {
                     if (searchResScrController.isResultContentFetched.isTrue &&
-                        searchResScrController.railItems.isEmpty) {
+                        searchResScrController.resultContent.isEmpty) {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -90,7 +90,11 @@ class SearchResultScreenBN extends StatelessWidget {
                         children: <Widget>[
                           Padding(
                             padding: const EdgeInsets.only(left: 15.0, top: 10),
-                            child: ButtonsTabBar(
+                            child: DefaultTabController(
+                              length: searchResScrController
+                                      .railItems.length +
+                                  1,
+                              child: ButtonsTabBar(
                               onTap:
                                   searchResScrController.onDestinationSelected,
 
@@ -128,6 +132,7 @@ class SearchResultScreenBN extends StatelessWidget {
                                               .localizedLabel(context),
                                         ))
                               ],
+                              ),
                             ),
                           ),
                           Expanded(

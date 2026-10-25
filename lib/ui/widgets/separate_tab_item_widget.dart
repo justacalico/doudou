@@ -10,6 +10,7 @@ import '../screens/Search/search_result_screen_controller.dart';
 import 'list_widget.dart';
 import 'loader.dart';
 import 'sort_widget.dart';
+import '../design/doudou_colors.dart';
 
 class SeparateTabItemWidget extends StatelessWidget {
   const SeparateTabItemWidget(
@@ -68,10 +69,18 @@ class SeparateTabItemWidget extends StatelessWidget {
                               onPressed: () {
                                 searchResController!.viewAllCallback(title);
                               },
-                              child: Text(context.l10n.viewAll,
-                                  style: Theme.of(Get.context!)
-                                      .textTheme
-                                      .titleSmall))
+                              style: TextButton.styleFrom(
+                                foregroundColor:
+                                    context.doudouColors.accentPrimary,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8),
+                              ),
+                              child: Text(context.l10n.viewAll.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 1.2,
+                                  )))
                     ],
                   ),
                 ),

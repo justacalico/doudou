@@ -326,13 +326,18 @@ void main() {
     resultController.isResultContentFetched.value = true;
     resultController.queryString.value = 'golden';
     resultController.resultContent.value = {'Songs': songs};
+    resultController.railItems.value = ['Songs'];
     await tester.pumpWidget(
       GetMaterialApp(
         debugShowCheckedModeBanner: false,
         theme: goldenTheme(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: RepaintBoundary(key: goldenRootKey, child: const SearchResultScreen()),
+        home: DefaultTabController(
+          length: 2,
+          child: RepaintBoundary(
+              key: goldenRootKey, child: const SearchResultScreen()),
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 600));

@@ -22,12 +22,12 @@ class SearchQueryBar extends StatelessWidget {
       height: 42,
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.black.withValues(alpha: 0.35)
+            ? context.doudouColors.surfaceElevated
             : theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
+              ? context.doudouColors.borderStrong
               : theme.dividerColor,
         ),
       ),
@@ -37,7 +37,7 @@ class SearchQueryBar extends StatelessWidget {
           Icon(
             Icons.search,
             size: 20,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
           const SizedBox(width: 10),
           Expanded(
