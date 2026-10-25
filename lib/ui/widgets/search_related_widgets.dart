@@ -28,7 +28,7 @@ class ResultWidget extends StatelessWidget {
     return Obx(
       () => Center(
         child: Padding(
-          padding: const EdgeInsets.all(0.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: SingleChildScrollView(
             padding:
                 EdgeInsets.only(bottom: 200, top: isv2Used ? 0 : topPadding),

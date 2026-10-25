@@ -147,7 +147,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get next => 'Next';
 
   @override
-  String get noAlbumsInLibrary => 'No albums in library';
+  String get noAlbumsInLibrary => 'No albums in your library';
 
   @override
   String noCategoryItems(String category) {
@@ -619,7 +619,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addToLibrary => 'Add to library';
 
   @override
-  String get noSongsInLibrary => 'No songs in library';
+  String get noSongsInLibrary => 'No songs in your library';
 
   @override
   String get favoritesEmpty => 'Favourites is empty';
@@ -1201,7 +1201,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get results => 'Results';
 
   @override
-  String get nomatch => 'No Match found for';
+  String get nomatch => 'No match found for';
 
   @override
   String get subscribers => 'subscribers';
@@ -1737,6 +1737,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchHistoryEmpty => 'Recent searches will appear here';
+
+  @override
+  String get noArtistsInLibrary => 'No artists in your library';
+
+  @override
+  String get noPlaylistsInLibrary => 'No playlists in your library';
 }
 
 /// The translations for English, as used in Australia (`en_AU`).
@@ -1882,7 +1888,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get next => 'Next';
 
   @override
-  String get noAlbumsInLibrary => 'No albums in library';
+  String get noAlbumsInLibrary => 'No albums in your library';
 
   @override
   String noCategoryItems(String category) {
@@ -2354,7 +2360,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get addToLibrary => 'Add to library';
 
   @override
-  String get noSongsInLibrary => 'No songs in library';
+  String get noSongsInLibrary => 'No songs in your library';
 
   @override
   String get favoritesEmpty => 'Favourites is empty';
@@ -2936,7 +2942,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get results => 'Results';
 
   @override
-  String get nomatch => 'No Match found for';
+  String get nomatch => 'No match found for';
 
   @override
   String get subscribers => 'subscribers';
@@ -3472,4 +3478,10 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get searchHistoryEmpty => 'Recent searches will appear here';
+
+  @override
+  String get noArtistsInLibrary => 'No artists in your library';
+
+  @override
+  String get noPlaylistsInLibrary => 'No playlists in your library';
 }

@@ -139,7 +139,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get next => '下一步';
 
   @override
-  String get noAlbumsInLibrary => '媒体库中没有专辑';
+  String get noAlbumsInLibrary => '曲库中暂无专辑';
 
   @override
   String noCategoryItems(String category) {
@@ -603,7 +603,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get addToLibrary => '添加到曲库';
 
   @override
-  String get noSongsInLibrary => '曲库中无歌曲';
+  String get noSongsInLibrary => '曲库中暂无歌曲';
 
   @override
   String get favoritesEmpty => '收藏夹为空';
@@ -1672,4 +1672,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get searchHistoryEmpty => '最近的搜索将显示在这里';
+
+  @override
+  String get noArtistsInLibrary => '曲库中暂无艺人';
+
+  @override
+  String get noPlaylistsInLibrary => '曲库中暂无歌单';
 }

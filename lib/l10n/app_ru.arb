@@ -96,7 +96,7 @@
   "@loop": {},
   "next": "Далее",
   "@next": {},
-  "noAlbumsInLibrary": "В библиотеке нет альбомов",
+  "noAlbumsInLibrary": "В вашей библиотеке нет альбомов",
   "@noAlbumsInLibrary": {},
   "noCategoryItems": "Нет: {category}",
   "@noCategoryItems": {
@@ -930,7 +930,7 @@
   "@manage": {},
   "noServersConfigured": "Серверы ещё не настроены",
   "@noServersConfigured": {},
-  "noSongsInLibrary": "В библиотеке нет песен",
+  "noSongsInLibrary": "В вашей библиотеке нет треков",
   "@noSongsInLibrary": {},
   "oled": "OLED",
   "@oled": {},
@@ -1171,5 +1171,9 @@
   "searchHistoryEmpty": "Здесь появятся ваши запросы",
   "@searchHistoryEmpty": {},
   "connectServerHint": "Подключите музыкальный сервер, чтобы начать",
-  "@connectServerHint": {}
+  "@connectServerHint": {},
+  "noArtistsInLibrary": "В вашей библиотеке нет исполнителей",
+  "@noArtistsInLibrary": {},
+  "noPlaylistsInLibrary": "В вашей библиотеке нет плейлистов",
+  "@noPlaylistsInLibrary": {}
 }

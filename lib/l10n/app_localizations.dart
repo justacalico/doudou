@@ -350,7 +350,7 @@ abstract class AppLocalizations {
   /// No description provided for @noAlbumsInLibrary.
   ///
   /// In en_AU, this message translates to:
-  /// **'No albums in library'**
+  /// **'No albums in your library'**
   String get noAlbumsInLibrary;
 
   /// No description provided for @noCategoryItems.
@@ -1226,7 +1226,7 @@ abstract class AppLocalizations {
   /// No description provided for @noSongsInLibrary.
   ///
   /// In en_AU, this message translates to:
-  /// **'No songs in library'**
+  /// **'No songs in your library'**
   String get noSongsInLibrary;
 
   /// No description provided for @favoritesEmpty.
@@ -2324,7 +2324,7 @@ abstract class AppLocalizations {
   /// No description provided for @nomatch.
   ///
   /// In en_AU, this message translates to:
-  /// **'No Match found for'**
+  /// **'No match found for'**
   String get nomatch;
 
   /// No description provided for @subscribers.
@@ -3346,6 +3346,18 @@ abstract class AppLocalizations {
   /// In en_AU, this message translates to:
   /// **'Recent searches will appear here'**
   String get searchHistoryEmpty;
+
+  /// No description provided for @noArtistsInLibrary.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No artists in your library'**
+  String get noArtistsInLibrary;
+
+  /// No description provided for @noPlaylistsInLibrary.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'No playlists in your library'**
+  String get noPlaylistsInLibrary;
 }
 
 class _AppLocalizationsDelegate

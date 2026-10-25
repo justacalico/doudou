@@ -26,7 +26,7 @@ class ProceedButton extends StatelessWidget {
           child: Text(
             buttonText,
             style: TextStyle(
-                color: enabled ? colors.onAccent : colors.textDisabled),
+                color: enabled ? colors.onAccent : colors.textTertiary),
           ),
         ),
       ),

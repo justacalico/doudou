@@ -93,7 +93,7 @@ class SongsLibraryWidget extends StatelessWidget {
                 : Expanded(
                     child: Center(
                         child: Text(
-                      context.l10n.noOfflineSong,
+                      context.l10n.noSongsInLibrary,
                       style: Theme.of(context).textTheme.titleMedium,
                     )),
                   );
@@ -222,7 +222,7 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                     })
                   : Center(
                       child: Text(
-                      context.l10n.noBookmarks,
+                      context.l10n.noAlbumsInLibrary,
                       style: Theme.of(context).textTheme.titleMedium,
                     )),
             ),
@@ -278,7 +278,7 @@ class LibraryArtistWidget extends StatelessWidget {
               : Expanded(
                   child: Center(
                       child: Text(
-                  context.l10n.noBookmarks,
+                  context.l10n.noArtistsInLibrary,
                   style: Theme.of(context).textTheme.titleMedium,
                 ))))
         ],

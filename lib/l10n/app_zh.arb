@@ -94,7 +94,7 @@
   "@loop": {},
   "next": "下一步",
   "@next": {},
-  "noAlbumsInLibrary": "媒体库中没有专辑",
+  "noAlbumsInLibrary": "曲库中暂无专辑",
   "@noAlbumsInLibrary": {},
   "noCategoryItems": "没有{category}！",
   "@noCategoryItems": {
@@ -594,7 +594,7 @@
   "lyricsHighlightKaraoke": "卡拉OK填充",
   "manage": "管理",
   "noServersConfigured": "尚未配置服务器",
-  "noSongsInLibrary": "曲库中无歌曲",
+  "noSongsInLibrary": "曲库中暂无歌曲",
   "oled": "OLED",
   "openGitlab": "打开 GitLab",
   "permissionDenied": "权限被拒绝",
@@ -779,5 +779,10 @@
   "searchHistoryEmpty": "最近的搜索将显示在这里",
   "@searchHistoryEmpty": {},
   "connectServerHint": "连接音乐服务器即可开始使用",
-  "@connectServerHint": {}
+  "@connectServerHint": {},
+  "@noSongsInLibrary": {},
+  "noArtistsInLibrary": "曲库中暂无艺人",
+  "@noArtistsInLibrary": {},
+  "noPlaylistsInLibrary": "曲库中暂无歌单",
+  "@noPlaylistsInLibrary": {}
 }

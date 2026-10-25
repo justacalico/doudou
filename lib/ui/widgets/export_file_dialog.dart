@@ -81,8 +81,12 @@ class ExportFileDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10)),
                     child: InkWell(
                       onTap: () {
-                        if (exportFileDialogController.exportProgress.toInt() ==
-                            exportFileDialogController.filesToExport.length) {
+                        if (exportFileDialogController
+                                .filesToExport.isEmpty ||
+                            exportFileDialogController.exportProgress
+                                    .toInt() ==
+                                exportFileDialogController
+                                    .filesToExport.length) {
                           Navigator.of(context).pop();
                         } else {
                           exportFileDialogController.export();

@@ -97,7 +97,7 @@
   "@loop": {},
   "next": "Next",
   "@next": {},
-  "noAlbumsInLibrary": "No albums in library",
+  "noAlbumsInLibrary": "No albums in your library",
   "@noAlbumsInLibrary": {},
   "noCategoryItems": "No {category}!",
   "@noCategoryItems": {
@@ -453,7 +453,7 @@
   "@songsCount": {},
   "addToLibrary": "Add to library",
   "@addToLibrary": {},
-  "noSongsInLibrary": "No songs in library",
+  "noSongsInLibrary": "No songs in your library",
   "@noSongsInLibrary": {},
   "favoritesEmpty": "Favourites is empty",
   "@favoritesEmpty": {},
@@ -1175,5 +1175,9 @@
   "settingsAppInfoDes": "Version and licenses",
   "@settingsAppInfoDes": {},
   "searchHistoryEmpty": "Recent searches will appear here",
-  "@searchHistoryEmpty": {}
+  "@searchHistoryEmpty": {},
+  "noArtistsInLibrary": "No artists in your library",
+  "@noArtistsInLibrary": {},
+  "noPlaylistsInLibrary": "No playlists in your library",
+  "@noPlaylistsInLibrary": {}
 }

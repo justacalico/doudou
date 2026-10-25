@@ -149,7 +149,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get next => 'Далее';
 
   @override
-  String get noAlbumsInLibrary => 'В библиотеке нет альбомов';
+  String get noAlbumsInLibrary => 'В вашей библиотеке нет альбомов';
 
   @override
   String noCategoryItems(String category) {
@@ -624,7 +624,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addToLibrary => 'Добавить в библиотеку';
 
   @override
-  String get noSongsInLibrary => 'В библиотеке нет песен';
+  String get noSongsInLibrary => 'В вашей библиотеке нет треков';
 
   @override
   String get favoritesEmpty => 'Избранное пусто';
@@ -1748,4 +1748,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get searchHistoryEmpty => 'Здесь появятся ваши запросы';
+
+  @override
+  String get noArtistsInLibrary => 'В вашей библиотеке нет исполнителей';
+
+  @override
+  String get noPlaylistsInLibrary => 'В вашей библиотеке нет плейлистов';
 }
