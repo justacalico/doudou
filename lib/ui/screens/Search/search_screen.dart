@@ -7,6 +7,7 @@ import 'components/search_item.dart';
 import 'components/search_text_field.dart';
 import '/services/tv_service.dart';
 import '/ui/constants/doudou_design.dart';
+import '/ui/design/doudou_colors.dart';
 import '/ui/constants/layout.dart';
 import '/ui/shell_controller.dart';
 import '/ui/navigator.dart';
@@ -80,19 +81,7 @@ class SearchScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.white.withValues(alpha: 0.6),
-                      blurRadius: 18,
-                      spreadRadius: -10,
-                    ),
-                  ],
-                ),
+              child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 child: isTv
                   ? Focus(
@@ -189,11 +178,22 @@ class SearchScreen extends StatelessWidget {
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          context.l10n.searchDes,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: kDoudouZinc500,
-                          ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.history,
+                                size: 18, color: context.doudouColors.textTertiary),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                context.l10n.searchHistoryEmpty,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: context.doudouColors.textTertiary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -212,7 +212,7 @@ class SearchScreen extends StatelessWidget {
                       child: Text(
                         sectionLabel,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: kDoudouZinc500,
+                          color: context.doudouColors.textTertiary,
                         ),
                       ),
                     ),

@@ -322,7 +322,8 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Row(
+                      Expanded(
+                        child: Row(
                         children: [
                           controller.currentSong.value != null
                               ? GestureDetector(
@@ -340,7 +341,8 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                                   width: 44,
                                 ),
                           const SizedBox(width: 14),
-                          GestureDetector(
+                          Expanded(
+                            child: GestureDetector(
                             onHorizontalDragEnd: (details) {
                               final v = details.primaryVelocity ?? 0;
                               if (v < 0) {
@@ -357,9 +359,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _truncateTitle(
-                                      controller.currentSong.value?.title ??
-                                          ''),
+                                  controller.currentSong.value?.title ?? '',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: textTheme.titleMedium?.copyWith(
@@ -382,7 +382,9 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                               ],
                             ),
                           ),
+                          ),
                         ],
+                        ),
                       ),
                       Expanded(
                         child: Row(
@@ -808,11 +810,6 @@ class _TvMiniPlayer extends StatelessWidget {
       ),
     );
   }
-}
-
-String _truncateTitle(String title, {int maxChars = 12}) {
-  if (title.length <= maxChars) return title;
-  return '${title.substring(0, 10)}…';
 }
 
 class _ControlIconButton extends StatefulWidget {

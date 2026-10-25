@@ -22,6 +22,7 @@ import '/ui/widgets/home_quick_action_cards.dart';
 import '../../navigator.dart';
 import '../../widgets/library_section_builders.dart';
 import 'home_screen_controller.dart';
+import '../../widgets/loader.dart';
 import '../Settings/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -377,7 +378,7 @@ class _BodyState extends State<Body> {
                                     return const Padding(
                                       padding: EdgeInsets.all(48),
                                       child: Center(
-                                        child: CircularProgressIndicator(),
+                                        child: LoadingIndicator(),
                                       ),
                                     );
                                   }
@@ -392,7 +393,21 @@ class _BodyState extends State<Body> {
                                         homeScreenController,
                                       );
                                     }
-                                    return const SizedBox.shrink();
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 20),
+                                      child: Text(
+                                        context.l10n.homeEmptyLibraryMessage,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.7),
+                                            ),
+                                      ),
+                                    );
                                   }
                                   return Column(
                                     crossAxisAlignment:
@@ -585,15 +600,9 @@ class _BodyState extends State<Body> {
 
                         if (isLoading) {
                           content.add(
-                            Padding(
-                              padding: const EdgeInsets.only(top: 20),
-                              child: Text(
-                                context.l10n.loading,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.7),
-                                ),
-                              ),
+                            const Padding(
+                              padding: EdgeInsets.all(48),
+                              child: Center(child: LoadingIndicator()),
                             ),
                           );
                         } else if (!hasAnySectionContent) {

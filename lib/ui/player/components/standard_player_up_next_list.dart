@@ -19,7 +19,7 @@ class _UpNextList extends StatelessWidget {
       if (queue.isEmpty) {
         return Center(
           child: Text(
-            context.l10n.songs,
+            context.l10n.queueEmpty,
             style: TextStyle(color: mutedColor, fontSize: 14),
           ),
         );
@@ -27,12 +27,15 @@ class _UpNextList extends StatelessWidget {
       final current = currentIndex >= 0 && currentIndex < queue.length
           ? queue[currentIndex]
           : null;
-      final queueIndices = List.generate(queue.length, (i) => i);
 
       return LayoutBuilder(
         builder: (context, constraints) {
           final showPinnedCurrent =
               current != null && constraints.maxHeight >= 180;
+          final queueIndices = [
+            for (var i = 0; i < queue.length; i++)
+              if (!(showPinnedCurrent && i == currentIndex)) i,
+          ];
           return Column(
             children: [
               if (showPinnedCurrent)

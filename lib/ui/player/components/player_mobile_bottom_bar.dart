@@ -65,7 +65,7 @@ class PlayerMobileBottomBar extends StatelessWidget {
               final ctx = Get.find<ShellController>().overlayContextOrFallback;
               if (ctx != null) LyricsBottomSheet.show(ctx);
             },
-            icon: Icon(Icons.mic_rounded, size: iconSize),
+            icon: Icon(Icons.lyrics_rounded, size: iconSize),
             color: effectiveIconColor,
             tooltip: context.l10n.lyrics,
           ),

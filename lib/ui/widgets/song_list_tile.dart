@@ -122,7 +122,9 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                   ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2), width: 1)
                   : null,
             ),
-            child: ListTile(
+            child: Material(
+              color: Colors.transparent,
+              child: ListTile(
               onTap: onTap,
               onLongPress: () async {
                 showModalBottomSheet(
@@ -144,7 +146,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               leading: thumbReplacementWithIndex
                   ? SizedBox(
-                      width: 24,
+                      width: 48,
                       child: Center(
                         child: Text(
                           "$index",
@@ -186,7 +188,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                   Text(
                     song.extras!['length'] ?? "",
                     style: theme.textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
+                      fontFeatures: const [FontFeature.tabularFigures()],
                       fontSize: 12,
                     ),
                   ),
@@ -213,6 +215,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                         },
                         icon: const Icon(Icons.more_vert, size: 20))
                 ],
+              ),
               ),
             ),
           ),

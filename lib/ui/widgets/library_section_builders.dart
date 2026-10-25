@@ -8,6 +8,7 @@ import '/models/artist.dart';
 import '/models/playing_from.dart';
 import '/models/playlist.dart';
 import '/ui/constants/doudou_design.dart';
+import '/ui/design/doudou_colors.dart';
 import '/utils/app_l10n.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/navigator.dart';
@@ -21,6 +22,12 @@ String _formatDuration(Duration d) {
   final seconds = (d.inSeconds % 60).toString().padLeft(2, '0');
   return "$minutes:$seconds";
 }
+
+TextStyle? _sectionTitleStyle(ThemeData theme) =>
+    theme.textTheme.titleLarge?.copyWith(
+      fontWeight: FontWeight.bold,
+      fontSize: 20,
+    );
 
 // Performance notes:
 // - Keep list item identity stable with ValueKey to reduce element churn.
@@ -36,6 +43,7 @@ Widget buildLibraryOverviewCards(
   void Function(int sidebarIndex)? onSwitchToTab,
 }) {
   final theme = Theme.of(context);
+  final colors = context.doudouColors;
   const double spacing = 12;
 
   Widget card({
@@ -43,10 +51,11 @@ Widget buildLibraryOverviewCards(
     required int count,
     required IconData icon,
     required int sidebarIndex,
+    bool isLast = false,
   }) {
     return Expanded(
       child: Padding(
-        padding: EdgeInsets.only(right: sidebarIndex < 6 ? spacing : 0),
+        padding: EdgeInsets.only(right: isLast ? 0 : spacing),
         child: Material(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(kDoudouRadiusCard),
@@ -67,10 +76,10 @@ Widget buildLibraryOverviewCards(
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               decoration: BoxDecoration(
-                color: kDoudouSurface,
+                color: colors.surfaceElevated,
                 borderRadius: BorderRadius.circular(kDoudouRadiusCard),
                 border: Border.all(
-                  color: kDoudouBorderStrong,
+                  color: colors.borderSubtle,
                   width: 1,
                 ),
               ),
@@ -78,12 +87,12 @@ Widget buildLibraryOverviewCards(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(icon, size: 28, color: kDoudouZinc500),
+                  Icon(icon, size: 28, color: colors.textTertiary),
                   const SizedBox(height: 12),
                   Text(
                     label,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: kDoudouZinc500,
+                      color: colors.textTertiary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -127,6 +136,7 @@ Widget buildLibraryOverviewCards(
         count: playlistsCount,
         icon: Icons.playlist_play,
         sidebarIndex: 4,
+        isLast: true,
       ),
     ],
   );
@@ -143,6 +153,7 @@ Widget buildTrackRowSection({
   VoidCallback? onViewAll,
 }) {
   final theme = Theme.of(context);
+  final colors = context.doudouColors;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -159,10 +170,7 @@ Widget buildTrackRowSection({
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24,
-                        ),
+                        style: _sectionTitleStyle(theme),
                       ),
                     ),
                   ],
@@ -171,7 +179,7 @@ Widget buildTrackRowSection({
                 Text(
                   subtitle,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: kDoudouZinc500,
+                    color: colors.textTertiary,
                   ),
                 ),
               ],
@@ -181,7 +189,7 @@ Widget buildTrackRowSection({
             TextButton(
               onPressed: onViewAll ?? () {},
               style: TextButton.styleFrom(
-                foregroundColor: kDoudouPurpleLight,
+                foregroundColor: colors.accentPrimary,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
               ),
               child: Text(
@@ -272,7 +280,7 @@ Widget buildTrackRowSection({
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.bodySmall
-                                      ?.copyWith(color: kDoudouZinc500),
+                                      ?.copyWith(color: colors.textTertiary),
                                 ),
                               ],
                             ),
@@ -312,6 +320,7 @@ Widget buildPlaylistRowSection({
   required List<Playlist> playlists,
 }) {
   final theme = Theme.of(context);
+  final colors = context.doudouColors;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -322,10 +331,7 @@ Widget buildPlaylistRowSection({
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
+              style: _sectionTitleStyle(theme),
             ),
           ),
         ],
@@ -335,7 +341,7 @@ Widget buildPlaylistRowSection({
         Text(
           subtitle,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: kDoudouZinc500,
+            color: colors.textTertiary,
           ),
         ),
       ],
@@ -385,6 +391,19 @@ Widget buildPlaylistRowSection({
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleSmall,
                       ),
+                      if (playlist.songCount != null &&
+                          playlist.songCount!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          context.l10n.itemsCount(
+                              int.tryParse(playlist.songCount!) ?? 0),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -406,6 +425,7 @@ Widget buildAlbumRowSection({
   VoidCallback? onViewAll,
 }) {
   final theme = Theme.of(context);
+  final colors = context.doudouColors;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -422,10 +442,7 @@ Widget buildAlbumRowSection({
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24,
-                        ),
+                        style: _sectionTitleStyle(theme),
                       ),
                     ),
                   ],
@@ -434,7 +451,7 @@ Widget buildAlbumRowSection({
                 Text(
                   subtitle,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: kDoudouZinc500,
+                    color: colors.textTertiary,
                   ),
                 ),
               ],
@@ -444,7 +461,7 @@ Widget buildAlbumRowSection({
             TextButton(
               onPressed: onViewAll ?? () {},
               style: TextButton.styleFrom(
-                foregroundColor: kDoudouPurpleLight,
+                foregroundColor: colors.accentPrimary,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
               ),
               child: Text(
@@ -514,8 +531,7 @@ Widget buildAlbumRowSection({
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.7),
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
@@ -537,18 +553,19 @@ Widget buildArtistRowSection({
   required List<Artist> artists,
 }) {
   final theme = Theme.of(context);
+  final colors = context.doudouColors;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
         title,
-        style: theme.textTheme.titleLarge,
+        style: _sectionTitleStyle(theme),
       ),
       const SizedBox(height: 4),
       Text(
         subtitle,
         style: theme.textTheme.bodyMedium?.copyWith(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          color: colors.textSecondary,
         ),
       ),
       const SizedBox(height: 12),
@@ -580,7 +597,7 @@ Widget buildArtistRowSection({
                 child: SizedBox(
                   width: 180,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       ImageWidget(
                         artist: artist,
@@ -591,6 +608,7 @@ Widget buildArtistRowSection({
                         artist.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
                         style: theme.textTheme.titleSmall,
                       ),
                     ],
@@ -611,18 +629,19 @@ Widget buildFreshPicksSection({
   required PlayerController playerController,
 }) {
   final theme = Theme.of(context);
+  final colors = context.doudouColors;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
         context.l10n.homeFreshPicks,
-        style: theme.textTheme.titleLarge,
+        style: _sectionTitleStyle(theme),
       ),
       const SizedBox(height: 4),
       Text(
         context.l10n.yourMusicCollection,
         style: theme.textTheme.bodyMedium?.copyWith(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          color: colors.textSecondary,
         ),
       ),
       const SizedBox(height: 12),
@@ -677,8 +696,7 @@ Widget buildFreshPicksSection({
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.7),
+                                color: colors.textSecondary,
                               ),
                             ),
                           ],
@@ -689,9 +707,8 @@ Widget buildFreshPicksSection({
                         Text(
                           _formatDuration(track.duration!),
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                            fontFamily: 'monospace',
+                            color: colors.textSecondary,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                       ],

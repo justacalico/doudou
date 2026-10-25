@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../design/doudou_colors.dart';
 import '../screens/Settings/settings_screen_controller.dart';
 import '/models/artist.dart';
 import '../../models/album.dart';
@@ -102,24 +103,45 @@ class _ImageWidgetState extends State<ImageWidget> {
                     ? artist.thumbnailUrl
                     : "";
 
+    IconData placeholderGlyph() {
+      if (song != null) return Icons.music_note;
+      if (artist != null) return Icons.person_outline;
+      if (album != null) return Icons.album_outlined;
+      if (playlist != null) return Icons.queue_music_outlined;
+      return Icons.music_note;
+    }
+
     Widget placeholderIcon() {
+      final colors = context.doudouColors;
       return Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.secondary,
+          color: colors.surfaceElevated,
           shape: artist != null ? BoxShape.circle : BoxShape.rectangle,
           borderRadius: artist != null ? null : BorderRadius.circular(10),
         ),
-        child: Image.asset(
-            "assets/icons/${song != null ? "song" : artist != null ? "artist" : "album"}.png"),
+        child: Center(
+          child: Icon(
+            placeholderGlyph(),
+            color: colors.textTertiary,
+            size: widget.size * 0.45,
+          ),
+        ),
       );
     }
 
     Widget placeholder() {
       if (!widget.isPlayerArtImage) return placeholderIcon();
+      final colors = context.doudouColors;
       return ColoredBox(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.22),
-        child: const SizedBox.expand(),
+        color: colors.surfaceElevated,
+        child: Center(
+          child: Icon(
+            Icons.music_note,
+            color: colors.textTertiary,
+            size: widget.size * 0.3,
+          ),
+        ),
       );
     }
 
@@ -143,7 +165,7 @@ class _ImageWidgetState extends State<ImageWidget> {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         shape: artist != null ? BoxShape.circle : BoxShape.rectangle,
-        borderRadius: artist != null ? null : BorderRadius.circular(5),
+        borderRadius: artist != null ? null : BorderRadius.circular(10),
       ),
       child: _offlineThumbExists
           ? DecoratedBox(
@@ -151,7 +173,7 @@ class _ImageWidgetState extends State<ImageWidget> {
                 shape: artist != null ? BoxShape.circle : BoxShape.rectangle,
                 borderRadius: artist != null
                     ? null
-                    : BorderRadius.circular(5),
+                    : BorderRadius.circular(10),
                 image: DecorationImage(
                   image: FileImage(_offlineThumbFile!),
                   fit: BoxFit.cover,
@@ -172,7 +194,7 @@ class _ImageWidgetState extends State<ImageWidget> {
                           : BoxShape.rectangle,
                       borderRadius: artist != null
                           ? null
-                          : BorderRadius.circular(5),
+                          : BorderRadius.circular(10),
                       image: DecorationImage(
                         image: imageProvider,
                         fit: BoxFit.cover,

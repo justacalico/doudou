@@ -1,7 +1,6 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:ionicons_plus/ionicons_plus.dart';
 import 'package:widget_marquee/widget_marquee.dart';
 
 import '/ui/player/components/animated_play_button.dart';
@@ -120,30 +119,38 @@ class PlayerControlWidget extends StatelessWidget {
               IconButton(
                   onPressed: playerController.toggleShuffleMode,
                   icon: Obx(() => Icon(
-                        Ionicons.shuffle,
+                        Icons.shuffle_rounded,
                         color: playerController.isShuffleModeEnabled.value
                             ? Theme.of(context).textTheme.titleLarge!.color
                             : Theme.of(context)
                                 .textTheme
                                 .titleLarge!
                                 .color!
-                                .withValues(alpha: 0.2),
+                                .withValues(alpha: 0.5),
                       ))),
               _previousButton(playerController, context),
-              const CircleAvatar(radius: 35, child: AnimatedPlayButton(key: Key("playButton"),)),
+              CircleAvatar(
+                radius: 35,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                child: IconTheme(
+                  data: IconThemeData(
+                      color: Theme.of(context).colorScheme.onSecondary),
+                  child: const AnimatedPlayButton(key: Key("playButton")),
+                ),
+              ),
               _nextButton(playerController, context),
               Obx(() {
                 return IconButton(
                     onPressed: playerController.toggleLoopMode,
                     icon: Icon(
-                      Icons.all_inclusive,
+                      Icons.repeat_one_rounded,
                       color: playerController.isLoopModeEnabled.value
                           ? Theme.of(context).textTheme.titleLarge!.color
                           : Theme.of(context)
                               .textTheme
                               .titleLarge!
                               .color!
-                              .withValues(alpha: 0.2),
+                              .withValues(alpha: 0.5),
                     ));
               }),
             ],
@@ -176,7 +183,7 @@ Widget _nextButton(PlayerController playerController, BuildContext context) {
         icon: Icon(
           Icons.skip_next,
           color: isLastSong
-              ? Theme.of(context).textTheme.titleLarge!.color!.withValues(alpha: 0.2)
+              ? Theme.of(context).textTheme.titleLarge!.color!.withValues(alpha: 0.5)
               : Theme.of(context).textTheme.titleMedium!.color,
         ),
         iconSize: 30,

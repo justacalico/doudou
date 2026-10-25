@@ -8,6 +8,7 @@ import '../../shell_controller.dart';
 import '../../widgets/image_widget.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/songinfo_bottom_sheet.dart';
+import '../../design/doudou_colors.dart';
 import '../player_controller.dart';
 import 'background_image.dart';
 import 'lyrics_widget.dart';

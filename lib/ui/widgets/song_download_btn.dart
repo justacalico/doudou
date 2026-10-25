@@ -43,7 +43,7 @@ class SongDownloadButton extends StatelessWidget {
               Hive.box(songDownloadsBoxName(currentServerId())).containsKey(song!.id))
           ? Icon(
               Icons.download_done,
-              color: iconColor ?? Theme.of(context).textTheme.titleMedium!.color,
+              color: iconColor ?? Theme.of(context).colorScheme.secondary,
               size: iconSize ?? 24,
             )
           : downloader.songQueue.contains(song) &&

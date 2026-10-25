@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../design/doudou_colors.dart';
 import '../shell_controller.dart';
 
 enum SnackBarSize { BIG, MEDIUM, SMALL }
@@ -22,10 +23,7 @@ SnackBar snackbar(BuildContext context, String text,
     content: Center(
       child: Text(
         text,
-        style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black),
+        style: TextStyle(color: context.doudouColors.onAccent),
       ),
     ),
     margin: EdgeInsets.only(
@@ -34,7 +32,7 @@ SnackBar snackbar(BuildContext context, String text,
         right: hrMargin),
     behavior: SnackBarBehavior.floating,
     duration: duration,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
   );
 }
 

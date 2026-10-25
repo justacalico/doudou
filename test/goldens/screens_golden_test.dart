@@ -5,6 +5,7 @@ import 'package:doudou/models/album.dart';
 import 'package:doudou/models/artist.dart';
 import 'package:doudou/models/playlist.dart';
 import 'package:doudou/ui/screens/Album/album_screen.dart';
+import 'package:doudou/ui/screens/Album/album_screen_controller.dart';
 import 'package:doudou/ui/screens/Artists/artist_screen.dart';
 import 'package:doudou/ui/screens/Artists/artist_screen_controller.dart';
 import 'package:doudou/ui/screens/Home/home_screen.dart';
@@ -13,6 +14,7 @@ import 'package:doudou/ui/screens/Library/library.dart';
 import 'package:doudou/ui/screens/Library/library_browse_screen.dart';
 import 'package:doudou/ui/screens/Library/library_controller.dart';
 import 'package:doudou/ui/screens/Playlist/playlist_screen.dart';
+import 'package:doudou/ui/screens/Playlist/playlist_screen_controller.dart';
 import 'package:doudou/ui/screens/Search/search_result_screen.dart';
 import 'package:doudou/ui/screens/Search/search_result_screen_controller.dart';
 import 'package:doudou/ui/screens/Search/search_screen.dart';
@@ -254,8 +256,15 @@ void main() {
       thumbnailUrl: 'https://img.example.com/p1.jpg',
       isCloudPlaylist: false,
     );
+    final playlistController = FakePlaylistScreenController();
+    Get.put<PlaylistScreenController>(playlistController,
+        tag: null.hashCode.toString());
+    playlistController.playlist.value = playlist;
+    playlistController.songList.value = songs;
+    playlistController.isContentFetched.value = true;
     Get.to(() => const PlaylistScreen(), arguments: [playlist, 'p1']);
     await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
     await expectGoldenView(tester, 'screen_playlist');
     await tester.pump(const Duration(seconds: 1));
   });
@@ -273,8 +282,15 @@ void main() {
         home: const Scaffold(body: SizedBox()),
       ),
     );
+    final albumController = FakeAlbumScreenController();
+    Get.put<AlbumScreenController>(albumController,
+        tag: null.hashCode.toString());
+    albumController.album.value = albums[0];
+    albumController.songList.value = songs;
+    albumController.isContentFetched.value = true;
     Get.to(() => const AlbumScreen(), arguments: (albums[0], 'a1'));
     await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
     await expectGoldenView(tester, 'screen_album');
     await tester.pump(const Duration(seconds: 1));
   });

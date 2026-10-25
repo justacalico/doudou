@@ -388,6 +388,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get items => '项目';
 
   @override
+  String itemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个项目',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get networkError1 => '哎呀，发生了网络错误！';
 
   @override
@@ -1635,4 +1645,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get mcpServerCopyAddress => '复制地址';
+
+  @override
+  String get settingsServersDes => '管理媒体服务器';
+
+  @override
+  String get settingsContentDes => '主页内容与推荐';
+
+  @override
+  String get settingsPlaybackDes => '播放、缓存与音频';
+
+  @override
+  String get settingsMiscDes => 'Discord、诊断等';
+
+  @override
+  String get settingsPersonalisationDes => '主题、强调色与布局';
+
+  @override
+  String get settingsDownloadDes => '下载位置与格式';
+
+  @override
+  String get settingsAppInfoDes => '版本与许可';
+
+  @override
+  String get searchHistoryEmpty => '最近的搜索将显示在这里';
 }

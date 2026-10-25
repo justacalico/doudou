@@ -50,8 +50,8 @@ class SongsLibraryWidget extends StatelessWidget {
             return SortWidget(
               tag: "LibSongSort",
               screenController: libSongsController,
-              itemCountTitle: "${libSongsController.librarySongsList.length}",
-              itemIcon: Icons.music_note,
+              itemCountTitle: context.l10n
+                  .itemsCount(libSongsController.librarySongsList.length),
               titleLeftPadding: 9,
               requiredSortTypes: buildSortTypeSet(true, true),
               isSearchFeatureRequired: true,
@@ -129,6 +129,7 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
           ? const EdgeInsets.only(left: kContentLeftPaddingWithBottomNav)
           : EdgeInsets.only(top: topPadding),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.only(left: kContentLeftPaddingWithoutBottomNav),
@@ -162,8 +163,8 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                     screenController: libralbumCntrller,
                     isAdditionalOperationRequired: false,
                     isSearchFeatureRequired: true,
-                    itemCountTitle:
-                        "${libralbumCntrller.libraryAlbums.length} ${context.l10n.items}",
+                    itemCountTitle: context.l10n.itemsCount(
+                        libralbumCntrller.libraryAlbums.length),
                     requiredSortTypes: buildSortTypeSet(true),
                     onSort: (type, ascending) {
                       libralbumCntrller.onSort(type, ascending);
@@ -177,8 +178,8 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                     screenController: librplstCntrller,
                     isAdditionalOperationRequired: false,
                     isSearchFeatureRequired: true,
-                    itemCountTitle:
-                        "${librplstCntrller.libraryPlaylists.length} ${context.l10n.items}",
+                    itemCountTitle: context.l10n.itemsCount(
+                        librplstCntrller.libraryPlaylists.length),
                     requiredSortTypes: buildSortTypeSet(),
                     onSort: (type, ascending) {
                       librplstCntrller.onSort(type, ascending);
@@ -246,6 +247,7 @@ class LibraryArtistWidget extends StatelessWidget {
           ? const EdgeInsets.only(left: kContentLeftPaddingWithBottomNav)
           : EdgeInsets.only(left: kContentLeftPaddingWithoutBottomNav, top: topPadding),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           useBottomNav
               ? const SizedBox(
@@ -261,7 +263,8 @@ class LibraryArtistWidget extends StatelessWidget {
               screenController: cntrller,
               isAdditionalOperationRequired: false,
               isSearchFeatureRequired: true,
-              itemCountTitle: "${cntrller.libraryArtists.length} ${context.l10n.items}",
+              itemCountTitle:
+                  context.l10n.itemsCount(cntrller.libraryArtists.length),
               onSort: (type, ascending) {
                 cntrller.onSort(type, ascending);
               },

@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:doudou/ui/player/player_controller.dart';
 import 'package:widget_marquee/widget_marquee.dart';
 
+import '../design/doudou_colors.dart';
 import '../shell_controller.dart';
 import 'image_widget.dart';
 import 'snackbar.dart';
@@ -17,10 +18,12 @@ class UpNextQueue extends StatefulWidget {
       this.onReorderEnd,
       this.onReorderStart,
       this.isQueueInSlidePanel = true,
+      this.showHeader = true,
       this.scrollController});
   final void Function(int)? onReorderStart;
   final void Function(int)? onReorderEnd;
   final bool isQueueInSlidePanel;
+  final bool showHeader;
   final ScrollController? scrollController;
 
   @override
@@ -95,6 +98,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.showHeader)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 4),
               child: Row(
@@ -130,7 +134,12 @@ class _UpNextQueueState extends State<UpNextQueue> {
                             .queuePanelController
                             .close();
                       } else {
-                        Navigator.of(context).pop();
+                        final scaffold = Scaffold.maybeOf(context);
+                        if (scaffold?.hasEndDrawer ?? false) {
+                          scaffold!.closeEndDrawer();
+                        } else {
+                          Navigator.of(context).maybePop();
+                        }
                       }
                     },
                     icon: const Icon(Icons.close_rounded),
@@ -138,6 +147,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                 ],
               ),
             ),
+            if (widget.showHeader)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -275,16 +285,23 @@ class _UpNextQueueState extends State<UpNextQueue> {
                         },
                         contentPadding: EdgeInsets.only(
                           top: 0,
-                          left: GetPlatform.isAndroid ? 30 : 0,
+                          left: GetPlatform.isAndroid ? 30 : 16,
                           right: 25,
                         ),
                         tileColor: isCurrent
-                            ? Theme.of(homeScaffoldContext)
-                                .colorScheme
-                                .secondary
+                            ? context.doudouColors.accentPrimary
+                                .withValues(alpha: 0.15)
                             : Theme.of(homeScaffoldContext)
                                 .bottomSheetTheme
                                 .backgroundColor,
+                        shape: isCurrent
+                            ? RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                  color: context.doudouColors.accentMuted,
+                                ),
+                              )
+                            : null,
                         leading: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -334,20 +351,14 @@ class _UpNextQueueState extends State<UpNextQueue> {
                           "${item.artist}",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: isCurrent
-                              ? Theme.of(homeScaffoldContext)
-                                  .textTheme
-                                  .titleSmall!
-                                  .copyWith(
-                                    color: Theme.of(homeScaffoldContext)
-                                        .textTheme
-                                        .titleMedium!
-                                        .color!
-                                        .withValues(alpha: 0.35),
-                                  )
-                              : Theme.of(homeScaffoldContext)
-                                  .textTheme
-                                  .titleSmall,
+                          style: Theme.of(homeScaffoldContext)
+                              .textTheme
+                              .titleSmall!
+                              .copyWith(
+                                color: isCurrent
+                                    ? context.doudouColors.accentPrimary
+                                    : null,
+                              ),
                         ),
                         trailing: ReorderableDragStartListener(
                           enabled: !GetPlatform.isDesktop,

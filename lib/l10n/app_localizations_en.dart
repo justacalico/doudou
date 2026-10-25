@@ -399,6 +399,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get items => 'items';
 
   @override
+  String itemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get networkError1 => 'Oops network error!';
 
   @override
@@ -469,7 +480,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addMusicToLibraryHint =>
-      'Add music to your library to see it here, mate';
+      'Add music to your library to see it here';
 
   @override
   String get shuffleAll => 'Shuffle all';
@@ -629,7 +640,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addToPlaylist => 'Add to playlist';
 
   @override
-  String get noLibPlaylist => 'You don\'t have any lib playlist, mate!';
+  String get noLibPlaylist => 'You don\'t have any local playlists';
 
   @override
   String get enqueueSong => 'Enqueue this song';
@@ -949,7 +960,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loudnessNormalizationDes =>
-      'Sets same lavel of loudness for all songs (Experimental) (Will not work on songs downloaded on previous version(< v1.10.0))';
+      'Sets same level of loudness for all songs (Experimental) (Will not work on songs downloaded on previous version(< v1.10.0))';
 
   @override
   String get streamingQuality => 'Streaming quality';
@@ -1153,7 +1164,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openGitlab => 'Open GitLab';
 
   @override
-  String get upToDate => 'You\'re right, mate – you\'re up to date';
+  String get upToDate => 'You\'re up to date';
 
   @override
   String get checkingForUpdates => 'Checking for updates…';
@@ -1578,7 +1589,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copyDiagnostics => 'Copy diagnostics';
 
   @override
-  String get shrinkSidebar => 'shtink sidebar';
+  String get shrinkSidebar => 'Shrink sidebar';
 
   @override
   String get playlistTypeLabel => 'PLAYLIST';
@@ -1699,6 +1710,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mcpServerCopyAddress => 'Copy address';
+
+  @override
+  String get settingsServersDes => 'Manage media servers';
+
+  @override
+  String get settingsContentDes => 'Home feed and discovery';
+
+  @override
+  String get settingsPlaybackDes => 'Playback, cache and audio';
+
+  @override
+  String get settingsMiscDes => 'Discord, diagnostics and more';
+
+  @override
+  String get settingsPersonalisationDes => 'Theme, accent and layout';
+
+  @override
+  String get settingsDownloadDes => 'Download location and format';
+
+  @override
+  String get settingsAppInfoDes => 'Version and licenses';
+
+  @override
+  String get searchHistoryEmpty => 'Recent searches will appear here';
 }
 
 /// The translations for English, as used in Australia (`en_AU`).
@@ -1706,7 +1741,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   AppLocalizationsEnAu() : super('en_AU');
 
   @override
-  String get addFavoritesToStartRadio => 'Add some favorites to start radio';
+  String get addFavoritesToStartRadio => 'Add some favourites to start radio';
 
   @override
   String get additionalProvidersUnlocked => 'Additional providers unlocked';
@@ -2096,6 +2131,17 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get items => 'items';
 
   @override
+  String itemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get networkError1 => 'Oops network error!';
 
   @override
@@ -2172,7 +2218,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get shuffleAll => 'Shuffle all';
 
   @override
-  String get shuffleFavorites => 'Shuffle favorites';
+  String get shuffleFavorites => 'Shuffle favourites';
 
   @override
   String get shuffleDownloads => 'Shuffle downloads';
@@ -2442,11 +2488,11 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get misc => 'Misc';
 
   @override
-  String get autoDownFavSong => 'Auto download favorite songs';
+  String get autoDownFavSong => 'Auto download favourite songs';
 
   @override
   String get autoDownFavSongDes =>
-      'Automatically download favorite songs when added to favorites';
+      'Automatically download favorite songs when added to favourites';
 
   @override
   String get networkError => 'Network error! Check your network connection.';
@@ -3275,7 +3321,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get copyDiagnostics => 'Copy diagnostics';
 
   @override
-  String get shrinkSidebar => 'shtink sidebar';
+  String get shrinkSidebar => 'Shrink sidebar';
 
   @override
   String get playlistTypeLabel => 'PLAYLIST';
@@ -3396,4 +3442,28 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
 
   @override
   String get mcpServerCopyAddress => 'Copy address';
+
+  @override
+  String get settingsServersDes => 'Manage media servers';
+
+  @override
+  String get settingsContentDes => 'Home feed and discovery';
+
+  @override
+  String get settingsPlaybackDes => 'Playback, cache and audio';
+
+  @override
+  String get settingsMiscDes => 'Discord, diagnostics and more';
+
+  @override
+  String get settingsPersonalisationDes => 'Theme, accent and layout';
+
+  @override
+  String get settingsDownloadDes => 'Download location and format';
+
+  @override
+  String get settingsAppInfoDes => 'Version and licences';
+
+  @override
+  String get searchHistoryEmpty => 'Recent searches will appear here';
 }

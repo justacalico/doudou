@@ -24,14 +24,14 @@ mixin _SettingsViewNavMixin on __SettingsViewStateBase {
   String _sectionSubtitle(BuildContext context, _SettingsSectionId id) {
     final l10n = context.l10n;
     return switch (id) {
-      _SettingsSectionId.servers => l10n.servers,
+      _SettingsSectionId.servers => l10n.settingsServersDes,
       _SettingsSectionId.backup => l10n.backupSettingsAndPlaylistsDes,
-      _SettingsSectionId.content => l10n.content,
-      _SettingsSectionId.playback => l10n.musicPlayback,
-      _SettingsSectionId.misc => l10n.misc,
-      _SettingsSectionId.personalisation => l10n.themeMode,
-      _SettingsSectionId.download => l10n.download,
-      _SettingsSectionId.info => l10n.appInfo,
+      _SettingsSectionId.content => l10n.settingsContentDes,
+      _SettingsSectionId.playback => l10n.settingsPlaybackDes,
+      _SettingsSectionId.misc => l10n.settingsMiscDes,
+      _SettingsSectionId.personalisation => l10n.settingsPersonalisationDes,
+      _SettingsSectionId.download => l10n.settingsDownloadDes,
+      _SettingsSectionId.info => l10n.settingsAppInfoDes,
     };
   }
 

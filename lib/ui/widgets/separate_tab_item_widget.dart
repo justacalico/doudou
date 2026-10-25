@@ -47,7 +47,7 @@ class SeparateTabItemWidget extends StatelessWidget {
       builder: (context, constraints) {
         final hasUnboundedHeight = constraints.maxHeight == double.infinity;
         return Padding(
-          padding: EdgeInsets.only(top: topPadding, left: 5),
+          padding: EdgeInsets.only(top: topPadding, left: 16),
           child: Column(
             mainAxisSize:
                 hasUnboundedHeight ? MainAxisSize.min : MainAxisSize.max,
@@ -83,8 +83,8 @@ class SeparateTabItemWidget extends StatelessWidget {
                             artistController != null && category.isSongLike,
                         isSearchFeatureRequired: artistController != null,
                         titleLeftPadding: 9,
-                        itemCountTitle:
-                            "${isResultWidget ? (searchResController?.separatedResultContent[title] ?? []).length : (artistController?.sepataredContent[title] != null ? artistController?.sepataredContent[title]['results'] : []).length} ${context.l10n.items}",
+                        itemCountTitle: context.l10n.itemsCount(
+                            isResultWidget ? (searchResController?.separatedResultContent[title] ?? []).length : (artistController?.sepataredContent[title] != null ? artistController?.sepataredContent[title]['results'] : []).length),
                         requiredSortTypes: buildSortTypeSet(
                             category.isAlbumLike, category.isSongLike),
                         onSort: (type, ascending) {

@@ -9,6 +9,7 @@ import '/ui/screens/Settings/settings_screen_controller.dart';
 import '../widgets/snackbar.dart';
 import '../widgets/up_next_queue.dart';
 import '/ui/player/player_controller.dart';
+import '../design/doudou_colors.dart';
 import '../widgets/sliding_up_panel.dart';
 
 /// Player screen
@@ -29,6 +30,7 @@ class Player extends StatelessWidget {
       body: Obx(
         () => SlidingUpPanel(
           boxShadow: const [],
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           minHeight: 0,
           maxHeight: size.height,
           isDraggable: !GetPlatform.isDesktop,
@@ -95,20 +97,42 @@ class Player extends StatelessWidget {
                           ),
                           InkWell(
                             onTap: playerController.toggleQueueLoopMode,
+                            borderRadius: BorderRadius.circular(20),
                             child: Obx(
-                              () => Container(
-                                height: 30,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 15),
-                                decoration: BoxDecoration(
-                                  color: playerController
-                                          .isQueueLoopModeEnabled.isFalse
-                                      ? Colors.white24
-                                      : Colors.white.withValues(alpha: 0.8),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Center(child: Text(context.l10n.queueLoop)),
-                              ),
+                              () {
+                                final c = context.doudouColors;
+                                final enabled = playerController
+                                    .isQueueLoopModeEnabled.isTrue;
+                                return Container(
+                                  height: 30,
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 15),
+                                  decoration: BoxDecoration(
+                                    color: enabled
+                                        ? c.accentPrimary
+                                            .withValues(alpha: 0.2)
+                                        : c.surfaceElevated,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: enabled
+                                          ? c.accentMuted
+                                          : c.borderSubtle,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      context.l10n.queueLoop,
+                                      style: TextStyle(
+                                        color: enabled
+                                            ? c.accentPrimary
+                                            : c.textPrimary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                           InkWell(
@@ -125,32 +149,45 @@ class Player extends StatelessWidget {
                               }
                               playerController.shuffleQueue();
                             },
+                            borderRadius: BorderRadius.circular(20),
                             child: Container(
                               height: 30,
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 15),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.8),
+                                color: context.doudouColors.surfaceElevated,
                                 borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: context.doudouColors.borderSubtle,
+                                ),
                               ),
-                              child: const Center(
-                                child: Icon(Icons.shuffle, color: Colors.black),
+                              child: Center(
+                                child: Icon(Icons.shuffle,
+                                    size: 18,
+                                    color:
+                                        context.doudouColors.textSecondary),
                               ),
                             ),
                           ),
                           InkWell(
                             onTap: playerController.clearQueue,
+                            borderRadius: BorderRadius.circular(20),
                             child: Container(
                               height: 30,
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 15),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.8),
+                                color: context.doudouColors.surfaceElevated,
                                 borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: context.doudouColors.borderSubtle,
+                                ),
                               ),
-                              child: const Center(
+                              child: Center(
                                 child: Icon(Icons.playlist_remove,
-                                    color: Colors.black),
+                                    size: 18,
+                                    color:
+                                        context.doudouColors.textSecondary),
                               ),
                             ),
                           ),

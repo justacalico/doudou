@@ -167,13 +167,18 @@ class SortWidget extends StatelessWidget {
                         child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(itemCountTitle),
-                          if (itemIcon != null)
+                          Text(
+                            itemCountTitle,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          if (itemIcon != null) ...[
+                            const SizedBox(width: 4),
                             Icon(
-                              Icons.music_note,
+                              itemIcon,
                               size: 15,
                               color: Theme.of(context).colorScheme.secondary,
-                            )
+                            ),
+                          ]
                         ],
                       ),
                     ),
@@ -338,9 +343,9 @@ class SortWidget extends StatelessWidget {
     return IconButton(
       icon: Icon(icon),
       padding: const EdgeInsets.all(0),
-      color: isSelected == null || isSelected == true
-          ? Theme.of(Get.context!).textTheme.bodySmall!.color
-          : Theme.of(Get.context!).colorScheme.secondary,
+      color: isSelected == true
+          ? Theme.of(Get.context!).colorScheme.secondary
+          : Theme.of(Get.context!).textTheme.bodySmall!.color,
       iconSize: 20,
       splashRadius: 20,
       visualDensity: const VisualDensity(horizontal: -3, vertical: -3),

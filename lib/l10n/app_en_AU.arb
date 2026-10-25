@@ -1,5 +1,5 @@
 {
-  "addFavoritesToStartRadio": "Add some favorites to start radio",
+  "addFavoritesToStartRadio": "Add some favourites to start radio",
   "@addFavoritesToStartRadio": {},
   "additionalProvidersUnlocked": "Additional providers unlocked",
   "@additionalProvidersUnlocked": {},
@@ -307,6 +307,15 @@
   "featuredplaylists": "Featured Playlists",
   "@featuredplaylists": {},
   "items": "items",
+  "itemsCount": "{count, plural, =1{1 item} other{{count} items}}",
+  "@itemsCount": {
+    "description": "Item count label in library toolbars",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "@items": {},
   "networkError1": "Oops network error!",
   "@networkError1": {},
@@ -358,7 +367,7 @@
   "@addMusicToLibraryHint": {},
   "shuffleAll": "Shuffle all",
   "@shuffleAll": {},
-  "shuffleFavorites": "Shuffle favorites",
+  "shuffleFavorites": "Shuffle favourites",
   "@shuffleFavorites": {},
   "shuffleDownloads": "Shuffle downloads",
   "@shuffleDownloads": {},
@@ -532,9 +541,9 @@
   "@download": {},
   "misc": "Misc",
   "@misc": {},
-  "autoDownFavSong": "Auto download favorite songs",
+  "autoDownFavSong": "Auto download favourite songs",
   "@autoDownFavSong": {},
-  "autoDownFavSongDes": "Automatically download favorite songs when added to favorites",
+  "autoDownFavSongDes": "Automatically download favorite songs when added to favourites",
   "@autoDownFavSongDes": {},
   "networkError": "Network error! Check your network connection.",
   "@networkError": {},
@@ -1058,7 +1067,7 @@
   "@toggleFormat": {},
   "copyDiagnostics": "Copy diagnostics",
   "@copyDiagnostics": {},
-  "shrinkSidebar": "shtink sidebar",
+  "shrinkSidebar": "Shrink sidebar",
   "@shrinkSidebar": {},
   "playlistTypeLabel": "PLAYLIST",
   "@playlistTypeLabel": {},
@@ -1148,5 +1157,21 @@
   "mcpServerInvalidPort": "Enter a port between 1024 and 65535",
   "@mcpServerInvalidPort": {},
   "mcpServerCopyAddress": "Copy address",
-  "@mcpServerCopyAddress": {}
+  "@mcpServerCopyAddress": {},
+  "settingsServersDes": "Manage media servers",
+  "@settingsServersDes": {},
+  "settingsContentDes": "Home feed and discovery",
+  "@settingsContentDes": {},
+  "settingsPlaybackDes": "Playback, cache and audio",
+  "@settingsPlaybackDes": {},
+  "settingsMiscDes": "Discord, diagnostics and more",
+  "@settingsMiscDes": {},
+  "settingsPersonalisationDes": "Theme, accent and layout",
+  "@settingsPersonalisationDes": {},
+  "settingsDownloadDes": "Download location and format",
+  "@settingsDownloadDes": {},
+  "settingsAppInfoDes": "Version and licences",
+  "@settingsAppInfoDes": {},
+  "searchHistoryEmpty": "Recent searches will appear here",
+  "@searchHistoryEmpty": {}
 }

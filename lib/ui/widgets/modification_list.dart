@@ -22,7 +22,7 @@ class ModificationList extends StatelessWidget {
                   key: Key('$index'),
                   onTap: () {},
                   contentPadding:
-                      const EdgeInsets.only(top: 0, left: 5, right: 40),
+                      const EdgeInsets.only(top: 0, left: 16, right: 8),
                   leading: ImageWidget(
                     size: 55,
                     song: items[index],
@@ -43,6 +43,13 @@ class ModificationList extends StatelessWidget {
                     "${items[index].artist}",
                     maxLines: 1,
                     style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  trailing: ReorderableDragStartListener(
+                    index: index,
+                    child: Icon(
+                      Icons.drag_indicator,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
                   ),
                 ),
             itemCount: items.length,

@@ -78,25 +78,36 @@ class _LyricsWidgetState extends State<LyricsWidget> {
             ? widget.padding as EdgeInsets
             : const EdgeInsets.only(left: 5, right: 5);
 
-        return IgnorePointer(
-          child: LyricsReader(
-            padding: karaokePadding,
-            lyricUi: playerController.lyricUi,
-            playing:
-                playerController.buttonState.value == PlayButtonState.playing,
-            position:
-                playerController.progressBarStatus.value.current.inMilliseconds,
-            model: _cachedModel,
-            emptyBuilder: () => Center(
-              child: Text(
-                context.l10n.syncedLyricsNotAvailable,
-                style: playerController.isDesktopLyricsDialogOpen
-                    ? Theme.of(context).textTheme.titleMedium!
-                    : Theme.of(context)
-                        .textTheme
-                        .titleMedium!
-                        .copyWith(color: Colors.white),
-              ),
+        return LyricsReader(
+          padding: karaokePadding,
+          lyricUi: playerController.lyricUi,
+          playing:
+              playerController.buttonState.value == PlayButtonState.playing,
+          position:
+              playerController.progressBarStatus.value.current.inMilliseconds,
+          model: _cachedModel,
+          emptyBuilder: () => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.lyrics_outlined,
+                  size: 28,
+                  color: playerController.isDesktopLyricsDialogOpen
+                      ? Theme.of(context).textTheme.bodySmall?.color
+                      : Colors.white.withValues(alpha: 0.6),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  context.l10n.syncedLyricsNotAvailable,
+                  style: playerController.isDesktopLyricsDialogOpen
+                      ? Theme.of(context).textTheme.titleMedium!
+                      : Theme.of(context)
+                          .textTheme
+                          .titleMedium!
+                          .copyWith(color: Colors.white),
+                ),
+              ],
             ),
           ),
         );

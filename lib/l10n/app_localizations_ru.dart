@@ -402,6 +402,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get items => 'объекты';
 
   @override
+  String itemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count объекта',
+      many: '$count объектов',
+      few: '$count объекта',
+      one: '$count объект',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get networkError1 => 'Упс, ошибка сети!';
 
   @override
@@ -1708,4 +1721,28 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get mcpServerCopyAddress => 'Скопировать адрес';
+
+  @override
+  String get settingsServersDes => 'Управление медиасерверами';
+
+  @override
+  String get settingsContentDes => 'Лента и рекомендации';
+
+  @override
+  String get settingsPlaybackDes => 'Воспроизведение, кэш и звук';
+
+  @override
+  String get settingsMiscDes => 'Discord, диагностика и другое';
+
+  @override
+  String get settingsPersonalisationDes => 'Тема, акцент и расположение';
+
+  @override
+  String get settingsDownloadDes => 'Папка и формат загрузок';
+
+  @override
+  String get settingsAppInfoDes => 'Версия и лицензии';
+
+  @override
+  String get searchHistoryEmpty => 'Здесь появятся ваши запросы';
 }

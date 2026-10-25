@@ -406,7 +406,7 @@ class _SlidingUpPanelState extends State<SlidingUpPanel>
         onVerticalDragEnd: (DragEndDetails dets) {
           _onGestureEnd(dets.velocity);
           if (dets.primaryVelocity! < 0 && _isPanelOpen) {
-            widget.onSwipeUp!();
+            widget.onSwipeUp?.call();
           }
         },
         onHorizontalDragUpdate: (_) {}, // Ignore horizontal drag

@@ -205,6 +205,15 @@
   "libAlbums": "专辑库",
   "libArtists": "音乐人库",
   "items": "项目",
+  "itemsCount": "{count, plural, other{{count} 个项目}}",
+  "@itemsCount": {
+    "description": "Item count label in library toolbars",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "networkError1": "哎呀，发生了网络错误！",
   "retry": "重试！",
   "recentlyPlayed": "最近播放",
@@ -752,5 +761,21 @@
   "mcpServerInvalidPort": "请输入 1024 到 65535 之间的端口号",
   "@mcpServerInvalidPort": {},
   "mcpServerCopyAddress": "复制地址",
-  "@mcpServerCopyAddress": {}
+  "@mcpServerCopyAddress": {},
+  "settingsServersDes": "管理媒体服务器",
+  "@settingsServersDes": {},
+  "settingsContentDes": "主页内容与推荐",
+  "@settingsContentDes": {},
+  "settingsPlaybackDes": "播放、缓存与音频",
+  "@settingsPlaybackDes": {},
+  "settingsMiscDes": "Discord、诊断等",
+  "@settingsMiscDes": {},
+  "settingsPersonalisationDes": "主题、强调色与布局",
+  "@settingsPersonalisationDes": {},
+  "settingsDownloadDes": "下载位置与格式",
+  "@settingsDownloadDes": {},
+  "settingsAppInfoDes": "版本与许可",
+  "@settingsAppInfoDes": {},
+  "searchHistoryEmpty": "最近的搜索将显示在这里",
+  "@searchHistoryEmpty": {}
 }

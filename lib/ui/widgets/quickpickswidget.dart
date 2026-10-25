@@ -42,9 +42,9 @@ class QuickPicksWidget extends StatelessWidget {
                   itemCount: content.songList.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
-                    childAspectRatio: .26 / 1,
-                    crossAxisSpacing: 1,
-                    mainAxisSpacing: 5,
+                    childAspectRatio: 0.2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
                   ),
                   itemBuilder: (_, item) {
                     return Listener(

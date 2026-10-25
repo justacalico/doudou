@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../design/doudou_colors.dart';
 
 class LoadingIndicator extends StatelessWidget {
   final double strokeWidth;
@@ -13,7 +14,7 @@ class LoadingIndicator extends StatelessWidget {
         child: CircularProgressIndicator(
           value: value,
           strokeWidth: strokeWidth,
-          color: Theme.of(context).textTheme.titleLarge!.color,
+          color: context.doudouColors.accentPrimary,
         ));
   }
 }

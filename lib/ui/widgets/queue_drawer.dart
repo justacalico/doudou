@@ -116,6 +116,7 @@ class _QueueDrawerState extends State<QueueDrawer> {
             Expanded(
               child: UpNextQueue(
                 isQueueInSlidePanel: false,
+                showHeader: false,
                 scrollController: _scrollController,
               ),
             ),

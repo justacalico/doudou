@@ -40,11 +40,13 @@ class ContentListWidget extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                !isHomeContent && title.length > 12
-                    ? "${title.substring(0, 12)}..."
-                    : title,
-                style: Theme.of(context).textTheme.titleLarge,
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
               (!isHomeContent && onViewAll != null)
                   ? TextButton(

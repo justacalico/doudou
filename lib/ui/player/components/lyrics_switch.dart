@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '/utils/app_l10n.dart';
-import 'package:doudou/ui/constants/doudou_design.dart';
+import 'package:doudou/ui/design/doudou_colors.dart';
 
 import '../player_controller.dart';
 
@@ -11,14 +11,13 @@ class LyricsSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PlayerController playerController = Get.find<PlayerController>();
-    Theme.of(context);
     return Obx(
       () => playerController.showLyricsflag.value
           ? Container(
               decoration: BoxDecoration(
-                color: kDoudouSurface,
+                color: context.doudouColors.surfaceElevated,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: kDoudouBorder, width: 1),
+                border: Border.all(color: context.doudouColors.borderSubtle, width: 1),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -61,7 +60,7 @@ class _SwitchOption extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? kDoudouPurple.withValues(alpha: 0.2)
+              ? context.doudouColors.accentPrimary.withValues(alpha: 0.2)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(11),
         ),
@@ -70,7 +69,7 @@ class _SwitchOption extends StatelessWidget {
           style: theme.textTheme.labelMedium?.copyWith(
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             color: isSelected
-                ? kDoudouPurple
+                ? context.doudouColors.accentPrimary
                 : theme.colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ),

@@ -13,7 +13,7 @@ String _albumSubtitle(dynamic content) {
       ? (artists[0]['name']?.toString() ?? '').trim()
       : '';
   final parts = [name, if (year != null && year.isNotEmpty) year];
-  return parts.where((s) => s.isNotEmpty).join(' | ');
+  return parts.where((s) => s.isNotEmpty).join(' • ');
 }
 
 class ContentListItem extends StatelessWidget {
@@ -154,14 +154,14 @@ class ContentListItem extends StatelessWidget {
                                     : content.playlistId == 'LIBFAV'
                                         ? Icons.favorite
                                         : content.playlistId == 'SongsCache'
-                                            ? Icons.flight
+                                            ? Icons.cloud_off_outlined
                                             : Icons.download,
                                 color: c.textPrimary,
                                 size: 40,
                               ))),
                   const SizedBox(height: 8),
                   SizedBox(
-                    height: 40,
+                    height: 22,
                     child: Align(
                       alignment: Alignment.topLeft,
                       child: Text(
