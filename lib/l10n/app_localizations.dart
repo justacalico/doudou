@@ -2288,7 +2288,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchDes.
   ///
   /// In en_AU, this message translates to:
-  /// **'Songs, Playlist, Album or Artist'**
+  /// **'Songs, playlists, albums or artists'**
   String get searchDes;
 
   /// No description provided for @searchRes.
@@ -2462,7 +2462,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorOccuredAlert.
   ///
   /// In en_AU, this message translates to:
-  /// **'Some error occured!'**
+  /// **'Some error occurred!'**
   String get errorOccuredAlert;
 
   /// No description provided for @pipedplstSyncAlert.

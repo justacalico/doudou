@@ -23,6 +23,7 @@ import '../../widgets/sort_widget.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/models/server.dart';
 import 'playlist_screen_controller.dart';
+import '/ui/design/doudou_colors.dart';
 
 class PlaylistScreen extends StatelessWidget {
   const PlaylistScreen({super.key});
@@ -353,7 +354,7 @@ class PlaylistScreen extends StatelessWidget {
                     imageUrl: Thumbnail(effectiveUrl).extraHigh,
                     fit: BoxFit.cover,
                     errorWidget: (context, url, error) => Container(
-                      color: theme.colorScheme.secondary,
+                      color: context.doudouColors.surfaceElevated,
                       child: Center(
                         child: Image.asset("assets/icons/album.png",
                             width: 120, height: 120),
@@ -361,7 +362,7 @@ class PlaylistScreen extends StatelessWidget {
                     ),
                   )
                 : Container(
-                    color: theme.colorScheme.secondary,
+                    color: context.doudouColors.surfaceElevated,
                     child: Center(
                       child: Image.asset("assets/icons/album.png",
                           width: 120, height: 120),

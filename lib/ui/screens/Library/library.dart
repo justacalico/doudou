@@ -17,6 +17,7 @@ import '../../widgets/piped_sync_widget.dart';
 import 'library_controller.dart';
 import '../../widgets/content_list_widget_item.dart';
 import '../../widgets/list_widget.dart';
+import '../../widgets/loader.dart';
 import '../../widgets/sort_widget.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/ui/shell_controller.dart';
@@ -72,6 +73,11 @@ class SongsLibraryWidget extends StatelessWidget {
             );
           }),
           GetX<LibrarySongsController>(builder: (controller) {
+            if (!controller.isSongFetched.value) {
+              return const Expanded(
+                child: Center(child: LoadingIndicator()),
+              );
+            }
             return controller.librarySongsList.isNotEmpty
                 ? (controller.additionalOperationMode.value ==
                         OperationMode.none
@@ -207,6 +213,8 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                           ),
                           scrollDirection: Axis.vertical,
                           padding: const EdgeInsets.only(
+                            left: kContentLeftPaddingWithoutBottomNav,
+                            right: kContentRightPadding,
                             bottom: kContentBottomPaddingWithPlayer,
                             top: 10,
                           ),
@@ -222,7 +230,9 @@ class PlaylistNAlbumLibraryWidget extends StatelessWidget {
                     })
                   : Center(
                       child: Text(
-                      context.l10n.noAlbumsInLibrary,
+                      isAlbumContent
+                          ? context.l10n.noAlbumsInLibrary
+                          : context.l10n.noPlaylistsInLibrary,
                       style: Theme.of(context).textTheme.titleMedium,
                     )),
             ),

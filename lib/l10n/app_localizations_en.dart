@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get addFavoritesToStartRadio => 'Add some favorites to start radio';
+  String get addFavoritesToStartRadio => 'Add some favourites to start radio';
 
   @override
   String get additionalProvidersUnlocked => 'Additional providers unlocked';
@@ -489,7 +489,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shuffleAll => 'Shuffle all';
 
   @override
-  String get shuffleFavorites => 'Shuffle favorites';
+  String get shuffleFavorites => 'Shuffle favourites';
 
   @override
   String get shuffleDownloads => 'Shuffle downloads';
@@ -763,7 +763,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get autoDownFavSongDes =>
-      'Automatically download favorite songs when added to favorites';
+      'Automatically download favorite songs when added to favourites';
 
   @override
   String get networkError => 'Network error! Check your network connection.';
@@ -1183,7 +1183,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get search => 'Search';
 
   @override
-  String get searchDes => 'Songs, Playlist, Album or Artist';
+  String get searchDes => 'Songs, playlists, albums or artists';
 
   @override
   String get searchRes => 'Search results';
@@ -1272,7 +1272,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get songRemovedAlert => 'Removed from';
 
   @override
-  String get errorOccuredAlert => 'Some error occured!';
+  String get errorOccuredAlert => 'Some error occurred!';
 
   @override
   String get pipedplstSyncAlert => 'Piped playlist synced!';
@@ -2924,7 +2924,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get search => 'Search';
 
   @override
-  String get searchDes => 'Songs, Playlist, Album or Artist';
+  String get searchDes => 'Songs, playlists, albums or artists';
 
   @override
   String get searchRes => 'Search results';
@@ -3013,7 +3013,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get songRemovedAlert => 'Removed from';
 
   @override
-  String get errorOccuredAlert => 'Some error occured!';
+  String get errorOccuredAlert => 'Some error occurred!';
 
   @override
   String get pipedplstSyncAlert => 'Piped playlist synced!';

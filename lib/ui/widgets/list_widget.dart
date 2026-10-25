@@ -223,11 +223,13 @@ class ListWidget extends StatelessWidget with RemoveSongFromPlaylistMixin {
           maxLines: 1,
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        subtitle: Text(
-          artists[index].subscribers,
-          maxLines: 2,
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
+        subtitle: artists[index].subscribers.isEmpty
+            ? null
+            : Text(
+                "${artists[index].subscribers} ${context.l10n.subscribers}",
+                maxLines: 1,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
       ),
     );
   }

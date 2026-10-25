@@ -86,16 +86,15 @@ class SearchResultScreenBN extends StatelessWidget {
                       );
                     } else if (searchResScrController
                         .isResultContentFetched.isTrue) {
-                      return Column(
+                      return DefaultTabController(
+                        length:
+                            searchResScrController.railItems.length + 1,
+                        child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Padding(
                             padding: const EdgeInsets.only(left: 15.0, top: 10),
-                            child: DefaultTabController(
-                              length: searchResScrController
-                                      .railItems.length +
-                                  1,
-                              child: ButtonsTabBar(
+                            child: ButtonsTabBar(
                               onTap:
                                   searchResScrController.onDestinationSelected,
 
@@ -129,7 +128,6 @@ class SearchResultScreenBN extends StatelessWidget {
                                         ))
                               ],
                               ),
-                            ),
                           ),
                           Expanded(
                             child: Padding(
@@ -176,6 +174,7 @@ class SearchResultScreenBN extends StatelessWidget {
                             ),
                           ),
                         ],
+                        ),
                       );
                     } else {
                       return const Center(

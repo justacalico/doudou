@@ -237,7 +237,11 @@ class _BodyState extends State<Body> {
                     
                     if (isYouTubeMusic) {
                       // Load YouTube Music home feed for all YT Music users
-                      if (homeScreenController.youtubeMusicHomeContent.isEmpty) {
+                      if (homeScreenController
+                              .youtubeMusicHomeContent.isEmpty &&
+                          !homeScreenController
+                              .isLoadingYoutubeMusicHome.value &&
+                          !homeScreenController.networkError.value) {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           homeScreenController.loadYoutubeMusicHomeFeed();
                         });

@@ -82,7 +82,8 @@ class HomeQuickActionCards extends StatelessWidget {
           children: List.generate(cards.length * 2 - 1, (index) {
             if (index.isEven) {
               final card = cards[index ~/ 2];
-              return Expanded(
+              return SizedBox(
+                width: cardWidth,
                 child: _HomeQuickActionCard(
                   icon: card.icon,
                   label: card.label,

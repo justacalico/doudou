@@ -69,7 +69,7 @@ class SearchItem extends StatelessWidget {
                   tooltip: context.l10n.delete,
                   icon: Icon(Icons.clear,
                       size: 20,
-                      color: iconColor.withValues(alpha: 0.45)),
+                      color: iconColor.withValues(alpha: 0.7)),
                   onPressed: () {
                     searchScreenController.removeQueryFromHistory(queryString);
                   },

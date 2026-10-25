@@ -163,7 +163,7 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
       child: Container(
         decoration: BoxDecoration(
           border: _hasFocus
-              ? Border.all(color: accentColor, width: 2.5)
+              ? Border.all(color: accentColor, width: 3.5)
               : Border.all(color: Colors.transparent, width: 2.5),
           borderRadius: BorderRadius.circular(widget.borderRadius),
         ),

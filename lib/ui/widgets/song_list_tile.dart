@@ -190,7 +190,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                   ),
                 ),
                 subtitle: Text(
-                  "${song.artist}",
+                  song.artist ?? context.l10n.unknownArtist,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
