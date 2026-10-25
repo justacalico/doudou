@@ -160,13 +160,14 @@ class _TvFocusHighlightState extends State<TvFocusHighlight> {
       autofocus: widget.autofocus,
       onFocusChange: widget.onFocusChange,
       onKeyEvent: _onKey,
-      child: DecoratedBox(
+      child: Container(
         decoration: BoxDecoration(
           border: _hasFocus
               ? Border.all(color: accentColor, width: 2.5)
               : Border.all(color: Colors.transparent, width: 2.5),
           borderRadius: BorderRadius.circular(widget.borderRadius),
         ),
+        padding: const EdgeInsets.all(2.5),
         child: widget.child,
       ),
     );

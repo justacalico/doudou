@@ -331,7 +331,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                               .titleSmall!
                               .copyWith(
                                 color: isCurrent
-                                    ? context.doudouColors.accentPrimary
+                                    ? context.doudouColors.textSecondary
                                     : null,
                               ),
                         ),

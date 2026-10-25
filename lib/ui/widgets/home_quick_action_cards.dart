@@ -75,7 +75,8 @@ class HomeQuickActionCards extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cardWidth = (constraints.maxWidth - 24) / cards.length;
+        final cardWidth =
+            ((constraints.maxWidth - 24) / cards.length).clamp(0.0, 420.0);
         final compact = cardWidth < 180;
         return Row(
           children: List.generate(cards.length * 2 - 1, (index) {

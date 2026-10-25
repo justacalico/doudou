@@ -10,6 +10,7 @@ import '../../navigator.dart';
 import '../../widgets/separate_tab_item_widget.dart';
 import 'components/search_query_bar.dart';
 import 'search_result_screen_controller.dart';
+import '/ui/design/doudou_colors.dart';
 
 class SearchResultScreenBN extends StatelessWidget {
   const SearchResultScreenBN({
@@ -101,25 +102,20 @@ class SearchResultScreenBN extends StatelessWidget {
                               controller: searchResScrController.tabController,
                               contentPadding:
                                   const EdgeInsets.only(left: 15, right: 15),
-                              backgroundColor: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.color!,
-                              unselectedBackgroundColor:
-                                  Theme.of(context).colorScheme.secondary,
+                              backgroundColor: context
+                                  .doudouColors.accentPrimary,
+                              unselectedBackgroundColor: context
+                                  .doudouColors.surfaceElevated,
                               borderWidth: 0,
                               buttonMargin: const EdgeInsets.only(
                                   right: 10, left: 4, top: 4, bottom: 4),
                               borderColor: Colors.black,
                               labelStyle: TextStyle(
-                                color: Theme.of(context).primaryColor,
+                                color: context.doudouColors.onAccent,
                                 fontWeight: FontWeight.bold,
                               ),
                               unselectedLabelStyle: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.color!,
+                                color: context.doudouColors.textPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
                               // Add your tabs here
