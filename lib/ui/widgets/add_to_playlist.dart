@@ -46,7 +46,7 @@ class AddToPlaylist extends StatelessWidget {
                           id: "createNewPlaylistx",
                           delay: const Duration(milliseconds: 300),
                           child: Text(
-                            context.l10n.createNewPlaylist,
+                            context.l10n.addToPlaylist,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),

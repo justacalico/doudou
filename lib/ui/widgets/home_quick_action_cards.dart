@@ -131,7 +131,7 @@ class _HomeQuickActionCard extends StatelessWidget {
               ? const EdgeInsets.symmetric(horizontal: 10, vertical: 12)
               : const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: kDoudouSurface,
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(kDoudouRadiusCard),
             border: Border.all(color: theme.dividerColor, width: 1),
           ),

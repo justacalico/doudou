@@ -488,6 +488,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Добавьте музыку в библиотеку, чтобы увидеть её здесь';
 
   @override
+  String get connectServerHint => 'Подключите музыкальный сервер, чтобы начать';
+
+  @override
   String get shuffleAll => 'Перемешать всё';
 
   @override

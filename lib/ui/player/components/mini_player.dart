@@ -400,7 +400,7 @@ class _DesktopMiniPlayerState extends State<_DesktopMiniPlayer> {
                                       onPressed: controller.toggleFavourite,
                                       isActive:
                                           controller.isCurrentSongFav.isTrue,
-                                      color: c.accentPrimary,
+                                      color: theme.colorScheme.error,
                                     )),
                                 if (!compactDesktop) ...[
                                   const SizedBox(width: 4),

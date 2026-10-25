@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+
+import '../design/doudou_colors.dart';
 import 'package:doudou/ui/constants/doudou_design.dart';
 
 class CommonDialog extends StatelessWidget {
@@ -21,10 +23,11 @@ class CommonDialog extends StatelessWidget {
               filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
               child: Container(
                 decoration: BoxDecoration(
-                  color: kDoudouSurface,
+                  color: context.doudouColors.surfaceModal
+                      .withValues(alpha: 0.92),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: kDoudouBorder,
+                    color: context.doudouColors.borderSubtle,
                     width: 1,
                   ),
                   boxShadow: [
@@ -35,7 +38,10 @@ class CommonDialog extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: child,
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             ),
           ),

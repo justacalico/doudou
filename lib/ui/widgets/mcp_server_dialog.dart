@@ -124,6 +124,14 @@ class _McpServerDialogState extends State<McpServerDialog> {
                 ],
               );
             }),
+            const SizedBox(height: DoudouSpace.s12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.close),
+              ),
+            ),
           ],
         ),
       ),

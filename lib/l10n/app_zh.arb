@@ -777,5 +777,7 @@
   "settingsAppInfoDes": "版本与许可",
   "@settingsAppInfoDes": {},
   "searchHistoryEmpty": "最近的搜索将显示在这里",
-  "@searchHistoryEmpty": {}
+  "@searchHistoryEmpty": {},
+  "connectServerHint": "连接音乐服务器即可开始使用",
+  "@connectServerHint": {}
 }

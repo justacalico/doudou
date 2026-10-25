@@ -388,7 +388,7 @@ class _WideShortNowPlayingStrip extends StatelessWidget {
                                       ? Icons.favorite_rounded
                                       : Icons.favorite_border_rounded,
                                   color: pc.isCurrentSongFav.isTrue
-                                      ? const Color(0xFFEC4899)
+                                      ? Theme.of(context).colorScheme.error
                                       : mutedColor,
                                 ),
                               )),

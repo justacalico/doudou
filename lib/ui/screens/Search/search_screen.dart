@@ -151,7 +151,7 @@ class SearchScreen extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 16),
                             decoration: BoxDecoration(
-                              color: kDoudouSurface,
+                              color: context.doudouColors.surfaceElevated,
                               borderRadius:
                                   BorderRadius.circular(kDoudouRadiusCard),
                               border: Border.all(

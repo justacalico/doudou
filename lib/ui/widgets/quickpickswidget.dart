@@ -28,7 +28,7 @@ class QuickPicksWidget extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 context.trKey(content.title),
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20),
               )),
           const SizedBox(height: 10),
           Expanded(
@@ -69,7 +69,7 @@ class QuickPicksWidget extends StatelessWidget {
                         }
                       },
                       child: ListTile(
-                          contentPadding: const EdgeInsets.only(left: 5),
+                          contentPadding: EdgeInsets.zero,
                           leading: ImageWidget(
                             song: content.songList[item],
                             size: 55,
@@ -82,7 +82,7 @@ class QuickPicksWidget extends StatelessWidget {
                           subtitle: Text(
                             "${content.songList[item].artist}",
                             maxLines: 1,
-                            style: Theme.of(context).textTheme.titleSmall,
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                           onTap: () {
                             playerController

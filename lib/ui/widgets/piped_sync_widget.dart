@@ -18,6 +18,7 @@ class PipedSyncWidget extends StatelessWidget {
       child: RotationTransition(
         turns: Tween(begin: 0.0, end: 1.0).animate(librplstCntrller.controller),
         child: IconButton(
+            tooltip: AppLocalizations.of(context)!.pipedplstSyncAlert,
             splashRadius: 20,
             iconSize: 20,
             visualDensity: const VisualDensity(vertical: -4),

@@ -7,6 +7,8 @@ import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import '../design/doudou_colors.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
@@ -122,7 +124,7 @@ class BackupDialog extends StatelessWidget {
                 child: Align(
                   child: Container(
                     decoration: BoxDecoration(
-                        color: Theme.of(context).textTheme.titleLarge!.color,
+                        color: context.doudouColors.accentPrimary,
                         borderRadius: BorderRadius.circular(10)),
                     child: InkWell(
                       onTap: () {

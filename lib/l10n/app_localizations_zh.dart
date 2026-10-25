@@ -470,6 +470,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get addMusicToLibraryHint => '添加音乐到曲库即可在此查看';
 
   @override
+  String get connectServerHint => '连接音乐服务器即可开始使用';
+
+  @override
   String get shuffleAll => '全部随机播放';
 
   @override

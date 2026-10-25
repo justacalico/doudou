@@ -5,9 +5,11 @@ import 'package:get/get.dart';
 import '../player_controller.dart';
 
 class LyricsBlockHighlightView extends StatefulWidget {
-  const LyricsBlockHighlightView({super.key, required this.padding});
+  const LyricsBlockHighlightView(
+      {super.key, required this.padding, this.onDarkSurface = false});
 
   final EdgeInsetsGeometry padding;
+  final bool onDarkSurface;
 
   @override
   State<LyricsBlockHighlightView> createState() =>
@@ -44,9 +46,9 @@ class _LyricsBlockHighlightViewState extends State<LyricsBlockHighlightView> {
   Widget build(BuildContext context) {
     final pc = Get.find<PlayerController>();
     final theme = Theme.of(context);
-    final textStyle = pc.isDesktopLyricsDialogOpen
-        ? theme.textTheme.titleMedium
-        : theme.textTheme.titleMedium?.copyWith(color: Colors.white);
+    final textStyle = widget.onDarkSurface
+        ? theme.textTheme.titleMedium?.copyWith(color: Colors.white)
+        : theme.textTheme.titleMedium;
 
     return Obx(() {
       final syncedRaw = pc.lyrics['synced']?.toString() ?? '';

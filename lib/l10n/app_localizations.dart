@@ -959,6 +959,12 @@ abstract class AppLocalizations {
   /// **'Add music to your library to see it here, mate'**
   String get addMusicToLibraryHint;
 
+  /// No description provided for @connectServerHint.
+  ///
+  /// In en_AU, this message translates to:
+  /// **'Connect a music server to get started'**
+  String get connectServerHint;
+
   /// No description provided for @shuffleAll.
   ///
   /// In en_AU, this message translates to:

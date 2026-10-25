@@ -171,7 +171,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                           const Icon(Icons.shuffle_rounded, size: 18),
                           const SizedBox(width: 8),
                           Text(
-                            "SHUFFLED",
+                            context.l10n.shuffle,
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall
@@ -233,8 +233,6 @@ class _UpNextQueueState extends State<UpNextQueue> {
                     top: 8, bottom: widget.isQueueInSlidePanel ? 80 : 0),
                 physics: const AlwaysScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
-                  final homeScaffoldContext =
-                      Get.find<ShellController>().overlayContextOrFallback!;
                   final item = queue[index];
                   final isCurrent = index == currentIndex;
                   return Material(
@@ -291,7 +289,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                         tileColor: isCurrent
                             ? context.doudouColors.accentPrimary
                                 .withValues(alpha: 0.15)
-                            : Theme.of(homeScaffoldContext)
+                            : Theme.of(context)
                                 .bottomSheetTheme
                                 .backgroundColor,
                         shape: isCurrent
@@ -302,30 +300,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                                 ),
                               )
                             : null,
-                        leading: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (GetPlatform.isDesktop)
-                              IconButton(
-                                onPressed: () {
-                                  if (isCurrent) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      snackbar(
-                                        context,
-                                        context
-                                            .l10n.songRemovedfromQueueCurrSong,
-                                        size: SnackBarSize.BIG,
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  playerController.removeFromQueue(item);
-                                },
-                                icon: const Icon(Icons.close),
-                              ),
-                            ImageWidget(size: 50, song: item),
-                          ],
-                        ),
+                        leading: ImageWidget(size: 50, song: item),
                         title: isCurrent
                             ? Marquee(
                                 delay: const Duration(milliseconds: 300),
@@ -334,7 +309,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                                 child: Text(
                                   item.title,
                                   maxLines: 1,
-                                  style: Theme.of(homeScaffoldContext)
+                                  style: Theme.of(context)
                                       .textTheme
                                       .titleMedium,
                                 ),
@@ -343,7 +318,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                                 item.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(homeScaffoldContext)
+                                style: Theme.of(context)
                                     .textTheme
                                     .titleMedium,
                               ),
@@ -351,7 +326,7 @@ class _UpNextQueueState extends State<UpNextQueue> {
                           "${item.artist}",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(homeScaffoldContext)
+                          style: Theme.of(context)
                               .textTheme
                               .titleSmall!
                               .copyWith(
@@ -380,10 +355,37 @@ class _UpNextQueueState extends State<UpNextQueue> {
                                       )
                                     : Text(
                                         item.extras?['length'] ?? "",
-                                        style: Theme.of(homeScaffoldContext)
+                                        style: Theme.of(context)
                                             .textTheme
                                             .titleSmall,
                                       ),
+                                if (GetPlatform.isDesktop)
+                                  InkWell(
+                                    onTap: () {
+                                      if (isCurrent) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          snackbar(
+                                            context,
+                                            context.l10n
+                                                .songRemovedfromQueueCurrSong,
+                                            size: SnackBarSize.BIG,
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      playerController.removeFromQueue(item);
+                                    },
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.color
+                                          ?.withValues(alpha: 0.5),
+                                    ),
+                                  ),
                               ],
                             ),
                           ),

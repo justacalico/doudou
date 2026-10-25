@@ -119,11 +119,12 @@ class _ImageWidgetState extends State<ImageWidget> {
           color: colors.surfaceElevated,
           shape: artist != null ? BoxShape.circle : BoxShape.rectangle,
           borderRadius: artist != null ? null : BorderRadius.circular(10),
+          border: Border.all(color: colors.borderSubtle),
         ),
         child: Center(
           child: Icon(
             placeholderGlyph(),
-            color: colors.textTertiary,
+            color: colors.textSecondary,
             size: widget.size * 0.35,
           ),
         ),

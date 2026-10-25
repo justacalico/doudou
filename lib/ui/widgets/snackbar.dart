@@ -13,17 +13,18 @@ SnackBar snackbar(BuildContext context, String text,
     Duration duration = const Duration(seconds: 1),
     bool top = false}) {
   final scrWidth = MediaQuery.of(context).size.width;
-  final hrMargin = size == SnackBarSize.BIG
-      ? (scrWidth - 300) / 2
+  final barWidth = size == SnackBarSize.BIG
+      ? 300.0
       : size == SnackBarSize.MEDIUM
-          ? (scrWidth - 200) / 2
-          : (scrWidth - 100) / 2;
+          ? 220.0
+          : 120.0;
+  final hrMargin = ((scrWidth - barWidth) / 2).clamp(16.0, scrWidth);
   return SnackBar(
-    backgroundColor: Theme.of(context).colorScheme.secondary,
+    backgroundColor: context.doudouColors.surfaceModal,
     content: Center(
       child: Text(
         text,
-        style: TextStyle(color: context.doudouColors.onAccent),
+        style: TextStyle(color: context.doudouColors.textPrimary),
       ),
     ),
     margin: EdgeInsets.only(

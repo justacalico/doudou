@@ -365,6 +365,8 @@
   "@noBookmarks": {},
   "addMusicToLibraryHint": "Add music to your library to see it here",
   "@addMusicToLibraryHint": {},
+  "connectServerHint": "Connect a music server to get started",
+  "@connectServerHint": {},
   "shuffleAll": "Shuffle all",
   "@shuffleAll": {},
   "shuffleFavorites": "Shuffle favorites",

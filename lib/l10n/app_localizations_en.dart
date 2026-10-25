@@ -483,6 +483,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add music to your library to see it here';
 
   @override
+  String get connectServerHint => 'Connect a music server to get started';
+
+  @override
   String get shuffleAll => 'Shuffle all';
 
   @override
@@ -2213,6 +2216,9 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   @override
   String get addMusicToLibraryHint =>
       'Add music to your library to see it here, mate';
+
+  @override
+  String get connectServerHint => 'Connect a music server to get started';
 
   @override
   String get shuffleAll => 'Shuffle all';

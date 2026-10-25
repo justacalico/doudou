@@ -10,7 +10,9 @@ import '../player_controller.dart';
 
 class LyricsWidget extends StatefulWidget {
   final EdgeInsetsGeometry padding;
-  const LyricsWidget({super.key, required this.padding});
+  final bool onDarkSurface;
+  const LyricsWidget(
+      {super.key, required this.padding, this.onDarkSurface = false});
 
   @override
   State<LyricsWidget> createState() => _LyricsWidgetState();
@@ -57,12 +59,12 @@ class _LyricsWidgetState extends State<LyricsWidget> {
                         ? context.l10n.lyricsNotAvailable
                         : playerController.lyrics["plainLyrics"],
                     textAlign: TextAlign.center,
-                    style: playerController.isDesktopLyricsDialogOpen
-                        ? Theme.of(context).textTheme.titleMedium!
-                        : Theme.of(context)
+                    style: widget.onDarkSurface
+                        ? Theme.of(context)
                             .textTheme
                             .titleMedium!
-                            .copyWith(color: Colors.white),
+                            .copyWith(color: Colors.white)
+                        : Theme.of(context).textTheme.titleMedium!,
                   ),
                 ),
               ),
@@ -72,7 +74,8 @@ class _LyricsWidgetState extends State<LyricsWidget> {
 
         final lyricsStyle = settingsController.syncedLyricsHighlightStyle.value;
         if (lyricsStyle == SyncedLyricsHighlightStyle.block) {
-          return LyricsBlockHighlightView(padding: widget.padding);
+          return LyricsBlockHighlightView(
+            padding: widget.padding, onDarkSurface: widget.onDarkSurface);
         }
         final karaokePadding = widget.padding is EdgeInsets
             ? widget.padding as EdgeInsets
@@ -93,19 +96,19 @@ class _LyricsWidgetState extends State<LyricsWidget> {
                 Icon(
                   Icons.lyrics_outlined,
                   size: 28,
-                  color: playerController.isDesktopLyricsDialogOpen
-                      ? Theme.of(context).textTheme.bodySmall?.color
-                      : Colors.white.withValues(alpha: 0.6),
+                  color: widget.onDarkSurface
+                      ? Colors.white.withValues(alpha: 0.6)
+                      : Theme.of(context).textTheme.bodySmall?.color,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   context.l10n.syncedLyricsNotAvailable,
-                  style: playerController.isDesktopLyricsDialogOpen
-                      ? Theme.of(context).textTheme.titleMedium!
-                      : Theme.of(context)
+                  style: widget.onDarkSurface
+                      ? Theme.of(context)
                           .textTheme
                           .titleMedium!
-                          .copyWith(color: Colors.white),
+                          .copyWith(color: Colors.white)
+                      : Theme.of(context).textTheme.titleMedium!,
                 ),
               ],
             ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '/ui/design/doudou_colors.dart';
+
 import '/ui/widgets/modified_text_field.dart';
 import '../search_result_screen_controller.dart';
 import 'search_clear_button.dart';
@@ -44,8 +46,8 @@ class SearchQueryBar extends StatelessWidget {
               textCapitalization: TextCapitalization.sentences,
               textInputAction: TextInputAction.search,
               onSubmitted: _onSubmitted,
-              style: theme.textTheme.titleMedium,
-              cursorColor: theme.textTheme.bodySmall!.color,
+              style: theme.textTheme.bodyLarge,
+              cursorColor: context.doudouColors.accentPrimary,
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,

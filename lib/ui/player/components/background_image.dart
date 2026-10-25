@@ -66,8 +66,14 @@ class BackgroundImage extends StatelessWidget {
                     imageUrl:
                         playerController.currentSong.value!.artUri.toString(),
                     cacheKey: "${playerController.currentSong.value!.id}_song",
+                    errorWidget: (context, url, error) => Container(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                        ),
                   )
-            : Container(),
+            : Container(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest),
       ),
     );
   }

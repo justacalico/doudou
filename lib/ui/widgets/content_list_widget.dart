@@ -103,7 +103,7 @@ class ContentListWidget extends StatelessWidget {
                               artist.name,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.titleSmall,
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ],
                         ),

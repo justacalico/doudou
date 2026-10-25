@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '/ui/constants/doudou_design.dart';
+import '/utils/app_l10n.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
 import '../../../navigator.dart';
 
@@ -65,7 +66,10 @@ class SearchItem extends StatelessWidget {
               ),
               if (isHistoryString)
                 IconButton(
-                  icon: Icon(Icons.clear, size: 20, color: iconColor),
+                  tooltip: context.l10n.delete,
+                  icon: Icon(Icons.clear,
+                      size: 20,
+                      color: iconColor.withValues(alpha: 0.45)),
                   onPressed: () {
                     searchScreenController.removeQueryFromHistory(queryString);
                   },
@@ -76,6 +80,7 @@ class SearchItem extends StatelessWidget {
                 ),
               const SizedBox(width: 4),
               IconButton(
+                tooltip: context.l10n.search,
                 icon: Icon(Icons.north_west, size: 20, color: iconColor),
                 onPressed: () {
                   searchScreenController.suggestionInput(queryString);

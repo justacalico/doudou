@@ -1169,5 +1169,7 @@
   "settingsAppInfoDes": "Версия и лицензии",
   "@settingsAppInfoDes": {},
   "searchHistoryEmpty": "Здесь появятся ваши запросы",
-  "@searchHistoryEmpty": {}
+  "@searchHistoryEmpty": {},
+  "connectServerHint": "Подключите музыкальный сервер, чтобы начать",
+  "@connectServerHint": {}
 }

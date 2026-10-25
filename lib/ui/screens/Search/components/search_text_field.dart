@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '/ui/design/doudou_colors.dart';
+
 import '/utils/app_l10n.dart';
 import '/ui/widgets/modified_text_field.dart';
 import 'search_clear_button.dart';
@@ -30,7 +32,7 @@ class SearchTextField extends StatelessWidget {
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       autofocus: autofocus,
-      cursorColor: theme.textTheme.bodySmall!.color,
+      cursorColor: context.doudouColors.accentPrimary,
       decoration: InputDecoration(
         border: InputBorder.none,
         enabledBorder: InputBorder.none,
