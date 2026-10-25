@@ -109,7 +109,7 @@ class RestoreDialog extends StatelessWidget {
                                     ? context.l10n.restartApp
                                     : context.l10n.restore,
                                 style: TextStyle(
-                                    color: Theme.of(context).canvasColor),
+                                    color: context.doudouColors.onAccent),
                               ),
                             ),
                           ),

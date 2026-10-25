@@ -56,6 +56,14 @@ class AddToPlaylist extends StatelessWidget {
                       width: 10,
                     ),
                     InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Icon(Icons.close,
+                            color: context.doudouColors.textSecondary),
+                      ),
+                    ),
+                    InkWell(
                       child: Icon(Icons.playlist_add, color: context.doudouColors.textSecondary),
                       onTap: () {
                         Navigator.of(context).pop();

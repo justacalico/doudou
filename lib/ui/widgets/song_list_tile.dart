@@ -83,7 +83,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                 onPressed: (context) {
                   removeSongFromPlaylist(song, playlist!);
                 },
-                backgroundColor: theme.colorScheme.secondary,
+                backgroundColor: theme.colorScheme.error,
                 foregroundColor: theme.textTheme.titleMedium!.color,
                 icon: Icons.delete,
                 //label: 'delete',

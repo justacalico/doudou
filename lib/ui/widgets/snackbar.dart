@@ -33,7 +33,7 @@ SnackBar snackbar(BuildContext context, String text,
         right: hrMargin),
     behavior: SnackBarBehavior.floating,
     duration: duration,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: context.doudouColors.borderSubtle)),
   );
 }
 

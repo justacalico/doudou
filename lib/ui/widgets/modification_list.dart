@@ -72,7 +72,8 @@ class ModificationList extends StatelessWidget {
           itemBuilder: (context, index) => ListTile(
             onTap: () {
               screenController.additionalOperationTempMap[index] =
-                  !screenController.additionalOperationTempMap[index]!;
+                  !(screenController.additionalOperationTempMap[index] ??
+                      false);
               screenController.checkIfAllSelected();
             },
             contentPadding: const EdgeInsets.only(top: 0, left: 5, right: 30),
@@ -83,8 +84,9 @@ class ModificationList extends StatelessWidget {
                 children: [
                   Obx(
                     () => Checkbox(
-                      tristate: true,
-                      value: screenController.additionalOperationTempMap[index],
+                      value: screenController
+                              .additionalOperationTempMap[index] ??
+                          false,
                       onChanged: (val) {
                         screenController.additionalOperationTempMap[index] =
                             val!;

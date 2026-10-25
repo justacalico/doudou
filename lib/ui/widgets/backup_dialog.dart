@@ -151,7 +151,7 @@ class BackupDialog extends StatelessWidget {
                                     ? context.l10n.close
                                     : context.l10n.backup,
                                 style: TextStyle(
-                                    color: Theme.of(context).canvasColor),
+                                    color: context.doudouColors.onAccent),
                               ),
                             ),
                           ),

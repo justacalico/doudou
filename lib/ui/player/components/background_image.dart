@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../screens/Settings/settings_screen_controller.dart';
 import '/ui/utils/theme_controller.dart';
 import '../player_controller.dart';
+import '../../design/doudou_colors.dart';
 
 class BackgroundImage extends StatelessWidget {
   const BackgroundImage({super.key, this.cacheHeight});
@@ -67,13 +68,11 @@ class BackgroundImage extends StatelessWidget {
                         playerController.currentSong.value!.artUri.toString(),
                     cacheKey: "${playerController.currentSong.value!.id}_song",
                     errorWidget: (context, url, error) => Container(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
+                          color: context.doudouColors.appBackground,
                         ),
                   )
             : Container(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest),
+                color: context.doudouColors.appBackground),
       ),
     );
   }
