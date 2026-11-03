@@ -54,8 +54,7 @@ class _RadioSelectorDialog<T> extends StatelessWidget {
 
     return CommonDialog(
       child: Material(
-        color:
-            theme.dialogTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
+        type: MaterialType.transparency,
         borderRadius: DoudouRadii.r16,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: DoudouSpace.s16),
