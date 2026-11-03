@@ -61,44 +61,13 @@ mixin _SettingsViewInfoMixin on __SettingsViewStateBase {
       _SettingsListTile(
         leading: const Icon(Icons.public, size: 20),
         title: context.l10n.openGitlab,
-        subtitle: _buildGitlabSubtitle(context),
+        subtitle: context.l10n.gitlabDes,
         onTap: () => launchUrl(
           Uri.parse('https://gitlab.com/Openlyst/doudou/'),
           mode: LaunchMode.externalApplication,
         ),
       ),
     ];
-  }
-
-  Widget _buildGitlabSubtitle(BuildContext context) {
-    final colors = context.doudouColors;
-    final theme = Theme.of(context);
-    final text = context.l10n.gitlabDes;
-    final parts = text.split('⭐');
-    final spans = <InlineSpan>[];
-
-    for (var i = 0; i < parts.length; i++) {
-      if (i > 0) {
-        spans.add(WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: Icon(
-            Icons.star_rounded,
-            size: 14,
-            color: colors.accentPrimary,
-          ),
-        ));
-      }
-      spans.add(TextSpan(text: parts[i]));
-    }
-
-    return Text.rich(
-      TextSpan(children: spans),
-      maxLines: 3,
-      overflow: TextOverflow.ellipsis,
-      style: theme.textTheme.bodySmall?.copyWith(
-        color: colors.textTertiary,
-      ),
-    );
   }
 }
 

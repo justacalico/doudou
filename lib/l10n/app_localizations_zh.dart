@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -1105,7 +1106,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gitlab => 'GitLab';
 
   @override
-  String get gitlabDes => '查看 GitLab 源码 \n如果你喜欢本项目，别忘了给一颗 ⭐';
+  String get gitlabDes => '查看 GitLab 源码';
 
   @override
   String get checkForUpdates => '检查更新';
