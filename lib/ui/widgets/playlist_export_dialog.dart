@@ -174,7 +174,7 @@ class _ExportButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Theme.of(context).cardColor,
+      type: MaterialType.transparency,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,
@@ -236,7 +236,7 @@ class _SplitExportButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Theme.of(context).cardColor,
+      type: MaterialType.transparency,
       borderRadius: BorderRadius.circular(10),
       child: Container(
         decoration: BoxDecoration(

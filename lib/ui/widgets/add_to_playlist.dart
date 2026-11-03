@@ -104,10 +104,7 @@ class AddToPlaylist extends StatelessWidget {
                     ),
                   ),
                 ),
-              Container(
-                decoration: BoxDecoration(
-                    color: context.doudouColors.surfaceBase,
-                    borderRadius: BorderRadius.circular(10)),
+              SizedBox(
                 height: 250,
                 child: Obx(
                   () => addToPlaylistController.playlists.isNotEmpty
