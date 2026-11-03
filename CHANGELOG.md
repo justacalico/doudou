@@ -18,6 +18,7 @@ previously per-version files that lived under `changelog/`.
 - The settings entry for connecting to a doudou server is now called "Doudou server" instead of "Device sync", and hosted backends are grouped under "From doudou server". The data lives on the server rather than being copied to each device, so the new name describes it better.
 - The sync server now hosts a web dashboard at `/app`, built in Flutter and embedded into the binary so nothing extra has to be installed. It covers first-run password setup when none was chosen yet, login with its own revocable sessions, a password change dialog, downloading and importing `.hmb` backups, a list of synced boxes, and a live tail of the server log. Logins share the same rate limiting as sync clients, and changing the password rotates the stored hash without kicking connected clients offline.
 - The sync server can host backends of its own. Backends added through the web dashboard are stored inside the database so they travel with `.hmb` backups and are shared to every connected client over a new `/api/backends` endpoint. Clients show them as read-only remote entries under a "From sync server" section in Settings > Servers; they can be selected like a local server while local entries are never touched. Remote entries get stable negative ids so every device shares the same synced library namespaces, and they disappear cleanly when device sync is turned off.
+- The Library page now lists Playlists as its first tab and opens on it by default instead of Albums.
 
 ## 23.0.0
 
