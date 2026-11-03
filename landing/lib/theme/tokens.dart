@@ -1,9 +1,3 @@
-// Hallmark · macrostructure: Split Studio · H2 hero knobs: ratio=6/6, right=screenshot pair, divider=negative space
-// theme: custom · vibe: "apple-keynote clean, product violet" · paper oklch(98% 0.006 293) · accent oklch(50% 0.20 293) violet
-// display: Geist · body: Geist · axes: light / geometric-sans / chromatic-violet
-// nav: N9 edge-aligned · footer: Ft2 inline single line · context: user-provided
-// Hallmark · pre-emit critique: P4 H4 E4 S5 R5 V5
-// contrast: pass (40-41) · honest: pass (46) · chrome: pass (47) · tokens: pass (48) · responsive: pass (49) · icons: pass (30) · mobile: pass (34, 50-57)
 import 'package:flutter/widgets.dart';
 
 /// Design tokens. Every colour is tinted toward the violet anchor (hue ~293)
