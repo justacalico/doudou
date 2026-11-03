@@ -187,6 +187,18 @@ void main() {
       }
     });
 
+    test('gitlabDes has no star request in any locale', () {
+      for (final locale in AppLocalizations.supportedLocales) {
+        final l10n = lookupAppLocalizations(locale);
+        expect(l10n.gitlabDes.contains('⭐'), isFalse,
+            reason: 'star left in $locale');
+      }
+      expect(lookupAppLocalizations(const Locale('en', 'AU')).gitlabDes,
+          'View GitLab source code');
+      expect(lookupAppLocalizations(const Locale('zh')).gitlabDes,
+          '查看 GitLab 源码');
+    });
+
     test('English values match the strings they replace', () {
       final l10n = lookupAppLocalizations(const Locale('en', 'AU'));
       expect(l10n.queue, 'Queue');

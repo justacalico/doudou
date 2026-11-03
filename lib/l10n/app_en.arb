@@ -787,7 +787,7 @@
   "@githubDes": {},
   "gitlab": "GitLab",
   "@gitlab": {},
-  "gitlabDes": "View GitLab source code\nif you like this project, don't forget to give a ⭐",
+  "gitlabDes": "View GitLab source code",
   "@gitlabDes": {},
   "checkForUpdates": "Check for updates",
   "@checkForUpdates": {},

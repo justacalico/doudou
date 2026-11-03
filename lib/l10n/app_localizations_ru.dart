@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -1158,8 +1159,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get gitlab => 'GitLab';
 
   @override
-  String get gitlabDes =>
-      'Исходный код на GitLab\nесли нравится проект, поставьте ⭐';
+  String get gitlabDes => 'Исходный код на GitLab';
 
   @override
   String get checkForUpdates => 'Проверить обновления';

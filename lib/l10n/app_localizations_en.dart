@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -1151,8 +1152,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gitlab => 'GitLab';
 
   @override
-  String get gitlabDes =>
-      'View GitLab source code\nif you like this project, don\'t forget to give a ⭐';
+  String get gitlabDes => 'View GitLab source code';
 
   @override
   String get checkForUpdates => 'Check for updates';
@@ -2892,8 +2892,7 @@ class AppLocalizationsEnAu extends AppLocalizationsEn {
   String get gitlab => 'GitLab';
 
   @override
-  String get gitlabDes =>
-      'View GitLab source code\nif you like this project, don\'t forget to give a ⭐';
+  String get gitlabDes => 'View GitLab source code';
 
   @override
   String get checkForUpdates => 'Check for updates';
