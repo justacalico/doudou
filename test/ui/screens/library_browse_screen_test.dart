@@ -76,6 +76,23 @@ void main() {
     expect(find.text('Обзор'), findsOneWidget);
   });
 
+  testWidgets('playlists is the first tab and selected by default',
+      (tester) async {
+    await pumpScreen(tester, const Locale('en', 'AU'));
+
+    final topbar = find.byWidgetPredicate((widget) =>
+        widget is SingleChildScrollView &&
+        widget.scrollDirection == Axis.horizontal);
+    final labels = tester
+        .widgetList<Text>(
+            find.descendant(of: topbar, matching: find.byType(Text)))
+        .toList();
+
+    expect(labels.map((t) => t.data).toList(), ['Playlists', 'Downloads']);
+    expect(labels.first.style?.fontWeight, FontWeight.w600);
+    expect(labels.last.style?.fontWeight, FontWeight.w500);
+  });
+
   testWidgets('header title has no purple accent dot', (tester) async {
     await pumpScreen(tester, const Locale('en', 'AU'));
 

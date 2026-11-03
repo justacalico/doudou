@@ -22,7 +22,7 @@ class LibraryBrowseScreen extends StatefulWidget {
 }
 
 class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
-  int _selectedContentIndex = 0;
+  int _selectedContentIndex = 3;
   bool _headerCollapsed = false;
   double _lastScrollPixels = 0;
 
@@ -113,12 +113,12 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen> {
                     : 0;
 
             final tabs = <_TabItem>[];
-            if (albumsCount > 0) tabs.add(_TabItem(context.l10n.albums, 0));
-            if (songsCount > 0) tabs.add(_TabItem(context.l10n.songs, 1));
-            if (artistsCount > 0) tabs.add(_TabItem(context.l10n.artists, 2));
             if (playlistsCount > 0) {
               tabs.add(_TabItem(context.l10n.playlists, 3));
             }
+            if (albumsCount > 0) tabs.add(_TabItem(context.l10n.albums, 0));
+            if (songsCount > 0) tabs.add(_TabItem(context.l10n.songs, 1));
+            if (artistsCount > 0) tabs.add(_TabItem(context.l10n.artists, 2));
             tabs.add(_TabItem(context.l10n.downloads, 4));
 
             if (tabs.isEmpty) {
