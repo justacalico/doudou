@@ -306,7 +306,7 @@ void sortArtist(
   }
 }
 
-const _openlystLatestUrl = 'https://openlyst.ink/api/v1/apps/doudou/latest';
+const _openlystLatestUrl = 'https://site--website--t5njkr9m5dx6.code.run/api/v1/apps/doudou/latest';
 
 /// Returns the latest version string if a newer version is available, null otherwise (OpenLyst API).
 Future<String?> newVersionCheck(String currentVersion) async {

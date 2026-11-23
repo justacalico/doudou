@@ -31,7 +31,7 @@ void main() {
         expect(uri.scheme, 'https');
         expect(
           uri.host,
-          isIn(['openlyst.ink', 'gitlab.com', 'github.com']),
+          isIn(['site--website--t5njkr9m5dx6.code.run', 'gitlab.com', 'github.com']),
         );
       }
     });

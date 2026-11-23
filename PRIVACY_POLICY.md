@@ -38,7 +38,7 @@ Self-hosted servers often run on plain HTTP, so the app allows cleartext connect
 
 ## Update Checks
 
-On startup, the app requests `https://openlyst.ink/api/v1/apps/doudou/latest` to learn the newest release version. It's a plain GET: nothing about you, your device, or your library is sent, and the version comparison happens on your device. Like any HTTPS request, our web host sees a connection from your IP address.
+On startup, the app requests `https://site--website--t5njkr9m5dx6.code.run/api/v1/apps/doudou/latest` to learn the newest release version. It's a plain GET: nothing about you, your device, or your library is sent, and the version comparison happens on your device. Like any HTTPS request, our web host sees a connection from your IP address.
 
 You can turn this off under Settings > App info ("Check for updates on startup"), and F-Droid builds skip it entirely.
 
@@ -85,4 +85,4 @@ This policy might change as the app evolves. Any updates will show up in the rep
 
 ## Contact
 
-Got questions? Open an issue on [GitLab](https://gitlab.com/Openlyst/doudou/-/issues) or reach out at [openlyst.ink](https://openlyst.ink).
+Got questions? Open an issue on [GitLab](https://gitlab.com/Openlyst/doudou/-/issues) or reach out at [site--website--t5njkr9m5dx6.code.run](https://site--website--t5njkr9m5dx6.code.run).

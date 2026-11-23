@@ -39,7 +39,7 @@ Android, Android TV, iOS, macOS, Windows and, Linux
 
 ## Download
 
-Get builds for every platform at **[openlyst.ink/apps/doudou](https://openlyst.ink/apps/doudou)**, or visit the **[landing page](https://openlyst.gitlab.io/doudou)**.
+Get builds for every platform at **[site--website--t5njkr9m5dx6.code.run/apps/doudou](https://site--website--t5njkr9m5dx6.code.run/apps/doudou)**, or visit the **[landing page](https://openlyst.gitlab.io/doudou)**.
 
 Nightly builds are also available on **[GitLab Releases](https://gitlab.com/Openlyst/doudou/-/releases)**.
 

@@ -65,7 +65,7 @@ class NewVersionDialog extends StatelessWidget {
                     onPressed: () {
                       const url = _isPlayStore
                           ? 'https://play.google.com/store/apps/details?id=gitlab.openlyst.doudou'
-                          : 'https://openlyst.ink/apps/doudou';
+                          : 'https://site--website--t5njkr9m5dx6.code.run/apps/doudou';
                       launchUrl(
                         Uri.parse(url),
                         mode: LaunchMode.externalApplication,

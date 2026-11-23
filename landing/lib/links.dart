@@ -1,7 +1,7 @@
 import 'package:url_launcher/url_launcher.dart';
 
 abstract final class Links {
-  static const download = 'https://openlyst.ink/apps/doudou';
+  static const download = 'https://site--website--t5njkr9m5dx6.code.run/apps/doudou';
   static const repo = 'https://gitlab.com/Openlyst/doudou';
   static const releases = 'https://gitlab.com/Openlyst/doudou/-/releases';
   static const issues = 'https://gitlab.com/Openlyst/doudou/-/issues';

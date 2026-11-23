@@ -21,6 +21,7 @@ previously per-version files that lived under `changelog/`.
 - The sync server now hosts a web dashboard at `/app`, built in Flutter and embedded into the binary so nothing extra has to be installed. It covers first-run password setup when none was chosen yet, login with its own revocable sessions, a password change dialog, downloading and importing `.hmb` backups, a list of synced boxes, and a live tail of the server log. Logins share the same rate limiting as sync clients, and changing the password rotates the stored hash without kicking connected clients offline.
 - The sync server can host backends of its own. Backends added through the web dashboard are stored inside the database so they travel with `.hmb` backups and are shared to every connected client over a new `/api/backends` endpoint. Clients show them as read-only remote entries under a "From sync server" section in Settings > Servers; they can be selected like a local server while local entries are never touched. Remote entries get stable negative ids so every device shares the same synced library namespaces, and they disappear cleanly when device sync is turned off.
 - The Library page now lists Playlists as its first tab and opens on it by default instead of Albums.
+- Moved off the retired openlyst.ink domain: the startup update check, the download link in the new version dialog and the landing page download button all use the new site domain, and the README, privacy policy and old changelog links were updated to match.
 
 ## 23.0.0
 
@@ -465,7 +466,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 12.0.1
 
-- Updated donate URL | https://openlyst.ink/support (729930a1)
+- Updated donate URL | https://site--website--t5njkr9m5dx6.code.run/support (729930a1)
 - Version bump to 12.0.1
 - Haptic feedback for favorite button (2391af36)
 
