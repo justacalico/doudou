@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:doudou/ui/widgets/window_controls.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,6 +35,8 @@ class TolerantGoldenComparator extends LocalFileComparator {
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   TestWidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
+  WindowControls.debugIsHyprland = true;
+  WindowControls.debugIsKde = false;
   goldenFileComparator = TolerantGoldenComparator(
       Uri.parse('test/goldens/flutter_test_config.dart'));
 

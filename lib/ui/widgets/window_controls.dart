@@ -3,25 +3,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class WindowControls extends StatelessWidget {
-  const WindowControls({super.key});
+  const WindowControls({super.key, this.vertical = false});
+
+  /// Stacks the buttons vertically for narrow layouts such as the minimized
+  /// sidebar, where the horizontal row does not fit.
+  final bool vertical;
 
   static const MethodChannel _channel = MethodChannel('com.openlyst.doudou/window_controls');
 
+  @visibleForTesting
+  static bool? debugIsHyprland;
+
+  @visibleForTesting
+  static bool? debugIsKde;
+
   /// Hyprland (Wayland) doesn't support client-side minimize/maximize the way
   /// the method channel expects, so only the close button is shown there.
-  static final bool _isHyprland = Platform.isLinux &&
-      ((Platform.environment['XDG_CURRENT_DESKTOP'] ?? '')
-          .toLowerCase()
-          .contains('hyprland') ||
-          (Platform.environment['HYPRLAND_INSTANCE_SIGNATURE'] ?? '').isNotEmpty);
+  static bool get _isHyprland =>
+      debugIsHyprland ??
+      (Platform.isLinux &&
+          ((Platform.environment['XDG_CURRENT_DESKTOP'] ?? '')
+              .toLowerCase()
+              .contains('hyprland') ||
+              (Platform.environment['HYPRLAND_INSTANCE_SIGNATURE'] ?? '')
+                  .isNotEmpty));
 
   /// KDE (Plasma) draws its own native title bar, so the in-app controls are
   /// redundant and would duplicate the window manager's buttons.
-  static final bool _isKde = Platform.isLinux &&
-      ((Platform.environment['XDG_CURRENT_DESKTOP'] ?? '')
-          .toUpperCase()
-          .contains('KDE') ||
-          (Platform.environment['KDE_FULL_SESSION'] ?? '').isNotEmpty);
+  static bool get _isKde =>
+      debugIsKde ??
+      (Platform.isLinux &&
+          ((Platform.environment['XDG_CURRENT_DESKTOP'] ?? '')
+              .toUpperCase()
+              .contains('KDE') ||
+              (Platform.environment['KDE_FULL_SESSION'] ?? '').isNotEmpty));
 
   Future<void> _minimize() async {
     try {
@@ -59,44 +74,53 @@ class WindowControls extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final gap = Platform.isMacOS ? 8.0 : 4.0;
+    final buttons = <Widget>[
+      if (Platform.isMacOS) ...[
+        _MacOSWindowControl(
+          color: Colors.red,
+          onPressed: _close,
+        ),
+        _MacOSWindowControl(
+          color: Colors.yellow,
+          onPressed: _minimize,
+        ),
+        _MacOSWindowControl(
+          color: Colors.green,
+          onPressed: _maximize,
+        ),
+      ] else ...[
+        _WindowControlButton(
+          icon: Icons.close,
+          onPressed: _close,
+          isCloseButton: true,
+        ),
+        if (!_isHyprland) ...[
+          _WindowControlButton(
+            icon: Icons.crop_square,
+            onPressed: _maximize,
+          ),
+          _WindowControlButton(
+            icon: Icons.minimize,
+            onPressed: _minimize,
+          ),
+        ],
+      ],
+    ];
+
     return Container(
-      height: 40,
+      height: vertical ? null : 40,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Row(
+      child: Flex(
+        direction: vertical ? Axis.vertical : Axis.horizontal,
         children: [
-          if (Platform.isMacOS) ...[
-            _MacOSWindowControl(
-              color: Colors.red,
-              onPressed: _close,
-            ),
-            const SizedBox(width: 8),
-            _MacOSWindowControl(
-              color: Colors.yellow,
-              onPressed: _minimize,
-            ),
-            const SizedBox(width: 8),
-            _MacOSWindowControl(
-              color: Colors.green,
-              onPressed: _maximize,
-            ),
-          ] else ...[
-            _WindowControlButton(
-              icon: Icons.close,
-              onPressed: _close,
-              isCloseButton: true,
-            ),
-            if (!_isHyprland) ...[
-              const SizedBox(width: 4),
-              _WindowControlButton(
-                icon: Icons.crop_square,
-                onPressed: _maximize,
+          for (var i = 0; i < buttons.length; i++) ...[
+            if (i != 0)
+              SizedBox(
+                width: vertical ? 0 : gap,
+                height: vertical ? gap : 0,
               ),
-              const SizedBox(width: 4),
-              _WindowControlButton(
-                icon: Icons.minimize,
-                onPressed: _minimize,
-              ),
-            ],
+            buttons[i],
           ],
         ],
       ),
