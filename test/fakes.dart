@@ -1,5 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:doudou/models/server.dart';
+import 'package:doudou/services/backend/music_backend.dart';
 import 'package:doudou/services/library_sync_service.dart';
 import 'package:doudou/services/music_service.dart';
 import 'package:doudou/services/playback_diagnostics_service.dart';
@@ -158,6 +159,7 @@ class FakeSettingsScreenController extends SettingsScreenController {
   bool isNightlyBuild = false;
 
   ServerType serverType = ServerType.youtubeMusic;
+  MusicBackend? backend;
 
   @override
   // ignore: must_call_super
@@ -169,6 +171,9 @@ class FakeSettingsScreenController extends SettingsScreenController {
         name: 'Test',
         type: serverType,
       );
+
+  @override
+  MusicBackend get currentBackend => backend ?? super.currentBackend;
 }
 
 class FakeLibrarySyncService extends LibrarySyncService {

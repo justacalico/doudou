@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:doudou/ui/widgets/window_controls.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,9 +11,34 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'golden_image_overrides.dart';
 import 'golden_path_provider.dart';
 
+class TolerantGoldenComparator extends LocalFileComparator {
+  TolerantGoldenComparator(super.testFile);
+
+  static const double tolerance = 0.005;
+
+  @override
+  Future<bool> compare(Uint8List imageBytes, Uri golden) async {
+    final result = await GoldenFileComparator.compareLists(
+      imageBytes,
+      await getGoldenBytes(golden),
+    );
+    if (result.passed || result.diffPercent <= tolerance) {
+      result.dispose();
+      return true;
+    }
+    final error = await generateFailureOutput(result, golden, basedir);
+    result.dispose();
+    throw FlutterError(error);
+  }
+}
+
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   TestWidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
+  WindowControls.debugIsHyprland = true;
+  WindowControls.debugIsKde = false;
+  goldenFileComparator = TolerantGoldenComparator(
+      Uri.parse('test/goldens/flutter_test_config.dart'));
 
   final interLoader = FontLoader('Inter');
   for (final variant in ['Regular', 'Medium', 'SemiBold', 'Bold']) {

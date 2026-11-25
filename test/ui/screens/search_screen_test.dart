@@ -7,6 +7,7 @@ import 'package:doudou/ui/screens/Search/search_screen.dart';
 import 'package:doudou/ui/screens/Search/search_screen_controller.dart';
 import 'package:doudou/ui/screens/Settings/settings_screen_controller.dart';
 import 'package:doudou/ui/shell_controller.dart';
+import 'package:doudou/utils/server_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -21,6 +22,9 @@ void main() {
     dir = await Directory.systemTemp.createTemp('search_screen_test_');
     Hive.init(dir.path);
     await Hive.openBox('AppPrefs');
+    // SearchScreenController opens this lazily in onInit; opening it here
+    // keeps the async work from outliving the test.
+    await Hive.openBox(searchQueryBoxName(0));
     Get.put<MusicServices>(FakeMusicServices());
     Get.put<SettingsScreenController>(FakeSettingsScreenController());
     Get.put(ShellController());

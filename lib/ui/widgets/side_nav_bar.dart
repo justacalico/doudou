@@ -88,16 +88,18 @@ class _SidebarContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (Platform.isMacOS || Platform.isLinux || Platform.isWindows)
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(
-                left: 12,
+                left: minimized ? 0 : 12,
                 top: 8,
                 bottom: 4,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [WindowControls()],
-              ),
+              child: minimized
+                  ? const Center(child: WindowControls(vertical: true))
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [WindowControls()],
+                    ),
             ),
           Expanded(
             child: ScrollConfiguration(

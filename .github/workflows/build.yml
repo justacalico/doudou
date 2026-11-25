@@ -306,6 +306,21 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Patch cargokit for Gradle 9
+        if: startsWith(matrix.target, 'android')
+        shell: bash
+        run: |
+          find "${PUB_CACHE:-$HOME/.pub-cache}" -path "*/cargokit/gradle/plugin.gradle" | while read -r f; do
+            if grep -q "project\.exec" "$f"; then
+              sed -i 's/project\.exec {/execOperations.exec {/g' "$f"
+              sed -i '/^import org.apache.tools.ant.taskdefs.condition.Os$/a import org.gradle.process.ExecOperations' "$f"
+              sed -i '/^import org.apache.tools.ant.taskdefs.condition.Os$/a import javax.inject.Inject' "$f"
+              sed -i '/^abstract class CargoKitBuildTask extends DefaultTask {$/a\    abstract ExecOperations getExecOperations()' "$f"
+              sed -i '/^abstract class CargoKitBuildTask extends DefaultTask {$/a\    @Inject' "$f"
+              echo "patched $f"
+            fi
+          done
+
       - name: Run iOS prebuild patches
         if: matrix.target == 'ios'
         run: bash scripts/build-ios.sh
