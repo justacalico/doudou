@@ -40,6 +40,7 @@ if [ -n "$MERGE_REQUEST_ID" ] && [ -z "$MERGE_REQUEST_URL" ]; then
 fi
 
 echo "Triggering GitHub workflow: $WORKFLOW @ $REF (build_all=$BUILD_ALL, create_release=$CREATE_RELEASE, merge_request_id=$MERGE_REQUEST_ID, merge_request_url=$MERGE_REQUEST_URL)"
+DISPATCH_EPOCH=$(( $(date +%s) - 10 ))
 gh workflow run "$WORKFLOW" -R "$REPO" --ref "$REF" \
   -f build_all="$BUILD_ALL" \
   -f create_release="$CREATE_RELEASE" \
@@ -51,7 +52,10 @@ RUN_ID=""
 for i in {1..30}; do
   sleep 5
   # Use the API directly so it works on older gh versions in the container.
-  RUN_ID=$(gh api "repos/justacalico/doudou/actions/runs?branch=$REF&event=workflow_dispatch&per_page=1" -q '.workflow_runs[0].id' 2>/dev/null || true)
+  # Skip runs created before this dispatch, an older run can still be in
+  # flight when another pipeline already dispatched one on the same branch.
+  RUN_ID=$(gh api "repos/justacalico/doudou/actions/runs?branch=$REF&event=workflow_dispatch&per_page=5" 2>/dev/null \
+    | jq -r "[.workflow_runs[] | select((.created_at | fromdateiso8601) >= $DISPATCH_EPOCH)][0].id // empty" || true)
   if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
     break
   fi
