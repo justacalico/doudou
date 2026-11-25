@@ -219,7 +219,7 @@ mixin _PlayerStateMixin on _PlayerControllerBase {
           currentSongIndex.value = currentQueue
               .indexWhere((element) => element.id == currentSong.value!.id);
         }
-        await _checkFav();
+        await checkFav();
         await _addToRP(currentSong.value!);
         // Pre-fetch radio continuation when approaching end of queue.
         // Skip while the queue is still a single seed track — pushSongToQueue /

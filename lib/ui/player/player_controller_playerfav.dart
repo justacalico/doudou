@@ -1,7 +1,7 @@
 part of 'player_controller.dart';
 
 mixin _PlayerFavMixin on _PlayerControllerBase {
-  Future<void> _checkFav() async {
+  Future<void> checkFav() async {
     final song = currentSong.value;
     if (song == null) {
       isCurrentSongFav.value = false;
@@ -11,22 +11,33 @@ mixin _PlayerFavMixin on _PlayerControllerBase {
     final settings = Get.find<SettingsScreenController>();
     final server = settings.activeServer;
     final isYouTube = server?.type == ServerType.youtubeMusic;
+    bool stillCurrent() => currentSong.value?.id == song.id;
 
     if (isYouTube) {
-      await pullLibraryBoxes({libFavBoxName(currentServerId())});
-      final favBox = await Hive.openBox(libFavBoxName(currentServerId()));
-      isCurrentSongFav.value = favBox.containsKey(song.id);
+      final boxName = libFavBoxName(currentServerId());
+      final favBox = await Hive.openBox(boxName);
+      if (stillCurrent()) {
+        isCurrentSongFav.value = favBox.containsKey(song.id);
+      }
+      await pullLibraryBoxes({boxName});
+      if (stillCurrent()) {
+        isCurrentSongFav.value = favBox.containsKey(song.id);
+      }
       return;
     }
 
     try {
       final favorites = await settings.currentBackend.getFavoriteSongs();
-      isCurrentSongFav.value =
-          favorites.any((e) => e['videoId']?.toString() == song.id);
+      if (stillCurrent()) {
+        isCurrentSongFav.value =
+            favorites.any((e) => e['videoId']?.toString() == song.id);
+      }
     } catch (e, st) {
       printWarning(
           '[RECOVERABLE][opId=player.syncCurrentSongFavorite.remote] Failed to fetch favorites for songId=${song.id}: $e\n$st');
-      isCurrentSongFav.value = false;
+      if (stillCurrent()) {
+        isCurrentSongFav.value = false;
+      }
     }
   }
 

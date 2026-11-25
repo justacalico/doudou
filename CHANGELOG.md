@@ -5,6 +5,7 @@ previously per-version files that lived under `changelog/`.
 
 ## 24.0.0
 
+- Fixed the favourite heart showing the wrong state right after a new queue starts. The current song favourite check now answers from the local favourites box first and re-checks after the server pull finishes, and a result that comes back after the song already changed is dropped instead of overwriting the new song's status.
 - Removed leftover Hallmark generator metadata: the `.hallmark` directory and its generated header comments in the landing page design tokens are gone.
 - Removed the star request from the Open GitLab row in App Info. The subtitle now just reads "View GitLab source code" in every locale, and the accent-coloured star icon that replaced the emoji is gone.
 - Fixed dialog content painting opaque boxes over the translucent modal background. The add-to-playlist track list, the theme and discover content selector options, and the playlist export option buttons no longer repaint the dialog surface, so the blurred background shows through evenly instead of a solid slab sitting on top of it.

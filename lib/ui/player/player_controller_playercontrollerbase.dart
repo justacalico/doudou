@@ -148,7 +148,7 @@ onInit();
   void toggleLoudnessNormalization(bool enable);
   Future<void> toggleLoopMode();
   Future<void> toggleQueueLoopMode({bool showMessage = true});
-  Future<void> _checkFav();
+  Future<void> checkFav();
   Future<void> toggleFavourite();
   Future<void> _addToRP(MediaItem mediaItem);
   void _parseSyncedLyrics(String raw);
